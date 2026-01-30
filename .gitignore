@@ -33,8 +33,7 @@ dist-ssr
 # Tool artifacts
 .playwright-mcp/
 
-# NOTE: .claude/, .clinerules, memory-bank/ are tracked in this template.
+# NOTE: .claude/ and SPEC.md are tracked in this template.
 # In your project, you may want to add them to .gitignore:
 #   .claude/
-#   .clinerules
-#   memory-bank/
+#   SPEC.md

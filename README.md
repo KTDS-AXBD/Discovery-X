@@ -1,7 +1,7 @@
 # Claude Project Template
 
-Claude Code + Cline을 위한 프로젝트 템플릿.
-Memory Bank 기반 컨텍스트 관리와 세션 워크플로우를 포함합니다.
+Claude Code 프로젝트 템플릿.
+SPEC.md 기반 SDD (Spec Driven Development) 워크플로우를 포함합니다.
 
 ## 사용법
 
@@ -25,21 +25,17 @@ rm -rf .git && git init
 - 코드 컨벤션
 - 배포 설정
 
-### 3. Memory Bank 초기 내용 작성
+### 3. SPEC.md 초기 내용 작성
 
-`memory-bank/` 디렉토리의 6개 파일에 프로젝트 초기 정보를 입력하세요:
-- `projectBrief.md` — 프로젝트 기초 정보
-- `productContext.md` — 제품 비전, 사용자 워크플로우
-- `systemPatterns.md` — 아키텍처, 코드 패턴
-- `techContext.md` — 기술 스택, 개발 환경
-- `activeContext.md` — 현재 작업 상태
-- `progress.md` — 구현 현황 체크리스트
+`SPEC.md`의 6개 섹션에 프로젝트 초기 정보를 입력하세요:
+- §1 Project Overview — 미션, 범위, 성공 기준, 대상 사용자
+- §2 Product Design — 핵심 워크플로우, UI 요소, 페이지 구성
+- §3 Architecture Patterns — 라우팅, 상태관리, 컴포넌트, 데이터 흐름
+- §4 Technical Constraints — 빌드 산출물, 제약사항
+- §5 Current Status — 현재 작업 상태 (매 세션 업데이트)
+- §6 Implementation Log — 완료 요약, 미래 작업
 
-### 4. .clinerules 프로젝트 컨벤션 추가
-
-`.clinerules`의 TODO 항목을 프로젝트에 맞게 채우세요.
-
-### 5. (선택) 워크플로우 플러그인 설치
+### 4. (선택) 워크플로우 플러그인 설치
 
 세션 관리 스킬 (`/session-start`, `/session-end`, `/deploy`)을 사용하려면:
 
@@ -52,16 +48,12 @@ claude plugin install /path/to/claude-project-workflow
 ```
 .claude/
 ├── settings.json         # 기본 권한 설정
-└── skills/               # 프로젝트별 스킬 (비어있음)
-memory-bank/
-├── projectBrief.md       # 프로젝트 기초
-├── productContext.md      # 제품 맥락
-├── systemPatterns.md      # 아키텍처 패턴
-├── techContext.md         # 기술 스택
-├── activeContext.md       # 현재 작업 상태
-└── progress.md            # 구현 현황
+└── skills/
+    ├── session-start/    # 세션 시작 스킬
+    ├── session-end/      # 세션 종료 스킬
+    └── deploy/           # 배포 스킬
+SPEC.md                    # 프로젝트 사양서 (SDD)
 CLAUDE.md                  # Claude Code 프로젝트 지침
-.clinerules                # Cline 규칙
 .gitignore                 # Git 무시 패턴
 ```
 
@@ -69,7 +61,7 @@ CLAUDE.md                  # Claude Code 프로젝트 지침
 
 ```
 세션 시작: /session-start [작업내용]
-  → Memory Bank에서 컨텍스트 복원
+  → SPEC.md에서 컨텍스트 복원
   → 현재 상태 요약 출력
 
 작업 수행
@@ -77,16 +69,8 @@ CLAUDE.md                  # Claude Code 프로젝트 지침
 
 세션 종료: /session-end [메모]
   → 코드 변경사항 커밋
-  → Memory Bank 업데이트
-  → Cline에서 이어받기 가능
+  → SPEC.md 업데이트
 
 배포: /deploy [--preview]
   → lint → build → git push → 자동 배포
-```
-
-## Claude Code ↔ Cline 연동
-
-```
-Claude Code: /session-end [메모] → Memory Bank 업데이트
-Cline: "follow your custom instructions" → 업데이트된 Memory Bank로 이어받기
 ```
