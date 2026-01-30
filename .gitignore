@@ -27,13 +27,14 @@ dist-ssr
 .env.local
 .env.*.local
 
-# Claude Code
-.claude/
+# Snapshots
 .snapshots/
-
-# Cline
-.clinerules
-memory-bank/
 
 # Tool artifacts
 .playwright-mcp/
+
+# NOTE: .claude/, .clinerules, memory-bank/ are tracked in this template.
+# In your project, you may want to add them to .gitignore:
+#   .claude/
+#   .clinerules
+#   memory-bank/
