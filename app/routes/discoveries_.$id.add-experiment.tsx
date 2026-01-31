@@ -55,7 +55,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     return redirect(`/discoveries/${id}`);
   }
 
-  return json({ user, discovery, currentCount });
+  return json({ user, discovery, currentCount, maxExperiments });
 }
 
 export async function action({ request, context, params }: ActionFunctionArgs) {
@@ -159,7 +159,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
 }
 
 export default function AddExperiment() {
-  const { user, discovery, currentCount } = useLoaderData<typeof loader>();
+  const { user, discovery, currentCount, maxExperiments } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
 
   // Calculate default deadline (today + 7 days)
@@ -175,7 +175,7 @@ export default function AddExperiment() {
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Experiment 추가</h1>
           <p className="mt-2 text-sm text-gray-600">
-            두 번째 실험을 등록합니다 (현재: {currentCount}/2)
+            실험을 등록합니다 (현재: {currentCount}/{maxExperiments})
           </p>
         </div>
 
