@@ -1,0 +1,299 @@
+import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { json, redirect } from "@remix-run/cloudflare";
+import { Link, useLoaderData } from "@remix-run/react";
+import { getDb } from "~/db";
+import { discoveries, experiments, evidence, users } from "~/db/schema";
+import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { MainNav } from "~/components/layout/MainNav";
+import { eq } from "drizzle-orm";
+import { DiscoveryStatus } from "~/db/schema";
+
+export async function loader({ request, context, params }: LoaderFunctionArgs) {
+  const db = getDb(context.cloudflare.env.DB);
+  const secret = getSessionSecret(context.cloudflare.env);
+  const user = await getUserFromSession(request, db, secret);
+
+  if (!user) {
+    return redirect("/login");
+  }
+
+  const { id } = params;
+  if (!id) {
+    throw new Response("Not Found", { status: 404 });
+  }
+
+  // Get discovery
+  const discovery = await db.query.discoveries.findFirst({
+    where: eq(discoveries.id, id),
+  });
+
+  if (!discovery) {
+    throw new Response("Not Found", { status: 404 });
+  }
+
+  // Get owner
+  const owner = discovery.ownerId
+    ? await db.query.users.findFirst({ where: eq(users.id, discovery.ownerId) })
+    : null;
+
+  // Get experiments
+  const discoveryExperiments = await db
+    .select()
+    .from(experiments)
+    .where(eq(experiments.discoveryId, id));
+
+  // Get evidence
+  const discoveryEvidence = await db
+    .select()
+    .from(evidence)
+    .where(eq(evidence.discoveryId, id));
+
+  // Get all users for Owner selection
+  const allUsers = await db.select().from(users);
+
+  return json({
+    user,
+    discovery,
+    owner,
+    experiments: discoveryExperiments,
+    evidence: discoveryEvidence,
+    allUsers,
+  });
+}
+
+const STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  [DiscoveryStatus.INBOX]: { label: "Inbox", color: "bg-blue-100 text-blue-800" },
+  [DiscoveryStatus.OPEN]: { label: "진행 중", color: "bg-yellow-100 text-yellow-800" },
+  [DiscoveryStatus.NEXT]: { label: "전진", color: "bg-green-100 text-green-800" },
+  [DiscoveryStatus.NOT_NOW]: { label: "보류", color: "bg-gray-100 text-gray-800" },
+  [DiscoveryStatus.DEAD_END]: { label: "중단", color: "bg-red-100 text-red-800" },
+  [DiscoveryStatus.EXTENSION_REQUESTED]: {
+    label: "연장 요청",
+    color: "bg-purple-100 text-purple-800",
+  },
+};
+
+export default function DiscoveryDetail() {
+  const { user, discovery, owner, experiments, evidence } = useLoaderData<typeof loader>();
+
+  const canPromoteToOpen = discovery.status === DiscoveryStatus.INBOX;
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <MainNav user={user} />
+
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center space-x-3">
+                <h1 className="text-2xl font-bold text-gray-900">{discovery.title}</h1>
+                <span
+                  className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${
+                    STATUS_LABELS[discovery.status]?.color || "bg-gray-100 text-gray-800"
+                  }`}
+                >
+                  {STATUS_LABELS[discovery.status]?.label || discovery.status}
+                </span>
+              </div>
+              <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
+                <span>Owner: {owner?.name || "미지정"}</span>
+                <span>생성: {new Date(discovery.createdAt).toLocaleDateString("ko-KR")}</span>
+                {discovery.dueDate && (
+                  <span className="text-red-600">
+                    마감: {new Date(discovery.dueDate).toLocaleDateString("ko-KR")}
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="flex space-x-3">
+              {canPromoteToOpen && (
+                <Link
+                  to={`/discoveries/${discovery.id}/promote`}
+                  className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+                >
+                  OPEN으로 승격
+                </Link>
+              )}
+              {discovery.status === DiscoveryStatus.OPEN && (
+                <>
+                  <Link
+                    to={`/discoveries/${discovery.id}/decide-next`}
+                    className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-700"
+                  >
+                    NEXT 결정
+                  </Link>
+                  <Link
+                    to={`/discoveries/${discovery.id}/decide-not-now`}
+                    className="rounded-md bg-gray-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-700"
+                  >
+                    NOT NOW 결정
+                  </Link>
+                  <Link
+                    to={`/discoveries/${discovery.id}/decide-dead-end`}
+                    className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700"
+                  >
+                    DEAD END 결정
+                  </Link>
+                </>
+              )}
+              <Link
+                to="/discoveries"
+                className="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+              >
+                목록으로
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Seed Information */}
+        <div className="mb-6 rounded-lg bg-white p-6 shadow">
+          <h2 className="text-lg font-semibold text-gray-900">Seed 정보</h2>
+          <div className="mt-4 space-y-4">
+            <div>
+              <dt className="text-sm font-medium text-gray-500">요약</dt>
+              <dd className="mt-1 text-sm text-gray-900">{discovery.seedSummary}</dd>
+            </div>
+            {discovery.seedLinks && discovery.seedLinks.length > 0 && (
+              <div>
+                <dt className="text-sm font-medium text-gray-500">참고 링크</dt>
+                <dd className="mt-1 space-y-1">
+                  {discovery.seedLinks.map((link, idx) => (
+                    <a
+                      key={idx}
+                      href={link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-sm text-blue-600 hover:text-blue-800"
+                    >
+                      {link}
+                    </a>
+                  ))}
+                </dd>
+              </div>
+            )}
+            <div>
+              <dt className="text-sm font-medium text-gray-500">출처 유형</dt>
+              <dd className="mt-1 text-sm text-gray-900">{discovery.sourceType}</dd>
+            </div>
+          </div>
+        </div>
+
+        {/* Experiments */}
+        <div className="mb-6 rounded-lg bg-white p-6 shadow">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Experiments ({experiments.length}/2)
+            </h2>
+            {discovery.status === DiscoveryStatus.OPEN && experiments.length < 2 && (
+              <Link
+                to={`/discoveries/${discovery.id}/add-experiment`}
+                className="rounded-md bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
+              >
+                실험 추가
+              </Link>
+            )}
+          </div>
+          {experiments.length === 0 ? (
+            <p className="mt-4 text-sm text-gray-500">
+              아직 실험이 없습니다.
+              {canPromoteToOpen && " OPEN으로 승격하면서 첫 실험을 등록하세요."}
+            </p>
+          ) : (
+            <div className="mt-4 space-y-4">
+              {experiments.map((exp) => (
+                <div key={exp.id} className="border-l-4 border-blue-500 pl-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-sm font-medium text-gray-900">가설: {exp.hypothesis}</h3>
+                      <p className="mt-1 text-sm text-gray-600">행동: {exp.minimalAction}</p>
+                      <p className="mt-1 text-sm text-gray-500">
+                        예상 근거: {exp.expectedEvidence}
+                      </p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        마감: {new Date(exp.deadline).toLocaleDateString("ko-KR")}
+                      </p>
+                    </div>
+                    {exp.completedAt && (
+                      <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-800">
+                        완료
+                      </span>
+                    )}
+                  </div>
+                  {exp.resultSummary && (
+                    <p className="mt-2 text-sm text-gray-700">결과: {exp.resultSummary}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Evidence */}
+        <div className="rounded-lg bg-white p-6 shadow">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Evidence ({evidence.length})
+            </h2>
+            {discovery.status !== DiscoveryStatus.INBOX && (
+              <Link
+                to={`/discoveries/${discovery.id}/add-evidence`}
+                className="rounded-md bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
+              >
+                근거 추가
+              </Link>
+            )}
+          </div>
+          {evidence.length === 0 ? (
+            <p className="mt-4 text-sm text-gray-500">아직 근거가 없습니다.</p>
+          ) : (
+            <div className="mt-4 space-y-3">
+              {evidence.map((ev) => (
+                <div
+                  key={ev.id}
+                  className={`rounded-md border p-3 ${
+                    ev.type === "ASSUMPTION" ? "border-yellow-300 bg-yellow-50" : "border-gray-200"
+                  }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xs font-semibold text-gray-500">{ev.type}</span>
+                        <span
+                          className={`rounded px-2 py-0.5 text-xs font-semibold ${
+                            ev.strength === "A"
+                              ? "bg-green-100 text-green-800"
+                              : ev.strength === "B"
+                                ? "bg-blue-100 text-blue-800"
+                                : ev.strength === "C"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {ev.strength}급
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm text-gray-900">{ev.content}</p>
+                      {ev.linkOrAttachment && (
+                        <a
+                          href={ev.linkOrAttachment}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-1 block text-xs text-blue-600 hover:text-blue-800"
+                        >
+                          {ev.linkOrAttachment}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

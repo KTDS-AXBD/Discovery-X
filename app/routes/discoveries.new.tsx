@@ -1,0 +1,210 @@
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { json, redirect } from "@remix-run/cloudflare";
+import { Form, useActionData, useLoaderData } from "@remix-run/react";
+import { getDb } from "~/db";
+import { discoveries } from "~/db/schema";
+import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { MainNav } from "~/components/layout/MainNav";
+import { CreateDiscoverySchema } from "~/lib/validation/discovery-rules";
+import { SourceType, DiscoveryStatus } from "~/db/schema";
+
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  const db = getDb(context.cloudflare.env.DB);
+  const secret = getSessionSecret(context.cloudflare.env);
+  const user = await getUserFromSession(request, db, secret);
+
+  if (!user) {
+    return redirect("/login");
+  }
+
+  return json({ user });
+}
+
+export async function action({ request, context }: ActionFunctionArgs) {
+  const db = getDb(context.cloudflare.env.DB);
+  const secret = getSessionSecret(context.cloudflare.env);
+  const user = await getUserFromSession(request, db, secret);
+
+  if (!user) {
+    return redirect("/login");
+  }
+
+  const formData = await request.formData();
+  const title = formData.get("title");
+  const seedSummary = formData.get("seedSummary");
+  const seedLinksRaw = formData.get("seedLinks");
+  const sourceType = formData.get("sourceType");
+
+  // Parse seed links (comma-separated)
+  const seedLinks = seedLinksRaw
+    ? String(seedLinksRaw)
+        .split(",")
+        .map((link) => link.trim())
+        .filter(Boolean)
+    : undefined;
+
+  // Validate input
+  try {
+    const validated = CreateDiscoverySchema.parse({
+      title,
+      seedSummary,
+      seedLinks,
+      sourceType,
+    });
+
+    // Create discovery
+    const discoveryId = crypto.randomUUID();
+    await db.insert(discoveries).values({
+      id: discoveryId,
+      title: validated.title,
+      seedSummary: validated.seedSummary,
+      seedLinks: validated.seedLinks || null,
+      sourceType: validated.sourceType,
+      status: DiscoveryStatus.INBOX,
+      ownerId: user.id, // Set creator as default owner
+    });
+
+    return redirect(`/discoveries/${discoveryId}`);
+  } catch (error: any) {
+    return json({ error: error.message || "입력값이 유효하지 않습니다" }, { status: 400 });
+  }
+}
+
+const SOURCE_TYPE_LABELS: Record<string, string> = {
+  [SourceType.ARTICLE]: "외부 아티클",
+  [SourceType.ISSUE]: "이슈/버그",
+  [SourceType.INTERNAL_PAIN]: "내부 Pain Point",
+  [SourceType.MEETING_NOTE]: "회의 노트",
+  [SourceType.OTHER]: "기타",
+};
+
+export default function NewDiscovery() {
+  const { user } = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <MainNav user={user} />
+
+      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">새 Discovery 만들기</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            Seed 정보를 입력하여 Discovery를 시작합니다 (상태: INBOX)
+          </p>
+        </div>
+
+        {actionData?.error && (
+          <div className="mb-6 rounded-md bg-red-50 p-4">
+            <p className="text-sm text-red-800">{actionData.error}</p>
+          </div>
+        )}
+
+        <Form method="post" className="space-y-6 bg-white p-6 shadow sm:rounded-lg">
+          {/* Title */}
+          <div>
+            <label
+              htmlFor="title"
+              className="block text-sm font-medium text-gray-700"
+            >
+              제목 <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="title"
+              id="title"
+              required
+              maxLength={80}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              placeholder="80자 이내"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Discovery를 한 줄로 표현합니다
+            </p>
+          </div>
+
+          {/* Seed Summary */}
+          <div>
+            <label
+              htmlFor="seedSummary"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Seed 요약 <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              name="seedSummary"
+              id="seedSummary"
+              required
+              maxLength={400}
+              rows={5}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              placeholder="400자 이내"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              관찰한 내용, 문제 정의, 기회 요약 등
+            </p>
+          </div>
+
+          {/* Source Type */}
+          <div>
+            <label
+              htmlFor="sourceType"
+              className="block text-sm font-medium text-gray-700"
+            >
+              출처 유형 <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="sourceType"
+              id="sourceType"
+              required
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            >
+              <option value="">선택하세요</option>
+              {Object.entries(SOURCE_TYPE_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Seed Links */}
+          <div>
+            <label
+              htmlFor="seedLinks"
+              className="block text-sm font-medium text-gray-700"
+            >
+              참고 링크 (선택)
+            </label>
+            <input
+              type="text"
+              name="seedLinks"
+              id="seedLinks"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              placeholder="https://example.com/article, https://..."
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              여러 링크는 쉼표(,)로 구분합니다
+            </p>
+          </div>
+
+          {/* Actions */}
+          <div className="flex justify-end space-x-3">
+            <a
+              href="/discoveries"
+              className="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+            >
+              취소
+            </a>
+            <button
+              type="submit"
+              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              생성하기
+            </button>
+          </div>
+        </Form>
+      </div>
+    </div>
+  );
+}

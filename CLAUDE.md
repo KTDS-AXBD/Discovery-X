@@ -45,19 +45,48 @@ INBOX → OPEN → {NEXT | NOT_NOW | DEAD_END}
   - DEAD_END: Failure Pattern 태깅
   - NEXT: 근거(Evidence) A/B급 최소 2개 권장
 
-## 개발 방향 (PRD §8 참고)
+## 기술 스택
 
-### 권장 구현 방식
-**Confluence DB + 얇은 자동화** (Prototype 적합)
-- 저장소: Confluence Database
-- 뷰: Weekly Review / Recall Queue
-- 자동화: TTL 리마인드, Revisit 알림, 통계 Export
+- **Runtime**: Cloudflare Pages (Edge)
+- **Framework**: Remix v2 (Vite)
+- **DB**: Cloudflare D1 (SQLite) + Drizzle ORM
+- **UI**: React 19 + Tailwind CSS 3
+- **Language**: TypeScript (strict)
+- **Package Manager**: pnpm
 
-### 대안 (필요 시)
-**Lightweight Web App**
-- Frontend: Next.js/React
-- Backend: FastAPI/NestJS + PostgreSQL
-- Search: 기본 텍스트 검색 + (선택) 임베딩 기반 유사도
+## 버전 관리 원칙
+
+### 브랜치 전략
+- **`master` 단일 브랜치**로 운영 (Prototype 기간 동안)
+- 모든 커밋은 `master`에 직접 push
+
+### 커밋 컨벤션
+[Conventional Commits](https://www.conventionalcommits.org/) 준수:
+
+```
+<type>: <description>
+
+[optional body]
+```
+
+| type | 용도 |
+|------|------|
+| `feat` | 새 기능 추가 |
+| `fix` | 버그 수정 |
+| `docs` | 문서 변경 |
+| `refactor` | 동작 변경 없는 코드 개선 |
+| `style` | 포매팅, 세미콜론 등 |
+| `chore` | 빌드, 설정, 의존성 등 |
+
+### 버전 태깅
+- Phase 완료 시 태그 부여: `v0.1.0` (Phase 1), `v0.2.0` (Phase 2), `v0.3.0` (Phase 3)
+- Phase 내 주요 마일스톤은 patch 버전: `v0.1.1`, `v0.1.2`, ...
+- Prototype 종료(30-60일 Gate) 시: `v1.0.0`
+
+### 배포
+- `master` push → 수동 배포 (`pnpm deploy`)
+- 프리뷰: `/deploy --preview`
+- 프로덕션: `/deploy`
 
 ## 운영 실험 파라미터 (절대 변경 금지)
 
