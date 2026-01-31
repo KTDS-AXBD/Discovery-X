@@ -143,7 +143,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
         where: eq(users.id, discovery.reviewerId!),
       });
       if (reviewerUser) {
-        const env = context.cloudflare.env as Record<string, string>;
+        const env = context.cloudflare.env as unknown as Record<string, string>;
         if (env.RESEND_API_KEY) {
           const emailClient = createEmailClient(env.RESEND_API_KEY);
           const email = buildApprovalRequestEmail({

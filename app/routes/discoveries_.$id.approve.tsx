@@ -7,7 +7,7 @@ import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server"
 import { MainNav } from "~/components/layout/MainNav";
 import { eq } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
-import { DiscoveryValidationRules, ApprovalDecisionSchema } from "~/lib/validation/discovery-rules";
+import { ApprovalDecisionSchema } from "~/lib/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
 import { createEmailClient } from "~/lib/notifications/email";
 import { buildApprovalResultEmail } from "~/lib/notifications/templates";
@@ -197,7 +197,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
           where: eq(users.id, discovery.ownerId),
         });
         if (ownerUser) {
-          const env = context.cloudflare.env as Record<string, string>;
+          const env = context.cloudflare.env as unknown as Record<string, string>;
           if (env.RESEND_API_KEY) {
             const emailClient = createEmailClient(env.RESEND_API_KEY);
             const email = buildApprovalResultEmail({
@@ -223,8 +223,9 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
 }
 
 export default function ApproveDecision() {
-  const { user, discovery, ownerName, pendingDecision, pendingDecisionData } =
-    useLoaderData<typeof loader>();
+  const loaderData = useLoaderData<typeof loader>();
+  const { user, discovery, ownerName, pendingDecision } = loaderData;
+  const pendingDecisionData = loaderData.pendingDecisionData as Record<string, string | string[] | null | undefined> | null;
   const actionData = useActionData<typeof action>();
 
   const decisionLabel = DECISION_LABELS[pendingDecision || ""] || pendingDecision;
