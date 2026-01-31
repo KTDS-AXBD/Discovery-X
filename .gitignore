@@ -4,3 +4,9 @@ build
 .env
 *.local
 nul
+
+# Claude Code local settings
+.claude/settings.local.json
+.claude/skills/.claude/
+.claude/skills/.playwright-mcp/
+.claude/skills/sync/

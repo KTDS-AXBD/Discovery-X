@@ -6,7 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Discovery-X는 AX 신사업을 위한 내부 실험 중심 사고 시스템입니다. 관찰을 행동으로 전환하고, 행동을 근거 있는 문서로 남기며, 실패를 조직 자산으로 축적하는 것을 목표로 합니다.
 
-**현재 상태**: P0 핵심 기능 구현 완료, 운영 실험 준비 단계
+**현재 상태**: 🚀 운영 실험 진행 중 (2026-01-31~)
+**프로덕션 URL**: https://dx.minu.best (커스텀 도메인) / https://discovery-x.pages.dev
 
 ## 프로젝트 문서 구조
 
@@ -133,6 +134,7 @@ app/
 - `master` push → 수동 배포 (`pnpm deploy`)
 - 프리뷰: `/deploy --preview`
 - 프로덕션: `/deploy`
+- 프로덕션 URL: https://dx.minu.best (커스텀 도메인)
 
 ## 운영 실험 파라미터 (절대 변경 금지)
 
@@ -156,8 +158,10 @@ PRD §3 참고. 핵심: 30-60일, 최대 5명, Discovery 5-10건 목표.
 6. Weekly Review / Recall Queue 뷰
 7. 최소 지표 집계/Export
 
-### 남은 P0 항목 (2026-01-31 기준)
-- EXTENSION_REQUESTED 워크플로우 (상태값 + validation 존재, 전환 UI 미구현)
+### P0 구현 상태 (2026-01-31 기준)
+- ✅ P0 전 항목 구현 완료 (EXTENSION_REQUESTED 포함)
+- ✅ 테스트 129개 통과 (Vitest unit/integration + Playwright e2e)
+- ✅ 프로덕션 배포 완료 (dx.minu.best)
 
 ## 설계 원칙 (v1.4 §5)
 
