@@ -13,7 +13,7 @@ export function createEmailClient(apiKey: string) {
     async send(options: EmailOptions): Promise<{ success: boolean; error?: string }> {
       try {
         const { error } = await resend.emails.send({
-          from: "Discovery-X <noreply@discovery-x.ax-bd.com>",
+          from: "Discovery-X <noreply@ideaonaction.ai>",
           to: options.to,
           subject: options.subject,
           html: options.html,
