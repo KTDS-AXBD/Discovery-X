@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Discovery-X는 AX 신사업을 위한 내부 실험 중심 사고 시스템입니다. 관찰을 행동으로 전환하고, 행동을 근거 있는 문서로 남기며, 실패를 조직 자산으로 축적하는 것을 목표로 합니다.
 
-**현재 상태**: 🚀 운영 실험 진행 중 (2026-01-31~)
+**현재 상태**: 🚀 v2 AI Agent 재설계 진행 중 (2026-02-01~)
 **프로덕션 URL**: https://dx.minu.best (커스텀 도메인) / https://discovery-x.pages.dev
 
 ## 프로젝트 문서 구조
@@ -68,35 +68,54 @@ pnpm deploy           # 빌드 + Cloudflare Pages 배포
 - **Language**: TypeScript (strict)
 - **Package Manager**: pnpm
 - **Lint**: ESLint 9 (flat config) + typescript-eslint + react-hooks
+- **AI (Chat)**: Claude API (tool_use, SSE 스트리밍)
+- **AI (Radar)**: OpenAI gpt-4o-mini (수집 스코어링)
 
 ## 디렉토리 구조
 
 ```
 app/
 ├── root.tsx              # Remix root layout
-├── routes/               # Remix v2 flat routes (파일명 = URL)
-│   ├── _index.tsx        # / (홈/로그인 분기)
-│   ├── discoveries._index.tsx  # /discoveries (목록)
-│   ├── discoveries_.$id.tsx     # /discoveries/:id (상세)
-│   ├── discoveries_.$id.edit.tsx
-│   ├── discoveries_.$id.promote.tsx
-│   ├── discoveries_.$id.add-experiment.tsx
-│   ├── discoveries_.$id.add-evidence.tsx
-│   ├── discoveries_.$id.decide-*.tsx  # 상태 전환 (next/not-now/dead-end)
-│   ├── review.tsx        # Weekly Review 뷰
-│   ├── recall.tsx        # Recall Queue 뷰
-│   ├── metrics.tsx       # 지표 대시보드
+├── routes/
+│   ├── _index.tsx        # / (채팅 인터페이스 — 메인)
+│   ├── dashboard.tsx     # /dashboard (대시보드 레이아웃)
+│   ├── dashboard._index.tsx   # /dashboard (파이프라인 칸반)
+│   ├── dashboard.metrics.tsx  # /dashboard/metrics (지표)
+│   ├── settings.tsx      # /settings (Agent 설정)
+│   ├── discoveries.*     # /discoveries (폴백 폼 라우트)
+│   ├── review.tsx        # Weekly Review (폴백)
+│   ├── recall.tsx        # Recall Queue (폴백)
+│   ├── metrics.tsx       # Metrics (폴백)
+│   ├── radar.tsx         # Radar UI
+│   ├── api.chat.ts       # SSE 스트리밍 채팅 엔드포인트
+│   ├── api.conversations.ts       # 대화 CRUD
+│   ├── api.cron.daily.ts          # 일일 cron (자동 종료)
+│   ├── api.cron.agent-review.ts   # Agent 자율 리뷰
 │   └── api.export.*.ts   # JSON export 엔드포인트
 ├── db/
-│   ├── schema.ts         # Drizzle 스키마 (discoveries, experiments, evidence, eventLog)
+│   ├── schema.ts         # Drizzle 스키마 (12개 테이블)
 │   ├── index.ts          # DB 헬퍼 (getDb)
 │   └── seed.ts           # 시드 데이터
 ├── lib/
+│   ├── agent/            # AI Agent 코어
+│   │   ├── executor.ts       # 메인 Agent 루프
+│   │   ├── claude-client.ts  # Claude API (SSE 스트리밍)
+│   │   ├── system-prompt.ts  # 시스템 프롬프트 빌더
+│   │   ├── context-builder.ts # 대화 컨텍스트 구성
+│   │   ├── tool-registry.ts  # 도구 정의 (JSON 스키마)
+│   │   └── tools/            # 도구 실행 함수
+│   │       ├── discovery-tools.ts  # Discovery CRUD + 상태 전환
+│   │       └── query-tools.ts      # 조회/검색/지표/Radar
 │   ├── auth/             # 인증 (쿠키 기반 간이 인증)
 │   ├── constants/        # 상수 (상태값, 타입 등)
 │   └── validation/       # Zod 스키마 + 비즈니스 규칙
-├── components/           # 공용 UI 컴포넌트
-└── styles/               # Tailwind CSS
+├── components/
+│   ├── chat/             # 채팅 UI 컴포넌트
+│   ├── dashboard/        # 대시보드 컴포넌트
+│   ├── layout/           # 레이아웃 (MainNav, PageLayout)
+│   ├── ui/               # Axis 디자인 토큰 기반 컴포넌트
+│   └── charts/           # 차트 (StatusDonut, WeeklyBar)
+└── styles/               # Tailwind CSS + Axis 토큰
 ```
 
 **경로 별칭**: `~/*` → `./app/*` (tsconfig paths)
@@ -162,6 +181,46 @@ PRD §3 참고. 핵심: 30-60일, 최대 5명, Discovery 5-10건 목표.
 - ✅ P0 전 항목 구현 완료 (EXTENSION_REQUESTED 포함)
 - ✅ 테스트 129개 통과 (Vitest unit/integration + Playwright e2e)
 - ✅ 프로덕션 배포 완료 (dx.minu.best)
+
+### v2 Agent 시스템 (2026-02-01~)
+- ✅ Agent 코어: executor, claude-client, system-prompt, context-builder, tool-registry
+- ✅ Agent 도구 15개: Discovery CRUD + 상태 전환 + 조회/검색/Radar
+- ✅ 채팅 UI: ConversationList, ChatPanel, MessageBubble, ToolExecution
+- ✅ 대시보드: Pipeline 칸반, Metrics
+- ✅ Agent 설정: 자율도 레벨, 토큰 예산
+- ✅ 자율 리뷰: api.cron.agent-review.ts
+- ✅ DB 테이블 3개 추가: conversations, messages, agent_config
+
+### Agent 아키텍처
+```
+사용자 메시지 → /api/chat (POST) → executor.ts → Claude API (tool_use)
+                                         ↓
+                                    도구 실행 (discovery-tools/query-tools)
+                                         ↓
+                                    결과 저장 (messages 테이블)
+                                         ↓
+                                    SSE 스트리밍 응답 → 채팅 UI
+```
+
+### Agent 도구 목록
+| 도구 | 용도 |
+|------|------|
+| create_discovery | Discovery 생성 (INBOX) |
+| promote_discovery | INBOX→OPEN 승격 |
+| add_experiment | 실험 추가 |
+| complete_experiment | 실험 완료 |
+| add_evidence | 근거 추가 |
+| decide_next/not_now/dead_end | 상태 전환 결정 |
+| request_extension | 연장 요청 |
+| list_discoveries | 목록 조회 |
+| get_discovery_detail | 상세 조회 |
+| search_similar | FTS5 유사 검색 |
+| get_metrics | 지표 조회 |
+| get_radar_items | Radar 아이템 조회 |
+| list_users | 사용자 목록 |
+
+### 환경 변수 (v2 추가)
+- `ANTHROPIC_API_KEY`: Claude API 키 (wrangler secret put ANTHROPIC_API_KEY)
 
 ## 설계 원칙 (v1.4 §5)
 

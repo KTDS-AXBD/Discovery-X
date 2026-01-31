@@ -1,0 +1,170 @@
+/**
+ * /settings — Agent configuration page.
+ */
+
+import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/cloudflare";
+import { json, redirect } from "@remix-run/cloudflare";
+import { Form, useLoaderData, useActionData } from "@remix-run/react";
+import { getDb } from "~/db";
+import { agentConfig } from "~/db/schema";
+import { eq } from "drizzle-orm";
+import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { PageLayout } from "~/components/layout/PageLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
+import { Button } from "~/components/ui/Button";
+import { Input } from "~/components/ui/Input";
+import { Textarea } from "~/components/ui/Textarea";
+import { FormField } from "~/components/ui/FormField";
+import { Select } from "~/components/ui/Select";
+import { AlertBanner } from "~/components/ui/AlertBanner";
+import { Badge } from "~/components/ui/Badge";
+
+const AUTONOMY_OPTIONS = [
+  { value: "0", label: "Passive — 응답만" },
+  { value: "1", label: "Advisory — 분석+제안만" },
+  { value: "2", label: "Semi-auto — INBOX→OPEN 자동" },
+  { value: "3", label: "Autonomous — 전체 자율" },
+];
+
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  const db = getDb(context.cloudflare.env.DB);
+  const secret = getSessionSecret(context.cloudflare.env);
+  const user = await getUserFromSession(request, db, secret);
+
+  if (!user) return redirect("/login");
+
+  const config = await db
+    .select()
+    .from(agentConfig)
+    .where(eq(agentConfig.id, "default"))
+    .limit(1);
+
+  return json({
+    user,
+    config: config[0] || {
+      id: "default",
+      autonomyLevel: 3,
+      dailyTokenBudget: 100000,
+      tokensUsedToday: 0,
+      systemPrompt: null,
+    },
+  });
+}
+
+export async function action({ request, context }: ActionFunctionArgs) {
+  const db = getDb(context.cloudflare.env.DB);
+  const secret = getSessionSecret(context.cloudflare.env);
+  const user = await getUserFromSession(request, db, secret);
+
+  if (!user) return redirect("/login");
+
+  const formData = await request.formData();
+  const autonomyLevel = parseInt(formData.get("autonomyLevel") as string, 10);
+  const dailyTokenBudget = parseInt(formData.get("dailyTokenBudget") as string, 10);
+  const systemPrompt = (formData.get("systemPrompt") as string) || null;
+
+  await db
+    .update(agentConfig)
+    .set({
+      autonomyLevel: isNaN(autonomyLevel) ? 3 : autonomyLevel,
+      dailyTokenBudget: isNaN(dailyTokenBudget) ? 100000 : dailyTokenBudget,
+      systemPrompt,
+      updatedAt: new Date(),
+    })
+    .where(eq(agentConfig.id, "default"));
+
+  return json({ success: true });
+}
+
+export default function Settings() {
+  const { user, config } = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
+
+  return (
+    <PageLayout user={user}>
+      <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">Agent Settings</h1>
+      <p className="mt-1 text-sm text-[var(--axis-text-secondary)]">
+        AI Agent의 자율도와 토큰 예산을 설정합니다.
+      </p>
+
+      {actionData && "success" in actionData && (
+        <AlertBanner variant="success" className="mt-4">
+          설정이 저장되었습니다.
+        </AlertBanner>
+      )}
+
+      <Form method="post" className="mt-6 space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">자율도 레벨</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FormField label="자율도">
+              <Select name="autonomyLevel" defaultValue={String(config.autonomyLevel)}>
+                {AUTONOMY_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </Select>
+            </FormField>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">토큰 예산</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FormField label="일일 토큰 예산" hint="하루에 사용할 수 있는 최대 토큰 수">
+              <Input
+                name="dailyTokenBudget"
+                type="number"
+                defaultValue={config.dailyTokenBudget}
+                min={1000}
+                max={1000000}
+              />
+            </FormField>
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-xs text-[var(--axis-text-tertiary)]">
+                오늘 사용: {(config.tokensUsedToday || 0).toLocaleString()}
+              </span>
+              <Badge
+                variant={
+                  config.tokensUsedToday > config.dailyTokenBudget * 0.8
+                    ? "destructive"
+                    : "success"
+                }
+              >
+                {config.dailyTokenBudget > 0
+                  ? Math.round(((config.tokensUsedToday || 0) / config.dailyTokenBudget) * 100)
+                  : 0}
+                %
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">커스텀 시스템 프롬프트</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FormField label="추가 지침" hint="Agent의 기본 시스템 프롬프트에 추가될 커스텀 지침">
+              <Textarea
+                name="systemPrompt"
+                defaultValue={config.systemPrompt || ""}
+                rows={5}
+                placeholder="예: 모든 Discovery에 대해 한국어로만 소통하세요..."
+              />
+            </FormField>
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-end">
+          <Button type="submit">설정 저장</Button>
+        </div>
+      </Form>
+    </PageLayout>
+  );
+}

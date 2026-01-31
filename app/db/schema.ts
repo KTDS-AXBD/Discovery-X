@@ -122,6 +122,9 @@ export const discoveries = sqliteTable(
     approvedAt: integer("approved_at", { mode: "timestamp" }),
     approvedBy: text("approved_by").references(() => users.id),
     rejectedAt: integer("rejected_at", { mode: "timestamp" }),
+
+    // Agent tracking
+    createdByAgent: integer("created_by_agent").notNull().default(0),
   },
   (table) => ({
     statusIdx: index("idx_discoveries_status").on(table.status),
@@ -291,6 +294,83 @@ export const radarRuns = sqliteTable(
 );
 
 // ============================================================================
+// AGENT TABLES
+// ============================================================================
+
+export const AgentAutonomyLevel = {
+  PASSIVE: 0,
+  ADVISORY: 1,
+  SEMI_AUTO: 2,
+  AUTONOMOUS: 3,
+} as const;
+
+export const MessageRole = {
+  USER: "user",
+  ASSISTANT: "assistant",
+  TOOL_USE: "tool_use",
+  TOOL_RESULT: "tool_result",
+} as const;
+
+export const conversations = sqliteTable(
+  "conversations",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    title: text("title"),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    userIdIdx: index("idx_conversations_user_id").on(table.userId),
+    updatedAtIdx: index("idx_conversations_updated_at").on(table.updatedAt),
+  })
+);
+
+export const messages = sqliteTable(
+  "messages",
+  {
+    id: text("id").primaryKey(),
+    conversationId: text("conversation_id")
+      .notNull()
+      .references(() => conversations.id, { onDelete: "cascade" }),
+    role: text("role").notNull(), // user | assistant | tool_use | tool_result
+    content: text("content").notNull(),
+    toolName: text("tool_name"), // for tool_use/tool_result messages
+    toolInput: text("tool_input", { mode: "json" }).$type<Record<string, unknown>>(),
+    toolResult: text("tool_result", { mode: "json" }).$type<Record<string, unknown>>(),
+    discoveryId: text("discovery_id").references(() => discoveries.id), // link message to discovery if relevant
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    conversationIdIdx: index("idx_messages_conversation_id").on(table.conversationId),
+    createdAtIdx: index("idx_messages_created_at").on(table.createdAt),
+  })
+);
+
+export const agentConfig = sqliteTable("agent_config", {
+  id: text("id").primaryKey(),
+  systemPrompt: text("system_prompt"),
+  autonomyLevel: integer("autonomy_level").notNull().default(AgentAutonomyLevel.AUTONOMOUS),
+  dailyTokenBudget: integer("daily_token_budget").notNull().default(100000),
+  tokensUsedToday: integer("tokens_used_today").notNull().default(0),
+  tokenResetDate: text("token_reset_date"), // YYYY-MM-DD
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// ============================================================================
 // TYPES
 // ============================================================================
 
@@ -320,3 +400,12 @@ export type NewRadarItem = typeof radarItems.$inferInsert;
 
 export type RadarRun = typeof radarRuns.$inferSelect;
 export type NewRadarRun = typeof radarRuns.$inferInsert;
+
+export type Conversation = typeof conversations.$inferSelect;
+export type NewConversation = typeof conversations.$inferInsert;
+
+export type Message = typeof messages.$inferSelect;
+export type NewMessage = typeof messages.$inferInsert;
+
+export type AgentConfig = typeof agentConfig.$inferSelect;
+export type NewAgentConfig = typeof agentConfig.$inferInsert;

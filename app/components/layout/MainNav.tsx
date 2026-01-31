@@ -27,50 +27,21 @@ export function MainNav({ user }: MainNavProps) {
   const recallBadge = notifications?.recallDue || 0;
   const approvalBadge = notifications?.pendingApproval || 0;
 
+  const totalAlerts = reviewBadge + recallBadge + approvalBadge;
+
   const navLinks = (
     <>
       <Link
-        to="/discoveries"
+        to="/dashboard"
         className="inline-flex items-center gap-1 border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-[var(--axis-text-tertiary)] hover:border-[var(--axis-border-secondary)] hover:text-[var(--axis-text-primary)]"
         onClick={() => setMobileMenuOpen(false)}
       >
-        Discoveries
-        {approvalBadge > 0 && (
-          <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[var(--axis-button-purple-bg-default)] px-1.5 text-xs font-bold text-white">
-            {approvalBadge}
-          </span>
-        )}
-      </Link>
-      <Link
-        to="/review"
-        className="inline-flex items-center gap-1 border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-[var(--axis-text-tertiary)] hover:border-[var(--axis-border-secondary)] hover:text-[var(--axis-text-primary)]"
-        onClick={() => setMobileMenuOpen(false)}
-      >
-        Weekly Review
-        {reviewBadge > 0 && (
+        Dashboard
+        {totalAlerts > 0 && (
           <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[var(--axis-button-destructive-bg-default)] px-1.5 text-xs font-bold text-white">
-            {reviewBadge}
+            {totalAlerts}
           </span>
         )}
-      </Link>
-      <Link
-        to="/recall"
-        className="inline-flex items-center gap-1 border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-[var(--axis-text-tertiary)] hover:border-[var(--axis-border-secondary)] hover:text-[var(--axis-text-primary)]"
-        onClick={() => setMobileMenuOpen(false)}
-      >
-        Recall Queue
-        {recallBadge > 0 && (
-          <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[var(--axis-button-bg-default)] px-1.5 text-xs font-bold text-white">
-            {recallBadge}
-          </span>
-        )}
-      </Link>
-      <Link
-        to="/metrics"
-        className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-[var(--axis-text-tertiary)] hover:border-[var(--axis-border-secondary)] hover:text-[var(--axis-text-primary)]"
-        onClick={() => setMobileMenuOpen(false)}
-      >
-        Metrics
       </Link>
       <Link
         to="/radar"
@@ -78,6 +49,13 @@ export function MainNav({ user }: MainNavProps) {
         onClick={() => setMobileMenuOpen(false)}
       >
         Radar
+      </Link>
+      <Link
+        to="/settings"
+        className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-[var(--axis-text-tertiary)] hover:border-[var(--axis-border-secondary)] hover:text-[var(--axis-text-primary)]"
+        onClick={() => setMobileMenuOpen(false)}
+      >
+        Settings
       </Link>
     </>
   );
