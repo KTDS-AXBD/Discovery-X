@@ -140,6 +140,39 @@ export function buildDueSoonEmail(discoveries: ExpiringDiscovery[]): { subject: 
   };
 }
 
+export interface AutoClosedDiscovery {
+  id: string;
+  title: string;
+  ownerName: string;
+  daysOverdue: number;
+}
+
+export function buildAutoClosedEmail(items: AutoClosedDiscovery[]): { subject: string; html: string } {
+  const cards = items
+    .map(
+      (d) => `
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <strong>${d.title}</strong>
+        <span class="badge badge-red">자동 종료</span>
+      </div>
+      <p style="margin: 4px 0; font-size: 14px; color: #6b7280;">Owner: ${d.ownerName} | ${d.daysOverdue}일 기한 초과</p>
+      <a href="${BASE_URL}/discoveries/${d.id}" class="btn" style="color: white;">확인하기</a>
+    </div>`
+    )
+    .join("");
+
+  return {
+    subject: `[Discovery-X] 자동 종료 ${items.length}건 — 기한 초과 DEAD END`,
+    html: layout(`
+      <h2 style="color: #991b1b;">기한 초과 자동 종료</h2>
+      <p>아래 Discovery가 기한 초과로 자동 DEAD END 처리되었습니다. 실패 패턴은 <strong>시간 제약</strong>으로 기록되었습니다.</p>
+      ${cards}
+      <p><a href="${BASE_URL}/review" class="btn" style="color: white;">Weekly Review 열기</a></p>
+    `),
+  };
+}
+
 export interface ApprovalRequestData {
   discoveryId: string;
   discoveryTitle: string;

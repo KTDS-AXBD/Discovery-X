@@ -54,6 +54,11 @@ export const FAILURE_PATTERNS = [
     label: "의존성 실패",
     description: "다른 시스템/팀/외부 파트너가 막혀 진행 불가",
   },
+  {
+    id: "time_constraint",
+    label: "시간 제약",
+    description: "기한 내 결정하지 못해 자동 종료됨",
+  },
 ] as const;
 
 export type FailurePatternId = (typeof FAILURE_PATTERNS)[number]["id"];
