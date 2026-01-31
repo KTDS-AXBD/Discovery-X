@@ -191,9 +191,9 @@ Validation:
 > **이 섹션은 매 세션마다 업데이트한다.**
 
 ### 현재 단계
-**PRD P0 전체 구현 완료 + UX 개선 + 프로덕션 배포 완료 + 운영 준비 문서 작성 완료**
+**P0 완료 + P1/Phase 3~4 병렬 구현 완료 — 운영 실험 시작 준비 완료**
 
-Phase 1~4(PRD 기준) 전 항목 구현 완료. EXTENSION_REQUESTED 워크플로우, Overdue 경고, 모바일 반응형, 알림 배지, 차트 등 포함. 운영 실험 시작 준비 단계.
+P0 전 항목 + Export 확장(CSV/JSON/Brief) + 이메일 알림(Resend/Cron) + 코드 품질(ESLint 클린) + 운영 문서 5종 완성. 배포 후 30-60일 운영 실험 시작 가능.
 
 ### PRD P0 구현 상태
 
@@ -215,32 +215,32 @@ Phase 1~4(PRD 기준) 전 항목 구현 완료. EXTENSION_REQUESTED 워크플로
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
 ### 최근 변경 (2026-01-31 세션 14)
-**코드 품질 + 모바일 폼 + 운영 문서 + 배포 준비**:
+**4개 병렬 스트림으로 P1/Phase 3~4 작업 일괄 구현**:
 
-**코드 품질 (ESLint 경고 제거)**:
-- ✅ Unused imports 제거 (`discovery-rules.ts`, `_index.tsx`, `add-evidence.tsx`)
-- ✅ `catch (error: any)` → `catch (error: unknown)` + `instanceof Error` (8개 라우트)
-- ✅ `getFormErrorMessage` 유틸리티로 에러 처리 통합 (`app/lib/utils/form-error.ts`)
-- ✅ Unused parameter 수정 (`login.tsx` request → _request)
-- ✅ Dead code 제거 (`validateNextDecision` 미사용 쿼리)
-- ✅ `pnpm lint` 경고 0개, 에러 0개
+**Stream 1: 코드 품질**:
+- ✅ `catch (error: any)` → `catch (error: unknown)` + `getFormErrorMessage` 유틸 (10개 라우트)
+- ✅ `app/lib/utils/form-error.ts` 공통 에러 핸들링 유틸 생성
+- ✅ ESLint config에서 route 파일 예외 규칙 제거 (no-explicit-any/no-unused-vars)
+- ✅ Unused imports/parameters/dead code 제거
+- ✅ `pnpm lint` 경고 0개, 에러 0개 (클린)
 
-**폼 페이지 모바일 반응형 (10개 파일)**:
-- ✅ 컨테이너 `max-w-2xl mx-auto px-4` 통일 (모바일 패딩 보장)
-- ✅ 버튼 그룹 `flex-col gap-2 sm:flex-row sm:gap-3` (모바일 세로 스택)
-- ✅ 메타데이터 행 모바일 스택 처리 (promote, decide-next, request-extension)
+**Stream 2: 운영 문서 (한국어)**:
+- ✅ `docs/USER_CHEAT_SHEET.md` — 1페이지 사용자 치트시트
+- ✅ `docs/OPERATIONAL_RUNBOOK.md` — 주간/월간 운영 런북 (Weekly Review + Monthly Failure Replay)
+- ✅ `docs/KICKOFF_TEMPLATE.md` — 35분 킥오프 프레젠테이션 템플릿
 
-**추가 기능 (이전 세션 미커밋 분 포함)**:
-- ✅ 이메일 알림 시스템 (Resend 연동, `app/lib/notifications/`)
-- ✅ Daily cron 엔드포인트 (`/api/cron/daily` — overdue/review 알림)
-- ✅ 1-pager Brief 내보내기 (`/api/export/brief/:id`)
-- ✅ JSON export 엔드포인트 (`/api/export/discoveries-json`)
-- ✅ Discovery 상세에 Brief 다운로드 버튼
+**Stream 3: Export 확장 + Brief 생성**:
+- ✅ CSV Export에 실험 1~3 상세 + 근거 목록 컬럼 추가
+- ✅ JSON Export 신규 (`/api/export/discoveries-json`) — 전체 Discovery 중첩 데이터
+- ✅ 1-page Brief 다운로드 (`/api/export/brief/:id`) — Markdown 형식
+- ✅ Discovery 상세에 "Brief 다운로드" 버튼 추가
 
-**운영 준비 문서**:
-- ✅ `docs/qa-checklist.md` — 80+ 수동 테스트 항목, 4개 E2E 시나리오
-- ✅ `docs/user-guide.md` — 시스템 개요, 핵심 워크플로우, 상태 전환, FAQ
-- ✅ `docs/KICKOFF_TEMPLATE.md`, `docs/OPERATIONAL_RUNBOOK.md`, `docs/USER_CHEAT_SHEET.md`
+**Stream 4: 이메일 알림 + Cron 자동화**:
+- ✅ Resend 이메일 클라이언트 (`app/lib/notifications/email.ts`)
+- ✅ 3종 HTML 이메일 템플릿 — 기한 초과, 마감 임박(3일), 재검토 도래
+- ✅ Daily cron 핸들러 (`/api/cron/daily`) — 수동 트리거 + cron 지원
+- ✅ `wrangler.toml`에 cron trigger + secrets 문서 추가
+- ✅ `resend@6.9.1` 패키지 추가
 
 ### 이전 변경 (2026-01-31 세션 13)
 **차트/모바일 반응형 포함 전체 배포 완료**:
@@ -331,12 +331,11 @@ Phase 1~4(PRD 기준) 전 항목 구현 완료. EXTENSION_REQUESTED 워크플로
 - **브랜치 전략**: master 단일 브랜치 (Prototype 기간)
 - **배포**: Cloudflare Pages Git 연동 (master push → 자동 빌드/배포)
 - **EXTENSION_REQUESTED**: ✅ 구현 완료 (OPEN + 실험 2개 → 연장 요청 → +14일, 3번째 실험 가능)
-- **다음 단계**: 운영 실험 시작 (30-60일) — QA 체크리스트 + 사용자 가이드 준비 완료
-- **빌드 상태**: `pnpm build` + `pnpm typecheck` 모두 통과
-- **Lint**: ESLint 9 설정 완료, `pnpm lint` 경고 0개 / 에러 0개 (클린)
-- **배포 상태**: 프로덕션 배포 완료 (2026-01-31)
-- **운영 문서**: QA 체크리스트, 사용자 가이드, 킥오프 템플릿, 운영 런북, 치트시트 작성 완료
-- **다음 작업**: `/deploy`로 최종 배포 후 운영 실험 시작
+- **다음 단계**: `/deploy`로 배포 후 30-60일 운영 실험 시작
+- **빌드 상태**: `pnpm build` (267KB server) + `pnpm typecheck` + `pnpm lint` 모두 통과
+- **배포 상태**: 세션 14 코드 미배포 (배포 필요)
+- **이메일 설정 필요**: `wrangler secret put RESEND_API_KEY` + `CRON_SECRET` 후 외부 cron 서비스 연동
+- **운영 문서**: 치트시트, 런북, 킥오프 템플릿, QA 체크리스트, 사용자 가이드 완성
 
 ---
 
@@ -368,7 +367,7 @@ Phase 1~4(PRD 기준) 전 항목 구현 완료. EXTENSION_REQUESTED 워크플로
 | **Weekly Review 뷰** | ✅ | `/review` — OPEN 목록, Age 색상, Due Date 추적 |
 | **Recall Queue 뷰** | ✅ | `/recall` — Revisit Date 도래 NOT_NOW 목록 |
 | **Metrics 대시보드** | ✅ | `/metrics` — P0/P1 성공 기준, 핵심 지표 |
-| **CSV Export API** | ✅ | Discovery 데이터 + 지표 다운로드 |
+| **CSV Export API** | ✅ | Discovery + 실험 상세 + 근거 목록 (세션 14 확장) |
 | **스킬 파일 보강** | ✅ | deploy 전면 재작성, session-end/start 수정 |
 | **Reviewer 지정 UI** | ✅ | 승격 시 선택, 상세에서 변경 |
 | **Owner 변경/승계** | ✅ | INBOX/OPEN에서 재지정 가능 |
@@ -394,13 +393,16 @@ Phase 1~4(PRD 기준) 전 항목 구현 완료. EXTENSION_REQUESTED 워크플로
 | **운영 준비 문서** | ✅ | 킥오프 템플릿, 운영 런북, 치트시트 |
 
 ### 남은 작업
-- [x] ESLint warnings 정리 — 완료 (경고 0개)
-- [x] 폼 페이지 모바일 반응형 — 완료 (10개 파일)
-- [ ] 최종 프로덕션 배포 (`/deploy`)
+- [ ] 최종 프로덕션 배포 (`/deploy`) + Resend secrets 설정
+- [ ] 외부 cron 서비스 연동 (daily 알림 활성화)
 
 ### 미래 작업
 
+**후속 순차 작업 (병렬 완료 후)**
+- [ ] Reviewer 승인 워크플로우 (DB 스키마 변경: `approval_status` 컬럼)
+- [ ] 유사 Seed 검색 (Embedding, Cloudflare AI Workers)
+- [ ] 고급 지표 (Failure Pattern 재사용률, Owner 부하, Evidence 품질)
+
 **운영 후 판단 (보류)**
 - [ ] 기한 초과 강제 종료 (현재 OVERDUE 배지만 표시)
-- [ ] 유사 Seed 검색 (Recall 시 유사 Discovery 제안)
 - [ ] 유사도 기반 추천 (새 Seed 입력 시 유사 Dead End 제안)
