@@ -187,27 +187,44 @@ Validation:
 > **이 섹션은 매 세션마다 업데이트한다.**
 
 ### 현재 단계
-**Phase 0 완료 → Phase 1 진입**
+**Phase 1 완료 → 운영 실험 준비 단계**
 
-프로젝트 기반 구축 완료 (스택, DB, 검증 엔진, 인증). Discovery CRUD 라우트 구현 준비 완료.
+✅ End-to-End 닫힘 가능! Discovery를 INBOX → OPEN → DECISION까지 완전히 처리할 수 있습니다.
+PRD §10.2 P0 성공 기준 달성: "최소 1건 닫힌 Discovery 발생" 가능.
 
-### 최근 변경 (2026-01-31)
-- ✅ Remix v2 + Cloudflare Pages + D1 + Drizzle ORM + Tailwind 프로젝트 초기화
-- ✅ DB 스키마 완성 (`app/db/schema.ts`) — 6개 테이블 (users, sessions, discoveries, experiments, evidence, event_logs)
-- ✅ Drizzle 마이그레이션 생성 및 적용 (`drizzle/0000_rare_raider.sql`, `0001_magenta_wallflower.sql`)
-- ✅ Validation 엔진 구축 (`app/lib/validation/discovery-rules.ts`) — 모든 PRD 비즈니스 규칙 반영
-  - Owner 필수, Experiment 2개 제한, NOT_NOW/DEAD_END 필수 필드
-  - 28일 Time-box 계산, 증거 품질 검증
-  - Zod schemas (타입 안전한 입력 검증)
-- ✅ 상수 정의 (`app/lib/constants/failure-patterns.ts`) — 10개 실패 패턴, 4개 트리거 타입, Evidence 타입/강도
-- ✅ Session 기반 인증 구현 (`app/lib/auth/session.server.ts`) — D1 저장, 30일 만료
-- ✅ 기본 랜딩 페이지 (`app/routes/_index.tsx`)
-- ✅ 빌드 성공 확인 (`pnpm build`)
+### 최근 변경 (2026-01-31 세션 2)
+**Discovery CRUD 완성 (15개 라우트)**:
+- ✅ 인증: 로그인/로그아웃 (`/login`, `/logout`) + Session 관리
+- ✅ 홈 대시보드 (`/`) — 통계 카드 (전체/Inbox/Open/Next 개수)
+- ✅ Discovery 목록 (`/discoveries`) — 상태별 필터, 테이블 뷰
+- ✅ Discovery 생성 (`/discoveries/new`) — Seed 입력 (INBOX 생성)
+- ✅ Discovery 상세 (`/discoveries/:id`) — Seed, Experiments, Evidence 표시
+- ✅ INBOX → OPEN 승격 (`/discoveries/:id/promote`) — Owner + 첫 Experiment 등록
+- ✅ Experiment 추가 (`/discoveries/:id/add-experiment`) — 최대 2개 제한 강제
+- ✅ Evidence 추가 (`/discoveries/:id/add-evidence`) — 타입/강도 선택
+- ✅ Decision 3가지 (`decide-next`, `decide-not-now`, `decide-dead-end`)
+- ✅ 관리: Seed 데이터 생성 (`/admin/seed`)
+
+**Decision Dialogs 구현**:
+- ✅ NEXT: decisionRationale + A/B급 Evidence 2개 미만 시 경고
+- ✅ NOT_NOW: triggerType(4가지) + triggerCondition + revisitDate(미래 필수)
+- ✅ DEAD_END: failurePattern(1-3개) + evidenceReason
+
+**UI 컴포넌트**:
+- ✅ MainNav: 전역 내비게이션 (Discoveries, Weekly Review, Recall Queue)
+- ✅ 상태별 색상 테마 (INBOX: 파랑, OPEN: 노랑, NEXT: 초록, NOT_NOW: 회색, DEAD_END: 빨강)
+- ✅ 상태 기반 액션 버튼 (승격, 실험/근거 추가, 결정)
+
+**Validation 강제**:
+- ✅ Owner 없이 OPEN 전환 불가
+- ✅ Experiment 최대 2개 (3번째 시도 시 에러)
+- ✅ NOT_NOW/DEAD_END 필수 필드 누락 시 저장 불가
+- ✅ EventLog에 모든 상태 전환 기록
 
 ### 활성 결정사항
-- **인증 방식**: Session 기반 (D1 `sessions` 테이블) — 5명 사용자이므로 단순 구현
-- **기술 스택 확정**: Remix → React Router v7 마이그레이션은 향후 고려 (현재 Remix v2 유지)
-- **PRD 미반영 필드**: `pestel_tags`, `parallel_lenses_notes` — 스키마에 없음 (P1 판단 필요, 현재는 제외)
+- **인증 방식**: Session 기반 (D1 `sessions` 테이블)
+- **기술 스택**: Remix v2 유지 (React Router v7 마이그레이션은 향후)
+- **다음 우선순위**: Weekly Review + Recall Queue 뷰 구현 (운영 지원)
 
 ---
 
@@ -218,31 +235,33 @@ Validation:
 | 항목 | 상태 | 비고 |
 |------|------|------|
 | 기술 스택 결정 | ✅ | Remix v2 + CF Pages + D1 + Drizzle + Tailwind |
-| DB 스키마 설계 | ✅ | 6개 테이블 (sessions 추가), PRD §5 반영 |
-| 마이그레이션 생성 및 적용 | ✅ | `drizzle/0000_rare_raider.sql`, `0001_magenta_wallflower.sql` |
-| 프로젝트 스캐폴딩 | ✅ | Vite, tsconfig, wrangler, postcss, .gitignore 설정 |
+| DB 스키마 설계 | ✅ | 6개 테이블, PRD §5 반영 |
+| 마이그레이션 생성 및 적용 | ✅ | 2개 migration 파일 |
+| 프로젝트 스캐폴딩 | ✅ | Vite, tsconfig, wrangler, .gitignore |
 | SDD 워크플로우 | ✅ | CLAUDE.md + SPEC.md + 세션 스킬 |
 | Validation 엔진 | ✅ | 모든 PRD 비즈니스 규칙 + Zod schemas |
-| 상수 정의 | ✅ | Failure patterns, Trigger types, Evidence types/strengths |
+| 상수 정의 | ✅ | Failure patterns, Trigger types, Evidence types |
 | 인증 시스템 | ✅ | Session 기반 (D1 저장, 30일 만료) |
-| 빌드 테스트 | ✅ | `pnpm build` 성공 |
+| **Discovery CRUD** | ✅ | 15개 라우트 (목록, 생성, 상세, 승격, 실험, 근거, 결정) |
+| **상태 전환 로직** | ✅ | INBOX → OPEN → NEXT/NOT_NOW/DEAD_END |
+| **Owner 지정** | ✅ | 승격 시 Owner 필수, 변경 가능 |
+| **Experiment 관리** | ✅ | 최대 2개 제한 강제, OPEN 상태에서만 추가 |
+| **Evidence 관리** | ✅ | 타입/강도 선택, Experiment 연결 |
+| **Decision 폼** | ✅ | 3가지 (NEXT, NOT_NOW, DEAD_END) 필수 필드 강제 |
+| 빌드 테스트 | ✅ | `pnpm build` 성공 (142KB server bundle) |
 
 ### 미래 작업
 
-**Phase 1 — P0 구현 (end-to-end 1건 "닫힘"까지)**
-- [ ] Discovery CRUD (목록 + 생성 + 상세 + 편집)
-- [ ] 상태 전환 로직 (INBOX → OPEN → NEXT/NOT_NOW/DEAD_END)
-- [ ] Owner/Reviewer 지정 UI
-- [ ] Experiment CRUD (최대 2개 제한)
-- [ ] Evidence CRUD (타입/강도)
-- [ ] Decision 폼 (상태별 필수 필드 강제)
-- [ ] Weekly Review 뷰
-- [ ] Recall Queue 뷰
+**Phase 2 — 운영 지원 뷰 (다음 우선순위)**
+- [ ] Weekly Review 뷰 (`/review`) — OPEN 목록, Age 순 정렬, 30분 내 10개 검토
+- [ ] Recall Queue 뷰 (`/recall`) — Revisit Date 도래 NOT_NOW 목록
 
-**Phase 2 — 운영 자동화**
+**Phase 3 — 운영 자동화 (선택)**
 - [ ] TTL 리마인드 (Inbox 7일, due_date 임박)
 - [ ] Revisit Date 도래 자동 등재
+- [ ] 이메일 알림 (SendGrid/Resend)
 
-**Phase 3 — 지표/리포트**
+**Phase 4 — 지표/리포트 (선택)**
 - [ ] 최소 지표 계산 (전환율, 종료율, 재호출 수)
 - [ ] CSV Export
+- [ ] 메트릭 대시보드
