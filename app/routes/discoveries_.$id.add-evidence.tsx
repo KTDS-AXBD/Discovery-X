@@ -4,7 +4,15 @@ import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries, evidence, experiments } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { MainNav } from "~/components/layout/MainNav";
+import { PageLayout } from "~/components/layout/PageLayout";
+import { PageHeader } from "~/components/layout/PageHeader";
+import { Card, CardContent } from "~/components/ui/Card";
+import { Input } from "~/components/ui/Input";
+import { Textarea } from "~/components/ui/Textarea";
+import { Select } from "~/components/ui/Select";
+import { FormField } from "~/components/ui/FormField";
+import { Button } from "~/components/ui/Button";
+import { AlertBanner } from "~/components/ui/AlertBanner";
 import { eq } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { CreateEvidenceSchema } from "~/lib/validation/discovery-rules";
@@ -125,16 +133,12 @@ export default function AddEvidence() {
   const actionData = useActionData<typeof action>();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <MainNav user={user} />
-
-      <div className="mx-auto max-w-2xl px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Evidence 추가</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            실험 결과나 관찰한 근거를 기록합니다
-          </p>
-        </div>
+    <PageLayout user={user}>
+      <div className="mx-auto max-w-2xl">
+        <PageHeader
+          title="Evidence 추가"
+          description="실험 결과나 관찰한 근거를 기록합니다"
+        />
 
         {/* Discovery Info */}
         <div className="mb-6 rounded-lg bg-blue-50 p-4">
@@ -150,142 +154,99 @@ export default function AddEvidence() {
         </div>
 
         {actionData?.error && (
-          <div className="mb-6 rounded-md bg-red-50 p-4">
-            <p className="text-sm text-red-800">{actionData.error}</p>
-          </div>
+          <AlertBanner variant="destructive" className="mb-6">
+            <p>{actionData.error}</p>
+          </AlertBanner>
         )}
 
-        <Form method="post" className="space-y-6 bg-white p-6 shadow sm:rounded-lg">
-          {/* Evidence Type */}
-          <div>
-            <label
-              htmlFor="type"
-              className="block text-sm font-medium text-gray-700"
-            >
-              근거 유형 <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="type"
-              id="type"
-              required
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-            >
-              <option value="">선택하세요</option>
-              {EVIDENCE_TYPES.map((evidenceType) => (
-                <option key={evidenceType.id} value={evidenceType.id}>
-                  {evidenceType.label} - {evidenceType.description}
-                </option>
-              ))}
-            </select>
-          </div>
+        <Card>
+          <CardContent className="pt-6">
+            <Form method="post" className="space-y-6">
+              {/* Evidence Type */}
+              <FormField label="근거 유형" htmlFor="type" required>
+                <Select
+                  name="type"
+                  id="type"
+                  required
+                >
+                  <option value="">선택하세요</option>
+                  {EVIDENCE_TYPES.map((evidenceType) => (
+                    <option key={evidenceType.id} value={evidenceType.id}>
+                      {evidenceType.label} - {evidenceType.description}
+                    </option>
+                  ))}
+                </Select>
+              </FormField>
 
-          {/* Evidence Strength */}
-          <div>
-            <label
-              htmlFor="strength"
-              className="block text-sm font-medium text-gray-700"
-            >
-              근거 강도 <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="strength"
-              id="strength"
-              required
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-            >
-              <option value="">선택하세요</option>
-              {EVIDENCE_STRENGTHS.map((str) => (
-                <option key={str.id} value={str.id}>
-                  {str.label} - {str.description}
-                </option>
-              ))}
-            </select>
-          </div>
+              {/* Evidence Strength */}
+              <FormField label="근거 강도" htmlFor="strength" required>
+                <Select
+                  name="strength"
+                  id="strength"
+                  required
+                >
+                  <option value="">선택하세요</option>
+                  {EVIDENCE_STRENGTHS.map((str) => (
+                    <option key={str.id} value={str.id}>
+                      {str.label} - {str.description}
+                    </option>
+                  ))}
+                </Select>
+              </FormField>
 
-          {/* Content */}
-          <div>
-            <label
-              htmlFor="content"
-              className="block text-sm font-medium text-gray-700"
-            >
-              내용 <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              name="content"
-              id="content"
-              required
-              maxLength={400}
-              rows={4}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              placeholder="근거 내용을 구체적으로 기술합니다"
-            />
-            <p className="mt-1 text-xs text-gray-500">400자 이내</p>
-          </div>
+              {/* Content */}
+              <FormField label="내용" htmlFor="content" required hint="400자 이내">
+                <Textarea
+                  name="content"
+                  id="content"
+                  required
+                  maxLength={400}
+                  rows={4}
+                  placeholder="근거 내용을 구체적으로 기술합니다"
+                />
+              </FormField>
 
-          {/* Link or Attachment */}
-          <div>
-            <label
-              htmlFor="linkOrAttachment"
-              className="block text-sm font-medium text-gray-700"
-            >
-              링크 또는 첨부 (선택)
-            </label>
-            <input
-              type="url"
-              name="linkOrAttachment"
-              id="linkOrAttachment"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              placeholder="https://..."
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              데이터, 문서, 프로토타입 링크 등
-            </p>
-          </div>
+              {/* Link or Attachment */}
+              <FormField label="링크 또는 첨부 (선택)" htmlFor="linkOrAttachment" hint="데이터, 문서, 프로토타입 링크 등">
+                <Input
+                  type="url"
+                  name="linkOrAttachment"
+                  id="linkOrAttachment"
+                  placeholder="https://..."
+                />
+              </FormField>
 
-          {/* Experiment Link */}
-          {experiments.length > 0 && (
-            <div>
-              <label
-                htmlFor="experimentId"
-                className="block text-sm font-medium text-gray-700"
-              >
-                연결된 Experiment (선택)
-              </label>
-              <select
-                name="experimentId"
-                id="experimentId"
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              >
-                <option value="">없음 (Discovery 직접 연결)</option>
-                {experiments.map((exp) => (
-                  <option key={exp.id} value={exp.id}>
-                    {exp.hypothesis.substring(0, 60)}
-                    {exp.hypothesis.length > 60 ? "..." : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+              {/* Experiment Link */}
+              {experiments.length > 0 && (
+                <FormField label="연결된 Experiment (선택)" htmlFor="experimentId">
+                  <Select
+                    name="experimentId"
+                    id="experimentId"
+                  >
+                    <option value="">없음 (Discovery 직접 연결)</option>
+                    {experiments.map((exp) => (
+                      <option key={exp.id} value={exp.id}>
+                        {exp.hypothesis.substring(0, 60)}
+                        {exp.hypothesis.length > 60 ? "..." : ""}
+                      </option>
+                    ))}
+                  </Select>
+                </FormField>
+              )}
 
-          {/* Actions */}
-          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-gray-200 pt-6">
-            <a
-              href={`/discoveries/${discovery.id}`}
-              className="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-            >
-              취소
-            </a>
-            <button
-              type="submit"
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              Evidence 추가
-            </button>
-          </div>
-        </Form>
+              {/* Actions */}
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-[var(--axis-border-default)] pt-6">
+                <Button variant="outline" asChild>
+                  <a href={`/discoveries/${discovery.id}`}>취소</a>
+                </Button>
+                <Button type="submit">Evidence 추가</Button>
+              </div>
+            </Form>
+          </CardContent>
+        </Card>
 
         {/* Helper */}
-        <div className="mt-6 rounded-md bg-gray-50 p-4 text-sm text-gray-600">
+        <div className="mt-6 rounded-md bg-[var(--axis-surface-secondary)] p-4 text-sm text-[var(--axis-text-tertiary)]">
           <p className="font-semibold">Evidence 작성 팁:</p>
           <ul className="mt-2 list-inside list-disc space-y-1">
             <li>
@@ -302,10 +263,10 @@ export default function AddEvidence() {
             </li>
           </ul>
           <p className="mt-3 text-xs text-yellow-700">
-            ⚠️ NEXT 결정은 A/B급 Evidence 2개 이상 권장됩니다
+            NEXT 결정은 A/B급 Evidence 2개 이상 권장됩니다
           </p>
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }

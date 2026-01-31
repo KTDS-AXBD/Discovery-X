@@ -4,7 +4,11 @@ import { Link, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries, experiments, evidence, eventLogs, users } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { MainNav } from "~/components/layout/MainNav";
+import { PageLayout } from "~/components/layout/PageLayout";
+import { PageHeader } from "~/components/layout/PageHeader";
+import { Card, CardContent } from "~/components/ui/Card";
+import { Button } from "~/components/ui/Button";
+import { AlertBanner } from "~/components/ui/AlertBanner";
 import { DiscoveryStatus } from "~/db/schema";
 import { StatusDonut } from "~/components/charts/StatusDonut";
 import { WeeklyBar } from "~/components/charts/WeeklyBar";
@@ -261,98 +265,89 @@ export default function Metrics() {
   const { user, metrics } = useLoaderData<typeof loader>();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <MainNav user={user} />
+    <PageLayout user={user}>
+      <PageHeader
+        title="Metrics"
+        description="Discovery-X 운영 지표 및 성공 기준 추적"
+        actions={
+          <div className="flex gap-2">
+            <Button variant="outline" asChild>
+              <Link to="/api/export/discoveries">Discovery CSV</Link>
+            </Button>
+            <Button asChild>
+              <Link to="/api/export/metrics">Metrics CSV</Link>
+            </Button>
+          </div>
+        }
+      />
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="sm:flex sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Metrics</h1>
-            <p className="mt-2 text-sm text-gray-700">
-              Discovery-X 운영 지표 및 성공 기준 추적
-            </p>
-          </div>
-          <div className="mt-4 sm:mt-0 flex gap-2">
-            <Link
-              to="/api/export/discoveries"
-              className="inline-flex items-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-            >
-              📥 Discovery CSV
-            </Link>
-            <Link
-              to="/api/export/metrics"
-              className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
-            >
-              📊 Metrics CSV
-            </Link>
-          </div>
+      {/* P0 Success Criterion */}
+      <AlertBanner variant="success" className="mt-8" title="P0 성공 기준: &quot;닫힌 Discovery 최소 1건 발생&quot;">
+        <div className="mt-2 text-3xl font-bold">
+          {metrics.decidedCount}건 닫힘
         </div>
-
-        {/* P0 Success Criterion */}
-        <div className="mt-8 rounded-lg border-2 border-green-200 bg-green-50 p-6">
-          <h2 className="text-lg font-semibold text-green-900">
-            ✅ P0 성공 기준: "닫힌 Discovery 최소 1건 발생"
-          </h2>
-          <div className="mt-4 text-3xl font-bold text-green-700">
-            {metrics.decidedCount}건 닫힘
-          </div>
-          <div className="mt-2 text-sm text-green-800">
-            NEXT: {metrics.nextCount} | NOT_NOW: {metrics.notNowCount} | DEAD_END:{" "}
-            {metrics.deadEndCount}
-          </div>
-          {metrics.decidedCount === 0 && (
-            <div className="mt-4 text-sm text-yellow-700">
-              ⚠️ 아직 닫힌 Discovery가 없습니다. 운영 실험을 시작하세요!
-            </div>
-          )}
+        <div className="mt-2 text-sm">
+          NEXT: {metrics.nextCount} | NOT_NOW: {metrics.notNowCount} | DEAD_END:{" "}
+          {metrics.deadEndCount}
         </div>
+        {metrics.decidedCount === 0 && (
+          <AlertBanner variant="warning" className="mt-4">
+            아직 닫힌 Discovery가 없습니다. 운영 실험을 시작하세요!
+          </AlertBanner>
+        )}
+      </AlertBanner>
 
-        {/* Key Metrics Grid */}
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Total Discoveries */}
-          <div className="rounded-lg bg-white p-6 shadow">
-            <div className="text-sm font-medium text-gray-500">전체 Discovery</div>
-            <div className="mt-2 text-3xl font-semibold text-gray-900">{metrics.totalCount}</div>
-            <div className="mt-2 text-xs text-gray-500">
+      {/* Key Metrics Grid */}
+      <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-sm font-medium text-[var(--axis-text-tertiary)]">전체 Discovery</div>
+            <div className="mt-2 text-3xl font-semibold text-[var(--axis-text-primary)]">{metrics.totalCount}</div>
+            <div className="mt-2 text-xs text-[var(--axis-text-tertiary)]">
               Inbox: {metrics.inboxCount} | Open: {metrics.openCount}
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Seed → Experiment Conversion */}
-          <div className="rounded-lg bg-white p-6 shadow">
-            <div className="text-sm font-medium text-gray-500">Seed → Experiment 전환율</div>
-            <div className="mt-2 text-3xl font-semibold text-gray-900">
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-sm font-medium text-[var(--axis-text-tertiary)]">Seed → Experiment 전환율</div>
+            <div className="mt-2 text-3xl font-semibold text-[var(--axis-text-primary)]">
               {metrics.seedToExperimentRate}%
             </div>
-            <div className="mt-2 text-xs text-gray-500">
+            <div className="mt-2 text-xs text-[var(--axis-text-tertiary)]">
               {metrics.totalCount - metrics.inboxCount} / {metrics.totalCount}
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* 28-day Closure Rate */}
-          <div className="rounded-lg bg-white p-6 shadow">
-            <div className="text-sm font-medium text-gray-500">28일 종료율</div>
-            <div className="mt-2 text-3xl font-semibold text-gray-900">
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-sm font-medium text-[var(--axis-text-tertiary)]">28일 종료율</div>
+            <div className="mt-2 text-3xl font-semibold text-[var(--axis-text-primary)]">
               {metrics.twentyEightDayClosureRate}
               {metrics.twentyEightDayClosureRate !== "N/A" && "%"}
             </div>
-            <div className="mt-2 text-xs text-gray-500">목표: ≥90%</div>
-          </div>
+            <div className="mt-2 text-xs text-[var(--axis-text-tertiary)]">목표: ≥90%</div>
+          </CardContent>
+        </Card>
 
-          {/* Recall Events */}
-          <div className="rounded-lg bg-white p-6 shadow">
-            <div className="text-sm font-medium text-gray-500">Recall 이벤트</div>
-            <div className="mt-2 text-3xl font-semibold text-gray-900">
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-sm font-medium text-[var(--axis-text-tertiary)]">Recall 이벤트</div>
+            <div className="mt-2 text-3xl font-semibold text-[var(--axis-text-primary)]">
               {metrics.recallEvents}
             </div>
-            <div className="mt-2 text-xs text-gray-500">목표: ≥1/월</div>
-          </div>
-        </div>
+            <div className="mt-2 text-xs text-[var(--axis-text-tertiary)]">목표: ≥1/월</div>
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* Charts */}
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900">상태 분포</h3>
+      {/* Charts */}
+      <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="mb-4 text-lg font-semibold text-[var(--axis-text-primary)]">상태 분포</h3>
             <StatusDonut
               inbox={metrics.inboxCount}
               open={metrics.openCount}
@@ -360,54 +355,58 @@ export default function Metrics() {
               notNow={metrics.notNowCount}
               deadEnd={metrics.deadEndCount}
             />
-          </div>
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900">주간 생성 추이</h3>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="mb-4 text-lg font-semibold text-[var(--axis-text-primary)]">주간 생성 추이</h3>
             <WeeklyBar data={metrics.weeklyData} />
-          </div>
-        </div>
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* Experiment & Evidence Stats */}
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
-          {/* Experiment Stats */}
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h3 className="text-lg font-semibold text-gray-900">Experiment 통계</h3>
+      {/* Experiment & Evidence Stats */}
+      <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold text-[var(--axis-text-primary)]">Experiment 통계</h3>
             <dl className="mt-4 space-y-2">
               <div className="flex justify-between">
-                <dt className="text-sm text-gray-500">전체 실험</dt>
-                <dd className="text-sm font-semibold text-gray-900">{metrics.totalExperiments}</dd>
+                <dt className="text-sm text-[var(--axis-text-tertiary)]">전체 실험</dt>
+                <dd className="text-sm font-semibold text-[var(--axis-text-primary)]">{metrics.totalExperiments}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-sm text-gray-500">완료된 실험</dt>
-                <dd className="text-sm font-semibold text-gray-900">
+                <dt className="text-sm text-[var(--axis-text-tertiary)]">완료된 실험</dt>
+                <dd className="text-sm font-semibold text-[var(--axis-text-primary)]">
                   {metrics.completedExperiments}
                 </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-sm text-gray-500">완료율</dt>
-                <dd className="text-sm font-semibold text-gray-900">
+                <dt className="text-sm text-[var(--axis-text-tertiary)]">완료율</dt>
+                <dd className="text-sm font-semibold text-[var(--axis-text-primary)]">
                   {metrics.experimentCompletionRate}%
                 </dd>
               </div>
-              <div className="mt-2 text-xs text-gray-500">목표: ≥80%</div>
+              <div className="mt-2 text-xs text-[var(--axis-text-tertiary)]">목표: ≥80%</div>
             </dl>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Evidence Stats */}
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h3 className="text-lg font-semibold text-gray-900">Evidence 통계</h3>
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold text-[var(--axis-text-primary)]">Evidence 통계</h3>
             <dl className="mt-4 space-y-2">
               <div className="flex justify-between">
-                <dt className="text-sm text-gray-500">전체 근거</dt>
-                <dd className="text-sm font-semibold text-gray-900">{metrics.totalEvidence}</dd>
+                <dt className="text-sm text-[var(--axis-text-tertiary)]">전체 근거</dt>
+                <dd className="text-sm font-semibold text-[var(--axis-text-primary)]">{metrics.totalEvidence}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-sm text-gray-500">강한 근거 (A/B급)</dt>
-                <dd className="text-sm font-semibold text-gray-900">{metrics.strongEvidence}</dd>
+                <dt className="text-sm text-[var(--axis-text-tertiary)]">강한 근거 (A/B급)</dt>
+                <dd className="text-sm font-semibold text-[var(--axis-text-primary)]">{metrics.strongEvidence}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-sm text-gray-500">비율</dt>
-                <dd className="text-sm font-semibold text-gray-900">
+                <dt className="text-sm text-[var(--axis-text-tertiary)]">비율</dt>
+                <dd className="text-sm font-semibold text-[var(--axis-text-primary)]">
                   {metrics.totalEvidence > 0
                     ? ((metrics.strongEvidence / metrics.totalEvidence) * 100).toFixed(1)
                     : 0}
@@ -415,96 +414,101 @@ export default function Metrics() {
                 </dd>
               </div>
             </dl>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* Advanced Metrics */}
-        <div className="mt-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">고급 지표</h2>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {/* Failure Pattern Reuse Rate */}
-            <div className="rounded-lg bg-white p-6 shadow">
-              <div className="text-sm font-medium text-gray-500">실패 패턴 재사용률</div>
-              <div className="mt-2 text-3xl font-semibold text-gray-900">
+      {/* Advanced Metrics */}
+      <div className="mt-8">
+        <h2 className="text-xl font-bold text-[var(--axis-text-primary)] mb-6">고급 지표</h2>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-sm font-medium text-[var(--axis-text-tertiary)]">실패 패턴 재사용률</div>
+              <div className="mt-2 text-3xl font-semibold text-[var(--axis-text-primary)]">
                 {metrics.failurePatternReuseRate}
                 {metrics.failurePatternReuseRate !== "N/A" && "%"}
               </div>
-              <div className="mt-2 text-xs text-gray-500">동일 패턴 2회+ 발생 비율</div>
+              <div className="mt-2 text-xs text-[var(--axis-text-tertiary)]">동일 패턴 2회+ 발생 비율</div>
               {metrics.topReusedPatterns.length > 0 && (
                 <div className="mt-3 space-y-1">
                   {metrics.topReusedPatterns.map((p: { pattern: string; count: number }) => (
                     <div key={p.pattern} className="flex justify-between text-xs">
-                      <span className="text-gray-600">{p.pattern}</span>
-                      <span className="font-semibold text-red-600">{p.count}회</span>
+                      <span className="text-[var(--axis-text-secondary)]">{p.pattern}</span>
+                      <span className="font-semibold text-[var(--axis-text-error)]">{p.count}회</span>
                     </div>
                   ))}
                 </div>
               )}
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* Evidence Quality Score */}
-            <div className="rounded-lg bg-white p-6 shadow">
-              <div className="text-sm font-medium text-gray-500">Evidence 품질 점수</div>
-              <div className="mt-2 text-3xl font-semibold text-gray-900">
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-sm font-medium text-[var(--axis-text-tertiary)]">Evidence 품질 점수</div>
+              <div className="mt-2 text-3xl font-semibold text-[var(--axis-text-primary)]">
                 {metrics.avgEvidenceQuality}
                 {metrics.avgEvidenceQuality !== "N/A" && "%"}
               </div>
-              <div className="mt-2 text-xs text-gray-500">
+              <div className="mt-2 text-xs text-[var(--axis-text-tertiary)]">
                 Discovery당 A/B급 근거 비율 평균
               </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* Decision Speed */}
-            <div className="rounded-lg bg-white p-6 shadow">
-              <div className="text-sm font-medium text-gray-500">결정 속도</div>
-              <div className="mt-2 text-3xl font-semibold text-gray-900">
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-sm font-medium text-[var(--axis-text-tertiary)]">결정 속도</div>
+              <div className="mt-2 text-3xl font-semibold text-[var(--axis-text-primary)]">
                 {metrics.avgDecisionDays}
                 {metrics.avgDecisionDays !== "N/A" && "일"}
               </div>
-              <div className="mt-2 text-xs text-gray-500">
+              <div className="mt-2 text-xs text-[var(--axis-text-tertiary)]">
                 평균 (중앙값: {metrics.medianDecisionDays}
                 {metrics.medianDecisionDays !== "N/A" && "일"})
               </div>
-              <div className="mt-1 text-xs text-gray-500">목표: ≤28일</div>
-            </div>
+              <div className="mt-1 text-xs text-[var(--axis-text-tertiary)]">목표: ≤28일</div>
+            </CardContent>
+          </Card>
 
-            {/* Extension Request Rate */}
-            <div className="rounded-lg bg-white p-6 shadow">
-              <div className="text-sm font-medium text-gray-500">연장 요청률</div>
-              <div className="mt-2 text-3xl font-semibold text-gray-900">
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-sm font-medium text-[var(--axis-text-tertiary)]">연장 요청률</div>
+              <div className="mt-2 text-3xl font-semibold text-[var(--axis-text-primary)]">
                 {metrics.extensionRequestRate}
                 {metrics.extensionRequestRate !== "N/A" && "%"}
               </div>
-              <div className="mt-2 text-xs text-gray-500">
+              <div className="mt-2 text-xs text-[var(--axis-text-tertiary)]">
                 총 {metrics.totalExtensionRequests}건 | 목표: &lt;20%
               </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* Owner Workload */}
-            <div className="rounded-lg bg-white p-6 shadow sm:col-span-2">
-              <div className="text-sm font-medium text-gray-500 mb-3">Owner별 워크로드</div>
+          <Card className="sm:col-span-2">
+            <CardContent className="p-6">
+              <div className="text-sm font-medium text-[var(--axis-text-tertiary)] mb-3">Owner별 워크로드</div>
               {metrics.ownerWorkload.length === 0 ? (
-                <p className="text-sm text-gray-400">데이터 없음</p>
+                <p className="text-sm text-[var(--axis-text-tertiary)]">데이터 없음</p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-sm">
                     <thead>
-                      <tr className="border-b border-gray-200">
-                        <th scope="col" className="pb-2 text-left font-medium text-gray-500">Owner</th>
-                        <th scope="col" className="pb-2 text-right font-medium text-gray-500">전체</th>
-                        <th scope="col" className="pb-2 text-right font-medium text-gray-500">진행중</th>
-                        <th scope="col" className="pb-2 text-right font-medium text-gray-500">완료</th>
-                        <th scope="col" className="pb-2 text-right font-medium text-gray-500">완료율</th>
+                      <tr className="border-b border-[var(--axis-border-default)]">
+                        <th scope="col" className="pb-2 text-left font-medium text-[var(--axis-text-tertiary)]">Owner</th>
+                        <th scope="col" className="pb-2 text-right font-medium text-[var(--axis-text-tertiary)]">전체</th>
+                        <th scope="col" className="pb-2 text-right font-medium text-[var(--axis-text-tertiary)]">진행중</th>
+                        <th scope="col" className="pb-2 text-right font-medium text-[var(--axis-text-tertiary)]">완료</th>
+                        <th scope="col" className="pb-2 text-right font-medium text-[var(--axis-text-tertiary)]">완료율</th>
                       </tr>
                     </thead>
                     <tbody>
                       {metrics.ownerWorkload.map((o: { name: string; total: number; active: number; decided: number; completionRate: string }) => (
-                        <tr key={o.name} className="border-b border-gray-100">
-                          <td className="py-2 font-medium text-gray-900">{o.name}</td>
-                          <td className="py-2 text-right text-gray-700">{o.total}</td>
-                          <td className="py-2 text-right text-yellow-600">{o.active}</td>
-                          <td className="py-2 text-right text-green-600">{o.decided}</td>
-                          <td className="py-2 text-right font-semibold text-gray-900">
+                        <tr key={o.name} className="border-b border-[var(--axis-border-secondary)]">
+                          <td className="py-2 font-medium text-[var(--axis-text-primary)]">{o.name}</td>
+                          <td className="py-2 text-right text-[var(--axis-text-secondary)]">{o.total}</td>
+                          <td className="py-2 text-right text-[var(--axis-badge-warning-text)]">{o.active}</td>
+                          <td className="py-2 text-right text-[var(--axis-badge-success-text)]">{o.decided}</td>
+                          <td className="py-2 text-right font-semibold text-[var(--axis-text-primary)]">
                             {o.completionRate}%
                           </td>
                         </tr>
@@ -513,23 +517,25 @@ export default function Metrics() {
                   </table>
                 </div>
               )}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
+      </div>
 
-        {/* Success Criteria Reference */}
-        <div className="mt-8 rounded-lg border border-gray-200 bg-white p-6 shadow">
-          <h3 className="text-lg font-semibold text-gray-900">운영 실험 성공 기준 (PRD §10)</h3>
+      {/* Success Criteria Reference */}
+      <Card className="mt-8">
+        <CardContent className="p-6">
+          <h3 className="text-lg font-semibold text-[var(--axis-text-primary)]">운영 실험 성공 기준 (PRD §10)</h3>
           <dl className="mt-4 space-y-3">
             <div>
-              <dt className="text-sm font-medium text-gray-700">P0 (필수)</dt>
-              <dd className="mt-1 text-sm text-gray-600">
+              <dt className="text-sm font-medium text-[var(--axis-text-secondary)]">P0 (필수)</dt>
+              <dd className="mt-1 text-sm text-[var(--axis-text-tertiary)]">
                 닫힌 Discovery ≥1건 (현재: {metrics.decidedCount}건)
               </dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-700">P1 (목표)</dt>
-              <dd className="mt-1 text-sm text-gray-600">
+              <dt className="text-sm font-medium text-[var(--axis-text-secondary)]">P1 (목표)</dt>
+              <dd className="mt-1 text-sm text-[var(--axis-text-tertiary)]">
                 • 28일 종료율 ≥90% (현재: {metrics.twentyEightDayClosureRate}
                 {metrics.twentyEightDayClosureRate !== "N/A" && "%"})
                 <br />
@@ -538,17 +544,16 @@ export default function Metrics() {
               </dd>
             </div>
           </dl>
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* Export Info */}
-        <div className="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
-          <h3 className="text-sm font-medium text-blue-900">📥 데이터 Export</h3>
-          <p className="mt-2 text-sm text-blue-800">
-            상단의 "Discovery CSV" 버튼을 클릭하여 모든 Discovery 데이터를 다운로드하거나, "Metrics
-            CSV" 버튼으로 집계된 지표를 다운로드할 수 있습니다. 운영 실험 종료 시 분석에 활용하세요.
-          </p>
-        </div>
-      </div>
-    </div>
+      {/* Export Info */}
+      <AlertBanner variant="info" className="mt-6" title="데이터 Export">
+        <p className="mt-2 text-sm">
+          상단의 "Discovery CSV" 버튼을 클릭하여 모든 Discovery 데이터를 다운로드하거나, "Metrics
+          CSV" 버튼으로 집계된 지표를 다운로드할 수 있습니다. 운영 실험 종료 시 분석에 활용하세요.
+        </p>
+      </AlertBanner>
+    </PageLayout>
   );
 }

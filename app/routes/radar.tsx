@@ -12,7 +12,16 @@ import {
   RadarRunStatus,
 } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { MainNav } from "~/components/layout/MainNav";
+import { PageLayout } from "~/components/layout/PageLayout";
+import { PageHeader } from "~/components/layout/PageHeader";
+import { Card, CardContent } from "~/components/ui/Card";
+import { Button } from "~/components/ui/Button";
+import { Input } from "~/components/ui/Input";
+import { Select } from "~/components/ui/Select";
+import { FormField } from "~/components/ui/FormField";
+import { Badge } from "~/components/ui/Badge";
+import { AlertBanner } from "~/components/ui/AlertBanner";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "~/components/ui/Table";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -95,10 +104,10 @@ const SOURCE_TYPE_LABELS: Record<string, string> = {
   [RadarSourceType.YOUTUBE]: "YouTube",
 };
 
-const RUN_STATUS_STYLES: Record<string, string> = {
-  [RadarRunStatus.RUNNING]: "bg-yellow-100 text-yellow-800",
-  [RadarRunStatus.COMPLETED]: "bg-green-100 text-green-800",
-  [RadarRunStatus.FAILED]: "bg-red-100 text-red-800",
+const RUN_STATUS_VARIANT: Record<string, "warning" | "success" | "destructive"> = {
+  [RadarRunStatus.RUNNING]: "warning",
+  [RadarRunStatus.COMPLETED]: "success",
+  [RadarRunStatus.FAILED]: "destructive",
 };
 
 function formatDate(timestamp: string | number | Date | null) {
@@ -120,254 +129,218 @@ export default function RadarPage() {
   const isSubmitting = navigation.state === "submitting";
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <MainNav user={user} />
+    <PageLayout user={user}>
+      <PageHeader
+        title="Radar"
+        description="자동 토픽 수집 소스를 관리하고 실행 이력을 확인합니다."
+      />
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Radar</h1>
-          <p className="mt-1 text-sm text-gray-600">
-            자동 토픽 수집 소스를 관리하고 실행 이력을 확인합니다.
-          </p>
+      {actionData && "error" in actionData && (
+        <AlertBanner variant="destructive" className="mb-4">
+          {actionData.error}
+        </AlertBanner>
+      )}
+
+      {/* Sources Section */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-[var(--axis-text-primary)]">수집 소스</h2>
+          <Button
+            variant={showAddForm ? "outline" : "default"}
+            size="sm"
+            onClick={() => setShowAddForm(!showAddForm)}
+          >
+            {showAddForm ? "취소" : "+ 소스 추가"}
+          </Button>
         </div>
 
-        {actionData && "error" in actionData && (
-          <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700">
-            {actionData.error}
-          </div>
+        {showAddForm && (
+          <Card className="mb-4">
+            <CardContent className="p-4">
+              <Form method="post">
+                <input type="hidden" name="intent" value="create-source" />
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <FormField label="이름" htmlFor="name" required>
+                    <Input
+                      type="text"
+                      name="name"
+                      id="name"
+                      required
+                      placeholder="GeekNews"
+                    />
+                  </FormField>
+                  <FormField label="유형" htmlFor="sourceType" required>
+                    <Select name="sourceType" id="sourceType" required>
+                      <option value="rss">RSS</option>
+                      <option value="web">Web</option>
+                      <option value="youtube">YouTube</option>
+                    </Select>
+                  </FormField>
+                  <FormField label="URL" htmlFor="url" required>
+                    <Input
+                      type="url"
+                      name="url"
+                      id="url"
+                      required
+                      placeholder="https://news.hada.io/rss"
+                    />
+                  </FormField>
+                </div>
+                <div className="mt-4 flex justify-end">
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? "추가 중..." : "추가"}
+                  </Button>
+                </div>
+              </Form>
+            </CardContent>
+          </Card>
         )}
 
-        {/* Sources Section */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">수집 소스</h2>
-            <button
-              type="button"
-              onClick={() => setShowAddForm(!showAddForm)}
-              className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-            >
-              {showAddForm ? "취소" : "+ 소스 추가"}
-            </button>
-          </div>
-
-          {showAddForm && (
-            <Form method="post" className="mb-4 rounded-lg border border-gray-200 bg-white p-4">
-              <input type="hidden" name="intent" value="create-source" />
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                    이름
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    id="name"
-                    required
-                    placeholder="GeekNews"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="sourceType" className="block text-sm font-medium text-gray-700">
-                    유형
-                  </label>
-                  <select
-                    name="sourceType"
-                    id="sourceType"
-                    required
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  >
-                    <option value="rss">RSS</option>
-                    <option value="web">Web</option>
-                    <option value="youtube">YouTube</option>
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="url" className="block text-sm font-medium text-gray-700">
-                    URL
-                  </label>
-                  <input
-                    type="url"
-                    name="url"
-                    id="url"
-                    required
-                    placeholder="https://news.hada.io/rss"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  />
-                </div>
-              </div>
-              <div className="mt-4 flex justify-end">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
-                >
-                  {isSubmitting ? "추가 중..." : "추가"}
-                </button>
-              </div>
-            </Form>
-          )}
-
-          {sources.length === 0 ? (
-            <p className="text-sm text-gray-500">등록된 소스가 없습니다.</p>
-          ) : (
-            <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">이름</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">유형</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">URL</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">상태</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium uppercase text-gray-500">작업</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {sources.map((source) => (
-                    <tr key={source.id}>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
-                        {source.name}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-500">
-                        <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">
-                          {SOURCE_TYPE_LABELS[source.sourceType] || source.sourceType}
-                        </span>
-                      </td>
-                      <td className="max-w-xs truncate px-4 py-3 text-sm text-gray-500" title={source.url}>
-                        {source.url}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm">
-                        <span
-                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                            source.enabled ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"
-                          }`}
+        {sources.length === 0 ? (
+          <p className="text-sm text-[var(--axis-text-tertiary)]">등록된 소스가 없습니다.</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <tr>
+                <TableHead className="pl-4">이름</TableHead>
+                <TableHead>유형</TableHead>
+                <TableHead>URL</TableHead>
+                <TableHead>상태</TableHead>
+                <TableHead className="text-right pr-4">작업</TableHead>
+              </tr>
+            </TableHeader>
+            <TableBody>
+              {sources.map((source) => (
+                <TableRow key={source.id}>
+                  <TableCell className="pl-4 font-medium text-[var(--axis-text-primary)]">
+                    {source.name}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="secondary">
+                      {SOURCE_TYPE_LABELS[source.sourceType] || source.sourceType}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="max-w-xs truncate text-[var(--axis-text-tertiary)]" title={source.url}>
+                    {source.url}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={source.enabled ? "success" : "secondary"}>
+                      {source.enabled ? "활성" : "비활성"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right pr-4">
+                    <div className="flex items-center justify-end gap-2">
+                      <Form method="post">
+                        <input type="hidden" name="intent" value="toggle-source" />
+                        <input type="hidden" name="id" value={source.id} />
+                        <input type="hidden" name="enabled" value={source.enabled ? "1" : "0"} />
+                        <Button variant="ghost" size="sm" type="submit">
+                          {source.enabled ? "비활성화" : "활성화"}
+                        </Button>
+                      </Form>
+                      <Form method="post">
+                        <input type="hidden" name="intent" value="delete-source" />
+                        <input type="hidden" name="id" value={source.id} />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          type="submit"
+                          className="text-[var(--axis-text-error)]"
+                          onClick={(e) => {
+                            if (!confirm("이 소스를 삭제하시겠습니까?")) {
+                              e.preventDefault();
+                            }
+                          }}
                         >
-                          {source.enabled ? "활성" : "비활성"}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-right text-sm">
-                        <div className="flex items-center justify-end gap-2">
-                          <Form method="post">
-                            <input type="hidden" name="intent" value="toggle-source" />
-                            <input type="hidden" name="id" value={source.id} />
-                            <input type="hidden" name="enabled" value={source.enabled ? "1" : "0"} />
-                            <button
-                              type="submit"
-                              className="text-sm text-indigo-600 hover:text-indigo-800"
-                            >
-                              {source.enabled ? "비활성화" : "활성화"}
-                            </button>
-                          </Form>
-                          <Form method="post">
-                            <input type="hidden" name="intent" value="delete-source" />
-                            <input type="hidden" name="id" value={source.id} />
-                            <button
-                              type="submit"
-                              className="text-sm text-red-600 hover:text-red-800"
-                              onClick={(e) => {
-                                if (!confirm("이 소스를 삭제하시겠습니까?")) {
-                                  e.preventDefault();
-                                }
-                              }}
-                            >
-                              삭제
-                            </button>
-                          </Form>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+                          삭제
+                        </Button>
+                      </Form>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </div>
 
-        {/* Run History Section */}
-        <div className="mb-8">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900">실행 이력</h2>
-          {runs.length === 0 ? (
-            <p className="text-sm text-gray-500">실행 이력이 없습니다.</p>
-          ) : (
-            <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">시작</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">상태</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase text-gray-500">소스</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase text-gray-500">수집</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase text-gray-500">중복</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase text-gray-500">Seed 생성</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">완료</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {runs.map((run) => (
-                    <tr key={run.id}>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
-                        {formatDate(run.startedAt)}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm">
-                        <span
-                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                            RUN_STATUS_STYLES[run.status] || "bg-gray-100 text-gray-700"
-                          }`}
-                        >
-                          {run.status}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-center text-sm text-gray-500">
-                        {run.sourcesChecked}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-center text-sm text-gray-500">
-                        {run.itemsCollected}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-center text-sm text-gray-500">
-                        {run.itemsDeduplicated}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-center text-sm font-medium text-indigo-600">
-                        {run.seedsCreated}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-500">
-                        {formatDate(run.completedAt)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+      {/* Run History Section */}
+      <div className="mb-8">
+        <h2 className="mb-4 text-lg font-semibold text-[var(--axis-text-primary)]">실행 이력</h2>
+        {runs.length === 0 ? (
+          <p className="text-sm text-[var(--axis-text-tertiary)]">실행 이력이 없습니다.</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <tr>
+                <TableHead className="pl-4">시작</TableHead>
+                <TableHead>상태</TableHead>
+                <TableHead className="text-center">소스</TableHead>
+                <TableHead className="text-center">수집</TableHead>
+                <TableHead className="text-center">중복</TableHead>
+                <TableHead className="text-center">Seed 생성</TableHead>
+                <TableHead>완료</TableHead>
+              </tr>
+            </TableHeader>
+            <TableBody>
+              {runs.map((run) => (
+                <TableRow key={run.id}>
+                  <TableCell className="pl-4 text-[var(--axis-text-primary)]">
+                    {formatDate(run.startedAt)}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={RUN_STATUS_VARIANT[run.status] || "secondary"}>
+                      {run.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-center text-[var(--axis-text-tertiary)]">
+                    {run.sourcesChecked}
+                  </TableCell>
+                  <TableCell className="text-center text-[var(--axis-text-tertiary)]">
+                    {run.itemsCollected}
+                  </TableCell>
+                  <TableCell className="text-center text-[var(--axis-text-tertiary)]">
+                    {run.itemsDeduplicated}
+                  </TableCell>
+                  <TableCell className="text-center font-medium text-[var(--axis-text-brand)]">
+                    {run.seedsCreated}
+                  </TableCell>
+                  <TableCell className="text-[var(--axis-text-tertiary)]">
+                    {formatDate(run.completedAt)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </div>
 
-        {/* Recent Items Section */}
-        <div>
-          <h2 className="mb-4 text-lg font-semibold text-gray-900">최근 수집 아이템</h2>
-          {recentItems.length === 0 ? (
-            <p className="text-sm text-gray-500">수집된 아이템이 없습니다. Radar Worker가 실행되면 여기에 표시됩니다.</p>
-          ) : (
-            <div className="space-y-3">
-              {recentItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="rounded-lg border border-gray-200 bg-white p-4"
-                >
+      {/* Recent Items Section */}
+      <div>
+        <h2 className="mb-4 text-lg font-semibold text-[var(--axis-text-primary)]">최근 수집 아이템</h2>
+        {recentItems.length === 0 ? (
+          <p className="text-sm text-[var(--axis-text-tertiary)]">수집된 아이템이 없습니다. Radar Worker가 실행되면 여기에 표시됩니다.</p>
+        ) : (
+          <div className="space-y-3">
+            {recentItems.map((item) => (
+              <Card key={item.id}>
+                <CardContent className="p-4">
                   <div className="flex items-start justify-between">
                     <div className="min-w-0 flex-1">
-                      <h3 className="text-sm font-medium text-gray-900">
+                      <h3 className="text-sm font-medium text-[var(--axis-text-primary)]">
                         {item.titleKo || item.title}
                       </h3>
                       {item.summaryKo && (
-                        <p className="mt-1 text-sm text-gray-600 line-clamp-2">
+                        <p className="mt-1 text-sm text-[var(--axis-text-secondary)] line-clamp-2">
                           {item.summaryKo}
                         </p>
                       )}
-                      <div className="mt-2 flex items-center gap-3 text-xs text-gray-400">
+                      <div className="mt-2 flex items-center gap-3 text-xs text-[var(--axis-text-tertiary)]">
                         <a
                           href={item.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="hover:text-indigo-600 truncate max-w-xs"
+                          className="hover:text-[var(--axis-text-brand)] truncate max-w-xs"
                         >
                           {item.url}
                         </a>
@@ -376,37 +349,31 @@ export default function RadarPage() {
                     </div>
                     <div className="ml-4 flex flex-col items-end gap-1">
                       {item.relevanceScore !== null && (
-                        <span
-                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                            item.relevanceScore >= 60
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-600"
-                          }`}
-                        >
+                        <Badge variant={item.relevanceScore >= 60 ? "success" : "secondary"}>
                           {item.relevanceScore}점
-                        </span>
+                        </Badge>
                       )}
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                      <Badge
+                        variant={
                           item.status === "SEEDED"
-                            ? "bg-indigo-100 text-indigo-800"
+                            ? "info"
                             : item.status === "SCORED"
-                              ? "bg-blue-100 text-blue-800"
+                              ? "info"
                               : item.status === "SKIPPED"
-                                ? "bg-gray-100 text-gray-600"
-                                : "bg-yellow-100 text-yellow-800"
-                        }`}
+                                ? "secondary"
+                                : "warning"
+                        }
                       >
                         {item.status}
-                      </span>
+                      </Badge>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
-    </div>
+    </PageLayout>
   );
 }

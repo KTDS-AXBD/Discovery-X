@@ -4,7 +4,14 @@ import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries, experiments, users, eventLogs } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { MainNav } from "~/components/layout/MainNav";
+import { PageLayout } from "~/components/layout/PageLayout";
+import { PageHeader } from "~/components/layout/PageHeader";
+import { Card, CardContent } from "~/components/ui/Card";
+import { Input } from "~/components/ui/Input";
+import { Select } from "~/components/ui/Select";
+import { FormField } from "~/components/ui/FormField";
+import { Button } from "~/components/ui/Button";
+import { AlertBanner } from "~/components/ui/AlertBanner";
 import { eq } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { DiscoveryValidationRules, PromoteToOpenSchema } from "~/lib/validation/discovery-rules";
@@ -162,16 +169,12 @@ export default function PromoteToOpen() {
   expectedDueDate.setDate(expectedDueDate.getDate() + 28);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <MainNav user={user} />
-
-      <div className="mx-auto max-w-2xl px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">OPEN으로 승격</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Owner를 지정하고 첫 번째 실험을 등록하여 Discovery를 시작합니다
-          </p>
-        </div>
+    <PageLayout user={user}>
+      <div className="mx-auto max-w-2xl">
+        <PageHeader
+          title="OPEN으로 승격"
+          description="Owner를 지정하고 첫 번째 실험을 등록하여 Discovery를 시작합니다"
+        />
 
         {/* Discovery Info */}
         <div className="mb-6 rounded-lg bg-blue-50 p-4">
@@ -188,180 +191,122 @@ export default function PromoteToOpen() {
         </div>
 
         {actionData?.error && (
-          <div className="mb-6 rounded-md bg-red-50 p-4">
-            <p className="text-sm text-red-800">{actionData.error}</p>
-          </div>
+          <AlertBanner variant="destructive" className="mb-6">
+            <p>{actionData.error}</p>
+          </AlertBanner>
         )}
 
-        <Form method="post" className="space-y-6 bg-white p-6 shadow sm:rounded-lg">
-          <div className="rounded-md bg-yellow-50 p-4">
-            <p className="text-sm text-yellow-800">
-              <strong>필수 조건:</strong> Owner 지정 + 첫 번째 Experiment 등록
-            </p>
-          </div>
+        <Card>
+          <CardContent className="pt-6">
+            <Form method="post" className="space-y-6">
+              <AlertBanner variant="warning">
+                <p>
+                  <strong>필수 조건:</strong> Owner 지정 + 첫 번째 Experiment 등록
+                </p>
+              </AlertBanner>
 
-          {/* Owner Selection */}
-          <div>
-            <label
-              htmlFor="ownerId"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Owner 지정 <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="ownerId"
-              id="ownerId"
-              required
-              defaultValue={user.id}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-            >
-              <option value="">선택하세요</option>
-              {allUsers.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name} ({u.email})
-                </option>
-              ))}
-            </select>
-            <p className="mt-1 text-xs text-gray-500">
-              Discovery의 책임자 (실험, 문서, 결정 담당)
-            </p>
-          </div>
+              {/* Owner Selection */}
+              <FormField label="Owner 지정" htmlFor="ownerId" required hint="Discovery의 책임자 (실험, 문서, 결정 담당)">
+                <Select
+                  name="ownerId"
+                  id="ownerId"
+                  required
+                  defaultValue={user.id}
+                >
+                  <option value="">선택하세요</option>
+                  {allUsers.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.name} ({u.email})
+                    </option>
+                  ))}
+                </Select>
+              </FormField>
 
-          {/* Reviewer Selection */}
-          <div>
-            <label
-              htmlFor="reviewerId"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Reviewer 지정 (선택)
-            </label>
-            <select
-              name="reviewerId"
-              id="reviewerId"
-              defaultValue=""
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-            >
-              <option value="">없음</option>
-              {allUsers.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name} ({u.email})
-                </option>
-              ))}
-            </select>
-            <p className="mt-1 text-xs text-gray-500">
-              Decision Review 시 검토를 담당할 사람 (권장)
-            </p>
-          </div>
+              {/* Reviewer Selection */}
+              <FormField label="Reviewer 지정 (선택)" htmlFor="reviewerId" hint="Decision Review 시 검토를 담당할 사람 (권장)">
+                <Select
+                  name="reviewerId"
+                  id="reviewerId"
+                  defaultValue=""
+                >
+                  <option value="">없음</option>
+                  {allUsers.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.name} ({u.email})
+                    </option>
+                  ))}
+                </Select>
+              </FormField>
 
-          <hr className="border-gray-200" />
+              <hr className="border-[var(--axis-border-default)]" />
 
-          <div>
-            <h3 className="text-lg font-medium text-gray-900">첫 번째 Experiment</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              가설을 검증하기 위한 최소 행동을 정의합니다
-            </p>
-          </div>
+              <div>
+                <h3 className="text-lg font-medium text-[var(--axis-text-primary)]">첫 번째 Experiment</h3>
+                <p className="mt-1 text-sm text-[var(--axis-text-tertiary)]">
+                  가설을 검증하기 위한 최소 행동을 정의합니다
+                </p>
+              </div>
 
-          {/* Hypothesis */}
-          <div>
-            <label
-              htmlFor="hypothesis"
-              className="block text-sm font-medium text-gray-700"
-            >
-              가설 <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="hypothesis"
-              id="hypothesis"
-              required
-              maxLength={200}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              placeholder="예: 사용자들은 검색 시간을 15분 → 3분으로 단축하고 싶어할 것이다"
-            />
-            <p className="mt-1 text-xs text-gray-500">200자 이내</p>
-          </div>
+              {/* Hypothesis */}
+              <FormField label="가설" htmlFor="hypothesis" required hint="200자 이내">
+                <Input
+                  type="text"
+                  name="hypothesis"
+                  id="hypothesis"
+                  required
+                  maxLength={200}
+                  placeholder="예: 사용자들은 검색 시간을 15분 → 3분으로 단축하고 싶어할 것이다"
+                />
+              </FormField>
 
-          {/* Minimal Action */}
-          <div>
-            <label
-              htmlFor="minimalAction"
-              className="block text-sm font-medium text-gray-700"
-            >
-              최소 행동 <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="minimalAction"
-              id="minimalAction"
-              required
-              maxLength={200}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              placeholder="예: 5명에게 프로토타입 보여주고 사용 시간 측정"
-            />
-            <p className="mt-1 text-xs text-gray-500">200자 이내</p>
-          </div>
+              {/* Minimal Action */}
+              <FormField label="최소 행동" htmlFor="minimalAction" required hint="200자 이내">
+                <Input
+                  type="text"
+                  name="minimalAction"
+                  id="minimalAction"
+                  required
+                  maxLength={200}
+                  placeholder="예: 5명에게 프로토타입 보여주고 사용 시간 측정"
+                />
+              </FormField>
 
-          {/* Deadline */}
-          <div>
-            <label
-              htmlFor="deadline"
-              className="block text-sm font-medium text-gray-700"
-            >
-              실험 마감일 <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              name="deadline"
-              id="deadline"
-              required
-              defaultValue={defaultDeadlineStr}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              기본 D+7일 (최대 Discovery 마감일까지)
-            </p>
-          </div>
+              {/* Deadline */}
+              <FormField label="실험 마감일" htmlFor="deadline" required hint="기본 D+7일 (최대 Discovery 마감일까지)">
+                <Input
+                  type="date"
+                  name="deadline"
+                  id="deadline"
+                  required
+                  defaultValue={defaultDeadlineStr}
+                />
+              </FormField>
 
-          {/* Expected Evidence */}
-          <div>
-            <label
-              htmlFor="expectedEvidence"
-              className="block text-sm font-medium text-gray-700"
-            >
-              예상 근거 <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="expectedEvidence"
-              id="expectedEvidence"
-              required
-              maxLength={200}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              placeholder="예: 5명 중 3명 이상이 시간 단축 체감, 정량 데이터 로그"
-            />
-            <p className="mt-1 text-xs text-gray-500">200자 이내</p>
-          </div>
+              {/* Expected Evidence */}
+              <FormField label="예상 근거" htmlFor="expectedEvidence" required hint="200자 이내">
+                <Input
+                  type="text"
+                  name="expectedEvidence"
+                  id="expectedEvidence"
+                  required
+                  maxLength={200}
+                  placeholder="예: 5명 중 3명 이상이 시간 단축 체감, 정량 데이터 로그"
+                />
+              </FormField>
 
-          {/* Actions */}
-          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-gray-200 pt-6">
-            <a
-              href={`/discoveries/${discovery.id}`}
-              className="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-            >
-              취소
-            </a>
-            <button
-              type="submit"
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              OPEN으로 승격
-            </button>
-          </div>
-        </Form>
+              {/* Actions */}
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-[var(--axis-border-default)] pt-6">
+                <Button variant="outline" asChild>
+                  <a href={`/discoveries/${discovery.id}`}>취소</a>
+                </Button>
+                <Button type="submit">OPEN으로 승격</Button>
+              </div>
+            </Form>
+          </CardContent>
+        </Card>
 
         {/* Info Box */}
-        <div className="mt-6 rounded-md bg-gray-50 p-4 text-sm text-gray-600">
+        <div className="mt-6 rounded-md bg-[var(--axis-surface-secondary)] p-4 text-sm text-[var(--axis-text-tertiary)]">
           <p className="font-semibold">승격 시 자동 설정:</p>
           <ul className="mt-2 list-inside list-disc space-y-1">
             <li>상태: INBOX → OPEN</li>
@@ -371,6 +316,6 @@ export default function PromoteToOpen() {
           </ul>
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }

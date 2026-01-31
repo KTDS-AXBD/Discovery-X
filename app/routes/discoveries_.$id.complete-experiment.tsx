@@ -4,7 +4,13 @@ import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries, experiments, eventLogs } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { MainNav } from "~/components/layout/MainNav";
+import { PageLayout } from "~/components/layout/PageLayout";
+import { PageHeader } from "~/components/layout/PageHeader";
+import { Card, CardContent } from "~/components/ui/Card";
+import { Textarea } from "~/components/ui/Textarea";
+import { FormField } from "~/components/ui/FormField";
+import { Button } from "~/components/ui/Button";
+import { AlertBanner } from "~/components/ui/AlertBanner";
 import { eq, and } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { CompleteExperimentSchema } from "~/lib/validation/discovery-rules";
@@ -135,16 +141,12 @@ export default function CompleteExperiment() {
   const actionData = useActionData<typeof action>();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <MainNav user={user} />
-
-      <div className="mx-auto max-w-2xl px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">실험 결과 기록</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            실험의 결과를 기록하고 완료 처리합니다
-          </p>
-        </div>
+    <PageLayout user={user}>
+      <div className="mx-auto max-w-2xl">
+        <PageHeader
+          title="실험 결과 기록"
+          description="실험의 결과를 기록하고 완료 처리합니다"
+        />
 
         {/* Discovery Info */}
         <div className="mb-6 rounded-lg bg-blue-50 p-4">
@@ -152,24 +154,24 @@ export default function CompleteExperiment() {
         </div>
 
         {/* Experiment Info */}
-        <div className="mb-6 rounded-lg bg-gray-50 p-4">
-          <h3 className="text-sm font-medium text-gray-900">실험 정보</h3>
+        <div className="mb-6 rounded-lg bg-[var(--axis-surface-secondary)] p-4">
+          <h3 className="text-sm font-medium text-[var(--axis-text-primary)]">실험 정보</h3>
           <dl className="mt-3 space-y-2 text-sm">
             <div>
-              <dt className="font-medium text-gray-500">가설</dt>
-              <dd className="mt-1 text-gray-900">{experiment.hypothesis}</dd>
+              <dt className="font-medium text-[var(--axis-text-tertiary)]">가설</dt>
+              <dd className="mt-1 text-[var(--axis-text-primary)]">{experiment.hypothesis}</dd>
             </div>
             <div>
-              <dt className="font-medium text-gray-500">최소 행동</dt>
-              <dd className="mt-1 text-gray-900">{experiment.minimalAction}</dd>
+              <dt className="font-medium text-[var(--axis-text-tertiary)]">최소 행동</dt>
+              <dd className="mt-1 text-[var(--axis-text-primary)]">{experiment.minimalAction}</dd>
             </div>
             <div>
-              <dt className="font-medium text-gray-500">예상 근거</dt>
-              <dd className="mt-1 text-gray-900">{experiment.expectedEvidence}</dd>
+              <dt className="font-medium text-[var(--axis-text-tertiary)]">예상 근거</dt>
+              <dd className="mt-1 text-[var(--axis-text-primary)]">{experiment.expectedEvidence}</dd>
             </div>
             <div>
-              <dt className="font-medium text-gray-500">마감일</dt>
-              <dd className="mt-1 text-gray-900">
+              <dt className="font-medium text-[var(--axis-text-tertiary)]">마감일</dt>
+              <dd className="mt-1 text-[var(--axis-text-primary)]">
                 {new Date(experiment.deadline).toLocaleDateString("ko-KR")}
               </dd>
             </div>
@@ -177,49 +179,37 @@ export default function CompleteExperiment() {
         </div>
 
         {actionData?.error && (
-          <div className="mb-6 rounded-md bg-red-50 p-4">
-            <p className="text-sm text-red-800">{actionData.error}</p>
-          </div>
+          <AlertBanner variant="destructive" className="mb-6">
+            <p>{actionData.error}</p>
+          </AlertBanner>
         )}
 
-        <Form method="post" className="space-y-6 bg-white p-6 shadow sm:rounded-lg">
-          <input type="hidden" name="experimentId" value={experiment.id} />
+        <Card>
+          <CardContent className="pt-6">
+            <Form method="post" className="space-y-6">
+              <input type="hidden" name="experimentId" value={experiment.id} />
 
-          <div>
-            <label
-              htmlFor="resultSummary"
-              className="block text-sm font-medium text-gray-700"
-            >
-              결과 요약 <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              name="resultSummary"
-              id="resultSummary"
-              required
-              maxLength={400}
-              rows={5}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              placeholder="실험 결과를 요약합니다. 가설이 검증되었는지, 어떤 데이터/피드백을 얻었는지 기술합니다."
-            />
-            <p className="mt-1 text-xs text-gray-500">400자 이내</p>
-          </div>
+              <FormField label="결과 요약" htmlFor="resultSummary" required hint="400자 이내">
+                <Textarea
+                  name="resultSummary"
+                  id="resultSummary"
+                  required
+                  maxLength={400}
+                  rows={5}
+                  placeholder="실험 결과를 요약합니다. 가설이 검증되었는지, 어떤 데이터/피드백을 얻었는지 기술합니다."
+                />
+              </FormField>
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-gray-200 pt-6">
-            <a
-              href={`/discoveries/${discovery.id}`}
-              className="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-            >
-              취소
-            </a>
-            <button
-              type="submit"
-              className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-            >
-              결과 기록 완료
-            </button>
-          </div>
-        </Form>
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-[var(--axis-border-default)] pt-6">
+                <Button variant="outline" asChild>
+                  <a href={`/discoveries/${discovery.id}`}>취소</a>
+                </Button>
+                <Button type="submit" variant="success">결과 기록 완료</Button>
+              </div>
+            </Form>
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </PageLayout>
   );
 }
