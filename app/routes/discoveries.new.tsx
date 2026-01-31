@@ -1,6 +1,7 @@
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
-import { Form, useActionData, useLoaderData } from "@remix-run/react";
+import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
@@ -8,6 +9,7 @@ import { MainNav } from "~/components/layout/MainNav";
 import { CreateDiscoverySchema } from "~/lib/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
 import { SourceType, DiscoveryStatus } from "~/db/schema";
+import { StatusBadge } from "~/components/ui/StatusBadge";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -79,9 +81,90 @@ const SOURCE_TYPE_LABELS: Record<string, string> = {
   [SourceType.OTHER]: "기타",
 };
 
+interface SimilarSeed {
+  id: string;
+  title: string;
+  seedSummary: string;
+  status: string;
+  deadEndFailurePattern: string[] | null;
+  notNowTriggerType: string | null;
+  notNowTriggerCondition: string | null;
+}
+
+function SimilarSeedsPanel({ seeds }: { seeds: SimilarSeed[] }) {
+  if (seeds.length === 0) return null;
+
+  return (
+    <div className="rounded-lg border-2 border-yellow-300 bg-yellow-50 p-4">
+      <h3 className="text-sm font-semibold text-yellow-800">
+        유사한 Discovery가 {seeds.length}건 있습니다
+      </h3>
+      <div className="mt-3 space-y-3">
+        {seeds.map((seed) => (
+          <div key={seed.id} className="rounded-md bg-white p-3 shadow-sm">
+            <div className="flex items-center justify-between">
+              <Link
+                to={`/discoveries/${seed.id}`}
+                className="text-sm font-medium text-blue-600 hover:text-blue-800"
+              >
+                {seed.title}
+              </Link>
+              <StatusBadge status={seed.status} />
+            </div>
+            <p className="mt-1 text-xs text-gray-600 line-clamp-2">{seed.seedSummary}</p>
+            {seed.deadEndFailurePattern && seed.deadEndFailurePattern.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1">
+                {seed.deadEndFailurePattern.map((p) => (
+                  <span key={p} className="rounded bg-red-100 px-1.5 py-0.5 text-xs text-red-700">
+                    {p}
+                  </span>
+                ))}
+              </div>
+            )}
+            {seed.status === "NOT_NOW" && seed.notNowTriggerCondition && (
+              <p className="mt-1 text-xs text-gray-500">
+                트리거: {seed.notNowTriggerCondition}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function NewDiscovery() {
   const { user } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
+  const [seedSummary, setSeedSummary] = useState("");
+  const [similarSeeds, setSimilarSeeds] = useState<SimilarSeed[]>([]);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const fetchSimilarSeeds = useCallback(async (query: string) => {
+    if (query.length < 5) {
+      setSimilarSeeds([]);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/similar-seeds?q=${encodeURIComponent(query)}&limit=5`);
+      if (res.ok) {
+        const data = await res.json() as { results: SimilarSeed[] };
+        setSimilarSeeds(data.results);
+      }
+    } catch {
+      // Silently fail
+    }
+  }, []);
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      fetchSimilarSeeds(seedSummary);
+    }, 300);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [seedSummary, fetchSimilarSeeds]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -138,12 +221,17 @@ export default function NewDiscovery() {
               required
               maxLength={400}
               rows={5}
+              value={seedSummary}
+              onChange={(e) => setSeedSummary(e.target.value)}
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
               placeholder="400자 이내"
             />
             <p className="mt-1 text-xs text-gray-500">
               관찰한 내용, 문제 정의, 기회 요약 등
             </p>
+
+            {/* Similar Seeds Panel */}
+            <SimilarSeedsPanel seeds={similarSeeds} />
           </div>
 
           {/* Source Type */}
