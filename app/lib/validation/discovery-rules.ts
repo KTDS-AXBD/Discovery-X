@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { DB } from "~/db";
-import { eq, count, and } from "drizzle-orm";
-import { experiments, evidence, discoveries, DiscoveryStatus } from "~/db/schema";
+import { eq, count } from "drizzle-orm";
+import { experiments, evidence } from "~/db/schema";
 
 // ============================================================================
 // Validation Error
@@ -142,17 +142,6 @@ export class DiscoveryValidationRules {
     db: DB,
     discoveryId: string
   ): Promise<ValidationResult> {
-    const result = await db
-      .select({ count: count() })
-      .from(evidence)
-      .where(
-        and(
-          eq(evidence.discoveryId, discoveryId),
-          // SQLite에서는 IN 조건을 OR로 처리
-          // strength = 'A' OR strength = 'B'
-        )
-      );
-
     // A/B급 증거 개수 계산
     const allEvidence = await db
       .select()

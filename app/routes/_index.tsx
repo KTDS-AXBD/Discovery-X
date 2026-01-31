@@ -6,7 +6,6 @@ import { discoveries } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { MainNav } from "~/components/layout/MainNav";
 import { count, eq, and, lt } from "drizzle-orm";
-import { sql } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 
 export const meta: MetaFunction = () => {

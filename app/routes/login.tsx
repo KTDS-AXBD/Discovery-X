@@ -5,7 +5,7 @@ import { getDb } from "~/db";
 import { users } from "~/db/schema";
 import { createSession, createSessionStorage, getSessionSecret } from "~/lib/auth/session.server";
 
-export async function loader({ request, context }: LoaderFunctionArgs) {
+export async function loader({ request: _request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
 
   // Get all users for selection
