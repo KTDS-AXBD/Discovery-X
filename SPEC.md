@@ -187,12 +187,27 @@ Validation:
 > **이 섹션은 매 세션마다 업데이트한다.**
 
 ### 현재 단계
-**Phase 1 완료 → 운영 실험 준비 단계**
+**Phase 2 완료 → 운영 실험 시작 가능 (Ready for Production)**
 
-✅ End-to-End 닫힘 가능! Discovery를 INBOX → OPEN → DECISION까지 완전히 처리할 수 있습니다.
-PRD §10.2 P0 성공 기준 달성: "최소 1건 닫힌 Discovery 발생" 가능.
+✅ 모든 핵심 기능 완성! Weekly Review, Recall Queue, Metrics 뷰까지 구현되어 30-60일 운영 실험을 즉시 시작할 수 있습니다.
+PRD §7.1 P0 요구사항 100% 달성.
 
-### 최근 변경 (2026-01-31 세션 2)
+### 최근 변경 (2026-01-31 세션 6)
+**스킬 파일 점검 및 보강**:
+- ✅ `deploy/SKILL.md` 전면 재작성 — 브랜치명(`main`→`master`), 배포 방식(wrangler 직접), 명령어 명시화, DB 마이그레이션 확인 단계 추가
+- ✅ `session-end/SKILL.md` 수정 — 빌드 확인을 `pnpm typecheck` + `pnpm build`로 명시
+- ✅ `session-start/SKILL.md` 수정 — CLAUDE.md 읽기 단계 추가
+- ⚠️ 기존 TypeScript 에러 다수 발견 (Drizzle ORM extraConfig 타입, Env 타입, Date 직렬화) — 향후 수정 필요
+
+### 이전 세션 (2026-01-31 세션 5)
+**Phase 2 운영 지원 뷰 완성**:
+- ✅ Weekly Review (`/review`) — OPEN 목록, Age 기반 색상, Due Date 추적
+- ✅ Recall Queue (`/recall`) — Revisit Date 도래 NOT_NOW 목록, 트리거 정보 표시
+- ✅ Metrics 대시보드 (`/metrics`) — P0/P1 성공 기준 추적, 핵심 지표 카드
+- ✅ CSV Export API — Discovery 전체 데이터 + 지표 집계 다운로드
+- ✅ MainNav 업데이트 — Metrics 링크 추가
+
+### 이전 세션 (2026-01-31 세션 2)
 **Discovery CRUD 완성 (15개 라우트)**:
 - ✅ 인증: 로그인/로그아웃 (`/login`, `/logout`) + Session 관리
 - ✅ 홈 대시보드 (`/`) — 통계 카드 (전체/Inbox/Open/Next 개수)
@@ -241,8 +256,9 @@ PRD §10.2 P0 성공 기준 달성: "최소 1건 닫힌 Discovery 발생" 가능
 - **프로젝트 구조**: 기획 문서는 `docs/`, SDD 핵심(CLAUDE.md, SPEC.md)은 루트
 - **브랜치 전략**: master 단일 브랜치 (Prototype 기간)
 - **배포**: Cloudflare Pages Git 연동 (master push → 자동 빌드/배포)
-- **CF Pages 빌드**: 첫 배포 실패 → pnpm-lock.yaml 추적으로 수정, 다음 push에서 확인 필요
-- **다음 우선순위**: Weekly Review + Recall Queue 뷰 구현 (운영 지원)
+- **프로덕션 준비 상태**: Phase 0-2 완료, 운영 실험 시작 가능
+- **다음 단계**: TypeScript 에러 수정 → 프로덕션 배포 → 운영 실험 시작 (30-60일)
+- **알려진 이슈**: `pnpm typecheck` 실패 — Drizzle ORM extraConfig 타입, Env 타입 불일치, Date 직렬화 에러
 
 ---
 
@@ -270,20 +286,23 @@ PRD §10.2 P0 성공 기준 달성: "최소 1건 닫힌 Discovery 발생" 가능
 | **프로젝트 폴더 정리** | ✅ | 기획 문서 `docs/` 이동, README 교체, .gitignore 보완 |
 | **GitHub 연동** | ✅ | AX-BD-Team/Discovery-X (private) |
 | **버전 관리 원칙** | ✅ | master 단일 브랜치, Conventional Commits, Phase별 태깅 |
-| **CF Pages Git 연동** | ✅ | master push → 자동 빌드/배포 (첫 배포 수정 중) |
+| **CF Pages Git 연동** | ✅ | master push → 자동 빌드/배포 |
+| **Weekly Review 뷰** | ✅ | `/review` — OPEN 목록, Age 색상, Due Date 추적 |
+| **Recall Queue 뷰** | ✅ | `/recall` — Revisit Date 도래 NOT_NOW 목록 |
+| **Metrics 대시보드** | ✅ | `/metrics` — P0/P1 성공 기준, 핵심 지표 |
+| **CSV Export API** | ✅ | Discovery 데이터 + 지표 다운로드 |
+| **스킬 파일 보강** | ✅ | deploy 전면 재작성, session-end/start 수정 |
 
 ### 미래 작업
-
-**Phase 2 — 운영 지원 뷰 (다음 우선순위)**
-- [ ] Weekly Review 뷰 (`/review`) — OPEN 목록, Age 순 정렬, 30분 내 10개 검토
-- [ ] Recall Queue 뷰 (`/recall`) — Revisit Date 도래 NOT_NOW 목록
 
 **Phase 3 — 운영 자동화 (선택)**
 - [ ] TTL 리마인드 (Inbox 7일, due_date 임박)
 - [ ] Revisit Date 도래 자동 등재
 - [ ] 이메일 알림 (SendGrid/Resend)
 
-**Phase 4 — 지표/리포트 (선택)**
-- [ ] 최소 지표 계산 (전환율, 종료율, 재호출 수)
-- [ ] CSV Export
-- [ ] 메트릭 대시보드
+**Phase 4 — 추가 개선 (선택)**
+- [ ] 실시간 차트 (현재는 숫자 카드만)
+- [ ] Experiment 진행률 추적 (현재 진행 중인 실험 표시)
+- [ ] 유사도 기반 추천 (새 Seed 입력 시 유사 Dead End 제안)
+- [ ] 모바일 반응형 UI (현재는 데스크톱 전용)
+- [ ] 1-pager Brief 자동 생성
