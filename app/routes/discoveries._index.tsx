@@ -36,9 +36,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
           })
         : null;
 
+      const isInboxOverdue =
+        discovery.status === DiscoveryStatus.INBOX &&
+        Date.now() - new Date(discovery.createdAt).getTime() > 7 * 24 * 60 * 60 * 1000;
+
       return {
         ...discovery,
         ownerName: owner?.name,
+        isInboxOverdue,
       };
     })
   );
@@ -145,13 +150,8 @@ export default function DiscoveriesIndex() {
                         </td>
                       </tr>
                     ) : (
-                      discoveries.map((discovery) => {
-                        const isInboxOverdue =
-                          discovery.status === DiscoveryStatus.INBOX &&
-                          Date.now() - new Date(discovery.createdAt).getTime() >
-                            7 * 24 * 60 * 60 * 1000;
-                        return (
-                          <tr key={discovery.id} className={isInboxOverdue ? "bg-red-50" : ""}>
+                      discoveries.map((discovery) => (
+                          <tr key={discovery.id} className={discovery.isInboxOverdue ? "bg-red-50" : ""}>
                             <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                               <Link
                                 to={`/discoveries/${discovery.id}`}
@@ -159,7 +159,7 @@ export default function DiscoveriesIndex() {
                               >
                                 {discovery.title}
                               </Link>
-                              {isInboxOverdue && (
+                              {discovery.isInboxOverdue && (
                                 <span className="ml-2 inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800">
                                   7일 초과
                                 </span>
@@ -190,8 +190,7 @@ export default function DiscoveriesIndex() {
                               </Link>
                             </td>
                           </tr>
-                        );
-                      })
+                      ))
                     )}
                   </tbody>
                 </table>
