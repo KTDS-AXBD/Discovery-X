@@ -214,7 +214,18 @@ P0 전 항목 + Export 확장(CSV/JSON/Brief) + 이메일 알림(Resend/Cron) + 
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (2026-01-31 세션 17)
+### 최근 변경 (2026-01-31 세션 18)
+**승인 워크플로우 타입 에러 수정 + 유사 Seed 검색 + 고급 지표 + 프로덕션 배포**:
+- ✅ env 캐스팅 타입 에러 수정 (5개 라우트: `as unknown as Record<string, string>`)
+- ✅ approve.tsx `pendingDecisionData` 타입 안전성 개선
+- ✅ useRef strict mode 호환 수정 (`useRef<T>(undefined)`)
+- ✅ 유사 Seed 검색: `/api/similar-seeds` + `StatusBadge` 컴포넌트 + 생성 폼 연동
+- ✅ 고급 지표: Failure Pattern 재사용률, Owner 부하, Evidence 품질 분석
+- ✅ 테스트 헬퍼 DB에 `0002_add_approval_columns.sql` 마이그레이션 추가
+- ✅ 129개 테스트 전체 통과 + typecheck/build 정상
+- ✅ 프로덕션 배포 완료
+
+### 이전 변경 (2026-01-31 세션 17)
 **Reviewer 승인 워크플로우 구현 + 프로덕션 배포**:
 - ✅ DB 스키마: `approvalStatus`, `pendingDecision`, `approvedAt/By` 등 7개 컬럼 추가
 - ✅ Validation: Reviewer 필수 검증, 승인 대기 중복 제출 차단, `ApprovalDecisionSchema`
@@ -363,8 +374,8 @@ P0 전 항목 + Export 확장(CSV/JSON/Brief) + 이메일 알림(Resend/Cron) + 
 - **EXTENSION_REQUESTED**: ✅ 구현 완료 (OPEN + 실험 2개 → 연장 요청 → +14일, 3번째 실험 가능)
 - **다음 단계**: DB 마이그레이션 적용 (`pnpm db:migrate:prod`) + Resend secrets 설정 + 외부 cron 연동 후 30-60일 운영 실험 시작
 - **DB 마이그레이션 필요**: `0002_add_approval_columns.sql` + `0003_add_fts5.sql` 프로덕션 적용 필요
-- **빌드 상태**: `pnpm build` (267KB server) + `pnpm typecheck` + `pnpm lint` + `pnpm test` (129개) 모두 통과
-- **배포 상태**: ✅ 세션 17 프로덕션 배포 완료 (최종: `https://04ec6e15.discovery-x.pages.dev`)
+- **빌드 상태**: `pnpm build` (310KB server) + `pnpm typecheck` + `pnpm lint` + `pnpm test` (129개) 모두 통과
+- **배포 상태**: ✅ 세션 18 프로덕션 배포 완료
 - **이메일 설정 필요**: `wrangler secret put RESEND_API_KEY` + `CRON_SECRET` 후 외부 cron 서비스 연동
 - **운영 문서**: 치트시트, 런북, 킥오프 템플릿, QA 체크리스트, 사용자 가이드 완성
 
@@ -424,6 +435,9 @@ P0 전 항목 + Export 확장(CSV/JSON/Brief) + 이메일 알림(Resend/Cron) + 
 | **운영 준비 문서** | ✅ | 킥오프 템플릿, 운영 런북, 치트시트 |
 | **테스트 인프라** | ✅ | Vitest + Playwright, unit 76 + integration 53 = 129개 통과 |
 | **Reviewer 승인 워크플로우** | ✅ | DB 스키마 + validation + approve 라우트 + 이메일 알림 |
+| **유사 Seed 검색** | ✅ | `/api/similar-seeds` + 생성 폼 실시간 유사 Discovery 표시 |
+| **고급 지표** | ✅ | Failure Pattern 재사용률, Owner 부하, Evidence 품질 |
+| **StatusBadge 컴포넌트** | ✅ | 재사용 가능한 상태 배지 UI 컴포넌트 |
 
 ### 남은 작업
 - [x] 최종 프로덕션 배포 — 세션 14에서 완료
@@ -434,8 +448,8 @@ P0 전 항목 + Export 확장(CSV/JSON/Brief) + 이메일 알림(Resend/Cron) + 
 
 **후속 순차 작업 (병렬 완료 후)**
 - [x] Reviewer 승인 워크플로우 (DB 스키마 변경: `approval_status` 컬럼) — 세션 17에서 완료
-- [ ] 유사 Seed 검색 (Embedding, Cloudflare AI Workers)
-- [ ] 고급 지표 (Failure Pattern 재사용률, Owner 부하, Evidence 품질)
+- [x] 유사 Seed 검색 — 세션 18에서 완료 (FTS5 기반, `/api/similar-seeds`)
+- [x] 고급 지표 — 세션 18에서 완료 (Failure Pattern 재사용률, Owner 부하, Evidence 품질)
 
 **운영 후 판단 (보류)**
 - [ ] 기한 초과 강제 종료 (현재 OVERDUE 배지만 표시)
