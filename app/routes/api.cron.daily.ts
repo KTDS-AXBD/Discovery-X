@@ -8,10 +8,13 @@ import {
   buildOverdueEmail,
   buildDueSoonEmail,
   buildRevisitEmail,
+  buildAutoClosedEmail,
   type OverdueDiscovery,
   type ExpiringDiscovery,
   type RevisitDiscovery,
+  type AutoClosedDiscovery,
 } from "~/lib/notifications/templates";
+import { eventLogs } from "~/db/schema";
 
 interface CronEnv {
   DB: D1Database;
@@ -19,14 +22,14 @@ interface CronEnv {
   CRON_SECRET?: string;
 }
 
-async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; errors: string[] }> {
+async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; errors: string[]; autoClosed: number }> {
   const db = getDb(env.DB);
   const errors: string[] = [];
   let sent = 0;
 
   const apiKey = env.RESEND_API_KEY;
   if (!apiKey) {
-    return { sent: 0, errors: ["RESEND_API_KEY not configured"] };
+    return { sent: 0, errors: ["RESEND_API_KEY not configured"], autoClosed: 0 };
   }
 
   const emailClient = createEmailClient(apiKey);
@@ -125,7 +128,58 @@ async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; erro
     }
   }
 
-  return { sent, errors };
+  // 4. Auto-close overdue discoveries as DEAD_END
+  // Exclude items with approvalStatus === "PENDING" (awaiting reviewer approval)
+  const autoCloseTargets = activeDiscoveries.filter((d) => {
+    if (!d.dueDate) return false;
+    if (d.approvalStatus === "PENDING") return false;
+    return new Date(d.dueDate) < now;
+  });
+
+  const autoClosedItems: AutoClosedDiscovery[] = [];
+
+  for (const d of autoCloseTargets) {
+    const dueDate = new Date(d.dueDate!);
+    const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+    const owner = d.ownerId ? userMap.get(d.ownerId) : null;
+
+    await db
+      .update(discoveries)
+      .set({
+        status: DiscoveryStatus.DEAD_END,
+        deadEndFailurePattern: ["time_constraint"],
+        deadEndEvidenceReason: `자동 종료: ${daysOverdue}일 기한 초과`,
+        decidedAt: now,
+        updatedAt: now,
+      })
+      .where(eq(discoveries.id, d.id));
+
+    await db.insert(eventLogs).values({
+      id: crypto.randomUUID(),
+      actorId: "system-radar",
+      discoveryId: d.id,
+      eventType: "AUTO_CLOSED_OVERDUE",
+      metadata: { daysOverdue, previousStatus: d.status },
+    });
+
+    autoClosedItems.push({
+      id: d.id,
+      title: d.title,
+      ownerName: owner?.name || "미지정",
+      daysOverdue,
+    });
+  }
+
+  if (autoClosedItems.length > 0) {
+    const { subject, html } = buildAutoClosedEmail(autoClosedItems);
+    for (const email of recipients) {
+      const result = await emailClient.send({ to: email, subject, html });
+      if (result.success) sent++;
+      else if (result.error) errors.push(`autoClosed→${email}: ${result.error}`);
+    }
+  }
+
+  return { sent, errors, autoClosed: autoClosedItems.length };
 }
 
 // HTTP endpoint for manual trigger

@@ -258,6 +258,16 @@ export default function DiscoveryDetail() {
         </AlertBanner>
       )}
 
+      {/* Auto-closed Banner */}
+      {discovery.status === DiscoveryStatus.DEAD_END &&
+        Array.isArray(discovery.deadEndFailurePattern) &&
+        discovery.deadEndFailurePattern.includes("time_constraint") && (
+        <AlertBanner variant="warning" className="mb-6 border-2">
+          <p className="text-sm font-semibold">자동 종료됨 (기한 초과)</p>
+          <p className="mt-1 text-sm">이 Discovery는 기한 내 결정되지 않아 시스템에 의해 자동 DEAD END 처리되었습니다.</p>
+        </AlertBanner>
+      )}
+
       {/* Seed Information */}
       <Card className="mb-6">
         <CardHeader>
