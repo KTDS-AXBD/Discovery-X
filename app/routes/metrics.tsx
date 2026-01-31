@@ -5,8 +5,9 @@ import { getDb } from "~/db";
 import { discoveries, experiments, evidence } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { MainNav } from "~/components/layout/MainNav";
-import { eq, count, and, lte } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
+import { StatusDonut } from "~/components/charts/StatusDonut";
+import { WeeklyBar } from "~/components/charts/WeeklyBar";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -78,6 +79,25 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const totalEvidence = allEvidence.length;
   const strongEvidence = allEvidence.filter((e) => e.strength === "A" || e.strength === "B").length;
 
+  // Weekly creation data (last 8 weeks)
+  const weeklyData: { week: string; count: number }[] = [];
+  for (let i = 7; i >= 0; i--) {
+    const weekStart = new Date();
+    weekStart.setDate(weekStart.getDate() - (i + 1) * 7);
+    weekStart.setHours(0, 0, 0, 0);
+    const weekEnd = new Date();
+    weekEnd.setDate(weekEnd.getDate() - i * 7);
+    weekEnd.setHours(0, 0, 0, 0);
+
+    const weekCount = allDiscoveries.filter((d) => {
+      const created = new Date(d.createdAt);
+      return created >= weekStart && created < weekEnd;
+    }).length;
+
+    const label = `${(weekStart.getMonth() + 1).toString().padStart(2, "0")}/${weekStart.getDate().toString().padStart(2, "0")}`;
+    weeklyData.push({ week: label, count: weekCount });
+  }
+
   return json({
     user,
     metrics: {
@@ -97,6 +117,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       experimentCompletionRate,
       totalEvidence,
       strongEvidence,
+      weeklyData,
     },
   });
 }
@@ -190,6 +211,24 @@ export default function Metrics() {
               {metrics.recallEvents}
             </div>
             <div className="mt-2 text-xs text-gray-500">목표: ≥1/월</div>
+          </div>
+        </div>
+
+        {/* Charts */}
+        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div className="rounded-lg bg-white p-6 shadow">
+            <h3 className="mb-4 text-lg font-semibold text-gray-900">상태 분포</h3>
+            <StatusDonut
+              inbox={metrics.inboxCount}
+              open={metrics.openCount}
+              next={metrics.nextCount}
+              notNow={metrics.notNowCount}
+              deadEnd={metrics.deadEndCount}
+            />
+          </div>
+          <div className="rounded-lg bg-white p-6 shadow">
+            <h3 className="mb-4 text-lg font-semibold text-gray-900">주간 생성 추이</h3>
+            <WeeklyBar data={metrics.weeklyData} />
           </div>
         </div>
 

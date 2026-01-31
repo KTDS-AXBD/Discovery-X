@@ -11,7 +11,6 @@ import { getDb } from "~/db";
 import { discoveries } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { DiscoveryStatus } from "~/db/schema";
-import { eq } from "drizzle-orm";
 import stylesheet from "~/styles/tailwind.css?url";
 
 export const links: LinksFunction = () => [

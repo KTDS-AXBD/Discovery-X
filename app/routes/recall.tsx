@@ -92,8 +92,47 @@ export default function RecallQueue() {
           </div>
         </div>
 
-        {/* Discovery List */}
-        <div className="mt-8 flow-root">
+        {/* Discovery List - Mobile Cards */}
+        <div className="mt-8 space-y-3 sm:hidden">
+          {discoveries.length === 0 ? (
+            <p className="py-12 text-center text-sm text-gray-500">
+              재검토 대기 중인 Discovery가 없습니다.
+            </p>
+          ) : (
+            discoveries.map((discovery) => (
+              <Link
+                key={discovery.id}
+                to={`/discoveries/${discovery.id}`}
+                className={`block rounded-lg p-4 shadow ${
+                  discovery.daysSinceRevisit > 7
+                    ? "bg-yellow-50"
+                    : discovery.daysSinceRevisit > 0
+                    ? "bg-blue-50"
+                    : "bg-white"
+                }`}
+              >
+                <h3 className="text-sm font-medium text-gray-900">{discovery.title}</h3>
+                <div className="mt-2 space-y-1 text-xs text-gray-500">
+                  <p>{discovery.ownerName || "미지정"}</p>
+                  {discovery.revisitDate && (
+                    <p>
+                      재검토: {new Date(discovery.revisitDate).toLocaleDateString("ko-KR")}
+                      {discovery.daysSinceRevisit > 0 && ` (${discovery.daysSinceRevisit}일 경과)`}
+                    </p>
+                  )}
+                  {discovery.notNowTriggerType && (
+                    <p>
+                      {TRIGGER_TYPE_LABELS[discovery.notNowTriggerType] || discovery.notNowTriggerType}
+                    </p>
+                  )}
+                </div>
+              </Link>
+            ))
+          )}
+        </div>
+
+        {/* Discovery List - Desktop Table */}
+        <div className="mt-8 hidden flow-root sm:block">
           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
               <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">

@@ -114,8 +114,41 @@ export default function WeeklyReview() {
           </div>
         </div>
 
-        {/* Discovery List */}
-        <div className="mt-8 flow-root">
+        {/* Discovery List - Mobile Cards */}
+        <div className="mt-8 space-y-3 sm:hidden">
+          {discoveries.length === 0 ? (
+            <p className="py-12 text-center text-sm text-gray-500">
+              진행 중인 Discovery가 없습니다!
+            </p>
+          ) : (
+            discoveries.map((discovery) => (
+              <Link
+                key={discovery.id}
+                to={`/discoveries/${discovery.id}`}
+                className={`block rounded-lg p-4 shadow ${getAgeBgColor(discovery.ageInDays)}`}
+              >
+                <div className="flex items-start justify-between">
+                  <h3 className="text-sm font-medium text-gray-900">{discovery.title}</h3>
+                  <span className={`ml-2 shrink-0 text-xs font-semibold ${getAgeColor(discovery.ageInDays)}`}>
+                    {discovery.ageInDays}일
+                  </span>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                  <span>{discovery.ownerName || "미지정"}</span>
+                  {discovery.isOverdue && (
+                    <span className="rounded-full bg-red-100 px-2 font-semibold text-red-800">OVERDUE</span>
+                  )}
+                  {!discovery.isOverdue && discovery.daysUntilDue !== null && (
+                    <span>{discovery.daysUntilDue}일 남음</span>
+                  )}
+                </div>
+              </Link>
+            ))
+          )}
+        </div>
+
+        {/* Discovery List - Desktop Table */}
+        <div className="mt-8 hidden flow-root sm:block">
           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
               <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
