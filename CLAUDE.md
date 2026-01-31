@@ -45,6 +45,19 @@ INBOX → OPEN → {NEXT | NOT_NOW | DEAD_END}
   - DEAD_END: Failure Pattern 태깅
   - NEXT: 근거(Evidence) A/B급 최소 2개 권장
 
+## 명령어
+
+```bash
+pnpm dev              # 개발 서버 (Vite)
+pnpm build            # 프로덕션 빌드
+pnpm lint             # ESLint (app/ 대상)
+pnpm typecheck        # TypeScript 타입 체크 (tsc --noEmit)
+pnpm db:generate      # Drizzle 마이그레이션 생성
+pnpm db:migrate       # D1 로컬 마이그레이션 적용
+pnpm db:migrate:prod  # D1 원격 마이그레이션 적용
+pnpm deploy           # 빌드 + Cloudflare Pages 배포
+```
+
 ## 기술 스택
 
 - **Runtime**: Cloudflare Pages (Edge)
@@ -53,6 +66,39 @@ INBOX → OPEN → {NEXT | NOT_NOW | DEAD_END}
 - **UI**: React 19 + Tailwind CSS 3
 - **Language**: TypeScript (strict)
 - **Package Manager**: pnpm
+- **Lint**: ESLint 9 (flat config) + typescript-eslint + react-hooks
+
+## 디렉토리 구조
+
+```
+app/
+├── root.tsx              # Remix root layout
+├── routes/               # Remix v2 flat routes (파일명 = URL)
+│   ├── _index.tsx        # / (홈/로그인 분기)
+│   ├── discoveries._index.tsx  # /discoveries (목록)
+│   ├── discoveries.$id.tsx     # /discoveries/:id (상세)
+│   ├── discoveries.$id.edit.tsx
+│   ├── discoveries.$id.promote.tsx
+│   ├── discoveries.$id.add-experiment.tsx
+│   ├── discoveries.$id.add-evidence.tsx
+│   ├── discoveries.$id.decide-*.tsx  # 상태 전환 (next/not-now/dead-end)
+│   ├── review.tsx        # Weekly Review 뷰
+│   ├── recall.tsx        # Recall Queue 뷰
+│   ├── metrics.tsx       # 지표 대시보드
+│   └── api.export.*.ts   # JSON export 엔드포인트
+├── db/
+│   ├── schema.ts         # Drizzle 스키마 (discoveries, experiments, evidence, eventLog)
+│   ├── index.ts          # DB 헬퍼 (getDb)
+│   └── seed.ts           # 시드 데이터
+├── lib/
+│   ├── auth/             # 인증 (쿠키 기반 간이 인증)
+│   ├── constants/        # 상수 (상태값, 타입 등)
+│   └── validation/       # Zod 스키마 + 비즈니스 규칙
+├── components/           # 공용 UI 컴포넌트
+└── styles/               # Tailwind CSS
+```
+
+**경로 별칭**: `~/*` → `./app/*` (tsconfig paths)
 
 ## 버전 관리 원칙
 
@@ -90,23 +136,7 @@ INBOX → OPEN → {NEXT | NOT_NOW | DEAD_END}
 
 ## 운영 실험 파라미터 (절대 변경 금지)
 
-PRD §3에 정의된 운영 실험 조건:
-- **기간**: 30-60일
-- **사용자**: 최대 5명 (전원 Owner 수행 가능)
-- **Discovery 목표**: 5-10건 (볼륨이 아니라 "닫힘")
-- **미팅**: Weekly Decision Review (30분) + Monthly Failure Replay (30분)
-- **강제 사용**: ❌ (참여자는 규칙 준수 필수)
-
-## 성공 기준 (Prototype)
-
-### P0 (최우선)
-"닫힌 Discovery"(Next/Not Now/Dead End)가 최소 1건 이상 발생했는가?
-
-### 운영 지표
-- Seed → Experiment 전환율
-- 28일 내 종료율 ≥ 90%
-- Experiment 완료율 ≥ 80%
-- 월 1회 이상 재호출 이벤트 발생
+PRD §3 참고. 핵심: 30-60일, 최대 5명, Discovery 5-10건 목표.
 
 ## 구현 시 주의사항
 
@@ -132,17 +162,9 @@ PRD §3에 정의된 운영 실험 조건:
 ## 설계 원칙 (v1.4 §5)
 
 - **한국어 기본**: 입출력 언어는 기본적으로 한국어를 사용
-- **따로 또 같이**: 관점은 병렬, 수렴은 현실에서
-- **행동이 완결**: 관찰은 시작, 행동 없으면 자산 아님
-- **Single-Threaded Ownership**: 책임 분산 금지
-- **Time-boxed Discovery**: 무한 탐구 시스템 아님
-- **의도된 인지 부하**: 쉽게 만드는 UX가 목표 아님 (운영/코칭으로 흡수)
-- **하나의 뾰족함**: v1은 "내부 실험 + 근거 문서 루프"에만 집중
-
-## 참고 프레임워크
-
-- **Six Thinking Hats**: 반복 쟁점 해결 (v1.4 §2.1)
-- **PESTEL**: 외부 환경 내재화 (v1.4 §2.2)
+- **의도된 인지 부하**: 쉽게 만드는 UX가 목표 아님
+- **Single-Threaded Ownership**: Discovery당 책임자 1명
+- **Time-boxed**: 무한 탐구 금지 (4주 또는 실험 2회)
 
 ## SDD (Spec Driven Development) 워크플로우
 
@@ -155,6 +177,7 @@ PRD §3에 정의된 운영 실험 조건:
 | `/session-start [작업내용]` | SPEC.md에서 프로젝트 컨텍스트 복원 |
 | `/session-end [메모]` | Git 커밋 + SPEC.md 업데이트 |
 | `/deploy [--preview]` | CLAUDE.md 참조 기반 배포 |
+| `/lint` | 변경 파일 대상 ESLint + TypeScript 점검/수정 |
 
 ### SPEC.md 구조
 
