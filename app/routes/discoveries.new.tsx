@@ -5,11 +5,20 @@ import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { MainNav } from "~/components/layout/MainNav";
+import { PageLayout } from "~/components/layout/PageLayout";
+import { PageHeader } from "~/components/layout/PageHeader";
 import { CreateDiscoverySchema } from "~/lib/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
 import { SourceType, DiscoveryStatus } from "~/db/schema";
 import { StatusBadge } from "~/components/ui/StatusBadge";
+import { Card, CardContent } from "~/components/ui/Card";
+import { Input } from "~/components/ui/Input";
+import { Textarea } from "~/components/ui/Textarea";
+import { Select } from "~/components/ui/Select";
+import { FormField } from "~/components/ui/FormField";
+import { Button } from "~/components/ui/Button";
+import { AlertBanner } from "~/components/ui/AlertBanner";
+import { Badge } from "~/components/ui/Badge";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -95,41 +104,36 @@ function SimilarSeedsPanel({ seeds }: { seeds: SimilarSeed[] }) {
   if (seeds.length === 0) return null;
 
   return (
-    <div className="rounded-lg border-2 border-yellow-300 bg-yellow-50 p-4">
-      <h3 className="text-sm font-semibold text-yellow-800">
-        유사한 Discovery가 {seeds.length}건 있습니다
-      </h3>
+    <AlertBanner variant="warning" title={`유사한 Discovery가 ${seeds.length}건 있습니다`}>
       <div className="mt-3 space-y-3">
         {seeds.map((seed) => (
-          <div key={seed.id} className="rounded-md bg-white p-3 shadow-sm">
+          <Card key={seed.id} className="p-3">
             <div className="flex items-center justify-between">
               <Link
                 to={`/discoveries/${seed.id}`}
-                className="text-sm font-medium text-blue-600 hover:text-blue-800"
+                className="text-sm font-medium text-[var(--axis-text-brand)] hover:underline"
               >
                 {seed.title}
               </Link>
               <StatusBadge status={seed.status} />
             </div>
-            <p className="mt-1 text-xs text-gray-600 line-clamp-2">{seed.seedSummary}</p>
+            <p className="mt-1 text-xs text-[var(--axis-text-secondary)] line-clamp-2">{seed.seedSummary}</p>
             {seed.deadEndFailurePattern && seed.deadEndFailurePattern.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1">
                 {seed.deadEndFailurePattern.map((p) => (
-                  <span key={p} className="rounded bg-red-100 px-1.5 py-0.5 text-xs text-red-700">
-                    {p}
-                  </span>
+                  <Badge key={p} variant="destructive" className="text-xs">{p}</Badge>
                 ))}
               </div>
             )}
             {seed.status === "NOT_NOW" && seed.notNowTriggerCondition && (
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-[var(--axis-text-tertiary)]">
                 트리거: {seed.notNowTriggerCondition}
               </p>
             )}
-          </div>
+          </Card>
         ))}
       </div>
-    </div>
+    </AlertBanner>
   );
 }
 
@@ -167,133 +171,77 @@ export default function NewDiscovery() {
   }, [seedSummary, fetchSimilarSeeds]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <MainNav user={user} />
-
-      <div className="mx-auto max-w-2xl px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">새 Discovery 만들기</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Seed 정보를 입력하여 Discovery를 시작합니다 (상태: INBOX)
-          </p>
-        </div>
+    <PageLayout user={user}>
+      <div className="mx-auto max-w-2xl">
+        <PageHeader
+          title="새 Discovery 만들기"
+          description="Seed 정보를 입력하여 Discovery를 시작합니다 (상태: INBOX)"
+        />
 
         {actionData?.error && (
-          <div className="mb-6 rounded-md bg-red-50 p-4">
-            <p className="text-sm text-red-800">{actionData.error}</p>
-          </div>
+          <AlertBanner variant="destructive" className="mb-6">
+            <p>{actionData.error}</p>
+          </AlertBanner>
         )}
 
-        <Form method="post" className="space-y-6 bg-white p-6 shadow sm:rounded-lg">
-          {/* Title */}
-          <div>
-            <label
-              htmlFor="title"
-              className="block text-sm font-medium text-gray-700"
-            >
-              제목 <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="title"
-              id="title"
-              required
-              maxLength={80}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              placeholder="80자 이내"
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              Discovery를 한 줄로 표현합니다
-            </p>
-          </div>
+        <Card>
+          <CardContent className="pt-6">
+            <Form method="post" className="space-y-6">
+              <FormField label="제목" htmlFor="title" required hint="Discovery를 한 줄로 표현합니다">
+                <Input
+                  type="text"
+                  name="title"
+                  id="title"
+                  required
+                  maxLength={80}
+                  placeholder="80자 이내"
+                />
+              </FormField>
 
-          {/* Seed Summary */}
-          <div>
-            <label
-              htmlFor="seedSummary"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Seed 요약 <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              name="seedSummary"
-              id="seedSummary"
-              required
-              maxLength={400}
-              rows={5}
-              value={seedSummary}
-              onChange={(e) => setSeedSummary(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              placeholder="400자 이내"
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              관찰한 내용, 문제 정의, 기회 요약 등
-            </p>
+              <FormField label="Seed 요약" htmlFor="seedSummary" required hint="관찰한 내용, 문제 정의, 기회 요약 등">
+                <Textarea
+                  name="seedSummary"
+                  id="seedSummary"
+                  required
+                  maxLength={400}
+                  rows={5}
+                  value={seedSummary}
+                  onChange={(e) => setSeedSummary(e.target.value)}
+                  placeholder="400자 이내"
+                />
+                <SimilarSeedsPanel seeds={similarSeeds} />
+              </FormField>
 
-            {/* Similar Seeds Panel */}
-            <SimilarSeedsPanel seeds={similarSeeds} />
-          </div>
+              <FormField label="출처 유형" htmlFor="sourceType" required>
+                <Select name="sourceType" id="sourceType" required>
+                  <option value="">선택하세요</option>
+                  {Object.entries(SOURCE_TYPE_LABELS).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </Select>
+              </FormField>
 
-          {/* Source Type */}
-          <div>
-            <label
-              htmlFor="sourceType"
-              className="block text-sm font-medium text-gray-700"
-            >
-              출처 유형 <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="sourceType"
-              id="sourceType"
-              required
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-            >
-              <option value="">선택하세요</option>
-              {Object.entries(SOURCE_TYPE_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </div>
+              <FormField label="참고 링크 (선택)" htmlFor="seedLinks" hint="여러 링크는 쉼표(,)로 구분합니다">
+                <Input
+                  type="text"
+                  name="seedLinks"
+                  id="seedLinks"
+                  placeholder="https://example.com/article, https://..."
+                />
+              </FormField>
 
-          {/* Seed Links */}
-          <div>
-            <label
-              htmlFor="seedLinks"
-              className="block text-sm font-medium text-gray-700"
-            >
-              참고 링크 (선택)
-            </label>
-            <input
-              type="text"
-              name="seedLinks"
-              id="seedLinks"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              placeholder="https://example.com/article, https://..."
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              여러 링크는 쉼표(,)로 구분합니다
-            </p>
-          </div>
-
-          {/* Actions */}
-          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-gray-200 pt-6">
-            <a
-              href="/discoveries"
-              className="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-            >
-              취소
-            </a>
-            <button
-              type="submit"
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              생성하기
-            </button>
-          </div>
-        </Form>
+              <div className="flex flex-col gap-2 border-t border-[var(--axis-border-default)] pt-6 sm:flex-row sm:justify-end sm:gap-3">
+                <Button variant="outline" asChild>
+                  <a href="/discoveries">취소</a>
+                </Button>
+                <Button type="submit">생성하기</Button>
+              </div>
+            </Form>
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </PageLayout>
   );
 }

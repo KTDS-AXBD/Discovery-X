@@ -4,6 +4,10 @@ import { Form, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { users } from "~/db/schema";
 import { createSession, createSessionStorage, getSessionSecret } from "~/lib/auth/session.server";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/Card";
+import { Select } from "~/components/ui/Select";
+import { FormField } from "~/components/ui/FormField";
+import { Button } from "~/components/ui/Button";
 
 export async function loader({ request: _request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -43,52 +47,35 @@ export default function Login() {
   const { users } = useLoaderData<typeof loader>();
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow-md">
-        <div>
-          <h2 className="text-center text-3xl font-bold text-gray-900">
-            Discovery-X
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            내부 실험 중심 사고 시스템
+    <div className="flex min-h-screen items-center justify-center bg-[var(--axis-surface-secondary)]">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-3xl">Discovery-X</CardTitle>
+          <CardDescription>내부 실험 중심 사고 시스템</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form method="post" className="space-y-6">
+            <FormField label="사용자 선택" htmlFor="userId" required>
+              <Select id="userId" name="userId" required>
+                <option value="">선택하세요</option>
+                {users.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.name} ({user.email})
+                  </option>
+                ))}
+              </Select>
+            </FormField>
+
+            <Button type="submit" className="w-full">
+              로그인
+            </Button>
+          </Form>
+
+          <p className="mt-6 text-center text-xs text-[var(--axis-text-tertiary)]">
+            Prototype 버전 — 5명 테스트 사용자
           </p>
-        </div>
-
-        <Form method="post" className="mt-8 space-y-6">
-          <div>
-            <label
-              htmlFor="userId"
-              className="block text-sm font-medium text-gray-700"
-            >
-              사용자 선택
-            </label>
-            <select
-              id="userId"
-              name="userId"
-              required
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-            >
-              <option value="">선택하세요</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name} ({user.email})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <button
-            type="submit"
-            className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          >
-            로그인
-          </button>
-        </Form>
-
-        <p className="text-center text-xs text-gray-500">
-          Prototype 버전 — 5명 테스트 사용자
-        </p>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
