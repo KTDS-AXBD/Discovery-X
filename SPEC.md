@@ -227,10 +227,21 @@ PRD §10.2 P0 성공 기준 달성: "최소 1건 닫힌 Discovery 발생" 가능
 - ✅ CLAUDE.md 문서 경로 참조 `docs/` 반영
 - ✅ `.gitignore`에 `nul` 패턴 추가 (Windows 아티팩트 재발 방지)
 
+### GitHub 연동 및 버전 관리 (2026-01-31 세션 4)
+- ✅ GitHub 리포지토리 생성 (AX-BD-Team/Discovery-X, private)
+- ✅ Cloudflare Pages Git 연동 설정 (master push → 자동 배포)
+- ✅ 버전 관리 원칙 수립 (CLAUDE.md에 기록)
+  - master 단일 브랜치, Conventional Commits, Phase별 태깅
+- ✅ CLAUDE.md 기술 스택 섹션 현행화 (outdated Confluence/Next.js 참조 제거)
+- ✅ `.gitignore`에서 `pnpm-lock.yaml` 제거 (CF Pages 빌드 실패 수정)
+
 ### 활성 결정사항
 - **인증 방식**: Session 기반 (D1 `sessions` 테이블)
 - **기술 스택**: Remix v2 유지 (React Router v7 마이그레이션은 향후)
 - **프로젝트 구조**: 기획 문서는 `docs/`, SDD 핵심(CLAUDE.md, SPEC.md)은 루트
+- **브랜치 전략**: master 단일 브랜치 (Prototype 기간)
+- **배포**: Cloudflare Pages Git 연동 (master push → 자동 빌드/배포)
+- **CF Pages 빌드**: 첫 배포 실패 → pnpm-lock.yaml 추적으로 수정, 다음 push에서 확인 필요
 - **다음 우선순위**: Weekly Review + Recall Queue 뷰 구현 (운영 지원)
 
 ---
@@ -257,6 +268,9 @@ PRD §10.2 P0 성공 기준 달성: "최소 1건 닫힌 Discovery 발생" 가능
 | **Decision 폼** | ✅ | 3가지 (NEXT, NOT_NOW, DEAD_END) 필수 필드 강제 |
 | 빌드 테스트 | ✅ | `pnpm build` 성공 (142KB server bundle) |
 | **프로젝트 폴더 정리** | ✅ | 기획 문서 `docs/` 이동, README 교체, .gitignore 보완 |
+| **GitHub 연동** | ✅ | AX-BD-Team/Discovery-X (private) |
+| **버전 관리 원칙** | ✅ | master 단일 브랜치, Conventional Commits, Phase별 태깅 |
+| **CF Pages Git 연동** | ✅ | master push → 자동 빌드/배포 (첫 배포 수정 중) |
 
 ### 미래 작업
 
