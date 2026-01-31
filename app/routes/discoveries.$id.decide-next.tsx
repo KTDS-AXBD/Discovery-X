@@ -8,6 +8,7 @@ import { MainNav } from "~/components/layout/MainNav";
 import { eq } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { DiscoveryValidationRules, NextDecisionSchema } from "~/lib/validation/discovery-rules";
+import { getFormErrorMessage } from "~/lib/utils/form-error";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -121,9 +122,9 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     });
 
     return redirect(`/discoveries/${id}`);
-  } catch (error: any) {
+  } catch (error: unknown) {
     return json(
-      { error: error.message || "입력값이 유효하지 않습니다" },
+      { error: getFormErrorMessage(error) },
       { status: 400 }
     );
   }
@@ -139,7 +140,7 @@ export default function DecideNext() {
     <div className="min-h-screen bg-gray-50">
       <MainNav user={user} />
 
-      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-2xl px-4 py-8">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">NEXT 결정</h1>
           <p className="mt-2 text-sm text-gray-600">
@@ -151,7 +152,7 @@ export default function DecideNext() {
         <div className="mb-6 rounded-lg bg-green-50 p-4">
           <h2 className="text-lg font-semibold text-green-900">{discovery.title}</h2>
           <p className="mt-2 text-sm text-green-800">{discovery.seedSummary}</p>
-          <div className="mt-3 flex items-center space-x-4 text-xs text-green-700">
+          <div className="mt-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:space-x-4 text-xs text-green-700">
             <span>전체 Evidence: {evidenceCount}개</span>
             <span>강한 Evidence (A/B급): {strongEvidenceCount}개</span>
           </div>
@@ -223,7 +224,7 @@ export default function DecideNext() {
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-3 border-t border-gray-200 pt-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-gray-200 pt-6">
             <a
               href={`/discoveries/${discovery.id}`}
               className="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"

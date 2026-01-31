@@ -8,6 +8,7 @@ import { MainNav } from "~/components/layout/MainNav";
 import { eq, and } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { CompleteExperimentSchema } from "~/lib/validation/discovery-rules";
+import { getFormErrorMessage } from "~/lib/utils/form-error";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -125,9 +126,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
 
     return redirect(`/discoveries/${id}`);
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "입력값이 유효하지 않습니다";
-    return json({ error: message }, { status: 400 });
+    return json({ error: getFormErrorMessage(error) }, { status: 400 });
   }
 }
 
@@ -139,7 +138,7 @@ export default function CompleteExperiment() {
     <div className="min-h-screen bg-gray-50">
       <MainNav user={user} />
 
-      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-2xl px-4 py-8">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">실험 결과 기록</h1>
           <p className="mt-2 text-sm text-gray-600">
@@ -205,7 +204,7 @@ export default function CompleteExperiment() {
             <p className="mt-1 text-xs text-gray-500">400자 이내</p>
           </div>
 
-          <div className="flex justify-end space-x-3 border-t border-gray-200 pt-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-gray-200 pt-6">
             <a
               href={`/discoveries/${discovery.id}`}
               className="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
