@@ -1,0 +1,21 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "radar-worker"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+main = "src/index.ts"
+
+[triggers]
+crons = ["0 0 * * *"]   # 매일 0:00 UTC = 9:00 KST
+
+[[d1_databases]]
+binding = "DB"
+database_name = "discovery-x-db"
+database_id = "1bab6138-6b2f-45eb-8285-55ba7b543957"
+
+[vars]
+RELEVANCE_THRESHOLD = "60"
+MAX_SEEDS_PER_RUN = "5"
+
+# Secrets (set via CLI):
+# wrangler secret put OPENAI_API_KEY
+# wrangler secret put CRON_SECRET

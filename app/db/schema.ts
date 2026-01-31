@@ -203,6 +203,94 @@ export const eventLogs = sqliteTable(
 );
 
 // ============================================================================
+// RADAR TABLES
+// ============================================================================
+
+export const RadarSourceType = {
+  RSS: "rss",
+  WEB: "web",
+  YOUTUBE: "youtube",
+} as const;
+
+export const RadarItemStatus = {
+  COLLECTED: "COLLECTED",
+  SCORED: "SCORED",
+  SEEDED: "SEEDED",
+  SKIPPED: "SKIPPED",
+} as const;
+
+export const RadarRunStatus = {
+  RUNNING: "RUNNING",
+  COMPLETED: "COMPLETED",
+  FAILED: "FAILED",
+} as const;
+
+export const radarSources = sqliteTable("radar_sources", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  sourceType: text("source_type").notNull(),
+  url: text("url").notNull(),
+  config: text("config", { mode: "json" }).$type<Record<string, unknown>>(),
+  enabled: integer("enabled").notNull().default(1),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export const radarItems = sqliteTable(
+  "radar_items",
+  {
+    id: text("id").primaryKey(),
+    sourceId: text("source_id")
+      .notNull()
+      .references(() => radarSources.id),
+    runId: text("run_id"),
+    urlHash: text("url_hash").notNull().unique(),
+    url: text("url").notNull(),
+    title: text("title").notNull(),
+    summary: text("summary"),
+    titleKo: text("title_ko"),
+    summaryKo: text("summary_ko"),
+    relevanceScore: integer("relevance_score"),
+    discoveryId: text("discovery_id").references(() => discoveries.id),
+    status: text("status").notNull().default(RadarItemStatus.COLLECTED),
+    collectedAt: integer("collected_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    sourceIdIdx: index("idx_radar_items_source_id").on(table.sourceId),
+    urlHashIdx: index("idx_radar_items_url_hash").on(table.urlHash),
+    statusIdx: index("idx_radar_items_status").on(table.status),
+    collectedAtIdx: index("idx_radar_items_collected_at").on(table.collectedAt),
+  })
+);
+
+export const radarRuns = sqliteTable(
+  "radar_runs",
+  {
+    id: text("id").primaryKey(),
+    startedAt: integer("started_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    completedAt: integer("completed_at", { mode: "timestamp" }),
+    sourcesChecked: integer("sources_checked").default(0),
+    itemsCollected: integer("items_collected").default(0),
+    itemsDeduplicated: integer("items_deduplicated").default(0),
+    seedsCreated: integer("seeds_created").default(0),
+    errors: text("errors", { mode: "json" }).$type<string[]>(),
+    status: text("status").notNull().default(RadarRunStatus.RUNNING),
+  },
+  (table) => ({
+    statusIdx: index("idx_radar_runs_status").on(table.status),
+    startedAtIdx: index("idx_radar_runs_started_at").on(table.startedAt),
+  })
+);
+
+// ============================================================================
 // TYPES
 // ============================================================================
 
@@ -223,3 +311,12 @@ export type NewEvidence = typeof evidence.$inferInsert;
 
 export type EventLog = typeof eventLogs.$inferSelect;
 export type NewEventLog = typeof eventLogs.$inferInsert;
+
+export type RadarSource = typeof radarSources.$inferSelect;
+export type NewRadarSource = typeof radarSources.$inferInsert;
+
+export type RadarItem = typeof radarItems.$inferSelect;
+export type NewRadarItem = typeof radarItems.$inferInsert;
+
+export type RadarRun = typeof radarRuns.$inferSelect;
+export type NewRadarRun = typeof radarRuns.$inferInsert;
