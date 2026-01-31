@@ -214,7 +214,12 @@ P0 전 항목 완료. Overdue 경고, 모바일 반응형, 알림 배지, 차트
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (2026-01-31 세션 12)
+### 최근 변경 (2026-01-31 세션 13)
+**차트/모바일 반응형 포함 전체 배포 완료**:
+- ✅ 세션 12에서 커밋된 차트(StatusDonut, WeeklyBar) + 모바일 반응형(Review/Recall) 프로덕션 배포
+- ✅ `git push` + `pnpm run deploy` 완료 — 전체 코드 Cloudflare Pages 반영
+
+### 이전 변경 (2026-01-31 세션 12)
 **EXTENSION_REQUESTED + overdue/mobile/notification 개선, 프로덕션 배포 완료**:
 
 **EXTENSION_REQUESTED 워크플로우**:
