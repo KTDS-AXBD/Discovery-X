@@ -4,8 +4,14 @@ import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries, experiments, evidence, users, eventLogs } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { MainNav } from "~/components/layout/MainNav";
+import { PageLayout } from "~/components/layout/PageLayout";
 import { StatusBadge } from "~/components/ui/StatusBadge";
+import { Badge } from "~/components/ui/Badge";
+import { Button } from "~/components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
+import { Select } from "~/components/ui/Select";
+import { AlertBanner } from "~/components/ui/AlertBanner";
+import { cn } from "~/lib/utils/cn";
 import { eq } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 
@@ -152,375 +158,306 @@ export default function DiscoveryDetail() {
     isActive && discovery.dueDate && new Date(discovery.dueDate) < new Date();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <MainNav user={user} />
-
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <div className="flex items-center space-x-3">
-                <h1 className="text-2xl font-bold text-gray-900">{discovery.title}</h1>
-                <StatusBadge status={discovery.status} size="md" />
-              </div>
-              <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
-                <span>Owner: {owner?.name || "미지정"}</span>
-                <span>Reviewer: {reviewer?.name || "미지정"}</span>
-                <span>생성: {new Date(discovery.createdAt).toLocaleDateString("ko-KR")}</span>
-                {discovery.dueDate && (
-                  <span className="text-red-600">
-                    마감: {new Date(discovery.dueDate).toLocaleDateString("ko-KR")}
-                  </span>
-                )}
-              </div>
+    <PageLayout user={user}>
+      {/* Header */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <div className="flex items-center space-x-3">
+              <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">{discovery.title}</h1>
+              <StatusBadge status={discovery.status} size="md" />
             </div>
-            <div className="mt-4 flex flex-col gap-3 sm:mt-0">
-              {/* 주요 액션 */}
-              <div className="flex flex-wrap gap-2">
-                {canPromoteToOpen && (
-                  <Link
-                    to={`/discoveries/${discovery.id}/promote`}
-                    className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
-                  >
-                    OPEN으로 승격
-                  </Link>
-                )}
-                {(discovery.status === DiscoveryStatus.OPEN ||
-                  discovery.status === DiscoveryStatus.EXTENSION_REQUESTED) &&
-                  discovery.approvalStatus !== "PENDING" && (
-                  <>
-                    {discovery.status === DiscoveryStatus.OPEN &&
-                      experiments.length >= 2 && (
-                        <Link
-                          to={`/discoveries/${discovery.id}/request-extension`}
-                          className="rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-700"
-                        >
-                          연장 요청
-                        </Link>
-                      )}
-                    <Link
-                      to={`/discoveries/${discovery.id}/decide-next`}
-                      className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-700"
-                    >
-                      NEXT 결정
-                    </Link>
-                    <Link
-                      to={`/discoveries/${discovery.id}/decide-not-now`}
-                      className="rounded-md bg-gray-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-700"
-                    >
-                      NOT NOW 결정
-                    </Link>
-                    <Link
-                      to={`/discoveries/${discovery.id}/decide-dead-end`}
-                      className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700"
-                    >
-                      DEAD END 결정
-                    </Link>
-                  </>
-                )}
-              </div>
-              {/* 보조 액션 */}
-              <div className="flex flex-wrap items-center gap-2 text-sm">
-                {canEdit && (
-                  <Link
-                    to={`/discoveries/${discovery.id}/edit`}
-                    className="rounded-md bg-white px-4 py-2 font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                  >
-                    편집
-                  </Link>
-                )}
-                <a
-                  href={`/api/export/brief/${discovery.id}`}
-                  className="rounded-md bg-white px-4 py-2 font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                  download
-                >
-                  Brief 다운로드
-                </a>
-                <Link
-                  to="/discoveries"
-                  className="rounded-md bg-white px-4 py-2 font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                >
-                  목록으로
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Approval Status Banners */}
-        {discovery.approvalStatus === "PENDING" && (
-          <div className="mb-6 rounded-lg border-2 border-purple-300 bg-purple-50 p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <svg className="h-5 w-5 text-purple-600" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.414L11 9.586V6z" clipRule="evenodd" />
-                </svg>
-                <p className="ml-2 text-sm font-semibold text-purple-800">
-                  승인 대기 중 — {discovery.pendingDecision} 결정이 Reviewer 검토를 기다리고 있습니다
-                </p>
-              </div>
-              {discovery.reviewerId === user.id && (
-                <Link
-                  to={`/discoveries/${discovery.id}/approve`}
-                  className="rounded-md bg-purple-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-purple-700"
-                >
-                  승인/거부 처리
-                </Link>
+            <div className="mt-2 flex items-center space-x-4 text-sm text-[var(--axis-text-tertiary)]">
+              <span>Owner: {owner?.name || "미지정"}</span>
+              <span>Reviewer: {reviewer?.name || "미지정"}</span>
+              <span>생성: {new Date(discovery.createdAt).toLocaleDateString("ko-KR")}</span>
+              {discovery.dueDate && (
+                <span className="text-[var(--axis-text-error)]">
+                  마감: {new Date(discovery.dueDate).toLocaleDateString("ko-KR")}
+                </span>
               )}
             </div>
           </div>
-        )}
-
-        {discovery.approvalStatus === "REJECTED" && (
-          <div className="mb-6 rounded-lg border-2 border-red-300 bg-red-50 p-4">
-            <div className="flex items-center">
-              <svg className="h-5 w-5 text-red-600" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
-              </svg>
-              <div className="ml-2">
-                <p className="text-sm font-semibold text-red-800">결정이 거부되었습니다</p>
-                {discovery.approvalComment && (
-                  <p className="mt-1 text-sm text-red-700">사유: {discovery.approvalComment}</p>
-                )}
-              </div>
+          <div className="mt-4 flex flex-col gap-3 sm:mt-0">
+            {/* 주요 액션 */}
+            <div className="flex flex-wrap gap-2">
+              {canPromoteToOpen && (
+                <Button asChild>
+                  <Link to={`/discoveries/${discovery.id}/promote`}>OPEN으로 승격</Link>
+                </Button>
+              )}
+              {(discovery.status === DiscoveryStatus.OPEN ||
+                discovery.status === DiscoveryStatus.EXTENSION_REQUESTED) &&
+                discovery.approvalStatus !== "PENDING" && (
+                <>
+                  {discovery.status === DiscoveryStatus.OPEN &&
+                    experiments.length >= 2 && (
+                      <Button variant="purple" asChild>
+                        <Link to={`/discoveries/${discovery.id}/request-extension`}>연장 요청</Link>
+                      </Button>
+                    )}
+                  <Button variant="success" asChild>
+                    <Link to={`/discoveries/${discovery.id}/decide-next`}>NEXT 결정</Link>
+                  </Button>
+                  <Button variant="secondary" asChild>
+                    <Link to={`/discoveries/${discovery.id}/decide-not-now`}>NOT NOW 결정</Link>
+                  </Button>
+                  <Button variant="destructive" asChild>
+                    <Link to={`/discoveries/${discovery.id}/decide-dead-end`}>DEAD END 결정</Link>
+                  </Button>
+                </>
+              )}
             </div>
-          </div>
-        )}
-
-        {/* Overdue Warning */}
-        {isOverdue && (
-          <div className="mb-6 rounded-lg border-2 border-red-300 bg-red-50 p-4">
-            <div className="flex items-center">
-              <svg className="h-5 w-5 text-red-600" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-              </svg>
-              <p className="ml-2 text-sm font-semibold text-red-800">
-                기한 초과. 결정을 내려주세요.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Seed Information */}
-        <div className="mb-6 rounded-lg bg-white p-6 shadow">
-          <h2 className="text-lg font-semibold text-gray-900">Seed 정보</h2>
-          <div className="mt-4 space-y-4">
-            <div>
-              <dt className="text-sm font-medium text-gray-500">요약</dt>
-              <dd className="mt-1 text-sm text-gray-900">{discovery.seedSummary}</dd>
-            </div>
-            {discovery.seedLinks && discovery.seedLinks.length > 0 && (
-              <div>
-                <dt className="text-sm font-medium text-gray-500">참고 링크</dt>
-                <dd className="mt-1 space-y-1">
-                  {discovery.seedLinks.map((link, idx) => (
-                    <a
-                      key={idx}
-                      href={link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block text-sm text-blue-600 hover:text-blue-800"
-                    >
-                      {link}
-                    </a>
-                  ))}
-                </dd>
-              </div>
-            )}
-            <div>
-              <dt className="text-sm font-medium text-gray-500">출처 유형</dt>
-              <dd className="mt-1 text-sm text-gray-900">{discovery.sourceType}</dd>
+            {/* 보조 액션 */}
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              {canEdit && (
+                <Button variant="outline" size="sm" asChild>
+                  <Link to={`/discoveries/${discovery.id}/edit`}>편집</Link>
+                </Button>
+              )}
+              <Button variant="outline" size="sm" asChild>
+                <a href={`/api/export/brief/${discovery.id}`} download>Brief 다운로드</a>
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/discoveries">목록으로</Link>
+              </Button>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Owner/Reviewer Management */}
-        {canChangeOwnership && (
-          <div className="mb-6 rounded-lg bg-white p-6 shadow">
-            <h2 className="text-lg font-semibold text-gray-900">담당자 관리</h2>
-            {actionData?.error && (
-              <div className="mt-3 rounded-md bg-red-50 p-3">
-                <p className="text-sm text-red-800">{actionData.error}</p>
-              </div>
+      {/* Approval Status Banners */}
+      {discovery.approvalStatus === "PENDING" && (
+        <AlertBanner variant="purple" className="mb-6 border-2">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold">
+              승인 대기 중 — {discovery.pendingDecision} 결정이 Reviewer 검토를 기다리고 있습니다
+            </p>
+            {discovery.reviewerId === user.id && (
+              <Button variant="purple" size="sm" asChild>
+                <Link to={`/discoveries/${discovery.id}/approve`}>승인/거부 처리</Link>
+              </Button>
             )}
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          </div>
+        </AlertBanner>
+      )}
+
+      {discovery.approvalStatus === "REJECTED" && (
+        <AlertBanner variant="destructive" className="mb-6 border-2">
+          <p className="text-sm font-semibold">결정이 거부되었습니다</p>
+          {discovery.approvalComment && (
+            <p className="mt-1 text-sm">사유: {discovery.approvalComment}</p>
+          )}
+        </AlertBanner>
+      )}
+
+      {/* Overdue Warning */}
+      {isOverdue && (
+        <AlertBanner variant="destructive" className="mb-6 border-2">
+          <p className="text-sm font-semibold">기한 초과. 결정을 내려주세요.</p>
+        </AlertBanner>
+      )}
+
+      {/* Seed Information */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-lg">Seed 정보</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <dt className="text-sm font-medium text-[var(--axis-text-tertiary)]">요약</dt>
+            <dd className="mt-1 text-sm text-[var(--axis-text-primary)]">{discovery.seedSummary}</dd>
+          </div>
+          {discovery.seedLinks && discovery.seedLinks.length > 0 && (
+            <div>
+              <dt className="text-sm font-medium text-[var(--axis-text-tertiary)]">참고 링크</dt>
+              <dd className="mt-1 space-y-1">
+                {discovery.seedLinks.map((link, idx) => (
+                  <a
+                    key={idx}
+                    href={link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-sm text-[var(--axis-text-brand)] hover:underline"
+                  >
+                    {link}
+                  </a>
+                ))}
+              </dd>
+            </div>
+          )}
+          <div>
+            <dt className="text-sm font-medium text-[var(--axis-text-tertiary)]">출처 유형</dt>
+            <dd className="mt-1 text-sm text-[var(--axis-text-primary)]">{discovery.sourceType}</dd>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Owner/Reviewer Management */}
+      {canChangeOwnership && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-lg">담당자 관리</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {actionData?.error && (
+              <AlertBanner variant="destructive" className="mb-4">
+                <p>{actionData.error}</p>
+              </AlertBanner>
+            )}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Form method="post">
                 <input type="hidden" name="intent" value="changeOwner" />
-                <label className="block text-sm font-medium text-gray-700">Owner</label>
+                <label className="block text-sm font-medium text-[var(--axis-text-secondary)]">Owner</label>
                 <div className="mt-1 flex space-x-2">
-                  <select
-                    name="ownerId"
-                    defaultValue={discovery.ownerId || ""}
-                    className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-                  >
+                  <Select name="ownerId" defaultValue={discovery.ownerId || ""}>
                     <option value="">미지정</option>
                     {allUsers.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.name}
-                      </option>
+                      <option key={u.id} value={u.id}>{u.name}</option>
                     ))}
-                  </select>
-                  <button
-                    type="submit"
-                    className="whitespace-nowrap rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
-                  >
-                    변경
-                  </button>
+                  </Select>
+                  <Button type="submit" size="sm">변경</Button>
                 </div>
               </Form>
               <Form method="post">
                 <input type="hidden" name="intent" value="changeReviewer" />
-                <label className="block text-sm font-medium text-gray-700">Reviewer</label>
+                <label className="block text-sm font-medium text-[var(--axis-text-secondary)]">Reviewer</label>
                 <div className="mt-1 flex space-x-2">
-                  <select
-                    name="reviewerId"
-                    defaultValue={discovery.reviewerId || ""}
-                    className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-                  >
+                  <Select name="reviewerId" defaultValue={discovery.reviewerId || ""}>
                     <option value="">없음</option>
                     {allUsers.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.name}
-                      </option>
+                      <option key={u.id} value={u.id}>{u.name}</option>
                     ))}
-                  </select>
-                  <button
-                    type="submit"
-                    className="whitespace-nowrap rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
-                  >
-                    변경
-                  </button>
+                  </Select>
+                  <Button type="submit" size="sm">변경</Button>
                 </div>
               </Form>
             </div>
-          </div>
-        )}
+          </CardContent>
+        </Card>
+      )}
 
-        {/* Experiments */}
-        <div className="mb-6 rounded-lg bg-white p-6 shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">
-                Experiments ({experiments.length}/{maxExperiments})
-              </h2>
-              {experiments.length > 0 && (
-                <p className="mt-1 text-xs text-gray-500">
-                  {completedExperiments.length}/{experiments.length} 완료
-                </p>
-              )}
-            </div>
-            {((discovery.status === DiscoveryStatus.OPEN && experiments.length < 2) ||
-              (discovery.status === DiscoveryStatus.EXTENSION_REQUESTED &&
-                experiments.length < 3)) && (
-              <Link
-                to={`/discoveries/${discovery.id}/add-experiment`}
-                className="rounded-md bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
-              >
-                실험 추가
-              </Link>
+      {/* Experiments */}
+      <Card className="mb-6">
+        <CardHeader className="flex-row items-center justify-between space-y-0">
+          <div>
+            <CardTitle className="text-lg">
+              Experiments ({experiments.length}/{maxExperiments})
+            </CardTitle>
+            {experiments.length > 0 && (
+              <p className="mt-1 text-xs text-[var(--axis-text-tertiary)]">
+                {completedExperiments.length}/{experiments.length} 완료
+              </p>
             )}
           </div>
+          {((discovery.status === DiscoveryStatus.OPEN && experiments.length < 2) ||
+            (discovery.status === DiscoveryStatus.EXTENSION_REQUESTED &&
+              experiments.length < 3)) && (
+            <Button size="sm" asChild>
+              <Link to={`/discoveries/${discovery.id}/add-experiment`}>실험 추가</Link>
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent>
           {experiments.length === 0 ? (
-            <p className="mt-4 text-sm text-gray-500">
+            <p className="text-sm text-[var(--axis-text-tertiary)]">
               아직 실험이 없습니다.
               {canPromoteToOpen && " OPEN으로 승격하면서 첫 실험을 등록하세요."}
             </p>
           ) : (
-            <div className="mt-4 space-y-4">
+            <div className="space-y-4">
               {experiments.map((exp) => (
                 <div
                   key={exp.id}
-                  className={`border-l-4 pl-4 ${exp.completedAt ? "border-green-500" : "border-blue-500"}`}
+                  className={cn(
+                    "border-l-4 pl-4",
+                    exp.completedAt
+                      ? "border-[var(--axis-border-success)]"
+                      : "border-[var(--axis-border-focus)]"
+                  )}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h3 className="text-sm font-medium text-gray-900">가설: {exp.hypothesis}</h3>
-                      <p className="mt-1 text-sm text-gray-600">행동: {exp.minimalAction}</p>
-                      <p className="mt-1 text-sm text-gray-500">
+                      <h3 className="text-sm font-medium text-[var(--axis-text-primary)]">가설: {exp.hypothesis}</h3>
+                      <p className="mt-1 text-sm text-[var(--axis-text-secondary)]">행동: {exp.minimalAction}</p>
+                      <p className="mt-1 text-sm text-[var(--axis-text-tertiary)]">
                         예상 근거: {exp.expectedEvidence}
                       </p>
-                      <p className="mt-1 text-xs text-gray-500">
+                      <p className="mt-1 text-xs text-[var(--axis-text-tertiary)]">
                         마감: {new Date(exp.deadline).toLocaleDateString("ko-KR")}
                       </p>
                     </div>
                     <div className="ml-3 flex flex-col items-end gap-1">
                       {exp.completedAt ? (
-                        <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-800">
-                          완료
-                        </span>
+                        <Badge variant="success">완료</Badge>
                       ) : (
                         isActive && (
-                          <Link
-                            to={`/discoveries/${discovery.id}/complete-experiment?experimentId=${exp.id}`}
-                            className="rounded bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800 hover:bg-yellow-200"
-                          >
-                            결과 기록
-                          </Link>
+                          <Button variant="outline" size="sm" asChild>
+                            <Link to={`/discoveries/${discovery.id}/complete-experiment?experimentId=${exp.id}`}>
+                              결과 기록
+                            </Link>
+                          </Button>
                         )
                       )}
                     </div>
                   </div>
                   {exp.resultSummary && (
-                    <p className="mt-2 text-sm text-gray-700">결과: {exp.resultSummary}</p>
+                    <p className="mt-2 text-sm text-[var(--axis-text-secondary)]">결과: {exp.resultSummary}</p>
                   )}
                 </div>
               ))}
             </div>
           )}
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* Evidence */}
-        <div className="rounded-lg bg-white p-6 shadow">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Evidence ({evidence.length})
-            </h2>
-            {discovery.status !== DiscoveryStatus.INBOX && (
-              <Link
-                to={`/discoveries/${discovery.id}/add-evidence`}
-                className="rounded-md bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
-              >
-                근거 추가
-              </Link>
-            )}
-          </div>
+      {/* Evidence */}
+      <Card>
+        <CardHeader className="flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-lg">Evidence ({evidence.length})</CardTitle>
+          {discovery.status !== DiscoveryStatus.INBOX && (
+            <Button size="sm" asChild>
+              <Link to={`/discoveries/${discovery.id}/add-evidence`}>근거 추가</Link>
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent>
           {evidence.length === 0 ? (
-            <p className="mt-4 text-sm text-gray-500">아직 근거가 없습니다.</p>
+            <p className="text-sm text-[var(--axis-text-tertiary)]">아직 근거가 없습니다.</p>
           ) : (
-            <div className="mt-4 space-y-3">
+            <div className="space-y-3">
               {evidence.map((ev) => (
                 <div
                   key={ev.id}
-                  className={`rounded-md border p-3 ${
-                    ev.type === "ASSUMPTION" ? "border-yellow-300 bg-yellow-50" : "border-gray-200"
-                  }`}
+                  className={cn(
+                    "rounded-md border p-3",
+                    ev.type === "ASSUMPTION"
+                      ? "border-[var(--axis-yellow-200)] bg-[var(--axis-surface-warning)]"
+                      : "border-[var(--axis-border-default)]"
+                  )}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
-                        <span className="text-xs font-semibold text-gray-500">{ev.type}</span>
-                        <span
-                          className={`rounded px-2 py-0.5 text-xs font-semibold ${
-                            ev.strength === "A"
-                              ? "bg-green-100 text-green-800"
-                              : ev.strength === "B"
-                                ? "bg-blue-100 text-blue-800"
-                                : ev.strength === "C"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : "bg-red-100 text-red-800"
-                          }`}
+                        <span className="text-xs font-semibold text-[var(--axis-text-tertiary)]">{ev.type}</span>
+                        <Badge
+                          variant={
+                            ev.strength === "A" ? "success"
+                              : ev.strength === "B" ? "info"
+                              : ev.strength === "C" ? "warning"
+                              : "destructive"
+                          }
                         >
                           {ev.strength}급
-                        </span>
+                        </Badge>
                       </div>
-                      <p className="mt-1 text-sm text-gray-900">{ev.content}</p>
+                      <p className="mt-1 text-sm text-[var(--axis-text-primary)]">{ev.content}</p>
                       {ev.linkOrAttachment && (
                         <a
                           href={ev.linkOrAttachment}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="mt-1 block text-xs text-blue-600 hover:text-blue-800"
+                          className="mt-1 block text-xs text-[var(--axis-text-brand)] hover:underline"
                         >
                           {ev.linkOrAttachment}
                         </a>
@@ -531,8 +468,8 @@ export default function DiscoveryDetail() {
               ))}
             </div>
           )}
-        </div>
-      </div>
-    </div>
+        </CardContent>
+      </Card>
+    </PageLayout>
   );
 }
