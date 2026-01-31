@@ -26,11 +26,11 @@ export default {
         return new Response("Unauthorized", { status: 401 });
       }
 
-      // Run pipeline asynchronously
-      ctx.waitUntil(executePipeline(env));
+      // Run pipeline synchronously (HTTP requests have longer timeout than waitUntil)
+      const result = await executePipeline(env);
 
       return new Response(
-        JSON.stringify({ message: "Radar pipeline started" }),
+        JSON.stringify(result),
         { headers: { "Content-Type": "application/json" } }
       );
     }
@@ -46,7 +46,7 @@ export default {
   },
 };
 
-async function executePipeline(env: Env): Promise<void> {
+async function executePipeline(env: Env): Promise<Record<string, unknown>> {
   console.log("[radar] Pipeline started");
   const start = Date.now();
 
@@ -59,7 +59,10 @@ async function executePipeline(env: Env): Promise<void> {
         `dedup=${stats.itemsDeduplicated}, seeds=${stats.seedsCreated}, ` +
         `errors=${stats.errors.length}`
     );
+    return { success: true, elapsed, ...stats };
   } catch (error) {
-    console.error("[radar] Pipeline failed:", error);
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("[radar] Pipeline failed:", msg);
+    return { success: false, error: msg };
   }
 }

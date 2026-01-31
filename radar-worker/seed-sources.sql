@@ -1,0 +1,5 @@
+INSERT INTO radar_sources (id, name, source_type, url, enabled, created_at, updated_at) VALUES ('src-techcrunch-ai', 'TechCrunch AI', 'rss', 'https://techcrunch.com/category/artificial-intelligence/feed/', 1, unixepoch(), unixepoch());
+INSERT INTO radar_sources (id, name, source_type, url, enabled, created_at, updated_at) VALUES ('src-hn-best', 'Hacker News Best', 'rss', 'https://hnrss.org/best', 1, unixepoch(), unixepoch());
+INSERT INTO radar_sources (id, name, source_type, url, enabled, created_at, updated_at) VALUES ('src-mit-tech', 'MIT Technology Review', 'rss', 'https://www.technologyreview.com/feed/', 1, unixepoch(), unixepoch());
+INSERT INTO radar_sources (id, name, source_type, url, enabled, created_at, updated_at) VALUES ('src-hn-show', 'Hacker News Show', 'rss', 'https://hnrss.org/show', 1, unixepoch(), unixepoch());
+INSERT INTO radar_sources (id, name, source_type, url, enabled, created_at, updated_at) VALUES ('src-arxiv-ai', 'arXiv cs.AI', 'rss', 'https://rss.arxiv.org/rss/cs.AI', 1, unixepoch(), unixepoch());

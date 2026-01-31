@@ -23,12 +23,13 @@ interface OpenAIResponse {
 const SYSTEM_PROMPT = `You are a research topic evaluator for an AX (신사업) innovation team.
 Score each item's relevance to these themes: AI/ML applications, new business models, emerging technology, startup ecosystem, enterprise innovation.
 
-For each item, return a JSON object with:
-- relevanceScore: 0-100 (60+ means worth investigating)
+For each item, provide:
+- relevanceScore: 0-100 (60+ means worth investigating as a new business opportunity)
 - titleKo: Korean translation of title (max 80 chars)
-- summaryKo: Korean summary (max 400 chars)
+- summaryKo: Korean summary of why it's relevant or not (max 400 chars)
 
-Return a JSON array of results in the same order as input.`;
+Return JSON: {"results": [{"relevanceScore": N, "titleKo": "...", "summaryKo": "..."}, ...]}
+The results array MUST have the same length and order as the input items.`;
 
 /**
  * Score items using GPT-4o-mini for relevance and Korean translation.
@@ -82,7 +83,7 @@ async function scoreBatch(
         model: "gpt-4o-mini",
         messages,
         temperature: 0.3,
-        max_tokens: 4000,
+        max_tokens: 8000,
         response_format: { type: "json_object" },
       }),
     });
@@ -116,7 +117,8 @@ async function scoreBatch(
       };
     });
   } catch (error) {
-    console.error("[scorer] AI scoring failed:", error);
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error(`[scorer] AI scoring failed for batch of ${items.length}: ${msg}`);
     // Fallback: return items with zero scores
     return items.map((item) => ({
       ...item,
