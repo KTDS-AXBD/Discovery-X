@@ -191,15 +191,15 @@ Validation:
 > **이 섹션은 매 세션마다 업데이트한다.**
 
 ### 현재 단계
-**Phase 2 완료 + PRD P0 전체 구현 + UX 개선 + 프로덕션 배포 완료**
+**PRD P0 전체 구현 완료 + UX 개선 + 프로덕션 배포 완료 + 운영 준비 문서 작성 완료**
 
-P0 전 항목 완료. Overdue 경고, 모바일 반응형, 알림 배지, 차트 등 UX 개선 후 프로덕션 배포 완료.
+Phase 1~4(PRD 기준) 전 항목 구현 완료. EXTENSION_REQUESTED 워크플로우, Overdue 경고, 모바일 반응형, 알림 배지, 차트 등 포함. 운영 실험 시작 준비 단계.
 
 ### PRD P0 구현 상태
 
 | # | 요구사항 | 상태 | 비고 |
 |---|---------|------|------|
-| 1 | Discovery CRUD + 상태 전환 | ✅ | 16개 라우트 (edit 추가) |
+| 1 | Discovery CRUD + 상태 전환 | ✅ | 20개 라우트 (edit, extension, complete-experiment 포함) |
 | 2 | Owner 지정 | ✅ | 승격 시 필수 |
 | 3 | Reviewer 지정 UI | ✅ | 승격 시 선택, 상세에서 변경 가능 |
 | 4 | Owner 변경/승계 | ✅ | INBOX/OPEN에서 변경 가능 |
@@ -214,7 +214,35 @@ P0 전 항목 완료. Overdue 경고, 모바일 반응형, 알림 배지, 차트
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (2026-01-31 세션 13)
+### 최근 변경 (2026-01-31 세션 14)
+**코드 품질 + 모바일 폼 + 운영 문서 + 배포 준비**:
+
+**코드 품질 (ESLint 경고 제거)**:
+- ✅ Unused imports 제거 (`discovery-rules.ts`, `_index.tsx`, `add-evidence.tsx`)
+- ✅ `catch (error: any)` → `catch (error: unknown)` + `instanceof Error` (8개 라우트)
+- ✅ `getFormErrorMessage` 유틸리티로 에러 처리 통합 (`app/lib/utils/form-error.ts`)
+- ✅ Unused parameter 수정 (`login.tsx` request → _request)
+- ✅ Dead code 제거 (`validateNextDecision` 미사용 쿼리)
+- ✅ `pnpm lint` 경고 0개, 에러 0개
+
+**폼 페이지 모바일 반응형 (10개 파일)**:
+- ✅ 컨테이너 `max-w-2xl mx-auto px-4` 통일 (모바일 패딩 보장)
+- ✅ 버튼 그룹 `flex-col gap-2 sm:flex-row sm:gap-3` (모바일 세로 스택)
+- ✅ 메타데이터 행 모바일 스택 처리 (promote, decide-next, request-extension)
+
+**추가 기능 (이전 세션 미커밋 분 포함)**:
+- ✅ 이메일 알림 시스템 (Resend 연동, `app/lib/notifications/`)
+- ✅ Daily cron 엔드포인트 (`/api/cron/daily` — overdue/review 알림)
+- ✅ 1-pager Brief 내보내기 (`/api/export/brief/:id`)
+- ✅ JSON export 엔드포인트 (`/api/export/discoveries-json`)
+- ✅ Discovery 상세에 Brief 다운로드 버튼
+
+**운영 준비 문서**:
+- ✅ `docs/qa-checklist.md` — 80+ 수동 테스트 항목, 4개 E2E 시나리오
+- ✅ `docs/user-guide.md` — 시스템 개요, 핵심 워크플로우, 상태 전환, FAQ
+- ✅ `docs/KICKOFF_TEMPLATE.md`, `docs/OPERATIONAL_RUNBOOK.md`, `docs/USER_CHEAT_SHEET.md`
+
+### 이전 변경 (2026-01-31 세션 13)
 **차트/모바일 반응형 포함 전체 배포 완료**:
 - ✅ 세션 12에서 커밋된 차트(StatusDonut, WeeklyBar) + 모바일 반응형(Review/Recall) 프로덕션 배포
 - ✅ `git push` + `pnpm run deploy` 완료 — 전체 코드 Cloudflare Pages 반영
@@ -303,10 +331,12 @@ P0 전 항목 완료. Overdue 경고, 모바일 반응형, 알림 배지, 차트
 - **브랜치 전략**: master 단일 브랜치 (Prototype 기간)
 - **배포**: Cloudflare Pages Git 연동 (master push → 자동 빌드/배포)
 - **EXTENSION_REQUESTED**: ✅ 구현 완료 (OPEN + 실험 2개 → 연장 요청 → +14일, 3번째 실험 가능)
-- **다음 단계**: 운영 실험 시작 (30-60일)
+- **다음 단계**: 운영 실험 시작 (30-60일) — QA 체크리스트 + 사용자 가이드 준비 완료
 - **빌드 상태**: `pnpm build` + `pnpm typecheck` 모두 통과
-- **Lint**: ESLint 9 설정 완료, `pnpm lint` 가용 (warnings 존재, errors 0)
+- **Lint**: ESLint 9 설정 완료, `pnpm lint` 경고 0개 / 에러 0개 (클린)
 - **배포 상태**: 프로덕션 배포 완료 (2026-01-31)
+- **운영 문서**: QA 체크리스트, 사용자 가이드, 킥오프 템플릿, 운영 런북, 치트시트 작성 완료
+- **다음 작업**: `/deploy`로 최종 배포 후 운영 실험 시작
 
 ---
 
@@ -354,18 +384,23 @@ P0 전 항목 완료. Overdue 경고, 모바일 반응형, 알림 배지, 차트
 | **모바일 반응형** | ✅ | MainNav 햄버거, Review/Recall 카드 레이아웃, 상세 버튼 반응형 |
 | **차트 컴포넌트** | ✅ | StatusDonut (상태 분포) + WeeklyBar (주간 생성 추이), SVG 기반 |
 | **프로덕션 배포** | ✅ | Cloudflare Pages 배포 완료 |
+| **QA 체크리스트** | ✅ | `docs/qa-checklist.md` — 80+ 테스트 항목, 4개 통합 시나리오 |
+| **사용자 가이드** | ✅ | `docs/user-guide.md` — 시스템 개요, 워크플로우, FAQ |
+| **ESLint 경고 제거** | ✅ | unused imports, `any` → `unknown`, dead code 제거 — 경고 0개 |
+| **폼 모바일 반응형** | ✅ | 10개 폼 페이지 `max-w-2xl px-4`, 버튼 스택, 메타 행 스택 |
+| **이메일 알림 시스템** | ✅ | Resend 연동, daily cron, overdue/review 알림 |
+| **Brief 내보내기** | ✅ | `/api/export/brief/:id` — 1-pager Brief 다운로드 |
+| **JSON Export** | ✅ | `/api/export/discoveries-json` — 전체 Discovery JSON |
+| **운영 준비 문서** | ✅ | 킥오프 템플릿, 운영 런북, 치트시트 |
+
+### 남은 작업
+- [x] ESLint warnings 정리 — 완료 (경고 0개)
+- [x] 폼 페이지 모바일 반응형 — 완료 (10개 파일)
+- [ ] 최종 프로덕션 배포 (`/deploy`)
 
 ### 미래 작업
 
 **운영 후 판단 (보류)**
 - [ ] 기한 초과 강제 종료 (현재 OVERDUE 배지만 표시)
 - [ ] 유사 Seed 검색 (Recall 시 유사 Discovery 제안)
-
-**Phase 3 — 운영 자동화 (선택)**
-- [ ] TTL 리마인드 자동 알림 (due_date 임박)
-- [ ] Revisit Date 도래 자동 등재
-- [ ] 이메일 알림 (SendGrid/Resend)
-
-**Phase 4 — 추가 개선 (선택)**
 - [ ] 유사도 기반 추천 (새 Seed 입력 시 유사 Dead End 제안)
-- [ ] 1-pager Brief 자동 생성
