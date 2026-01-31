@@ -152,6 +152,14 @@ export default function DiscoveryDetail() {
   const canEdit =
     discovery.status === DiscoveryStatus.INBOX || discovery.status === DiscoveryStatus.OPEN;
   const canChangeOwnership = canEdit;
+  const isActive =
+    discovery.status === DiscoveryStatus.OPEN ||
+    discovery.status === DiscoveryStatus.EXTENSION_REQUESTED;
+  const completedExperiments = experiments.filter((e) => e.completedAt);
+  const maxExperiments =
+    discovery.status === DiscoveryStatus.EXTENSION_REQUESTED ? 3 : 2;
+  const isOverdue =
+    isActive && discovery.dueDate && new Date(discovery.dueDate) < new Date();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -183,7 +191,7 @@ export default function DiscoveryDetail() {
                 )}
               </div>
             </div>
-            <div className="flex space-x-3">
+            <div className="mt-4 flex flex-col gap-2 sm:mt-0 sm:flex-row sm:gap-3">
               {canEdit && (
                 <Link
                   to={`/discoveries/${discovery.id}/edit`}
@@ -241,6 +249,20 @@ export default function DiscoveryDetail() {
             </div>
           </div>
         </div>
+
+        {/* Overdue Warning */}
+        {isOverdue && (
+          <div className="mb-6 rounded-lg border-2 border-red-300 bg-red-50 p-4">
+            <div className="flex items-center">
+              <svg className="h-5 w-5 text-red-600" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+              </svg>
+              <p className="ml-2 text-sm font-semibold text-red-800">
+                기한 초과. 결정을 내려주세요.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Seed Information */}
         <div className="mb-6 rounded-lg bg-white p-6 shadow">
@@ -340,10 +362,16 @@ export default function DiscoveryDetail() {
         {/* Experiments */}
         <div className="mb-6 rounded-lg bg-white p-6 shadow">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Experiments ({experiments.length}/
-              {discovery.status === DiscoveryStatus.EXTENSION_REQUESTED ? 3 : 2})
-            </h2>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Experiments ({experiments.length}/{maxExperiments})
+              </h2>
+              {experiments.length > 0 && (
+                <p className="mt-1 text-xs text-gray-500">
+                  {completedExperiments.length}/{experiments.length} 완료
+                </p>
+              )}
+            </div>
             {((discovery.status === DiscoveryStatus.OPEN && experiments.length < 2) ||
               (discovery.status === DiscoveryStatus.EXTENSION_REQUESTED &&
                 experiments.length < 3)) && (
@@ -363,7 +391,10 @@ export default function DiscoveryDetail() {
           ) : (
             <div className="mt-4 space-y-4">
               {experiments.map((exp) => (
-                <div key={exp.id} className="border-l-4 border-blue-500 pl-4">
+                <div
+                  key={exp.id}
+                  className={`border-l-4 pl-4 ${exp.completedAt ? "border-green-500" : "border-blue-500"}`}
+                >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <h3 className="text-sm font-medium text-gray-900">가설: {exp.hypothesis}</h3>
@@ -375,11 +406,22 @@ export default function DiscoveryDetail() {
                         마감: {new Date(exp.deadline).toLocaleDateString("ko-KR")}
                       </p>
                     </div>
-                    {exp.completedAt && (
-                      <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-800">
-                        완료
-                      </span>
-                    )}
+                    <div className="ml-3 flex flex-col items-end gap-1">
+                      {exp.completedAt ? (
+                        <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-800">
+                          완료
+                        </span>
+                      ) : (
+                        isActive && (
+                          <Link
+                            to={`/discoveries/${discovery.id}/complete-experiment?experimentId=${exp.id}`}
+                            className="rounded bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800 hover:bg-yellow-200"
+                          >
+                            결과 기록
+                          </Link>
+                        )
+                      )}
+                    </div>
                   </div>
                   {exp.resultSummary && (
                     <p className="mt-2 text-sm text-gray-700">결과: {exp.resultSummary}</p>

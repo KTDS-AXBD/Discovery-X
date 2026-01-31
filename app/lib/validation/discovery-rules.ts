@@ -297,6 +297,13 @@ export const CreateExperimentSchema = z.object({
     .max(200, "예상 근거는 200자 이내여야 합니다"),
 });
 
+export const CompleteExperimentSchema = z.object({
+  resultSummary: z
+    .string()
+    .min(1, "결과 요약은 필수입니다")
+    .max(400, "결과 요약은 400자 이내여야 합니다"),
+});
+
 export const CreateEvidenceSchema = z.object({
   type: z.enum(["DATA", "USER", "ARTIFACT", "REF", "ASSUMPTION"]),
   strength: z.enum(["A", "B", "C", "D"]),

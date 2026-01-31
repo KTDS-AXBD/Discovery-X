@@ -26,7 +26,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   // Get statistics
+  const now = new Date();
   const sevenDaysAgo = Math.floor((Date.now() - 7 * 24 * 60 * 60 * 1000) / 1000);
+  const threeDaysFromNow = new Date();
+  threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+
   const stats = await Promise.all([
     db.select({ count: count() }).from(discoveries),
     db.select({ count: count() }).from(discoveries).where(eq(discoveries.status, DiscoveryStatus.INBOX)),
@@ -41,6 +45,36 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     ),
   ]);
 
+  // Overdue and dueSoon - fetch all OPEN/EXTENSION_REQUESTED with dueDate
+  const activeDiscoveries = await db
+    .select()
+    .from(discoveries)
+    .where(eq(discoveries.status, DiscoveryStatus.OPEN));
+  const extensionDiscoveries = await db
+    .select()
+    .from(discoveries)
+    .where(eq(discoveries.status, DiscoveryStatus.EXTENSION_REQUESTED));
+  const allActive = [...activeDiscoveries, ...extensionDiscoveries];
+
+  const overdueOpen = allActive.filter(
+    (d) => d.dueDate && new Date(d.dueDate) < now
+  ).length;
+  const dueSoon = allActive.filter(
+    (d) =>
+      d.dueDate &&
+      new Date(d.dueDate) >= now &&
+      new Date(d.dueDate) <= threeDaysFromNow
+  ).length;
+
+  // Recall due
+  const notNowDiscoveries = await db
+    .select()
+    .from(discoveries)
+    .where(eq(discoveries.status, DiscoveryStatus.NOT_NOW));
+  const recallDue = notNowDiscoveries.filter(
+    (d) => d.revisitDate && new Date(d.revisitDate) <= now
+  ).length;
+
   return json({
     user,
     stats: {
@@ -49,6 +83,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       open: stats[2][0]?.count || 0,
       next: stats[3][0]?.count || 0,
       inboxOverdue: stats[4][0]?.count || 0,
+      overdueOpen,
+      dueSoon,
+      recallDue,
     },
   });
 }
@@ -71,8 +108,34 @@ export default function Index() {
           </p>
         </div>
 
+        {/* Alert Banners */}
+        {(stats.overdueOpen > 0 || stats.dueSoon > 0) && (
+          <div className="mt-8 rounded-lg border-2 border-red-300 bg-red-50 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                {stats.overdueOpen > 0 && (
+                  <p className="text-sm font-semibold text-red-800">
+                    기한 초과 Discovery {stats.overdueOpen}건 — 즉시 결정이 필요합니다
+                  </p>
+                )}
+                {stats.dueSoon > 0 && (
+                  <p className="text-sm text-red-700">
+                    3일 이내 마감 {stats.dueSoon}건
+                  </p>
+                )}
+              </div>
+              <Link
+                to="/discoveries?status=OVERDUE"
+                className="rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700"
+              >
+                확인하기
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Statistics */}
-        <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
             <dt className="truncate text-sm font-medium text-gray-500">
               전체 Discovery
@@ -112,6 +175,37 @@ export default function Index() {
               {stats.next}
             </dd>
           </div>
+        </div>
+
+        {/* Secondary Stats */}
+        <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {stats.overdueOpen > 0 && (
+            <Link
+              to="/discoveries?status=OVERDUE"
+              className="overflow-hidden rounded-lg border-2 border-red-200 bg-red-50 px-4 py-5 shadow hover:bg-red-100 sm:p-6"
+            >
+              <dt className="truncate text-sm font-medium text-red-600">
+                기한 초과
+              </dt>
+              <dd className="mt-1 text-3xl font-semibold tracking-tight text-red-700">
+                {stats.overdueOpen}
+              </dd>
+            </Link>
+          )}
+          {stats.recallDue > 0 && (
+            <Link
+              to="/recall"
+              className="overflow-hidden rounded-lg border-2 border-blue-200 bg-blue-50 px-4 py-5 shadow hover:bg-blue-100 sm:p-6"
+            >
+              <dt className="truncate text-sm font-medium text-blue-600">
+                재검토 대기
+              </dt>
+              <dd className="mt-1 text-3xl font-semibold tracking-tight text-blue-700">
+                {stats.recallDue}
+              </dd>
+              <dd className="mt-1 text-xs text-blue-600">Recall Queue에서 확인</dd>
+            </Link>
+          )}
         </div>
 
         {/* Quick Actions */}

@@ -21,11 +21,25 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const statusFilter = url.searchParams.get("status");
 
+  const now = new Date();
+
   // Query discoveries with optional status filter
-  const allDiscoveries =
-    statusFilter && statusFilter in DiscoveryStatus
-      ? await db.select().from(discoveries).where(eq(discoveries.status, statusFilter))
-      : await db.select().from(discoveries);
+  let allDiscoveries;
+  if (statusFilter === "OVERDUE") {
+    // Special filter: OPEN/EXTENSION_REQUESTED + dueDate < now
+    const openDiscoveries = await db.select().from(discoveries);
+    allDiscoveries = openDiscoveries.filter(
+      (d) =>
+        (d.status === DiscoveryStatus.OPEN ||
+          d.status === DiscoveryStatus.EXTENSION_REQUESTED) &&
+        d.dueDate &&
+        new Date(d.dueDate) < now
+    );
+  } else if (statusFilter && statusFilter in DiscoveryStatus) {
+    allDiscoveries = await db.select().from(discoveries).where(eq(discoveries.status, statusFilter));
+  } else {
+    allDiscoveries = await db.select().from(discoveries);
+  }
 
   // Get owner names
   const discoveryList = await Promise.all(
@@ -40,10 +54,17 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         discovery.status === DiscoveryStatus.INBOX &&
         Date.now() - new Date(discovery.createdAt).getTime() > 7 * 24 * 60 * 60 * 1000;
 
+      const isOpenOverdue =
+        (discovery.status === DiscoveryStatus.OPEN ||
+          discovery.status === DiscoveryStatus.EXTENSION_REQUESTED) &&
+        discovery.dueDate &&
+        new Date(discovery.dueDate) < now;
+
       return {
         ...discovery,
         ownerName: owner?.name,
         isInboxOverdue,
+        isOpenOverdue,
       };
     })
   );
@@ -112,10 +133,69 @@ export default function DiscoveriesIndex() {
               {label}
             </Link>
           ))}
+          <Link
+            to="/discoveries?status=OVERDUE"
+            className={`rounded-md px-3 py-2 text-sm font-medium ${
+              currentFilter === "OVERDUE"
+                ? "bg-red-600 text-white"
+                : "bg-white text-red-700 ring-1 ring-inset ring-red-300 hover:bg-red-50"
+            }`}
+          >
+            기한초과
+          </Link>
         </div>
 
-        {/* Discovery List */}
-        <div className="mt-8 flow-root">
+        {/* Discovery List - Mobile Cards */}
+        <div className="mt-8 space-y-3 sm:hidden">
+          {discoveries.length === 0 ? (
+            <p className="py-12 text-center text-sm text-gray-500">
+              Discovery가 없습니다. 새로 만들어보세요!
+            </p>
+          ) : (
+            discoveries.map((discovery) => (
+              <Link
+                key={discovery.id}
+                to={`/discoveries/${discovery.id}`}
+                className={`block rounded-lg bg-white p-4 shadow ${
+                  discovery.isInboxOverdue || discovery.isOpenOverdue
+                    ? "ring-2 ring-red-300"
+                    : ""
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <h3 className="text-sm font-medium text-gray-900">
+                    {discovery.title}
+                  </h3>
+                  <span
+                    className={`ml-2 inline-flex shrink-0 rounded-full px-2 text-xs font-semibold leading-5 ${
+                      STATUS_LABELS[discovery.status]?.color ||
+                      "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {STATUS_LABELS[discovery.status]?.label || discovery.status}
+                  </span>
+                </div>
+                <div className="mt-2 flex items-center gap-3 text-xs text-gray-500">
+                  <span>{discovery.ownerName || "미지정"}</span>
+                  <span>{new Date(discovery.createdAt).toLocaleDateString("ko-KR")}</span>
+                  {discovery.isInboxOverdue && (
+                    <span className="rounded-full bg-red-100 px-2 text-xs font-semibold text-red-800">
+                      7일 초과
+                    </span>
+                  )}
+                  {discovery.isOpenOverdue && (
+                    <span className="rounded-full bg-red-100 px-2 text-xs font-semibold text-red-800">
+                      OVERDUE
+                    </span>
+                  )}
+                </div>
+              </Link>
+            ))
+          )}
+        </div>
+
+        {/* Discovery List - Desktop Table */}
+        <div className="mt-8 hidden flow-root sm:block">
           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
               <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
@@ -151,7 +231,7 @@ export default function DiscoveriesIndex() {
                       </tr>
                     ) : (
                       discoveries.map((discovery) => (
-                          <tr key={discovery.id} className={discovery.isInboxOverdue ? "bg-red-50" : ""}>
+                          <tr key={discovery.id} className={discovery.isInboxOverdue || discovery.isOpenOverdue ? "bg-red-50" : ""}>
                             <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                               <Link
                                 to={`/discoveries/${discovery.id}`}
@@ -162,6 +242,11 @@ export default function DiscoveriesIndex() {
                               {discovery.isInboxOverdue && (
                                 <span className="ml-2 inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800">
                                   7일 초과
+                                </span>
+                              )}
+                              {discovery.isOpenOverdue && (
+                                <span className="ml-2 inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800">
+                                  OVERDUE
                                 </span>
                               )}
                             </td>
