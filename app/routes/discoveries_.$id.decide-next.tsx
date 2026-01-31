@@ -183,10 +183,10 @@ export default function DecideNext() {
         />
 
         {/* Discovery Info */}
-        <div className="mb-6 rounded-lg bg-green-50 p-4">
-          <h2 className="text-lg font-semibold text-green-900">{discovery.title}</h2>
-          <p className="mt-2 text-sm text-green-800">{discovery.seedSummary}</p>
-          <div className="mt-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:space-x-4 text-xs text-green-700">
+        <div className="mb-6 rounded-lg bg-[var(--axis-badge-success-bg)] p-4">
+          <h2 className="text-lg font-semibold text-[var(--axis-text-primary)]">{discovery.title}</h2>
+          <p className="mt-2 text-sm text-[var(--axis-text-secondary)]">{discovery.seedSummary}</p>
+          <div className="mt-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:space-x-4 text-xs text-[var(--axis-text-tertiary)]">
             <span>전체 Evidence: {evidenceCount}개</span>
             <span>강한 Evidence (A/B급): {strongEvidenceCount}개</span>
           </div>
@@ -198,7 +198,7 @@ export default function DecideNext() {
             <div className="flex">
               <div className="flex-shrink-0">
                 <svg
-                  className="h-5 w-5 text-yellow-400"
+                  className="h-5 w-5 text-[var(--axis-badge-warning-text)]"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >

@@ -293,7 +293,7 @@ export default function DecideNotNow() {
         </div>
 
         {/* Info */}
-        <div className="mt-4 rounded-md bg-blue-50 p-4 text-sm text-blue-700">
+        <div className="mt-4 rounded-md bg-[var(--axis-surface-brand)] p-4 text-sm text-[var(--axis-text-secondary)]">
           <p className="font-semibold">NOT NOW 결정 후:</p>
           <ul className="mt-2 list-inside list-disc space-y-1">
             <li>상태: OPEN → NOT NOW</li>

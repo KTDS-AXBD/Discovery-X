@@ -177,10 +177,10 @@ export default function PromoteToOpen() {
         />
 
         {/* Discovery Info */}
-        <div className="mb-6 rounded-lg bg-blue-50 p-4">
-          <h2 className="text-lg font-semibold text-blue-900">{discovery.title}</h2>
-          <p className="mt-2 text-sm text-blue-800">{discovery.seedSummary}</p>
-          <div className="mt-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:space-x-4 text-xs text-blue-700">
+        <div className="mb-6 rounded-lg bg-[var(--axis-surface-brand)] p-4">
+          <h2 className="text-lg font-semibold text-[var(--axis-text-primary)]">{discovery.title}</h2>
+          <p className="mt-2 text-sm text-[var(--axis-text-secondary)]">{discovery.seedSummary}</p>
+          <div className="mt-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:space-x-4 text-xs text-[var(--axis-text-tertiary)]">
             <span>
               생성: {new Date(discovery.createdAt).toLocaleDateString("ko-KR")}
             </span>

@@ -185,9 +185,9 @@ export default function DecideDeadEnd() {
         />
 
         {/* Discovery Info */}
-        <div className="mb-6 rounded-lg bg-red-50 p-4">
-          <h2 className="text-lg font-semibold text-red-900">{discovery.title}</h2>
-          <p className="mt-2 text-sm text-red-800">{discovery.seedSummary}</p>
+        <div className="mb-6 rounded-lg bg-[var(--axis-surface-error)] p-4">
+          <h2 className="text-lg font-semibold text-[var(--axis-text-primary)]">{discovery.title}</h2>
+          <p className="mt-2 text-sm text-[var(--axis-text-secondary)]">{discovery.seedSummary}</p>
         </div>
 
         {actionData?.error && (
@@ -236,7 +236,7 @@ export default function DecideDeadEnd() {
                           id={`pattern_${pattern.id}`}
                           name={`pattern_${pattern.id}`}
                           type="checkbox"
-                          className="h-4 w-4 rounded border-[var(--axis-border-default)] text-red-600 focus:ring-red-500"
+                          className="h-4 w-4 rounded border-[var(--axis-border-default)] text-[var(--axis-text-error)] focus:ring-[var(--axis-border-error)]"
                         />
                       </div>
                       <div className="ml-3 text-sm">
@@ -277,7 +277,7 @@ export default function DecideDeadEnd() {
         </Card>
 
         {/* Info */}
-        <div className="mt-6 rounded-md bg-orange-50 p-4 text-sm text-orange-800">
+        <div className="mt-6 rounded-md bg-[var(--axis-surface-warning)] p-4 text-sm text-[var(--axis-text-secondary)]">
           <p className="font-semibold">DEAD END 결정 후:</p>
           <ul className="mt-2 list-inside list-disc space-y-1">
             <li>상태: OPEN → DEAD END</li>

@@ -141,9 +141,9 @@ export default function AddEvidence() {
         />
 
         {/* Discovery Info */}
-        <div className="mb-6 rounded-lg bg-blue-50 p-4">
-          <h2 className="text-lg font-semibold text-blue-900">{discovery.title}</h2>
-          <p className="mt-2 text-sm text-blue-800">
+        <div className="mb-6 rounded-lg bg-[var(--axis-surface-brand)] p-4">
+          <h2 className="text-lg font-semibold text-[var(--axis-text-primary)]">{discovery.title}</h2>
+          <p className="mt-2 text-sm text-[var(--axis-text-secondary)]">
             상태:{" "}
             <span className="font-semibold">
               {discovery.status === DiscoveryStatus.OPEN
@@ -262,7 +262,7 @@ export default function AddEvidence() {
               <strong>D급 (Intuition):</strong> 추론, 직관, 가정
             </li>
           </ul>
-          <p className="mt-3 text-xs text-yellow-700">
+          <p className="mt-3 text-xs text-[var(--axis-badge-warning-text)]">
             NEXT 결정은 A/B급 Evidence 2개 이상 권장됩니다
           </p>
         </div>

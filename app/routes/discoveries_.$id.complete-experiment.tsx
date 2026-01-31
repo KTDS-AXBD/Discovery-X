@@ -149,8 +149,8 @@ export default function CompleteExperiment() {
         />
 
         {/* Discovery Info */}
-        <div className="mb-6 rounded-lg bg-blue-50 p-4">
-          <h2 className="text-lg font-semibold text-blue-900">{discovery.title}</h2>
+        <div className="mb-6 rounded-lg bg-[var(--axis-surface-brand)] p-4">
+          <h2 className="text-lg font-semibold text-[var(--axis-text-primary)]">{discovery.title}</h2>
         </div>
 
         {/* Experiment Info */}

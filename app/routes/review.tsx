@@ -68,15 +68,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 function getAgeColor(ageInDays: number): string {
-  if (ageInDays < 14) return "text-green-600";
-  if (ageInDays < 21) return "text-yellow-600";
-  return "text-red-600";
+  if (ageInDays < 14) return "text-[var(--axis-badge-success-text)]";
+  if (ageInDays < 21) return "text-[var(--axis-badge-warning-text)]";
+  return "text-[var(--axis-text-error)]";
 }
 
 function getAgeBgColor(ageInDays: number): string {
-  if (ageInDays < 14) return "bg-green-50";
-  if (ageInDays < 21) return "bg-yellow-50";
-  return "bg-red-50";
+  if (ageInDays < 14) return "bg-[var(--axis-badge-success-bg)]";
+  if (ageInDays < 21) return "bg-[var(--axis-badge-warning-bg)]";
+  return "bg-[var(--axis-surface-error)]";
 }
 
 export default function WeeklyReview() {
@@ -99,15 +99,15 @@ export default function WeeklyReview() {
         <h3 className="text-sm font-medium text-[var(--axis-text-primary)]">경과 일수 색상 기준</h3>
         <div className="mt-2 flex gap-6 text-sm">
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-green-600"></div>
+            <div className="h-3 w-3 rounded-full bg-[var(--axis-badge-success-text)]"></div>
             <span className="text-[var(--axis-text-secondary)]">&lt;14일: 초록</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-yellow-600"></div>
+            <div className="h-3 w-3 rounded-full bg-[var(--axis-badge-warning-text)]"></div>
             <span className="text-[var(--axis-text-secondary)]">14-21일: 노랑</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-red-600"></div>
+            <div className="h-3 w-3 rounded-full bg-[var(--axis-text-error)]"></div>
             <span className="text-[var(--axis-text-secondary)]">&gt;21일: 빨강</span>
           </div>
         </div>
