@@ -187,88 +187,76 @@ Validation:
 > **이 섹션은 매 세션마다 업데이트한다.**
 
 ### 현재 단계
-**Phase 2 완료 → 운영 실험 시작 가능 (Ready for Production)**
+**Phase 2 완료 + PRD P0 갭 보완 완료**
 
-✅ 모든 핵심 기능 완성! Weekly Review, Recall Queue, Metrics 뷰까지 구현되어 30-60일 운영 실험을 즉시 시작할 수 있습니다.
-PRD §7.1 P0 요구사항 100% 달성.
+Phase 2(운영 지원 뷰) 완성 후 PRD P0 갭 분석을 수행하여 누락 기능 보완 완료.
 
-### 최근 변경 (2026-01-31 세션 7)
-**구현 계획 검토 및 완료 확인**:
-- ✅ 제공된 구현 계획 (Next.js + PostgreSQL) vs 기존 구현 (Remix + D1) 검토
-- ✅ 사용자 선택으로 Remix 스택 유지 결정 (기존 작업 보존)
-- ✅ Phase 2 기능 완료 확인 (이미 세션 5에서 구현됨)
-  - Weekly Review, Recall Queue, Metrics, CSV Export 모두 구현됨
-- ✅ 빌드 테스트 통과 (`pnpm build` 성공, 185.01 KB server bundle)
-- ⚠️ TypeScript 타입 체크 실패 (기존 이슈, 빌드는 정상)
-- 📝 결론: **프로덕션 배포 준비 완료** (PRD §7.1 P0 100% 달성)
+### PRD P0 구현 상태
 
-### 이전 세션 (2026-01-31 세션 6)
-**스킬 파일 점검 및 보강**:
-- ✅ `deploy/SKILL.md` 전면 재작성 — 브랜치명(`main`→`master`), 배포 방식(wrangler 직접), 명령어 명시화, DB 마이그레이션 확인 단계 추가
-- ✅ `session-end/SKILL.md` 수정 — 빌드 확인을 `pnpm typecheck` + `pnpm build`로 명시
-- ✅ `session-start/SKILL.md` 수정 — CLAUDE.md 읽기 단계 추가
-- ⚠️ 기존 TypeScript 에러 다수 발견 (Drizzle ORM extraConfig 타입, Env 타입, Date 직렬화) — 향후 수정 필요
+| # | 요구사항 | 상태 | 비고 |
+|---|---------|------|------|
+| 1 | Discovery CRUD + 상태 전환 | ✅ | 16개 라우트 (edit 추가) |
+| 2 | Owner 지정 | ✅ | 승격 시 필수 |
+| 3 | Reviewer 지정 UI | ✅ | 승격 시 선택, 상세에서 변경 가능 |
+| 4 | Owner 변경/승계 | ✅ | INBOX/OPEN에서 변경 가능 |
+| 5 | Discovery 편집 | ✅ | INBOX/OPEN에서 제목/요약/링크/출처 수정 |
+| 6 | Experiment 최대 2개 | ✅ | 3번째 시도 시 에러 |
+| 7 | Evidence 타입/강도 | ✅ | |
+| 8 | NOT_NOW 필수 필드 | ✅ | triggerType + condition + revisitDate |
+| 9 | DEAD_END 필수 필드 | ✅ | failurePattern + evidenceReason |
+| 10 | Weekly Review 뷰 | ✅ | `/review` |
+| 11 | Recall Queue 뷰 | ✅ | `/recall` |
+| 12 | 지표 집계/Export | ✅ | `/metrics` + CSV Export |
+| 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 
-### 이전 세션 (2026-01-31 세션 5)
-**Phase 2 운영 지원 뷰 완성**:
-- ✅ Weekly Review (`/review`) — OPEN 목록, Age 기반 색상, Due Date 추적
-- ✅ Recall Queue (`/recall`) — Revisit Date 도래 NOT_NOW 목록, 트리거 정보 표시
-- ✅ Metrics 대시보드 (`/metrics`) — P0/P1 성공 기준 추적, 핵심 지표 카드
-- ✅ CSV Export API — Discovery 전체 데이터 + 지표 집계 다운로드
-- ✅ MainNav 업데이트 — Metrics 링크 추가
+### 최근 변경 (2026-01-31 세션 9)
+**문서 정합성 반영**:
+- ✅ PRD §8 기술 스택 — Confluence DB/Next.js 제안 → 실제 채택 스택(Remix + D1)으로 교체
+- ✅ PRD §7.1 P0 — 8개 항목에 구현 상태 인라인 표기 (✅/⚠️/❌)
+- ✅ PRD §9 로드맵 — Phase 완료 현황 addendum, SPEC↔PRD Phase 매핑 추가
+- ✅ CLAUDE.md 현재 상태 — "기획/설계 단계" → "P0 핵심 기능 구현 완료, 운영 실험 준비 단계"
+- ✅ CLAUDE.md 남은 P0 항목 — Reviewer UI, EXTENSION_REQUESTED, Owner 승계 3건 추가
 
-### 이전 세션 (2026-01-31 세션 2)
-**Discovery CRUD 완성 (15개 라우트)**:
-- ✅ 인증: 로그인/로그아웃 (`/login`, `/logout`) + Session 관리
-- ✅ 홈 대시보드 (`/`) — 통계 카드 (전체/Inbox/Open/Next 개수)
-- ✅ Discovery 목록 (`/discoveries`) — 상태별 필터, 테이블 뷰
-- ✅ Discovery 생성 (`/discoveries/new`) — Seed 입력 (INBOX 생성)
-- ✅ Discovery 상세 (`/discoveries/:id`) — Seed, Experiments, Evidence 표시
-- ✅ INBOX → OPEN 승격 (`/discoveries/:id/promote`) — Owner + 첫 Experiment 등록
-- ✅ Experiment 추가 (`/discoveries/:id/add-experiment`) — 최대 2개 제한 강제
-- ✅ Evidence 추가 (`/discoveries/:id/add-evidence`) — 타입/강도 선택
-- ✅ Decision 3가지 (`decide-next`, `decide-not-now`, `decide-dead-end`)
-- ✅ 관리: Seed 데이터 생성 (`/admin/seed`)
+### 이전 변경 (2026-01-31 세션 8)
+**PRD P0 갭 보완**:
+- ✅ Reviewer 지정 UI — 승격 시 Reviewer 선택, 상세에서 변경 가능
+- ✅ Owner 변경 — INBOX/OPEN 상태에서 Owner 재지정 action
+- ✅ Discovery 편집 — `/discoveries/:id/edit` 라우트 신규 (INBOX/OPEN만)
+- ✅ INBOX 7일 TTL 경고 — 목록/대시보드에서 방치 INBOX 경고 표시
+- ✅ SPEC.md 현행화 — 실제 구현 상태에 맞게 §5, §6 전면 업데이트
 
-**Decision Dialogs 구현**:
-- ✅ NEXT: decisionRationale + A/B급 Evidence 2개 미만 시 경고
-- ✅ NOT_NOW: triggerType(4가지) + triggerCondition + revisitDate(미래 필수)
-- ✅ DEAD_END: failurePattern(1-3개) + evidenceReason
+### 이전 변경 이력
+<details>
+<summary>세션 2~7 이력 (접기)</summary>
 
-**UI 컴포넌트**:
-- ✅ MainNav: 전역 내비게이션 (Discoveries, Weekly Review, Recall Queue)
-- ✅ 상태별 색상 테마 (INBOX: 파랑, OPEN: 노랑, NEXT: 초록, NOT_NOW: 회색, DEAD_END: 빨강)
-- ✅ 상태 기반 액션 버튼 (승격, 실험/근거 추가, 결정)
+#### 세션 7 (2026-01-31) — 구현 계획 검토
+- ✅ Remix 스택 유지 결정, Phase 2 기능 완료 확인, 빌드 테스트 통과
 
-**Validation 강제**:
-- ✅ Owner 없이 OPEN 전환 불가
-- ✅ Experiment 최대 2개 (3번째 시도 시 에러)
-- ✅ NOT_NOW/DEAD_END 필수 필드 누락 시 저장 불가
-- ✅ EventLog에 모든 상태 전환 기록
+#### 세션 6 (2026-01-31) — 스킬 파일 점검
+- ✅ deploy/session-end/session-start SKILL.md 재작성/수정
 
-### 프로젝트 정리 (2026-01-31 세션 3)
-- ✅ 기획 문서 `docs/`로 이동 (Discovery-X_v1.4.md, PRD_v0.1.md)
-- ✅ README.md 프로젝트용으로 교체 (템플릿 가이드 → Discovery-X 소개)
-- ✅ CLAUDE.md 문서 경로 참조 `docs/` 반영
-- ✅ `.gitignore`에 `nul` 패턴 추가 (Windows 아티팩트 재발 방지)
+#### 세션 5 (2026-01-31) — Phase 2 운영 지원 뷰 완성
+- ✅ Weekly Review, Recall Queue, Metrics, CSV Export API
 
-### GitHub 연동 및 버전 관리 (2026-01-31 세션 4)
-- ✅ GitHub 리포지토리 생성 (AX-BD-Team/Discovery-X, private)
-- ✅ Cloudflare Pages Git 연동 설정 (master push → 자동 배포)
-- ✅ 버전 관리 원칙 수립 (CLAUDE.md에 기록)
-  - master 단일 브랜치, Conventional Commits, Phase별 태깅
-- ✅ CLAUDE.md 기술 스택 섹션 현행화 (outdated Confluence/Next.js 참조 제거)
-- ✅ `.gitignore`에서 `pnpm-lock.yaml` 제거 (CF Pages 빌드 실패 수정)
+#### 세션 2 (2026-01-31) — Discovery CRUD 완성 (15개 라우트)
+- ✅ 인증, 대시보드, Discovery 전체 CRUD, Decision 3종
+
+#### 세션 3 (2026-01-31) — 프로젝트 정리
+- ✅ 기획 문서 docs/ 이동, README 교체
+
+#### 세션 4 (2026-01-31) — GitHub 연동
+- ✅ GitHub 리포 생성, CF Pages Git 연동, 버전 관리 원칙
+</details>
 
 ### 활성 결정사항
 - **인증 방식**: Session 기반 (D1 `sessions` 테이블)
-- **기술 스택**: Remix v2 + D1 확정 (Next.js 계획 검토 후 기존 스택 유지 결정)
+- **기술 스택**: Remix v2 + D1 확정
 - **프로젝트 구조**: 기획 문서는 `docs/`, SDD 핵심(CLAUDE.md, SPEC.md)은 루트
 - **브랜치 전략**: master 단일 브랜치 (Prototype 기간)
 - **배포**: Cloudflare Pages Git 연동 (master push → 자동 빌드/배포)
-- **프로덕션 준비 상태**: ✅ **READY** — Phase 0-2 완료, 모든 P0 기능 구현됨
-- **다음 단계**: `/deploy` 실행 → 운영 실험 시작 (30-60일)
-- **알려진 이슈**: `pnpm typecheck` 실패 (빌드는 정상) — Drizzle ORM extraConfig 타입, Env 타입 불일치, Date 직렬화 에러 (향후 수정)
+- **EXTENSION_REQUESTED**: 운영 후 필요 시 구현 (현재 보류)
+- **다음 단계**: 운영 실험 시작 (30-60일)
+- **알려진 이슈**: `pnpm typecheck` 실패 (빌드는 정상) — 향후 수정
 
 ---
 
@@ -302,11 +290,20 @@ PRD §7.1 P0 요구사항 100% 달성.
 | **Metrics 대시보드** | ✅ | `/metrics` — P0/P1 성공 기준, 핵심 지표 |
 | **CSV Export API** | ✅ | Discovery 데이터 + 지표 다운로드 |
 | **스킬 파일 보강** | ✅ | deploy 전면 재작성, session-end/start 수정 |
+| **Reviewer 지정 UI** | ✅ | 승격 시 선택, 상세에서 변경 |
+| **Owner 변경/승계** | ✅ | INBOX/OPEN에서 재지정 가능 |
+| **Discovery 편집** | ✅ | `/discoveries/:id/edit` 라우트 |
+| **INBOX TTL 경고** | ✅ | 7일 초과 INBOX 항목 시각적 경고 |
 
 ### 미래 작업
 
+**운영 후 판단 (보류)**
+- [ ] EXTENSION_REQUESTED 상태 전환 (3번째 실험 시)
+- [ ] 기한 초과 강제 종료 (현재 OVERDUE 배지만 표시)
+- [ ] 유사 Seed 검색 (Recall 시 유사 Discovery 제안)
+
 **Phase 3 — 운영 자동화 (선택)**
-- [ ] TTL 리마인드 (Inbox 7일, due_date 임박)
+- [ ] TTL 리마인드 자동 알림 (due_date 임박)
 - [ ] Revisit Date 도래 자동 등재
 - [ ] 이메일 알림 (SendGrid/Resend)
 
