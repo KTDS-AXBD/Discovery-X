@@ -248,6 +248,7 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 - ✅ MainNav 업데이트: Dashboard + Radar + Settings 링크
 - ✅ CLAUDE.md 업데이트: v2 Agent 아키텍처/도구/환경변수 반영
 - ✅ `pnpm typecheck` + `pnpm lint` (0 errors, 0 warnings) + `pnpm build` 통과
+- ✅ 프로덕션 배포 완료: DB 마이그레이션 0005 적용 + ANTHROPIC_API_KEY 설정 + wrangler deploy
 
 ### 이전 변경 (세션 36)
 **프로젝트 폴더 및 문서 정리**:
@@ -566,11 +567,11 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 - **배포**: Cloudflare Pages Git 연동 (master push → 자동 빌드/배포)
 - **EXTENSION_REQUESTED**: ✅ 구현 완료 (OPEN + 실험 2개 → 연장 요청 → +14일, 3번째 실험 가능)
 - **운영 실험**: 🚀 2026-01-31 시작 (30-60일, 최대 5명, Discovery 5-10건 목표)
-- **DB 마이그레이션**: ✅ 5개 마이그레이션 (0000~0004) 프로덕션 적용 완료, 0005 (Agent 테이블) 적용 대기
+- **DB 마이그레이션**: ✅ 6개 마이그레이션 (0000~0005) 프로덕션 적용 완료
 - **빌드 상태**: `pnpm build` + `pnpm typecheck` + `pnpm lint` 모두 통과
-- **v2 Agent 시스템**: 🚧 코드 구현 완료, DB 마이그레이션 + ANTHROPIC_API_KEY secret 설정 + 배포 필요
+- **v2 Agent 시스템**: ✅ 프로덕션 배포 완료 (코드 + DB 마이그레이션 0005 + ANTHROPIC_API_KEY 설정)
 - **Radar Worker**: ✅ 프로덕션 배포 완료 (https://radar-worker.sinclair-account.workers.dev), Cron 매일 9:00 KST, 10소스 활성 (RSS 6 + Web 3 + YouTube 1)
-- **배포 상태**: ✅ 세션 33 프로덕션 배포 완료 (https://dx.minu.best / https://discovery-x.pages.dev)
+- **배포 상태**: ✅ 세션 37 프로덕션 배포 완료 — v2 Agent 시스템 포함 (https://dx.minu.best)
 - **이메일 설정**: ✅ Resend 연동 완료 (`noreply@ideaonaction.ai`), cron-job.org 매일 9:00 KST 자동 발송
 - **운영 문서**: 치트시트, 런북, 킥오프 템플릿, QA 체크리스트, 사용자 가이드 완성
 
@@ -670,12 +671,11 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 - [x] Web/YouTube 소스 추가 — 세션 32에서 완료 (Product Hunt, Hugging Face Papers, Two Minute Papers, Y Combinator Blog)
 - [x] GeekNews RSS 대안 확인 — web 스크래핑 전환 완료 (User-Agent 개선 + 프로덕션 DB 소스 추가 — 세션 36)
 
-**v2 배포 작업 (대기)**
-- [ ] `pnpm db:migrate` — 로컬 마이그레이션 0005 적용
-- [ ] `pnpm db:migrate:prod` — 프로덕션 마이그레이션 0005 적용
-- [ ] `wrangler secret put ANTHROPIC_API_KEY` — Claude API 키 설정
-- [ ] `pnpm deploy` — 프로덕션 배포
-- [ ] cron-job.org에 `/api/cron/agent-review` 엔드포인트 추가
+**v2 배포 작업 (완료)**
+- [x] `pnpm db:migrate:prod` — 프로덕션 마이그레이션 0005 적용
+- [x] `wrangler secret put ANTHROPIC_API_KEY` — Claude API 키 설정
+- [x] `pnpm deploy` — 프로덕션 배포
+- [ ] cron-job.org에 `/api/cron/agent-review` 엔드포인트 추가 (선택)
 
 **운영 후 판단 (보류)**
 - [x] 기한 초과 강제 종료 — 세션 32에서 구현 (daily cron 자동 DEAD_END + TIME_CONSTRAINT 패턴 + 이메일 알림)
