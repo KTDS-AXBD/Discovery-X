@@ -191,7 +191,7 @@ export default function DiscoveriesIndex() {
                             </td>
                           </tr>
                         );
-                      }))
+                      })
                     )}
                   </tbody>
                 </table>
