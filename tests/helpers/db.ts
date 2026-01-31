@@ -23,6 +23,7 @@ export function createTestDb() {
   const migrationsDir = resolve(__dirname, "../../drizzle");
   runMigrationSQL(sqlite, resolve(migrationsDir, "0000_rare_raider.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0001_magenta_wallflower.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0002_add_approval_columns.sql"));
 
   return drizzle(sqlite, { schema });
 }
