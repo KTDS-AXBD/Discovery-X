@@ -221,9 +221,16 @@ PRD §10.2 P0 성공 기준 달성: "최소 1건 닫힌 Discovery 발생" 가능
 - ✅ NOT_NOW/DEAD_END 필수 필드 누락 시 저장 불가
 - ✅ EventLog에 모든 상태 전환 기록
 
+### 프로젝트 정리 (2026-01-31 세션 3)
+- ✅ 기획 문서 `docs/`로 이동 (Discovery-X_v1.4.md, PRD_v0.1.md)
+- ✅ README.md 프로젝트용으로 교체 (템플릿 가이드 → Discovery-X 소개)
+- ✅ CLAUDE.md 문서 경로 참조 `docs/` 반영
+- ✅ `.gitignore`에 `nul` 패턴 추가 (Windows 아티팩트 재발 방지)
+
 ### 활성 결정사항
 - **인증 방식**: Session 기반 (D1 `sessions` 테이블)
 - **기술 스택**: Remix v2 유지 (React Router v7 마이그레이션은 향후)
+- **프로젝트 구조**: 기획 문서는 `docs/`, SDD 핵심(CLAUDE.md, SPEC.md)은 루트
 - **다음 우선순위**: Weekly Review + Recall Queue 뷰 구현 (운영 지원)
 
 ---
@@ -249,6 +256,7 @@ PRD §10.2 P0 성공 기준 달성: "최소 1건 닫힌 Discovery 발생" 가능
 | **Evidence 관리** | ✅ | 타입/강도 선택, Experiment 연결 |
 | **Decision 폼** | ✅ | 3가지 (NEXT, NOT_NOW, DEAD_END) 필수 필드 강제 |
 | 빌드 테스트 | ✅ | `pnpm build` 성공 (142KB server bundle) |
+| **프로젝트 폴더 정리** | ✅ | 기획 문서 `docs/` 이동, README 교체, .gitignore 보완 |
 
 ### 미래 작업
 
