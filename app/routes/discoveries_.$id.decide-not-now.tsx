@@ -4,7 +4,15 @@ import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries, eventLogs, users } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { MainNav } from "~/components/layout/MainNav";
+import { PageLayout } from "~/components/layout/PageLayout";
+import { PageHeader } from "~/components/layout/PageHeader";
+import { Card, CardContent } from "~/components/ui/Card";
+import { Input } from "~/components/ui/Input";
+import { Textarea } from "~/components/ui/Textarea";
+import { Select } from "~/components/ui/Select";
+import { FormField } from "~/components/ui/FormField";
+import { Button } from "~/components/ui/Button";
+import { AlertBanner } from "~/components/ui/AlertBanner";
 import { eq } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { DiscoveryValidationRules, NotNowDecisionSchema } from "~/lib/validation/discovery-rules";
@@ -178,148 +186,102 @@ export default function DecideNotNow() {
   const defaultRevisitDateStr = defaultRevisitDate.toISOString().split("T")[0];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <MainNav user={user} />
-
-      <div className="mx-auto max-w-2xl px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">NOT NOW 결정</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Discovery를 보류(NOT NOW) 상태로 닫습니다
-          </p>
-        </div>
+    <PageLayout user={user}>
+      <div className="mx-auto max-w-2xl">
+        <PageHeader
+          title="NOT NOW 결정"
+          description="Discovery를 보류(NOT NOW) 상태로 닫습니다"
+        />
 
         {/* Discovery Info */}
-        <div className="mb-6 rounded-lg bg-gray-50 p-4">
-          <h2 className="text-lg font-semibold text-gray-900">{discovery.title}</h2>
-          <p className="mt-2 text-sm text-gray-800">{discovery.seedSummary}</p>
+        <div className="mb-6 rounded-lg bg-[var(--axis-surface-secondary)] p-4">
+          <h2 className="text-lg font-semibold text-[var(--axis-text-primary)]">{discovery.title}</h2>
+          <p className="mt-2 text-sm text-[var(--axis-text-secondary)]">{discovery.seedSummary}</p>
         </div>
 
         {actionData?.error && (
-          <div className="mb-6 rounded-md bg-red-50 p-4">
-            <p className="text-sm text-red-800">{actionData.error}</p>
-          </div>
+          <AlertBanner variant="destructive" className="mb-6">
+            <p>{actionData.error}</p>
+          </AlertBanner>
         )}
 
-        <Form method="post" className="space-y-6 bg-white p-6 shadow sm:rounded-lg">
-          <div className="rounded-md bg-yellow-50 p-4">
-            <p className="text-sm text-yellow-800">
-              <strong>NOT NOW 결정:</strong> 지금은 아니지만, 특정 조건이 충족되면 재검토합니다.
-              트리거 조건과 재검토 날짜를 명확히 지정해야 합니다.
-            </p>
-          </div>
+        <Card>
+          <CardContent className="pt-6">
+            <Form method="post" className="space-y-6">
+              <AlertBanner variant="warning">
+                <p>
+                  <strong>NOT NOW 결정:</strong> 지금은 아니지만, 특정 조건이 충족되면 재검토합니다.
+                  트리거 조건과 재검토 날짜를 명확히 지정해야 합니다.
+                </p>
+              </AlertBanner>
 
-          {/* Decision Rationale */}
-          <div>
-            <label
-              htmlFor="decisionRationale"
-              className="block text-sm font-medium text-gray-700"
-            >
-              결정 근거 <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              name="decisionRationale"
-              id="decisionRationale"
-              required
-              maxLength={400}
-              rows={4}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              placeholder="왜 지금은 진행하지 않기로 했는지 기술합니다"
-            />
-            <p className="mt-1 text-xs text-gray-500">400자 이내</p>
-          </div>
+              {/* Decision Rationale */}
+              <FormField label="결정 근거" htmlFor="decisionRationale" required hint="400자 이내">
+                <Textarea
+                  name="decisionRationale"
+                  id="decisionRationale"
+                  required
+                  maxLength={400}
+                  rows={4}
+                  placeholder="왜 지금은 진행하지 않기로 했는지 기술합니다"
+                />
+              </FormField>
 
-          <hr className="border-gray-200" />
+              <hr className="border-[var(--axis-border-default)]" />
 
-          {/* Trigger Type */}
-          <div>
-            <label
-              htmlFor="notNowTriggerType"
-              className="block text-sm font-medium text-gray-700"
-            >
-              트리거 유형 <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="notNowTriggerType"
-              id="notNowTriggerType"
-              required
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-            >
-              <option value="">선택하세요</option>
-              {TRIGGER_TYPES.map((trigger) => (
-                <option key={trigger.id} value={trigger.id}>
-                  {trigger.label} - {trigger.description}
-                </option>
-              ))}
-            </select>
-            <p className="mt-1 text-xs text-gray-500">
-              재검토를 촉발하는 조건의 종류
-            </p>
-          </div>
+              {/* Trigger Type */}
+              <FormField label="트리거 유형" htmlFor="notNowTriggerType" required hint="재검토를 촉발하는 조건의 종류">
+                <Select
+                  name="notNowTriggerType"
+                  id="notNowTriggerType"
+                  required
+                >
+                  <option value="">선택하세요</option>
+                  {TRIGGER_TYPES.map((trigger) => (
+                    <option key={trigger.id} value={trigger.id}>
+                      {trigger.label} - {trigger.description}
+                    </option>
+                  ))}
+                </Select>
+              </FormField>
 
-          {/* Trigger Condition */}
-          <div>
-            <label
-              htmlFor="notNowTriggerCondition"
-              className="block text-sm font-medium text-gray-700"
-            >
-              트리거 조건 <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="notNowTriggerCondition"
-              id="notNowTriggerCondition"
-              required
-              maxLength={200}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              placeholder="예: WebGPU 브라우저 지원률 80% 도달"
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              구체적인 조건 (200자 이내)
-            </p>
-          </div>
+              {/* Trigger Condition */}
+              <FormField label="트리거 조건" htmlFor="notNowTriggerCondition" required hint="구체적인 조건 (200자 이내)">
+                <Input
+                  type="text"
+                  name="notNowTriggerCondition"
+                  id="notNowTriggerCondition"
+                  required
+                  maxLength={200}
+                  placeholder="예: WebGPU 브라우저 지원률 80% 도달"
+                />
+              </FormField>
 
-          {/* Revisit Date */}
-          <div>
-            <label
-              htmlFor="revisitDate"
-              className="block text-sm font-medium text-gray-700"
-            >
-              재검토 날짜 <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              name="revisitDate"
-              id="revisitDate"
-              required
-              defaultValue={defaultRevisitDateStr}
-              min={new Date().toISOString().split("T")[0]}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              이 날짜에 Recall Queue에 자동 등재됩니다 (기본: 3개월 후)
-            </p>
-          </div>
+              {/* Revisit Date */}
+              <FormField label="재검토 날짜" htmlFor="revisitDate" required hint="이 날짜에 Recall Queue에 자동 등재됩니다 (기본: 3개월 후)">
+                <Input
+                  type="date"
+                  name="revisitDate"
+                  id="revisitDate"
+                  required
+                  defaultValue={defaultRevisitDateStr}
+                  min={new Date().toISOString().split("T")[0]}
+                />
+              </FormField>
 
-          {/* Actions */}
-          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-gray-200 pt-6">
-            <a
-              href={`/discoveries/${discovery.id}`}
-              className="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-            >
-              취소
-            </a>
-            <button
-              type="submit"
-              className="rounded-md bg-gray-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-            >
-              승인 요청 (NOT NOW)
-            </button>
-          </div>
-        </Form>
+              {/* Actions */}
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-[var(--axis-border-default)] pt-6">
+                <Button variant="outline" asChild>
+                  <a href={`/discoveries/${discovery.id}`}>취소</a>
+                </Button>
+                <Button type="submit" variant="secondary">승인 요청 (NOT NOW)</Button>
+              </div>
+            </Form>
+          </CardContent>
+        </Card>
 
         {/* Trigger Examples */}
-        <div className="mt-6 rounded-md bg-gray-50 p-4 text-sm text-gray-600">
+        <div className="mt-6 rounded-md bg-[var(--axis-surface-secondary)] p-4 text-sm text-[var(--axis-text-tertiary)]">
           <p className="font-semibold">트리거 조건 예시:</p>
           <ul className="mt-2 space-y-2">
             {TRIGGER_TYPES.map((trigger) => (
@@ -341,6 +303,6 @@ export default function DecideNotNow() {
           </ul>
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }
