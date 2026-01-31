@@ -331,9 +331,9 @@ P0 전 항목 + Export 확장(CSV/JSON/Brief) + 이메일 알림(Resend/Cron) + 
 - **브랜치 전략**: master 단일 브랜치 (Prototype 기간)
 - **배포**: Cloudflare Pages Git 연동 (master push → 자동 빌드/배포)
 - **EXTENSION_REQUESTED**: ✅ 구현 완료 (OPEN + 실험 2개 → 연장 요청 → +14일, 3번째 실험 가능)
-- **다음 단계**: `/deploy`로 배포 후 30-60일 운영 실험 시작
+- **다음 단계**: Resend secrets 설정 + 외부 cron 연동 후 30-60일 운영 실험 시작
 - **빌드 상태**: `pnpm build` (267KB server) + `pnpm typecheck` + `pnpm lint` 모두 통과
-- **배포 상태**: 세션 14 코드 미배포 (배포 필요)
+- **배포 상태**: ✅ 세션 14 프로덕션 배포 완료 (`https://2c4c67d3.discovery-x.pages.dev`)
 - **이메일 설정 필요**: `wrangler secret put RESEND_API_KEY` + `CRON_SECRET` 후 외부 cron 서비스 연동
 - **운영 문서**: 치트시트, 런북, 킥오프 템플릿, QA 체크리스트, 사용자 가이드 완성
 
@@ -393,7 +393,8 @@ P0 전 항목 + Export 확장(CSV/JSON/Brief) + 이메일 알림(Resend/Cron) + 
 | **운영 준비 문서** | ✅ | 킥오프 템플릿, 운영 런북, 치트시트 |
 
 ### 남은 작업
-- [ ] 최종 프로덕션 배포 (`/deploy`) + Resend secrets 설정
+- [x] 최종 프로덕션 배포 — 세션 14에서 완료
+- [ ] Resend secrets 설정 (`wrangler secret put RESEND_API_KEY` + `CRON_SECRET`)
 - [ ] 외부 cron 서비스 연동 (daily 알림 활성화)
 
 ### 미래 작업
