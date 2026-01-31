@@ -4,7 +4,13 @@ import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries, evidence, eventLogs, users } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { MainNav } from "~/components/layout/MainNav";
+import { PageLayout } from "~/components/layout/PageLayout";
+import { PageHeader } from "~/components/layout/PageHeader";
+import { Card, CardContent } from "~/components/ui/Card";
+import { Textarea } from "~/components/ui/Textarea";
+import { FormField } from "~/components/ui/FormField";
+import { Button } from "~/components/ui/Button";
+import { AlertBanner } from "~/components/ui/AlertBanner";
 import { eq } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { DiscoveryValidationRules, NextDecisionSchema } from "~/lib/validation/discovery-rules";
@@ -169,16 +175,12 @@ export default function DecideNext() {
   const hasWarning = strongEvidenceCount < 2;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <MainNav user={user} />
-
-      <div className="mx-auto max-w-2xl px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">NEXT 결정</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Discovery를 전진(NEXT) 상태로 닫습니다
-          </p>
-        </div>
+    <PageLayout user={user}>
+      <div className="mx-auto max-w-2xl">
+        <PageHeader
+          title="NEXT 결정"
+          description="Discovery를 전진(NEXT) 상태로 닫습니다"
+        />
 
         {/* Discovery Info */}
         <div className="mb-6 rounded-lg bg-green-50 p-4">
@@ -192,7 +194,7 @@ export default function DecideNext() {
 
         {/* Evidence Quality Warning */}
         {hasWarning && (
-          <div className="mb-6 rounded-md bg-yellow-50 p-4">
+          <AlertBanner variant="warning" className="mb-6">
             <div className="flex">
               <div className="flex-shrink-0">
                 <svg
@@ -208,72 +210,60 @@ export default function DecideNext() {
                 </svg>
               </div>
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-yellow-800">근거 품질 경고</h3>
-                <p className="mt-2 text-sm text-yellow-700">
+                <h3 className="text-sm font-medium">근거 품질 경고</h3>
+                <p className="mt-2 text-sm">
                   강한 근거(A/B급)가 {strongEvidenceCount}개뿐입니다. NEXT 결정은 <strong>최소 2개</strong>의
                   A/B급 근거를 권장합니다.
                 </p>
-                <p className="mt-1 text-xs text-yellow-600">
+                <p className="mt-1 text-xs opacity-80">
                   (경고지만 결정은 가능합니다)
                 </p>
               </div>
             </div>
-          </div>
+          </AlertBanner>
         )}
 
         {actionData?.error && (
-          <div className="mb-6 rounded-md bg-red-50 p-4">
-            <p className="text-sm text-red-800">{actionData.error}</p>
-          </div>
+          <AlertBanner variant="destructive" className="mb-6">
+            <p>{actionData.error}</p>
+          </AlertBanner>
         )}
 
-        <Form method="post" className="space-y-6 bg-white p-6 shadow sm:rounded-lg">
-          <div className="rounded-md bg-green-50 p-4">
-            <p className="text-sm text-green-800">
-              <strong>NEXT 결정:</strong> 이 Discovery를 다음 단계로 진행합니다.
-              실행 계획, 예산 확보, 팀 편성 등 후속 작업으로 이어집니다.
-            </p>
-          </div>
+        <Card>
+          <CardContent className="pt-6">
+            <Form method="post" className="space-y-6">
+              <AlertBanner variant="success">
+                <p>
+                  <strong>NEXT 결정:</strong> 이 Discovery를 다음 단계로 진행합니다.
+                  실행 계획, 예산 확보, 팀 편성 등 후속 작업으로 이어집니다.
+                </p>
+              </AlertBanner>
 
-          {/* Decision Rationale */}
-          <div>
-            <label
-              htmlFor="decisionRationale"
-              className="block text-sm font-medium text-gray-700"
-            >
-              결정 근거 <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              name="decisionRationale"
-              id="decisionRationale"
-              required
-              maxLength={400}
-              rows={5}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-green-500 focus:outline-none focus:ring-green-500"
-              placeholder="왜 전진하기로 결정했는지, 어떤 근거가 충분했는지 기술합니다"
-            />
-            <p className="mt-1 text-xs text-gray-500">400자 이내</p>
-          </div>
+              {/* Decision Rationale */}
+              <FormField label="결정 근거" htmlFor="decisionRationale" required hint="400자 이내">
+                <Textarea
+                  name="decisionRationale"
+                  id="decisionRationale"
+                  required
+                  maxLength={400}
+                  rows={5}
+                  placeholder="왜 전진하기로 결정했는지, 어떤 근거가 충분했는지 기술합니다"
+                />
+              </FormField>
 
-          {/* Actions */}
-          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-gray-200 pt-6">
-            <a
-              href={`/discoveries/${discovery.id}`}
-              className="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-            >
-              취소
-            </a>
-            <button
-              type="submit"
-              className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-            >
-              승인 요청 (NEXT)
-            </button>
-          </div>
-        </Form>
+              {/* Actions */}
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-[var(--axis-border-default)] pt-6">
+                <Button variant="outline" asChild>
+                  <a href={`/discoveries/${discovery.id}`}>취소</a>
+                </Button>
+                <Button type="submit" variant="success">승인 요청 (NEXT)</Button>
+              </div>
+            </Form>
+          </CardContent>
+        </Card>
 
         {/* Info */}
-        <div className="mt-6 rounded-md bg-gray-50 p-4 text-sm text-gray-600">
+        <div className="mt-6 rounded-md bg-[var(--axis-surface-secondary)] p-4 text-sm text-[var(--axis-text-tertiary)]">
           <p className="font-semibold">NEXT 결정 후:</p>
           <ul className="mt-2 list-inside list-disc space-y-1">
             <li>상태: OPEN → NEXT</li>
@@ -283,6 +273,6 @@ export default function DecideNext() {
           </ul>
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }
