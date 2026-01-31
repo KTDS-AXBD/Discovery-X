@@ -5,6 +5,7 @@ import { getDb } from "~/db";
 import { discoveries, experiments, evidence, users, eventLogs } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { MainNav } from "~/components/layout/MainNav";
+import { StatusBadge } from "~/components/ui/StatusBadge";
 import { eq } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 
@@ -131,17 +132,6 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   return json({ error: "알 수 없는 요청입니다" }, { status: 400 });
 }
 
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  [DiscoveryStatus.INBOX]: { label: "Inbox", color: "bg-blue-100 text-blue-800" },
-  [DiscoveryStatus.OPEN]: { label: "진행 중", color: "bg-yellow-100 text-yellow-800" },
-  [DiscoveryStatus.NEXT]: { label: "전진", color: "bg-green-100 text-green-800" },
-  [DiscoveryStatus.NOT_NOW]: { label: "보류", color: "bg-gray-100 text-gray-800" },
-  [DiscoveryStatus.DEAD_END]: { label: "중단", color: "bg-red-100 text-red-800" },
-  [DiscoveryStatus.EXTENSION_REQUESTED]: {
-    label: "연장 요청",
-    color: "bg-purple-100 text-purple-800",
-  },
-};
 
 export default function DiscoveryDetail() {
   const { user, discovery, owner, reviewer, experiments, evidence, allUsers } =
@@ -172,13 +162,7 @@ export default function DiscoveryDetail() {
             <div className="flex-1">
               <div className="flex items-center space-x-3">
                 <h1 className="text-2xl font-bold text-gray-900">{discovery.title}</h1>
-                <span
-                  className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${
-                    STATUS_LABELS[discovery.status]?.color || "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  {STATUS_LABELS[discovery.status]?.label || discovery.status}
-                </span>
+                <StatusBadge status={discovery.status} size="md" />
               </div>
               <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
                 <span>Owner: {owner?.name || "미지정"}</span>
@@ -191,69 +175,75 @@ export default function DiscoveryDetail() {
                 )}
               </div>
             </div>
-            <div className="mt-4 flex flex-col gap-2 sm:mt-0 sm:flex-row sm:gap-3">
-              {canEdit && (
-                <Link
-                  to={`/discoveries/${discovery.id}/edit`}
-                  className="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+            <div className="mt-4 flex flex-col gap-3 sm:mt-0">
+              {/* 주요 액션 */}
+              <div className="flex flex-wrap gap-2">
+                {canPromoteToOpen && (
+                  <Link
+                    to={`/discoveries/${discovery.id}/promote`}
+                    className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+                  >
+                    OPEN으로 승격
+                  </Link>
+                )}
+                {(discovery.status === DiscoveryStatus.OPEN ||
+                  discovery.status === DiscoveryStatus.EXTENSION_REQUESTED) &&
+                  discovery.approvalStatus !== "PENDING" && (
+                  <>
+                    {discovery.status === DiscoveryStatus.OPEN &&
+                      experiments.length >= 2 && (
+                        <Link
+                          to={`/discoveries/${discovery.id}/request-extension`}
+                          className="rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-700"
+                        >
+                          연장 요청
+                        </Link>
+                      )}
+                    <Link
+                      to={`/discoveries/${discovery.id}/decide-next`}
+                      className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-700"
+                    >
+                      NEXT 결정
+                    </Link>
+                    <Link
+                      to={`/discoveries/${discovery.id}/decide-not-now`}
+                      className="rounded-md bg-gray-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-700"
+                    >
+                      NOT NOW 결정
+                    </Link>
+                    <Link
+                      to={`/discoveries/${discovery.id}/decide-dead-end`}
+                      className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700"
+                    >
+                      DEAD END 결정
+                    </Link>
+                  </>
+                )}
+              </div>
+              {/* 보조 액션 */}
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                {canEdit && (
+                  <Link
+                    to={`/discoveries/${discovery.id}/edit`}
+                    className="rounded-md bg-white px-4 py-2 font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                  >
+                    편집
+                  </Link>
+                )}
+                <a
+                  href={`/api/export/brief/${discovery.id}`}
+                  className="rounded-md bg-white px-4 py-2 font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                  download
                 >
-                  편집
-                </Link>
-              )}
-              {canPromoteToOpen && (
+                  Brief 다운로드
+                </a>
                 <Link
-                  to={`/discoveries/${discovery.id}/promote`}
-                  className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+                  to="/discoveries"
+                  className="rounded-md bg-white px-4 py-2 font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                 >
-                  OPEN으로 승격
+                  목록으로
                 </Link>
-              )}
-              {(discovery.status === DiscoveryStatus.OPEN ||
-                discovery.status === DiscoveryStatus.EXTENSION_REQUESTED) &&
-                discovery.approvalStatus !== "PENDING" && (
-                <>
-                  {discovery.status === DiscoveryStatus.OPEN &&
-                    experiments.length >= 2 && (
-                      <Link
-                        to={`/discoveries/${discovery.id}/request-extension`}
-                        className="rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-700"
-                      >
-                        연장 요청
-                      </Link>
-                    )}
-                  <Link
-                    to={`/discoveries/${discovery.id}/decide-next`}
-                    className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-700"
-                  >
-                    NEXT 결정
-                  </Link>
-                  <Link
-                    to={`/discoveries/${discovery.id}/decide-not-now`}
-                    className="rounded-md bg-gray-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-700"
-                  >
-                    NOT NOW 결정
-                  </Link>
-                  <Link
-                    to={`/discoveries/${discovery.id}/decide-dead-end`}
-                    className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700"
-                  >
-                    DEAD END 결정
-                  </Link>
-                </>
-              )}
-              <a
-                href={`/api/export/brief/${discovery.id}`}
-                className="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                download
-              >
-                Brief 다운로드
-              </a>
-              <Link
-                to="/discoveries"
-                className="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-              >
-                목록으로
-              </Link>
+              </div>
             </div>
           </div>
         </div>

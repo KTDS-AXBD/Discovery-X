@@ -490,11 +490,11 @@ export default function Metrics() {
                   <table className="min-w-full text-sm">
                     <thead>
                       <tr className="border-b border-gray-200">
-                        <th className="pb-2 text-left font-medium text-gray-500">Owner</th>
-                        <th className="pb-2 text-right font-medium text-gray-500">전체</th>
-                        <th className="pb-2 text-right font-medium text-gray-500">진행중</th>
-                        <th className="pb-2 text-right font-medium text-gray-500">완료</th>
-                        <th className="pb-2 text-right font-medium text-gray-500">완료율</th>
+                        <th scope="col" className="pb-2 text-left font-medium text-gray-500">Owner</th>
+                        <th scope="col" className="pb-2 text-right font-medium text-gray-500">전체</th>
+                        <th scope="col" className="pb-2 text-right font-medium text-gray-500">진행중</th>
+                        <th scope="col" className="pb-2 text-right font-medium text-gray-500">완료</th>
+                        <th scope="col" className="pb-2 text-right font-medium text-gray-500">완료율</th>
                       </tr>
                     </thead>
                     <tbody>

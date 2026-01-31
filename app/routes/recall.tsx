@@ -139,22 +139,22 @@ export default function RecallQueue() {
                 <table className="min-w-full divide-y divide-gray-300 bg-white">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
+                      <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
                         제목
                       </th>
-                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                         Original Owner
                       </th>
-                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                         재검토 날짜
                       </th>
-                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                         트리거 유형
                       </th>
-                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                         트리거 조건
                       </th>
-                      <th className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                      <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
                         <span className="sr-only">액션</span>
                       </th>
                     </tr>

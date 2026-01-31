@@ -188,7 +188,7 @@ export default function DecideDeadEnd() {
         </div>
 
         {actionData?.error && (
-          <div className="mb-6 rounded-md bg-red-50 p-4 ring-1 ring-red-400">
+          <div className="mb-6 rounded-md bg-red-50 p-4">
             <p className="text-sm text-red-800">{actionData.error}</p>
           </div>
         )}

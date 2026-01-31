@@ -5,6 +5,8 @@ import { getDb } from "~/db";
 import { discoveries, users } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { MainNav } from "~/components/layout/MainNav";
+import { StatusBadge } from "~/components/ui/StatusBadge";
+import { STATUS_CONFIG } from "~/lib/constants/status";
 import { eq } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 
@@ -72,14 +74,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   return json({ user, discoveries: discoveryList });
 }
 
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  [DiscoveryStatus.INBOX]: { label: "Inbox", color: "bg-blue-100 text-blue-800" },
-  [DiscoveryStatus.OPEN]: { label: "진행 중", color: "bg-yellow-100 text-yellow-800" },
-  [DiscoveryStatus.NEXT]: { label: "전진", color: "bg-green-100 text-green-800" },
-  [DiscoveryStatus.NOT_NOW]: { label: "보류", color: "bg-gray-100 text-gray-800" },
-  [DiscoveryStatus.DEAD_END]: { label: "중단", color: "bg-red-100 text-red-800" },
-  [DiscoveryStatus.EXTENSION_REQUESTED]: { label: "연장 요청", color: "bg-purple-100 text-purple-800" },
-};
 
 export default function DiscoveriesIndex() {
   const { user, discoveries } = useLoaderData<typeof loader>();
@@ -120,7 +114,7 @@ export default function DiscoveriesIndex() {
           >
             전체
           </Link>
-          {Object.entries(STATUS_LABELS).map(([status, { label }]) => (
+          {Object.entries(STATUS_CONFIG).map(([status, { label }]) => (
             <Link
               key={status}
               to={`/discoveries?status=${status}`}
@@ -149,7 +143,7 @@ export default function DiscoveriesIndex() {
         <div className="mt-8 space-y-3 sm:hidden">
           {discoveries.length === 0 ? (
             <p className="py-12 text-center text-sm text-gray-500">
-              Discovery가 없습니다. 새로 만들어보세요!
+              표시할 Discovery가 없습니다.
             </p>
           ) : (
             discoveries.map((discovery) => (
@@ -166,13 +160,8 @@ export default function DiscoveriesIndex() {
                   <h3 className="text-sm font-medium text-gray-900">
                     {discovery.title}
                   </h3>
-                  <span
-                    className={`ml-2 inline-flex shrink-0 rounded-full px-2 text-xs font-semibold leading-5 ${
-                      STATUS_LABELS[discovery.status]?.color ||
-                      "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {STATUS_LABELS[discovery.status]?.label || discovery.status}
+                  <span className="ml-2 shrink-0">
+                    <StatusBadge status={discovery.status} />
                   </span>
                 </div>
                 <div className="mt-2 flex items-center gap-3 text-xs text-gray-500">
@@ -202,19 +191,19 @@ export default function DiscoveriesIndex() {
                 <table className="min-w-full divide-y divide-gray-300 bg-white">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
+                      <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
                         제목
                       </th>
-                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                         상태
                       </th>
-                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                         Owner
                       </th>
-                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                         생성일
                       </th>
-                      <th className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                      <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
                         <span className="sr-only">액션</span>
                       </th>
                     </tr>
@@ -226,7 +215,7 @@ export default function DiscoveriesIndex() {
                           colSpan={5}
                           className="py-12 text-center text-sm text-gray-500"
                         >
-                          Discovery가 없습니다. 새로 만들어보세요!
+                          표시할 Discovery가 없습니다.
                         </td>
                       </tr>
                     ) : (
@@ -251,14 +240,7 @@ export default function DiscoveriesIndex() {
                               )}
                             </td>
                             <td className="whitespace-nowrap px-3 py-4 text-sm">
-                              <span
-                                className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                                  STATUS_LABELS[discovery.status]?.color ||
-                                  "bg-gray-100 text-gray-800"
-                                }`}
-                              >
-                                {STATUS_LABELS[discovery.status]?.label || discovery.status}
-                              </span>
+                              <StatusBadge status={discovery.status} />
                             </td>
                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                               {discovery.ownerName || "—"}

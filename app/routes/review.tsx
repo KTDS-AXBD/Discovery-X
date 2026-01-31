@@ -118,7 +118,7 @@ export default function WeeklyReview() {
         <div className="mt-8 space-y-3 sm:hidden">
           {discoveries.length === 0 ? (
             <p className="py-12 text-center text-sm text-gray-500">
-              진행 중인 Discovery가 없습니다!
+              진행 중인 Discovery가 없습니다.
             </p>
           ) : (
             discoveries.map((discovery) => (
@@ -155,22 +155,22 @@ export default function WeeklyReview() {
                 <table className="min-w-full divide-y divide-gray-300 bg-white">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
+                      <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
                         제목
                       </th>
-                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                         Owner
                       </th>
-                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                         경과 (일)
                       </th>
-                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                         기한
                       </th>
-                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                         상태
                       </th>
-                      <th className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                      <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
                         <span className="sr-only">액션</span>
                       </th>
                     </tr>
@@ -182,7 +182,7 @@ export default function WeeklyReview() {
                           colSpan={6}
                           className="py-12 text-center text-sm text-gray-500"
                         >
-                          진행 중인 Discovery가 없습니다!
+                          진행 중인 Discovery가 없습니다.
                         </td>
                       </tr>
                     ) : (
