@@ -4,9 +4,14 @@ import { Link, useLoaderData, useSearchParams } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries, users } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { MainNav } from "~/components/layout/MainNav";
+import { PageLayout } from "~/components/layout/PageLayout";
+import { PageHeader } from "~/components/layout/PageHeader";
 import { StatusBadge } from "~/components/ui/StatusBadge";
+import { Badge } from "~/components/ui/Badge";
+import { Button } from "~/components/ui/Button";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "~/components/ui/Table";
 import { STATUS_CONFIG } from "~/lib/constants/status";
+import { cn } from "~/lib/utils/cn";
 import { eq } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 
@@ -81,191 +86,156 @@ export default function DiscoveriesIndex() {
   const currentFilter = searchParams.get("status");
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <MainNav user={user} />
+    <PageLayout user={user}>
+      <PageHeader
+        title="Discoveries"
+        description="전체 Discovery 목록을 확인하고 관리합니다"
+        actions={
+          <Button asChild>
+            <Link to="/discoveries/new">새 Discovery 만들기</Link>
+          </Button>
+        }
+      />
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="sm:flex sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Discoveries</h1>
-            <p className="mt-2 text-sm text-gray-700">
-              전체 Discovery 목록을 확인하고 관리합니다
-            </p>
-          </div>
-          <div className="mt-4 sm:mt-0">
-            <Link
-              to="/discoveries/new"
-              className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
-            >
-              새 Discovery 만들기
-            </Link>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="mt-6 flex flex-wrap gap-2">
-          <Link
-            to="/discoveries"
-            className={`rounded-md px-3 py-2 text-sm font-medium ${
-              !currentFilter
-                ? "bg-blue-600 text-white"
-                : "bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-            }`}
-          >
-            전체
-          </Link>
-          {Object.entries(STATUS_CONFIG).map(([status, { label }]) => (
-            <Link
-              key={status}
-              to={`/discoveries?status=${status}`}
-              className={`rounded-md px-3 py-2 text-sm font-medium ${
-                currentFilter === status
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-              }`}
-            >
-              {label}
-            </Link>
-          ))}
-          <Link
-            to="/discoveries?status=OVERDUE"
-            className={`rounded-md px-3 py-2 text-sm font-medium ${
-              currentFilter === "OVERDUE"
-                ? "bg-red-600 text-white"
-                : "bg-white text-red-700 ring-1 ring-inset ring-red-300 hover:bg-red-50"
-            }`}
-          >
-            기한초과
-          </Link>
-        </div>
-
-        {/* Discovery List - Mobile Cards */}
-        <div className="mt-8 space-y-3 sm:hidden">
-          {discoveries.length === 0 ? (
-            <p className="py-12 text-center text-sm text-gray-500">
-              표시할 Discovery가 없습니다.
-            </p>
-          ) : (
-            discoveries.map((discovery) => (
-              <Link
-                key={discovery.id}
-                to={`/discoveries/${discovery.id}`}
-                className={`block rounded-lg bg-white p-4 shadow ${
-                  discovery.isInboxOverdue || discovery.isOpenOverdue
-                    ? "ring-2 ring-red-300"
-                    : ""
-                }`}
-              >
-                <div className="flex items-start justify-between">
-                  <h3 className="text-sm font-medium text-gray-900">
-                    {discovery.title}
-                  </h3>
-                  <span className="ml-2 shrink-0">
-                    <StatusBadge status={discovery.status} />
-                  </span>
-                </div>
-                <div className="mt-2 flex items-center gap-3 text-xs text-gray-500">
-                  <span>{discovery.ownerName || "미지정"}</span>
-                  <span>{new Date(discovery.createdAt).toLocaleDateString("ko-KR")}</span>
-                  {discovery.isInboxOverdue && (
-                    <span className="rounded-full bg-red-100 px-2 text-xs font-semibold text-red-800">
-                      7일 초과
-                    </span>
-                  )}
-                  {discovery.isOpenOverdue && (
-                    <span className="rounded-full bg-red-100 px-2 text-xs font-semibold text-red-800">
-                      OVERDUE
-                    </span>
-                  )}
-                </div>
-              </Link>
-            ))
+      {/* Filters */}
+      <div className="mt-6 flex flex-wrap gap-2">
+        <Link
+          to="/discoveries"
+          className={cn(
+            "rounded-md px-3 py-2 text-sm font-medium",
+            !currentFilter
+              ? "bg-[var(--axis-button-bg-default)] text-white"
+              : "bg-[var(--axis-surface-default)] text-[var(--axis-text-secondary)] ring-1 ring-inset ring-[var(--axis-border-secondary)] hover:bg-[var(--axis-surface-secondary)]"
           )}
-        </div>
-
-        {/* Discovery List - Desktop Table */}
-        <div className="mt-8 hidden flow-root sm:block">
-          <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-            <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-              <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-                <table className="min-w-full divide-y divide-gray-300 bg-white">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
-                        제목
-                      </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        상태
-                      </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        Owner
-                      </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        생성일
-                      </th>
-                      <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                        <span className="sr-only">액션</span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200 bg-white">
-                    {discoveries.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={5}
-                          className="py-12 text-center text-sm text-gray-500"
-                        >
-                          표시할 Discovery가 없습니다.
-                        </td>
-                      </tr>
-                    ) : (
-                      discoveries.map((discovery) => (
-                          <tr key={discovery.id} className={discovery.isInboxOverdue || discovery.isOpenOverdue ? "bg-red-50" : ""}>
-                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                              <Link
-                                to={`/discoveries/${discovery.id}`}
-                                className="hover:text-blue-600"
-                              >
-                                {discovery.title}
-                              </Link>
-                              {discovery.isInboxOverdue && (
-                                <span className="ml-2 inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800">
-                                  7일 초과
-                                </span>
-                              )}
-                              {discovery.isOpenOverdue && (
-                                <span className="ml-2 inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800">
-                                  OVERDUE
-                                </span>
-                              )}
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm">
-                              <StatusBadge status={discovery.status} />
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                              {discovery.ownerName || "—"}
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                              {new Date(discovery.createdAt).toLocaleDateString("ko-KR")}
-                            </td>
-                            <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                              <Link
-                                to={`/discoveries/${discovery.id}`}
-                                className="text-blue-600 hover:text-blue-900"
-                              >
-                                보기
-                              </Link>
-                            </td>
-                          </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
+        >
+          전체
+        </Link>
+        {Object.entries(STATUS_CONFIG).map(([status, { label }]) => (
+          <Link
+            key={status}
+            to={`/discoveries?status=${status}`}
+            className={cn(
+              "rounded-md px-3 py-2 text-sm font-medium",
+              currentFilter === status
+                ? "bg-[var(--axis-button-bg-default)] text-white"
+                : "bg-[var(--axis-surface-default)] text-[var(--axis-text-secondary)] ring-1 ring-inset ring-[var(--axis-border-secondary)] hover:bg-[var(--axis-surface-secondary)]"
+            )}
+          >
+            {label}
+          </Link>
+        ))}
+        <Link
+          to="/discoveries?status=OVERDUE"
+          className={cn(
+            "rounded-md px-3 py-2 text-sm font-medium",
+            currentFilter === "OVERDUE"
+              ? "bg-[var(--axis-button-destructive-bg-default)] text-white"
+              : "bg-[var(--axis-surface-default)] text-[var(--axis-text-error)] ring-1 ring-inset ring-[var(--axis-border-error)] hover:bg-[var(--axis-surface-error)]"
+          )}
+        >
+          기한초과
+        </Link>
       </div>
-    </div>
+
+      {/* Mobile Cards */}
+      <div className="mt-8 space-y-3 sm:hidden">
+        {discoveries.length === 0 ? (
+          <p className="py-12 text-center text-sm text-[var(--axis-text-tertiary)]">
+            표시할 Discovery가 없습니다.
+          </p>
+        ) : (
+          discoveries.map((discovery) => (
+            <Link
+              key={discovery.id}
+              to={`/discoveries/${discovery.id}`}
+              className={cn(
+                "block rounded-lg bg-[var(--axis-surface-default)] p-4 shadow-sm border border-[var(--axis-card-border-default)]",
+                (discovery.isInboxOverdue || discovery.isOpenOverdue) && "ring-2 ring-[var(--axis-border-error)]"
+              )}
+            >
+              <div className="flex items-start justify-between">
+                <h3 className="text-sm font-medium text-[var(--axis-text-primary)]">
+                  {discovery.title}
+                </h3>
+                <span className="ml-2 shrink-0">
+                  <StatusBadge status={discovery.status} />
+                </span>
+              </div>
+              <div className="mt-2 flex items-center gap-3 text-xs text-[var(--axis-text-tertiary)]">
+                <span>{discovery.ownerName || "미지정"}</span>
+                <span>{new Date(discovery.createdAt).toLocaleDateString("ko-KR")}</span>
+                {discovery.isInboxOverdue && <Badge variant="destructive">7일 초과</Badge>}
+                {discovery.isOpenOverdue && <Badge variant="destructive">OVERDUE</Badge>}
+              </div>
+            </Link>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="mt-8 hidden sm:block">
+        <Table>
+          <TableHeader>
+            <tr>
+              <TableHead className="pl-6">제목</TableHead>
+              <TableHead>상태</TableHead>
+              <TableHead>Owner</TableHead>
+              <TableHead>생성일</TableHead>
+              <TableHead className="text-right pr-6">
+                <span className="sr-only">액션</span>
+              </TableHead>
+            </tr>
+          </TableHeader>
+          <TableBody>
+            {discoveries.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="py-12 text-center text-sm text-[var(--axis-text-tertiary)]">
+                  표시할 Discovery가 없습니다.
+                </td>
+              </tr>
+            ) : (
+              discoveries.map((discovery) => (
+                <TableRow
+                  key={discovery.id}
+                  className={cn(
+                    (discovery.isInboxOverdue || discovery.isOpenOverdue) && "bg-[var(--axis-surface-error)]"
+                  )}
+                >
+                  <TableCell className="pl-6 font-medium text-[var(--axis-text-primary)]">
+                    <Link
+                      to={`/discoveries/${discovery.id}`}
+                      className="hover:text-[var(--axis-text-brand)]"
+                    >
+                      {discovery.title}
+                    </Link>
+                    {discovery.isInboxOverdue && (
+                      <Badge variant="destructive" className="ml-2">7일 초과</Badge>
+                    )}
+                    {discovery.isOpenOverdue && (
+                      <Badge variant="destructive" className="ml-2">OVERDUE</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge status={discovery.status} />
+                  </TableCell>
+                  <TableCell>{discovery.ownerName || "—"}</TableCell>
+                  <TableCell>
+                    {new Date(discovery.createdAt).toLocaleDateString("ko-KR")}
+                  </TableCell>
+                  <TableCell className="text-right pr-6">
+                    <Link
+                      to={`/discoveries/${discovery.id}`}
+                      className="text-[var(--axis-text-brand)] hover:underline"
+                    >
+                      보기
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </PageLayout>
   );
 }

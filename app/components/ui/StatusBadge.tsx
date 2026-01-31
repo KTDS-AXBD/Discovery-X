@@ -1,4 +1,6 @@
+import { Badge } from "~/components/ui/Badge";
 import { STATUS_CONFIG } from "~/lib/constants/status";
+import { cn } from "~/lib/utils/cn";
 
 interface StatusBadgeProps {
   status: string;
@@ -6,12 +8,12 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status, size = "sm" }: StatusBadgeProps) {
-  const config = STATUS_CONFIG[status] || { label: status, className: "bg-gray-100 text-gray-800" };
-  const sizeClass = size === "md" ? "px-3 py-1 text-sm" : "px-2 py-0.5 text-xs";
+  const config = STATUS_CONFIG[status] || { label: status, variant: "default" as const };
+  const sizeClass = size === "md" ? "px-3 py-1 text-sm" : "";
 
   return (
-    <span className={`inline-flex rounded-full font-semibold ${config.className} ${sizeClass}`}>
+    <Badge variant={config.variant} className={cn(sizeClass)}>
       {config.label}
-    </span>
+    </Badge>
   );
 }
