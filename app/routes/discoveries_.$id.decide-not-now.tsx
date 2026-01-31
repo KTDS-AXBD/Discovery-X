@@ -293,15 +293,15 @@ export default function DecideNotNow() {
         </div>
 
         {/* Info */}
-        <div className="mt-4 rounded-md bg-[var(--axis-surface-brand)] p-4 text-sm text-[var(--axis-text-secondary)]">
+        <AlertBanner variant="info" className="mt-4">
           <p className="font-semibold">NOT NOW 결정 후:</p>
-          <ul className="mt-2 list-inside list-disc space-y-1">
+          <ul className="mt-2 list-inside list-disc space-y-1 text-sm">
             <li>상태: OPEN → NOT NOW</li>
             <li>Discovery는 "닫힘" 상태가 됩니다</li>
             <li>재검토 날짜에 Recall Queue에 자동 등재</li>
             <li>유사한 Seed 검색 시 참고용으로 제안될 수 있음</li>
           </ul>
-        </div>
+        </AlertBanner>
       </div>
     </PageLayout>
   );

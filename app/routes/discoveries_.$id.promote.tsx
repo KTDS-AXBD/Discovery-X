@@ -177,10 +177,10 @@ export default function PromoteToOpen() {
         />
 
         {/* Discovery Info */}
-        <div className="mb-6 rounded-lg bg-[var(--axis-surface-brand)] p-4">
-          <h2 className="text-lg font-semibold text-[var(--axis-text-primary)]">{discovery.title}</h2>
-          <p className="mt-2 text-sm text-[var(--axis-text-secondary)]">{discovery.seedSummary}</p>
-          <div className="mt-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:space-x-4 text-xs text-[var(--axis-text-tertiary)]">
+        <AlertBanner variant="info" className="mb-6">
+          <h2 className="text-lg font-semibold">{discovery.title}</h2>
+          <p className="mt-2 text-sm">{discovery.seedSummary}</p>
+          <div className="mt-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:space-x-4 text-xs opacity-80">
             <span>
               생성: {new Date(discovery.createdAt).toLocaleDateString("ko-KR")}
             </span>
@@ -188,7 +188,7 @@ export default function PromoteToOpen() {
               → 예상 마감: {expectedDueDate.toLocaleDateString("ko-KR")} (28일)
             </span>
           </div>
-        </div>
+        </AlertBanner>
 
         {actionData?.error && (
           <AlertBanner variant="destructive" className="mb-6">

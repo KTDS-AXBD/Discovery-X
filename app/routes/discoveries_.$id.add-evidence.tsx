@@ -141,9 +141,9 @@ export default function AddEvidence() {
         />
 
         {/* Discovery Info */}
-        <div className="mb-6 rounded-lg bg-[var(--axis-surface-brand)] p-4">
-          <h2 className="text-lg font-semibold text-[var(--axis-text-primary)]">{discovery.title}</h2>
-          <p className="mt-2 text-sm text-[var(--axis-text-secondary)]">
+        <AlertBanner variant="info" className="mb-6">
+          <h2 className="text-lg font-semibold">{discovery.title}</h2>
+          <p className="mt-2 text-sm">
             상태:{" "}
             <span className="font-semibold">
               {discovery.status === DiscoveryStatus.OPEN
@@ -151,7 +151,7 @@ export default function AddEvidence() {
                 : discovery.status}
             </span>
           </p>
-        </div>
+        </AlertBanner>
 
         {actionData?.error && (
           <AlertBanner variant="destructive" className="mb-6">

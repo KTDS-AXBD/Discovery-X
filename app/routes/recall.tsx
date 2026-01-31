@@ -102,9 +102,9 @@ export default function RecallQueue() {
               to={`/discoveries/${discovery.id}`}
               className={`block rounded-lg p-4 shadow ${
                 discovery.daysSinceRevisit > 7
-                  ? "bg-yellow-50"
+                  ? "bg-[var(--axis-badge-warning-bg)]"
                   : discovery.daysSinceRevisit > 0
-                  ? "bg-blue-50"
+                  ? "bg-[var(--axis-badge-info-bg)]"
                   : "bg-[var(--axis-surface-default)]"
               }`}
             >
@@ -161,9 +161,9 @@ export default function RecallQueue() {
                       key={discovery.id}
                       className={
                         discovery.daysSinceRevisit > 7
-                          ? "bg-yellow-50"
+                          ? "bg-[var(--axis-badge-warning-bg)]"
                           : discovery.daysSinceRevisit > 0
-                          ? "bg-blue-50"
+                          ? "bg-[var(--axis-badge-info-bg)]"
                           : ""
                       }
                     >

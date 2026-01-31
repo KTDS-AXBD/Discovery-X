@@ -182,10 +182,10 @@ export default function AddExperiment() {
         />
 
         {/* Discovery Info */}
-        <div className="mb-6 rounded-lg bg-[var(--axis-surface-brand)] p-4">
-          <h2 className="text-lg font-semibold text-[var(--axis-text-primary)]">{discovery.title}</h2>
-          <p className="mt-2 text-sm text-[var(--axis-text-secondary)]">{discovery.seedSummary}</p>
-        </div>
+        <AlertBanner variant="info" className="mb-6">
+          <h2 className="text-lg font-semibold">{discovery.title}</h2>
+          <p className="mt-2 text-sm">{discovery.seedSummary}</p>
+        </AlertBanner>
 
         {actionData?.error && (
           <AlertBanner variant="destructive" className="mb-6">
