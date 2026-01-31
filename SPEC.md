@@ -116,7 +116,7 @@ Remix file-based routing. `app/routes/` 디렉토리 기반 자동 라우팅.
 
 ### 컴포넌트 패턴
 - `app/routes/` — 라우트 컴포넌트 (loader + action + UI)
-- `app/components/` — 재사용 UI 컴포넌트 (예정)
+- `app/components/` — 재사용 UI 컴포넌트 (MainNav, StatusDonut, WeeklyBar 등)
 - `app/db/` — DB 스키마 및 접근 레이어
 - `~/` alias → `./app/`
 
@@ -191,9 +191,9 @@ Validation:
 > **이 섹션은 매 세션마다 업데이트한다.**
 
 ### 현재 단계
-**Phase 2 완료 + PRD P0 전체 구현 완료**
+**Phase 2 완료 + PRD P0 전체 구현 + UX 개선 + 프로덕션 배포 완료**
 
-Phase 2(운영 지원 뷰) 완성 후 PRD P0 갭 분석 및 보완 완료. EXTENSION_REQUESTED 워크플로우 구현으로 P0 전 항목 완료.
+P0 전 항목 완료. Overdue 경고, 모바일 반응형, 알림 배지, 차트 등 UX 개선 후 프로덕션 배포 완료.
 
 ### PRD P0 구현 상태
 
@@ -215,15 +215,32 @@ Phase 2(운영 지원 뷰) 완성 후 PRD P0 갭 분석 및 보완 완료. EXTEN
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
 ### 최근 변경 (2026-01-31 세션 12)
-**EXTENSION_REQUESTED 전환 UI 구현 완료**:
+**EXTENSION_REQUESTED + overdue/mobile/notification 개선, 프로덕션 배포 완료**:
+
+**EXTENSION_REQUESTED 워크플로우**:
 - ✅ `ExtensionRequestedSchema` Zod 스키마 추가 (extensionRationale 필수, 400자)
 - ✅ `/discoveries/:id/request-extension` 라우트 신규 — 보라색 테마 연장 요청 폼
 - ✅ 상세 페이지: OPEN + 실험 2개 시 "연장 요청" 버튼 표시
 - ✅ EXTENSION_REQUESTED 상태에서 실험 추가(최대 3개) + 결정(NEXT/NOT_NOW/DEAD_END) 가능
-- ✅ decide-next/not-now/dead-end: EXTENSION_REQUESTED 상태 허용
-- ✅ add-experiment: EXTENSION_REQUESTED 상태에서 최대 3개 허용
 - ✅ due_date +14일 자동 연장 (calculateExtensionDueDate 활용)
-- ✅ `pnpm typecheck` + `pnpm build` + `pnpm lint` 모두 통과
+
+**Overdue/알림 시스템**:
+- ✅ 대시보드: 기한 초과/3일 이내 마감 경고 배너 + 기한 초과/재검토 대기 카드
+- ✅ Discovery 목록: OVERDUE 필터 + 기한 초과 배지
+- ✅ 상세 페이지: 기한 초과 경고 배너, 실험 완료/미완료 시각 구분
+- ✅ MainNav: 모바일 햄버거 메뉴, Review/Recall 알림 배지 (root loader에서 카운트)
+
+**실험 완료 기록**:
+- ✅ `CompleteExperimentSchema` + `/discoveries/:id/complete-experiment` 라우트
+- ✅ 상세 페이지에서 미완료 실험에 "결과 기록" 버튼 표시
+
+**차트 + 모바일 반응형**:
+- ✅ `StatusDonut` 차트 컴포넌트 (상태 분포 도넛 차트, SVG 기반)
+- ✅ `WeeklyBar` 차트 컴포넌트 (주간 생성 추이 막대 차트, SVG 기반)
+- ✅ Metrics: 상태 분포 + 주간 생성 추이 차트 추가
+- ✅ Review/Recall: 모바일 카드 레이아웃 (sm 이하에서 테이블 대신 카드)
+
+**배포**: 프로덕션 배포 완료 (`pnpm run deploy`)
 
 ### 이전 변경 (2026-01-31 세션 11)
 **ESLint 도입 + /lint 스킬 + CLAUDE.md 개선**:
@@ -284,6 +301,7 @@ Phase 2(운영 지원 뷰) 완성 후 PRD P0 갭 분석 및 보완 완료. EXTEN
 - **다음 단계**: 운영 실험 시작 (30-60일)
 - **빌드 상태**: `pnpm build` + `pnpm typecheck` 모두 통과
 - **Lint**: ESLint 9 설정 완료, `pnpm lint` 가용 (warnings 존재, errors 0)
+- **배포 상태**: 프로덕션 배포 완료 (2026-01-31)
 
 ---
 
@@ -325,6 +343,12 @@ Phase 2(운영 지원 뷰) 완성 후 PRD P0 갭 분석 및 보완 완료. EXTEN
 | **/lint 스킬** | ✅ | 변경 파일 대상 lint + typecheck 점검/수정 |
 | **CLAUDE.md 개선** | ✅ | 명령어/디렉토리 구조/경로 별칭 추가, 비기술 섹션 축소 |
 | **EXTENSION_REQUESTED** | ✅ | 연장 요청 UI + due_date +14일 + 실험 최대 3개 + 결정 허용 |
+| **Overdue 경고 시스템** | ✅ | 대시보드/목록/상세에서 기한 초과 시각적 경고, OVERDUE 필터 |
+| **실험 완료 기록** | ✅ | `/discoveries/:id/complete-experiment` — 결과 요약 기록 |
+| **알림 배지** | ✅ | MainNav에 Review/Recall 건수 배지 (root loader) |
+| **모바일 반응형** | ✅ | MainNav 햄버거, Review/Recall 카드 레이아웃, 상세 버튼 반응형 |
+| **차트 컴포넌트** | ✅ | StatusDonut (상태 분포) + WeeklyBar (주간 생성 추이), SVG 기반 |
+| **프로덕션 배포** | ✅ | Cloudflare Pages 배포 완료 |
 
 ### 미래 작업
 
@@ -338,8 +362,5 @@ Phase 2(운영 지원 뷰) 완성 후 PRD P0 갭 분석 및 보완 완료. EXTEN
 - [ ] 이메일 알림 (SendGrid/Resend)
 
 **Phase 4 — 추가 개선 (선택)**
-- [ ] 실시간 차트 (현재는 숫자 카드만)
-- [ ] Experiment 진행률 추적 (현재 진행 중인 실험 표시)
 - [ ] 유사도 기반 추천 (새 Seed 입력 시 유사 Dead End 제안)
-- [ ] 모바일 반응형 UI (현재는 데스크톱 전용)
 - [ ] 1-pager Brief 자동 생성
