@@ -4,6 +4,7 @@ build
 .env
 *.local
 nul
+.playwright-mcp/
 
 # Claude Code local settings
 .claude/settings.local.json

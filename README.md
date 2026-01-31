@@ -11,7 +11,7 @@ AX 신사업을 위한 내부 실험 중심 사고 시스템.
 - **Runtime**: Cloudflare Pages (Edge)
 - **Framework**: Remix v2 (Vite)
 - **DB**: Cloudflare D1 (SQLite) + Drizzle ORM
-- **UI**: React 19 + Tailwind CSS 3
+- **UI**: React 19 + Tailwind CSS 4
 - **Language**: TypeScript (strict)
 
 ## 개발

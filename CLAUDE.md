@@ -64,7 +64,7 @@ pnpm deploy           # 빌드 + Cloudflare Pages 배포
 - **Runtime**: Cloudflare Pages (Edge)
 - **Framework**: Remix v2 (Vite)
 - **DB**: Cloudflare D1 (SQLite) + Drizzle ORM
-- **UI**: React 19 + Tailwind CSS 3
+- **UI**: React 19 + Tailwind CSS 4 + Axis Design Tokens
 - **Language**: TypeScript (strict)
 - **Package Manager**: pnpm
 - **Lint**: ESLint 9 (flat config) + typescript-eslint + react-hooks

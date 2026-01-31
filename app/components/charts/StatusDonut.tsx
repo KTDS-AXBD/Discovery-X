@@ -34,7 +34,7 @@ export function StatusDonut({ inbox, open, next, notNow, deadEnd }: StatusDonutP
             0건
           </text>
         </svg>
-        <p className="mt-2 text-sm text-gray-500">데이터 없음</p>
+        <p className="mt-2 text-sm text-[var(--axis-text-tertiary)]">데이터 없음</p>
       </div>
     );
   }
@@ -84,7 +84,7 @@ export function StatusDonut({ inbox, open, next, notNow, deadEnd }: StatusDonutP
           const value = values[seg.key];
           if (value === 0) return null;
           return (
-            <div key={seg.key} className="flex items-center gap-1 text-xs text-gray-600">
+            <div key={seg.key} className="flex items-center gap-1 text-xs text-[var(--axis-text-tertiary)]">
               <span
                 className="inline-block h-3 w-3 rounded-full"
                 style={{ backgroundColor: seg.color }}
