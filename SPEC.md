@@ -214,7 +214,18 @@ P0 전 항목 + Export 확장(CSV/JSON/Brief) + 이메일 알림(Resend/Cron) + 
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (2026-01-31 세션 16)
+### 최근 변경 (2026-01-31 세션 17)
+**Reviewer 승인 워크플로우 구현 + 프로덕션 배포**:
+- ✅ DB 스키마: `approvalStatus`, `pendingDecision`, `approvedAt/By` 등 7개 컬럼 추가
+- ✅ Validation: Reviewer 필수 검증, 승인 대기 중복 제출 차단, `ApprovalDecisionSchema`
+- ✅ 이메일 템플릿: 승인 요청/결과 알림 (`buildApprovalRequestEmail`, `buildApprovalResultEmail`)
+- ✅ Decision 라우트 4개: 결정 시 Reviewer 승인 요청 → PENDING 상태 전환
+- ✅ Approve 라우트: `/discoveries/:id/approve` — Reviewer 승인/거부 처리
+- ✅ Discovery 상세: 승인 대기 상태 표시 + approve 라우트 연결
+- ✅ DB 마이그레이션: `0002_add_approval_columns.sql`, `0003_add_fts5.sql`
+- ✅ 프로덕션 배포 완료 (`https://04ec6e15.discovery-x.pages.dev`)
+
+### 이전 변경 (2026-01-31 세션 16)
 **테스트 인프라 구축 + 전체 테스트 통과**:
 - ✅ Vitest + Playwright 테스트 인프라 설정 (vitest.config.ts, playwright.config.ts)
 - ✅ Unit 테스트 76개 — Zod schemas, discovery business rules, form-error util
@@ -350,9 +361,10 @@ P0 전 항목 + Export 확장(CSV/JSON/Brief) + 이메일 알림(Resend/Cron) + 
 - **브랜치 전략**: master 단일 브랜치 (Prototype 기간)
 - **배포**: Cloudflare Pages Git 연동 (master push → 자동 빌드/배포)
 - **EXTENSION_REQUESTED**: ✅ 구현 완료 (OPEN + 실험 2개 → 연장 요청 → +14일, 3번째 실험 가능)
-- **다음 단계**: Resend secrets 설정 + 외부 cron 연동 후 30-60일 운영 실험 시작
+- **다음 단계**: DB 마이그레이션 적용 (`pnpm db:migrate:prod`) + Resend secrets 설정 + 외부 cron 연동 후 30-60일 운영 실험 시작
+- **DB 마이그레이션 필요**: `0002_add_approval_columns.sql` + `0003_add_fts5.sql` 프로덕션 적용 필요
 - **빌드 상태**: `pnpm build` (267KB server) + `pnpm typecheck` + `pnpm lint` + `pnpm test` (129개) 모두 통과
-- **배포 상태**: ✅ 세션 14 프로덕션 배포 완료 (최종: `https://43c90d2a.discovery-x.pages.dev`)
+- **배포 상태**: ✅ 세션 17 프로덕션 배포 완료 (최종: `https://04ec6e15.discovery-x.pages.dev`)
 - **이메일 설정 필요**: `wrangler secret put RESEND_API_KEY` + `CRON_SECRET` 후 외부 cron 서비스 연동
 - **운영 문서**: 치트시트, 런북, 킥오프 템플릿, QA 체크리스트, 사용자 가이드 완성
 
@@ -411,6 +423,7 @@ P0 전 항목 + Export 확장(CSV/JSON/Brief) + 이메일 알림(Resend/Cron) + 
 | **JSON Export** | ✅ | `/api/export/discoveries-json` — 전체 Discovery JSON |
 | **운영 준비 문서** | ✅ | 킥오프 템플릿, 운영 런북, 치트시트 |
 | **테스트 인프라** | ✅ | Vitest + Playwright, unit 76 + integration 53 = 129개 통과 |
+| **Reviewer 승인 워크플로우** | ✅ | DB 스키마 + validation + approve 라우트 + 이메일 알림 |
 
 ### 남은 작업
 - [x] 최종 프로덕션 배포 — 세션 14에서 완료
@@ -420,7 +433,7 @@ P0 전 항목 + Export 확장(CSV/JSON/Brief) + 이메일 알림(Resend/Cron) + 
 ### 미래 작업
 
 **후속 순차 작업 (병렬 완료 후)**
-- [ ] Reviewer 승인 워크플로우 (DB 스키마 변경: `approval_status` 컬럼)
+- [x] Reviewer 승인 워크플로우 (DB 스키마 변경: `approval_status` 컬럼) — 세션 17에서 완료
 - [ ] 유사 Seed 검색 (Embedding, Cloudflare AI Workers)
 - [ ] 고급 지표 (Failure Pattern 재사용률, Owner 부하, Evidence 품질)
 
