@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Discovery-X는 AX 신사업을 위한 내부 실험 중심 사고 시스템입니다. 관찰을 행동으로 전환하고, 행동을 근거 있는 문서로 남기며, 실패를 조직 자산으로 축적하는 것을 목표로 합니다.
 
-**현재 상태**: 기획/설계 단계 (v1 Prototype 구현 전)
+**현재 상태**: P0 핵심 기능 구현 완료, 운영 실험 준비 단계
 
 ## 프로젝트 문서 구조
 
@@ -125,6 +125,11 @@ PRD §3에 정의된 운영 실험 조건:
 5. NOT_NOW/DEAD_END 필수 필드 강제
 6. Weekly Review / Recall Queue 뷰
 7. 최소 지표 집계/Export
+
+### 남은 P0 항목 (2026-01-31 기준)
+- Reviewer 지정 UI (`reviewerId` 스키마 존재, 라우트/폼 미구현)
+- EXTENSION_REQUESTED 워크플로우 (상태값 + validation 존재, 전환 UI 미구현)
+- Owner 승계(변경) UI (PRD §5.1 요구)
 
 ## 설계 원칙 (v1.4 §5)
 

@@ -206,17 +206,18 @@ Prototype에서 의도적으로 하지 않는다.
 ## 7. 화면/기능 요구사항(Prototype 범위)
 
 ### 7.1 P0 (Must‑Have)
-1. Discovery CRUD
+1. Discovery CRUD ✅
    - INBOX 생성, OPEN 승격, 상태 닫기
-2. Owner/Reviewer 지정 및 변경(승계 1줄 기록)
-3. Experiment 최대 2개 관리
-4. Evidence 기록(타입/강도/링크)
-5. NOT_NOW 트리거/재검토 날짜 강제
-6. DEAD_END Failure Pattern 태깅
-7. Review Views
+2. Owner/Reviewer 지정 및 변경(승계 1줄 기록) ⚠️ 부분
+   - Owner 지정 ✅ | Reviewer 지정 UI ❌ | 승계 UI ❌
+3. Experiment 최대 2개 관리 ✅
+4. Evidence 기록(타입/강도/링크) ✅
+5. NOT_NOW 트리거/재검토 날짜 강제 ✅
+6. DEAD_END Failure Pattern 태깅 ✅
+7. Review Views ✅ (Weekly Review + Recall Queue)
    - Weekly Review: OPEN 목록(경과일/기한/다음 상태 제안)
    - Recall Queue: Revisit 도래 NOT_NOW 목록
-8. 최소 지표 집계/Export
+8. 최소 지표 집계/Export ✅
    - Seed→Experiment 전환율, 종료 리드타임, 닫힘 비율, 재호출 이벤트 수
 
 ### 7.2 P1 (Nice‑to‑Have, 운영 중 필요하면 추가)
@@ -231,27 +232,41 @@ Prototype에서 의도적으로 하지 않는다.
 
 ---
 
-## 8. 기술/구현 제안(Prototype에 적합한 선택)
+## 8. 기술/구현(Prototype 채택 스택)
 
-### 8.1 권장 구현 방식: “Confluence DB + 얇은 자동화”
-Prototype의 목적(운영 실험)을 고려하면, 별도 플랫폼 구축보다 **Confluence DB 기반으로 최소 개발**이 안전하다.
-- 저장소: Confluence DB(Discovery/Experiment/Evidence)
-- 뷰: Weekly Review / Recall Queue 뷰
-- 자동화(선택): TTL 리마인드, Revisit 알림, 간단 통계 Export
+### 8.1 채택된 기술 스택 (Adopted)
+- Runtime: Cloudflare Pages (Edge)
+- Framework: Remix v2 (Vite)
+- DB: Cloudflare D1 (SQLite) + Drizzle ORM
+- UI: React 19 + Tailwind CSS 3
+- Language: TypeScript (strict)
+- Package Manager: pnpm
 
-> 장점: 개발비용↓, 도입저항↓, 운영/검색/권한을 기존 도구로 해결
+> 선택 근거: Edge-native 무료 인프라, SQLite 단순성이 5명 Prototype에 적합
 
-### 8.2 대안: Lightweight Web App(필요 시)
-Confluence만으로 규칙 강제/유사도/지표가 부족하면, 얇은 웹앱을 추가한다.
-- Front: Next.js/React(간단 폼 + 리스트)
-- Backend: FastAPI/NestJS + Postgres
-- Search: 기본 텍스트 + (P1) 임베딩
-
-> 단, v1에서는 “플랫폼화”로 과열되지 않도록 기능을 제한한다.
+### 8.2 검토 후 제외된 대안
+- **Confluence DB + 얇은 자동화**: 규칙 강제(Validation)가 불가능하여 제외
+- **Next.js + FastAPI + Postgres**: 5명 Prototype에 과잉 프로비저닝
 
 ---
 
-## 9. 개발 계획(로드맵) — ‘작게 만들고 바로 운영’
+## 9. 개발 계획(로드맵) — '작게 만들고 바로 운영'
+
+> **구현 현황 (2026-01-31 기준)**
+> - Phase 0 (설계 고정): ✅ 완료
+> - Phase 1 (P0 구현): ✅ 완료 — CRUD + Review 뷰 + Recall Queue
+> - Phase 2 (운영 자동화): 미착수
+> - Phase 3 (지표/리포트): ✅ 완료 — Metrics 대시보드 + CSV Export
+>
+> Phase 1과 3이 Phase 2보다 먼저 구현됨 (운영 실험에 필수인 기능 우선).
+>
+> **남은 P0 항목 (운영 시작 전 권장)**:
+> - Reviewer 지정 UI (스키마 존재, 라우트 미구현)
+> - EXTENSION_REQUESTED 워크플로우 (상태값+validation 존재, 전환 UI 미구현)
+> - Owner 승계(변경) UI
+>
+> **SPEC.md ↔ PRD Phase 매핑**:
+> PRD Phase 0 = SPEC 초기 설정 | PRD Phase 1 = SPEC Phase 1+2 | PRD Phase 2 = SPEC Phase 3 | PRD Phase 3 = SPEC Phase 4
 
 ### Phase 0 — 설계 고정(DoD: 스키마/템플릿 확정)
 - Discovery/Experiment/Evidence 필드 확정
