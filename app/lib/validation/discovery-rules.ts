@@ -163,6 +163,31 @@ export class DiscoveryValidationRules {
   }
 
   /**
+   * Rule 8: Reviewer 필수 (결정 제출 시)
+   * Reviewer 미지정 시 결정 제출 차단
+   */
+  static validateReviewerRequired(reviewerId: string | null | undefined): void {
+    if (!reviewerId) {
+      throw new ValidationError(
+        "Reviewer가 지정되어야 결정을 제출할 수 있습니다. Discovery 상세 페이지에서 Reviewer를 먼저 지정해주세요.",
+        { field: "reviewerId", rule: "reviewer_required" }
+      );
+    }
+  }
+
+  /**
+   * Rule 9: 승인 대기 중 중복 제출 차단
+   */
+  static validateNoApprovalPending(approvalStatus: string): void {
+    if (approvalStatus === "PENDING") {
+      throw new ValidationError(
+        "이미 승인 대기 중인 결정이 있습니다. Reviewer의 승인/거부를 기다려주세요.",
+        { rule: "no_duplicate_approval" }
+      );
+    }
+  }
+
+  /**
    * Rule 6: 28일 Time-box 자동 설정
    * PRD §5.1: OPEN 전환 시 createdAt + 28일
    */
@@ -291,6 +316,14 @@ export const CompleteExperimentSchema = z.object({
     .string()
     .min(1, "결과 요약은 필수입니다")
     .max(400, "결과 요약은 400자 이내여야 합니다"),
+});
+
+export const ApprovalDecisionSchema = z.object({
+  action: z.enum(["approve", "reject"]),
+  comment: z
+    .string()
+    .max(400, "코멘트는 400자 이내여야 합니다")
+    .optional(),
 });
 
 export const CreateEvidenceSchema = z.object({

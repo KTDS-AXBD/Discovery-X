@@ -2,7 +2,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, experiments, eventLogs } from "~/db/schema";
+import { discoveries, experiments, eventLogs, users } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { MainNav } from "~/components/layout/MainNav";
 import { eq, count } from "drizzle-orm";
@@ -12,6 +12,8 @@ import {
   ExtensionRequestedSchema,
 } from "~/lib/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
+import { createEmailClient } from "~/lib/notifications/email";
+import { buildApprovalRequestEmail } from "~/lib/notifications/templates";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -101,6 +103,11 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   const extensionRationale = formData.get("extensionRationale");
 
   try {
+    // Validate reviewer assigned
+    DiscoveryValidationRules.validateReviewerRequired(discovery.reviewerId);
+    // Block duplicate pending
+    DiscoveryValidationRules.validateNoApprovalPending(discovery.approvalStatus);
+
     const validated = ExtensionRequestedSchema.parse({
       extensionRationale,
     });
@@ -112,13 +119,19 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     const newDueDate =
       DiscoveryValidationRules.calculateExtensionDueDate(currentDueDate);
 
-    // Update discovery
+    // Save as PENDING instead of directly applying
     await db
       .update(discoveries)
       .set({
-        status: DiscoveryStatus.EXTENSION_REQUESTED,
-        decisionRationale: validated.extensionRationale,
-        dueDate: newDueDate,
+        approvalStatus: "PENDING",
+        pendingDecision: DiscoveryStatus.EXTENSION_REQUESTED,
+        pendingDecisionData: {
+          extensionRationale: validated.extensionRationale,
+          previousDueDate: discovery.dueDate
+            ? new Date(discovery.dueDate).toISOString()
+            : null,
+          newDueDate: newDueDate.toISOString(),
+        },
         updatedAt: new Date(),
       })
       .where(eq(discoveries.id, id));
@@ -128,8 +141,9 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
       id: crypto.randomUUID(),
       actorId: user.id,
       discoveryId: id,
-      eventType: "REQUEST_EXTENSION",
+      eventType: "SUBMIT_FOR_APPROVAL",
       metadata: {
+        pendingDecision: DiscoveryStatus.EXTENSION_REQUESTED,
         extensionRationale: validated.extensionRationale,
         previousDueDate: discovery.dueDate
           ? new Date(discovery.dueDate).toISOString()
@@ -137,6 +151,28 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
         newDueDate: newDueDate.toISOString(),
       },
     });
+
+    // Send email to reviewer
+    try {
+      const reviewerUser = await db.query.users.findFirst({
+        where: eq(users.id, discovery.reviewerId!),
+      });
+      if (reviewerUser) {
+        const env = context.cloudflare.env as Record<string, string>;
+        if (env.RESEND_API_KEY) {
+          const emailClient = createEmailClient(env.RESEND_API_KEY);
+          const email = buildApprovalRequestEmail({
+            discoveryId: id,
+            discoveryTitle: discovery.title,
+            ownerName: user.name,
+            decision: "EXTENSION_REQUESTED",
+          });
+          await emailClient.send({ to: reviewerUser.email, ...email });
+        }
+      }
+    } catch {
+      // Email failure is non-blocking
+    }
 
     return redirect(`/discoveries/${id}`);
   } catch (error: unknown) {
@@ -230,7 +266,7 @@ export default function RequestExtension() {
               type="submit"
               className="rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
             >
-              연장 요청
+              승인 요청 (연장)
             </button>
           </div>
         </Form>

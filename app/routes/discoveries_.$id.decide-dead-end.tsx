@@ -2,14 +2,16 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, eventLogs } from "~/db/schema";
+import { discoveries, eventLogs, users } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { MainNav } from "~/components/layout/MainNav";
 import { eq } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
-import { DeadEndDecisionSchema } from "~/lib/validation/discovery-rules";
+import { DiscoveryValidationRules, DeadEndDecisionSchema } from "~/lib/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
 import { FAILURE_PATTERNS } from "~/lib/constants/failure-patterns";
+import { createEmailClient } from "~/lib/notifications/email";
+import { buildApprovalRequestEmail } from "~/lib/notifications/templates";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -91,6 +93,11 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   }
 
   try {
+    // Validate reviewer assigned
+    DiscoveryValidationRules.validateReviewerRequired(discovery.reviewerId);
+    // Block duplicate pending
+    DiscoveryValidationRules.validateNoApprovalPending(discovery.approvalStatus);
+
     // Validate using Zod schema
     const validated = DeadEndDecisionSchema.parse({
       decisionRationale,
@@ -98,16 +105,17 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
       deadEndEvidenceReason,
     });
 
-    // Update discovery
+    // Save as PENDING instead of directly applying
     await db
       .update(discoveries)
       .set({
-        status: DiscoveryStatus.DEAD_END,
-        decisionState: DiscoveryStatus.DEAD_END,
-        decisionRationale: validated.decisionRationale,
-        deadEndFailurePattern: validated.deadEndFailurePattern,
-        deadEndEvidenceReason: validated.deadEndEvidenceReason,
-        decidedAt: new Date(),
+        approvalStatus: "PENDING",
+        pendingDecision: DiscoveryStatus.DEAD_END,
+        pendingDecisionData: {
+          decisionRationale: validated.decisionRationale,
+          deadEndFailurePattern: validated.deadEndFailurePattern,
+          deadEndEvidenceReason: validated.deadEndEvidenceReason,
+        },
         updatedAt: new Date(),
       })
       .where(eq(discoveries.id, id));
@@ -117,13 +125,36 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
       id: crypto.randomUUID(),
       actorId: user.id,
       discoveryId: id,
-      eventType: "DECIDE_DEAD_END",
+      eventType: "SUBMIT_FOR_APPROVAL",
       metadata: {
+        pendingDecision: DiscoveryStatus.DEAD_END,
         decisionRationale: validated.decisionRationale,
         failurePattern: validated.deadEndFailurePattern,
         evidenceReason: validated.deadEndEvidenceReason,
       },
     });
+
+    // Send email to reviewer
+    try {
+      const reviewerUser = await db.query.users.findFirst({
+        where: eq(users.id, discovery.reviewerId!),
+      });
+      if (reviewerUser) {
+        const env = context.cloudflare.env as Record<string, string>;
+        if (env.RESEND_API_KEY) {
+          const emailClient = createEmailClient(env.RESEND_API_KEY);
+          const email = buildApprovalRequestEmail({
+            discoveryId: id,
+            discoveryTitle: discovery.title,
+            ownerName: user.name,
+            decision: "DEAD_END",
+          });
+          await emailClient.send({ to: reviewerUser.email, ...email });
+        }
+      }
+    } catch {
+      // Email failure is non-blocking
+    }
 
     return redirect(`/discoveries/${id}`);
   } catch (error: unknown) {
@@ -259,7 +290,7 @@ export default function DecideDeadEnd() {
               type="submit"
               className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
             >
-              DEAD END로 결정
+              승인 요청 (DEAD END)
             </button>
           </div>
         </Form>

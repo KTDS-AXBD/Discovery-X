@@ -57,8 +57,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         new Date(d.revisitDate) <= now
     ).length;
 
+    const pendingApproval = allDiscoveries.filter(
+      (d) =>
+        d.approvalStatus === "PENDING" &&
+        d.reviewerId === user.id
+    ).length;
+
     return json({
-      notifications: { overdueOpen, dueSoon, recallDue },
+      notifications: { overdueOpen, dueSoon, recallDue, pendingApproval },
     });
   } catch {
     return json({ notifications: null });

@@ -209,7 +209,8 @@ export default function DiscoveryDetail() {
                 </Link>
               )}
               {(discovery.status === DiscoveryStatus.OPEN ||
-                discovery.status === DiscoveryStatus.EXTENSION_REQUESTED) && (
+                discovery.status === DiscoveryStatus.EXTENSION_REQUESTED) &&
+                discovery.approvalStatus !== "PENDING" && (
                 <>
                   {discovery.status === DiscoveryStatus.OPEN &&
                     experiments.length >= 2 && (
@@ -256,6 +257,46 @@ export default function DiscoveryDetail() {
             </div>
           </div>
         </div>
+
+        {/* Approval Status Banners */}
+        {discovery.approvalStatus === "PENDING" && (
+          <div className="mb-6 rounded-lg border-2 border-purple-300 bg-purple-50 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <svg className="h-5 w-5 text-purple-600" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.414L11 9.586V6z" clipRule="evenodd" />
+                </svg>
+                <p className="ml-2 text-sm font-semibold text-purple-800">
+                  승인 대기 중 — {discovery.pendingDecision} 결정이 Reviewer 검토를 기다리고 있습니다
+                </p>
+              </div>
+              {discovery.reviewerId === user.id && (
+                <Link
+                  to={`/discoveries/${discovery.id}/approve`}
+                  className="rounded-md bg-purple-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-purple-700"
+                >
+                  승인/거부 처리
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
+
+        {discovery.approvalStatus === "REJECTED" && (
+          <div className="mb-6 rounded-lg border-2 border-red-300 bg-red-50 p-4">
+            <div className="flex items-center">
+              <svg className="h-5 w-5 text-red-600" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
+              </svg>
+              <div className="ml-2">
+                <p className="text-sm font-semibold text-red-800">결정이 거부되었습니다</p>
+                {discovery.approvalComment && (
+                  <p className="mt-1 text-sm text-red-700">사유: {discovery.approvalComment}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Overdue Warning */}
         {isOverdue && (

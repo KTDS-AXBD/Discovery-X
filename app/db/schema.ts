@@ -14,6 +14,13 @@ export const DiscoveryStatus = {
   EXTENSION_REQUESTED: "EXTENSION_REQUESTED",
 } as const;
 
+export const ApprovalStatus = {
+  NONE: "NONE",
+  PENDING: "PENDING",
+  APPROVED: "APPROVED",
+  REJECTED: "REJECTED",
+} as const;
+
 export const SourceType = {
   ARTICLE: "article",
   ISSUE: "issue",
@@ -106,6 +113,15 @@ export const discoveries = sqliteTable(
       mode: "json",
     }).$type<string[]>(),
     deadEndEvidenceReason: text("dead_end_evidence_reason", { length: 200 }),
+
+    // Approval workflow
+    approvalStatus: text("approval_status").notNull().default("NONE"),
+    pendingDecision: text("pending_decision"),
+    pendingDecisionData: text("pending_decision_data", { mode: "json" }).$type<Record<string, unknown>>(),
+    approvalComment: text("approval_comment"),
+    approvedAt: integer("approved_at", { mode: "timestamp" }),
+    approvedBy: text("approved_by").references(() => users.id),
+    rejectedAt: integer("rejected_at", { mode: "timestamp" }),
   },
   (table) => ({
     statusIdx: index("idx_discoveries_status").on(table.status),

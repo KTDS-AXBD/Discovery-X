@@ -10,6 +10,7 @@ interface RootLoaderData {
     overdueOpen: number;
     dueSoon: number;
     recallDue: number;
+    pendingApproval: number;
   } | null;
 }
 
@@ -23,15 +24,21 @@ export function MainNav({ user }: MainNavProps) {
       ? notifications.overdueOpen + notifications.dueSoon
       : 0;
   const recallBadge = notifications?.recallDue || 0;
+  const approvalBadge = notifications?.pendingApproval || 0;
 
   const navLinks = (
     <>
       <Link
         to="/discoveries"
-        className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+        className="inline-flex items-center gap-1 border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
         onClick={() => setMobileMenuOpen(false)}
       >
         Discoveries
+        {approvalBadge > 0 && (
+          <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-purple-500 px-1.5 text-xs font-bold text-white">
+            {approvalBadge}
+          </span>
+        )}
       </Link>
       <Link
         to="/review"

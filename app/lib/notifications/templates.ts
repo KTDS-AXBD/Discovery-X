@@ -1,5 +1,12 @@
 const BASE_URL = "https://discovery-x.pages.dev";
 
+const DECISION_LABELS: Record<string, string> = {
+  NEXT: "전진 (NEXT)",
+  NOT_NOW: "보류 (NOT NOW)",
+  DEAD_END: "중단 (DEAD END)",
+  EXTENSION_REQUESTED: "연장 요청",
+};
+
 function layout(content: string): string {
   return `
 <!DOCTYPE html>
@@ -129,6 +136,61 @@ export function buildDueSoonEmail(discoveries: ExpiringDiscovery[]): { subject: 
       <h2 style="color: #92400e;">마감 임박 Discovery</h2>
       <p>아래 Discovery의 마감이 3일 이내입니다. 결정을 준비해주세요.</p>
       ${items}
+    `),
+  };
+}
+
+export interface ApprovalRequestData {
+  discoveryId: string;
+  discoveryTitle: string;
+  ownerName: string;
+  decision: string;
+}
+
+export function buildApprovalRequestEmail(data: ApprovalRequestData): { subject: string; html: string } {
+  const decisionLabel = DECISION_LABELS[data.decision] || data.decision;
+
+  return {
+    subject: `[Discovery-X] 승인 요청 — ${data.discoveryTitle}`,
+    html: layout(`
+      <h2 style="color: #7c3aed;">결정 승인 요청</h2>
+      <div class="card">
+        <p><strong>${data.ownerName}</strong>님이 <strong>"${data.discoveryTitle}"</strong>에 대해
+        <span class="badge" style="background: #ede9fe; color: #5b21b6;">${decisionLabel}</span>
+        결정을 제출했습니다.</p>
+        <p style="margin-top: 12px;">Reviewer로서 이 결정을 검토하고 승인/거부해주세요.</p>
+        <a href="${BASE_URL}/discoveries/${data.discoveryId}/approve" class="btn" style="color: white; margin-top: 12px;">승인/거부 처리하기</a>
+      </div>
+    `),
+  };
+}
+
+export interface ApprovalResultData {
+  discoveryId: string;
+  discoveryTitle: string;
+  reviewerName: string;
+  decision: string;
+  approved: boolean;
+  comment?: string;
+}
+
+export function buildApprovalResultEmail(data: ApprovalResultData): { subject: string; html: string } {
+  const decisionLabel = DECISION_LABELS[data.decision] || data.decision;
+  const resultLabel = data.approved ? "승인" : "거부";
+  const resultColor = data.approved ? "#059669" : "#dc2626";
+
+  return {
+    subject: `[Discovery-X] 결정 ${resultLabel}됨 — ${data.discoveryTitle}`,
+    html: layout(`
+      <h2 style="color: ${resultColor};">결정이 ${resultLabel}되었습니다</h2>
+      <div class="card">
+        <p><strong>"${data.discoveryTitle}"</strong>에 대한
+        <span class="badge" style="background: #ede9fe; color: #5b21b6;">${decisionLabel}</span>
+        결정이 <strong>${data.reviewerName}</strong>님에 의해
+        <span style="color: ${resultColor}; font-weight: 600;">${resultLabel}</span>되었습니다.</p>
+        ${data.comment ? `<p style="margin-top: 8px; padding: 8px; background: #f3f4f6; border-radius: 4px; font-size: 14px;">💬 ${data.comment}</p>` : ""}
+        <a href="${BASE_URL}/discoveries/${data.discoveryId}" class="btn" style="color: white; margin-top: 12px;">Discovery 확인하기</a>
+      </div>
     `),
   };
 }
