@@ -27,17 +27,23 @@ export async function deduplicateByUrl(
     }))
   );
 
-  // Check existing hashes in batch
+  // Check existing hashes in batches (D1 has a ~100 variable limit)
   const hashes = itemsWithHash.map((i) => i.urlHash);
-  const placeholders = hashes.map(() => "?").join(",");
-  const result = await db
-    .prepare(`SELECT url_hash FROM radar_items WHERE url_hash IN (${placeholders})`)
-    .bind(...hashes)
-    .all();
+  const BATCH_SIZE = 80;
+  const existingHashes = new Set<string>();
 
-  const existingHashes = new Set(
-    (result.results || []).map((r: Record<string, unknown>) => r.url_hash as string)
-  );
+  for (let i = 0; i < hashes.length; i += BATCH_SIZE) {
+    const batch = hashes.slice(i, i + BATCH_SIZE);
+    const placeholders = batch.map(() => "?").join(",");
+    const result = await db
+      .prepare(`SELECT url_hash FROM radar_items WHERE url_hash IN (${placeholders})`)
+      .bind(...batch)
+      .all();
+
+    for (const r of (result.results || []) as Record<string, unknown>[]) {
+      existingHashes.add(r.url_hash as string);
+    }
+  }
 
   const unique = itemsWithHash.filter((item) => !existingHashes.has(item.urlHash));
   const duplicateCount = items.length - unique.length;
