@@ -65,9 +65,21 @@ user-invocable: true
 8. **인자가 제공된 경우**:
    - `$ARGUMENTS`로 추가 메모가 전달되면 §5 Current Status에 반영
 
+### Phase 3: GitHub Project 동기화 (선택)
+
+9. **동기화 제안** (§6 변경 시에만):
+   - Phase 2에서 SPEC.md §6 Implementation Log가 업데이트된 경우에만 실행
+   - §6 변경이 없으면 이 Phase를 건너뛴다
+   - 사용자에게 제안: "SPEC.md §6이 업데이트되었습니다. GitHub Project와 동기화할까요?"
+   - AskUserQuestion으로 선택지 제시:
+     - **push** — SPEC.md 기준으로 GitHub Project 동기화 (`/sync push` 실행)
+     - **status 확인** — 차이점만 확인 (`/sync status` 실행)
+     - **건너뛰기** — 동기화하지 않고 종료
+   - 사용자가 push 또는 status를 선택하면 해당 `/sync` 스킬을 실행한다
+
 ### 최종 요약 출력
 
-9. **업데이트 요약 출력**:
+10. **업데이트 요약 출력**:
     - 커밋 내역 (해시 + 메시지)
     - SPEC.md에서 업데이트된 섹션 목록
     - 각 섹션의 주요 변경 내용
@@ -93,8 +105,12 @@ user-invocable: true
 - §6 Implementation Log — [변경 요약] (해당 시)
 - ...
 
+### GitHub Project 동기화
+- 동기화 완료: N개 push (또는 "§6 변경 없음 — 건너뜀" 또는 "사용자 건너뛰기")
+
 ### 다음 단계
 - 배포가 필요하면: `/deploy` (프로덕션) 또는 `/deploy --preview` (프리뷰)
+- 동기화가 필요하면: `/sync push` 또는 `/sync status`
 
 ### 이번 세션 요약
 - [수행한 주요 작업]
