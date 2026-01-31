@@ -52,7 +52,7 @@ INBOX → OPEN → {NEXT | NOT_NOW | DEAD_END}
 pnpm dev              # 개발 서버 (Vite)
 pnpm build            # 프로덕션 빌드
 pnpm lint             # ESLint (app/ 대상)
-pnpm typecheck        # TypeScript 타입 체크 (tsc --noEmit)
+pnpm typecheck        # TypeScript 타입 체크 (tsc)
 pnpm db:generate      # Drizzle 마이그레이션 생성
 pnpm db:migrate       # D1 로컬 마이그레이션 적용
 pnpm db:migrate:prod  # D1 원격 마이그레이션 적용
@@ -77,12 +77,12 @@ app/
 ├── routes/               # Remix v2 flat routes (파일명 = URL)
 │   ├── _index.tsx        # / (홈/로그인 분기)
 │   ├── discoveries._index.tsx  # /discoveries (목록)
-│   ├── discoveries.$id.tsx     # /discoveries/:id (상세)
-│   ├── discoveries.$id.edit.tsx
-│   ├── discoveries.$id.promote.tsx
-│   ├── discoveries.$id.add-experiment.tsx
-│   ├── discoveries.$id.add-evidence.tsx
-│   ├── discoveries.$id.decide-*.tsx  # 상태 전환 (next/not-now/dead-end)
+│   ├── discoveries_.$id.tsx     # /discoveries/:id (상세)
+│   ├── discoveries_.$id.edit.tsx
+│   ├── discoveries_.$id.promote.tsx
+│   ├── discoveries_.$id.add-experiment.tsx
+│   ├── discoveries_.$id.add-evidence.tsx
+│   ├── discoveries_.$id.decide-*.tsx  # 상태 전환 (next/not-now/dead-end)
 │   ├── review.tsx        # Weekly Review 뷰
 │   ├── recall.tsx        # Recall Queue 뷰
 │   ├── metrics.tsx       # 지표 대시보드
