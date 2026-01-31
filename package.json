@@ -7,7 +7,7 @@
     "dev": "remix vite:dev",
     "build": "remix vite:build",
     "start": "wrangler pages dev ./build/client",
-    "deploy": "pnpm run build && wrangler pages deploy ./build/client",
+    "deploy": "pnpm run build && wrangler pages deploy ./build/client --project-name=discovery-x",
     "lint": "eslint app/",
     "typecheck": "tsc",
     "db:generate": "drizzle-kit generate",

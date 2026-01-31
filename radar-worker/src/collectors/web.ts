@@ -12,7 +12,7 @@ export async function collectWeb(source: RadarSource): Promise<CollectedItem[]> 
 
   const response = await fetch(source.url, {
     headers: {
-      "User-Agent": "Radar-Worker/1.0",
+      "User-Agent": "Mozilla/5.0 (compatible; Radar-Worker/1.0; +https://dx.minu.best)",
       Accept: "text/html",
     },
   });
