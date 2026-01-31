@@ -208,8 +208,8 @@ Prototype에서 의도적으로 하지 않는다.
 ### 7.1 P0 (Must‑Have)
 1. Discovery CRUD ✅
    - INBOX 생성, OPEN 승격, 상태 닫기
-2. Owner/Reviewer 지정 및 변경(승계 1줄 기록) ⚠️ 부분
-   - Owner 지정 ✅ | Reviewer 지정 UI ❌ | 승계 UI ❌
+2. Owner/Reviewer 지정 및 변경(승계 1줄 기록) ✅
+   - Owner 지정 ✅ | Reviewer 지정 UI ✅ | Owner 변경 ✅
 3. Experiment 최대 2개 관리 ✅
 4. Evidence 기록(타입/강도/링크) ✅
 5. NOT_NOW 트리거/재검토 날짜 강제 ✅
@@ -261,9 +261,7 @@ Prototype에서 의도적으로 하지 않는다.
 > Phase 1과 3이 Phase 2보다 먼저 구현됨 (운영 실험에 필수인 기능 우선).
 >
 > **남은 P0 항목 (운영 시작 전 권장)**:
-> - Reviewer 지정 UI (스키마 존재, 라우트 미구현)
 > - EXTENSION_REQUESTED 워크플로우 (상태값+validation 존재, 전환 UI 미구현)
-> - Owner 승계(변경) UI
 >
 > **SPEC.md ↔ PRD Phase 매핑**:
 > PRD Phase 0 = SPEC 초기 설정 | PRD Phase 1 = SPEC Phase 1+2 | PRD Phase 2 = SPEC Phase 3 | PRD Phase 3 = SPEC Phase 4

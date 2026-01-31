@@ -127,9 +127,7 @@ PRD §3에 정의된 운영 실험 조건:
 7. 최소 지표 집계/Export
 
 ### 남은 P0 항목 (2026-01-31 기준)
-- Reviewer 지정 UI (`reviewerId` 스키마 존재, 라우트/폼 미구현)
 - EXTENSION_REQUESTED 워크플로우 (상태값 + validation 존재, 전환 UI 미구현)
-- Owner 승계(변경) UI (PRD §5.1 요구)
 
 ## 설계 원칙 (v1.4 §5)
 
