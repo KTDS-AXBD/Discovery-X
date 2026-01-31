@@ -274,6 +274,13 @@ export const NextDecisionSchema = z.object({
     .max(400, "결정 근거는 400자 이내여야 합니다"),
 });
 
+export const ExtensionRequestedSchema = z.object({
+  extensionRationale: z
+    .string()
+    .min(1, "연장 사유는 필수입니다")
+    .max(400, "연장 사유는 400자 이내여야 합니다"),
+});
+
 export const CreateExperimentSchema = z.object({
   hypothesis: z
     .string()

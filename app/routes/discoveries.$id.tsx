@@ -200,8 +200,18 @@ export default function DiscoveryDetail() {
                   OPEN으로 승격
                 </Link>
               )}
-              {discovery.status === DiscoveryStatus.OPEN && (
+              {(discovery.status === DiscoveryStatus.OPEN ||
+                discovery.status === DiscoveryStatus.EXTENSION_REQUESTED) && (
                 <>
+                  {discovery.status === DiscoveryStatus.OPEN &&
+                    experiments.length >= 2 && (
+                      <Link
+                        to={`/discoveries/${discovery.id}/request-extension`}
+                        className="rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-700"
+                      >
+                        연장 요청
+                      </Link>
+                    )}
                   <Link
                     to={`/discoveries/${discovery.id}/decide-next`}
                     className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-700"
@@ -331,9 +341,12 @@ export default function DiscoveryDetail() {
         <div className="mb-6 rounded-lg bg-white p-6 shadow">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">
-              Experiments ({experiments.length}/2)
+              Experiments ({experiments.length}/
+              {discovery.status === DiscoveryStatus.EXTENSION_REQUESTED ? 3 : 2})
             </h2>
-            {discovery.status === DiscoveryStatus.OPEN && experiments.length < 2 && (
+            {((discovery.status === DiscoveryStatus.OPEN && experiments.length < 2) ||
+              (discovery.status === DiscoveryStatus.EXTENSION_REQUESTED &&
+                experiments.length < 3)) && (
               <Link
                 to={`/discoveries/${discovery.id}/add-experiment`}
                 className="rounded-md bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"

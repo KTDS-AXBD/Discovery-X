@@ -32,8 +32,11 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  // Can only add experiments to OPEN discoveries
-  if (discovery.status !== DiscoveryStatus.OPEN) {
+  // Can only add experiments to OPEN or EXTENSION_REQUESTED discoveries
+  if (
+    discovery.status !== DiscoveryStatus.OPEN &&
+    discovery.status !== DiscoveryStatus.EXTENSION_REQUESTED
+  ) {
     return redirect(`/discoveries/${id}`);
   }
 
@@ -44,8 +47,10 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     .where(eq(experiments.discoveryId, id));
 
   const currentCount = experimentCount[0]?.count || 0;
+  const maxExperiments =
+    discovery.status === DiscoveryStatus.EXTENSION_REQUESTED ? 3 : 2;
 
-  if (currentCount >= 2) {
+  if (currentCount >= maxExperiments) {
     return redirect(`/discoveries/${id}`);
   }
 
@@ -75,15 +80,36 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  if (discovery.status !== DiscoveryStatus.OPEN) {
-    return json({ error: "OPEN 상태의 Discovery만 실험을 추가할 수 있습니다" }, { status: 400 });
+  if (
+    discovery.status !== DiscoveryStatus.OPEN &&
+    discovery.status !== DiscoveryStatus.EXTENSION_REQUESTED
+  ) {
+    return json(
+      { error: "OPEN 또는 EXTENSION_REQUESTED 상태의 Discovery만 실험을 추가할 수 있습니다" },
+      { status: 400 }
+    );
   }
 
-  // Validate experiment limit (max 2)
-  try {
-    await DiscoveryValidationRules.validateExperimentLimit(db, id);
-  } catch (error: any) {
-    return json({ error: error.message }, { status: 400 });
+  // Validate experiment limit (max 2, or max 3 if EXTENSION_REQUESTED)
+  if (discovery.status === DiscoveryStatus.EXTENSION_REQUESTED) {
+    const expCount = await db
+      .select({ count: count() })
+      .from(experiments)
+      .where(eq(experiments.discoveryId, id));
+    if ((expCount[0]?.count || 0) >= 3) {
+      return json(
+        { error: "연장 상태에서도 최대 3개 실험만 가능합니다." },
+        { status: 400 }
+      );
+    }
+  } else {
+    try {
+      await DiscoveryValidationRules.validateExperimentLimit(db, id);
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "실험 제한 초과";
+      return json({ error: message }, { status: 400 });
+    }
   }
 
   const formData = await request.formData();

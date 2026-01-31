@@ -33,8 +33,11 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  // Can only decide from OPEN status
-  if (discovery.status !== DiscoveryStatus.OPEN) {
+  // Can only decide from OPEN or EXTENSION_REQUESTED status
+  if (
+    discovery.status !== DiscoveryStatus.OPEN &&
+    discovery.status !== DiscoveryStatus.EXTENSION_REQUESTED
+  ) {
     return redirect(`/discoveries/${id}`);
   }
 
@@ -64,8 +67,14 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  if (discovery.status !== DiscoveryStatus.OPEN) {
-    return json({ error: "OPEN 상태의 Discovery만 결정할 수 있습니다" }, { status: 400 });
+  if (
+    discovery.status !== DiscoveryStatus.OPEN &&
+    discovery.status !== DiscoveryStatus.EXTENSION_REQUESTED
+  ) {
+    return json(
+      { error: "OPEN 또는 EXTENSION_REQUESTED 상태의 Discovery만 결정할 수 있습니다" },
+      { status: 400 }
+    );
   }
 
   const formData = await request.formData();
