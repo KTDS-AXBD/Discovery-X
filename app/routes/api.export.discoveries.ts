@@ -45,6 +45,34 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         (e) => e.strength === "A" || e.strength === "B"
       ).length;
 
+      // Build experiment slots (up to 3)
+      const expSlots: Array<{
+        hypothesis: string;
+        action: string;
+        deadline: string;
+        result: string;
+        completedAt: string;
+      }> = [];
+      for (let i = 0; i < 3; i++) {
+        const exp = experimentCount[i];
+        expSlots.push({
+          hypothesis: exp?.hypothesis || "",
+          action: exp?.minimalAction || "",
+          deadline: exp?.deadline
+            ? new Date(exp.deadline).toISOString()
+            : "",
+          result: exp?.resultSummary || "",
+          completedAt: exp?.completedAt
+            ? new Date(exp.completedAt).toISOString()
+            : "",
+        });
+      }
+
+      // Build evidence summary string
+      const evidenceSummary = evidenceList
+        .map((e) => `${e.type}/${e.strength}: ${e.content}`)
+        .join("; ");
+
       return {
         id: discovery.id,
         title: discovery.title,
@@ -65,6 +93,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         deadEndFailurePattern: discovery.deadEndFailurePattern?.join("; ") || "",
         seedSummary: discovery.seedSummary,
         decisionRationale: discovery.decisionRationale || "",
+        expSlots,
+        evidenceSummary,
       };
     })
   );
@@ -90,6 +120,22 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     "DEAD_END 실패 패턴",
     "Seed 요약",
     "결정 근거",
+    "실험1_가설",
+    "실험1_행동",
+    "실험1_마감",
+    "실험1_결과",
+    "실험1_완료일",
+    "실험2_가설",
+    "실험2_행동",
+    "실험2_마감",
+    "실험2_결과",
+    "실험2_완료일",
+    "실험3_가설",
+    "실험3_행동",
+    "실험3_마감",
+    "실험3_결과",
+    "실험3_완료일",
+    "근거목록",
   ];
 
   const rows = enrichedData.map((d) => [
@@ -112,6 +158,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     d.deadEndFailurePattern,
     `"${d.seedSummary.replace(/"/g, '""')}"`, // Escape quotes in CSV
     `"${d.decisionRationale.replace(/"/g, '""')}"`,
+    ...d.expSlots.flatMap((exp) => [
+      `"${exp.hypothesis.replace(/"/g, '""')}"`,
+      `"${exp.action.replace(/"/g, '""')}"`,
+      exp.deadline,
+      `"${exp.result.replace(/"/g, '""')}"`,
+      exp.completedAt,
+    ]),
+    `"${d.evidenceSummary.replace(/"/g, '""')}"`,
   ]);
 
   const csv = [headers.join(","), ...rows.map((row) => row.join(","))].join("\n");
