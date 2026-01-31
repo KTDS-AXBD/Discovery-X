@@ -72,6 +72,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
 
   const formData = await request.formData();
   const ownerId = formData.get("ownerId");
+  const reviewerId = formData.get("reviewerId") || null;
   const hypothesis = formData.get("hypothesis");
   const minimalAction = formData.get("minimalAction");
   const deadlineStr = formData.get("deadline");
@@ -118,6 +119,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
       .set({
         status: DiscoveryStatus.OPEN,
         ownerId: validated.ownerId,
+        reviewerId: reviewerId ? String(reviewerId) : null,
         dueDate,
         updatedAt: new Date(),
       })
@@ -221,6 +223,32 @@ export default function PromoteToOpen() {
             </select>
             <p className="mt-1 text-xs text-gray-500">
               Discovery의 책임자 (실험, 문서, 결정 담당)
+            </p>
+          </div>
+
+          {/* Reviewer Selection */}
+          <div>
+            <label
+              htmlFor="reviewerId"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Reviewer 지정 (선택)
+            </label>
+            <select
+              name="reviewerId"
+              id="reviewerId"
+              defaultValue=""
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            >
+              <option value="">없음</option>
+              {allUsers.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name} ({u.email})
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-gray-500">
+              Decision Review 시 검토를 담당할 사람 (권장)
             </p>
           </div>
 

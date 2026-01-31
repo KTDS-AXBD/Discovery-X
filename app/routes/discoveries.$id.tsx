@@ -1,8 +1,8 @@
-import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
-import { Link, useLoaderData } from "@remix-run/react";
+import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, experiments, evidence, users } from "~/db/schema";
+import { discoveries, experiments, evidence, users, eventLogs } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { MainNav } from "~/components/layout/MainNav";
 import { eq } from "drizzle-orm";
@@ -31,9 +31,13 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  // Get owner
+  // Get owner and reviewer
   const owner = discovery.ownerId
     ? await db.query.users.findFirst({ where: eq(users.id, discovery.ownerId) })
+    : null;
+
+  const reviewer = discovery.reviewerId
+    ? await db.query.users.findFirst({ where: eq(users.id, discovery.reviewerId) })
     : null;
 
   // Get experiments
@@ -55,10 +59,76 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     user,
     discovery,
     owner,
+    reviewer,
     experiments: discoveryExperiments,
     evidence: discoveryEvidence,
     allUsers,
   });
+}
+
+export async function action({ request, context, params }: ActionFunctionArgs) {
+  const db = getDb(context.cloudflare.env.DB);
+  const secret = getSessionSecret(context.cloudflare.env);
+  const user = await getUserFromSession(request, db, secret);
+
+  if (!user) {
+    return redirect("/login");
+  }
+
+  const { id } = params;
+  if (!id) {
+    throw new Response("Not Found", { status: 404 });
+  }
+
+  const discovery = await db.query.discoveries.findFirst({
+    where: eq(discoveries.id, id),
+  });
+
+  if (!discovery) {
+    throw new Response("Not Found", { status: 404 });
+  }
+
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent === "changeOwner") {
+    if (discovery.status !== DiscoveryStatus.INBOX && discovery.status !== DiscoveryStatus.OPEN) {
+      return json({ error: "INBOX/OPEN 상태에서만 Owner를 변경할 수 있습니다" }, { status: 400 });
+    }
+    const newOwnerId = formData.get("ownerId");
+    if (!newOwnerId) {
+      return json({ error: "Owner를 선택해주세요" }, { status: 400 });
+    }
+    await db
+      .update(discoveries)
+      .set({ ownerId: String(newOwnerId), updatedAt: new Date() })
+      .where(eq(discoveries.id, id));
+
+    await db.insert(eventLogs).values({
+      id: crypto.randomUUID(),
+      actorId: user.id,
+      discoveryId: id,
+      eventType: "CHANGE_OWNER",
+      metadata: { previousOwnerId: discovery.ownerId, newOwnerId: String(newOwnerId) },
+    });
+
+    return redirect(`/discoveries/${id}`);
+  }
+
+  if (intent === "changeReviewer") {
+    if (discovery.status !== DiscoveryStatus.INBOX && discovery.status !== DiscoveryStatus.OPEN) {
+      return json({ error: "INBOX/OPEN 상태에서만 Reviewer를 변경할 수 있습니다" }, { status: 400 });
+    }
+    const newReviewerId = formData.get("reviewerId") || null;
+    await db
+      .update(discoveries)
+      .set({ reviewerId: newReviewerId ? String(newReviewerId) : null, updatedAt: new Date() })
+      .where(eq(discoveries.id, id));
+
+    return redirect(`/discoveries/${id}`);
+  }
+
+  return json({ error: "알 수 없는 요청입니다" }, { status: 400 });
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -74,9 +144,14 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 export default function DiscoveryDetail() {
-  const { user, discovery, owner, experiments, evidence } = useLoaderData<typeof loader>();
+  const { user, discovery, owner, reviewer, experiments, evidence, allUsers } =
+    useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
 
   const canPromoteToOpen = discovery.status === DiscoveryStatus.INBOX;
+  const canEdit =
+    discovery.status === DiscoveryStatus.INBOX || discovery.status === DiscoveryStatus.OPEN;
+  const canChangeOwnership = canEdit;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -99,6 +174,7 @@ export default function DiscoveryDetail() {
               </div>
               <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
                 <span>Owner: {owner?.name || "미지정"}</span>
+                <span>Reviewer: {reviewer?.name || "미지정"}</span>
                 <span>생성: {new Date(discovery.createdAt).toLocaleDateString("ko-KR")}</span>
                 {discovery.dueDate && (
                   <span className="text-red-600">
@@ -108,6 +184,14 @@ export default function DiscoveryDetail() {
               </div>
             </div>
             <div className="flex space-x-3">
+              {canEdit && (
+                <Link
+                  to={`/discoveries/${discovery.id}/edit`}
+                  className="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                >
+                  편집
+                </Link>
+              )}
               {canPromoteToOpen && (
                 <Link
                   to={`/discoveries/${discovery.id}/promote`}
@@ -180,6 +264,68 @@ export default function DiscoveryDetail() {
             </div>
           </div>
         </div>
+
+        {/* Owner/Reviewer Management */}
+        {canChangeOwnership && (
+          <div className="mb-6 rounded-lg bg-white p-6 shadow">
+            <h2 className="text-lg font-semibold text-gray-900">담당자 관리</h2>
+            {actionData?.error && (
+              <div className="mt-3 rounded-md bg-red-50 p-3">
+                <p className="text-sm text-red-800">{actionData.error}</p>
+              </div>
+            )}
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Form method="post">
+                <input type="hidden" name="intent" value="changeOwner" />
+                <label className="block text-sm font-medium text-gray-700">Owner</label>
+                <div className="mt-1 flex space-x-2">
+                  <select
+                    name="ownerId"
+                    defaultValue={discovery.ownerId || ""}
+                    className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                  >
+                    <option value="">미지정</option>
+                    {allUsers.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="submit"
+                    className="whitespace-nowrap rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  >
+                    변경
+                  </button>
+                </div>
+              </Form>
+              <Form method="post">
+                <input type="hidden" name="intent" value="changeReviewer" />
+                <label className="block text-sm font-medium text-gray-700">Reviewer</label>
+                <div className="mt-1 flex space-x-2">
+                  <select
+                    name="reviewerId"
+                    defaultValue={discovery.reviewerId || ""}
+                    className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                  >
+                    <option value="">없음</option>
+                    {allUsers.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="submit"
+                    className="whitespace-nowrap rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  >
+                    변경
+                  </button>
+                </div>
+              </Form>
+            </div>
+          </div>
+        )}
 
         {/* Experiments */}
         <div className="mb-6 rounded-lg bg-white p-6 shadow">

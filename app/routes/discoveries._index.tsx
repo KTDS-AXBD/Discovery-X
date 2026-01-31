@@ -22,13 +22,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const statusFilter = url.searchParams.get("status");
 
   // Query discoveries with optional status filter
-  let query = db.select().from(discoveries);
-
-  if (statusFilter && statusFilter in DiscoveryStatus) {
-    query = query.where(eq(discoveries.status, statusFilter));
-  }
-
-  const allDiscoveries = await query;
+  const allDiscoveries =
+    statusFilter && statusFilter in DiscoveryStatus
+      ? await db.select().from(discoveries).where(eq(discoveries.status, statusFilter))
+      : await db.select().from(discoveries);
 
   // Get owner names
   const discoveryList = await Promise.all(
@@ -148,42 +145,53 @@ export default function DiscoveriesIndex() {
                         </td>
                       </tr>
                     ) : (
-                      discoveries.map((discovery) => (
-                        <tr key={discovery.id}>
-                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                            <Link
-                              to={`/discoveries/${discovery.id}`}
-                              className="hover:text-blue-600"
-                            >
-                              {discovery.title}
-                            </Link>
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm">
-                            <span
-                              className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                                STATUS_LABELS[discovery.status]?.color ||
-                                "bg-gray-100 text-gray-800"
-                              }`}
-                            >
-                              {STATUS_LABELS[discovery.status]?.label || discovery.status}
-                            </span>
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {discovery.ownerName || "—"}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {new Date(discovery.createdAt).toLocaleDateString("ko-KR")}
-                          </td>
-                          <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                            <Link
-                              to={`/discoveries/${discovery.id}`}
-                              className="text-blue-600 hover:text-blue-900"
-                            >
-                              보기
-                            </Link>
-                          </td>
-                        </tr>
-                      ))
+                      discoveries.map((discovery) => {
+                        const isInboxOverdue =
+                          discovery.status === DiscoveryStatus.INBOX &&
+                          Date.now() - new Date(discovery.createdAt).getTime() >
+                            7 * 24 * 60 * 60 * 1000;
+                        return (
+                          <tr key={discovery.id} className={isInboxOverdue ? "bg-red-50" : ""}>
+                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                              <Link
+                                to={`/discoveries/${discovery.id}`}
+                                className="hover:text-blue-600"
+                              >
+                                {discovery.title}
+                              </Link>
+                              {isInboxOverdue && (
+                                <span className="ml-2 inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800">
+                                  7일 초과
+                                </span>
+                              )}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm">
+                              <span
+                                className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
+                                  STATUS_LABELS[discovery.status]?.color ||
+                                  "bg-gray-100 text-gray-800"
+                                }`}
+                              >
+                                {STATUS_LABELS[discovery.status]?.label || discovery.status}
+                              </span>
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                              {discovery.ownerName || "—"}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                              {new Date(discovery.createdAt).toLocaleDateString("ko-KR")}
+                            </td>
+                            <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                              <Link
+                                to={`/discoveries/${discovery.id}`}
+                                className="text-blue-600 hover:text-blue-900"
+                              >
+                                보기
+                              </Link>
+                            </td>
+                          </tr>
+                        );
+                      }))
                     )}
                   </tbody>
                 </table>
