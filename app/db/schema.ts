@@ -107,12 +107,12 @@ export const discoveries = sqliteTable(
     }).$type<string[]>(),
     deadEndEvidenceReason: text("dead_end_evidence_reason", { length: 200 }),
   },
-  (table) => [
-    index("idx_discoveries_status").on(table.status),
-    index("idx_discoveries_owner_id").on(table.ownerId),
-    index("idx_discoveries_due_date").on(table.dueDate),
-    index("idx_discoveries_revisit_date").on(table.revisitDate),
-  ]
+  (table) => ({
+    statusIdx: index("idx_discoveries_status").on(table.status),
+    ownerIdIdx: index("idx_discoveries_owner_id").on(table.ownerId),
+    dueDateIdx: index("idx_discoveries_due_date").on(table.dueDate),
+    revisitDateIdx: index("idx_discoveries_revisit_date").on(table.revisitDate),
+  })
 );
 
 export const experiments = sqliteTable("experiments", {
@@ -174,16 +174,16 @@ export const eventLogs = sqliteTable(
     eventType: text("event_type").notNull(),
     metadata: text("metadata", { mode: "json" }).$type<Record<string, unknown>>(),
   },
-  (table) => [
-    index("idx_event_logs_discovery_timestamp").on(
+  (table) => ({
+    discoveryTimestampIdx: index("idx_event_logs_discovery_timestamp").on(
       table.discoveryId,
       table.timestamp
     ),
-    index("idx_event_logs_event_type_timestamp").on(
+    eventTypeTimestampIdx: index("idx_event_logs_event_type_timestamp").on(
       table.eventType,
       table.timestamp
     ),
-  ]
+  })
 );
 
 // ============================================================================

@@ -1,8 +1,7 @@
 import { Form, Link } from "@remix-run/react";
-import type { User } from "~/db/schema";
 
 interface MainNavProps {
-  user: User;
+  user: { id: string; email: string; name: string };
 }
 
 export function MainNav({ user }: MainNavProps) {

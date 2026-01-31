@@ -9,10 +9,11 @@ export async function action({ context }: ActionFunctionArgs) {
 
   try {
     await seedDatabase(db);
-    return json({ success: true, message: "Seed 데이터가 생성되었습니다!" });
-  } catch (error: any) {
+    return json({ success: true as const, message: "Seed 데이터가 생성되었습니다!" });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "오류가 발생했습니다";
     return json(
-      { success: false, error: error.message || "오류가 발생했습니다" },
+      { success: false as const, error: message },
       { status: 500 }
     );
   }
@@ -45,7 +46,7 @@ export default function AdminSeed() {
           </div>
         )}
 
-        {actionData?.error && (
+        {actionData && !actionData.success && (
           <div className="rounded-md bg-red-50 p-4">
             <p className="text-sm text-red-800">{actionData.error}</p>
           </div>
