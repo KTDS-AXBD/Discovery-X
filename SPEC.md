@@ -214,7 +214,16 @@ P0 전 항목 + Export 확장(CSV/JSON/Brief) + 이메일 알림(Resend/Cron) + 
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (2026-01-31 세션 15)
+### 최근 변경 (2026-01-31 세션 16)
+**테스트 인프라 구축 + 전체 테스트 통과**:
+- ✅ Vitest + Playwright 테스트 인프라 설정 (vitest.config.ts, playwright.config.ts)
+- ✅ Unit 테스트 76개 — Zod schemas, discovery business rules, form-error util
+- ✅ Integration 테스트 53개 — promote, decide-next/not-now/dead-end, add-experiment/evidence, complete-experiment, request-extension, review, recall
+- ✅ E2E 테스트 스펙 4개 — happy-path, dead-end, not-now-recall, extension
+- ✅ 테스트 헬퍼 — better-sqlite3 인메모리 DB, fixtures
+- ✅ 전체 129개 테스트 통과 (13 파일)
+
+### 이전 변경 (2026-01-31 세션 15)
 **라우트 파일 정리 + GitHub Project 동기화**:
 - ✅ 라우트 파일 rename: `discoveries.$id.*` → `discoveries_.$id.*` (9개 파일, Remix v2 flat route 컨벤션)
 - ✅ GitHub Project #4 초기 동기화 — SPEC.md §6 체크박스 8개 항목 push 완료
@@ -342,7 +351,7 @@ P0 전 항목 + Export 확장(CSV/JSON/Brief) + 이메일 알림(Resend/Cron) + 
 - **배포**: Cloudflare Pages Git 연동 (master push → 자동 빌드/배포)
 - **EXTENSION_REQUESTED**: ✅ 구현 완료 (OPEN + 실험 2개 → 연장 요청 → +14일, 3번째 실험 가능)
 - **다음 단계**: Resend secrets 설정 + 외부 cron 연동 후 30-60일 운영 실험 시작
-- **빌드 상태**: `pnpm build` (267KB server) + `pnpm typecheck` + `pnpm lint` 모두 통과
+- **빌드 상태**: `pnpm build` (267KB server) + `pnpm typecheck` + `pnpm lint` + `pnpm test` (129개) 모두 통과
 - **배포 상태**: ✅ 세션 14 프로덕션 배포 완료 (최종: `https://43c90d2a.discovery-x.pages.dev`)
 - **이메일 설정 필요**: `wrangler secret put RESEND_API_KEY` + `CRON_SECRET` 후 외부 cron 서비스 연동
 - **운영 문서**: 치트시트, 런북, 킥오프 템플릿, QA 체크리스트, 사용자 가이드 완성
@@ -401,6 +410,7 @@ P0 전 항목 + Export 확장(CSV/JSON/Brief) + 이메일 알림(Resend/Cron) + 
 | **Brief 내보내기** | ✅ | `/api/export/brief/:id` — 1-pager Brief 다운로드 |
 | **JSON Export** | ✅ | `/api/export/discoveries-json` — 전체 Discovery JSON |
 | **운영 준비 문서** | ✅ | 킥오프 템플릿, 운영 런북, 치트시트 |
+| **테스트 인프라** | ✅ | Vitest + Playwright, unit 76 + integration 53 = 129개 통과 |
 
 ### 남은 작업
 - [x] 최종 프로덕션 배포 — 세션 14에서 완료
