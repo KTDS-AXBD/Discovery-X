@@ -21,7 +21,8 @@ user-invocable: true
 
 ## 지시사항
 
-1. **SPEC.md 파일 읽기**:
+1. **프로젝트 컨텍스트 읽기**:
+   - `CLAUDE.md` 읽기 — 운영 규칙, 금지사항, 기술 스택, 설계 원칙 숙지
    - `SPEC.md` 전체를 읽되, 특히 다음 섹션을 집중 확인:
    - §5 Current Status — 현재 작업 상태 (가장 중요)
    - §6 Implementation Log — 구현 현황 및 완료 이력

@@ -36,9 +36,10 @@ user-invocable: true
    - 커밋 메시지 컨벤션: `feat:`, `fix:`, `refactor:`, `chore:`, `docs:` 등
    - `.env`, 자격 증명, 민감한 파일은 커밋하지 않음
 
-3. **빌드 확인**:
-   - CLAUDE.md의 `## 빌드 및 개발 명령어` 섹션에 정의된 빌드 명령어를 실행
-   - 빌드 실패 시 수정 후 재시도
+3. **타입 체크 + 빌드 확인**:
+   - `pnpm typecheck` 실행 → 타입 에러 수정
+   - `pnpm build` 실행 → 빌드 에러 수정
+   - 실패 시 수정 후 재시도
 
 ### Phase 2: SPEC.md 업데이트
 
