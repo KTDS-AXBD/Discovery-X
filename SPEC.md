@@ -242,6 +242,11 @@ P0 전 항목 + Export 확장(CSV/JSON/Brief) + 이메일 알림(Resend/Cron) + 
 - ✅ `wrangler.toml`에 cron trigger + secrets 문서 추가
 - ✅ `resend@6.9.1` 패키지 추가
 
+**추가 수정 (tsconfig + 재배포)**:
+- ✅ `tsconfig.json`에 `exclude` 추가 (`functions/`, `build/`, `.wrangler/`) — 생성 파일 typecheck 에러 해결
+- ✅ `wrangler.toml` compatibility_date `2024-11-01` + `nodejs_compat` 플래그 추가
+- ✅ 프로덕션 재배포 완료
+
 ### 이전 변경 (2026-01-31 세션 13)
 **차트/모바일 반응형 포함 전체 배포 완료**:
 - ✅ 세션 12에서 커밋된 차트(StatusDonut, WeeklyBar) + 모바일 반응형(Review/Recall) 프로덕션 배포
@@ -333,7 +338,7 @@ P0 전 항목 + Export 확장(CSV/JSON/Brief) + 이메일 알림(Resend/Cron) + 
 - **EXTENSION_REQUESTED**: ✅ 구현 완료 (OPEN + 실험 2개 → 연장 요청 → +14일, 3번째 실험 가능)
 - **다음 단계**: Resend secrets 설정 + 외부 cron 연동 후 30-60일 운영 실험 시작
 - **빌드 상태**: `pnpm build` (267KB server) + `pnpm typecheck` + `pnpm lint` 모두 통과
-- **배포 상태**: ✅ 세션 14 프로덕션 배포 완료 (`https://2c4c67d3.discovery-x.pages.dev`)
+- **배포 상태**: ✅ 세션 14 프로덕션 배포 완료 (최종: `https://43c90d2a.discovery-x.pages.dev`)
 - **이메일 설정 필요**: `wrangler secret put RESEND_API_KEY` + `CRON_SECRET` 후 외부 cron 서비스 연동
 - **운영 문서**: 치트시트, 런북, 킥오프 템플릿, QA 체크리스트, 사용자 가이드 완성
 
