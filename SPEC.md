@@ -214,7 +214,12 @@ P0 전 항목 + Export 확장(CSV/JSON/Brief) + 이메일 알림(Resend/Cron) + 
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (2026-01-31 세션 14)
+### 최근 변경 (2026-01-31 세션 15)
+**라우트 파일 정리 + GitHub Project 동기화**:
+- ✅ 라우트 파일 rename: `discoveries.$id.*` → `discoveries_.$id.*` (9개 파일, Remix v2 flat route 컨벤션)
+- ✅ GitHub Project #4 초기 동기화 — SPEC.md §6 체크박스 8개 항목 push 완료
+
+### 이전 변경 (2026-01-31 세션 14)
 **4개 병렬 스트림으로 P1/Phase 3~4 작업 일괄 구현**:
 
 **Stream 1: 코드 품질**:
