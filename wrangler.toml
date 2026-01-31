@@ -1,0 +1,11 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "discovery-x"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "./build/client"
+
+# D1 Database binding
+[[d1_databases]]
+binding = "DB"
+database_name = "discovery-x-db"
+database_id = "1bab6138-6b2f-45eb-8285-55ba7b543957"
+migrations_dir = "drizzle"
