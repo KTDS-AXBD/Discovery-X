@@ -68,7 +68,7 @@ function DiscoveriesTable({ data }: { data: Record<string, unknown> }) {
           ))}
         </tbody>
       </table>
-      {"hasMore" in data && data.hasMore && (
+      {"hasMore" in data && Boolean(data.hasMore) && (
         <p className="mt-1 text-xs text-[var(--axis-text-tertiary)]">더 많은 결과가 있습니다</p>
       )}
     </div>
@@ -126,7 +126,7 @@ function DetailCard({ data }: { data: Record<string, unknown> }) {
           {exps.map((e) => (
             <div key={String(e.id)} className="ml-2 border-l-2 border-[var(--axis-border-default)] pl-2 mb-1">
               <span>{String(e.hypothesis)}</span>
-              {e.completed && <Badge variant="success" className="ml-1 text-[10px]">완료</Badge>}
+              {e.completed ? <Badge variant="success" className="ml-1 text-[10px]">완료</Badge> : null}
             </div>
           ))}
         </div>
