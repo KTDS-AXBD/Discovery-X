@@ -233,7 +233,19 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 42)
+### 최근 변경 (세션 43)
+**다크모드 + 차트 토큰화 구현 완료**:
+- ✅ 다크모드 토큰 — `axis-tokens.css`에 122개 AXIS 토큰 전체 dark override 추가 (`@media prefers-color-scheme` + `[data-theme="dark"]`)
+- ✅ DX 커스텀 토큰 분리 — `dx-custom-tokens.css` 신규 (purple, success, chart 토큰 + dark override)
+- ✅ 차트 시맨틱 토큰 7개 — `--axis-chart-inbox/open/next/not-now/dead-end/bar/empty`
+- ✅ StatusDonut hex 9건 + WeeklyBar hex 3건 → CSS 변수 교체
+- ✅ `useTheme` 훅 — light/dark/system 3모드, localStorage 지속, `prefers-color-scheme` 실시간 감지
+- ✅ FOUC 방지 인라인 스크립트 (`root.tsx` `<html>` 태그에 `data-theme` 속성)
+- ✅ MainNav 다크모드 토글 버튼 (해/달 아이콘)
+- ✅ `@axis-ds/*` 패키지 탐색 — GitHub Packages에 미존재 확인 (Phase 1-3 스킵)
+- ✅ `pnpm typecheck` + `pnpm lint` + `pnpm build` 통과
+
+### 이전 변경 (세션 42)
 **UI 개선 6건 구현 완료**:
 - ✅ P0: Markdown 렌더링 — `react-markdown` + `remark-gfm` + `@tailwindcss/typography` 적용 (assistant 메시지만, prose 스타일링 + Axis 디자인 토큰 연동)
 - ✅ P1: favicon.svg 추가 (DX 텍스트 기반 SVG) + root.tsx links에 등록
@@ -609,6 +621,7 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 - **빌드 상태**: `pnpm build` + `pnpm typecheck` + `pnpm lint` 모두 통과
 - **v2 Agent 시스템**: ✅ 프로덕션 배포 완료 (코드 + DB 마이그레이션 0005 + ANTHROPIC_API_KEY 설정)
 - **Radar Worker**: ✅ 프로덕션 배포 완료 (https://radar-worker.sinclair-account.workers.dev), Cron 매일 9:00 KST, 10소스 활성 (RSS 6 + Web 3 + YouTube 1)
+- **다크모드**: ✅ 세션 43 — 122개 AXIS 토큰 + DX 커스텀 토큰 dark override, useTheme 훅, FOUC 방지, MainNav 토글
 - **배포 상태**: ✅ 세션 42 프로덕션 배포 + 전수 검증 완료 — UI 개선 6건 (https://dx.minu.best)
 - **Agent E2E 테스트**: ✅ 세션 39 풀 플로우 검증 완료 — 6개 도구 정상 (get_metrics, create_discovery, promote_discovery, add_evidence, complete_experiment, decide_next)
 - **Agent 채팅 개선**: ✅ 세션 40 — 입력 보존, 제목 로직, 프로그레시브 스트리밍, content 중복 수정
@@ -694,6 +707,8 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | **v2 자율 리뷰 cron** | ✅ | OPEN Discovery 50% 경과 시 Agent 자동 평가 |
 | **v2 DB 스키마** | ✅ | conversations + messages + agent_config 테이블, createdByAgent 컬럼 |
 | **v2 토큰 예산 경고** | ✅ | 80% 초과 시 SSE budget_warning 이벤트 + ChatPanel amber 배너 |
+| **다크모드** | ✅ | 122개 AXIS + DX 커스텀 토큰 dark override, useTheme 훅, FOUC 방지, MainNav 토글 |
+| **차트 색상 토큰화** | ✅ | StatusDonut 9건 + WeeklyBar 3건 hex → CSS 변수, 차트 시맨틱 토큰 7개 |
 
 ### 남은 작업
 - [x] 최종 프로덕션 배포 — 세션 14에서 완료
