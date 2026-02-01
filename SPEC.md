@@ -233,7 +233,14 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 50)
+### 최근 변경 (세션 51)
+**AXIS Design System 정합성 수정 완료**:
+- ✅ ChatPanel 에러/경고 배너 → AlertBanner 컴포넌트 통합 (`bg-red-50`/`bg-amber-50` 하드코딩 → `AlertBanner variant="destructive"/"warning"` AXIS 토큰 자동 적용)
+- ✅ MessageBubble 스트리밍 커서 → AXIS ThinkingIndicator 스타일 3-dot bounce 애니메이션 변경
+- ✅ ToolExecution 상태 표시 → Badge 컴포넌트 통일 (running/success/error 상태를 `Badge variant` 활용)
+- ✅ `pnpm typecheck` + `pnpm build` + `pnpm lint` 통과
+
+### 이전 변경 (세션 50)
 **Agent 코드 3건 개선 — SQL 집계, 모델별 컨텍스트, 에러 suggestion**:
 - ✅ `getMetrics` SQL 집계 전환 — 메모리 로드+JS 필터 → SQL `GROUP BY`/`COUNT(*)`/`AVG(julianday)` 집계로 전환 (query-tools.ts)
 - ✅ 모델별 컨텍스트 윈도우 동적 조정 — `MODEL_CONTEXT_CONFIG` 도입, Opus 4: 60개 메시지, default: 40개 (context-builder.ts + executor.ts)
