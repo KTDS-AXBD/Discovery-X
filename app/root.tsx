@@ -15,6 +15,7 @@ import stylesheet from "~/styles/tailwind.css?url";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
+  { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
 ];
 
 export async function loader({ request, context }: LoaderFunctionArgs) {

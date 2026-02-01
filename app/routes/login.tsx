@@ -12,10 +12,11 @@ import { Button } from "~/components/ui/Button";
 export async function loader({ request: _request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
 
-  // Get all users for selection
+  // Get all users for selection, excluding system users
   const allUsers = await db.select().from(users);
+  const humanUsers = allUsers.filter((u) => !u.email.endsWith("@system"));
 
-  return json({ users: allUsers });
+  return json({ users: humanUsers });
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {

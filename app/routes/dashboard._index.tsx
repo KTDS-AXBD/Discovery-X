@@ -65,7 +65,7 @@ export default function DashboardPipeline() {
                   {items.length}
                 </Badge>
               </div>
-              <div className="flex-1 space-y-2">
+              <div className="max-h-[600px] flex-1 space-y-2 overflow-y-auto">
                 {items.map((d) => (
                   <Link key={d.id} to={`/discoveries/${d.id}`}>
                     <Card className="cursor-pointer transition-shadow hover:shadow-md">
