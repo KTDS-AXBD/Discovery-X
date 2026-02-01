@@ -233,7 +233,16 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 52)
+### 최근 변경 (세션 53)
+**HR Dashboard 템플릿 4건 적용 — 대시보드 UX 개선**:
+- ✅ MetricCard 컴포넌트 신규 (`app/components/dashboard/MetricCard.tsx`) — 상단 3px 액센트 바 (색상별 KPI 구분) + 주간 트렌드 delta 표시 (▲/▼)
+- ✅ `dashboard.metrics.tsx` loader에 7일/14일 기준 트렌드 데이터 추가 — 이번주 vs 지난주 비교 (Discovery, Agent 생성, 실험 완료, 강한 근거)
+- ✅ StatusDonut 호버 인터랙션 — 세그먼트 hover 시 strokeWidth 20→24 확대 + 가운데 텍스트 조건부 표시 (해당 상태명+수치), 범례 opacity 연동
+- ✅ fade-in-up stagger 애니메이션 — `dx-custom-tokens.css`에 `dx-fade-in-up` keyframe 추가, Pipeline 칸반 컬럼 60ms 간격 + MetricCard 80ms 간격 순차 등장
+- ✅ 탭 SVG 아이콘 추가 — Pipeline (3열 칸반), Metrics (막대 차트) 인라인 SVG 16×16
+- ✅ `pnpm typecheck` + `pnpm build` 통과
+
+### 이전 변경 (세션 52)
 **멀티턴 중복 표시 + 대화 제목 Unicode 깨짐 수정**:
 - ✅ ChatPanel 멀티턴 응답 중복 버블 수정 — `tool_call` 시 `streamingStarted = false` 리셋 제거, `\n\n` 구분자 append로 단일 버블 유지
 - ✅ api.chat 대화 제목 Unicode-safe 잘라내기 — `message.slice(0, 50)` → `Array.from()` 코드포인트 단위 절단 (이모지 서로게이트 페어 보호)
@@ -829,6 +838,7 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | **모델별 컨텍스트 윈도우** | ✅ | MODEL_CONTEXT_CONFIG (Opus 4: 60개, default: 40개), executor 연동 |
 | **에러 suggestion 일관성** | ✅ | discovery-tools 7곳 에러 응답에 suggestion 힌트 추가 |
 | **Chat UI polish** | ✅ | AlertBanner 에러, 3-dot bounce 인디케이터, Badge 상태 표시 |
+| **대시보드 UX 개선** | ✅ | MetricCard 액센트 바+트렌드, StatusDonut 호버, fade-in-up stagger, 탭 아이콘 |
 
 ### 남은 작업
 - [x] 최종 프로덕션 배포 — 세션 14에서 완료
