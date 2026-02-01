@@ -46,7 +46,7 @@ export default function DashboardPipeline() {
         Discovery Pipeline
       </h2>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-6">
-        {PIPELINE_COLUMNS.map((col) => {
+        {PIPELINE_COLUMNS.map((col, i) => {
           const items = (columns as Record<string, Array<{
             id: string;
             title: string;
@@ -56,7 +56,15 @@ export default function DashboardPipeline() {
             createdByAgent: number;
           }>>)[col.status] || [];
           return (
-            <div key={col.status} className="flex flex-col">
+            <div
+              key={col.status}
+              className="flex flex-col"
+              style={{
+                opacity: 0,
+                animation: "dx-fade-in-up 0.3s ease-out forwards",
+                animationDelay: `${i * 60}ms`,
+              }}
+            >
               <div className="mb-2 flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase text-[var(--axis-text-tertiary)]">
                   {col.label}

@@ -11,6 +11,7 @@ import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server"
 import { eq } from "drizzle-orm";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Badge } from "~/components/ui/Badge";
+import { MetricCard } from "~/components/dashboard/MetricCard";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -33,6 +34,40 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     (e) => e.strength === "A" || e.strength === "B"
   ).length;
 
+  // Trend: compare current week vs previous week
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+  const thisWeekDiscoveries = allDiscoveries.filter((d) => d.createdAt && d.createdAt >= sevenDaysAgo).length;
+  const prevWeekDiscoveries = allDiscoveries.filter(
+    (d) => d.createdAt && d.createdAt >= fourteenDaysAgo && d.createdAt < sevenDaysAgo
+  ).length;
+
+  const thisWeekAgent = allDiscoveries.filter(
+    (d) => d.createdByAgent && d.createdAt && d.createdAt >= sevenDaysAgo
+  ).length;
+  const prevWeekAgent = allDiscoveries.filter(
+    (d) => d.createdByAgent && d.createdAt && d.createdAt >= fourteenDaysAgo && d.createdAt < sevenDaysAgo
+  ).length;
+
+  const thisWeekExperiments = allExperiments.filter(
+    (e) => e.completedAt && e.completedAt >= sevenDaysAgo
+  ).length;
+  const prevWeekExperiments = allExperiments.filter(
+    (e) => e.completedAt && e.completedAt >= fourteenDaysAgo && e.completedAt < sevenDaysAgo
+  ).length;
+
+  const thisWeekEvidence = allEvidence.filter(
+    (e) => (e.strength === "A" || e.strength === "B") && e.createdAt && e.createdAt >= sevenDaysAgo
+  ).length;
+  const prevWeekEvidence = allEvidence.filter(
+    (e) =>
+      (e.strength === "A" || e.strength === "B") &&
+      e.createdAt && e.createdAt >= fourteenDaysAgo &&
+      e.createdAt < sevenDaysAgo
+  ).length;
+
   // Agent token usage
   const config = await db
     .select()
@@ -52,6 +87,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       strongEvidence,
       agentTokensToday: config[0]?.tokensUsedToday || 0,
       agentTokenBudget: config[0]?.dailyTokenBudget || 100000,
+      trends: {
+        discovery: thisWeekDiscoveries - prevWeekDiscoveries,
+        agent: thisWeekAgent - prevWeekAgent,
+        experiments: thisWeekExperiments - prevWeekExperiments,
+        evidence: thisWeekEvidence - prevWeekEvidence,
+      },
     },
   });
 }
@@ -73,43 +114,37 @@ export default function DashboardMetrics() {
 
       {/* Discovery Stats */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-xs text-[var(--axis-text-tertiary)]">전체 Discovery</p>
-            <p className="mt-1 text-2xl font-bold text-[var(--axis-text-primary)]">{metrics.total}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-xs text-[var(--axis-text-tertiary)]">Agent 생성</p>
-            <p className="mt-1 text-2xl font-bold text-[var(--axis-text-brand)]">{metrics.agentCreated}</p>
-            <p className="text-[10px] text-[var(--axis-text-tertiary)]">
-              {metrics.total > 0
-                ? `${Math.round((metrics.agentCreated / metrics.total) * 100)}%`
-                : "0%"}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-xs text-[var(--axis-text-tertiary)]">실험</p>
-            <p className="mt-1 text-2xl font-bold text-[var(--axis-text-primary)]">
-              {metrics.completedExperiments}/{metrics.totalExperiments}
-            </p>
-            <p className="text-[10px] text-[var(--axis-text-tertiary)]">완료/전체</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-xs text-[var(--axis-text-tertiary)]">강한 근거 (A/B)</p>
-            <p className="mt-1 text-2xl font-bold text-[var(--axis-badge-success-text)]">
-              {metrics.strongEvidence}
-            </p>
-            <p className="text-[10px] text-[var(--axis-text-tertiary)]">
-              전체 {metrics.totalEvidence}건 중
-            </p>
-          </CardContent>
-        </Card>
+        <MetricCard
+          label="전체 Discovery"
+          value={metrics.total}
+          accentColor="var(--axis-chart-bar)"
+          trend={{ delta: metrics.trends.discovery, label: "vs 지난주" }}
+          delay={0}
+        />
+        <MetricCard
+          label="Agent 생성"
+          value={metrics.agentCreated}
+          subtext={metrics.total > 0 ? `${Math.round((metrics.agentCreated / metrics.total) * 100)}%` : "0%"}
+          accentColor="var(--axis-badge-purple-text)"
+          trend={{ delta: metrics.trends.agent, label: "vs 지난주" }}
+          delay={80}
+        />
+        <MetricCard
+          label="실험"
+          value={`${metrics.completedExperiments}/${metrics.totalExperiments}`}
+          subtext="완료/전체"
+          accentColor="var(--axis-chart-open)"
+          trend={{ delta: metrics.trends.experiments, label: "vs 지난주" }}
+          delay={160}
+        />
+        <MetricCard
+          label="강한 근거 (A/B)"
+          value={metrics.strongEvidence}
+          subtext={`전체 ${metrics.totalEvidence}건 중`}
+          accentColor="var(--axis-badge-success-text)"
+          trend={{ delta: metrics.trends.evidence, label: "vs 지난주" }}
+          delay={240}
+        />
       </div>
 
       {/* Status Breakdown */}

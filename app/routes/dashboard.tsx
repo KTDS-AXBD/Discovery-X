@@ -18,9 +18,25 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   return json({ user });
 }
 
+const PipelineIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="1" y="2" width="3.5" height="12" rx="1" fill="currentColor" opacity="0.3" />
+    <rect x="6.25" y="4" width="3.5" height="10" rx="1" fill="currentColor" opacity="0.5" />
+    <rect x="11.5" y="6" width="3.5" height="8" rx="1" fill="currentColor" opacity="0.7" />
+  </svg>
+);
+
+const MetricsIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="1" y="9" width="3" height="5" rx="0.5" fill="currentColor" opacity="0.5" />
+    <rect x="5.5" y="5" width="3" height="9" rx="0.5" fill="currentColor" opacity="0.7" />
+    <rect x="10" y="2" width="3" height="12" rx="0.5" fill="currentColor" />
+  </svg>
+);
+
 const tabs = [
-  { to: "/dashboard", label: "Pipeline", end: true },
-  { to: "/dashboard/metrics", label: "Metrics" },
+  { to: "/dashboard", label: "Pipeline", end: true, icon: <PipelineIcon /> },
+  { to: "/dashboard/metrics", label: "Metrics", icon: <MetricsIcon /> },
 ];
 
 export default function DashboardLayout() {
@@ -48,7 +64,10 @@ export default function DashboardLayout() {
                     : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]"
                 )}
               >
-                {tab.label}
+                <span className="flex items-center gap-1.5">
+                  {tab.icon}
+                  {tab.label}
+                </span>
               </Link>
             );
           })}
