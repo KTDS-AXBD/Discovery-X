@@ -244,6 +244,7 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 - ✅ MainNav 다크모드 토글 버튼 (해/달 아이콘)
 - ✅ `@axis-ds/*` 패키지 탐색 — GitHub Packages에 미존재 확인 (Phase 1-3 스킵)
 - ✅ `pnpm typecheck` + `pnpm lint` + `pnpm build` 통과
+- ✅ 프로덕션 배포 + dx.minu.best 다크모드 전수 검증 완료 (채팅, 대시보드 Pipeline/Metrics — 라이트↔다크 전환 정상)
 
 ### 이전 변경 (세션 42)
 **UI 개선 6건 구현 완료**:
