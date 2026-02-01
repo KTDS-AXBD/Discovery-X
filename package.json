@@ -22,6 +22,9 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@axis-ds/theme": "1.1.1",
+    "@axis-ds/tokens": "1.1.1",
+    "@axis-ds/ui-react": "1.1.1",
     "@radix-ui/react-slot": "^1.2.4",
     "@remix-run/cloudflare": "^2.17.4",
     "@remix-run/cloudflare-pages": "^2.17.4",

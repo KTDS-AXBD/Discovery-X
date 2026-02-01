@@ -4,6 +4,28 @@
  */
 
 :root {
+  /* Primitive color aliases (패키지 → 로컬 호환) */
+  --axis-blue-100: var(--axis-color-blue-100);
+  --axis-blue-200: var(--axis-color-blue-200);
+  --axis-blue-600: var(--axis-color-blue-600);
+  --axis-blue-900: var(--axis-color-blue-900);
+  --axis-green-100: var(--axis-color-green-100);
+  --axis-green-200: var(--axis-color-green-200);
+  --axis-green-600: var(--axis-color-green-600);
+  --axis-green-900: var(--axis-color-green-900);
+  --axis-yellow-100: var(--axis-color-yellow-100);
+  --axis-yellow-200: var(--axis-color-yellow-200);
+  --axis-yellow-600: var(--axis-color-yellow-600);
+  --axis-yellow-900: var(--axis-color-yellow-900);
+  --axis-red-100: var(--axis-color-red-100);
+  --axis-red-200: var(--axis-color-red-200);
+  --axis-red-600: var(--axis-color-red-600);
+  --axis-red-900: var(--axis-color-red-900);
+  --axis-purple-100: var(--axis-color-purple-100);
+  --axis-purple-200: var(--axis-color-purple-200);
+  --axis-purple-600: var(--axis-color-purple-600);
+  --axis-purple-900: var(--axis-color-purple-900);
+
   /* Purple variant (EXTENSION_REQUESTED 상태) */
   --axis-badge-purple-bg: #F3E8FF;
   --axis-badge-purple-text: #7C3AED;
@@ -29,34 +51,7 @@
 }
 
 /* Dark mode overrides */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    /* Purple variant */
-    --axis-badge-purple-bg: #581C87;
-    --axis-badge-purple-text: #E9D5FF;
-    --axis-button-purple-bg-default: #7C3AED;
-    --axis-button-purple-bg-hover: #6D28D9;
-    --axis-button-purple-bg-active: #5B21B6;
-    --axis-button-purple-text-default: #FFFFFF;
-
-    /* Success button variant */
-    --axis-button-success-bg-default: #16A34A;
-    --axis-button-success-bg-hover: #15803D;
-    --axis-button-success-bg-active: #166534;
-    --axis-button-success-text-default: #FFFFFF;
-
-    /* Chart semantic tokens */
-    --axis-chart-inbox: #3B82F6;
-    --axis-chart-open: #EAB308;
-    --axis-chart-next: #22C55E;
-    --axis-chart-not-now: #6B7280;
-    --axis-chart-dead-end: #EF4444;
-    --axis-chart-bar: #3B82F6;
-    --axis-chart-empty: #374151;
-  }
-}
-
-[data-theme="dark"] {
+.dark {
   /* Purple variant */
   --axis-badge-purple-bg: #581C87;
   --axis-badge-purple-text: #E9D5FF;

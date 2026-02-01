@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Form, Link, useRouteLoaderData } from "@remix-run/react";
 import { Button } from "~/components/ui/Button";
-import { useTheme } from "~/lib/use-theme";
+import { useTheme } from "@axis-ds/theme";
 
 interface MainNavProps {
   user: { id: string; email: string; name: string };

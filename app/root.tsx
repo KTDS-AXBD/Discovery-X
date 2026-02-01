@@ -11,6 +11,7 @@ import { getDb } from "~/db";
 import { discoveries } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { DiscoveryStatus } from "~/db/schema";
+import { ThemeProvider } from "@axis-ds/theme";
 import stylesheet from "~/styles/tailwind.css?url";
 
 export const links: LinksFunction = () => [
@@ -80,7 +81,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("dx-theme");if(t==="dark"||t==="light"){document.documentElement.setAttribute("data-theme",t)}else if(window.matchMedia("(prefers-color-scheme:dark)").matches){document.documentElement.setAttribute("data-theme","dark")}}catch(e){}})()`,
+            __html: `(function(){try{var t=localStorage.getItem("dx-theme");if(t==="dark"||t==="light"){document.documentElement.setAttribute("data-theme",t);document.documentElement.classList.add(t)}else if(window.matchMedia("(prefers-color-scheme:dark)").matches){document.documentElement.setAttribute("data-theme","dark");document.documentElement.classList.add("dark")}}catch(e){}})()`,
           }}
         />
         <Meta />
@@ -96,5 +97,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <ThemeProvider defaultTheme="system" storageKey="dx-theme">
+      <Outlet />
+    </ThemeProvider>
+  );
 }
