@@ -82,10 +82,6 @@
   --axis-badge-info-bg: #DBEAFE;
   --axis-badge-info-text: #1D4ED8;
 
-  /* Discovery-X additions: purple for EXTENSION_REQUESTED */
-  --axis-badge-purple-bg: #F3E8FF;
-  --axis-badge-purple-text: #7C3AED;
-
   --axis-bg-muted: #F3F4F6;
 
   /* Primitive colors for Alert component */
@@ -109,14 +105,215 @@
   --axis-purple-200: #E9D5FF;
   --axis-purple-600: #9333EA;
   --axis-purple-900: #581C87;
+}
 
-  /* Button color variants for Discovery-X */
-  --axis-button-success-bg-default: #22C55E;
-  --axis-button-success-bg-hover: #16A34A;
-  --axis-button-success-bg-active: #15803D;
-  --axis-button-success-text-default: #FFFFFF;
-  --axis-button-purple-bg-default: #9333EA;
-  --axis-button-purple-bg-hover: #7C3AED;
-  --axis-button-purple-bg-active: #6B21A8;
-  --axis-button-purple-text-default: #FFFFFF;
+/* Dark mode overrides */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --axis-surface-default: #111827;
+    --axis-surface-secondary: #1F2937;
+    --axis-surface-tertiary: #374151;
+    --axis-surface-inverse: #FFFFFF;
+    --axis-surface-brand: #2563EB;
+    --axis-surface-success: #052E16;
+    --axis-surface-warning: #422006;
+    --axis-surface-error: #450A0A;
+    --axis-surface-info: #172554;
+
+    --axis-text-primary: #F9FAFB;
+    --axis-text-secondary: #D1D5DB;
+    --axis-text-tertiary: #9CA3AF;
+    --axis-text-inverse: #111827;
+    --axis-text-brand: #60A5FA;
+    --axis-text-success: #4ADE80;
+    --axis-text-warning: #FACC15;
+    --axis-text-error: #F87171;
+    --axis-text-info: #60A5FA;
+
+    --axis-border-default: #374151;
+    --axis-border-secondary: #4B5563;
+    --axis-border-focus: #3B82F6;
+    --axis-border-error: #EF4444;
+    --axis-border-success: #22C55E;
+
+    --axis-icon-default: #D1D5DB;
+    --axis-icon-secondary: #6B7280;
+    --axis-icon-inverse: #111827;
+    --axis-icon-brand: #60A5FA;
+    --axis-icon-success: #4ADE80;
+    --axis-icon-warning: #FACC15;
+    --axis-icon-error: #F87171;
+
+    --axis-button-bg-default: #2563EB;
+    --axis-button-bg-hover: #1D4ED8;
+    --axis-button-bg-active: #1E40AF;
+    --axis-button-bg-disabled: #374151;
+    --axis-button-text-default: #FFFFFF;
+    --axis-button-text-disabled: #6B7280;
+    --axis-button-border-default: transparent;
+    --axis-button-border-focus: #3B82F6;
+    --axis-button-secondary-bg-default: #1F2937;
+    --axis-button-secondary-bg-hover: #374151;
+    --axis-button-secondary-bg-active: #4B5563;
+    --axis-button-secondary-text-default: #F9FAFB;
+    --axis-button-ghost-bg-default: transparent;
+    --axis-button-ghost-bg-hover: #1F2937;
+    --axis-button-ghost-bg-active: #374151;
+    --axis-button-ghost-text-default: #D1D5DB;
+    --axis-button-destructive-bg-default: #DC2626;
+    --axis-button-destructive-bg-hover: #B91C1C;
+    --axis-button-destructive-bg-active: #991B1B;
+    --axis-button-destructive-text-default: #FFFFFF;
+
+    --axis-input-bg-default: #1F2937;
+    --axis-input-bg-disabled: #374151;
+    --axis-input-text-default: #F9FAFB;
+    --axis-input-text-placeholder: #6B7280;
+    --axis-input-border-default: #4B5563;
+    --axis-input-border-hover: #6B7280;
+    --axis-input-border-focus: #3B82F6;
+    --axis-input-border-error: #EF4444;
+
+    --axis-card-bg-default: #1F2937;
+    --axis-card-border-default: #374151;
+
+    --axis-badge-default-bg: #374151;
+    --axis-badge-default-text: #D1D5DB;
+    --axis-badge-success-bg: #052E16;
+    --axis-badge-success-text: #4ADE80;
+    --axis-badge-warning-bg: #422006;
+    --axis-badge-warning-text: #FACC15;
+    --axis-badge-error-bg: #450A0A;
+    --axis-badge-error-text: #F87171;
+    --axis-badge-info-bg: #172554;
+    --axis-badge-info-text: #60A5FA;
+
+    --axis-bg-muted: #1F2937;
+
+    /* Primitive colors - dark variants */
+    --axis-blue-100: #172554;
+    --axis-blue-200: #1E3A8A;
+    --axis-blue-600: #60A5FA;
+    --axis-blue-900: #DBEAFE;
+    --axis-green-100: #052E16;
+    --axis-green-200: #14532D;
+    --axis-green-600: #4ADE80;
+    --axis-green-900: #DCFCE7;
+    --axis-yellow-100: #422006;
+    --axis-yellow-200: #713F12;
+    --axis-yellow-600: #FACC15;
+    --axis-yellow-900: #FEF9C3;
+    --axis-red-100: #450A0A;
+    --axis-red-200: #7F1D1D;
+    --axis-red-600: #F87171;
+    --axis-red-900: #FEE2E2;
+    --axis-purple-100: #581C87;
+    --axis-purple-200: #6B21A8;
+    --axis-purple-600: #C084FC;
+    --axis-purple-900: #F3E8FF;
+  }
+}
+
+[data-theme="dark"] {
+  --axis-surface-default: #111827;
+  --axis-surface-secondary: #1F2937;
+  --axis-surface-tertiary: #374151;
+  --axis-surface-inverse: #FFFFFF;
+  --axis-surface-brand: #2563EB;
+  --axis-surface-success: #052E16;
+  --axis-surface-warning: #422006;
+  --axis-surface-error: #450A0A;
+  --axis-surface-info: #172554;
+
+  --axis-text-primary: #F9FAFB;
+  --axis-text-secondary: #D1D5DB;
+  --axis-text-tertiary: #9CA3AF;
+  --axis-text-inverse: #111827;
+  --axis-text-brand: #60A5FA;
+  --axis-text-success: #4ADE80;
+  --axis-text-warning: #FACC15;
+  --axis-text-error: #F87171;
+  --axis-text-info: #60A5FA;
+
+  --axis-border-default: #374151;
+  --axis-border-secondary: #4B5563;
+  --axis-border-focus: #3B82F6;
+  --axis-border-error: #EF4444;
+  --axis-border-success: #22C55E;
+
+  --axis-icon-default: #D1D5DB;
+  --axis-icon-secondary: #6B7280;
+  --axis-icon-inverse: #111827;
+  --axis-icon-brand: #60A5FA;
+  --axis-icon-success: #4ADE80;
+  --axis-icon-warning: #FACC15;
+  --axis-icon-error: #F87171;
+
+  --axis-button-bg-default: #2563EB;
+  --axis-button-bg-hover: #1D4ED8;
+  --axis-button-bg-active: #1E40AF;
+  --axis-button-bg-disabled: #374151;
+  --axis-button-text-default: #FFFFFF;
+  --axis-button-text-disabled: #6B7280;
+  --axis-button-border-default: transparent;
+  --axis-button-border-focus: #3B82F6;
+  --axis-button-secondary-bg-default: #1F2937;
+  --axis-button-secondary-bg-hover: #374151;
+  --axis-button-secondary-bg-active: #4B5563;
+  --axis-button-secondary-text-default: #F9FAFB;
+  --axis-button-ghost-bg-default: transparent;
+  --axis-button-ghost-bg-hover: #1F2937;
+  --axis-button-ghost-bg-active: #374151;
+  --axis-button-ghost-text-default: #D1D5DB;
+  --axis-button-destructive-bg-default: #DC2626;
+  --axis-button-destructive-bg-hover: #B91C1C;
+  --axis-button-destructive-bg-active: #991B1B;
+  --axis-button-destructive-text-default: #FFFFFF;
+
+  --axis-input-bg-default: #1F2937;
+  --axis-input-bg-disabled: #374151;
+  --axis-input-text-default: #F9FAFB;
+  --axis-input-text-placeholder: #6B7280;
+  --axis-input-border-default: #4B5563;
+  --axis-input-border-hover: #6B7280;
+  --axis-input-border-focus: #3B82F6;
+  --axis-input-border-error: #EF4444;
+
+  --axis-card-bg-default: #1F2937;
+  --axis-card-border-default: #374151;
+
+  --axis-badge-default-bg: #374151;
+  --axis-badge-default-text: #D1D5DB;
+  --axis-badge-success-bg: #052E16;
+  --axis-badge-success-text: #4ADE80;
+  --axis-badge-warning-bg: #422006;
+  --axis-badge-warning-text: #FACC15;
+  --axis-badge-error-bg: #450A0A;
+  --axis-badge-error-text: #F87171;
+  --axis-badge-info-bg: #172554;
+  --axis-badge-info-text: #60A5FA;
+
+  --axis-bg-muted: #1F2937;
+
+  /* Primitive colors - dark variants */
+  --axis-blue-100: #172554;
+  --axis-blue-200: #1E3A8A;
+  --axis-blue-600: #60A5FA;
+  --axis-blue-900: #DBEAFE;
+  --axis-green-100: #052E16;
+  --axis-green-200: #14532D;
+  --axis-green-600: #4ADE80;
+  --axis-green-900: #DCFCE7;
+  --axis-yellow-100: #422006;
+  --axis-yellow-200: #713F12;
+  --axis-yellow-600: #FACC15;
+  --axis-yellow-900: #FEF9C3;
+  --axis-red-100: #450A0A;
+  --axis-red-200: #7F1D1D;
+  --axis-red-600: #F87171;
+  --axis-red-900: #FEE2E2;
+  --axis-purple-100: #581C87;
+  --axis-purple-200: #6B21A8;
+  --axis-purple-600: #C084FC;
+  --axis-purple-900: #F3E8FF;
 }

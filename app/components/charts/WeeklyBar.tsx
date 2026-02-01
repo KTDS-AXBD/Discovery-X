@@ -30,7 +30,7 @@ export function WeeklyBar({ data }: WeeklyBarProps) {
               x={labelWidth - 8}
               y={y + barHeight / 2 + 4}
               textAnchor="end"
-              fill="#6B7280"
+              style={{ fill: "var(--axis-text-tertiary)" }}
               fontSize="12"
             >
               {d.week}
@@ -41,13 +41,13 @@ export function WeeklyBar({ data }: WeeklyBarProps) {
               width={Math.max(barWidth, 2)}
               height={barHeight}
               rx="4"
-              fill="#60A5FA"
+              style={{ fill: "var(--axis-chart-bar)" }}
             />
             {d.count > 0 && (
               <text
                 x={labelWidth + barWidth + 8}
                 y={y + barHeight / 2 + 4}
-                fill="#374151"
+                style={{ fill: "var(--axis-text-secondary)" }}
                 fontSize="12"
                 fontWeight="600"
               >

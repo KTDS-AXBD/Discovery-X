@@ -1,3 +1,4 @@
 @import "tailwindcss";
 @import "./axis-tokens.css";
+@import "./dx-custom-tokens.css";
 @plugin "@tailwindcss/typography";

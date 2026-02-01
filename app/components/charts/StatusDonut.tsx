@@ -7,11 +7,11 @@ interface StatusDonutProps {
 }
 
 const SEGMENTS = [
-  { key: "inbox", label: "Inbox", color: "#93C5FD" },
-  { key: "open", label: "진행 중", color: "#FCD34D" },
-  { key: "next", label: "전진", color: "#6EE7B7" },
-  { key: "notNow", label: "보류", color: "#D1D5DB" },
-  { key: "deadEnd", label: "중단", color: "#FCA5A5" },
+  { key: "inbox", label: "Inbox", color: "var(--axis-chart-inbox)" },
+  { key: "open", label: "진행 중", color: "var(--axis-chart-open)" },
+  { key: "next", label: "전진", color: "var(--axis-chart-next)" },
+  { key: "notNow", label: "보류", color: "var(--axis-chart-not-now)" },
+  { key: "deadEnd", label: "중단", color: "var(--axis-chart-dead-end)" },
 ] as const;
 
 export function StatusDonut({ inbox, open, next, notNow, deadEnd }: StatusDonutProps) {
@@ -27,10 +27,10 @@ export function StatusDonut({ inbox, open, next, notNow, deadEnd }: StatusDonutP
             cy="60"
             r="50"
             fill="none"
-            stroke="#E5E7EB"
+            style={{ stroke: "var(--axis-chart-empty)" }}
             strokeWidth="20"
           />
-          <text x="60" y="64" textAnchor="middle" className="text-sm" fill="#6B7280" fontSize="14">
+          <text x="60" y="64" textAnchor="middle" className="text-sm" style={{ fill: "var(--axis-text-tertiary)" }} fontSize="14">
             0건
           </text>
         </svg>
@@ -64,17 +64,17 @@ export function StatusDonut({ inbox, open, next, notNow, deadEnd }: StatusDonutP
             cy="60"
             r="50"
             fill="none"
-            stroke={seg.color}
+            style={{ stroke: seg.color }}
             strokeWidth="20"
             strokeDasharray={`${seg.dash} ${circumference - seg.dash}`}
             strokeDashoffset={-seg.offset}
             transform="rotate(-90 60 60)"
           />
         ))}
-        <text x="60" y="58" textAnchor="middle" fill="#111827" fontSize="18" fontWeight="bold">
+        <text x="60" y="58" textAnchor="middle" style={{ fill: "var(--axis-text-primary)" }} fontSize="18" fontWeight="bold">
           {total}
         </text>
-        <text x="60" y="72" textAnchor="middle" fill="#6B7280" fontSize="11">
+        <text x="60" y="72" textAnchor="middle" style={{ fill: "var(--axis-text-tertiary)" }} fontSize="11">
           전체
         </text>
       </svg>

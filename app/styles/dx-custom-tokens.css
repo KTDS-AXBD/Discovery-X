@@ -1,0 +1,82 @@
+/**
+ * Discovery-X Custom Design Tokens
+ * AXIS에 포함되지 않은 DX 자체 확장 토큰
+ */
+
+:root {
+  /* Purple variant (EXTENSION_REQUESTED 상태) */
+  --axis-badge-purple-bg: #F3E8FF;
+  --axis-badge-purple-text: #7C3AED;
+  --axis-button-purple-bg-default: #9333EA;
+  --axis-button-purple-bg-hover: #7C3AED;
+  --axis-button-purple-bg-active: #6B21A8;
+  --axis-button-purple-text-default: #FFFFFF;
+
+  /* Success button variant */
+  --axis-button-success-bg-default: #22C55E;
+  --axis-button-success-bg-hover: #16A34A;
+  --axis-button-success-bg-active: #15803D;
+  --axis-button-success-text-default: #FFFFFF;
+
+  /* Chart semantic tokens */
+  --axis-chart-inbox: #93C5FD;
+  --axis-chart-open: #FCD34D;
+  --axis-chart-next: #6EE7B7;
+  --axis-chart-not-now: #D1D5DB;
+  --axis-chart-dead-end: #FCA5A5;
+  --axis-chart-bar: #60A5FA;
+  --axis-chart-empty: #E5E7EB;
+}
+
+/* Dark mode overrides */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    /* Purple variant */
+    --axis-badge-purple-bg: #581C87;
+    --axis-badge-purple-text: #E9D5FF;
+    --axis-button-purple-bg-default: #7C3AED;
+    --axis-button-purple-bg-hover: #6D28D9;
+    --axis-button-purple-bg-active: #5B21B6;
+    --axis-button-purple-text-default: #FFFFFF;
+
+    /* Success button variant */
+    --axis-button-success-bg-default: #16A34A;
+    --axis-button-success-bg-hover: #15803D;
+    --axis-button-success-bg-active: #166534;
+    --axis-button-success-text-default: #FFFFFF;
+
+    /* Chart semantic tokens */
+    --axis-chart-inbox: #3B82F6;
+    --axis-chart-open: #EAB308;
+    --axis-chart-next: #22C55E;
+    --axis-chart-not-now: #6B7280;
+    --axis-chart-dead-end: #EF4444;
+    --axis-chart-bar: #3B82F6;
+    --axis-chart-empty: #374151;
+  }
+}
+
+[data-theme="dark"] {
+  /* Purple variant */
+  --axis-badge-purple-bg: #581C87;
+  --axis-badge-purple-text: #E9D5FF;
+  --axis-button-purple-bg-default: #7C3AED;
+  --axis-button-purple-bg-hover: #6D28D9;
+  --axis-button-purple-bg-active: #5B21B6;
+  --axis-button-purple-text-default: #FFFFFF;
+
+  /* Success button variant */
+  --axis-button-success-bg-default: #16A34A;
+  --axis-button-success-bg-hover: #15803D;
+  --axis-button-success-bg-active: #166534;
+  --axis-button-success-text-default: #FFFFFF;
+
+  /* Chart semantic tokens */
+  --axis-chart-inbox: #3B82F6;
+  --axis-chart-open: #EAB308;
+  --axis-chart-next: #22C55E;
+  --axis-chart-not-now: #6B7280;
+  --axis-chart-dead-end: #EF4444;
+  --axis-chart-bar: #3B82F6;
+  --axis-chart-empty: #374151;
+}
