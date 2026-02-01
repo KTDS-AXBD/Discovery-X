@@ -233,16 +233,17 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 38)
-**Agent context-builder 메시지 정렬 및 tool 그루핑 개선**:
-- ✅ `context-builder.ts` — `createdAt` (초 단위 정밀도) → `rowid` 기반 정렬로 변경 (삽입 순서 보장)
-- ✅ 컨텍스트 윈도우 20 → 40 메시지로 확대
-- ✅ 연속 `tool_use` 메시지를 단일 assistant 메시지로 그루핑
-- ✅ 연속 `tool_result` 메시지를 단일 user 메시지로 그루핑
-- ✅ 선행 `tool_use` 없는 고아 `tool_result` 스킵 처리
-- ✅ 프로덕션 배포 완료
+### 최근 변경 (세션 39)
+**v2 Agent 풀 플로우 E2E 테스트 완료**:
+- ✅ Agent 채팅으로 Discovery 풀 라이프사이클 검증 (INBOX → OPEN → NEXT)
+- ✅ 근거 추가 (`add_evidence`) — 정량적(DATA) A급 근거 정상 추가
+- ✅ 실험 완료 (`complete_experiment`) — 결과 요약과 함께 실험 COMPLETED 전환
+- ✅ NEXT 결정 (`decide_next`) — 상태 전환 + "A/B급 근거 2개 미만" 비즈니스 규칙 경고 정상 전달
+- ✅ 대시보드 반영 확인 — Pipeline 칸반 Next 칸에 1건 표시 (전진/AI 태그, 기한 표시)
+- ✅ 도구 실행 알림 UI 정상 (tool 이름 + 완료 상태 표시)
+- ✅ 이전 세션(38) 테스트 포함 전체 Agent 도구 검증: `get_metrics`, `create_discovery`, `promote_discovery`, `add_evidence`, `complete_experiment`, `decide_next` — 6개 도구 정상
 
-### 이전 변경 (세션 37)
+### 이전 변경 (세션 38)
 **v2 AI Agent 시스템 전면 구현**:
 - ✅ Agent 코어 7개 파일: executor, claude-client (SSE), system-prompt, context-builder, tool-registry, discovery-tools, query-tools
 - ✅ Agent 도구 15개: Discovery CRUD + 상태 전환 + 조회/검색/Radar 접근
@@ -581,6 +582,7 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 - **v2 Agent 시스템**: ✅ 프로덕션 배포 완료 (코드 + DB 마이그레이션 0005 + ANTHROPIC_API_KEY 설정)
 - **Radar Worker**: ✅ 프로덕션 배포 완료 (https://radar-worker.sinclair-account.workers.dev), Cron 매일 9:00 KST, 10소스 활성 (RSS 6 + Web 3 + YouTube 1)
 - **배포 상태**: ✅ 세션 38 프로덕션 배포 완료 — context-builder 개선 (https://dx.minu.best)
+- **Agent E2E 테스트**: ✅ 세션 39 풀 플로우 검증 완료 — 6개 도구 정상 (get_metrics, create_discovery, promote_discovery, add_evidence, complete_experiment, decide_next)
 - **이메일 설정**: ✅ Resend 연동 완료 (`noreply@ideaonaction.ai`), cron-job.org 매일 9:00 KST 자동 발송
 - **운영 문서**: 치트시트, 런북, 킥오프 템플릿, QA 체크리스트, 사용자 가이드 완성
 
