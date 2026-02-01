@@ -233,7 +233,13 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 43)
+### 최근 변경 (세션 44)
+**agent-review cron 등록 + daily cron URL 수정**:
+- ✅ cron-job.org에 `DX Agent Review` 등록 — POST `dx.minu.best/api/cron/agent-review` 매일 10:00 KST
+- ✅ `Discovery-X Daily Notifications` URL 수정 — `discovery-x.pages.dev` → `dx.minu.best` (400 에러 해결)
+- ✅ SPEC.md §6 미완료 항목 체크 완료
+
+### 이전 변경 (세션 43)
 **다크모드 + 차트 토큰화 구현 완료**:
 - ✅ 다크모드 토큰 — `axis-tokens.css`에 122개 AXIS 토큰 전체 dark override 추가 (`@media prefers-color-scheme` + `[data-theme="dark"]`)
 - ✅ DX 커스텀 토큰 분리 — `dx-custom-tokens.css` 신규 (purple, success, chart 토큰 + dark override)
@@ -734,7 +740,7 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 - [x] `pnpm db:migrate:prod` — 프로덕션 마이그레이션 0005 적용
 - [x] `wrangler secret put ANTHROPIC_API_KEY` — Claude API 키 설정
 - [x] `pnpm deploy` — 프로덕션 배포
-- [ ] cron-job.org에 `/api/cron/agent-review` 엔드포인트 추가 (선택)
+- [x] cron-job.org에 `/api/cron/agent-review` 엔드포인트 추가 — 세션 44에서 완료 (매일 10:00 KST, POST)
 
 **운영 후 판단 (보류)**
 - [x] 기한 초과 강제 종료 — 세션 32에서 구현 (daily cron 자동 DEAD_END + TIME_CONSTRAINT 패턴 + 이메일 알림)
