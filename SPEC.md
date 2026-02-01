@@ -233,7 +233,36 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 48)
+### 최근 변경 (세션 49)
+**v2 Agent 재설계 15건 전체 구현 완료 (검증 세션)**:
+- ✅ 이전 세션(46~48)에서 구현된 v2 Agent 재설계 15건의 코드 무결성 최종 검증
+- ✅ linter 자동 되돌림 우려 파일 3개 확인 — 모두 정상 유지 확인:
+  - `context-builder.ts` (P2-A4 컨텍스트 윈도우 최적화: first 5 + last 25 + 요약)
+  - `MessageBubble.tsx` (P1-U4 rehype-highlight + CodeBlock 복사 버튼 + streaming prop)
+  - `ConversationList.tsx` (P1-U5/U6 검색 + 삭제 확인 UI)
+- ✅ 핵심 파일 검증: executor.ts (스트리밍 + 자율도 강제), tool-registry.ts (TOOL_MIN_AUTONOMY), 0006_add_model_id.sql
+- ✅ `pnpm typecheck` + `pnpm lint` + `pnpm build` 통과
+
+**v2 Agent 재설계 15건 구현 요약**:
+| 스트림 | 항목 | 설명 |
+|--------|------|------|
+| **아키텍처** | P0-A1 | 실시간 토큰 스트리밍 (callClaudeStream + SSE) |
+| | P0-A2 | Claude API 재시도 + 모델 설정 (fetchWithRetry + modelId) |
+| | P1-A3 | 자율도 레벨 도구 수준 강제 (TOOL_MIN_AUTONOMY) |
+| | P2-A4 | 컨텍스트 윈도우 최적화 (first 5 + last 25 + 요약) |
+| **도구** | P0-T1 | update_discovery 도구 추가 |
+| | P0-T2 | get_weekly_review + get_recall_queue 도구 추가 |
+| | P1-T3 | 목록 조회 페이지네이션 (offset + hasMore) |
+| | P1-T4 | 지표 기간 필터링 (fromDate + toDate) |
+| | P1-T5 | 에러 메시지에 suggestion 추가 |
+| **UX** | P0-U1 | 스트리밍 UI (text_delta 실시간 표시) |
+| | P0-U2 | 도구 실행 결과 확장/축소 |
+| | P0-U3 | 로딩 상태 + ErrorBoundary |
+| | P1-U4 | 코드 구문 강조 + 복사 버튼 (rehype-highlight) |
+| | P1-U5 | 대화 삭제 확인 (인라인 확인 UI) |
+| | P1-U6 | 대화 검색 (클라이언트 필터링) |
+
+### 이전 변경 (세션 48)
 **radar-worker 4건 제한사항 개선 + 배포 완료**:
 - ✅ Web Collector: regex 파서 → Cloudflare `HTMLRewriter` 전면 교체 (`a[href]` element handler + text 수집)
 - ✅ YouTube @handle 자동 해석: `youtube.com/@handle` URL → 페이지 fetch → `meta[itemprop=channelId]` / `externalId` 패턴으로 channel_id 추출 → RSS feed URL 자동 변환
@@ -674,6 +703,7 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 - **Radar Worker**: ✅ 프로덕션 배포 완료 (https://radar-worker.sinclair-account.workers.dev), Cron 매일 9:00 KST, 10소스 활성 (RSS 6 + Web 3 + YouTube 1)
 - **다크모드**: ✅ 세션 43 — 122개 AXIS 토큰 + DX 커스텀 토큰 dark override, useTheme 훅, FOUC 방지, MainNav 토글
 - **@axis-ds 패키지**: ✅ 세션 45 — tokens@1.1.1 + theme@1.1.1 + ui-react@1.1.1 연동 완료 (로컬 토큰/테마/컴포넌트 → 패키지 대체)
+- **v2 Agent 재설계**: ✅ 세션 46~49 — 15건 전체 구현 완료 (아키텍처 4건 + 도구 5건 + UX 6건), DB 마이그레이션 0006 로컬 적용 완료
 - **배포 상태**: ✅ 세션 47 프로덕션 배포 완료 — Agent 도구 개선 + TS 에러 수정 (https://dx.minu.best)
 - **Agent E2E 테스트**: ✅ 세션 39 풀 플로우 검증 완료 — 6개 도구 정상 (get_metrics, create_discovery, promote_discovery, add_evidence, complete_experiment, decide_next)
 - **Agent 채팅 개선**: ✅ 세션 40 — 입력 보존, 제목 로직, 프로그레시브 스트리밍, content 중복 수정
@@ -769,6 +799,11 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | **Daily Cron 버그 수정** | ✅ | 시스템 사용자 이메일 제외 + BASE_URL 수정 |
 | **테스트 DB 마이그레이션 현행화** | ✅ | tests/helpers/db.ts에 0003~0006 마이그레이션 추가 → 129개 전체 통과 |
 | **Radar Worker 제한사항 개선** | ✅ | HTMLRewriter 교체, YouTube @handle 해석, FTS5 유니코드 이스케이프, fetchWithRetry 유틸 |
+| **v2 Agent 재설계 15건** | ✅ | 3개 스트림 (아키텍처 4건 + 도구 5건 + UX 6건) 전체 구현 완료 |
+| **실시간 SSE 스트리밍** | ✅ | callClaudeStream + text_delta/tool_start/tool_call/done 이벤트 |
+| **자율도 레벨 도구 강제** | ✅ | TOOL_MIN_AUTONOMY (Level 1: 조회, Level 2: 생성/승격, Level 3: 전체) |
+| **컨텍스트 윈도우 최적화** | ✅ | 30+ 메시지 시 first 5 + last 25 + 중간 요약 삽입 (LLM 호출 없이) |
+| **채팅 UX 개선** | ✅ | 대화 검색, 삭제 확인, 코드 구문 강조+복사, 도구 결과 접기/펼치기, ErrorBoundary |
 
 ### 남은 작업
 - [x] 최종 프로덕션 배포 — 세션 14에서 완료
