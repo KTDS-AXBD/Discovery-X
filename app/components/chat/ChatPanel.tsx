@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Input } from "~/components/ui/Input";
 import { Button } from "~/components/ui/Button";
+import { AlertBanner } from "~/components/ui/AlertBanner";
 import { MessageBubble } from "./MessageBubble";
 import { ToolExecution } from "./ToolExecution";
 
@@ -288,15 +289,17 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages }
 
           {/* Send error + retry */}
           {sendError && (
-            <div className="flex items-center gap-2 rounded-md border border-[var(--axis-border-error)] bg-red-50 p-3 text-sm dark:bg-red-950/20">
-              <span className="text-[var(--axis-text-error)]">전송 실패: {sendError}</span>
-              <button
-                onClick={handleRetry}
-                className="ml-auto rounded bg-[var(--axis-button-bg-default)] px-2 py-1 text-xs text-[var(--axis-button-text-default)] hover:bg-[var(--axis-button-bg-hover)]"
-              >
-                재시도
-              </button>
-            </div>
+            <AlertBanner variant="destructive">
+              <div className="flex items-center gap-2">
+                <span>전송 실패: {sendError}</span>
+                <button
+                  onClick={handleRetry}
+                  className="ml-auto rounded bg-[var(--axis-button-bg-default)] px-2 py-1 text-xs text-[var(--axis-button-text-default)] hover:bg-[var(--axis-button-bg-hover)]"
+                >
+                  재시도
+                </button>
+              </div>
+            </AlertBanner>
           )}
 
           {messages
@@ -341,17 +344,21 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages }
 
       {/* Budget warning banner */}
       {budgetWarning && (
-        <div className="border-t border-[var(--axis-border-warning)] bg-amber-50 px-4 py-2 dark:bg-amber-950/20">
-          <div className="mx-auto flex max-w-3xl items-center justify-between text-xs">
-            <span className="text-amber-800 dark:text-amber-200">
-              토큰 예산 {budgetWarning.percentUsed}% 사용 ({budgetWarning.tokensUsedToday.toLocaleString()} / {budgetWarning.dailyTokenBudget.toLocaleString()})
-            </span>
-            <button
-              onClick={() => setBudgetWarning(null)}
-              className="text-amber-600 hover:text-amber-800 dark:text-amber-400"
-            >
-              &times;
-            </button>
+        <div className="border-t border-[var(--axis-border-warning)] px-4 py-2">
+          <div className="mx-auto max-w-3xl">
+            <AlertBanner variant="warning" className="py-2">
+              <div className="flex items-center justify-between text-xs">
+                <span>
+                  토큰 예산 {budgetWarning.percentUsed}% 사용 ({budgetWarning.tokensUsedToday.toLocaleString()} / {budgetWarning.dailyTokenBudget.toLocaleString()})
+                </span>
+                <button
+                  onClick={() => setBudgetWarning(null)}
+                  className="ml-2 opacity-70 hover:opacity-100"
+                >
+                  &times;
+                </button>
+              </div>
+            </AlertBanner>
           </div>
         </div>
       )}

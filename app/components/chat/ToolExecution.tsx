@@ -172,10 +172,9 @@ export function ToolExecution({ toolName, result, isRunning }: ToolExecutionProp
     return (
       <AlertBanner variant="default" className="my-1">
         <div className="flex items-center gap-2 text-xs">
-          <div className="h-2 w-2 animate-pulse rounded-full bg-[var(--axis-text-brand)]" />
-          <Badge variant="info" className="text-[10px]">도구</Badge>
+          <Badge variant="info" className="text-[10px] animate-pulse">도구</Badge>
           <span className="font-medium">{label}</span>
-          <span className="text-[var(--axis-text-tertiary)]">실행 중...</span>
+          <Badge variant="default" className="text-[10px]">실행 중...</Badge>
         </div>
       </AlertBanner>
     );
@@ -198,11 +197,12 @@ export function ToolExecution({ toolName, result, isRunning }: ToolExecutionProp
         </Badge>
         <span className="font-medium">{label}</span>
         {hasError ? (
-          <span className="text-[var(--axis-text-error)]">
-            실패: {String(result.error)}
-          </span>
+          <>
+            <Badge variant="error" className="text-[10px]">오류</Badge>
+            <span className="text-[var(--axis-text-error)] truncate">{String(result.error)}</span>
+          </>
         ) : (
-          <span className="text-[var(--axis-text-success)]">완료</span>
+          <Badge variant="success" className="text-[10px]">완료</Badge>
         )}
         {hasContent && (
           <span className="ml-auto text-[var(--axis-text-tertiary)]">

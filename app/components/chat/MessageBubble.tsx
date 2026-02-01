@@ -94,7 +94,11 @@ export function MessageBubble({ role, content, timestamp, streaming }: MessageBu
                   {content}
                 </ReactMarkdown>
                 {streaming && (
-                  <span className="inline-block h-4 w-0.5 animate-pulse bg-[var(--axis-text-brand)]" />
+                  <span className="inline-flex gap-0.5 ml-1 items-center">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--axis-text-brand)] animate-bounce [animation-delay:0ms]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--axis-text-brand)] animate-bounce [animation-delay:150ms]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--axis-text-brand)] animate-bounce [animation-delay:300ms]" />
+                  </span>
                 )}
               </div>
             )}
