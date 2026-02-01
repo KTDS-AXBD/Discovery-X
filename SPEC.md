@@ -233,10 +233,20 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 41)
+### 최근 변경 (세션 42)
+**UI 개선 6건 구현 완료**:
+- ✅ P0: Markdown 렌더링 — `react-markdown` + `remark-gfm` + `@tailwindcss/typography` 적용 (assistant 메시지만, prose 스타일링 + Axis 디자인 토큰 연동)
+- ✅ P1: favicon.svg 추가 (DX 텍스트 기반 SVG) + root.tsx links에 등록
+- ✅ P1: 깨진 대화 삭제 — 프로덕션 D1에서 UTF-8 인코딩 깨진 대화 1건 제거 (세션 39 Playwright MCP 원인)
+- ✅ P2: 로그인 페이지에서 시스템 사용자(@system) 필터링
+- ✅ P2: 토큰 예산 초과 경고 — 80% 초과 시 SSE `budget_warning` 이벤트 전송 + ChatPanel amber 배너 표시
+- ✅ P2: 대시보드 칸반 칼럼 스크롤 추가 (max-height 600px + overflow-y-auto)
+- ✅ `pnpm typecheck` + `pnpm build` 통과
+
+### 이전 변경 (세션 41)
 **채팅 마크다운 렌더링 + UI 개선**:
 - ✅ `remark-gfm` 추가 — Agent 응답의 GFM 테이블/취소선/자동링크 렌더링 지원
-- ✅ `react-markdown` + `@tailwindcss/typography` 기반 마크다운 렌더링 (기존 세션에서 기본 적용, 이번 세션에서 GFM 플러그인 보강)
+- ✅ `react-markdown` + `@tailwindcss/typography` 기반 마크다운 렌더링
 - ✅ favicon.svg 링크 추가 (root.tsx)
 - ✅ 대시보드 칸반 칼럼 스크롤 추가 (max-height 600px + overflow-y-auto)
 - ✅ 로그인 페이지에서 시스템 사용자(@system) 필터링
@@ -601,7 +611,8 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 - **배포 상태**: ✅ 세션 38 프로덕션 배포 완료 — context-builder 개선 (https://dx.minu.best)
 - **Agent E2E 테스트**: ✅ 세션 39 풀 플로우 검증 완료 — 6개 도구 정상 (get_metrics, create_discovery, promote_discovery, add_evidence, complete_experiment, decide_next)
 - **Agent 채팅 개선**: ✅ 세션 40 — 입력 보존, 제목 로직, 프로그레시브 스트리밍, content 중복 수정
-- **채팅 마크다운**: ✅ 세션 41 — react-markdown + remark-gfm + @tailwindcss/typography 기반 Agent 응답 마크다운 렌더링
+- **채팅 마크다운**: ✅ 세션 41-42 — react-markdown + remark-gfm + @tailwindcss/typography 기반 Agent 응답 마크다운 렌더링
+- **토큰 예산 경고**: ✅ 세션 42 — 80% 초과 시 SSE budget_warning 이벤트 + ChatPanel amber 배너
 - **이메일 설정**: ✅ Resend 연동 완료 (`noreply@ideaonaction.ai`), cron-job.org 매일 9:00 KST 자동 발송
 - **운영 문서**: 치트시트, 런북, 킥오프 템플릿, QA 체크리스트, 사용자 가이드 완성
 
@@ -681,6 +692,7 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | **v2 Agent 설정** | ✅ | 자율도 레벨 (0-3) + 토큰 예산 + 커스텀 프롬프트 |
 | **v2 자율 리뷰 cron** | ✅ | OPEN Discovery 50% 경과 시 Agent 자동 평가 |
 | **v2 DB 스키마** | ✅ | conversations + messages + agent_config 테이블, createdByAgent 컬럼 |
+| **v2 토큰 예산 경고** | ✅ | 80% 초과 시 SSE budget_warning 이벤트 + ChatPanel amber 배너 |
 
 ### 남은 작업
 - [x] 최종 프로덕션 배포 — 세션 14에서 완료
