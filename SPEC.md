@@ -233,7 +233,19 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 45)
+### 최근 변경 (세션 46)
+**Agent 도구 확장 + Daily Cron 버그 수정**:
+- ✅ Agent 도구 3개 추가: `update_discovery` (수정), `get_weekly_review` (주간 리뷰), `get_recall_queue` (재검토 큐)
+- ✅ 모델 선택 기능: Settings에서 Claude Sonnet 4 / Haiku 3.5 / Opus 4 선택 가능 (`agent_config.modelId` 컬럼 추가)
+- ✅ Claude API 안정성: 재시도 로직 (429/500/502/503/529 + exponential backoff, 최대 3회) + 25초 타임아웃
+- ✅ ToolExecution UI 개선: 리치 결과 렌더링 (테이블/카드/메트릭), expand/collapse, JSON 토글, 실행 중 표시
+- ✅ `_index.tsx` ErrorBoundary 추가 (채팅 에러 시 다시 시도 버튼)
+- ✅ **버그 수정**: daily cron 시스템 사용자(`@system`) 이메일 수신 제외 → Resend API 에러 해결
+- ✅ **버그 수정**: 이메일 템플릿 BASE_URL `discovery-x.pages.dev` → `dx.minu.best` (구 도메인 링크 수정)
+- ✅ DB 마이그레이션: `0006_add_model_id.sql` + 테스트 헬퍼 마이그레이션 추가 (0003~0006)
+- ✅ `pnpm typecheck` + `pnpm build` 통과
+
+### 이전 변경 (세션 45)
 **@axis-ds 패키지 연동 완료**:
 - ✅ `@axis-ds/tokens@1.1.1` 도입 — 로컬 `axis-tokens.css` (122개 CSS 변수) 삭제, 패키지 CSS로 대체
 - ✅ `@axis-ds/theme@1.1.1` 도입 — 로컬 `use-theme.ts` 삭제, `ThemeProvider` + `useTheme` 패키지로 교체
@@ -638,7 +650,7 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 - **배포**: Cloudflare Pages Git 연동 (master push → 자동 빌드/배포)
 - **EXTENSION_REQUESTED**: ✅ 구현 완료 (OPEN + 실험 2개 → 연장 요청 → +14일, 3번째 실험 가능)
 - **운영 실험**: 🚀 2026-01-31 시작 (30-60일, 최대 5명, Discovery 5-10건 목표)
-- **DB 마이그레이션**: ✅ 6개 마이그레이션 (0000~0005) 프로덕션 적용 완료
+- **DB 마이그레이션**: ✅ 7개 마이그레이션 (0000~0006) 로컬 적용 완료 (0006 프로덕션 미적용)
 - **빌드 상태**: `pnpm build` + `pnpm typecheck` + `pnpm lint` 모두 통과
 - **v2 Agent 시스템**: ✅ 프로덕션 배포 완료 (코드 + DB 마이그레이션 0005 + ANTHROPIC_API_KEY 설정)
 - **Radar Worker**: ✅ 프로덕션 배포 완료 (https://radar-worker.sinclair-account.workers.dev), Cron 매일 9:00 KST, 10소스 활성 (RSS 6 + Web 3 + YouTube 1)
@@ -732,6 +744,11 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | **다크모드** | ✅ | 122개 AXIS + DX 커스텀 토큰 dark override, useTheme 훅, FOUC 방지, MainNav 토글 |
 | **차트 색상 토큰화** | ✅ | StatusDonut 9건 + WeeklyBar 3건 hex → CSS 변수, 차트 시맨틱 토큰 7개 |
 | **@axis-ds 패키지 연동** | ✅ | tokens + theme + ui-react 패키지 도입, 로컬 토큰/테마/컴포넌트 대체, adapter 패턴 |
+| **Agent 도구 확장** | ✅ | update_discovery + get_weekly_review + get_recall_queue 3개 도구 추가 |
+| **모델 선택 기능** | ✅ | agent_config.modelId + Settings UI + executor 연동 |
+| **Claude API 재시도 로직** | ✅ | fetchWithRetry (429/5xx + exponential backoff) + 25초 타임아웃 |
+| **ToolExecution UI 개선** | ✅ | 리치 결과 렌더링, expand/collapse, JSON 토글, 실행 중 표시 |
+| **Daily Cron 버그 수정** | ✅ | 시스템 사용자 이메일 제외 + BASE_URL 수정 |
 
 ### 남은 작업
 - [x] 최종 프로덕션 배포 — 세션 14에서 완료
