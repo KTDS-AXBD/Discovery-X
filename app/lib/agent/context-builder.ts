@@ -3,22 +3,23 @@
  * Fetches recent messages and relevant Discovery state.
  */
 
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import type { DB } from "~/db";
 import { messages, discoveries, experiments, evidence } from "~/db/schema";
 import type { ClaudeMessage, ClaudeContentBlock } from "./claude-client";
 
-const MAX_CONTEXT_MESSAGES = 20;
+const MAX_CONTEXT_MESSAGES = 40;
 
 export async function buildConversationContext(
   db: DB,
   conversationId: string
 ): Promise<ClaudeMessage[]> {
+  // Use rowid for reliable insertion-order sorting (createdAt is second-precision, insufficient)
   const recentMessages = await db
     .select()
     .from(messages)
     .where(eq(messages.conversationId, conversationId))
-    .orderBy(desc(messages.createdAt))
+    .orderBy(desc(sql`rowid`))
     .limit(MAX_CONTEXT_MESSAGES);
 
   // Reverse to chronological order
@@ -26,37 +27,58 @@ export async function buildConversationContext(
 
   const claudeMessages: ClaudeMessage[] = [];
 
-  for (const msg of recentMessages) {
+  let i = 0;
+  while (i < recentMessages.length) {
+    const msg = recentMessages[i];
+
     if (msg.role === "user") {
       claudeMessages.push({ role: "user", content: msg.content });
+      i++;
     } else if (msg.role === "assistant") {
       claudeMessages.push({ role: "assistant", content: msg.content });
+      i++;
     } else if (msg.role === "tool_use") {
-      // Tool use is part of assistant message
+      // Group consecutive tool_use messages into a single assistant message
       const blocks: ClaudeContentBlock[] = [];
       if (msg.content) {
         blocks.push({ type: "text", text: msg.content });
       }
-      if (msg.toolName && msg.toolInput) {
-        blocks.push({
-          type: "tool_use",
-          id: msg.id,
-          name: msg.toolName,
-          input: msg.toolInput,
-        });
+
+      while (i < recentMessages.length && recentMessages[i].role === "tool_use") {
+        const tuMsg = recentMessages[i];
+        if (tuMsg.toolName && tuMsg.toolInput) {
+          blocks.push({
+            type: "tool_use",
+            id: tuMsg.id,
+            name: tuMsg.toolName,
+            input: tuMsg.toolInput,
+          });
+        }
+        i++;
       }
+
       claudeMessages.push({ role: "assistant", content: blocks });
+
+      // Group consecutive tool_result messages into a single user message
+      const resultBlocks: ClaudeContentBlock[] = [];
+      while (i < recentMessages.length && recentMessages[i].role === "tool_result") {
+        const trMsg = recentMessages[i];
+        resultBlocks.push({
+          type: "tool_result",
+          tool_use_id: trMsg.toolName || trMsg.id,
+          content: trMsg.content,
+        });
+        i++;
+      }
+
+      if (resultBlocks.length > 0) {
+        claudeMessages.push({ role: "user", content: resultBlocks });
+      }
     } else if (msg.role === "tool_result") {
-      claudeMessages.push({
-        role: "user",
-        content: [
-          {
-            type: "tool_result",
-            tool_use_id: msg.toolName || msg.id, // tool_use_id stored in toolName field
-            content: msg.content,
-          },
-        ],
-      });
+      // Orphaned tool_result without preceding tool_use — skip
+      i++;
+    } else {
+      i++;
     }
   }
 
