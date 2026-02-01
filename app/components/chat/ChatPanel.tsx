@@ -24,6 +24,7 @@ interface SSEToolCall {
 interface ChatPanelProps {
   conversationId: string | null;
   initialMessages: ChatMessage[];
+  isLoadingMessages?: boolean;
 }
 
 interface BudgetWarning {
@@ -32,14 +33,17 @@ interface BudgetWarning {
   percentUsed: number;
 }
 
-export function ChatPanel({ conversationId, initialMessages }: ChatPanelProps) {
+export function ChatPanel({ conversationId, initialMessages, isLoadingMessages }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [pendingToolCalls, setPendingToolCalls] = useState<SSEToolCall[]>([]);
   const [budgetWarning, setBudgetWarning] = useState<BudgetWarning | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     setMessages(initialMessages);
@@ -50,13 +54,13 @@ export function ChatPanel({ conversationId, initialMessages }: ChatPanelProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, pendingToolCalls]);
 
-  const sendMessage = useCallback(async () => {
-    if (!input.trim() || !conversationId || isLoading) return;
+  const sendMessageWithContent = useCallback(async (userMessage: string) => {
+    if (!userMessage.trim() || !conversationId || isLoading) return;
 
-    const userMessage = input.trim();
-    setInput("");
     setIsLoading(true);
     setPendingToolCalls([]);
+    setSendError(null);
+    setLastFailedMessage(null);
 
     // Optimistic add user message
     const userMsg: ChatMessage = {
@@ -67,11 +71,15 @@ export function ChatPanel({ conversationId, initialMessages }: ChatPanelProps) {
     };
     setMessages((prev) => [...prev, userMsg]);
 
+    // Setup abort controller
+    abortControllerRef.current = new AbortController();
+
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ conversationId, message: userMessage }),
+        signal: abortControllerRef.current.signal,
       });
 
       if (!response.ok) {
@@ -84,6 +92,8 @@ export function ChatPanel({ conversationId, initialMessages }: ChatPanelProps) {
 
       const decoder = new TextDecoder();
       let buffer = "";
+      const streamingMsgId = crypto.randomUUID();
+      let streamingStarted = false;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -105,24 +115,65 @@ export function ChatPanel({ conversationId, initialMessages }: ChatPanelProps) {
               message?: string;
             };
 
-            if (event.type === "tool_call") {
+            if (event.type === "text_delta" && event.content) {
+              if (!streamingStarted) {
+                // Create streaming assistant message
+                streamingStarted = true;
+                setMessages((prev) => [
+                  ...prev,
+                  {
+                    id: streamingMsgId,
+                    role: "assistant" as const,
+                    content: event.content!,
+                    createdAt: new Date().toISOString(),
+                  },
+                ]);
+              } else {
+                // Append delta to existing streaming message
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === streamingMsgId
+                      ? { ...m, content: m.content + event.content }
+                      : m
+                  )
+                );
+              }
+            } else if (event.type === "tool_start") {
               setPendingToolCalls((prev) => [
                 ...prev,
                 {
                   type: "tool_call",
                   name: event.name!,
-                  input: event.input!,
-                  result: event.result!,
-                },
+                  input: {},
+                  result: {},
+                } as SSEToolCall & { _running?: boolean },
               ]);
-            } else if (event.type === "text") {
-              const assistantMsg: ChatMessage = {
-                id: crypto.randomUUID(),
-                role: "assistant",
-                content: event.content || "",
-                createdAt: new Date().toISOString(),
-              };
-              setMessages((prev) => [...prev, assistantMsg]);
+            } else if (event.type === "tool_call") {
+              // Replace the running tool_start with completed result
+              setPendingToolCalls((prev) => {
+                const idx = prev.findIndex((tc) => tc.name === event.name && Object.keys(tc.result).length === 0);
+                if (idx >= 0) {
+                  const updated = [...prev];
+                  updated[idx] = {
+                    type: "tool_call",
+                    name: event.name!,
+                    input: event.input!,
+                    result: event.result!,
+                  };
+                  return updated;
+                }
+                return [
+                  ...prev,
+                  {
+                    type: "tool_call",
+                    name: event.name!,
+                    input: event.input!,
+                    result: event.result!,
+                  },
+                ];
+              });
+              // Reset streaming state for next text after tool calls
+              streamingStarted = false;
             } else if (event.type === "budget_warning") {
               setBudgetWarning({
                 tokensUsedToday: (event as unknown as BudgetWarning).tokensUsedToday,
@@ -144,18 +195,39 @@ export function ChatPanel({ conversationId, initialMessages }: ChatPanelProps) {
         }
       }
     } catch (error) {
-      const errorMsg: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: `연결 오류: ${error instanceof Error ? error.message : "알 수 없는 오류"}`,
-        createdAt: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, errorMsg]);
+      if (error instanceof Error && error.name === "AbortError") {
+        // User cancelled
+      } else {
+        const errMessage = error instanceof Error ? error.message : "알 수 없는 오류";
+        setSendError(errMessage);
+        setLastFailedMessage(userMessage);
+      }
     } finally {
       setIsLoading(false);
+      abortControllerRef.current = null;
       inputRef.current?.focus();
     }
-  }, [input, conversationId, isLoading]);
+  }, [conversationId, isLoading]);
+
+  const sendMessage = useCallback(async () => {
+    if (!input.trim()) return;
+    const msg = input.trim();
+    setInput("");
+    await sendMessageWithContent(msg);
+  }, [input, sendMessageWithContent]);
+
+  const handleRetry = useCallback(() => {
+    if (lastFailedMessage) {
+      setSendError(null);
+      // Remove the last user message (which failed)
+      setMessages((prev) => prev.slice(0, -1));
+      sendMessageWithContent(lastFailedMessage);
+    }
+  }, [lastFailedMessage, sendMessageWithContent]);
+
+  const handleCancel = useCallback(() => {
+    abortControllerRef.current?.abort();
+  }, []);
 
   if (!conversationId) {
     return (
@@ -177,7 +249,14 @@ export function ChatPanel({ conversationId, initialMessages }: ChatPanelProps) {
       {/* Messages area */}
       <div className="flex-1 overflow-y-auto px-4 py-4">
         <div className="mx-auto max-w-3xl space-y-4">
-          {messages.length === 0 && (
+          {isLoadingMessages && (
+            <div className="flex items-center justify-center py-12">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--axis-border-default)] border-t-[var(--axis-text-brand)]" />
+              <span className="ml-2 text-sm text-[var(--axis-text-tertiary)]">대화 불러오는 중...</span>
+            </div>
+          )}
+
+          {!isLoadingMessages && messages.length === 0 && (
             <div className="py-12 text-center">
               <p className="text-lg font-medium text-[var(--axis-text-primary)]">
                 무엇을 도와드릴까요?
@@ -207,14 +286,28 @@ export function ChatPanel({ conversationId, initialMessages }: ChatPanelProps) {
             </div>
           )}
 
+          {/* Send error + retry */}
+          {sendError && (
+            <div className="flex items-center gap-2 rounded-md border border-[var(--axis-border-error)] bg-red-50 p-3 text-sm dark:bg-red-950/20">
+              <span className="text-[var(--axis-text-error)]">전송 실패: {sendError}</span>
+              <button
+                onClick={handleRetry}
+                className="ml-auto rounded bg-[var(--axis-button-bg-default)] px-2 py-1 text-xs text-[var(--axis-button-text-default)] hover:bg-[var(--axis-button-bg-hover)]"
+              >
+                재시도
+              </button>
+            </div>
+          )}
+
           {messages
             .filter((m) => m.role === "user" || m.role === "assistant")
-            .map((msg) => (
+            .map((msg, _idx, arr) => (
               <MessageBubble
                 key={msg.id}
                 role={msg.role as "user" | "assistant"}
                 content={msg.content}
                 timestamp={msg.createdAt}
+                streaming={isLoading && msg.role === "assistant" && msg === arr[arr.length - 1]}
               />
             ))}
 
@@ -225,6 +318,7 @@ export function ChatPanel({ conversationId, initialMessages }: ChatPanelProps) {
               toolName={tc.name}
               input={tc.input}
               result={tc.result}
+              isRunning={Object.keys(tc.result).length === 0}
             />
           ))}
 
@@ -232,6 +326,12 @@ export function ChatPanel({ conversationId, initialMessages }: ChatPanelProps) {
             <div className="flex items-center gap-2 text-sm text-[var(--axis-text-tertiary)]">
               <div className="h-2 w-2 animate-pulse rounded-full bg-[var(--axis-text-brand)]" />
               Agent가 처리 중...
+              <button
+                onClick={handleCancel}
+                className="ml-2 text-xs text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-error)]"
+              >
+                취소
+              </button>
             </div>
           )}
 

@@ -4,6 +4,39 @@
 
 import type { ClaudeTool } from "./claude-client";
 
+// Minimum autonomy level required to use each tool
+export const TOOL_MIN_AUTONOMY: Record<string, number> = {
+  // Level 1: read-only queries
+  list_discoveries: 1,
+  get_discovery_detail: 1,
+  search_similar: 1,
+  get_metrics: 1,
+  get_radar_items: 1,
+  get_weekly_review: 1,
+  get_recall_queue: 1,
+  list_users: 1,
+  // Level 2: create + promote
+  create_discovery: 2,
+  update_discovery: 2,
+  promote_discovery: 2,
+  // Level 3: full autonomy
+  add_experiment: 3,
+  complete_experiment: 3,
+  add_evidence: 3,
+  decide_next: 3,
+  decide_not_now: 3,
+  decide_dead_end: 3,
+  request_extension: 3,
+};
+
+export function getToolsForAutonomyLevel(level: number): ClaudeTool[] {
+  if (level <= 0) return [];
+  return AGENT_TOOLS.filter((tool) => {
+    const minLevel = TOOL_MIN_AUTONOMY[tool.name] ?? 3;
+    return minLevel <= level;
+  });
+}
+
 export const AGENT_TOOLS: ClaudeTool[] = [
   // === Discovery Management ===
   {

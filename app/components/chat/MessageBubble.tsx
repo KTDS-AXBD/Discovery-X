@@ -8,9 +8,10 @@ interface MessageBubbleProps {
   role: "user" | "assistant";
   content: string;
   timestamp?: string | null;
+  streaming?: boolean;
 }
 
-export function MessageBubble({ role, content, timestamp }: MessageBubbleProps) {
+export function MessageBubble({ role, content, timestamp, streaming }: MessageBubbleProps) {
   const isUser = role === "user";
 
   return (
@@ -46,6 +47,9 @@ export function MessageBubble({ role, content, timestamp }: MessageBubbleProps) 
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {content}
                 </ReactMarkdown>
+                {streaming && (
+                  <span className="inline-block h-4 w-0.5 animate-pulse bg-[var(--axis-text-brand)]" />
+                )}
               </div>
             )}
           </CardContent>

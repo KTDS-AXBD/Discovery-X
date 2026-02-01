@@ -7,11 +7,11 @@
 import { eq } from "drizzle-orm";
 import type { DB } from "~/db";
 import { messages, agentConfig } from "~/db/schema";
-import type { ClaudeResponse } from "./claude-client";
-import { callClaude, CLAUDE_MODEL } from "./claude-client";
+import type { ClaudeResponse, ClaudeContentBlock } from "./claude-client";
+import { callClaude, callClaudeStream, parseSSEStream, CLAUDE_MODEL } from "./claude-client";
 import { buildConversationContext } from "./context-builder";
 import { buildSystemPrompt } from "./system-prompt";
-import { AGENT_TOOLS } from "./tool-registry";
+import { AGENT_TOOLS, getToolsForAutonomyLevel, TOOL_MIN_AUTONOMY } from "./tool-registry";
 import {
   createDiscovery,
   updateDiscovery,
@@ -52,8 +52,20 @@ interface ExecuteResult {
 async function executeTool(
   db: DB,
   toolName: string,
-  toolInput: Record<string, unknown>
+  toolInput: Record<string, unknown>,
+  autonomyLevel?: number
 ): Promise<string> {
+  // Enforce autonomy level at execution time
+  if (autonomyLevel !== undefined) {
+    const minLevel = TOOL_MIN_AUTONOMY[toolName] ?? 3;
+    if (autonomyLevel < minLevel) {
+      return JSON.stringify({
+        error: `현재 자율도 레벨(${autonomyLevel})에서는 이 도구(${toolName})를 사용할 수 없습니다. 최소 레벨 ${minLevel} 필요.`,
+        suggestion: "설정에서 자율도 레벨을 올리거나, 관리자에게 요청하세요.",
+      });
+    }
+  }
+
   switch (toolName) {
     case "create_discovery":
       return createDiscovery(db, toolInput as Parameters<typeof createDiscovery>[1]);
@@ -128,6 +140,8 @@ export async function executeAgentTurn(
   const agentCfg = config[0] || null;
   const systemPrompt = buildSystemPrompt(agentCfg);
   const modelId = agentCfg?.modelId || CLAUDE_MODEL;
+  const autonomyLevel = agentCfg?.autonomyLevel ?? 3;
+  const filteredTools = getToolsForAutonomyLevel(autonomyLevel);
   const allToolCalls: ExecuteResult["toolCalls"] = [];
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
@@ -142,7 +156,7 @@ export async function executeAgentTurn(
       max_tokens: 4096,
       system: systemPrompt,
       messages: contextMessages,
-      tools: AGENT_TOOLS,
+      tools: filteredTools.length > 0 ? filteredTools : undefined,
     });
 
     totalInputTokens += response.usage.input_tokens;
@@ -192,7 +206,7 @@ export async function executeAgentTurn(
       // Execute tool
       let toolResult: string;
       try {
-        toolResult = await executeTool(db, toolName, toolInput);
+        toolResult = await executeTool(db, toolName, toolInput, autonomyLevel);
       } catch (e) {
         toolResult = JSON.stringify({
           error: e instanceof Error ? e.message : "도구 실행 오류",
@@ -252,8 +266,8 @@ async function updateTokenUsage(db: DB, tokensUsed: number) {
 }
 
 /**
- * Streaming variant: returns a ReadableStream of SSE events.
- * Each event is a JSON object with type and data.
+ * Streaming variant: uses callClaudeStream + parseSSEStream for real-time text deltas.
+ * SSE events: text_delta, tool_start, tool_call, budget_warning, done, error
  */
 export function createAgentStreamResponse(
   db: DB,
@@ -263,78 +277,223 @@ export function createAgentStreamResponse(
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
 
+  function send(controller: ReadableStreamDefaultController<Uint8Array>, data: Record<string, unknown>) {
+    controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+  }
+
   return new ReadableStream({
     async start(controller) {
       try {
-        const result = await executeAgentTurn(
-          db, apiKey, conversationId, userMessage,
-          (event) => {
-            // Stream tool_call events as they happen
-            try {
-              const parsed = JSON.parse(event.result);
-              controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify({ type: "tool_call", name: event.name, input: event.input, result: parsed })}\n\n`
-                )
-              );
-            } catch {
-              controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify({ type: "tool_call", name: event.name, input: event.input, result: event.result })}\n\n`
-                )
-              );
-            }
-          }
-        );
+        // Save user message
+        await db.insert(messages).values({
+          id: generateId(),
+          conversationId,
+          role: "user",
+          content: userMessage,
+        });
 
-        // Send final text
-        controller.enqueue(
-          encoder.encode(
-            `data: ${JSON.stringify({ type: "text", content: result.assistantText })}\n\n`
-          )
-        );
-
-        // Check token budget and send warning if exceeded
-        const configAfter = await db
+        // Get agent config
+        const cfgRows = await db
           .select()
           .from(agentConfig)
           .where(eq(agentConfig.id, "default"))
           .limit(1);
 
-        const budgetInfo = configAfter[0]
-          ? {
-              tokensUsedToday: configAfter[0].tokensUsedToday,
-              dailyTokenBudget: configAfter[0].dailyTokenBudget,
-              percentUsed: Math.round(
-                (configAfter[0].tokensUsedToday / configAfter[0].dailyTokenBudget) * 100
-              ),
-            }
-          : null;
+        const agentCfg = cfgRows[0] || null;
+        const systemPrompt = buildSystemPrompt(agentCfg);
+        const modelId = agentCfg?.modelId || CLAUDE_MODEL;
+        const autonomyLevel = agentCfg?.autonomyLevel ?? 3;
+        const filteredTools = getToolsForAutonomyLevel(autonomyLevel);
+        let totalInputTokens = 0;
+        let totalOutputTokens = 0;
 
-        if (budgetInfo && budgetInfo.percentUsed > 80) {
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({ type: "budget_warning", ...budgetInfo })}\n\n`
-            )
-          );
+        const MAX_TOOL_ROUNDS = 5;
+
+        for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+          const contextMessages = await buildConversationContext(db, conversationId);
+
+          const rawStream = await callClaudeStream(apiKey, {
+            model: modelId,
+            max_tokens: 4096,
+            system: systemPrompt,
+            messages: contextMessages,
+            tools: filteredTools.length > 0 ? filteredTools : undefined,
+          });
+
+          // Parse SSE stream from Claude
+          let assistantText = "";
+          const contentBlocks: ClaudeContentBlock[] = [];
+          let currentBlockIndex = -1;
+          let currentToolInput = "";
+          let stopReason: string | undefined;
+
+          for await (const event of parseSSEStream(rawStream)) {
+            switch (event.type) {
+              case "message_start":
+                if (event.message?.usage) {
+                  totalInputTokens += event.message.usage.input_tokens;
+                }
+                break;
+
+              case "content_block_start":
+                currentBlockIndex = event.index ?? -1;
+                if (event.content_block) {
+                  contentBlocks[currentBlockIndex] = { ...event.content_block };
+                  if (event.content_block.type === "tool_use") {
+                    currentToolInput = "";
+                    send(controller, {
+                      type: "tool_start",
+                      name: event.content_block.name,
+                    });
+                  }
+                }
+                break;
+
+              case "content_block_delta":
+                if (event.delta?.type === "text_delta" && event.delta.text) {
+                  assistantText += event.delta.text;
+                  send(controller, {
+                    type: "text_delta",
+                    content: event.delta.text,
+                  });
+                } else if (event.delta?.type === "input_json_delta" && event.delta.partial_json) {
+                  currentToolInput += event.delta.partial_json;
+                }
+                break;
+
+              case "content_block_stop":
+                if (currentBlockIndex >= 0 && contentBlocks[currentBlockIndex]?.type === "tool_use") {
+                  try {
+                    contentBlocks[currentBlockIndex].input = JSON.parse(currentToolInput);
+                  } catch {
+                    contentBlocks[currentBlockIndex].input = {};
+                  }
+                }
+                break;
+
+              case "message_delta":
+                if (event.delta?.stop_reason) {
+                  stopReason = event.delta.stop_reason;
+                }
+                if (event.usage) {
+                  totalOutputTokens += event.usage.output_tokens;
+                }
+                break;
+            }
+          }
+
+          const toolUseBlocks = contentBlocks.filter((b) => b?.type === "tool_use");
+
+          if (toolUseBlocks.length === 0 || stopReason !== "tool_use") {
+            // No tool calls — save and finish
+            await db.insert(messages).values({
+              id: generateId(),
+              conversationId,
+              role: "assistant",
+              content: assistantText,
+            });
+
+            await updateTokenUsage(db, totalInputTokens + totalOutputTokens);
+            await sendBudgetWarning(db, controller, send);
+            send(controller, { type: "done", tokensUsed: { input: totalInputTokens, output: totalOutputTokens } });
+            controller.close();
+            return;
+          }
+
+          // Process tool calls
+          for (let idx = 0; idx < toolUseBlocks.length; idx++) {
+            const toolBlock = toolUseBlocks[idx];
+            const toolName = toolBlock.name!;
+            const toolInput = (toolBlock.input || {}) as Record<string, unknown>;
+            const toolUseId = toolBlock.id || generateId();
+
+            await db.insert(messages).values({
+              id: toolUseId,
+              conversationId,
+              role: "tool_use",
+              content: idx === 0 ? assistantText : "",
+              toolName,
+              toolInput,
+            });
+
+            let toolResult: string;
+            try {
+              toolResult = await executeTool(db, toolName, toolInput, autonomyLevel);
+            } catch (e) {
+              toolResult = JSON.stringify({
+                error: e instanceof Error ? e.message : "도구 실행 오류",
+              });
+            }
+
+            await db.insert(messages).values({
+              id: generateId(),
+              conversationId,
+              role: "tool_result",
+              content: toolResult,
+              toolName: toolUseId,
+            });
+
+            // Send tool_call event with result
+            let parsedResult: unknown;
+            try {
+              parsedResult = JSON.parse(toolResult);
+            } catch {
+              parsedResult = toolResult;
+            }
+            send(controller, {
+              type: "tool_call",
+              name: toolName,
+              input: toolInput,
+              result: parsedResult,
+            });
+          }
+          // Continue to next round for tool_result → Claude response
         }
 
-        // Send done
-        controller.enqueue(
-          encoder.encode(
-            `data: ${JSON.stringify({ type: "done", tokensUsed: result.tokensUsed })}\n\n`
-          )
-        );
+        // Max rounds reached
+        await db.insert(messages).values({
+          id: generateId(),
+          conversationId,
+          role: "assistant",
+          content: "도구 호출 제한에 도달했습니다. 결과를 확인해주세요.",
+        });
 
+        await updateTokenUsage(db, totalInputTokens + totalOutputTokens);
+        send(controller, { type: "text_delta", content: "도구 호출 제한에 도달했습니다. 결과를 확인해주세요." });
+        send(controller, { type: "done", tokensUsed: { input: totalInputTokens, output: totalOutputTokens } });
         controller.close();
       } catch (error) {
-        controller.enqueue(
-          encoder.encode(
-            `data: ${JSON.stringify({ type: "error", message: error instanceof Error ? error.message : "Unknown error" })}\n\n`
-          )
-        );
+        send(controller, {
+          type: "error",
+          message: error instanceof Error ? error.message : "Unknown error",
+        });
         controller.close();
       }
     },
   });
+}
+
+async function sendBudgetWarning(
+  db: DB,
+  controller: ReadableStreamDefaultController<Uint8Array>,
+  send: (ctrl: ReadableStreamDefaultController<Uint8Array>, data: Record<string, unknown>) => void
+) {
+  const configAfter = await db
+    .select()
+    .from(agentConfig)
+    .where(eq(agentConfig.id, "default"))
+    .limit(1);
+
+  const cfg = configAfter[0];
+  if (cfg) {
+    const percentUsed = Math.round((cfg.tokensUsedToday / cfg.dailyTokenBudget) * 100);
+    if (percentUsed > 80) {
+      send(controller, {
+        type: "budget_warning",
+        tokensUsedToday: cfg.tokensUsedToday,
+        dailyTokenBudget: cfg.dailyTokenBudget,
+        percentUsed,
+      });
+    }
+  }
 }
