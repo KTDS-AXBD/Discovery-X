@@ -1,4 +1,4 @@
-const BASE_URL = "https://discovery-x.pages.dev";
+const BASE_URL = "https://dx.minu.best";
 
 const DECISION_LABELS: Record<string, string> = {
   NEXT: "전진 (NEXT)",

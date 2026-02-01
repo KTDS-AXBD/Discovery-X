@@ -99,7 +99,9 @@ async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; erro
     }));
 
   // 3. Send emails to all users (broadcast approach for small team)
-  const recipients = allUsers.map((u) => u.email);
+  const recipients = allUsers
+    .filter((u) => !u.email.endsWith("@system"))
+    .map((u) => u.email);
 
   if (overdueItems.length > 0) {
     const { subject, html } = buildOverdueEmail(overdueItems);
