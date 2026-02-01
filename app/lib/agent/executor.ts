@@ -149,7 +149,7 @@ export async function executeAgentTurn(
   const MAX_TOOL_ROUNDS = 5;
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-    const contextMessages = await buildConversationContext(db, conversationId);
+    const contextMessages = await buildConversationContext(db, conversationId, modelId);
 
     const response: ClaudeResponse = await callClaude(apiKey, {
       model: modelId,
@@ -310,7 +310,7 @@ export function createAgentStreamResponse(
         const MAX_TOOL_ROUNDS = 5;
 
         for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-          const contextMessages = await buildConversationContext(db, conversationId);
+          const contextMessages = await buildConversationContext(db, conversationId, modelId);
 
           const rawStream = await callClaudeStream(apiKey, {
             model: modelId,

@@ -8,10 +8,22 @@ import type { DB } from "~/db";
 import { messages, discoveries, experiments, evidence } from "~/db/schema";
 import type { ClaudeMessage, ClaudeContentBlock } from "./claude-client";
 
-const MAX_CONTEXT_MESSAGES = 40;
-const SUMMARY_THRESHOLD = 30;
-const KEEP_FIRST = 5;
-const KEEP_LAST = 25;
+interface ContextConfig {
+  maxMessages: number;
+  summaryThreshold: number;
+  keepFirst: number;
+  keepLast: number;
+}
+
+const MODEL_CONTEXT_CONFIG: Record<string, ContextConfig> = {
+  "claude-opus-4-20250514": { maxMessages: 60, summaryThreshold: 45, keepFirst: 5, keepLast: 40 },
+  default: { maxMessages: 40, summaryThreshold: 30, keepFirst: 5, keepLast: 25 },
+};
+
+function getContextConfig(modelId?: string): ContextConfig {
+  if (modelId && modelId in MODEL_CONTEXT_CONFIG) return MODEL_CONTEXT_CONFIG[modelId];
+  return MODEL_CONTEXT_CONFIG.default;
+}
 
 function summarizeSkippedMessages(
   skipped: Array<{ role: string; toolName: string | null; content: string }>
@@ -40,15 +52,18 @@ function summarizeSkippedMessages(
 
 export async function buildConversationContext(
   db: DB,
-  conversationId: string
+  conversationId: string,
+  modelId?: string
 ): Promise<ClaudeMessage[]> {
+  const ctx = getContextConfig(modelId);
+
   // Use rowid for reliable insertion-order sorting (createdAt is second-precision, insufficient)
   const recentMessages = await db
     .select()
     .from(messages)
     .where(eq(messages.conversationId, conversationId))
     .orderBy(desc(sql`rowid`))
-    .limit(MAX_CONTEXT_MESSAGES);
+    .limit(ctx.maxMessages);
 
   // Reverse to chronological order
   recentMessages.reverse();
@@ -57,10 +72,10 @@ export async function buildConversationContext(
   let messagesToProcess = recentMessages;
   let summaryText: string | null = null;
 
-  if (recentMessages.length >= SUMMARY_THRESHOLD) {
-    const first = recentMessages.slice(0, KEEP_FIRST);
-    const last = recentMessages.slice(-KEEP_LAST);
-    const skipped = recentMessages.slice(KEEP_FIRST, -KEEP_LAST);
+  if (recentMessages.length >= ctx.summaryThreshold) {
+    const first = recentMessages.slice(0, ctx.keepFirst);
+    const last = recentMessages.slice(-ctx.keepLast);
+    const skipped = recentMessages.slice(ctx.keepFirst, -ctx.keepLast);
     summaryText = summarizeSkippedMessages(
       skipped.map((m) => ({ role: m.role, toolName: m.toolName, content: m.content }))
     );
@@ -82,7 +97,7 @@ export async function buildConversationContext(
     const msg = messagesToProcess[i];
 
     // Insert summary after KEEP_FIRST messages
-    if (summaryText && !summaryInserted && processedCount >= KEEP_FIRST) {
+    if (summaryText && !summaryInserted && processedCount >= ctx.keepFirst) {
       claudeMessages.push({ role: "user", content: summaryText });
       claudeMessages.push({ role: "assistant", content: "이전 대화 내용을 참고하겠습니다." });
       summaryInserted = true;

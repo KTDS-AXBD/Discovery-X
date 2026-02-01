@@ -77,7 +77,7 @@ export async function updateDiscovery(
     .where(eq(discoveries.id, input.discoveryId))
     .limit(1);
 
-  if (!discovery[0]) return JSON.stringify({ error: "Discovery를 찾을 수 없습니다." });
+  if (!discovery[0]) return JSON.stringify({ error: "Discovery를 찾을 수 없습니다.", suggestion: "list_discoveries로 기존 목록을 확인해보세요." });
 
   const status = discovery[0].status;
   if (status !== DiscoveryStatus.INBOX && status !== DiscoveryStatus.OPEN) {
@@ -135,7 +135,7 @@ export async function promoteDiscovery(
   try {
     DiscoveryValidationRules.validateOwnerRequired(input.ownerId);
   } catch (e) {
-    if (e instanceof ValidationError) return JSON.stringify({ error: e.message });
+    if (e instanceof ValidationError) return JSON.stringify({ error: e.message, suggestion: "get_discovery_detail로 현재 상태와 필수 필드를 확인해보세요." });
     throw e;
   }
 
@@ -189,7 +189,7 @@ export async function addExperiment(
   try {
     await DiscoveryValidationRules.validateExperimentLimit(db, input.discoveryId);
   } catch (e) {
-    if (e instanceof ValidationError) return JSON.stringify({ error: e.message, details: e.details });
+    if (e instanceof ValidationError) return JSON.stringify({ error: e.message, details: e.details, suggestion: "get_discovery_detail로 현재 실험 수를 확인해보세요." });
     throw e;
   }
 
@@ -280,7 +280,7 @@ export async function decideNext(
     .where(eq(discoveries.id, input.discoveryId))
     .limit(1);
 
-  if (!discovery[0]) return JSON.stringify({ error: "Discovery를 찾을 수 없습니다." });
+  if (!discovery[0]) return JSON.stringify({ error: "Discovery를 찾을 수 없습니다.", suggestion: "list_discoveries로 기존 목록을 확인해보세요." });
 
   const validation = await DiscoveryValidationRules.validateNextDecision(db, input.discoveryId);
 
@@ -326,7 +326,7 @@ export async function decideNotNow(
       revisitDate,
     });
   } catch (e) {
-    if (e instanceof ValidationError) return JSON.stringify({ error: e.message });
+    if (e instanceof ValidationError) return JSON.stringify({ error: e.message, suggestion: "NOT_NOW 결정에는 triggerType, condition, revisitDate가 필수입니다." });
     throw e;
   }
 
@@ -368,7 +368,7 @@ export async function decideDeadEnd(
       deadEndEvidenceReason: input.deadEndEvidenceReason,
     });
   } catch (e) {
-    if (e instanceof ValidationError) return JSON.stringify({ error: e.message });
+    if (e instanceof ValidationError) return JSON.stringify({ error: e.message, suggestion: "DEAD_END 결정에는 failurePattern과 evidenceBasedReason이 필수입니다." });
     throw e;
   }
 
@@ -403,7 +403,7 @@ export async function requestExtension(
     .where(eq(discoveries.id, input.discoveryId))
     .limit(1);
 
-  if (!discovery[0]) return JSON.stringify({ error: "Discovery를 찾을 수 없습니다." });
+  if (!discovery[0]) return JSON.stringify({ error: "Discovery를 찾을 수 없습니다.", suggestion: "list_discoveries로 기존 목록을 확인해보세요." });
 
   await db
     .update(discoveries)

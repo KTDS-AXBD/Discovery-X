@@ -2,7 +2,7 @@
  * Query tools — read-only operations for listing, searching, metrics, radar.
  */
 
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and, gte, lte } from "drizzle-orm";
 import type { DB } from "~/db";
 import {
   discoveries,
@@ -152,44 +152,49 @@ export async function getMetrics(
   db: DB,
   input?: { fromDate?: string; toDate?: string }
 ): Promise<string> {
-  let allDiscoveries = await db.select().from(discoveries);
+  // Build date filter conditions
+  const conditions = [];
+  if (input?.fromDate) conditions.push(gte(discoveries.createdAt, new Date(input.fromDate)));
+  if (input?.toDate) conditions.push(lte(discoveries.createdAt, new Date(input.toDate)));
+  const dateFilter = conditions.length > 0 ? and(...conditions) : undefined;
 
-  if (input?.fromDate) {
-    const from = new Date(input.fromDate).getTime();
-    allDiscoveries = allDiscoveries.filter((d) => d.createdAt && new Date(d.createdAt).getTime() >= from);
-  }
-  if (input?.toDate) {
-    const to = new Date(input.toDate).getTime();
-    allDiscoveries = allDiscoveries.filter((d) => d.createdAt && new Date(d.createdAt).getTime() <= to);
-  }
+  // 1) Status counts — SQL GROUP BY
+  const statusRows = await db
+    .select({ status: discoveries.status, count: sql<number>`count(*)` })
+    .from(discoveries)
+    .where(dateFilter)
+    .groupBy(discoveries.status);
 
   const statusCounts: Record<string, number> = {};
-  for (const d of allDiscoveries) {
-    statusCounts[d.status] = (statusCounts[d.status] || 0) + 1;
+  let total = 0;
+  for (const row of statusRows) {
+    statusCounts[row.status] = Number(row.count);
+    total += Number(row.count);
   }
 
-  const agentCreated = allDiscoveries.filter((d) => d.createdByAgent).length;
+  // 2) Agent-created count — SQL COUNT + WHERE
+  const agentRow = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(discoveries)
+    .where(dateFilter ? and(dateFilter, eq(discoveries.createdByAgent, 1)) : eq(discoveries.createdByAgent, 1));
+  const agentCreated = Number(agentRow[0]?.count ?? 0);
 
-  // Average time from INBOX to OPEN (for those that transitioned)
-  const openDiscoveries = allDiscoveries.filter((d) => d.status !== DiscoveryStatus.INBOX);
-  let avgDaysToOpen = 0;
-  if (openDiscoveries.length > 0) {
-    const totalDays = openDiscoveries.reduce((sum, d) => {
-      if (d.dueDate && d.createdAt) {
-        const created = new Date(d.createdAt).getTime();
-        const due = new Date(d.dueDate).getTime();
-        return sum + (due - created) / (1000 * 60 * 60 * 24);
-      }
-      return sum;
-    }, 0);
-    avgDaysToOpen = Math.round(totalDays / openDiscoveries.length);
-  }
+  // 3) Average days from creation to due date (for non-INBOX)
+  const avgRow = await db
+    .select({ avg: sql<number>`avg(julianday(due_date) - julianday(created_at))` })
+    .from(discoveries)
+    .where(
+      dateFilter
+        ? and(dateFilter, sql`${discoveries.status} != 'INBOX'`, sql`due_date IS NOT NULL`)
+        : and(sql`${discoveries.status} != 'INBOX'`, sql`due_date IS NOT NULL`)
+    );
+  const avgDaysToOpen = Math.round(Number(avgRow[0]?.avg ?? 0));
 
   return JSON.stringify({
-    total: allDiscoveries.length,
+    total,
     statusCounts,
     agentCreated,
-    humanCreated: allDiscoveries.length - agentCreated,
+    humanCreated: total - agentCreated,
     avgDaysToOpen,
   });
 }
