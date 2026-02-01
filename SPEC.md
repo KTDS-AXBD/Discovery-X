@@ -244,9 +244,11 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 - ✅ `pnpm typecheck` + `pnpm build` 통과
 
 ### 이전 변경 (세션 47)
-**테스트 DB 마이그레이션 현행화 + TypeScript 에러 수정**:
+**테스트 DB 마이그레이션 현행화 + Agent 도구 개선 + 배포 완료**:
 - ✅ 테스트 헬퍼(`tests/helpers/db.ts`) 마이그레이션 현행화 — 0003~0006 누락분 추가 → 129개 테스트 전체 통과 (기존 48개 실패)
 - ✅ ToolExecution.tsx TypeScript 에러 수정 — `unknown` → `ReactNode` 할당 에러 2건 (`Boolean()` 래핑 + 삼항 연산자)
+- ✅ Agent 도구 개선: `list_discoveries`/`get_radar_items` offset 페이지네이션 + hasMore, `get_metrics` 기간 필터(fromDate/toDate), `promote_discovery` 에러 suggestion
+- ✅ 프로덕션 배포 완료 (https://dx.minu.best) + DB 마이그레이션 0006 프로덕션 적용 확인 완료
 - ✅ `pnpm typecheck` + `pnpm build` + `pnpm test` (129개) 통과
 
 ### 이전 변경 (세션 46)
@@ -666,13 +668,13 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 - **배포**: Cloudflare Pages Git 연동 (master push → 자동 빌드/배포)
 - **EXTENSION_REQUESTED**: ✅ 구현 완료 (OPEN + 실험 2개 → 연장 요청 → +14일, 3번째 실험 가능)
 - **운영 실험**: 🚀 2026-01-31 시작 (30-60일, 최대 5명, Discovery 5-10건 목표)
-- **DB 마이그레이션**: ✅ 7개 마이그레이션 (0000~0006) 로컬 적용 완료 (0006 프로덕션 미적용)
+- **DB 마이그레이션**: ✅ 7개 마이그레이션 (0000~0006) 로컬 + 프로덕션 적용 완료
 - **빌드 상태**: `pnpm build` + `pnpm typecheck` + `pnpm lint` 모두 통과
 - **v2 Agent 시스템**: ✅ 프로덕션 배포 완료 (코드 + DB 마이그레이션 0005 + ANTHROPIC_API_KEY 설정)
 - **Radar Worker**: ✅ 프로덕션 배포 완료 (https://radar-worker.sinclair-account.workers.dev), Cron 매일 9:00 KST, 10소스 활성 (RSS 6 + Web 3 + YouTube 1)
 - **다크모드**: ✅ 세션 43 — 122개 AXIS 토큰 + DX 커스텀 토큰 dark override, useTheme 훅, FOUC 방지, MainNav 토글
 - **@axis-ds 패키지**: ✅ 세션 45 — tokens@1.1.1 + theme@1.1.1 + ui-react@1.1.1 연동 완료 (로컬 토큰/테마/컴포넌트 → 패키지 대체)
-- **배포 상태**: ✅ 세션 43 프로덕션 배포 완료 — 다크모드 + 차트 토큰화 (https://dx.minu.best)
+- **배포 상태**: ✅ 세션 47 프로덕션 배포 완료 — Agent 도구 개선 + TS 에러 수정 (https://dx.minu.best)
 - **Agent E2E 테스트**: ✅ 세션 39 풀 플로우 검증 완료 — 6개 도구 정상 (get_metrics, create_discovery, promote_discovery, add_evidence, complete_experiment, decide_next)
 - **Agent 채팅 개선**: ✅ 세션 40 — 입력 보존, 제목 로직, 프로그레시브 스트리밍, content 중복 수정
 - **채팅 마크다운**: ✅ 세션 41-42 — react-markdown + remark-gfm + @tailwindcss/typography 기반 Agent 응답 마크다운 렌더링
