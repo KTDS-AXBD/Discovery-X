@@ -66,7 +66,7 @@ export async function deduplicateByFts(
 
   for (const item of items) {
     // Escape FTS5 special characters
-    const escaped = item.title.replace(/['"*(){}[\]^~\\]/g, "").trim();
+    const escaped = item.title.replace(/[^\p{L}\p{N}\s]/gu, "").trim();
     if (!escaped || escaped.length < 3) {
       unique.push(item);
       continue;

@@ -1,4 +1,5 @@
 import type { CollectedItem, RadarSource } from "../types";
+import { fetchWithRetry } from "../lib/fetch-retry";
 
 interface WebConfig {
   selector?: string;
@@ -7,10 +8,15 @@ interface WebConfig {
   descSelector?: string;
 }
 
+interface LinkEntry {
+  href: string;
+  text: string;
+}
+
 export async function collectWeb(source: RadarSource): Promise<CollectedItem[]> {
   const config: WebConfig = source.config ? JSON.parse(source.config) : {};
 
-  const response = await fetch(source.url, {
+  const response = await fetchWithRetry(source.url, {
     headers: {
       "User-Agent": "Mozilla/5.0 (compatible; Radar-Worker/1.0; +https://dx.minu.best)",
       Accept: "text/html",
@@ -21,28 +27,15 @@ export async function collectWeb(source: RadarSource): Promise<CollectedItem[]> 
     throw new Error(`Web fetch failed: ${response.status} ${response.statusText}`);
   }
 
-  const html = await response.text();
+  const links = await extractLinks(response, source.url);
   const items: CollectedItem[] = [];
-
-  // Simple link extraction — for more sophisticated scraping,
-  // use HTMLRewriter in a streaming fashion
-  const linkRegex = /<a[^>]+href="([^"]+)"[^>]*>([^<]+)<\/a>/gi;
-  let match;
   const seen = new Set<string>();
 
-  while ((match = linkRegex.exec(html)) !== null && items.length < 20) {
-    let href = match[1];
-    const text = match[2].trim();
+  for (const link of links) {
+    if (items.length >= 20) break;
 
+    const { href, text } = link;
     if (!text || text.length < 5) continue;
-    if (href.startsWith("#") || href.startsWith("javascript:")) continue;
-
-    // Resolve relative URLs
-    if (href.startsWith("/")) {
-      const base = new URL(source.url);
-      href = `${base.origin}${href}`;
-    }
-
     if (seen.has(href)) continue;
     seen.add(href);
 
@@ -64,4 +57,57 @@ export async function collectWeb(source: RadarSource): Promise<CollectedItem[]> 
   }
 
   return items;
+}
+
+async function extractLinks(response: Response, baseUrl: string): Promise<LinkEntry[]> {
+  const links: LinkEntry[] = [];
+  let currentText = "";
+  let currentHref: string | null = null;
+
+  const rewriter = new HTMLRewriter()
+    .on("a[href]", {
+      element(el) {
+        const href = el.getAttribute("href");
+        if (!href || href.startsWith("#") || href.startsWith("javascript:")) {
+          currentHref = null;
+          return;
+        }
+
+        // Resolve relative URLs
+        let resolved = href;
+        if (href.startsWith("/")) {
+          const base = new URL(baseUrl);
+          resolved = `${base.origin}${href}`;
+        } else if (!href.startsWith("http")) {
+          try {
+            resolved = new URL(href, baseUrl).href;
+          } catch {
+            currentHref = null;
+            return;
+          }
+        }
+
+        currentHref = resolved;
+        currentText = "";
+      },
+      text(chunk) {
+        if (currentHref !== null) {
+          currentText += chunk.text;
+          if (chunk.lastInTextNode) {
+            const trimmed = currentText.trim();
+            if (trimmed) {
+              links.push({ href: currentHref, text: trimmed });
+            }
+            currentHref = null;
+            currentText = "";
+          }
+        }
+      },
+    });
+
+  // HTMLRewriter consumes the response stream
+  const transformed = rewriter.transform(response);
+  await transformed.text();
+
+  return links;
 }

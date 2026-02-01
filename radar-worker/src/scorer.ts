@@ -1,4 +1,5 @@
 import type { CollectedItem, ScoredItem } from "./types";
+import { fetchWithRetry } from "./lib/fetch-retry";
 
 interface ScoreResult {
   title: string;
@@ -73,7 +74,7 @@ async function scoreBatch(
   ];
 
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetchWithRetry("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,

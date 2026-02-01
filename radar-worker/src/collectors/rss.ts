@@ -1,4 +1,5 @@
 import type { CollectedItem, RadarSource } from "../types";
+import { fetchWithRetry } from "../lib/fetch-retry";
 
 interface RssEntry {
   title: string;
@@ -76,7 +77,7 @@ function decodeEntities(text: string): string {
 }
 
 export async function collectRss(source: RadarSource): Promise<CollectedItem[]> {
-  const response = await fetch(source.url, {
+  const response = await fetchWithRetry(source.url, {
     headers: {
       "User-Agent": "Mozilla/5.0 (compatible; Radar-Worker/1.0; +https://dx.minu.best)",
       Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml",
