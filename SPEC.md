@@ -233,7 +233,17 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 47)
+### 최근 변경 (세션 48)
+**radar-worker 4건 제한사항 개선 + 배포 완료**:
+- ✅ Web Collector: regex 파서 → Cloudflare `HTMLRewriter` 전면 교체 (`a[href]` element handler + text 수집)
+- ✅ YouTube @handle 자동 해석: `youtube.com/@handle` URL → 페이지 fetch → `meta[itemprop=channelId]` / `externalId` 패턴으로 channel_id 추출 → RSS feed URL 자동 변환
+- ✅ FTS5 이스케이프 강화: `['"*(){}[\]^~\\]` → `[^\p{L}\p{N}\s]` 유니코드 안전 패턴 (한국어/일본어/중국어 제목 안전)
+- ✅ `fetchWithRetry` 유틸 신규 (`radar-worker/src/lib/fetch-retry.ts`): 429/5xx 재시도 + 지수 백오프 (1s→2s, maxRetries=2)
+- ✅ 4개 파일에 `fetchWithRetry` 적용: `rss.ts`, `web.ts`, `youtube.ts`, `scorer.ts`
+- ✅ radar-worker 프로덕션 배포 완료 (v66872c05) + Pages 프리뷰 배포 완료
+- ✅ `pnpm typecheck` + `pnpm build` 통과
+
+### 이전 변경 (세션 47)
 **테스트 DB 마이그레이션 현행화 + TypeScript 에러 수정**:
 - ✅ 테스트 헬퍼(`tests/helpers/db.ts`) 마이그레이션 현행화 — 0003~0006 누락분 추가 → 129개 테스트 전체 통과 (기존 48개 실패)
 - ✅ ToolExecution.tsx TypeScript 에러 수정 — `unknown` → `ReactNode` 할당 에러 2건 (`Boolean()` 래핑 + 삼항 연산자)
@@ -756,6 +766,7 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | **ToolExecution UI 개선** | ✅ | 리치 결과 렌더링, expand/collapse, JSON 토글, 실행 중 표시 |
 | **Daily Cron 버그 수정** | ✅ | 시스템 사용자 이메일 제외 + BASE_URL 수정 |
 | **테스트 DB 마이그레이션 현행화** | ✅ | tests/helpers/db.ts에 0003~0006 마이그레이션 추가 → 129개 전체 통과 |
+| **Radar Worker 제한사항 개선** | ✅ | HTMLRewriter 교체, YouTube @handle 해석, FTS5 유니코드 이스케이프, fetchWithRetry 유틸 |
 
 ### 남은 작업
 - [x] 최종 프로덕션 배포 — 세션 14에서 완료
