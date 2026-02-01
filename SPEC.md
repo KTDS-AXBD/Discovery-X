@@ -233,20 +233,14 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 51)
-**AXIS Design System 정합성 수정 완료**:
-- ✅ ChatPanel 에러/경고 배너 → AlertBanner 컴포넌트 통합 (`bg-red-50`/`bg-amber-50` 하드코딩 → `AlertBanner variant="destructive"/"warning"` AXIS 토큰 자동 적용)
-- ✅ MessageBubble 스트리밍 커서 → AXIS ThinkingIndicator 스타일 3-dot bounce 애니메이션 변경
-- ✅ ToolExecution 상태 표시 → Badge 컴포넌트 통일 (running/success/error 상태를 `Badge variant` 활용)
-- ✅ `pnpm typecheck` + `pnpm build` + `pnpm lint` 통과
-
-### 이전 변경 (세션 50)
-**Agent 코드 3건 개선 — SQL 집계, 모델별 컨텍스트, 에러 suggestion**:
+### 최근 변경 (세션 50)
+**Agent 코드 3건 개선 + Chat UI polish + 프로덕션 배포 완료**:
 - ✅ `getMetrics` SQL 집계 전환 — 메모리 로드+JS 필터 → SQL `GROUP BY`/`COUNT(*)`/`AVG(julianday)` 집계로 전환 (query-tools.ts)
 - ✅ 모델별 컨텍스트 윈도우 동적 조정 — `MODEL_CONTEXT_CONFIG` 도입, Opus 4: 60개 메시지, default: 40개 (context-builder.ts + executor.ts)
 - ✅ discovery-tools 에러 suggestion 7곳 추가 — updateDiscovery, promoteDiscovery(ValidationError), addExperiment, decideNext, decideNotNow, decideDeadEnd, requestExtension
 - ✅ Chat UI polish — AlertBanner 에러 표시, 3-dot bounce 스트리밍 인디케이터, Badge 상태 표시 (ChatPanel, MessageBubble, ToolExecution)
 - ✅ `pnpm typecheck` + `pnpm build` 통과
+- ✅ 프로덕션 배포 완료 (https://dx.minu.best, 배포 ID: 49464357)
 
 ### 이전 변경 (세션 49)
 **v2 Agent 재설계 15건 전체 구현 완료 (검증 세션)**:
@@ -715,7 +709,7 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 - **다크모드**: ✅ 세션 43 — 122개 AXIS 토큰 + DX 커스텀 토큰 dark override, useTheme 훅, FOUC 방지, MainNav 토글
 - **@axis-ds 패키지**: ✅ 세션 45 — tokens@1.1.1 + theme@1.1.1 + ui-react@1.1.1 연동 완료 (로컬 토큰/테마/컴포넌트 → 패키지 대체)
 - **v2 Agent 재설계**: ✅ 세션 46~49 — 15건 전체 구현 완료 (아키텍처 4건 + 도구 5건 + UX 6건), DB 마이그레이션 0006 로컬 적용 완료
-- **배포 상태**: ✅ 세션 49 프로덕션 배포 완료 — chat UX 개선 + v2 Agent 재설계 15건 (https://dx.minu.best)
+- **배포 상태**: ✅ 세션 50 프로덕션 배포 완료 — Agent 코드 3건 개선 + Chat UI polish (https://dx.minu.best)
 - **Agent E2E 테스트**: ✅ 세션 39 풀 플로우 검증 완료 — 6개 도구 정상 (get_metrics, create_discovery, promote_discovery, add_evidence, complete_experiment, decide_next)
 - **Agent 채팅 개선**: ✅ 세션 40 — 입력 보존, 제목 로직, 프로그레시브 스트리밍, content 중복 수정
 - **채팅 마크다운**: ✅ 세션 41-42 — react-markdown + remark-gfm + @tailwindcss/typography 기반 Agent 응답 마크다운 렌더링
