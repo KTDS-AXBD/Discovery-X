@@ -233,16 +233,19 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 49)
+### 최근 변경 (세션 50)
+**Agent 코드 3건 개선 — SQL 집계, 모델별 컨텍스트, 에러 suggestion**:
+- ✅ `getMetrics` SQL 집계 전환 — 메모리 로드+JS 필터 → SQL `GROUP BY`/`COUNT(*)`/`AVG(julianday)` 집계로 전환 (query-tools.ts)
+- ✅ 모델별 컨텍스트 윈도우 동적 조정 — `MODEL_CONTEXT_CONFIG` 도입, Opus 4: 60개 메시지, default: 40개 (context-builder.ts + executor.ts)
+- ✅ discovery-tools 에러 suggestion 7곳 추가 — updateDiscovery, promoteDiscovery(ValidationError), addExperiment, decideNext, decideNotNow, decideDeadEnd, requestExtension
+- ✅ Chat UI polish — AlertBanner 에러 표시, 3-dot bounce 스트리밍 인디케이터, Badge 상태 표시 (ChatPanel, MessageBubble, ToolExecution)
+- ✅ `pnpm typecheck` + `pnpm build` 통과
+
+### 이전 변경 (세션 49)
 **v2 Agent 재설계 15건 전체 구현 완료 (검증 세션)**:
 - ✅ 이전 세션(46~48)에서 구현된 v2 Agent 재설계 15건의 코드 무결성 최종 검증
-- ✅ linter 자동 되돌림 우려 파일 3개 확인 — 모두 정상 유지 확인:
-  - `context-builder.ts` (P2-A4 컨텍스트 윈도우 최적화: first 5 + last 25 + 요약)
-  - `MessageBubble.tsx` (P1-U4 rehype-highlight + CodeBlock 복사 버튼 + streaming prop)
-  - `ConversationList.tsx` (P1-U5/U6 검색 + 삭제 확인 UI)
-- ✅ 핵심 파일 검증: executor.ts (스트리밍 + 자율도 강제), tool-registry.ts (TOOL_MIN_AUTONOMY), 0006_add_model_id.sql
-- ✅ `pnpm typecheck` + `pnpm lint` + `pnpm build` 통과
-- ✅ 프로덕션 배포 완료 (https://dx.minu.best) — chat UX 개선 (검색, 삭제 확인, 코드 하이라이트, 컨텍스트 요약) 포함
+- ✅ linter 자동 되돌림 우려 파일 3개 확인 — 모두 정상 유지 확인
+- ✅ 프로덕션 배포 완료 (https://dx.minu.best) — chat UX 개선 포함
 
 **v2 Agent 재설계 15건 구현 요약**:
 | 스트림 | 항목 | 설명 |
@@ -805,6 +808,10 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | **자율도 레벨 도구 강제** | ✅ | TOOL_MIN_AUTONOMY (Level 1: 조회, Level 2: 생성/승격, Level 3: 전체) |
 | **컨텍스트 윈도우 최적화** | ✅ | 30+ 메시지 시 first 5 + last 25 + 중간 요약 삽입 (LLM 호출 없이) |
 | **채팅 UX 개선** | ✅ | 대화 검색, 삭제 확인, 코드 구문 강조+복사, 도구 결과 접기/펼치기, ErrorBoundary |
+| **getMetrics SQL 집계** | ✅ | 메모리 로드 → SQL GROUP BY/COUNT/AVG 전환, 날짜 필터 Drizzle 조건 |
+| **모델별 컨텍스트 윈도우** | ✅ | MODEL_CONTEXT_CONFIG (Opus 4: 60개, default: 40개), executor 연동 |
+| **에러 suggestion 일관성** | ✅ | discovery-tools 7곳 에러 응답에 suggestion 힌트 추가 |
+| **Chat UI polish** | ✅ | AlertBanner 에러, 3-dot bounce 인디케이터, Badge 상태 표시 |
 
 ### 남은 작업
 - [x] 최종 프로덕션 배포 — 세션 14에서 완료
