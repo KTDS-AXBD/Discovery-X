@@ -66,7 +66,7 @@ export async function getDiscoveryDetail(
     .where(eq(discoveries.id, input.discoveryId))
     .limit(1);
 
-  if (!discovery[0]) return JSON.stringify({ error: "Discovery를 찾을 수 없습니다." });
+  if (!discovery[0]) return JSON.stringify({ error: "Discovery를 찾을 수 없습니다.", suggestion: "list_discoveries로 기존 목록을 확인해보세요." });
 
   const d = discovery[0];
   const exps = await db

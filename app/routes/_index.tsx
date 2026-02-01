@@ -68,25 +68,29 @@ export default function Index() {
     initialConversations[0]?.id || null
   );
   const [chatMessages, setChatMessages] = useState<ChatMessageData[]>([]);
-  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [messagesLoaded, setMessagesLoaded] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const isLoadingMessages = activeConversationId !== null && !messagesLoaded;
 
   // Fetch messages when conversation changes
   useEffect(() => {
     if (!activeConversationId) return;
 
     let cancelled = false;
-    setIsLoadingMessages(true);
     fetch(`/api/conversations/${activeConversationId}/messages`)
       .then((res) => res.json() as Promise<{ messages: ChatMessageData[] }>)
       .then((data) => {
-        if (!cancelled) setChatMessages(data.messages || []);
+        if (!cancelled) {
+          setChatMessages(data.messages || []);
+          setMessagesLoaded(true);
+        }
       })
       .catch(() => {
-        if (!cancelled) setChatMessages([]);
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoadingMessages(false);
+        if (!cancelled) {
+          setChatMessages([]);
+          setMessagesLoaded(true);
+        }
       });
 
     return () => { cancelled = true; };
@@ -107,6 +111,7 @@ export default function Index() {
       setConvList((prev) => [newConv, ...prev]);
       setActiveConversationId(data.id);
       setChatMessages([]);
+      setMessagesLoaded(true);
     } catch {
       // Silently fail
     }
@@ -155,6 +160,7 @@ export default function Index() {
             activeId={activeConversationId}
             onSelect={(id) => {
               setActiveConversationId(id);
+              setMessagesLoaded(false);
               setSidebarOpen(false);
             }}
             onNew={handleNewConversation}

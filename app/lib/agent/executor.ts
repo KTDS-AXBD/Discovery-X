@@ -11,7 +11,7 @@ import type { ClaudeResponse, ClaudeContentBlock } from "./claude-client";
 import { callClaude, callClaudeStream, parseSSEStream, CLAUDE_MODEL } from "./claude-client";
 import { buildConversationContext } from "./context-builder";
 import { buildSystemPrompt } from "./system-prompt";
-import { AGENT_TOOLS, getToolsForAutonomyLevel, TOOL_MIN_AUTONOMY } from "./tool-registry";
+import { getToolsForAutonomyLevel, TOOL_MIN_AUTONOMY } from "./tool-registry";
 import {
   createDiscovery,
   updateDiscovery,
