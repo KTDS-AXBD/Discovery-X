@@ -26,6 +26,13 @@ const AUTONOMY_OPTIONS = [
   { value: "3", label: "Autonomous — 전체 자율" },
 ];
 
+const MODEL_OPTIONS = [
+  { value: "", label: "기본 (Claude Sonnet 4)" },
+  { value: "claude-sonnet-4-20250514", label: "Claude Sonnet 4" },
+  { value: "claude-haiku-3-5-20241022", label: "Claude Haiku 3.5" },
+  { value: "claude-opus-4-20250514", label: "Claude Opus 4" },
+];
+
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
@@ -62,6 +69,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const autonomyLevel = parseInt(formData.get("autonomyLevel") as string, 10);
   const dailyTokenBudget = parseInt(formData.get("dailyTokenBudget") as string, 10);
   const systemPrompt = (formData.get("systemPrompt") as string) || null;
+  const modelId = (formData.get("modelId") as string) || null;
 
   await db
     .update(agentConfig)
@@ -69,6 +77,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       autonomyLevel: isNaN(autonomyLevel) ? 3 : autonomyLevel,
       dailyTokenBudget: isNaN(dailyTokenBudget) ? 100000 : dailyTokenBudget,
       systemPrompt,
+      modelId,
       updatedAt: new Date(),
     })
     .where(eq(agentConfig.id, "default"));
@@ -102,6 +111,23 @@ export default function Settings() {
             <FormField label="자율도">
               <Select name="autonomyLevel" defaultValue={String(config.autonomyLevel)}>
                 {AUTONOMY_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </Select>
+            </FormField>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">모델 선택</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FormField label="Claude 모델" hint="Agent가 사용할 Claude 모델을 선택합니다">
+              <Select name="modelId" defaultValue={config.modelId || ""}>
+                {MODEL_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
                   </option>

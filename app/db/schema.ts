@@ -362,6 +362,7 @@ export const agentConfig = sqliteTable("agent_config", {
   dailyTokenBudget: integer("daily_token_budget").notNull().default(100000),
   tokensUsedToday: integer("tokens_used_today").notNull().default(0),
   tokenResetDate: text("token_reset_date"), // YYYY-MM-DD
+  modelId: text("model_id"), // nullable — defaults to CLAUDE_MODEL
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),

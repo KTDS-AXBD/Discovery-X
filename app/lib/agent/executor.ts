@@ -8,12 +8,13 @@ import { eq } from "drizzle-orm";
 import type { DB } from "~/db";
 import { messages, agentConfig } from "~/db/schema";
 import type { ClaudeResponse } from "./claude-client";
-import { callClaude } from "./claude-client";
+import { callClaude, CLAUDE_MODEL } from "./claude-client";
 import { buildConversationContext } from "./context-builder";
 import { buildSystemPrompt } from "./system-prompt";
 import { AGENT_TOOLS } from "./tool-registry";
 import {
   createDiscovery,
+  updateDiscovery,
   promoteDiscovery,
   addExperiment,
   completeExperiment,
@@ -30,6 +31,8 @@ import {
   getMetrics,
   getRadarItems,
   listUsers,
+  getWeeklyReview,
+  getRecallQueue,
 } from "./tools/query-tools";
 
 function generateId(): string {
@@ -54,6 +57,8 @@ async function executeTool(
   switch (toolName) {
     case "create_discovery":
       return createDiscovery(db, toolInput as Parameters<typeof createDiscovery>[1]);
+    case "update_discovery":
+      return updateDiscovery(db, toolInput as Parameters<typeof updateDiscovery>[1]);
     case "promote_discovery":
       return promoteDiscovery(db, toolInput as Parameters<typeof promoteDiscovery>[1]);
     case "add_experiment":
@@ -80,6 +85,10 @@ async function executeTool(
       return getMetrics(db);
     case "get_radar_items":
       return getRadarItems(db, toolInput as Parameters<typeof getRadarItems>[1]);
+    case "get_weekly_review":
+      return getWeeklyReview(db);
+    case "get_recall_queue":
+      return getRecallQueue(db);
     case "list_users":
       return listUsers(db);
     default:
@@ -116,7 +125,9 @@ export async function executeAgentTurn(
     .where(eq(agentConfig.id, "default"))
     .limit(1);
 
-  const systemPrompt = buildSystemPrompt(config[0] || null);
+  const agentCfg = config[0] || null;
+  const systemPrompt = buildSystemPrompt(agentCfg);
+  const modelId = agentCfg?.modelId || CLAUDE_MODEL;
   const allToolCalls: ExecuteResult["toolCalls"] = [];
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
@@ -127,6 +138,7 @@ export async function executeAgentTurn(
     const contextMessages = await buildConversationContext(db, conversationId);
 
     const response: ClaudeResponse = await callClaude(apiKey, {
+      model: modelId,
       max_tokens: 4096,
       system: systemPrompt,
       messages: contextMessages,

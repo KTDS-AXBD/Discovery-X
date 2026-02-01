@@ -24,6 +24,10 @@ export function createTestDb() {
   runMigrationSQL(sqlite, resolve(migrationsDir, "0000_rare_raider.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0001_magenta_wallflower.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0002_add_approval_columns.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0003_add_fts5.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0004_add_radar_tables.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0005_add_agent_chat_tables.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0006_add_model_id.sql"));
 
   return drizzle(sqlite, { schema });
 }

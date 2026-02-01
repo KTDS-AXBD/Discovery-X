@@ -4,8 +4,13 @@
  */
 
 const CLAUDE_API_URL = "https://api.anthropic.com/v1/messages";
-const CLAUDE_MODEL = "claude-sonnet-4-20250514";
+export const CLAUDE_MODEL = "claude-sonnet-4-20250514";
 const ANTHROPIC_VERSION = "2023-06-01";
+
+const RETRY_STATUS_CODES = new Set([429, 500, 502, 503, 529]);
+const MAX_RETRIES = 3;
+const BASE_DELAY_MS = 1000;
+const REQUEST_TIMEOUT_MS = 25000;
 
 export interface ClaudeMessage {
   role: "user" | "assistant";
@@ -62,31 +67,67 @@ export interface ClaudeStreamEvent {
   usage?: { output_tokens: number };
 }
 
+async function fetchWithRetry(
+  apiKey: string,
+  body: Record<string, unknown>,
+): Promise<Response> {
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+    try {
+      const response = await fetch(CLAUDE_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": ANTHROPIC_VERSION,
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) return response;
+
+      // Non-retryable errors
+      if (!RETRY_STATUS_CODES.has(response.status) || attempt === MAX_RETRIES) {
+        const errorBody = await response.text();
+        throw new Error(`Claude API error ${response.status}: ${errorBody}`);
+      }
+
+      // Retryable — wait with exponential backoff
+      const delay = BASE_DELAY_MS * Math.pow(2, attempt);
+      await new Promise((r) => setTimeout(r, delay));
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === "AbortError") {
+        if (attempt === MAX_RETRIES) {
+          throw new Error("Claude API request timeout after retries");
+        }
+        const delay = BASE_DELAY_MS * Math.pow(2, attempt);
+        await new Promise((r) => setTimeout(r, delay));
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw new Error("Claude API: max retries exceeded");
+}
+
 export async function callClaude(
   apiKey: string,
   request: ClaudeRequest
 ): Promise<ClaudeResponse> {
-  const response = await fetch(CLAUDE_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": ANTHROPIC_VERSION,
-    },
-    body: JSON.stringify({
-      model: request.model || CLAUDE_MODEL,
-      max_tokens: request.max_tokens,
-      system: request.system,
-      messages: request.messages,
-      tools: request.tools,
-      stream: false,
-    }),
+  const response = await fetchWithRetry(apiKey, {
+    model: request.model || CLAUDE_MODEL,
+    max_tokens: request.max_tokens,
+    system: request.system,
+    messages: request.messages,
+    tools: request.tools,
+    stream: false,
   });
-
-  if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(`Claude API error ${response.status}: ${errorBody}`);
-  }
 
   return response.json() as Promise<ClaudeResponse>;
 }
@@ -95,27 +136,14 @@ export async function callClaudeStream(
   apiKey: string,
   request: ClaudeRequest
 ): Promise<ReadableStream<Uint8Array>> {
-  const response = await fetch(CLAUDE_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": ANTHROPIC_VERSION,
-    },
-    body: JSON.stringify({
-      model: request.model || CLAUDE_MODEL,
-      max_tokens: request.max_tokens,
-      system: request.system,
-      messages: request.messages,
-      tools: request.tools,
-      stream: true,
-    }),
+  const response = await fetchWithRetry(apiKey, {
+    model: request.model || CLAUDE_MODEL,
+    max_tokens: request.max_tokens,
+    system: request.system,
+    messages: request.messages,
+    tools: request.tools,
+    stream: true,
   });
-
-  if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(`Claude API error ${response.status}: ${errorBody}`);
-  }
 
   if (!response.body) {
     throw new Error("No response body from Claude API");

@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, useRouteError, isRouteErrorResponse } from "@remix-run/react";
 import { getDb } from "~/db";
 import { conversations } from "~/db/schema";
 import { eq, desc } from "drizzle-orm";
@@ -68,6 +68,7 @@ export default function Index() {
     initialConversations[0]?.id || null
   );
   const [chatMessages, setChatMessages] = useState<ChatMessageData[]>([]);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Fetch messages when conversation changes
@@ -75,6 +76,7 @@ export default function Index() {
     if (!activeConversationId) return;
 
     let cancelled = false;
+    setIsLoadingMessages(true);
     fetch(`/api/conversations/${activeConversationId}/messages`)
       .then((res) => res.json() as Promise<{ messages: ChatMessageData[] }>)
       .then((data) => {
@@ -82,6 +84,9 @@ export default function Index() {
       })
       .catch(() => {
         if (!cancelled) setChatMessages([]);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingMessages(false);
       });
 
     return () => { cancelled = true; };
@@ -162,8 +167,38 @@ export default function Index() {
           <ChatPanel
             conversationId={activeConversationId}
             initialMessages={chatMessages}
+            isLoadingMessages={isLoadingMessages}
           />
         </div>
+      </div>
+    </div>
+  );
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+
+  let title = "오류가 발생했습니다";
+  let message = "알 수 없는 오류가 발생했습니다.";
+
+  if (isRouteErrorResponse(error)) {
+    title = `${error.status} ${error.statusText}`;
+    message = error.data?.message || "페이지를 불러올 수 없습니다.";
+  } else if (error instanceof Error) {
+    message = error.message;
+  }
+
+  return (
+    <div className="flex h-screen items-center justify-center bg-[var(--axis-surface-secondary)]">
+      <div className="max-w-md text-center">
+        <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">{title}</h1>
+        <p className="mt-2 text-sm text-[var(--axis-text-secondary)]">{message}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 rounded-md bg-[var(--axis-button-bg-default)] px-4 py-2 text-sm text-[var(--axis-button-text-default)] hover:bg-[var(--axis-button-bg-hover)]"
+        >
+          다시 시도
+        </button>
       </div>
     </div>
   );

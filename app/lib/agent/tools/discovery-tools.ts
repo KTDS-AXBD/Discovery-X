@@ -61,6 +61,55 @@ export async function createDiscovery(
   return JSON.stringify({ success: true, discoveryId: id, title: input.title, status: "INBOX" });
 }
 
+export async function updateDiscovery(
+  db: DB,
+  input: {
+    discoveryId: string;
+    title?: string;
+    seedSummary?: string;
+    seedLinks?: string[];
+    reviewerId?: string;
+  }
+): Promise<string> {
+  const discovery = await db
+    .select()
+    .from(discoveries)
+    .where(eq(discoveries.id, input.discoveryId))
+    .limit(1);
+
+  if (!discovery[0]) return JSON.stringify({ error: "Discovery를 찾을 수 없습니다." });
+
+  const status = discovery[0].status;
+  if (status !== DiscoveryStatus.INBOX && status !== DiscoveryStatus.OPEN) {
+    return JSON.stringify({
+      error: `현재 상태(${status})에서는 수정할 수 없습니다. INBOX 또는 OPEN 상태만 가능합니다.`,
+      suggestion: "이미 결정이 완료된 Discovery는 수정할 수 없습니다. 새 Discovery를 생성해보세요.",
+    });
+  }
+
+  const updates: Record<string, unknown> = { updatedAt: new Date() };
+  if (input.title !== undefined) updates.title = input.title;
+  if (input.seedSummary !== undefined) updates.seedSummary = input.seedSummary;
+  if (input.seedLinks !== undefined) updates.seedLinks = input.seedLinks;
+  if (input.reviewerId !== undefined) updates.reviewerId = input.reviewerId;
+
+  await db
+    .update(discoveries)
+    .set(updates)
+    .where(eq(discoveries.id, input.discoveryId));
+
+  await logEvent(db, input.discoveryId, "updated", {
+    source: "agent",
+    fields: Object.keys(updates).filter((k) => k !== "updatedAt"),
+  });
+
+  return JSON.stringify({
+    success: true,
+    discoveryId: input.discoveryId,
+    updatedFields: Object.keys(updates).filter((k) => k !== "updatedAt"),
+  });
+}
+
 export async function promoteDiscovery(
   db: DB,
   input: {

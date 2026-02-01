@@ -25,6 +25,21 @@ export const AGENT_TOOLS: ClaudeTool[] = [
     },
   },
   {
+    name: "update_discovery",
+    description: "기존 Discovery의 제목, 요약, 링크, Reviewer를 수정합니다. INBOX/OPEN 상태만 가능.",
+    input_schema: {
+      type: "object",
+      required: ["discoveryId"],
+      properties: {
+        discoveryId: { type: "string", description: "Discovery ID" },
+        title: { type: "string", description: "새 제목 (80자 이내)", maxLength: 80 },
+        seedSummary: { type: "string", description: "새 Seed 요약 (400자 이내)", maxLength: 400 },
+        seedLinks: { type: "array", items: { type: "string" }, description: "새 관련 링크 목록" },
+        reviewerId: { type: "string", description: "Reviewer 사용자 ID" },
+      },
+    },
+  },
+  {
     name: "promote_discovery",
     description: "INBOX Discovery를 OPEN 상태로 승격합니다. Owner 지정 + 첫 실험 설계 필수.",
     input_schema: {
@@ -205,6 +220,22 @@ export const AGENT_TOOLS: ClaudeTool[] = [
         },
         limit: { type: "number", description: "최대 결과 수 (기본 20)" },
       },
+    },
+  },
+  {
+    name: "get_weekly_review",
+    description: "주간 리뷰 데이터를 조회합니다. OPEN 상태 전체의 경과일, 기한, 실험 상태, 초과 여부를 포함.",
+    input_schema: {
+      type: "object",
+      properties: {},
+    },
+  },
+  {
+    name: "get_recall_queue",
+    description: "재검토 큐를 조회합니다. NOT_NOW 중 revisitDate가 도래한 항목과 14일 이내 도래 항목.",
+    input_schema: {
+      type: "object",
+      properties: {},
     },
   },
   {
