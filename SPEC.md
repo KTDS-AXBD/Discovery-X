@@ -233,7 +233,13 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 46)
+### 최근 변경 (세션 47)
+**테스트 DB 마이그레이션 현행화 + TypeScript 에러 수정**:
+- ✅ 테스트 헬퍼(`tests/helpers/db.ts`) 마이그레이션 현행화 — 0003~0006 누락분 추가 → 129개 테스트 전체 통과 (기존 48개 실패)
+- ✅ ToolExecution.tsx TypeScript 에러 수정 — `unknown` → `ReactNode` 할당 에러 2건 (`Boolean()` 래핑 + 삼항 연산자)
+- ✅ `pnpm typecheck` + `pnpm build` + `pnpm test` (129개) 통과
+
+### 이전 변경 (세션 46)
 **Agent 도구 확장 + Daily Cron 버그 수정**:
 - ✅ Agent 도구 3개 추가: `update_discovery` (수정), `get_weekly_review` (주간 리뷰), `get_recall_queue` (재검토 큐)
 - ✅ 모델 선택 기능: Settings에서 Claude Sonnet 4 / Haiku 3.5 / Opus 4 선택 가능 (`agent_config.modelId` 컬럼 추가)
@@ -749,6 +755,7 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | **Claude API 재시도 로직** | ✅ | fetchWithRetry (429/5xx + exponential backoff) + 25초 타임아웃 |
 | **ToolExecution UI 개선** | ✅ | 리치 결과 렌더링, expand/collapse, JSON 토글, 실행 중 표시 |
 | **Daily Cron 버그 수정** | ✅ | 시스템 사용자 이메일 제외 + BASE_URL 수정 |
+| **테스트 DB 마이그레이션 현행화** | ✅ | tests/helpers/db.ts에 0003~0006 마이그레이션 추가 → 129개 전체 통과 |
 
 ### 남은 작업
 - [x] 최종 프로덕션 배포 — 세션 14에서 완료
