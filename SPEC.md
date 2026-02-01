@@ -233,7 +233,15 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 39)
+### 최근 변경 (세션 40)
+**Agent 채팅 4개 이슈 수정**:
+- ✅ 시스템 프롬프트에 "사용자 입력 보존 원칙" 추가 — Agent가 사용자 제공 값(제목, 가설 등)을 임의 변형하지 않도록 강제
+- ✅ 대화 제목 업데이트 조건 보강 — `"새 대화"` placeholder도 첫 메시지로 덮어쓰도록 방어 처리
+- ✅ SSE 프로그레시브 스트리밍 — `onEvent` 콜백으로 도구 실행 결과를 즉시 SSE 전송 (기존: 전체 완료 후 일괄)
+- ✅ tool_use content 중복 저장 방지 — 같은 라운드의 복수 tool_use 블록 중 첫 번째만 assistantText 저장
+- ✅ `pnpm typecheck` + `pnpm build` 통과
+
+### 이전 변경 (세션 39)
 **v2 Agent 풀 플로우 E2E 테스트 완료**:
 - ✅ Agent 채팅으로 Discovery 풀 라이프사이클 검증 (INBOX → OPEN → NEXT)
 - ✅ 근거 추가 (`add_evidence`) — 정량적(DATA) A급 근거 정상 추가
@@ -583,6 +591,7 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 - **Radar Worker**: ✅ 프로덕션 배포 완료 (https://radar-worker.sinclair-account.workers.dev), Cron 매일 9:00 KST, 10소스 활성 (RSS 6 + Web 3 + YouTube 1)
 - **배포 상태**: ✅ 세션 38 프로덕션 배포 완료 — context-builder 개선 (https://dx.minu.best)
 - **Agent E2E 테스트**: ✅ 세션 39 풀 플로우 검증 완료 — 6개 도구 정상 (get_metrics, create_discovery, promote_discovery, add_evidence, complete_experiment, decide_next)
+- **Agent 채팅 개선**: ✅ 세션 40 — 입력 보존, 제목 로직, 프로그레시브 스트리밍, content 중복 수정
 - **이메일 설정**: ✅ Resend 연동 완료 (`noreply@ideaonaction.ai`), cron-job.org 매일 9:00 KST 자동 발송
 - **운영 문서**: 치트시트, 런북, 킥오프 템플릿, QA 체크리스트, 사용자 가이드 완성
 
