@@ -101,7 +101,7 @@ Flow F: Weekly Decision Review (30분)
 - **Framework**: Remix v2 (Vite plugin)
 - **DB**: Cloudflare D1 (SQLite)
 - **ORM**: Drizzle ORM
-- **UI**: React 19 + Tailwind CSS 4 + Axis Design Tokens
+- **UI**: React 19 + Tailwind CSS 4 + @axis-ds/tokens + @axis-ds/theme + @axis-ds/ui-react
 - **Language**: TypeScript (strict mode)
 - **Package Manager**: pnpm
 - **AI (Chat)**: Claude API (tool_use, SSE 스트리밍)
@@ -233,7 +233,20 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 44)
+### 최근 변경 (세션 45)
+**@axis-ds 패키지 연동 완료**:
+- ✅ `@axis-ds/tokens@1.1.1` 도입 — 로컬 `axis-tokens.css` (122개 CSS 변수) 삭제, 패키지 CSS로 대체
+- ✅ `@axis-ds/theme@1.1.1` 도입 — 로컬 `use-theme.ts` 삭제, `ThemeProvider` + `useTheme` 패키지로 교체
+- ✅ `@axis-ds/ui-react@1.1.1` 도입 — Button, Badge, Card, Input 컴포넌트를 패키지 기반 adapter/re-export로 교체
+- ✅ `dx-custom-tokens.css` — primitive color alias 20개 추가 (`--axis-blue-100` → `var(--axis-color-blue-100)` 등) + dark override `.dark` 셀렉터 통일
+- ✅ `root.tsx` — `ThemeProvider` 래핑 (`storageKey="dx-theme"`) + FOUC 스크립트에 `.dark` 클래스 추가
+- ✅ Button/Badge adapter 패턴 — DX 커스텀 variant (success, purple) 유지, 나머지는 패키지 위임
+- ✅ Textarea, Table, AlertBanner, Select, FormField, StatusBadge — 유지 (패키지 API 차이 또는 DX 전용)
+- ✅ 패키지 subpath exports 버그 발견 → 메인 export에서 import으로 우회
+- ✅ React 19 children 호환성 처리 — `Omit<..., "variant"> & PropsWithChildren` 패턴
+- ✅ `pnpm typecheck` + `pnpm lint` + `pnpm build` 통과
+
+### 이전 변경 (세션 44)
 **agent-review cron 등록 + daily cron URL 수정**:
 - ✅ cron-job.org에 `DX Agent Review` 등록 — POST `dx.minu.best/api/cron/agent-review` 매일 10:00 KST
 - ✅ `Discovery-X Daily Notifications` URL 수정 — `discovery-x.pages.dev` → `dx.minu.best` (400 에러 해결)
@@ -630,6 +643,7 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 - **v2 Agent 시스템**: ✅ 프로덕션 배포 완료 (코드 + DB 마이그레이션 0005 + ANTHROPIC_API_KEY 설정)
 - **Radar Worker**: ✅ 프로덕션 배포 완료 (https://radar-worker.sinclair-account.workers.dev), Cron 매일 9:00 KST, 10소스 활성 (RSS 6 + Web 3 + YouTube 1)
 - **다크모드**: ✅ 세션 43 — 122개 AXIS 토큰 + DX 커스텀 토큰 dark override, useTheme 훅, FOUC 방지, MainNav 토글
+- **@axis-ds 패키지**: ✅ 세션 45 — tokens@1.1.1 + theme@1.1.1 + ui-react@1.1.1 연동 완료 (로컬 토큰/테마/컴포넌트 → 패키지 대체)
 - **배포 상태**: ✅ 세션 43 프로덕션 배포 완료 — 다크모드 + 차트 토큰화 (https://dx.minu.best)
 - **Agent E2E 테스트**: ✅ 세션 39 풀 플로우 검증 완료 — 6개 도구 정상 (get_metrics, create_discovery, promote_discovery, add_evidence, complete_experiment, decide_next)
 - **Agent 채팅 개선**: ✅ 세션 40 — 입력 보존, 제목 로직, 프로그레시브 스트리밍, content 중복 수정
@@ -717,6 +731,7 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | **v2 토큰 예산 경고** | ✅ | 80% 초과 시 SSE budget_warning 이벤트 + ChatPanel amber 배너 |
 | **다크모드** | ✅ | 122개 AXIS + DX 커스텀 토큰 dark override, useTheme 훅, FOUC 방지, MainNav 토글 |
 | **차트 색상 토큰화** | ✅ | StatusDonut 9건 + WeeklyBar 3건 hex → CSS 변수, 차트 시맨틱 토큰 7개 |
+| **@axis-ds 패키지 연동** | ✅ | tokens + theme + ui-react 패키지 도입, 로컬 토큰/테마/컴포넌트 대체, adapter 패턴 |
 
 ### 남은 작업
 - [x] 최종 프로덕션 배포 — 세션 14에서 완료
