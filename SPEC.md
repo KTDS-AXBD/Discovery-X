@@ -242,6 +242,7 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 - ✅ P2: 토큰 예산 초과 경고 — 80% 초과 시 SSE `budget_warning` 이벤트 전송 + ChatPanel amber 배너 표시
 - ✅ P2: 대시보드 칸반 칼럼 스크롤 추가 (max-height 600px + overflow-y-auto)
 - ✅ `pnpm typecheck` + `pnpm build` 통과
+- ✅ 프로덕션 배포 + dx.minu.best 6건 전수 검증 완료 (마크다운 렌더링, favicon, 깨진 대화, 로그인 필터, 칸반 스크롤, 토큰 경고)
 
 ### 이전 변경 (세션 41)
 **채팅 마크다운 렌더링 + UI 개선**:
@@ -608,7 +609,7 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 - **빌드 상태**: `pnpm build` + `pnpm typecheck` + `pnpm lint` 모두 통과
 - **v2 Agent 시스템**: ✅ 프로덕션 배포 완료 (코드 + DB 마이그레이션 0005 + ANTHROPIC_API_KEY 설정)
 - **Radar Worker**: ✅ 프로덕션 배포 완료 (https://radar-worker.sinclair-account.workers.dev), Cron 매일 9:00 KST, 10소스 활성 (RSS 6 + Web 3 + YouTube 1)
-- **배포 상태**: ✅ 세션 38 프로덕션 배포 완료 — context-builder 개선 (https://dx.minu.best)
+- **배포 상태**: ✅ 세션 42 프로덕션 배포 + 전수 검증 완료 — UI 개선 6건 (https://dx.minu.best)
 - **Agent E2E 테스트**: ✅ 세션 39 풀 플로우 검증 완료 — 6개 도구 정상 (get_metrics, create_discovery, promote_discovery, add_evidence, complete_experiment, decide_next)
 - **Agent 채팅 개선**: ✅ 세션 40 — 입력 보존, 제목 로직, 프로그레시브 스트리밍, content 중복 수정
 - **채팅 마크다운**: ✅ 세션 41-42 — react-markdown + remark-gfm + @tailwindcss/typography 기반 Agent 응답 마크다운 렌더링
