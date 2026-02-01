@@ -238,6 +238,7 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 - ✅ cron-job.org에 `DX Agent Review` 등록 — POST `dx.minu.best/api/cron/agent-review` 매일 10:00 KST
 - ✅ `Discovery-X Daily Notifications` URL 수정 — `discovery-x.pages.dev` → `dx.minu.best` (400 에러 해결)
 - ✅ SPEC.md §6 미완료 항목 체크 완료
+- ✅ 프로덕션 배포 완료 (https://dx.minu.best)
 
 ### 이전 변경 (세션 43)
 **다크모드 + 차트 토큰화 구현 완료**:
