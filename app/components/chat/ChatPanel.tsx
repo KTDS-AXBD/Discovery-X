@@ -26,11 +26,18 @@ interface ChatPanelProps {
   initialMessages: ChatMessage[];
 }
 
+interface BudgetWarning {
+  tokensUsedToday: number;
+  dailyTokenBudget: number;
+  percentUsed: number;
+}
+
 export function ChatPanel({ conversationId, initialMessages }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [pendingToolCalls, setPendingToolCalls] = useState<SSEToolCall[]>([]);
+  const [budgetWarning, setBudgetWarning] = useState<BudgetWarning | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -116,6 +123,12 @@ export function ChatPanel({ conversationId, initialMessages }: ChatPanelProps) {
                 createdAt: new Date().toISOString(),
               };
               setMessages((prev) => [...prev, assistantMsg]);
+            } else if (event.type === "budget_warning") {
+              setBudgetWarning({
+                tokensUsedToday: (event as unknown as BudgetWarning).tokensUsedToday,
+                dailyTokenBudget: (event as unknown as BudgetWarning).dailyTokenBudget,
+                percentUsed: (event as unknown as BudgetWarning).percentUsed,
+              });
             } else if (event.type === "error") {
               const errorMsg: ChatMessage = {
                 id: crypto.randomUUID(),
@@ -225,6 +238,23 @@ export function ChatPanel({ conversationId, initialMessages }: ChatPanelProps) {
           <div ref={messagesEndRef} />
         </div>
       </div>
+
+      {/* Budget warning banner */}
+      {budgetWarning && (
+        <div className="border-t border-[var(--axis-border-warning)] bg-amber-50 px-4 py-2 dark:bg-amber-950/20">
+          <div className="mx-auto flex max-w-3xl items-center justify-between text-xs">
+            <span className="text-amber-800 dark:text-amber-200">
+              토큰 예산 {budgetWarning.percentUsed}% 사용 ({budgetWarning.tokensUsedToday.toLocaleString()} / {budgetWarning.dailyTokenBudget.toLocaleString()})
+            </span>
+            <button
+              onClick={() => setBudgetWarning(null)}
+              className="text-amber-600 hover:text-amber-800 dark:text-amber-400"
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Input area */}
       <div className="border-t border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] p-4">

@@ -282,6 +282,31 @@ export function createAgentStreamResponse(
           )
         );
 
+        // Check token budget and send warning if exceeded
+        const configAfter = await db
+          .select()
+          .from(agentConfig)
+          .where(eq(agentConfig.id, "default"))
+          .limit(1);
+
+        const budgetInfo = configAfter[0]
+          ? {
+              tokensUsedToday: configAfter[0].tokensUsedToday,
+              dailyTokenBudget: configAfter[0].dailyTokenBudget,
+              percentUsed: Math.round(
+                (configAfter[0].tokensUsedToday / configAfter[0].dailyTokenBudget) * 100
+              ),
+            }
+          : null;
+
+        if (budgetInfo && budgetInfo.percentUsed > 80) {
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ type: "budget_warning", ...budgetInfo })}\n\n`
+            )
+          );
+        }
+
         // Send done
         controller.enqueue(
           encoder.encode(
