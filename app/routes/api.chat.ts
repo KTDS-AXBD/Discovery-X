@@ -49,7 +49,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   // Update conversation title if first message
   if (!conv[0].title || conv[0].title === "새 대화") {
-    const title = message.slice(0, 50) + (message.length > 50 ? "..." : "");
+    const chars = Array.from(message.trim());
+    const title = chars.slice(0, 50).join("") + (chars.length > 50 ? "..." : "");
     await db
       .update(conversations)
       .set({ title, updatedAt: new Date() })

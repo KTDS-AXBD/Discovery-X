@@ -10,6 +10,12 @@ import { MainNav } from "~/components/layout/MainNav";
 import { ConversationList } from "~/components/chat/ConversationList";
 import { ChatPanel } from "~/components/chat/ChatPanel";
 
+function sanitizeTitle(raw: string | null): string {
+  if (!raw) return "새 대화";
+  const cleaned = raw.replace(/\uFFFD/g, "").trim();
+  return cleaned.length > 0 ? cleaned : "새 대화";
+}
+
 export const meta: MetaFunction = () => {
   return [
     { title: "Discovery-X — Agent Chat" },
@@ -37,7 +43,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     user,
     conversations: convs.map((c) => ({
       id: c.id,
-      title: c.title || "새 대화",
+      title: sanitizeTitle(c.title),
       updatedAt: c.updatedAt ? new Date(c.updatedAt).toISOString() : null,
     })),
   });

@@ -173,8 +173,16 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages }
                   },
                 ];
               });
-              // Reset streaming state for next text after tool calls
-              streamingStarted = false;
+              // Append separator so next round's text is visually distinct
+              if (streamingStarted) {
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === streamingMsgId
+                      ? { ...m, content: m.content + "\n\n" }
+                      : m
+                  )
+                );
+              }
             } else if (event.type === "budget_warning") {
               setBudgetWarning({
                 tokensUsedToday: (event as unknown as BudgetWarning).tokensUsedToday,

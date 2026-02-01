@@ -12,6 +12,12 @@ import { conversations } from "~/db/schema";
 import { eq, desc, and } from "drizzle-orm";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 
+function sanitizeTitle(raw: string | null): string {
+  if (!raw) return "새 대화";
+  const cleaned = raw.replace(/\uFFFD/g, "").trim();
+  return cleaned.length > 0 ? cleaned : "새 대화";
+}
+
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
@@ -31,7 +37,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   return json({
     conversations: convs.map((c) => ({
       id: c.id,
-      title: c.title || "새 대화",
+      title: sanitizeTitle(c.title),
       createdAt: c.createdAt ? new Date(c.createdAt).toISOString() : null,
       updatedAt: c.updatedAt ? new Date(c.updatedAt).toISOString() : null,
     })),
