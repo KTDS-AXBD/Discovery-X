@@ -233,7 +233,14 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 51)
+### 최근 변경 (세션 52)
+**멀티턴 중복 표시 + 대화 제목 Unicode 깨짐 수정**:
+- ✅ ChatPanel 멀티턴 응답 중복 버블 수정 — `tool_call` 시 `streamingStarted = false` 리셋 제거, `\n\n` 구분자 append로 단일 버블 유지
+- ✅ api.chat 대화 제목 Unicode-safe 잘라내기 — `message.slice(0, 50)` → `Array.from()` 코드포인트 단위 절단 (이모지 서로게이트 페어 보호)
+- ✅ _index + api.conversations `sanitizeTitle()` 추가 — DB 기존 깨진 제목(U+FFFD) 정리 + fallback "새 대화"
+- ✅ `pnpm typecheck` + `pnpm build` 통과
+
+### 이전 변경 (세션 51)
 **AXIS Design System 정합성 수정 + 프로덕션 배포 완료**:
 - ✅ ChatPanel 에러/경고 배너 → AlertBanner 컴포넌트 통합 (`bg-red-50`/`bg-amber-50` 하드코딩 → AXIS 토큰 자동 적용)
 - ✅ MessageBubble 스트리밍 커서 → 3-dot bounce 애니메이션 (AXIS ThinkingIndicator 스타일)
