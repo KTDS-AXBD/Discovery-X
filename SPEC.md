@@ -241,6 +241,7 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 - ✅ Chat UI polish — AlertBanner 에러 표시, 3-dot bounce 스트리밍 인디케이터, Badge 상태 표시 (ChatPanel, MessageBubble, ToolExecution)
 - ✅ `pnpm typecheck` + `pnpm build` 통과
 - ✅ 프로덕션 배포 완료 (https://dx.minu.best, 배포 ID: 49464357)
+- ✅ GitHub Project #4 동기화 확인 — 16개 항목 전체 Done 일치
 
 ### 이전 변경 (세션 49)
 **v2 Agent 재설계 15건 전체 구현 완료 (검증 세션)**:
