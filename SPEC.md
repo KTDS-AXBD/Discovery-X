@@ -242,6 +242,7 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
   - `ConversationList.tsx` (P1-U5/U6 검색 + 삭제 확인 UI)
 - ✅ 핵심 파일 검증: executor.ts (스트리밍 + 자율도 강제), tool-registry.ts (TOOL_MIN_AUTONOMY), 0006_add_model_id.sql
 - ✅ `pnpm typecheck` + `pnpm lint` + `pnpm build` 통과
+- ✅ 프로덕션 배포 완료 (https://dx.minu.best) — chat UX 개선 (검색, 삭제 확인, 코드 하이라이트, 컨텍스트 요약) 포함
 
 **v2 Agent 재설계 15건 구현 요약**:
 | 스트림 | 항목 | 설명 |
@@ -704,7 +705,7 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 - **다크모드**: ✅ 세션 43 — 122개 AXIS 토큰 + DX 커스텀 토큰 dark override, useTheme 훅, FOUC 방지, MainNav 토글
 - **@axis-ds 패키지**: ✅ 세션 45 — tokens@1.1.1 + theme@1.1.1 + ui-react@1.1.1 연동 완료 (로컬 토큰/테마/컴포넌트 → 패키지 대체)
 - **v2 Agent 재설계**: ✅ 세션 46~49 — 15건 전체 구현 완료 (아키텍처 4건 + 도구 5건 + UX 6건), DB 마이그레이션 0006 로컬 적용 완료
-- **배포 상태**: ✅ 세션 47 프로덕션 배포 완료 — Agent 도구 개선 + TS 에러 수정 (https://dx.minu.best)
+- **배포 상태**: ✅ 세션 49 프로덕션 배포 완료 — chat UX 개선 + v2 Agent 재설계 15건 (https://dx.minu.best)
 - **Agent E2E 테스트**: ✅ 세션 39 풀 플로우 검증 완료 — 6개 도구 정상 (get_metrics, create_discovery, promote_discovery, add_evidence, complete_experiment, decide_next)
 - **Agent 채팅 개선**: ✅ 세션 40 — 입력 보존, 제목 로직, 프로그레시브 스트리밍, content 중복 수정
 - **채팅 마크다운**: ✅ 세션 41-42 — react-markdown + remark-gfm + @tailwindcss/typography 기반 Agent 응답 마크다운 렌더링
