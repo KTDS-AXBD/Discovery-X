@@ -127,9 +127,9 @@ export async function promoteDiscovery(
     .where(eq(discoveries.id, input.discoveryId))
     .limit(1);
 
-  if (!discovery[0]) return JSON.stringify({ error: "Discovery를 찾을 수 없습니다." });
+  if (!discovery[0]) return JSON.stringify({ error: "Discovery를 찾을 수 없습니다.", suggestion: "list_discoveries로 기존 목록을 확인해보세요." });
   if (discovery[0].status !== DiscoveryStatus.INBOX) {
-    return JSON.stringify({ error: `현재 상태(${discovery[0].status})에서는 승격할 수 없습니다. INBOX만 가능.` });
+    return JSON.stringify({ error: `현재 상태(${discovery[0].status})에서는 승격할 수 없습니다. INBOX만 가능.`, suggestion: "get_discovery_detail로 현재 상태를 확인해보세요." });
   }
 
   try {
@@ -217,8 +217,8 @@ export async function completeExperiment(
     .where(eq(experiments.id, input.experimentId))
     .limit(1);
 
-  if (!exp[0]) return JSON.stringify({ error: "실험을 찾을 수 없습니다." });
-  if (exp[0].completedAt) return JSON.stringify({ error: "이미 완료된 실험입니다." });
+  if (!exp[0]) return JSON.stringify({ error: "실험을 찾을 수 없습니다.", suggestion: "get_discovery_detail로 실험 목록을 확인해보세요." });
+  if (exp[0].completedAt) return JSON.stringify({ error: "이미 완료된 실험입니다.", suggestion: "새 실험을 추가하거나 결정을 내려보세요." });
 
   await db
     .update(experiments)

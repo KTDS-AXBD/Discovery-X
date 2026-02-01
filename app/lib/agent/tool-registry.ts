@@ -207,6 +207,7 @@ export const AGENT_TOOLS: ClaudeTool[] = [
           description: "상태 필터 (선택)",
         },
         limit: { type: "number", description: "최대 결과 수 (기본 20)" },
+        offset: { type: "number", description: "페이지네이션 오프셋 (기본 0)" },
       },
     },
   },
@@ -234,10 +235,13 @@ export const AGENT_TOOLS: ClaudeTool[] = [
   },
   {
     name: "get_metrics",
-    description: "시스템 지표를 조회합니다 (상태별 건수, 평균 소요 시간 등).",
+    description: "시스템 지표를 조회합니다 (상태별 건수, 평균 소요 시간 등). 기간 필터 가능.",
     input_schema: {
       type: "object",
-      properties: {},
+      properties: {
+        fromDate: { type: "string", description: "시작 날짜 (ISO 8601, 선택)" },
+        toDate: { type: "string", description: "종료 날짜 (ISO 8601, 선택)" },
+      },
     },
   },
   {
@@ -252,6 +256,7 @@ export const AGENT_TOOLS: ClaudeTool[] = [
           description: "상태 필터 (선택)",
         },
         limit: { type: "number", description: "최대 결과 수 (기본 20)" },
+        offset: { type: "number", description: "페이지네이션 오프셋 (기본 0)" },
       },
     },
   },

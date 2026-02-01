@@ -94,7 +94,7 @@ async function executeTool(
     case "search_similar":
       return searchSimilar(db, toolInput as Parameters<typeof searchSimilar>[1]);
     case "get_metrics":
-      return getMetrics(db);
+      return getMetrics(db, toolInput as Parameters<typeof getMetrics>[1]);
     case "get_radar_items":
       return getRadarItems(db, toolInput as Parameters<typeof getRadarItems>[1]);
     case "get_weekly_review":

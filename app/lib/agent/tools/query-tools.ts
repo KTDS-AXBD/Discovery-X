@@ -15,9 +15,10 @@ import {
 
 export async function listDiscoveries(
   db: DB,
-  input: { status?: string; limit?: number }
+  input: { status?: string; limit?: number; offset?: number }
 ): Promise<string> {
   const limit = input.limit || 20;
+  const offset = input.offset || 0;
 
   let query = db
     .select({
@@ -35,11 +36,15 @@ export async function listDiscoveries(
     query = query.where(eq(discoveries.status, input.status)) as typeof query;
   }
 
-  const results = await query.orderBy(desc(discoveries.updatedAt)).limit(limit);
+  const results = await query.orderBy(desc(discoveries.updatedAt)).limit(limit + 1).offset(offset);
+  const hasMore = results.length > limit;
+  const items = hasMore ? results.slice(0, limit) : results;
 
   return JSON.stringify({
-    total: results.length,
-    discoveries: results.map((d) => ({
+    total: items.length,
+    offset,
+    hasMore,
+    discoveries: items.map((d) => ({
       id: d.id,
       title: d.title,
       status: d.status,
@@ -143,8 +148,20 @@ export async function searchSimilar(
   }
 }
 
-export async function getMetrics(db: DB): Promise<string> {
-  const allDiscoveries = await db.select().from(discoveries);
+export async function getMetrics(
+  db: DB,
+  input?: { fromDate?: string; toDate?: string }
+): Promise<string> {
+  let allDiscoveries = await db.select().from(discoveries);
+
+  if (input?.fromDate) {
+    const from = new Date(input.fromDate).getTime();
+    allDiscoveries = allDiscoveries.filter((d) => d.createdAt && new Date(d.createdAt).getTime() >= from);
+  }
+  if (input?.toDate) {
+    const to = new Date(input.toDate).getTime();
+    allDiscoveries = allDiscoveries.filter((d) => d.createdAt && new Date(d.createdAt).getTime() <= to);
+  }
 
   const statusCounts: Record<string, number> = {};
   for (const d of allDiscoveries) {
@@ -179,9 +196,10 @@ export async function getMetrics(db: DB): Promise<string> {
 
 export async function getRadarItems(
   db: DB,
-  input: { status?: string; limit?: number }
+  input: { status?: string; limit?: number; offset?: number }
 ): Promise<string> {
   const limit = input.limit || 20;
+  const offset = input.offset || 0;
 
   let query = db
     .select({
@@ -202,11 +220,15 @@ export async function getRadarItems(
     query = query.where(eq(radarItems.status, input.status)) as typeof query;
   }
 
-  const results = await query.orderBy(desc(radarItems.collectedAt)).limit(limit);
+  const results = await query.orderBy(desc(radarItems.collectedAt)).limit(limit + 1).offset(offset);
+  const hasMore = results.length > limit;
+  const items = hasMore ? results.slice(0, limit) : results;
 
   return JSON.stringify({
-    total: results.length,
-    items: results.map((item) => ({
+    total: items.length,
+    offset,
+    hasMore,
+    items: items.map((item) => ({
       ...item,
       collectedAt: item.collectedAt ? new Date(item.collectedAt).toISOString() : null,
     })),
