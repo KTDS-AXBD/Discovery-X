@@ -91,11 +91,15 @@ async function executeTool(
  * Execute one agent turn: send user message → get Claude response → handle tools → return final text.
  * Supports multi-step tool use (up to 5 consecutive tool calls per turn).
  */
+export type AgentEvent =
+  | { type: "tool_call"; name: string; input: Record<string, unknown>; result: string };
+
 export async function executeAgentTurn(
   db: DB,
   apiKey: string,
   conversationId: string,
-  userMessage: string
+  userMessage: string,
+  onEvent?: (event: AgentEvent) => void
 ): Promise<ExecuteResult> {
   // Save user message
   await db.insert(messages).values({
@@ -157,17 +161,18 @@ export async function executeAgentTurn(
     }
 
     // Process tool calls
-    for (const toolBlock of toolUseBlocks) {
+    for (let idx = 0; idx < toolUseBlocks.length; idx++) {
+      const toolBlock = toolUseBlocks[idx];
       const toolName = toolBlock.name!;
       const toolInput = toolBlock.input as Record<string, unknown>;
       const toolUseId = toolBlock.id!;
 
-      // Save tool_use message
+      // Save tool_use message (only first block carries assistantText to avoid duplication)
       await db.insert(messages).values({
         id: toolUseId,
         conversationId,
         role: "tool_use",
-        content: assistantText,
+        content: idx === 0 ? assistantText : "",
         toolName,
         toolInput,
       });
@@ -192,6 +197,7 @@ export async function executeAgentTurn(
       });
 
       allToolCalls.push({ name: toolName, input: toolInput, result: toolResult });
+      onEvent?.({ type: "tool_call", name: toolName, input: toolInput, result: toolResult });
     }
   }
 
@@ -248,16 +254,26 @@ export function createAgentStreamResponse(
   return new ReadableStream({
     async start(controller) {
       try {
-        const result = await executeAgentTurn(db, apiKey, conversationId, userMessage);
-
-        // Send tool calls as events
-        for (const tc of result.toolCalls) {
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({ type: "tool_call", name: tc.name, input: tc.input, result: JSON.parse(tc.result) })}\n\n`
-            )
-          );
-        }
+        const result = await executeAgentTurn(
+          db, apiKey, conversationId, userMessage,
+          (event) => {
+            // Stream tool_call events as they happen
+            try {
+              const parsed = JSON.parse(event.result);
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify({ type: "tool_call", name: event.name, input: event.input, result: parsed })}\n\n`
+                )
+              );
+            } catch {
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify({ type: "tool_call", name: event.name, input: event.input, result: event.result })}\n\n`
+                )
+              );
+            }
+          }
+        );
 
         // Send final text
         controller.enqueue(
