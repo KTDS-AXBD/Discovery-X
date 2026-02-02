@@ -923,7 +923,7 @@ Audit Log 프로덕션 배포 완료 (d9d40471). CREATE_DISCOVERY/UPDATE_DISCOVE
 - **Google OAuth + 역할 분리**: ✅ 세션 60 — arctic + /auth/google 라우트 + admin/user role + requireAdmin 가드
 - **v3 R3b 알림/웹훅**: ✅ 세션 61 — alert engine (4유형) + webhook (Slack/Teams/Custom) + Agent 도구 3개 + /dashboard/alerts UI
 - **DB 마이그레이션**: ✅ 11개 (0000~0010) 로컬 + 프로덕션 적용 완료
-- **배포 상태**: ✅ 세션 67 프로덕션 배포 완료 — Audit Log + cron 점검 (배포 ID: 671086a0)
+- **배포 상태**: ✅ 세션 68 프로덕션 배포 완료 — 웹 폼 이벤트 로깅 5건 보완 (배포 ID: e8abb313)
 - **Cron 설정**: ✅ 3건 정상 — daily (GET, 09:00), agent-review (POST, 10:00), alerts (GET, 09:30), CRON_SECRET 재설정 완료
 - **Agent E2E 테스트**: ✅ 세션 39 풀 플로우 검증 완료 — 6개 도구 정상 (get_metrics, create_discovery, promote_discovery, add_evidence, complete_experiment, decide_next)
 - **Agent 채팅 개선**: ✅ 세션 40 — 입력 보존, 제목 로직, 프로그레시브 스트리밍, content 중복 수정
