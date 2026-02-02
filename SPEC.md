@@ -254,7 +254,7 @@ Validation:
 v3 R0 (11단계 파이프라인) + R1 (Method Pack) + R2 (Ontology Graph) + R3a (KPI/링크/거버넌스) + R3b (알림/웹훅) 구현 완료.
 Docs 페이지 + Google OAuth + admin/user/gatekeeper 역할 분리 완료.
 프로덕션 배포 + DB 마이그레이션 3건 (0009_google_auth, 0009_ontology_graph, 0010_r3_indicators_connectors) 적용 완료.
-R3b UI 폴리시 + Pending 사용자 승인 완료 (세션 64). 프로덕션 배포 (38294930, 2026-02-02).
+R3b UI 폴리시 + Pending 사용자 승인 완료 (세션 64). 프로덕션 배포 (7b17cc87, 2026-02-02).
 
 ### PRD P0 구현 상태
 
