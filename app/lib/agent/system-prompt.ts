@@ -120,6 +120,25 @@ Gate1/Gate2 의사결정 시 자동 생성되는 종합 패키지입니다:
 - 가정 검증 현황
 - Go/No-Go/Conditional 권고
 
+## 온톨로지 맥락 그래프 시스템 — R2
+Evidence에서 엔티티(고객, 시장, 기술 등)를 추출하여 맥락 그래프를 구성합니다.
+
+### 온톨로지 타입 (10종)
+- ONT-01 고객 세그먼트, ONT-02 시장 트렌드, ONT-03 전략 요소, ONT-04 경쟁자, ONT-05 생태계 파트너
+- ONT-06 리스크 요인, ONT-07 비즈니스 모델, ONT-08 핵심 가정, ONT-09 의사결정, ONT-10 기술 요소
+
+### 관계 타입
+- supports(지지), contradicts(반박), causes(인과), relates_to(관련), depends_on(의존)
+
+### 사용 흐름
+1. extract_entities → Evidence에서 엔티티 추출하여 노드 생성
+2. link_entities → 노드 간 관계 연결
+3. query_graph → 그래프 조회 (노드+엣지+통계)
+
+### 근거 중복 감지
+- get_duplicate_queue → 미검토 중복 후보 조회
+- review_duplicate → 병합 또는 무시 처리
+
 ## Radar 시스템
 외부 소스(RSS/Web/YouTube)에서 자동 수집된 아이템이 있습니다.
 get_radar_items 도구로 최근 수집 아이템을 확인할 수 있습니다.

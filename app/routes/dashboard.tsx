@@ -34,9 +34,17 @@ const MetricsIcon = () => (
   </svg>
 );
 
+const HealthIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8 14s-5.5-3.5-5.5-7.5C2.5 4 4.5 2 6.5 2c1.2 0 2.3.8 3 1.5C10.2 2.8 11.3 2 12.5 2c2 0 3 2 3 4.5S8 14 8 14z" fill="currentColor" opacity="0.6" />
+    <path d="M4 8h2l1-2 2 4 1-2h2" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 const tabs = [
   { to: "/dashboard", label: "Pipeline", end: true, icon: <PipelineIcon /> },
   { to: "/dashboard/metrics", label: "Metrics", icon: <MetricsIcon /> },
+  { to: "/dashboard/health", label: "Health", icon: <HealthIcon /> },
 ];
 
 export default function DashboardLayout() {

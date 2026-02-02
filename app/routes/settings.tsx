@@ -3,12 +3,12 @@
  */
 
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/cloudflare";
-import { json, redirect } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
 import { Form, useLoaderData, useActionData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { agentConfig } from "~/db/schema";
 import { eq } from "drizzle-orm";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { requireAdmin, getSessionSecret } from "~/lib/auth/session.server";
 import { PageLayout } from "~/components/layout/PageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Button } from "~/components/ui/Button";
@@ -36,9 +36,7 @@ const MODEL_OPTIONS = [
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
-
-  if (!user) return redirect("/login");
+  const user = await requireAdmin(request, db, secret);
 
   const config = await db
     .select()
@@ -61,9 +59,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 export async function action({ request, context }: ActionFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
-
-  if (!user) return redirect("/login");
+  await requireAdmin(request, db, secret);
 
   const formData = await request.formData();
   const autonomyLevel = parseInt(formData.get("autonomyLevel") as string, 10);
