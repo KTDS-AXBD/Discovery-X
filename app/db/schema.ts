@@ -71,10 +71,18 @@ export const EvidenceStrength = {
 // TABLES
 // ============================================================================
 
+export const UserRole = {
+  ADMIN: "admin",
+  USER: "user",
+} as const;
+
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
+  googleId: text("google_id").unique(),
+  avatarUrl: text("avatar_url"),
+  role: text("role").notNull().default(UserRole.USER),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),
@@ -142,6 +150,9 @@ export const discoveries = sqliteTable(
 
     // Agent tracking
     createdByAgent: integer("created_by_agent").notNull().default(0),
+
+    // Gatekeeper (v3 R3)
+    gatekeeperId: text("gatekeeper_id").references(() => users.id),
   },
   (table) => ({
     statusIdx: index("idx_discoveries_status").on(table.status),
@@ -559,6 +570,324 @@ export const assumptions = sqliteTable(
 );
 
 // ============================================================================
+// ONTOLOGY GRAPH TABLES (v3 R2)
+// ============================================================================
+
+export const OntologyDomain = {
+  CUSTOMER: "customer",
+  MARKET: "market",
+  STRATEGY: "strategy",
+  COMPETITION: "competition",
+  ECOSYSTEM: "ecosystem",
+  RISK: "risk",
+  BUSINESS: "business",
+  ASSUMPTION: "assumption",
+  DECISION: "decision",
+} as const;
+
+export const EdgeRelationType = {
+  SUPPORTS: "supports",
+  CONTRADICTS: "contradicts",
+  CAUSES: "causes",
+  RELATES_TO: "relates_to",
+  DEPENDS_ON: "depends_on",
+} as const;
+
+export const DuplicateReviewStatus = {
+  PENDING: 0,
+  MERGED: 1,
+  IGNORED: 2,
+} as const;
+
+export const ontologyTypes = sqliteTable("ontology_types", {
+  id: text("id").primaryKey(),
+  nameKo: text("name_ko").notNull(),
+  domain: text("domain").notNull(),
+  icon: text("icon"),
+  color: text("color").notNull(),
+});
+
+export const contextNodes = sqliteTable(
+  "context_nodes",
+  {
+    id: text("id").primaryKey(),
+    discoveryId: text("discovery_id")
+      .notNull()
+      .references(() => discoveries.id, { onDelete: "cascade" }),
+    label: text("label").notNull(),
+    ontologyTypeId: text("ontology_type_id").references(() => ontologyTypes.id),
+    sourceEvidenceId: text("source_evidence_id").references(() => evidence.id, {
+      onDelete: "set null",
+    }),
+    metadata: text("metadata", { mode: "json" }).$type<Record<string, unknown>>(),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    discoveryIdIdx: index("idx_context_nodes_discovery_id").on(table.discoveryId),
+    ontologyTypeIdx: index("idx_context_nodes_ontology_type").on(table.ontologyTypeId),
+    sourceEvidenceIdx: index("idx_context_nodes_source_evidence").on(table.sourceEvidenceId),
+  })
+);
+
+export const contextEdges = sqliteTable(
+  "context_edges",
+  {
+    id: text("id").primaryKey(),
+    fromNodeId: text("from_node_id")
+      .notNull()
+      .references(() => contextNodes.id, { onDelete: "cascade" }),
+    toNodeId: text("to_node_id")
+      .notNull()
+      .references(() => contextNodes.id, { onDelete: "cascade" }),
+    relationType: text("relation_type").notNull(),
+    strength: integer("strength").default(100), // 0~100 (stored as int, display as 0~1)
+    sourceEvidenceId: text("source_evidence_id").references(() => evidence.id, {
+      onDelete: "set null",
+    }),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    fromNodeIdx: index("idx_context_edges_from_node").on(table.fromNodeId),
+    toNodeIdx: index("idx_context_edges_to_node").on(table.toNodeId),
+    sourceEvidenceIdx: index("idx_context_edges_source_evidence").on(table.sourceEvidenceId),
+  })
+);
+
+export const contextSnapshots = sqliteTable(
+  "context_snapshots",
+  {
+    id: text("id").primaryKey(),
+    discoveryId: text("discovery_id")
+      .notNull()
+      .references(() => discoveries.id, { onDelete: "cascade" }),
+    stage: text("stage").notNull(),
+    snapshotData: text("snapshot_data", { mode: "json" }).$type<{
+      nodes: Array<Record<string, unknown>>;
+      edges: Array<Record<string, unknown>>;
+    }>(),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    discoveryIdIdx: index("idx_context_snapshots_discovery_id").on(table.discoveryId),
+  })
+);
+
+export const evidenceDuplicateCandidates = sqliteTable(
+  "evidence_duplicate_candidates",
+  {
+    id: text("id").primaryKey(),
+    evidenceId1: text("evidence_id_1")
+      .notNull()
+      .references(() => evidence.id, { onDelete: "cascade" }),
+    evidenceId2: text("evidence_id_2")
+      .notNull()
+      .references(() => evidence.id, { onDelete: "cascade" }),
+    similarityScore: integer("similarity_score").notNull(), // 0~100
+    reason: text("reason"),
+    reviewed: integer("reviewed").notNull().default(0),
+    reviewedAt: integer("reviewed_at", { mode: "timestamp" }),
+    reviewedBy: text("reviewed_by").references(() => users.id),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    evidenceId1Idx: index("idx_evidence_dup_evidence_id_1").on(table.evidenceId1),
+    evidenceId2Idx: index("idx_evidence_dup_evidence_id_2").on(table.evidenceId2),
+    reviewedIdx: index("idx_evidence_dup_reviewed").on(table.reviewed),
+  })
+);
+
+// ============================================================================
+// R3: INDICATORS, CONNECTORS, GOVERNANCE TABLES (v3 R3)
+// ============================================================================
+
+export const DiscoveryLinkType = {
+  PREDECESSOR: "predecessor",
+  SUCCESSOR: "successor",
+  SIMILAR: "similar",
+  ALTERNATIVE: "alternative",
+} as const;
+
+export const AlertSeverity = {
+  INFO: "info",
+  WARNING: "warning",
+  CRITICAL: "critical",
+} as const;
+
+export const AlertType = {
+  KPI_THRESHOLD: "kpi_threshold",
+  STAGE_SLA: "stage_sla",
+  GATE_APPROVAL: "gate_approval",
+  OVERDUE: "overdue",
+} as const;
+
+export const GateApprovalDecision = {
+  APPROVED: "APPROVED",
+  REJECTED: "REJECTED",
+  CONDITIONAL: "CONDITIONAL",
+  PENDING: "PENDING",
+} as const;
+
+export const discoveryKpis = sqliteTable(
+  "discovery_kpis",
+  {
+    id: text("id").primaryKey(),
+    discoveryId: text("discovery_id")
+      .notNull()
+      .references(() => discoveries.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    unit: text("unit").notNull(),
+    targetValue: integer("target_value"),
+    warningThreshold: integer("warning_threshold"),
+    criticalThreshold: integer("critical_threshold"),
+    direction: text("direction").notNull().default("higher_is_better"), // 'higher_is_better' | 'lower_is_better'
+    methodPackId: text("method_pack_id").references(() => methodPacks.id),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    discoveryIdIdx: index("idx_discovery_kpis_discovery_id").on(table.discoveryId),
+  })
+);
+
+export const kpiMeasurements = sqliteTable(
+  "kpi_measurements",
+  {
+    id: text("id").primaryKey(),
+    kpiId: text("kpi_id")
+      .notNull()
+      .references(() => discoveryKpis.id, { onDelete: "cascade" }),
+    value: integer("value").notNull(),
+    note: text("note"),
+    measuredAt: integer("measured_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    kpiIdIdx: index("idx_kpi_measurements_kpi_id").on(table.kpiId),
+    measuredAtIdx: index("idx_kpi_measurements_measured_at").on(table.measuredAt),
+  })
+);
+
+export const discoveryLinks = sqliteTable(
+  "discovery_links",
+  {
+    id: text("id").primaryKey(),
+    fromDiscoveryId: text("from_discovery_id")
+      .notNull()
+      .references(() => discoveries.id, { onDelete: "cascade" }),
+    toDiscoveryId: text("to_discovery_id")
+      .notNull()
+      .references(() => discoveries.id, { onDelete: "cascade" }),
+    linkType: text("link_type").notNull(),
+    note: text("note"),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    fromDiscoveryIdx: index("idx_discovery_links_from").on(table.fromDiscoveryId),
+    toDiscoveryIdx: index("idx_discovery_links_to").on(table.toDiscoveryId),
+  })
+);
+
+export const alertRules = sqliteTable(
+  "alert_rules",
+  {
+    id: text("id").primaryKey(),
+    alertType: text("alert_type").notNull(),
+    name: text("name").notNull(),
+    condition: text("condition", { mode: "json" }).$type<Record<string, unknown>>(),
+    severity: text("severity").notNull().default("warning"),
+    enabled: integer("enabled").notNull().default(1),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    alertTypeIdx: index("idx_alert_rules_alert_type").on(table.alertType),
+  })
+);
+
+export const alerts = sqliteTable(
+  "alerts",
+  {
+    id: text("id").primaryKey(),
+    ruleId: text("rule_id").references(() => alertRules.id),
+    discoveryId: text("discovery_id").references(() => discoveries.id, { onDelete: "cascade" }),
+    kpiId: text("kpi_id").references(() => discoveryKpis.id, { onDelete: "cascade" }),
+    severity: text("severity").notNull(),
+    message: text("message").notNull(),
+    acknowledged: integer("acknowledged").notNull().default(0),
+    acknowledgedAt: integer("acknowledged_at", { mode: "timestamp" }),
+    acknowledgedBy: text("acknowledged_by").references(() => users.id),
+    firedAt: integer("fired_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    discoveryIdIdx: index("idx_alerts_discovery_id").on(table.discoveryId),
+    severityIdx: index("idx_alerts_severity").on(table.severity),
+    acknowledgedIdx: index("idx_alerts_acknowledged").on(table.acknowledged),
+  })
+);
+
+export const webhookConfigs = sqliteTable(
+  "webhook_configs",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    url: text("url").notNull(),
+    events: text("events", { mode: "json" }).$type<string[]>(),
+    platform: text("platform"), // 'slack' | 'teams' | 'custom'
+    headers: text("headers", { mode: "json" }).$type<Record<string, string>>(),
+    enabled: integer("enabled").notNull().default(1),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    enabledIdx: index("idx_webhook_configs_enabled").on(table.enabled),
+  })
+);
+
+export const gateApprovals = sqliteTable(
+  "gate_approvals",
+  {
+    id: text("id").primaryKey(),
+    gatePackageId: text("gate_package_id")
+      .notNull()
+      .references(() => gatePackages.id, { onDelete: "cascade" }),
+    reviewerId: text("reviewer_id")
+      .notNull()
+      .references(() => users.id),
+    decision: text("decision").notNull().default("PENDING"),
+    comment: text("comment"),
+    requestedAt: integer("requested_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    decidedAt: integer("decided_at", { mode: "timestamp" }),
+    slaDeadline: integer("sla_deadline", { mode: "timestamp" }),
+  },
+  (table) => ({
+    gatePackageIdIdx: index("idx_gate_approvals_gate_package_id").on(table.gatePackageId),
+    reviewerIdIdx: index("idx_gate_approvals_reviewer_id").on(table.reviewerId),
+    decisionIdx: index("idx_gate_approvals_decision").on(table.decision),
+  })
+);
+
+// ============================================================================
 // TYPES
 // ============================================================================
 
@@ -615,3 +944,39 @@ export type NewGatePackage = typeof gatePackages.$inferInsert;
 
 export type Assumption = typeof assumptions.$inferSelect;
 export type NewAssumption = typeof assumptions.$inferInsert;
+
+export type OntologyType = typeof ontologyTypes.$inferSelect;
+export type NewOntologyType = typeof ontologyTypes.$inferInsert;
+
+export type ContextNode = typeof contextNodes.$inferSelect;
+export type NewContextNode = typeof contextNodes.$inferInsert;
+
+export type ContextEdge = typeof contextEdges.$inferSelect;
+export type NewContextEdge = typeof contextEdges.$inferInsert;
+
+export type ContextSnapshot = typeof contextSnapshots.$inferSelect;
+export type NewContextSnapshot = typeof contextSnapshots.$inferInsert;
+
+export type EvidenceDuplicateCandidate = typeof evidenceDuplicateCandidates.$inferSelect;
+export type NewEvidenceDuplicateCandidate = typeof evidenceDuplicateCandidates.$inferInsert;
+
+export type DiscoveryKpi = typeof discoveryKpis.$inferSelect;
+export type NewDiscoveryKpi = typeof discoveryKpis.$inferInsert;
+
+export type KpiMeasurement = typeof kpiMeasurements.$inferSelect;
+export type NewKpiMeasurement = typeof kpiMeasurements.$inferInsert;
+
+export type DiscoveryLink = typeof discoveryLinks.$inferSelect;
+export type NewDiscoveryLink = typeof discoveryLinks.$inferInsert;
+
+export type AlertRule = typeof alertRules.$inferSelect;
+export type NewAlertRule = typeof alertRules.$inferInsert;
+
+export type Alert = typeof alerts.$inferSelect;
+export type NewAlert = typeof alerts.$inferInsert;
+
+export type WebhookConfig = typeof webhookConfigs.$inferSelect;
+export type NewWebhookConfig = typeof webhookConfigs.$inferInsert;
+
+export type GateApproval = typeof gateApprovals.$inferSelect;
+export type NewGateApproval = typeof gateApprovals.$inferInsert;

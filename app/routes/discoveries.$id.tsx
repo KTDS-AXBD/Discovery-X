@@ -216,6 +216,9 @@ export default function DiscoveryDetail() {
                 </Button>
               )}
               <Button variant="outline" size="sm" asChild>
+                <Link to={`/discoveries/${discovery.id}/graph`}>그래프</Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild>
                 <Link to={`/discoveries/${discovery.id}/methods`}>방법론</Link>
               </Button>
               <Button variant="outline" size="sm" asChild>

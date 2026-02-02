@@ -1,0 +1,338 @@
+/**
+ * Ontology graph tools — entity extraction, linking, graph query, duplicate detection.
+ * v3 R2: 5 tools for context graph + evidence deduplication.
+ */
+
+import { eq, desc } from "drizzle-orm";
+import type { DB } from "~/db";
+import {
+  contextNodes,
+  contextEdges,
+  evidenceDuplicateCandidates,
+  evidence,
+  ontologyTypes,
+  discoveries,
+} from "~/db/schema";
+
+function generateId(): string {
+  return crypto.randomUUID();
+}
+
+/**
+ * extract_entities — Evidence에서 엔티티 추출 → context_nodes 일괄 생성
+ */
+export async function extractEntities(
+  db: DB,
+  input: {
+    discoveryId: string;
+    entities: Array<{
+      label: string;
+      ontologyTypeId: string;
+      sourceEvidenceId?: string;
+      metadata?: Record<string, unknown>;
+    }>;
+  }
+): Promise<string> {
+  // Verify discovery exists
+  const discovery = await db
+    .select()
+    .from(discoveries)
+    .where(eq(discoveries.id, input.discoveryId))
+    .limit(1);
+
+  if (!discovery[0]) {
+    return JSON.stringify({ error: `Discovery를 찾을 수 없습니다: ${input.discoveryId}` });
+  }
+
+  if (!input.entities || input.entities.length === 0) {
+    return JSON.stringify({ error: "추출할 엔티티가 없습니다." });
+  }
+
+  const createdNodes = [];
+
+  for (const entity of input.entities) {
+    // Validate ontology type exists
+    const ontType = await db
+      .select()
+      .from(ontologyTypes)
+      .where(eq(ontologyTypes.id, entity.ontologyTypeId))
+      .limit(1);
+
+    if (!ontType[0]) {
+      continue; // Skip invalid ontology types
+    }
+
+    const nodeId = generateId();
+    await db.insert(contextNodes).values({
+      id: nodeId,
+      discoveryId: input.discoveryId,
+      label: entity.label,
+      ontologyTypeId: entity.ontologyTypeId,
+      sourceEvidenceId: entity.sourceEvidenceId || null,
+      metadata: entity.metadata || null,
+    });
+
+    createdNodes.push({
+      id: nodeId,
+      label: entity.label,
+      ontologyTypeId: entity.ontologyTypeId,
+    });
+  }
+
+  return JSON.stringify({
+    success: true,
+    discoveryId: input.discoveryId,
+    nodesCreated: createdNodes.length,
+    nodes: createdNodes,
+  });
+}
+
+/**
+ * link_entities — 노드 2개를 관계로 연결 → context_edges 생성
+ */
+export async function linkEntities(
+  db: DB,
+  input: {
+    discoveryId: string;
+    fromNodeId: string;
+    toNodeId: string;
+    relationType: string;
+    strength?: number;
+    sourceEvidenceId?: string;
+  }
+): Promise<string> {
+  // Validate both nodes exist and belong to same discovery
+  const fromNode = await db
+    .select()
+    .from(contextNodes)
+    .where(eq(contextNodes.id, input.fromNodeId))
+    .limit(1);
+
+  const toNode = await db
+    .select()
+    .from(contextNodes)
+    .where(eq(contextNodes.id, input.toNodeId))
+    .limit(1);
+
+  if (!fromNode[0] || !toNode[0]) {
+    return JSON.stringify({ error: "노드를 찾을 수 없습니다." });
+  }
+
+  if (fromNode[0].discoveryId !== input.discoveryId || toNode[0].discoveryId !== input.discoveryId) {
+    return JSON.stringify({ error: "동일 Discovery 소속 노드 간만 연결할 수 있습니다." });
+  }
+
+  const validRelations = ["supports", "contradicts", "causes", "relates_to", "depends_on"];
+  if (!validRelations.includes(input.relationType)) {
+    return JSON.stringify({ error: `유효하지 않은 관계 타입: ${input.relationType}` });
+  }
+
+  const edgeId = generateId();
+  const strengthValue = input.strength != null ? Math.round(input.strength * 100) : 100;
+
+  await db.insert(contextEdges).values({
+    id: edgeId,
+    fromNodeId: input.fromNodeId,
+    toNodeId: input.toNodeId,
+    relationType: input.relationType,
+    strength: strengthValue,
+    sourceEvidenceId: input.sourceEvidenceId || null,
+  });
+
+  return JSON.stringify({
+    success: true,
+    edgeId,
+    from: fromNode[0].label,
+    to: toNode[0].label,
+    relationType: input.relationType,
+    strength: strengthValue / 100,
+  });
+}
+
+/**
+ * query_graph — Discovery의 맥락 그래프 조회
+ */
+export async function queryGraph(
+  db: DB,
+  input: {
+    discoveryId: string;
+    ontologyTypeId?: string;
+  }
+): Promise<string> {
+  const nodes = await db
+    .select()
+    .from(contextNodes)
+    .where(eq(contextNodes.discoveryId, input.discoveryId));
+
+  let filteredNodes = nodes;
+  if (input.ontologyTypeId) {
+    filteredNodes = nodes.filter((n) => n.ontologyTypeId === input.ontologyTypeId);
+  }
+
+  const nodeIds = new Set(filteredNodes.map((n) => n.id));
+
+  const allEdges = await db
+    .select()
+    .from(contextEdges);
+
+  // Filter edges to those connecting filtered nodes
+  const filteredEdges = allEdges.filter(
+    (e) => nodeIds.has(e.fromNodeId) || nodeIds.has(e.toNodeId)
+  );
+
+  // Count connected components (simple union-find)
+  const parent = new Map<string, string>();
+  const find = (x: string): string => {
+    if (!parent.has(x)) parent.set(x, x);
+    if (parent.get(x) !== x) parent.set(x, find(parent.get(x)!));
+    return parent.get(x)!;
+  };
+  const union = (a: string, b: string) => {
+    parent.set(find(a), find(b));
+  };
+
+  for (const node of filteredNodes) {
+    find(node.id);
+  }
+  for (const edge of filteredEdges) {
+    if (nodeIds.has(edge.fromNodeId) && nodeIds.has(edge.toNodeId)) {
+      union(edge.fromNodeId, edge.toNodeId);
+    }
+  }
+
+  const roots = new Set<string>();
+  for (const node of filteredNodes) {
+    roots.add(find(node.id));
+  }
+
+  return JSON.stringify({
+    discoveryId: input.discoveryId,
+    nodes: filteredNodes.map((n) => ({
+      id: n.id,
+      label: n.label,
+      ontologyTypeId: n.ontologyTypeId,
+      sourceEvidenceId: n.sourceEvidenceId,
+      metadata: n.metadata,
+    })),
+    edges: filteredEdges.map((e) => ({
+      id: e.id,
+      fromNodeId: e.fromNodeId,
+      toNodeId: e.toNodeId,
+      relationType: e.relationType,
+      strength: (e.strength ?? 100) / 100,
+      sourceEvidenceId: e.sourceEvidenceId,
+    })),
+    stats: {
+      nodeCount: filteredNodes.length,
+      edgeCount: filteredEdges.length,
+      connectedComponents: roots.size,
+    },
+  });
+}
+
+/**
+ * get_duplicate_queue — 미검토 중복 후보 목록 조회
+ */
+export async function getDuplicateQueue(
+  db: DB,
+  input: { limit?: number }
+): Promise<string> {
+  const limit = input.limit || 20;
+
+  const candidates = await db
+    .select()
+    .from(evidenceDuplicateCandidates)
+    .where(eq(evidenceDuplicateCandidates.reviewed, 0))
+    .orderBy(desc(evidenceDuplicateCandidates.similarityScore))
+    .limit(limit);
+
+  const results = [];
+  for (const c of candidates) {
+    const ev1 = await db
+      .select()
+      .from(evidence)
+      .where(eq(evidence.id, c.evidenceId1))
+      .limit(1);
+    const ev2 = await db
+      .select()
+      .from(evidence)
+      .where(eq(evidence.id, c.evidenceId2))
+      .limit(1);
+
+    results.push({
+      id: c.id,
+      similarityScore: c.similarityScore / 100,
+      reason: c.reason,
+      evidence1: ev1[0]
+        ? { id: ev1[0].id, type: ev1[0].type, strength: ev1[0].strength, content: ev1[0].content.slice(0, 200) }
+        : null,
+      evidence2: ev2[0]
+        ? { id: ev2[0].id, type: ev2[0].type, strength: ev2[0].strength, content: ev2[0].content.slice(0, 200) }
+        : null,
+    });
+  }
+
+  return JSON.stringify({ total: results.length, candidates: results });
+}
+
+/**
+ * review_duplicate — 중복 후보 검토 결과 반영
+ */
+export async function reviewDuplicate(
+  db: DB,
+  input: {
+    candidateId: string;
+    decision: "merge" | "ignore";
+    mergeTargetId?: string;
+  }
+): Promise<string> {
+  const candidate = await db
+    .select()
+    .from(evidenceDuplicateCandidates)
+    .where(eq(evidenceDuplicateCandidates.id, input.candidateId))
+    .limit(1);
+
+  if (!candidate[0]) {
+    return JSON.stringify({ error: "중복 후보를 찾을 수 없습니다." });
+  }
+
+  if (candidate[0].reviewed !== 0) {
+    return JSON.stringify({ error: "이미 검토된 후보입니다." });
+  }
+
+  const reviewedStatus = input.decision === "merge" ? 1 : 2;
+
+  if (input.decision === "merge" && input.mergeTargetId) {
+    // Append content from the other evidence to the merge target
+    const targetId = input.mergeTargetId;
+    const otherId = targetId === candidate[0].evidenceId1
+      ? candidate[0].evidenceId2
+      : candidate[0].evidenceId1;
+
+    const targetEv = await db.select().from(evidence).where(eq(evidence.id, targetId)).limit(1);
+    const otherEv = await db.select().from(evidence).where(eq(evidence.id, otherId)).limit(1);
+
+    if (targetEv[0] && otherEv[0]) {
+      const merged = `${targetEv[0].content}\n\n[병합됨] ${otherEv[0].content}`;
+      await db
+        .update(evidence)
+        .set({ content: merged.slice(0, 400) })
+        .where(eq(evidence.id, targetId));
+    }
+  }
+
+  await db
+    .update(evidenceDuplicateCandidates)
+    .set({
+      reviewed: reviewedStatus,
+      reviewedAt: new Date(),
+    })
+    .where(eq(evidenceDuplicateCandidates.id, input.candidateId));
+
+  return JSON.stringify({
+    success: true,
+    candidateId: input.candidateId,
+    decision: input.decision,
+    reviewedStatus,
+  });
+}

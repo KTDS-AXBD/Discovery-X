@@ -45,6 +45,27 @@ import {
   draftGatePackage,
   getGatePackage,
 } from "./tools/method-tools";
+import {
+  extractEntities,
+  linkEntities,
+  queryGraph,
+  getDuplicateQueue,
+  reviewDuplicate,
+} from "./tools/ontology-tools";
+import {
+  registerKpi,
+  recordKpiMeasurement,
+  getKpiStatus,
+  getPipelineHealth,
+} from "./tools/indicator-tools";
+import {
+  linkDiscoveries,
+  getLinkedDiscoveries,
+} from "./tools/connector-tools";
+import {
+  requestGateApproval,
+  submitGateApproval,
+} from "./tools/governance-tools";
 
 function generateId(): string {
   return crypto.randomUUID();
@@ -135,6 +156,35 @@ async function executeTool(
       return draftGatePackage(db, toolInput as Parameters<typeof draftGatePackage>[1]);
     case "get_gate_package":
       return getGatePackage(db, toolInput as Parameters<typeof getGatePackage>[1]);
+    case "extract_entities":
+      return extractEntities(db, toolInput as Parameters<typeof extractEntities>[1]);
+    case "link_entities":
+      return linkEntities(db, toolInput as Parameters<typeof linkEntities>[1]);
+    case "query_graph":
+      return queryGraph(db, toolInput as Parameters<typeof queryGraph>[1]);
+    case "get_duplicate_queue":
+      return getDuplicateQueue(db, toolInput as Parameters<typeof getDuplicateQueue>[1]);
+    case "review_duplicate":
+      return reviewDuplicate(db, toolInput as Parameters<typeof reviewDuplicate>[1]);
+    // R3: Indicator tools
+    case "register_kpi":
+      return registerKpi(db, toolInput as Parameters<typeof registerKpi>[1]);
+    case "record_kpi_measurement":
+      return recordKpiMeasurement(db, toolInput as Parameters<typeof recordKpiMeasurement>[1]);
+    case "get_kpi_status":
+      return getKpiStatus(db, toolInput as Parameters<typeof getKpiStatus>[1]);
+    case "get_pipeline_health":
+      return getPipelineHealth(db, toolInput as Parameters<typeof getPipelineHealth>[1]);
+    // R3: Connector tools
+    case "link_discoveries":
+      return linkDiscoveries(db, toolInput as Parameters<typeof linkDiscoveries>[1]);
+    case "get_linked_discoveries":
+      return getLinkedDiscoveries(db, toolInput as Parameters<typeof getLinkedDiscoveries>[1]);
+    // R3: Governance tools
+    case "request_gate_approval":
+      return requestGateApproval(db, toolInput as Parameters<typeof requestGateApproval>[1]);
+    case "submit_gate_approval":
+      return submitGateApproval(db, toolInput as Parameters<typeof submitGateApproval>[1]);
     default:
       return JSON.stringify({ error: `알 수 없는 도구: ${toolName}` });
   }
