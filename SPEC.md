@@ -832,7 +832,7 @@ Docs 페이지 + Google OAuth + admin/user 역할 분리 완료. R3b (알림 엔
 </details>
 
 ### 활성 결정사항
-- **인증 방식**: Session 기반 (D1 `sessions` 테이블)
+- **인증 방식**: Google OAuth (arctic) + Session 기반 (D1 `sessions` 테이블), admin/user 역할 분리
 - **기술 스택**: Remix v2 + D1 확정
 - **프로젝트 구조**: 기획 문서는 `docs/`, SDD 핵심(CLAUDE.md, SPEC.md)은 루트
 - **브랜치 전략**: master 단일 브랜치 (Prototype 기간)
@@ -850,7 +850,8 @@ Docs 페이지 + Google OAuth + admin/user 역할 분리 완료. R3b (알림 엔
 - **v3 R1 Method Pack**: ✅ 구현 완료 (DB + 도구 + UI)
 - **v3 R2 Ontology Graph**: ✅ 구현 완료 (맥락 그래프 + 근거 중복 감지)
 - **v3 R3a Indicators/Connectors/Governance**: ✅ 구현 완료 (KPI + 링크 + Gate 승인 + Health 대시보드)
-- **v3 R3b 알림/웹훅/역할**: 다음 세션 구현 예정 (alert_rules/alerts/webhook_configs 테이블 선행 생성 완료)
+- **Google OAuth + 역할 분리**: ✅ 세션 60 — arctic + /auth/google 라우트 + admin/user role + requireAdmin 가드
+- **v3 R3b 알림/웹훅**: 다음 세션 구현 예정 (alert_rules/alerts/webhook_configs 테이블 선행 생성 완료)
 - **DB 마이그레이션**: 11개 (0000~0010), 0009~0010은 로컬 적용 대기
 - **배포 상태**: ✅ 세션 51 프로덕션 배포 완료 — AXIS Design System 정합성 수정 (https://dx.minu.best)
 - **Agent E2E 테스트**: ✅ 세션 39 풀 플로우 검증 완료 — 6개 도구 정상 (get_metrics, create_discovery, promote_discovery, add_evidence, complete_experiment, decide_next)
@@ -875,7 +876,7 @@ Docs 페이지 + Google OAuth + admin/user 역할 분리 완료. R3b (알림 엔
 | SDD 워크플로우 | ✅ | CLAUDE.md + SPEC.md + 세션 스킬 |
 | Validation 엔진 | ✅ | 모든 PRD 비즈니스 규칙 + Zod schemas |
 | 상수 정의 | ✅ | Failure patterns, Trigger types, Evidence types |
-| 인증 시스템 | ✅ | Session 기반 (D1 저장, 30일 만료) |
+| 인증 시스템 | ✅ | Google OAuth (arctic) + Session 기반 (D1 저장, 30일 만료) + admin/user 역할 |
 | **Discovery CRUD** | ✅ | 15개 라우트 (목록, 생성, 상세, 승격, 실험, 근거, 결정) |
 | **상태 전환 로직** | ✅ | INBOX → OPEN → NEXT/NOT_NOW/DEAD_END |
 | **Owner 지정** | ✅ | 승격 시 Owner 필수, 변경 가능 |
@@ -972,6 +973,7 @@ Docs 페이지 + Google OAuth + admin/user 역할 분리 완료. R3b (알림 엔
 | **v3 R3a: 링크/알림/승인 스키마** | ✅ | discovery_links + alert_rules + alerts + webhook_configs + gate_approvals 테이블 |
 | **v3 R3a: Agent 도구 8개** | ✅ | register/record/get_kpi + pipeline_health + link/get_linked + request/submit_gate_approval |
 | **v3 R3a: Health 대시보드** | ✅ | /dashboard/health — 체류시간, 전환율, 근거 품질 |
+| **Google OAuth + 역할 분리** | ✅ | arctic + /auth/google + admin/user role + requireAdmin 가드 + /admin/users |
 
 ### 남은 작업
 - [x] 최종 프로덕션 배포 — 세션 14에서 완료
