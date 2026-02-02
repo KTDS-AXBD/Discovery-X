@@ -259,7 +259,7 @@ Docs 페이지 + Google OAuth + admin/user/gatekeeper 역할 분리 완료.
 Audit Log 기능 구현: 누락 이벤트 기록 보완, Dashboard Audit Log 탭, Discovery 상세 활동 타임라인.
 Cron 3건 점검 완료 (daily/agent-review/alerts), CRON_SECRET 재설정. 세션 67 배포 (671086a0).
 Audit Log 프로덕션 배포 완료 (d9d40471). CREATE_DISCOVERY/UPDATE_DISCOVERY 이벤트 로깅 추가.
-웹 폼 이벤트 로깅 누락 5건 보완: ADD_EXPERIMENT, ADD_EVIDENCE, START_METHOD_RUN 추가 (세션 68).
+웹 폼 이벤트 로깅 누락 5건 보완: ADD_EXPERIMENT, ADD_EVIDENCE, START_METHOD_RUN 추가. 프로덕션 배포 완료 (08b2b89b).
 
 ### PRD P0 구현 상태
 
