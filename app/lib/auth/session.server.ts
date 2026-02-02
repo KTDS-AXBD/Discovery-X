@@ -1,6 +1,6 @@
-import { createCookieSessionStorage, redirect } from "@remix-run/cloudflare";
+import { createCookieSessionStorage, redirect, json } from "@remix-run/cloudflare";
 import type { DB } from "~/db";
-import { users, sessions } from "~/db/schema";
+import { users, sessions, UserRole } from "~/db/schema";
 import { eq } from "drizzle-orm";
 
 // Session storage configuration
@@ -59,6 +59,19 @@ export async function requireUser(
   const user = await getUserFromSession(request, db, secret);
   if (!user) {
     throw redirect("/login");
+  }
+  return user;
+}
+
+// Require admin role
+export async function requireAdmin(
+  request: Request,
+  db: DB,
+  secret: string
+) {
+  const user = await requireUser(request, db, secret);
+  if (user.role !== UserRole.ADMIN) {
+    throw json({ error: "관리자 권한이 필요합니다" }, { status: 403 });
   }
   return user;
 }

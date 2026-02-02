@@ -1,51 +1,26 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
-import { json, redirect } from "@remix-run/cloudflare";
-import { Form, useLoaderData } from "@remix-run/react";
-import { getDb } from "~/db";
-import { users } from "~/db/schema";
-import { createSession, createSessionStorage, getSessionSecret } from "~/lib/auth/session.server";
+import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
+import { Link, useLoaderData } from "@remix-run/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/Card";
-import { Select } from "~/components/ui/Select";
-import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
+import { AlertBanner } from "~/components/ui/AlertBanner";
 
-export async function loader({ request: _request, context }: LoaderFunctionArgs) {
-  const db = getDb(context.cloudflare.env.DB);
-
-  // Get all users for selection, excluding system users
-  const allUsers = await db.select().from(users);
-  const humanUsers = allUsers.filter((u) => !u.email.endsWith("@system"));
-
-  return json({ users: humanUsers });
+export async function loader({ request, context: _context }: LoaderFunctionArgs) {
+  const url = new URL(request.url);
+  const error = url.searchParams.get("error");
+  return json({ error });
 }
 
-export async function action({ request, context }: ActionFunctionArgs) {
-  const db = getDb(context.cloudflare.env.DB);
-  const formData = await request.formData();
-  const userId = formData.get("userId");
-
-  if (!userId || typeof userId !== "string") {
-    return json({ error: "사용자를 선택해주세요" }, { status: 400 });
-  }
-
-  // Create session
-  const sessionId = await createSession(userId, db);
-
-  // Set session cookie
-  const secret = getSessionSecret(context.cloudflare.env);
-  const sessionStorage = createSessionStorage(secret);
-  const session = await sessionStorage.getSession();
-  session.set("sessionId", sessionId);
-
-  return redirect("/", {
-    headers: {
-      "Set-Cookie": await sessionStorage.commitSession(session),
-    },
-  });
-}
+const ERROR_MESSAGES: Record<string, string> = {
+  missing_params: "인증 파라미터가 누락되었습니다.",
+  invalid_state: "인증 상태가 유효하지 않습니다. 다시 시도해주세요.",
+  token_exchange_failed: "Google 인증에 실패했습니다.",
+  userinfo_failed: "사용자 정보를 가져올 수 없습니다.",
+  user_creation_failed: "사용자 생성에 실패했습니다.",
+};
 
 export default function Login() {
-  const { users } = useLoaderData<typeof loader>();
+  const { error } = useLoaderData<typeof loader>();
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--axis-surface-secondary)]">
@@ -54,26 +29,39 @@ export default function Login() {
           <CardTitle className="text-3xl">Discovery-X</CardTitle>
           <CardDescription>내부 실험 중심 사고 시스템</CardDescription>
         </CardHeader>
-        <CardContent>
-          <Form method="post" className="space-y-6">
-            <FormField label="사용자 선택" htmlFor="userId" required>
-              <Select id="userId" name="userId" required>
-                <option value="">선택하세요</option>
-                {users.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name} ({user.email})
-                  </option>
-                ))}
-              </Select>
-            </FormField>
+        <CardContent className="space-y-6">
+          {error && (
+            <AlertBanner variant="destructive">
+              {ERROR_MESSAGES[error] || "로그인 중 오류가 발생했습니다."}
+            </AlertBanner>
+          )}
 
-            <Button type="submit" className="w-full">
-              로그인
+          <Link to="/auth/google" className="block">
+            <Button type="button" className="w-full gap-3">
+              <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
+                  fill="#4285F4"
+                />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="#34A853"
+                />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  fill="#FBBC05"
+                />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="#EA4335"
+                />
+              </svg>
+              Google로 로그인
             </Button>
-          </Form>
+          </Link>
 
-          <p className="mt-6 text-center text-xs text-[var(--axis-text-tertiary)]">
-            Prototype 버전 — 5명 테스트 사용자
+          <p className="text-center text-xs text-[var(--axis-text-tertiary)]">
+            Google 계정으로 로그인합니다
           </p>
         </CardContent>
       </Card>
