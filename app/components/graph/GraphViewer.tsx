@@ -52,7 +52,21 @@ const WIDTH = 800;
 const HEIGHT = 600;
 
 export function GraphViewer({ nodes, edges, ontologyTypes, onNodeClick }: GraphViewerProps) {
-  const [simNodes, setSimNodes] = useState<SimNode[]>([]);
+  const initialNodes = useMemo(() => {
+    const cx = WIDTH / 2;
+    const cy = HEIGHT / 2;
+    // Deterministic jitter based on index to avoid Math.random in render
+    const jitter = (i: number, seed: number) => ((((i * 2654435761 + seed) >>> 0) % 1000) / 1000 - 0.5) * 40;
+    return nodes.map((n, i) => ({
+      ...n,
+      x: cx + (Math.cos((2 * Math.PI * i) / Math.max(1, nodes.length)) * 200) + jitter(i, 1),
+      y: cy + (Math.sin((2 * Math.PI * i) / Math.max(1, nodes.length)) * 200) + jitter(i, 2),
+      vx: 0,
+      vy: 0,
+    }));
+  }, [nodes]);
+
+  const [simNodes, setSimNodes] = useState<SimNode[]>(initialNodes);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<Set<string>>(new Set());
@@ -61,26 +75,20 @@ export function GraphViewer({ nodes, edges, ontologyTypes, onNodeClick }: GraphV
 
   const typeMap = new Map(ontologyTypes.map((t) => [t.id, t]));
 
-  // Initialize simulation
-  useEffect(() => {
-    const cx = WIDTH / 2;
-    const cy = HEIGHT / 2;
-    const initial: SimNode[] = nodes.map((n, i) => ({
-      ...n,
-      x: cx + (Math.cos((2 * Math.PI * i) / nodes.length) * 200) + (Math.random() - 0.5) * 40,
-      y: cy + (Math.sin((2 * Math.PI * i) / nodes.length) * 200) + (Math.random() - 0.5) * 40,
-      vx: 0,
-      vy: 0,
-    }));
-    setSimNodes(initial);
-    iterRef.current = 0;
-  }, [nodes]);
-
-  // Simple force simulation using ref to avoid circular dependency
+  // Keep refs in sync
   const edgesRef = useRef(edges);
+  const initialNodesRef = useRef(initialNodes);
   useEffect(() => {
     edgesRef.current = edges;
   }, [edges]);
+
+  // Reset when nodes change
+  useEffect(() => {
+    if (initialNodesRef.current !== initialNodes) {
+      initialNodesRef.current = initialNodes;
+      iterRef.current = 0;
+    }
+  }, [initialNodes]);
 
   useEffect(() => {
     const tick = () => {

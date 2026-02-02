@@ -4,7 +4,7 @@ import { Button } from "~/components/ui/Button";
 import { useTheme } from "@axis-ds/theme";
 
 interface MainNavProps {
-  user: { id: string; email: string; name: string };
+  user: { id: string; email: string; name: string; role?: string };
 }
 
 interface RootLoaderData {
@@ -21,6 +21,7 @@ export function MainNav({ user }: MainNavProps) {
   const { resolvedTheme, setTheme } = useTheme();
   const rootData = useRouteLoaderData("root") as RootLoaderData | undefined;
   const notifications = rootData?.notifications;
+  const isAdmin = user.role === "admin";
 
   const reviewBadge =
     notifications && (notifications.overdueOpen + notifications.dueSoon) > 0
@@ -73,13 +74,24 @@ export function MainNav({ user }: MainNavProps) {
       >
         Docs
       </Link>
-      <Link
-        to="/settings"
-        className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-[var(--axis-text-tertiary)] hover:border-[var(--axis-border-secondary)] hover:text-[var(--axis-text-primary)]"
-        onClick={() => setMobileMenuOpen(false)}
-      >
-        Settings
-      </Link>
+      {isAdmin && (
+        <Link
+          to="/settings"
+          className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-[var(--axis-text-tertiary)] hover:border-[var(--axis-border-secondary)] hover:text-[var(--axis-text-primary)]"
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          Settings
+        </Link>
+      )}
+      {isAdmin && (
+        <Link
+          to="/admin/users"
+          className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-[var(--axis-text-tertiary)] hover:border-[var(--axis-border-secondary)] hover:text-[var(--axis-text-primary)]"
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          Admin
+        </Link>
+      )}
     </>
   );
 

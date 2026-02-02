@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { MainNav } from "./MainNav";
 
 interface PageLayoutProps {
-  user: { id: string; email: string; name: string };
+  user: { id: string; email: string; name: string; role?: string };
   children: ReactNode;
 }
 
