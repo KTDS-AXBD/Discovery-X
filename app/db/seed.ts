@@ -27,7 +27,7 @@ export async function seedDatabase(db: ReturnType<typeof getDb>) {
         "https://example.com/rag-benchmark",
       ],
       sourceType: SourceType.INTERNAL_PAIN,
-      status: DiscoveryStatus.INBOX,
+      status: DiscoveryStatus.DISCOVERY,
     },
     {
       id: "discovery-2",
@@ -36,7 +36,7 @@ export async function seedDatabase(db: ReturnType<typeof getDb>) {
         "현재 이탈 고객의 70%가 마지막 30일간 로그인 <3회. 행동 데이터 기반 7일 전 조기 경고 시스템 구축 가능.",
       seedLinks: ["https://example.com/churn-analysis"],
       sourceType: SourceType.ARTICLE,
-      status: DiscoveryStatus.INBOX,
+      status: DiscoveryStatus.DISCOVERY,
     },
   ];
 

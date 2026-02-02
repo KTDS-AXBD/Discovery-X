@@ -7,16 +7,17 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 
 ### 범위
 
-**In-scope (PRD §7.1 P0)**
-- Discovery CRUD + 상태 전환 (INBOX → OPEN → NEXT/NOT_NOW/DEAD_END)
+**In-scope (PRD §7.1 P0 + v3 확장)**
+- Discovery CRUD + 11단계 파이프라인 (DISCOVERY → IDEA_CARD → HYPOTHESIS → EXPERIMENT → EVIDENCE_REVIEW → GATE1 → SPRINT → GATE2 → HANDOFF + HOLD/DROP)
 - Owner/Reviewer 지정 및 승계
-- Experiment 최대 2개 관리
-- Evidence 타입/강도/링크 기록
-- NOT_NOW: Trigger Type + Revisit Date 강제
-- DEAD_END: Failure Pattern 태깅 강제
-- Weekly Review 뷰 (OPEN 목록, 경과일 순)
-- Recall Queue 뷰 (Revisit 도래 NOT_NOW 목록)
+- Experiment 최대 2개 관리 (Extension 승인 시 3개)
+- Evidence 타입/강도/신뢰도(reliability_label) + 출처(source_url) + 발행일(published_date) 기록
+- HOLD: Trigger Type + Revisit Date 강제
+- DROP: Failure Pattern 태깅 강제
+- Weekly Review 뷰 (활성 Discovery 경과일 순)
+- Recall Queue 뷰 (Revisit 도래 HOLD 목록)
 - 최소 지표 집계/Export
+- Method Pack 12종 라이브러리 + 추천 + 실행 + Gate 패키지 자동 초안 (R1)
 
 **Out-of-scope (PRD §2.2, §7.3)**
 - 전사 공식 포털/플랫폼
@@ -43,26 +44,31 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 ### 핵심 워크플로우
 
 ```
-Flow A: Seed Inbox 입력 (5분)
-  → 제목/요약/링크 입력 → Owner=등록자(기본) → status=INBOX
+Flow A: 신호 포착 (5분)
+  → 제목/요약/링크 입력 → status=DISCOVERY
 
-Flow B: 실험으로 승격 (OPEN)
-  → Owner 지정(필수) → Experiment 1개 등록 → status=OPEN → due_date 자동(+28일)
+Flow B: 아이디어 구조화 (IDEA_CARD)
+  → Owner 지정(필수) → Experiment 1개 등록 → status=IDEA_CARD → due_date 자동(+28일)
 
-Flow C: Evidence 기록
-  → 타입/강도 선택 → 요약 + 링크
+Flow C: 검증 루프 (HYPOTHESIS → EXPERIMENT → EVIDENCE_REVIEW)
+  → 가설 수립 → 실험 수행 → 근거 수집/검토
+  → Evidence: 타입/강도/신뢰도(reliability_label) + 출처(source_url) + 발행일
 
-Flow D: Decision 닫기
-  → NEXT: 근거 A/B 최소 2개 권장
-  → NOT_NOW: Trigger Type + Condition + Revisit Date 필수
-  → DEAD_END: Failure Pattern 1~3 + 증거 기반 이유 필수
+Flow D: 의사결정 (Gate / HOLD / DROP)
+  → GATE1/GATE2: A/B급 증거 2개 이상 권장 + Gate 패키지 자동 초안
+  → HOLD: Trigger Type + Condition + Revisit Date 필수
+  → DROP: Failure Pattern 1~3 + 증거 기반 이유 필수
 
 Flow E: Recall (재호출)
   → Revisit Date 도래 → Review 큐 자동 등재
-  → 유사 Seed 검색 시 Not Now/Dead End 제안
+  → 유사 Seed 검색 시 Hold/Drop 이력 제안
 
 Flow F: Weekly Decision Review (30분)
-  → OPEN 항목을 Age 순 정렬 → Owner 1줄 요약 + 상태 제안
+  → 활성 항목을 Age 순 정렬 → Owner 1줄 요약 + 상태 제안
+
+Flow G: 방법론 실행 (R1)
+  → Method Pack 추천 → 실행 시작 → structured output 저장
+  → Gate 패키지 자동 초안 생성
 ```
 
 ### UI 요소
@@ -156,22 +162,38 @@ Cron (매일 9:00 KST) → radar-worker (별도 CF Worker)
 | `conversations` | AI Agent 대화 세션 | v2 Agent |
 | `messages` | 대화 메시지 (user/assistant/tool_use/tool_result) | v2 Agent |
 | `agent_config` | Agent 설정 (자율도/토큰 예산/시스템 프롬프트) | v2 Agent |
+| `stages` | 11단계 파이프라인 정의 | v3 Stage |
+| `signal_metadata` | Discovery 신호 메타데이터 | v3 Stage |
+| `method_packs` | 방법론 팩 12종 라이브러리 | v3 R1 |
+| `method_runs` | 방법론 실행 기록 | v3 R1 |
+| `gate_packages` | Gate 의사결정 패키지 | v3 R1 |
+| `assumptions` | 가정 관리 | v3 R1 |
 
-### 상태 전환 규칙 (DB에 반영됨)
+### 상태 전환 규칙 (11단계 파이프라인)
 ```
-INBOX → OPEN → { NEXT | NOT_NOW | DEAD_END }
-                ↓ (실험 2개 완료 시)
-           EXTENSION_REQUESTED → { NEXT | NOT_NOW | DEAD_END }
-                ↓
-           실험 추가 가능 (최대 3개)
+DISCOVERY → IDEA_CARD → HYPOTHESIS → EXPERIMENT → EVIDENCE_REVIEW → GATE1 → SPRINT → GATE2 → HANDOFF
+                                                                                ↗ HOLD (재검토 가능)
+                                                                                ↗ DROP (종료)
 ```
+
+허용된 전환 맵:
+- DISCOVERY → IDEA_CARD, HOLD, DROP
+- IDEA_CARD → HYPOTHESIS, HOLD, DROP
+- HYPOTHESIS → EXPERIMENT, HOLD, DROP
+- EXPERIMENT → EVIDENCE_REVIEW, HYPOTHESIS, HOLD, DROP
+- EVIDENCE_REVIEW → GATE1, HYPOTHESIS, HOLD, DROP
+- GATE1 → SPRINT, HOLD, DROP
+- SPRINT → GATE2, HOLD, DROP
+- GATE2 → HANDOFF, SPRINT, HOLD, DROP
+- HOLD → DISCOVERY, IDEA_CARD, HYPOTHESIS, EXPERIMENT, DROP
 
 Validation:
-- Owner 없으면 OPEN 이상 전환 불가
-- OPEN 전환 시 due_date = created_at + 28일
-- EXTENSION_REQUESTED 전환 시 due_date += 14일, 실험 최대 3개 허용
-- NOT_NOW: trigger_type + revisit_date 필수
-- DEAD_END: failure_pattern 필수
+- Owner 없으면 IDEA_CARD 이상 전환 불가
+- IDEA_CARD 전환 시 due_date = created_at + 28일
+- Extension 승인 시 due_date += 14일, 실험 최대 3개 허용
+- HOLD: trigger_type + revisit_date 필수
+- DROP: failure_pattern 필수
+- Evidence: reliability_label + source_url/linkOrAttachment 필수, Gate 통과 시 published_date 권장
 
 ---
 
@@ -210,9 +232,9 @@ Validation:
 > **이 섹션은 매 세션마다 업데이트한다.**
 
 ### 현재 단계
-**🚀 v2 AI Agent 재설계 진행 중 (2026-02-01~)**
+**🚀 v3 Ontology Ready AI Platform 구현 중 (2026-02-01~)**
 
-P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRUD → AI Agent 대화형 시스템 전면 재설계 진행.
+v3 R0 (11단계 파이프라인) 코드 구현 완료 → R1 (방법론 실행 + Gate1 패키지) 구현 진행.
 
 ### PRD P0 구현 상태
 
@@ -233,7 +255,28 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 53)
+### 최근 변경 (세션 55)
+**v3 R0 현행화 + R1 Method Pack 구현**:
+- ✅ SPEC.md 현행화 — §1~§6 11단계 파이프라인 반영
+- ✅ v3 R1: DB 스키마 4개 테이블 추가 (method_packs, method_runs, gate_packages, assumptions)
+- ✅ v3 R1: 마이그레이션 0008_method_packs.sql + 12종 시드
+- ✅ v3 R1: Agent 도구 6개 신규 (list_method_packs, recommend_methods, start_method_run, complete_method_run, draft_gate_package, get_gate_package)
+- ✅ v3 R1: UI 라우트 3개 (/methods, /discoveries.$id.methods, /discoveries.$id.gate)
+- ✅ v3 R1: 컴포넌트 4개 (MethodPackCard, MethodRunTimeline, GatePackageEditor, MethodRecommender)
+
+### 이전 변경 (세션 54)
+**v3 R0: 6-상태 → 11단계 파이프라인 완전 교체**:
+- ✅ DB 스키마: DiscoveryStatus 11값, stages/signal_metadata 테이블, evidence +5컬럼
+- ✅ 마이그레이션: `drizzle/0007_stage_system.sql` (상태 매핑 + 시드 + 컬럼 추가)
+- ✅ 상수: `status.ts` 완전 재작성 (STAGE_CATEGORIES, PIPELINE_COLUMNS, ALLOWED_TRANSITIONS)
+- ✅ 검증 규칙: `discovery-rules.ts` 재작성 (11단계 전환 + 근거 validator)
+- ✅ Agent 도구 17개: 15개 수정 + 2개 신규 (get_stage_info, validate_evidence) + transition_stage
+- ✅ system-prompt.ts: 11단계 파이프라인 가이드
+- ✅ 대시보드: 카테고리별 그룹 파이프라인 칸반
+- ✅ 21개 파일 상태값 일괄 교체 (Node.js 스크립트, 121건)
+- ✅ `pnpm typecheck` + `pnpm lint` + `pnpm build` 통과
+
+### 이전 변경 (세션 53)
 **HR Dashboard 템플릿 4건 적용 — 대시보드 UX 개선**:
 - ✅ MetricCard 컴포넌트 신규 (`app/components/dashboard/MetricCard.tsx`) — 상단 3px 액센트 바 (색상별 KPI 구분) + 주간 트렌드 delta 표시 (▲/▼)
 - ✅ `dashboard.metrics.tsx` loader에 7일/14일 기준 트렌드 데이터 추가 — 이번주 vs 지난주 비교 (Discovery, Agent 생성, 실험 완료, 강한 근거)
@@ -734,6 +777,9 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 - **다크모드**: ✅ 세션 43 — 122개 AXIS 토큰 + DX 커스텀 토큰 dark override, useTheme 훅, FOUC 방지, MainNav 토글
 - **@axis-ds 패키지**: ✅ 세션 45 — tokens@1.1.1 + theme@1.1.1 + ui-react@1.1.1 연동 완료 (로컬 토큰/테마/컴포넌트 → 패키지 대체)
 - **v2 Agent 재설계**: ✅ 세션 46~49 — 15건 전체 구현 완료 (아키텍처 4건 + 도구 5건 + UX 6건), DB 마이그레이션 0006 로컬 적용 완료
+- **v3 R0 11단계 파이프라인**: ✅ 코드 구현 완료 (마이그레이션 로컬/프로덕션 미적용)
+- **v3 R1 Method Pack**: 구현 진행 중 (DB + 도구 + UI)
+- **DB 마이그레이션**: 8개 (0000~0007), 0007은 적용 대기, 0008 R1 추가 예정
 - **배포 상태**: ✅ 세션 51 프로덕션 배포 완료 — AXIS Design System 정합성 수정 (https://dx.minu.best)
 - **Agent E2E 테스트**: ✅ 세션 39 풀 플로우 검증 완료 — 6개 도구 정상 (get_metrics, create_discovery, promote_discovery, add_evidence, complete_experiment, decide_next)
 - **Agent 채팅 개선**: ✅ 세션 40 — 입력 보존, 제목 로직, 프로그레시브 스트리밍, content 중복 수정
@@ -839,11 +885,24 @@ P0 전 항목 구현 + QA 검증 + 프로덕션 운영 중. v2로 폼 기반 CRU
 | **에러 suggestion 일관성** | ✅ | discovery-tools 7곳 에러 응답에 suggestion 힌트 추가 |
 | **Chat UI polish** | ✅ | AlertBanner 에러, 3-dot bounce 인디케이터, Badge 상태 표시 |
 | **대시보드 UX 개선** | ✅ | MetricCard 액센트 바+트렌드, StatusDonut 호버, fade-in-up stagger, 탭 아이콘 |
+| **v3 R0: 11단계 파이프라인** | ✅ | 6-상태 → 11단계 전환 (스키마, 상수, 검증, 도구, 대시보드, 21개 파일 일괄 교체) |
+| **v3 R0: 근거 스키마 강화** | ✅ | reliability_label + source_url + published_date + validator_id + validated_at |
+| **v3 R0: stages/signal_metadata 테이블** | ✅ | 11단계 정의 + 신호 메타데이터 |
+| **v3 R0: Agent 도구 17개** | ✅ | 2신규 (get_stage_info, validate_evidence) + transition_stage + 15수정 |
+| **v3 R0: 대시보드 11단계 칸반** | ✅ | 카테고리별 그룹 파이프라인 |
+| **v3 R1: Method Pack 스키마** | ✅ | method_packs, method_runs, gate_packages, assumptions 4개 테이블 |
+| **v3 R1: Agent 도구 6개** | ✅ | list/recommend/start/complete_method + draft/get_gate_package |
+| **v3 R1: Method Pack UI** | ✅ | /methods 라이브러리 + Discovery별 실행 + Gate 패키지 |
 
 ### 남은 작업
 - [x] 최종 프로덕션 배포 — 세션 14에서 완료
 - [x] Resend secrets 설정 + 외부 cron 서비스 연동 — 세션 23에서 완료
 - [x] Radar 프로덕션 배포 — 세션 27에서 완료 (DB 마이그레이션 + Worker 배포 + 소스 시딩 + 수동 트리거 검증)
+
+- [ ] R0 마이그레이션 적용 + 프로덕션 배포 (`pnpm db:migrate && pnpm db:migrate:prod && pnpm deploy`)
+- [ ] R0 프로덕션 E2E 검증 (Agent 채팅으로 DISCOVERY 생성, 근거 validator 동작 확인)
+- [ ] R1 마이그레이션 적용 + 프로덕션 배포
+- [ ] R1 프로덕션 검증 (Method Pack 라이브러리, Agent 추천, Gate 패키지)
 
 ### 미래 작업
 

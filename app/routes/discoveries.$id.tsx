@@ -216,6 +216,12 @@ export default function DiscoveryDetail() {
                 </Button>
               )}
               <Button variant="outline" size="sm" asChild>
+                <Link to={`/discoveries/${discovery.id}/methods`}>방법론</Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <Link to={`/discoveries/${discovery.id}/gate`}>Gate</Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild>
                 <a href={`/api/export/brief/${discovery.id}`} download>Brief 다운로드</a>
               </Button>
               <Button variant="outline" size="sm" asChild>
