@@ -1087,9 +1087,9 @@ Audit Log 프로덕션 배포 완료 (d9d40471). CREATE_DISCOVERY/UPDATE_DISCOVE
 
 **v3 후속 (미정)**
 - [x] Gatekeeper 역할: UserRole + requireGatekeeper + admin.users Select + Discovery 상세 — 세션 63에서 완료
-- [ ] 감사 로그: 주요 액션 audit trail 기록
+- [x] 감사 로그: 주요 액션 audit trail 기록 — 세션 66에서 완료 (event_logs + /dashboard/audit-log + Discovery 타임라인)
 - [x] UI 폴리시: KPI 카드, Discovery 링크 시각화, Gate 승인 UI — 세션 64에서 완료
-- [ ] cron-job.org에 `/api/cron/alerts` 엔드포인트 추가 (알림 스캔 자동화, 매일 09:30 KST)
+- [x] cron-job.org에 `/api/cron/alerts` 엔드포인트 추가 — 세션 67에서 완료 (매일 09:30 KST, GET)
 
 **운영 후 판단 (보류)**
 - [x] 기한 초과 강제 종료 — 세션 32에서 구현 (daily cron 자동 DEAD_END + TIME_CONSTRAINT 패턴 + 이메일 알림)
