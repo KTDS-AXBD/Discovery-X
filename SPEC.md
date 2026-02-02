@@ -173,6 +173,18 @@ Cron (매일 9:00 KST) → radar-worker (별도 CF Worker)
 | `method_runs` | 방법론 실행 기록 | v3 R1 |
 | `gate_packages` | Gate 의사결정 패키지 | v3 R1 |
 | `assumptions` | 가정 관리 | v3 R1 |
+| `ontology_types` | 온톨로지 타입 10종 정의 | v3 R2 |
+| `context_nodes` | 맥락 그래프 노드 | v3 R2 |
+| `context_edges` | 맥락 그래프 엣지 | v3 R2 |
+| `context_snapshots` | 그래프 스냅샷 | v3 R2 |
+| `evidence_duplicate_candidates` | 근거 중복 후보 | v3 R2 |
+| `discovery_kpis` | Discovery별 KPI 등록 | v3 R3 |
+| `kpi_measurements` | KPI 측정값 기록 | v3 R3 |
+| `discovery_links` | Discovery 간 관계 | v3 R3 |
+| `alert_rules` | 알림 규칙 정의 | v3 R3 |
+| `alerts` | 발생된 알림 | v3 R3 |
+| `webhook_configs` | 외부 웹훅 설정 | v3 R3 |
+| `gate_approvals` | Gate 승인 요청/결정 | v3 R3 |
 
 ### 상태 전환 규칙 (11단계 파이프라인)
 ```
@@ -239,8 +251,8 @@ Validation:
 ### 현재 단계
 **🚀 v3 Ontology Ready AI Platform 구현 중 (2026-02-01~)**
 
-v3 R0 (11단계 파이프라인) + R1 (Method Pack) + R2 (Ontology Graph) + R3 (Indicators/Connectors/Governance) 구현 완료.
-Docs 페이지 + Google OAuth 추가. 프로덕션 배포 완료.
+v3 R0 (11단계 파이프라인) + R1 (Method Pack) + R2 (Ontology Graph) + R3a (KPI/링크/거버넌스) 구현 완료.
+Docs 페이지 + Google OAuth 추가. R3b (알림 엔진/웹훅/역할 권한) 다음 세션 예정.
 
 ### PRD P0 구현 상태
 
@@ -261,7 +273,21 @@ Docs 페이지 + Google OAuth 추가. 프로덕션 배포 완료.
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 58)
+### 최근 변경 (세션 59)
+**v3 R3a — KPI 선행지표, Discovery 링크, Gate 승인, Health 대시보드**:
+- ✅ DB 스키마 7개 테이블 신규 (discovery_kpis, kpi_measurements, discovery_links, alert_rules, alerts, webhook_configs, gate_approvals)
+- ✅ discoveries 테이블에 `gatekeeper_id` 컬럼 추가
+- ✅ 마이그레이션 `0010_r3_indicators_connectors.sql`
+- ✅ Agent 도구 8개 신규:
+  - Indicator: `register_kpi`, `record_kpi_measurement`, `get_kpi_status`, `get_pipeline_health`
+  - Connector: `link_discoveries`, `get_linked_discoveries`
+  - Governance: `request_gate_approval`, `submit_gate_approval`
+- ✅ tool-registry.ts: 8개 도구 정의 + TOOL_MIN_AUTONOMY 등록
+- ✅ executor.ts: 8개 switch case + import 추가
+- ✅ `/dashboard/health` 라우트 + HealthMetrics 컴포넌트 (단계별 체류시간, 전환율, 근거 품질)
+- ✅ `pnpm typecheck` + `pnpm build` 통과
+
+### 이전 변경 (세션 58)
 **Docs 페이지 + v3 R2/R3 + Google OAuth**:
 - ✅ `/docs` 라우트: 기획서 탭 (7개 마크다운 문서 뷰어) + GitHub Project 탭 (iframe + 폴백 링크)
 - ✅ 문서 레지스트리: Vite `?raw` 빌드타임 임포트, 카테고리 3종 (기획/운영/가이드)
@@ -809,8 +835,11 @@ Docs 페이지 + Google OAuth 추가. 프로덕션 배포 완료.
 - **@axis-ds 패키지**: ✅ 세션 45 — tokens@1.1.1 + theme@1.1.1 + ui-react@1.1.1 연동 완료 (로컬 토큰/테마/컴포넌트 → 패키지 대체)
 - **v2 Agent 재설계**: ✅ 세션 46~49 — 15건 전체 구현 완료 (아키텍처 4건 + 도구 5건 + UX 6건), DB 마이그레이션 0006 로컬 적용 완료
 - **v3 R0 11단계 파이프라인**: ✅ 코드 구현 완료 (마이그레이션 로컬/프로덕션 미적용)
-- **v3 R1 Method Pack**: 구현 진행 중 (DB + 도구 + UI)
-- **DB 마이그레이션**: 8개 (0000~0007), 0007은 적용 대기, 0008 R1 추가 예정
+- **v3 R1 Method Pack**: ✅ 구현 완료 (DB + 도구 + UI)
+- **v3 R2 Ontology Graph**: ✅ 구현 완료 (맥락 그래프 + 근거 중복 감지)
+- **v3 R3a Indicators/Connectors/Governance**: ✅ 구현 완료 (KPI + 링크 + Gate 승인 + Health 대시보드)
+- **v3 R3b 알림/웹훅/역할**: 다음 세션 구현 예정 (alert_rules/alerts/webhook_configs 테이블 선행 생성 완료)
+- **DB 마이그레이션**: 11개 (0000~0010), 0009~0010은 로컬 적용 대기
 - **배포 상태**: ✅ 세션 51 프로덕션 배포 완료 — AXIS Design System 정합성 수정 (https://dx.minu.best)
 - **Agent E2E 테스트**: ✅ 세션 39 풀 플로우 검증 완료 — 6개 도구 정상 (get_metrics, create_discovery, promote_discovery, add_evidence, complete_experiment, decide_next)
 - **Agent 채팅 개선**: ✅ 세션 40 — 입력 보존, 제목 로직, 프로그레시브 스트리밍, content 중복 수정
@@ -924,6 +953,13 @@ Docs 페이지 + Google OAuth 추가. 프로덕션 배포 완료.
 | **v3 R1: Method Pack 스키마** | ✅ | method_packs, method_runs, gate_packages, assumptions 4개 테이블 |
 | **v3 R1: Agent 도구 6개** | ✅ | list/recommend/start/complete_method + draft/get_gate_package |
 | **v3 R1: Method Pack UI** | ✅ | /methods 라이브러리 + Discovery별 실행 + Gate 패키지 |
+| **v3 R2: Ontology Graph 스키마** | ✅ | ontology_types + context_nodes + context_edges + snapshots + duplicates |
+| **v3 R2: Agent 도구 5개** | ✅ | extract/link_entities + query_graph + get_duplicate_queue + review_duplicate |
+| **v3 R2: GraphViewer + DuplicateCard** | ✅ | 맥락 그래프 시각화 + 근거 중복 관리 UI |
+| **v3 R3a: KPI 스키마** | ✅ | discovery_kpis + kpi_measurements 테이블 |
+| **v3 R3a: 링크/알림/승인 스키마** | ✅ | discovery_links + alert_rules + alerts + webhook_configs + gate_approvals 테이블 |
+| **v3 R3a: Agent 도구 8개** | ✅ | register/record/get_kpi + pipeline_health + link/get_linked + request/submit_gate_approval |
+| **v3 R3a: Health 대시보드** | ✅ | /dashboard/health — 체류시간, 전환율, 근거 품질 |
 
 ### 남은 작업
 - [x] 최종 프로덕션 배포 — 세션 14에서 완료
