@@ -2,7 +2,6 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/Card";
-import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 
 export async function loader({ request, context: _context }: LoaderFunctionArgs) {
@@ -23,11 +22,20 @@ export default function Login() {
   const { error } = useLoaderData<typeof loader>();
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--axis-surface-secondary)]">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--axis-surface-secondary)]">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--axis-surface-brand-subtle)]">
+            <svg className="h-8 w-8 text-[var(--axis-text-brand)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+            </svg>
+          </div>
           <CardTitle className="text-3xl">Discovery-X</CardTitle>
           <CardDescription>내부 실험 중심 사고 시스템</CardDescription>
+          <span className="mt-2 inline-block rounded-full bg-[var(--axis-surface-tertiary)] px-2.5 py-0.5 text-xs font-medium text-[var(--axis-text-secondary)]">
+            v0.1.0
+          </span>
         </CardHeader>
         <CardContent className="space-y-6">
           {error && (
@@ -37,7 +45,10 @@ export default function Login() {
           )}
 
           <Link to="/auth/google" className="block">
-            <Button type="button" className="w-full gap-3">
+            <button
+              type="button"
+              className="flex w-full items-center justify-center gap-3 rounded-lg border border-[var(--axis-border-default)] bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+            >
               <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
@@ -57,7 +68,7 @@ export default function Login() {
                 />
               </svg>
               Google로 로그인
-            </Button>
+            </button>
           </Link>
 
           <p className="text-center text-xs text-[var(--axis-text-tertiary)]">
@@ -65,6 +76,9 @@ export default function Login() {
           </p>
         </CardContent>
       </Card>
+      <p className="mt-6 text-xs text-[var(--axis-text-tertiary)]">
+        AX Lab &middot; 2026
+      </p>
     </div>
   );
 }

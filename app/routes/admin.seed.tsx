@@ -1,18 +1,19 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { Form, useActionData } from "@remix-run/react";
+import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { seedDatabase } from "~/db/seed";
 import { getDb } from "~/db";
 import { requireAdmin, getSessionSecret } from "~/lib/auth/session.server";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/Card";
+import { PageLayout } from "~/components/layout/PageLayout";
+import { Card, CardContent } from "~/components/ui/Card";
 import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  await requireAdmin(request, db, secret);
-  return json({});
+  const currentUser = await requireAdmin(request, db, secret);
+  return json({ currentUser });
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
@@ -33,18 +34,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function AdminSeed() {
+  const { currentUser } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--axis-surface-secondary)]">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle>Seed 데이터 생성</CardTitle>
-          <CardDescription>
-            테스트용 사용자 5명과 샘플 Discovery 2개를 생성합니다
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
+    <PageLayout user={currentUser}>
+      <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">Seed 데이터 생성</h1>
+      <p className="mt-1 text-sm text-[var(--axis-text-secondary)]">
+        테스트용 사용자 5명과 샘플 Discovery 2개를 생성합니다.
+      </p>
+
+      <Card className="mt-6 max-w-md">
+        <CardContent className="space-y-6 pt-6">
           {actionData?.success && (
             <AlertBanner variant="success">
               <p className="text-sm">{actionData.message}</p>
@@ -78,6 +79,6 @@ export default function AdminSeed() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </PageLayout>
   );
 }
