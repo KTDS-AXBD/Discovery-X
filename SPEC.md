@@ -254,7 +254,7 @@ Validation:
 v3 R0 (11단계 파이프라인) + R1 (Method Pack) + R2 (Ontology Graph) + R3a (KPI/링크/거버넌스) + R3b (알림/웹훅) 구현 완료.
 Docs 페이지 + Google OAuth + admin/user/gatekeeper 역할 분리 완료.
 프로덕션 배포 + DB 마이그레이션 3건 (0009_google_auth, 0009_ontology_graph, 0010_r3_indicators_connectors) 적용 완료.
-R3b UI 폴리시 + Pending 사용자 승인 완료 (세션 64). 프로덕션 배포 (7b17cc87, 2026-02-02).
+가입 승인 제도 + 화이트리스트(AX BD팀 6명) 구현 + 프로덕션 배포 완료 (세션 65, 1b14c74c).
 
 ### PRD P0 구현 상태
 
@@ -275,18 +275,21 @@ R3b UI 폴리시 + Pending 사용자 승인 완료 (세션 64). 프로덕션 배
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 64)
-**v3 R3b UI 폴리시 — KPI 카드, Discovery 링크, Gate 승인 UI, 알림 배지**:
-- ✅ KpiCard 컴포넌트 (`app/components/dashboard/KpiCard.tsx`): 현재값/목표값/상태(normal/warning/critical) + 미니 스파크라인 바차트
-- ✅ Discovery 상세: KPI 추적 섹션 (loader에 discoveryKpis + kpiMeasurements 조회, KpiCard 그리드)
-- ✅ Discovery 상세: 연결된 Discovery 섹션 (discoveryLinks from/to 조회, 제목+상태배지+관계유형 태그)
-- ✅ Gate 승인 UI: 승인 요청 폼 (Gatekeeper 선택 + Gate 패키지 선택 + 3일 SLA)
-- ✅ Gate 승인 UI: 승인/조건부/거부 결정 폼 + 코멘트 입력 + 자동 집계 (전원 결정 시 GO/CONDITIONAL/NO_GO)
-- ✅ MainNav 알림 배지: root loader에 `unacknowledgedAlerts` (alerts 테이블 acknowledged=0) 추가, Dashboard 배지에 반영
-- ✅ Pending 사용자 승인: UserRole.PENDING + 화이트리스트 이메일 자동 승인 + /pending 대기 페이지
-- ✅ admin.users: 사용자 거부(삭제) 기능 추가
-- ✅ 프로덕션 배포 2회: f64c0079 → 38294930 (Badge warning + Button destructive 추가 후 재배포)
+### 최근 변경 (세션 65)
+**가입 승인 제도 + 화이트리스트 프로덕션 배포**:
+- ✅ `UserRole.PENDING` 추가: 신규 사용자는 pending → admin 승인 후 사용 가능
+- ✅ 화이트리스트 6명 (AX BD팀): 최초 로그인 시 자동 `role: "user"` 부여 (pending 건너뜀)
+- ✅ `/pending` 승인 대기 페이지: pending 사용자 전용 안내 + 로그아웃 버튼
+- ✅ `requireUser()` 가드: pending 사용자를 `/pending`으로 자동 리다이렉트
+- ✅ `/admin/users`: pending 사용자 승인 대기 섹션 (승인/거부 버튼) + 활성 사용자 분리
+- ✅ Badge `warning` variant + Button `destructive` variant 추가
+- ✅ login.tsx: `pending_approval` 에러 메시지 추가
+- ✅ 프로덕션 배포 완료 (1b14c74c)
 - ✅ `pnpm typecheck` + `pnpm build` 통과
+
+### 이전 변경 (세션 64)
+**v3 R3b UI 폴리시 — KPI 카드, Discovery 링크, Gate 승인 UI, 알림 배지**:
+- ✅ KpiCard 컴포넌트, Discovery 상세 KPI/링크 섹션, Gate 승인 UI, MainNav 알림 배지
 
 ### 이전 변경 (세션 63)
 **§6 체크박스 정리 + Gatekeeper 역할 추가**:
