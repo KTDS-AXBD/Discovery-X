@@ -38,7 +38,16 @@ function summarizeSkippedMessages(
     if (match) discoveryIds.add(match[1].slice(0, 8));
   }
 
+  // 사용자 메시지 핵심 추출 (최대 3개, 각 40자 제한)
+  const userRequests = skipped
+    .filter((m) => m.role === "user" && m.content.length > 0)
+    .map((m) => m.content.slice(0, 40).replace(/\n/g, " "))
+    .slice(-3);
+
   const parts = [`[컨텍스트 요약: ${skipped.length}개 메시지 생략]`];
+  if (userRequests.length > 0) {
+    parts.push(`사용자 요청: ${userRequests.map((r) => `"${r}"`).join(" / ")}`);
+  }
   if (toolCalls.length > 0) {
     const counts: Record<string, number> = {};
     for (const t of toolCalls) counts[t] = (counts[t] || 0) + 1;

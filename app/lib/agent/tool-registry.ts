@@ -73,7 +73,7 @@ export const AGENT_TOOLS: ClaudeTool[] = [
   // === Discovery Management ===
   {
     name: "create_discovery",
-    description: "새 Discovery를 DISCOVERY 상태로 생성합니다.",
+    description: "새 Discovery를 DISCOVERY 상태로 생성합니다. 생성 전 search_similar로 기존 Discovery와 중복 여부를 확인하세요.",
     input_schema: {
       type: "object",
       required: ["title", "seedSummary", "sourceType"],
@@ -106,15 +106,15 @@ export const AGENT_TOOLS: ClaudeTool[] = [
   },
   {
     name: "promote_discovery",
-    description: "DISCOVERY를 IDEA_CARD 상태로 승격합니다. Owner 지정 + 첫 실험 설계 필수.",
+    description: "DISCOVERY를 IDEA_CARD 상태로 승격합니다. Owner 지정 + 첫 실험 설계 필수. 호출 전 get_discovery_detail로 현재 상태를 확인하세요. 승격 시 28일 기한이 자동 설정됩니다.",
     input_schema: {
       type: "object",
       required: ["discoveryId", "ownerId", "hypothesis", "minimalAction", "deadline", "expectedEvidence"],
       properties: {
         discoveryId: { type: "string", description: "Discovery ID" },
         ownerId: { type: "string", description: "Owner 사용자 ID" },
-        hypothesis: { type: "string", description: "가설 (200자 이내)", maxLength: 200 },
-        minimalAction: { type: "string", description: "최소 행동 (200자 이내)", maxLength: 200 },
+        hypothesis: { type: "string", description: "검증할 가설. 사용자가 제공한 문구를 그대로 사용", maxLength: 200 },
+        minimalAction: { type: "string", description: "가설 검증을 위한 최소 행동", maxLength: 200 },
         deadline: { type: "string", description: "실험 기한 (ISO 8601 날짜)" },
         expectedEvidence: { type: "string", description: "예상 근거 (200자 이내)", maxLength: 200 },
       },
@@ -122,7 +122,7 @@ export const AGENT_TOOLS: ClaudeTool[] = [
   },
   {
     name: "transition_stage",
-    description: "Discovery를 11단계 파이프라인 내 다른 단계로 전환합니다. 허용된 전환만 가능.",
+    description: "Discovery를 11단계 파이프라인 내 다른 단계로 전환합니다. 허용된 전환만 가능. HOLD/DROP 전환은 decide_hold/decide_drop 전용 도구 사용을 권장합니다.",
     input_schema: {
       type: "object",
       required: ["discoveryId", "toStatus"],
@@ -144,11 +144,11 @@ export const AGENT_TOOLS: ClaudeTool[] = [
       type: "object",
       required: ["discoveryId", "hypothesis", "minimalAction", "deadline", "expectedEvidence"],
       properties: {
-        discoveryId: { type: "string" },
-        hypothesis: { type: "string", maxLength: 200 },
-        minimalAction: { type: "string", maxLength: 200 },
-        deadline: { type: "string", description: "ISO 8601 날짜" },
-        expectedEvidence: { type: "string", maxLength: 200 },
+        discoveryId: { type: "string", description: "Discovery ID" },
+        hypothesis: { type: "string", description: "검증할 가설", maxLength: 200 },
+        minimalAction: { type: "string", description: "가설 검증을 위한 최소 행동", maxLength: 200 },
+        deadline: { type: "string", description: "실험 기한 (ISO 8601 날짜)" },
+        expectedEvidence: { type: "string", description: "예상 근거", maxLength: 200 },
       },
     },
   },
@@ -166,7 +166,7 @@ export const AGENT_TOOLS: ClaudeTool[] = [
   },
   {
     name: "add_evidence",
-    description: "Discovery에 근거를 추가합니다. reliabilityLabel과 출처(sourceUrl 또는 linkOrAttachment) 필수.",
+    description: "Discovery에 근거를 추가합니다. reliabilityLabel과 출처(sourceUrl 또는 linkOrAttachment) 중 하나 필수. content가 200자 미만이면 경고합니다. Gate 통과를 위해 publishedOrObservedDate 입력을 권장합니다.",
     input_schema: {
       type: "object",
       required: ["discoveryId", "type", "strength", "content", "reliabilityLabel"],
@@ -187,7 +187,7 @@ export const AGENT_TOOLS: ClaudeTool[] = [
   // === Decision Tools ===
   {
     name: "decide_gate",
-    description: "Discovery를 Gate 단계(GATE1/GATE2)로 전환합니다. A/B급 증거 2개 이상 권장.",
+    description: "Discovery를 Gate 단계(GATE1/GATE2)로 전환합니다. 호출 전 validate_evidence로 근거 품질을 확인하세요. A/B급 증거 2개 미만이면 경고합니다.",
     input_schema: {
       type: "object",
       required: ["discoveryId", "decisionRationale"],
@@ -200,7 +200,7 @@ export const AGENT_TOOLS: ClaudeTool[] = [
   },
   {
     name: "decide_hold",
-    description: "Discovery를 HOLD(보류) 상태로 전환합니다. 트리거 조건 필수.",
+    description: "Discovery를 HOLD(보류) 상태로 전환합니다. notNowTriggerType, notNowTriggerCondition, revisitDate 모두 필수입니다.",
     input_schema: {
       type: "object",
       required: ["discoveryId", "decisionRationale", "notNowTriggerType", "notNowTriggerCondition", "revisitDate"],
@@ -218,7 +218,7 @@ export const AGENT_TOOLS: ClaudeTool[] = [
   },
   {
     name: "decide_drop",
-    description: "Discovery를 DROP(종료) 상태로 전환합니다. 실패 패턴 필수.",
+    description: "Discovery를 DROP(종료) 상태로 전환합니다. deadEndFailurePattern 1-3개 필수. 되돌릴 수 없으므로 신중하게 사용하세요.",
     input_schema: {
       type: "object",
       required: ["discoveryId", "decisionRationale", "deadEndFailurePattern", "deadEndEvidenceReason"],
@@ -250,7 +250,7 @@ export const AGENT_TOOLS: ClaudeTool[] = [
   // === Query Tools ===
   {
     name: "list_discoveries",
-    description: "Discovery 목록을 조회합니다. 상태별 필터 가능.",
+    description: "Discovery 목록을 조회합니다. 필터 없으면 전체 목록을 updatedAt 역순으로 반환합니다.",
     input_schema: {
       type: "object",
       properties: {
@@ -266,7 +266,7 @@ export const AGENT_TOOLS: ClaudeTool[] = [
   },
   {
     name: "get_discovery_detail",
-    description: "Discovery 상세 정보(실험, 근거 포함)를 조회합니다.",
+    description: "Discovery 상세 정보(실험, 근거 포함)를 조회합니다. 상태 변경이나 근거 추가 전에 반드시 호출하여 현재 상태를 확인하세요.",
     input_schema: {
       type: "object",
       required: ["discoveryId"],
@@ -277,7 +277,7 @@ export const AGENT_TOOLS: ClaudeTool[] = [
   },
   {
     name: "search_similar",
-    description: "기존 Discovery 중 유사한 것을 검색합니다 (FTS5).",
+    description: "기존 Discovery 중 유사한 것을 FTS5로 검색합니다. 새 Discovery 생성 전 중복 확인 용도로 사용하세요.",
     input_schema: {
       type: "object",
       required: ["query"],

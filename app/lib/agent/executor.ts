@@ -302,8 +302,11 @@ export async function executeAgentTurn(
       try {
         toolResult = await executeTool(db, toolName, toolInput, autonomyLevel);
       } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "도구 실행 오류";
         toolResult = JSON.stringify({
-          error: e instanceof Error ? e.message : "도구 실행 오류",
+          error: `도구 '${toolName}' 실행 실패: ${errorMessage}`,
+          suggestion: "입력값을 확인하고 다시 시도해보세요.",
+          retryable: false,
         });
       }
 
@@ -321,18 +324,21 @@ export async function executeAgentTurn(
     }
   }
 
-  // If we hit max rounds, save what we have
+  // If we hit max rounds, save what we have with tool summary
+  const toolSummary = allToolCalls.map((tc) => tc.name).join(", ");
+  const maxRoundsMessage = `도구 호출 제한(${MAX_TOOL_ROUNDS}회)에 도달했습니다. 수행한 도구: ${toolSummary || "없음"}. 추가 작업이 필요하면 이어서 요청해주세요.`;
+
   await db.insert(messages).values({
     id: generateId(),
     conversationId,
     role: "assistant",
-    content: "도구 호출 제한에 도달했습니다. 결과를 확인해주세요.",
+    content: maxRoundsMessage,
   });
 
   await updateTokenUsage(db, totalInputTokens + totalOutputTokens);
 
   return {
-    assistantText: "도구 호출 제한에 도달했습니다. 결과를 확인해주세요.",
+    assistantText: maxRoundsMessage,
     toolCalls: allToolCalls,
     tokensUsed: { input: totalInputTokens, output: totalOutputTokens },
   };
@@ -400,6 +406,7 @@ export function createAgentStreamResponse(
         const filteredTools = getToolsForAutonomyLevel(autonomyLevel);
         let totalInputTokens = 0;
         let totalOutputTokens = 0;
+        const executedToolNames: string[] = [];
 
         const MAX_TOOL_ROUNDS = 5;
 
@@ -514,8 +521,11 @@ export function createAgentStreamResponse(
             try {
               toolResult = await executeTool(db, toolName, toolInput, autonomyLevel);
             } catch (e) {
+              const errorMessage = e instanceof Error ? e.message : "도구 실행 오류";
               toolResult = JSON.stringify({
-                error: e instanceof Error ? e.message : "도구 실행 오류",
+                error: `도구 '${toolName}' 실행 실패: ${errorMessage}`,
+                suggestion: "입력값을 확인하고 다시 시도해보세요.",
+                retryable: false,
               });
             }
 
@@ -527,6 +537,7 @@ export function createAgentStreamResponse(
               toolName: toolUseId,
             });
 
+            executedToolNames.push(toolName);
             // Send tool_call event with result
             let parsedResult: unknown;
             try {
@@ -545,21 +556,36 @@ export function createAgentStreamResponse(
         }
 
         // Max rounds reached
+        const streamToolSummary = executedToolNames.join(", ");
+        const streamMaxRoundsMsg = `도구 호출 제한(${MAX_TOOL_ROUNDS}회)에 도달했습니다. 수행한 도구: ${streamToolSummary || "없음"}. 추가 작업이 필요하면 이어서 요청해주세요.`;
+
         await db.insert(messages).values({
           id: generateId(),
           conversationId,
           role: "assistant",
-          content: "도구 호출 제한에 도달했습니다. 결과를 확인해주세요.",
+          content: streamMaxRoundsMsg,
         });
 
         await updateTokenUsage(db, totalInputTokens + totalOutputTokens);
-        send(controller, { type: "text_delta", content: "도구 호출 제한에 도달했습니다. 결과를 확인해주세요." });
+        send(controller, { type: "text_delta", content: streamMaxRoundsMsg });
         send(controller, { type: "done", tokensUsed: { input: totalInputTokens, output: totalOutputTokens } });
         controller.close();
       } catch (error) {
+        const isApiError = error instanceof Error && (
+          error.message.includes("API") ||
+          error.message.includes("401") ||
+          error.message.includes("429") ||
+          error.message.includes("500") ||
+          error.message.includes("overloaded")
+        );
         send(controller, {
           type: "error",
-          message: error instanceof Error ? error.message : "Unknown error",
+          message: error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
+          errorType: isApiError ? "api_error" : "internal_error",
+          retryable: isApiError,
+          suggestion: isApiError
+            ? "잠시 후 다시 시도해주세요."
+            : "문제가 지속되면 새 대화를 시작해보세요.",
         });
         controller.close();
       }
