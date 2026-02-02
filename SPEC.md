@@ -288,6 +288,7 @@ Audit Log 프로덕션 배포 완료 (d9d40471). CREATE_DISCOVERY/UPDATE_DISCOVE
 - ✅ `discoveries_.$id.add-evidence.tsx`: ADD_EVIDENCE 이벤트 로깅 (metadata: evidenceId, type, strength)
 - ✅ `discoveries_.$id.methods.tsx`: START_METHOD_RUN 이벤트 로깅 (metadata: methodPackId)
 - ✅ `pnpm typecheck` + `pnpm lint` + `pnpm build` 통과
+- ✅ 프로덕션 배포 완료 (e8abb313)
 
 ### 이전 변경 (세션 66)
 **Audit Log 기능 구현 + 프로덕션 배포**:
