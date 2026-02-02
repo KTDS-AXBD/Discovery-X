@@ -254,7 +254,7 @@ Validation:
 v3 R0 (11단계 파이프라인) + R1 (Method Pack) + R2 (Ontology Graph) + R3a (KPI/링크/거버넌스) + R3b (알림/웹훅) 구현 완료.
 Docs 페이지 + Google OAuth + admin/user 역할 분리 완료.
 프로덕션 배포 + DB 마이그레이션 3건 (0009_google_auth, 0009_ontology_graph, 0010_r3_indicators_connectors) 적용 완료.
-R3b 배포 대기 중. 로그인 + 관리자 화면 UI 정비 완료.
+R3b 프로덕션 배포 완료 (세션 62, 2026-02-02). 로그인 + 관리자 화면 UI 정비 완료.
 
 ### PRD P0 구현 상태
 
@@ -276,10 +276,11 @@ R3b 배포 대기 중. 로그인 + 관리자 화면 UI 정비 완료.
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
 ### 최근 변경 (세션 62)
-**로그인 + 관리자 화면 UI 정비**:
+**로그인 + 관리자 화면 UI 정비 + R3b 프로덕션 배포**:
 - ✅ `/login`: 컴파스 아이콘 추가, v0.1.0 버전 뱃지, Google 버튼 브랜드 가이드라인 스타일 (흰 배경 + 구글 컬러 아이콘), "AX Lab · 2026" footer
 - ✅ `/admin/seed`: 독립 Card 레이아웃 → PageLayout 래퍼 적용 (MainNav 포함)
 - ✅ `/admin/users`: 아바타 h-8→h-10, 가입일 표시, 본인 "(나)" 라벨, Google 연동 뱃지
+- ✅ R3b 프로덕션 배포 완료: `pnpm typecheck` + `pnpm build` 통과, Cloudflare Pages 배포 (d964c40b)
 
 ### 이전 변경 (세션 61)
 **v3 R3b — 알림 엔진 + 웹훅 커넥터 + Agent 도구 + Dashboard Alerts**:
