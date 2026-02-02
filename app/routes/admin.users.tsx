@@ -29,11 +29,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
   await requireAdmin(request, db, secret);
 
   const formData = await request.formData();
+  const intent = formData.get("intent") as string;
   const userId = formData.get("userId") as string;
-  const newRole = formData.get("role") as string;
 
+  if (!userId) {
+    return json({ error: "잘못된 요청입니다" }, { status: 400 });
+  }
+
+  if (intent === "reject") {
+    await db.delete(users).where(eq(users.id, userId));
+    return json({ success: true, message: "사용자가 거부되었습니다." });
+  }
+
+  const newRole = formData.get("role") as string;
   const validRoles = [UserRole.ADMIN, UserRole.USER, UserRole.GATEKEEPER];
-  if (!userId || !newRole || !validRoles.includes(newRole as typeof UserRole.ADMIN)) {
+  if (!newRole || !validRoles.includes(newRole as typeof UserRole.ADMIN)) {
     return json({ error: "잘못된 요청입니다" }, { status: 400 });
   }
 
@@ -49,6 +59,9 @@ export default function AdminUsers() {
   const { currentUser, users: userList } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
 
+  const pendingUsers = userList.filter((u) => u.role === "pending");
+  const activeUsers = userList.filter((u) => u.role !== "pending");
+
   return (
     <PageLayout user={currentUser}>
       <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">사용자 관리</h1>
@@ -58,17 +71,70 @@ export default function AdminUsers() {
 
       {actionData && "success" in actionData && (
         <AlertBanner variant="success" className="mt-4">
-          역할이 변경되었습니다.
+          {"message" in actionData ? String(actionData.message) : "역할이 변경되었습니다."}
         </AlertBanner>
       )}
 
+      {/* 승인 대기 섹션 */}
+      {pendingUsers.length > 0 && (
+        <Card className="mt-6 border-amber-200 bg-amber-50/30">
+          <CardHeader>
+            <CardTitle className="text-base">
+              승인 대기 ({pendingUsers.length}명)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="divide-y divide-[var(--axis-border-default)]">
+              {pendingUsers.map((user) => (
+                <div key={user.id} className="flex items-center justify-between py-3">
+                  <div className="flex items-center gap-3">
+                    {user.avatarUrl ? (
+                      <img src={user.avatarUrl} alt="" className="h-10 w-10 rounded-full" />
+                    ) : (
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--axis-surface-tertiary)] text-sm font-medium text-[var(--axis-text-secondary)]">
+                        {user.name.charAt(0)}
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-sm font-medium text-[var(--axis-text-primary)]">{user.name}</p>
+                      <p className="text-xs text-[var(--axis-text-tertiary)]">
+                        {user.email}
+                        {user.createdAt && (
+                          <span className="ml-2">
+                            &middot; 신청 {new Date(user.createdAt).toLocaleDateString("ko-KR")}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="warning">대기</Badge>
+                    <Form method="post" className="flex items-center gap-1">
+                      <input type="hidden" name="userId" value={user.id} />
+                      <input type="hidden" name="role" value="user" />
+                      <Button type="submit" variant="default" size="sm">승인</Button>
+                    </Form>
+                    <Form method="post" className="flex items-center gap-1">
+                      <input type="hidden" name="userId" value={user.id} />
+                      <input type="hidden" name="intent" value="reject" />
+                      <Button type="submit" variant="destructive" size="sm">거부</Button>
+                    </Form>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 활성 사용자 목록 */}
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle className="text-base">사용자 목록 ({userList.length}명)</CardTitle>
+          <CardTitle className="text-base">사용자 목록 ({activeUsers.length}명)</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="divide-y divide-[var(--axis-border-default)]">
-            {userList.map((user) => (
+            {activeUsers.map((user) => (
               <div key={user.id} className="flex items-center justify-between py-3">
                 <div className="flex items-center gap-3">
                   {user.avatarUrl ? (

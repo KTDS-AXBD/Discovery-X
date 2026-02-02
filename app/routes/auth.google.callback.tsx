@@ -1,7 +1,7 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { redirect } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { users } from "~/db/schema";
+import { users, UserRole } from "~/db/schema";
 import { eq } from "drizzle-orm";
 import {
   createGoogleClient,
@@ -13,6 +13,16 @@ import {
   createSessionStorage,
   getSessionSecret,
 } from "~/lib/auth/session.server";
+
+// AX BD팀 화이트리스트 — 최초 로그인 시 자동으로 role: "user" 부여
+const WHITELIST_EMAILS = [
+  "dbdbdbdib@gmail.com",   // 윤대범
+  "ghimeugene@gmail.com",  // 김기욱
+  "bbusisi@gmail.com",     // 김경임
+  "daejin2002@gmail.com",  // 양대진
+  "bdcta90@gmail.com",     // 현대영
+  "jwkimjune@gmail.com",   // 김정원
+];
 
 interface GoogleUserInfo {
   sub: string;
@@ -90,15 +100,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         })
         .where(eq(users.id, user.id));
     } else {
-      // Create new user
+      // Create new user — 화이트리스트 이메일은 즉시 user, 나머지는 pending
       const userId = `user-${crypto.randomUUID().slice(0, 8)}`;
+      const isWhitelisted = WHITELIST_EMAILS.includes(googleUser.email.toLowerCase());
       await db.insert(users).values({
         id: userId,
         email: googleUser.email,
         name: googleUser.name || googleUser.email,
         googleId: googleUser.sub,
         avatarUrl: googleUser.picture || null,
-        role: "user",
+        role: isWhitelisted ? UserRole.USER : UserRole.PENDING,
       });
       user = await db.query.users.findFirst({
         where: eq(users.id, userId),
@@ -127,7 +138,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   session.unset("google_code_verifier");
   session.set("sessionId", sessionId);
 
-  return redirect("/", {
+  // pending 사용자는 승인 대기 페이지로 리다이렉트
+  const redirectTo = user.role === UserRole.PENDING ? "/pending" : "/";
+
+  return redirect(redirectTo, {
     headers: {
       "Set-Cookie": await sessionStorage.commitSession(session),
     },

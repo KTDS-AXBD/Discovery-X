@@ -75,6 +75,7 @@ export const UserRole = {
   ADMIN: "admin",
   USER: "user",
   GATEKEEPER: "gatekeeper",
+  PENDING: "pending",
 } as const;
 
 export const users = sqliteTable("users", {

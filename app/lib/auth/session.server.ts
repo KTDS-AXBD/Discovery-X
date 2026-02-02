@@ -50,7 +50,7 @@ export async function getUserFromSession(
   return user || null;
 }
 
-// Require authenticated user
+// Require authenticated user (pending 사용자는 승인 대기 페이지로 리다이렉트)
 export async function requireUser(
   request: Request,
   db: DB,
@@ -59,6 +59,9 @@ export async function requireUser(
   const user = await getUserFromSession(request, db, secret);
   if (!user) {
     throw redirect("/login");
+  }
+  if (user.role === UserRole.PENDING) {
+    throw redirect("/pending");
   }
   return user;
 }
