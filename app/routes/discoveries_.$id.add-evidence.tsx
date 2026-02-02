@@ -2,7 +2,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, evidence, experiments } from "~/db/schema";
+import { discoveries, evidence, experiments, eventLogs } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { PageLayout } from "~/components/layout/PageLayout";
 import { PageHeader } from "~/components/layout/PageHeader";
@@ -118,6 +118,14 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
       .update(discoveries)
       .set({ updatedAt: new Date() })
       .where(eq(discoveries.id, id));
+
+    await db.insert(eventLogs).values({
+      id: crypto.randomUUID(),
+      actorId: user.id,
+      discoveryId: id,
+      eventType: "ADD_EVIDENCE",
+      metadata: { evidenceId, type: validated.type, strength: validated.strength },
+    });
 
     return redirect(`/discoveries/${id}`);
   } catch (error: unknown) {

@@ -8,6 +8,7 @@ import {
   discoveries,
   methodPacks,
   methodRuns,
+  eventLogs,
   MethodRunStatus,
 } from "~/db/schema";
 import { PageLayout } from "~/components/layout/PageLayout";
@@ -145,6 +146,14 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
       methodPackId,
       status: MethodRunStatus.RUNNING,
       executorId: user.id,
+    });
+
+    await db.insert(eventLogs).values({
+      id: crypto.randomUUID(),
+      actorId: user.id,
+      discoveryId: id,
+      eventType: "START_METHOD_RUN",
+      metadata: { methodPackId },
     });
 
     return redirect(`/discoveries/${id}/methods`);

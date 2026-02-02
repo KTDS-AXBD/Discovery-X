@@ -3,7 +3,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries } from "~/db/schema";
+import { discoveries, eventLogs } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { PageLayout } from "~/components/layout/PageLayout";
 import { PageHeader } from "~/components/layout/PageHeader";
@@ -74,6 +74,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
       sourceType: validated.sourceType,
       status: DiscoveryStatus.DISCOVERY,
       ownerId: user.id, // Set creator as default owner
+    });
+
+    await db.insert(eventLogs).values({
+      id: crypto.randomUUID(),
+      actorId: user.id,
+      discoveryId,
+      eventType: "CREATE_DISCOVERY",
+      metadata: { title: validated.title, sourceType: validated.sourceType },
     });
 
     return redirect(`/discoveries/${discoveryId}`);
