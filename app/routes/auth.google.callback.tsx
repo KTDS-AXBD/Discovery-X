@@ -22,6 +22,7 @@ const WHITELIST_EMAILS = [
   "daejin2002@gmail.com",  // 양대진
   "bdcta90@gmail.com",     // 현대영
   "jwkimjune@gmail.com",   // 김정원
+  "ktds.axbd@gmail.com",   // AX BD 팀 공용
 ];
 
 interface GoogleUserInfo {
