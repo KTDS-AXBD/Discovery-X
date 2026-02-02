@@ -119,6 +119,34 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     ...linksTo.map((l) => ({ ...l, direction: "to" as const })),
   ];
 
+  // Get activity logs for this discovery
+  const activityLogs = await db
+    .select()
+    .from(eventLogs)
+    .where(eq(eventLogs.discoveryId, id))
+    .orderBy(desc(eventLogs.timestamp))
+    .limit(50);
+
+  const actorIds = [...new Set(activityLogs.map((l) => l.actorId))];
+  const actorMap = new Map<string, string>();
+  for (const aid of actorIds) {
+    if (aid === "system-agent" || aid === "system-radar" || aid === "system") {
+      actorMap.set(aid, "\uC2DC\uC2A4\uD15C");
+    } else {
+      const u = await db.query.users.findFirst({ where: eq(users.id, aid) });
+      actorMap.set(aid, u?.name || aid);
+    }
+  }
+
+  const serializedLogs = activityLogs.map((l) => ({
+    id: l.id,
+    eventType: l.eventType,
+    actorId: l.actorId,
+    actorName: actorMap.get(l.actorId) || l.actorId,
+    metadata: l.metadata,
+    timestamp: l.timestamp?.toISOString() || new Date().toISOString(),
+  }));
+
   return json({
     user,
     discovery,
@@ -131,6 +159,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     kpiWithMeasurements,
     allLinks,
     linkedDiscoveries: linkedDiscoveries.filter(Boolean),
+    activityLogs: serializedLogs,
   });
 }
 
@@ -190,6 +219,14 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
       .set({ gatekeeperId: newGatekeeperId ? String(newGatekeeperId) : null, updatedAt: new Date() })
       .where(eq(discoveries.id, id));
 
+    await db.insert(eventLogs).values({
+      id: crypto.randomUUID(),
+      actorId: user.id,
+      discoveryId: id,
+      eventType: "CHANGE_GATEKEEPER",
+      metadata: { previousGatekeeperId: discovery.gatekeeperId, newGatekeeperId: newGatekeeperId ? String(newGatekeeperId) : null },
+    });
+
     return redirect(`/discoveries/${id}`);
   }
 
@@ -203,6 +240,14 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
       .set({ reviewerId: newReviewerId ? String(newReviewerId) : null, updatedAt: new Date() })
       .where(eq(discoveries.id, id));
 
+    await db.insert(eventLogs).values({
+      id: crypto.randomUUID(),
+      actorId: user.id,
+      discoveryId: id,
+      eventType: "CHANGE_REVIEWER",
+      metadata: { previousReviewerId: discovery.reviewerId, newReviewerId: newReviewerId ? String(newReviewerId) : null },
+    });
+
     return redirect(`/discoveries/${id}`);
   }
 
@@ -213,7 +258,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
 export default function DiscoveryDetail() {
   const {
     user, discovery, owner, reviewer, gatekeeper, experiments, evidence, allUsers,
-    kpiWithMeasurements, allLinks, linkedDiscoveries,
+    kpiWithMeasurements, allLinks, linkedDiscoveries, activityLogs,
   } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
 
@@ -632,6 +677,61 @@ export default function DiscoveryDetail() {
                       <StatusBadge status={linked.status} size="sm" />
                     </div>
                     <Badge variant="secondary">{relationLabel}</Badge>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Activity Timeline */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="text-lg">{"\uD65C\uB3D9 \uB0B4\uC5ED"}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {activityLogs.length === 0 ? (
+            <p className="text-sm text-[var(--axis-text-tertiary)]">{"\uD65C\uB3D9 \uB0B4\uC5ED\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."}</p>
+          ) : (
+            <div className="relative space-y-0">
+              {activityLogs.map((log, i) => {
+                const isLast = i === activityLogs.length - 1;
+                return (
+                  <div key={log.id} className="relative flex gap-3 pb-4">
+                    {/* Timeline line */}
+                    {!isLast && (
+                      <div className="absolute left-[7px] top-4 bottom-0 w-px bg-[var(--axis-border-default)]" />
+                    )}
+                    {/* Dot */}
+                    <div className="relative z-10 mt-1.5 h-[15px] w-[15px] shrink-0 rounded-full border-2 border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)]" />
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                          {log.eventType}
+                        </Badge>
+                        <span className="text-sm font-medium text-[var(--axis-text-primary)]">
+                          {log.actorName}
+                        </span>
+                        <span className="text-xs text-[var(--axis-text-tertiary)]">
+                          {new Date(log.timestamp).toLocaleString("ko-KR", {
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </div>
+                      {log.metadata && Object.keys(log.metadata).length > 0 && (
+                        <p className="mt-0.5 text-xs text-[var(--axis-text-tertiary)] truncate">
+                          {Object.entries(log.metadata)
+                            .filter(([, v]) => v != null)
+                            .map(([k, v]) => `${k}: ${v}`)
+                            .join(", ")}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 );
               })}

@@ -16,6 +16,7 @@ import {
   MethodRunStatus,
   GateApprovalDecision,
   UserRole,
+  eventLogs,
 } from "~/db/schema";
 import { PageLayout } from "~/components/layout/PageLayout";
 import { PageHeader } from "~/components/layout/PageHeader";
@@ -257,12 +258,21 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     const slaDeadline = new Date();
     slaDeadline.setDate(slaDeadline.getDate() + 3); // 3일 SLA
 
+    const approvalId = crypto.randomUUID();
     await db.insert(gateApprovals).values({
-      id: crypto.randomUUID(),
+      id: approvalId,
       gatePackageId,
       reviewerId,
       decision: GateApprovalDecision.PENDING,
       slaDeadline,
+    });
+
+    await db.insert(eventLogs).values({
+      id: crypto.randomUUID(),
+      actorId: user.id,
+      discoveryId: id,
+      eventType: "REQUEST_GATE_APPROVAL",
+      metadata: { gatePackageId, reviewerId, approvalId },
     });
 
     return redirect(`/discoveries/${id}/gate`);
@@ -293,6 +303,14 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
         decidedAt: new Date(),
       })
       .where(eq(gateApprovals.id, approvalId));
+
+    await db.insert(eventLogs).values({
+      id: crypto.randomUUID(),
+      actorId: user.id,
+      discoveryId: id,
+      eventType: "SUBMIT_GATE_DECISION",
+      metadata: { approvalId, gatePackageId: approval.gatePackageId, decision, comment: comment || null },
+    });
 
     // Auto-aggregate: check if all approvals for the gate package are decided
     const allApprovals = await db

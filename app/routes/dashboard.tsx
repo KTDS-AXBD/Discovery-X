@@ -49,11 +49,21 @@ const AlertsIcon = () => (
   </svg>
 );
 
+const AuditLogIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="2" y="1" width="12" height="14" rx="1.5" fill="currentColor" opacity="0.3" />
+    <line x1="5" y1="5" x2="11" y2="5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+    <line x1="5" y1="8" x2="11" y2="8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+    <line x1="5" y1="11" x2="9" y2="11" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+  </svg>
+);
+
 const tabs = [
   { to: "/dashboard", label: "Pipeline", end: true, icon: <PipelineIcon /> },
   { to: "/dashboard/metrics", label: "Metrics", icon: <MetricsIcon /> },
   { to: "/dashboard/health", label: "Health", icon: <HealthIcon /> },
   { to: "/dashboard/alerts", label: "Alerts", icon: <AlertsIcon /> },
+  { to: "/dashboard/audit-log", label: "Audit Log", icon: <AuditLogIcon /> },
 ];
 
 export default function DashboardLayout() {
