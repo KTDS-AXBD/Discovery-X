@@ -252,7 +252,9 @@ Validation:
 **🚀 v3 Ontology Ready AI Platform 구현 중 (2026-02-01~)**
 
 v3 R0 (11단계 파이프라인) + R1 (Method Pack) + R2 (Ontology Graph) + R3a (KPI/링크/거버넌스) 구현 완료.
-Docs 페이지 + Google OAuth + admin/user 역할 분리 완료. R3b (알림 엔진/웹훅) 다음 세션 예정.
+Docs 페이지 + Google OAuth + admin/user 역할 분리 완료.
+프로덕션 배포 + DB 마이그레이션 3건 (0009_google_auth, 0009_ontology_graph, 0010_r3_indicators_connectors) 적용 완료.
+R3b (알림 엔진/웹훅) 다음 세션 예정.
 
 ### PRD P0 구현 상태
 
