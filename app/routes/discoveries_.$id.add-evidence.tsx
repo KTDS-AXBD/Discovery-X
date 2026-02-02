@@ -43,7 +43,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   }
 
   // Cannot add evidence to INBOX
-  if (discovery.status === DiscoveryStatus.INBOX) {
+  if (discovery.status === DiscoveryStatus.DISCOVERY) {
     return redirect(`/discoveries/${id}`);
   }
 
@@ -79,7 +79,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  if (discovery.status === DiscoveryStatus.INBOX) {
+  if (discovery.status === DiscoveryStatus.DISCOVERY) {
     return json({ error: "INBOX 상태에서는 Evidence를 추가할 수 없습니다" }, { status: 400 });
   }
 
@@ -146,7 +146,7 @@ export default function AddEvidence() {
           <p className="mt-2 text-sm">
             상태:{" "}
             <span className="font-semibold">
-              {discovery.status === DiscoveryStatus.OPEN
+              {discovery.status === DiscoveryStatus.IDEA_CARD
                 ? "진행 중"
                 : discovery.status}
             </span>

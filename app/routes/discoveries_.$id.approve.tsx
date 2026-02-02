@@ -126,14 +126,14 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
         updatedAt: new Date(),
       };
 
-      if (pendingDecision === DiscoveryStatus.NEXT) {
-        updateData.status = DiscoveryStatus.NEXT;
-        updateData.decisionState = DiscoveryStatus.NEXT;
+      if (pendingDecision === DiscoveryStatus.GATE1) {
+        updateData.status = DiscoveryStatus.GATE1;
+        updateData.decisionState = DiscoveryStatus.GATE1;
         updateData.decisionRationale = pendingData?.decisionRationale || null;
         updateData.decidedAt = new Date();
-      } else if (pendingDecision === DiscoveryStatus.NOT_NOW) {
-        updateData.status = DiscoveryStatus.NOT_NOW;
-        updateData.decisionState = DiscoveryStatus.NOT_NOW;
+      } else if (pendingDecision === DiscoveryStatus.HOLD) {
+        updateData.status = DiscoveryStatus.HOLD;
+        updateData.decisionState = DiscoveryStatus.HOLD;
         updateData.decisionRationale = pendingData?.decisionRationale || null;
         updateData.notNowTriggerType = pendingData?.notNowTriggerType || null;
         updateData.notNowTriggerCondition = pendingData?.notNowTriggerCondition || null;
@@ -141,15 +141,15 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
           ? new Date(pendingData.revisitDate as string)
           : null;
         updateData.decidedAt = new Date();
-      } else if (pendingDecision === DiscoveryStatus.DEAD_END) {
-        updateData.status = DiscoveryStatus.DEAD_END;
-        updateData.decisionState = DiscoveryStatus.DEAD_END;
+      } else if (pendingDecision === DiscoveryStatus.DROP) {
+        updateData.status = DiscoveryStatus.DROP;
+        updateData.decisionState = DiscoveryStatus.DROP;
         updateData.decisionRationale = pendingData?.decisionRationale || null;
         updateData.deadEndFailurePattern = pendingData?.deadEndFailurePattern || null;
         updateData.deadEndEvidenceReason = pendingData?.deadEndEvidenceReason || null;
         updateData.decidedAt = new Date();
-      } else if (pendingDecision === DiscoveryStatus.EXTENSION_REQUESTED) {
-        updateData.status = DiscoveryStatus.EXTENSION_REQUESTED;
+      } else if (pendingDecision === DiscoveryStatus.IDEA_CARD) {
+        updateData.status = DiscoveryStatus.IDEA_CARD;
         updateData.decisionRationale = pendingData?.extensionRationale || null;
         if (pendingData?.newDueDate) {
           updateData.dueDate = new Date(pendingData.newDueDate as string);

@@ -99,7 +99,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   const intent = formData.get("intent");
 
   if (intent === "changeOwner") {
-    if (discovery.status !== DiscoveryStatus.INBOX && discovery.status !== DiscoveryStatus.OPEN) {
+    if (discovery.status !== DiscoveryStatus.DISCOVERY && discovery.status !== DiscoveryStatus.IDEA_CARD) {
       return json({ error: "INBOX/OPEN 상태에서만 Owner를 변경할 수 있습니다" }, { status: 400 });
     }
     const newOwnerId = formData.get("ownerId");
@@ -123,7 +123,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   }
 
   if (intent === "changeReviewer") {
-    if (discovery.status !== DiscoveryStatus.INBOX && discovery.status !== DiscoveryStatus.OPEN) {
+    if (discovery.status !== DiscoveryStatus.DISCOVERY && discovery.status !== DiscoveryStatus.IDEA_CARD) {
       return json({ error: "INBOX/OPEN 상태에서만 Reviewer를 변경할 수 있습니다" }, { status: 400 });
     }
     const newReviewerId = formData.get("reviewerId") || null;
@@ -144,16 +144,16 @@ export default function DiscoveryDetail() {
     useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
 
-  const canPromoteToOpen = discovery.status === DiscoveryStatus.INBOX;
+  const canPromoteToOpen = discovery.status === DiscoveryStatus.DISCOVERY;
   const canEdit =
-    discovery.status === DiscoveryStatus.INBOX || discovery.status === DiscoveryStatus.OPEN;
+    discovery.status === DiscoveryStatus.DISCOVERY || discovery.status === DiscoveryStatus.IDEA_CARD;
   const canChangeOwnership = canEdit;
   const isActive =
-    discovery.status === DiscoveryStatus.OPEN ||
-    discovery.status === DiscoveryStatus.EXTENSION_REQUESTED;
+    discovery.status === DiscoveryStatus.IDEA_CARD ||
+    discovery.status === DiscoveryStatus.IDEA_CARD;
   const completedExperiments = experiments.filter((e) => e.completedAt);
   const maxExperiments =
-    discovery.status === DiscoveryStatus.EXTENSION_REQUESTED ? 3 : 2;
+    discovery.status === DiscoveryStatus.IDEA_CARD ? 3 : 2;
   const isOverdue =
     isActive && discovery.dueDate && new Date(discovery.dueDate) < new Date();
 
@@ -186,11 +186,11 @@ export default function DiscoveryDetail() {
                   <Link to={`/discoveries/${discovery.id}/promote`}>OPEN으로 승격</Link>
                 </Button>
               )}
-              {(discovery.status === DiscoveryStatus.OPEN ||
-                discovery.status === DiscoveryStatus.EXTENSION_REQUESTED) &&
+              {(discovery.status === DiscoveryStatus.IDEA_CARD ||
+                discovery.status === DiscoveryStatus.IDEA_CARD) &&
                 discovery.approvalStatus !== "PENDING" && (
                 <>
-                  {discovery.status === DiscoveryStatus.OPEN &&
+                  {discovery.status === DiscoveryStatus.IDEA_CARD &&
                     experiments.length >= 2 && (
                       <Button variant="purple" asChild>
                         <Link to={`/discoveries/${discovery.id}/request-extension`}>연장 요청</Link>
@@ -259,7 +259,7 @@ export default function DiscoveryDetail() {
       )}
 
       {/* Auto-closed Banner */}
-      {discovery.status === DiscoveryStatus.DEAD_END &&
+      {discovery.status === DiscoveryStatus.DROP &&
         Array.isArray(discovery.deadEndFailurePattern) &&
         discovery.deadEndFailurePattern.includes("time_constraint") && (
         <AlertBanner variant="warning" className="mb-6 border-2">
@@ -360,8 +360,8 @@ export default function DiscoveryDetail() {
               </p>
             )}
           </div>
-          {((discovery.status === DiscoveryStatus.OPEN && experiments.length < 2) ||
-            (discovery.status === DiscoveryStatus.EXTENSION_REQUESTED &&
+          {((discovery.status === DiscoveryStatus.IDEA_CARD && experiments.length < 2) ||
+            (discovery.status === DiscoveryStatus.IDEA_CARD &&
               experiments.length < 3)) && (
             <Button size="sm" asChild>
               <Link to={`/discoveries/${discovery.id}/add-experiment`}>실험 추가</Link>
@@ -425,7 +425,7 @@ export default function DiscoveryDetail() {
       <Card>
         <CardHeader className="flex-row items-center justify-between space-y-0">
           <CardTitle className="text-lg">Evidence ({evidence.length})</CardTitle>
-          {discovery.status !== DiscoveryStatus.INBOX && (
+          {discovery.status !== DiscoveryStatus.DISCOVERY && (
             <Button size="sm" asChild>
               <Link to={`/discoveries/${discovery.id}/add-evidence`}>근거 추가</Link>
             </Button>

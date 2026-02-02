@@ -28,7 +28,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .from(discoveries)
     .where(
       and(
-        eq(discoveries.status, DiscoveryStatus.NOT_NOW),
+        eq(discoveries.status, DiscoveryStatus.HOLD),
         lte(discoveries.revisitDate, now)
       )
     );

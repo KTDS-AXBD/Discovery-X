@@ -16,13 +16,16 @@ import {
   createDiscovery,
   updateDiscovery,
   promoteDiscovery,
+  transitionStage,
   addExperiment,
   completeExperiment,
   addEvidence,
-  decideNext,
-  decideNotNow,
-  decideDeadEnd,
+  decideGate,
+  decideHold,
+  decideDrop,
   requestExtension,
+  getStageInfo,
+  validateEvidence,
 } from "./tools/discovery-tools";
 import {
   listDiscoveries,
@@ -34,6 +37,14 @@ import {
   getWeeklyReview,
   getRecallQueue,
 } from "./tools/query-tools";
+import {
+  listMethodPacks,
+  recommendMethods,
+  startMethodRun,
+  completeMethodRun,
+  draftGatePackage,
+  getGatePackage,
+} from "./tools/method-tools";
 
 function generateId(): string {
   return crypto.randomUUID();
@@ -73,18 +84,23 @@ async function executeTool(
       return updateDiscovery(db, toolInput as Parameters<typeof updateDiscovery>[1]);
     case "promote_discovery":
       return promoteDiscovery(db, toolInput as Parameters<typeof promoteDiscovery>[1]);
+    case "transition_stage":
+      return transitionStage(db, toolInput as Parameters<typeof transitionStage>[1]);
     case "add_experiment":
       return addExperiment(db, toolInput as Parameters<typeof addExperiment>[1]);
     case "complete_experiment":
       return completeExperiment(db, toolInput as Parameters<typeof completeExperiment>[1]);
     case "add_evidence":
       return addEvidence(db, toolInput as Parameters<typeof addEvidence>[1]);
+    case "decide_gate":
     case "decide_next":
-      return decideNext(db, toolInput as Parameters<typeof decideNext>[1]);
+      return decideGate(db, toolInput as Parameters<typeof decideGate>[1]);
+    case "decide_hold":
     case "decide_not_now":
-      return decideNotNow(db, toolInput as Parameters<typeof decideNotNow>[1]);
+      return decideHold(db, toolInput as Parameters<typeof decideHold>[1]);
+    case "decide_drop":
     case "decide_dead_end":
-      return decideDeadEnd(db, toolInput as Parameters<typeof decideDeadEnd>[1]);
+      return decideDrop(db, toolInput as Parameters<typeof decideDrop>[1]);
     case "request_extension":
       return requestExtension(db, toolInput as Parameters<typeof requestExtension>[1]);
     case "list_discoveries":
@@ -103,6 +119,22 @@ async function executeTool(
       return getRecallQueue(db);
     case "list_users":
       return listUsers(db);
+    case "get_stage_info":
+      return getStageInfo(db, toolInput as Parameters<typeof getStageInfo>[1]);
+    case "validate_evidence":
+      return validateEvidence(db, toolInput as Parameters<typeof validateEvidence>[1]);
+    case "list_method_packs":
+      return listMethodPacks(db, toolInput as Parameters<typeof listMethodPacks>[1]);
+    case "recommend_methods":
+      return recommendMethods(db, toolInput as Parameters<typeof recommendMethods>[1]);
+    case "start_method_run":
+      return startMethodRun(db, toolInput as Parameters<typeof startMethodRun>[1]);
+    case "complete_method_run":
+      return completeMethodRun(db, toolInput as Parameters<typeof completeMethodRun>[1]);
+    case "draft_gate_package":
+      return draftGatePackage(db, toolInput as Parameters<typeof draftGatePackage>[1]);
+    case "get_gate_package":
+      return getGatePackage(db, toolInput as Parameters<typeof getGatePackage>[1]);
     default:
       return JSON.stringify({ error: `알 수 없는 도구: ${toolName}` });
   }

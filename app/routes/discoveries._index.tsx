@@ -37,8 +37,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     const openDiscoveries = await db.select().from(discoveries);
     allDiscoveries = openDiscoveries.filter(
       (d) =>
-        (d.status === DiscoveryStatus.OPEN ||
-          d.status === DiscoveryStatus.EXTENSION_REQUESTED) &&
+        (d.status === DiscoveryStatus.IDEA_CARD ||
+          d.status === DiscoveryStatus.IDEA_CARD) &&
         d.dueDate &&
         new Date(d.dueDate) < now
     );
@@ -58,12 +58,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         : null;
 
       const isInboxOverdue =
-        discovery.status === DiscoveryStatus.INBOX &&
+        discovery.status === DiscoveryStatus.DISCOVERY &&
         Date.now() - new Date(discovery.createdAt).getTime() > 7 * 24 * 60 * 60 * 1000;
 
       const isOpenOverdue =
-        (discovery.status === DiscoveryStatus.OPEN ||
-          discovery.status === DiscoveryStatus.EXTENSION_REQUESTED) &&
+        (discovery.status === DiscoveryStatus.IDEA_CARD ||
+          discovery.status === DiscoveryStatus.IDEA_CARD) &&
         discovery.dueDate &&
         new Date(discovery.dueDate) < now;
 

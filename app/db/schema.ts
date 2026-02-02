@@ -6,12 +6,28 @@ import { sql } from "drizzle-orm";
 // ============================================================================
 
 export const DiscoveryStatus = {
-  INBOX: "INBOX",
-  OPEN: "OPEN",
-  NEXT: "NEXT",
-  NOT_NOW: "NOT_NOW",
-  DEAD_END: "DEAD_END",
-  EXTENSION_REQUESTED: "EXTENSION_REQUESTED",
+  // Ideation
+  DISCOVERY: "DISCOVERY",
+  IDEA_CARD: "IDEA_CARD",
+  // Validation
+  HYPOTHESIS: "HYPOTHESIS",
+  EXPERIMENT: "EXPERIMENT",
+  EVIDENCE_REVIEW: "EVIDENCE_REVIEW",
+  // Execution
+  GATE1: "GATE1",
+  SPRINT: "SPRINT",
+  GATE2: "GATE2",
+  HANDOFF: "HANDOFF",
+  // Terminal
+  HOLD: "HOLD",
+  DROP: "DROP",
+} as const;
+
+export const StageCategory = {
+  IDEATION: "ideation",
+  VALIDATION: "validation",
+  EXECUTION: "execution",
+  TERMINAL: "terminal",
 } as const;
 
 export const ApprovalStatus = {
@@ -89,7 +105,8 @@ export const discoveries = sqliteTable(
     reviewerId: text("reviewer_id").references(() => users.id),
 
     // Lifecycle
-    status: text("status").notNull().default(DiscoveryStatus.INBOX),
+    status: text("status").notNull().default(DiscoveryStatus.DISCOVERY),
+    stageUpdatedAt: integer("stage_updated_at", { mode: "timestamp" }),
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),
@@ -168,6 +185,13 @@ export const evidence = sqliteTable("evidence", {
   strength: text("strength").notNull(),
   content: text("content", { length: 400 }).notNull(),
   linkOrAttachment: text("link_or_attachment"),
+
+  // v3 확장 필드
+  reliabilityLabel: text("reliability_label").default("reported"), // 'confirmed' | 'reported' | 'hypothesis'
+  sourceUrl: text("source_url"),
+  publishedOrObservedDate: text("published_or_observed_date"),
+  validatorId: text("validator_id"),
+  validatedAt: integer("validated_at", { mode: "timestamp" }),
 
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
@@ -372,6 +396,169 @@ export const agentConfig = sqliteTable("agent_config", {
 });
 
 // ============================================================================
+// STAGE SYSTEM TABLES (v3)
+// ============================================================================
+
+export const stages = sqliteTable("stages", {
+  id: text("id").primaryKey(),
+  nameKo: text("name_ko").notNull(),
+  description: text("description"),
+  category: text("category").notNull(), // ideation | validation | execution | terminal
+  orderIndex: integer("order_index").notNull(),
+  requiredFields: text("required_fields", { mode: "json" }).$type<string[]>(),
+  color: text("color").notNull(),
+});
+
+export const signalMetadata = sqliteTable("signal_metadata", {
+  discoveryId: text("discovery_id")
+    .primaryKey()
+    .references(() => discoveries.id, { onDelete: "cascade" }),
+  signalType: text("signal_type"),
+  timeSensitivity: text("time_sensitivity"),
+  actors: text("actors", { mode: "json" }).$type<string[]>(),
+  assumptions: text("assumptions", { mode: "json" }).$type<string[]>(),
+});
+
+// ============================================================================
+// METHOD PACK TABLES (v3 R1)
+// ============================================================================
+
+export const MethodPackTier = {
+  TIER_0: "Tier-0",
+  TIER_1: "Tier-1",
+  TIER_2: "Tier-2",
+} as const;
+
+export const MethodPackCategory = {
+  CUSTOMER_PROBLEM: "고객/문제",
+  STRATEGY: "전략/구조화",
+  MARKET: "시장",
+  COMPETITION: "경쟁",
+  ECOSYSTEM: "생태계",
+  CUSTOMER_BUYING: "고객/구매",
+  RISK: "리스크",
+  EXECUTION: "실행",
+  BUSINESS: "비즈니스",
+  FORECAST: "예측",
+  FORECAST_OPS: "예측/운영",
+} as const;
+
+export const MethodRunStatus = {
+  RUNNING: "RUNNING",
+  COMPLETED: "COMPLETED",
+  FAILED: "FAILED",
+} as const;
+
+export const GateType = {
+  GATE1: "GATE1",
+  GATE2: "GATE2",
+} as const;
+
+export const GateDecision = {
+  GO: "GO",
+  NO_GO: "NO_GO",
+  CONDITIONAL: "CONDITIONAL",
+  PENDING: "PENDING",
+} as const;
+
+export const AssumptionStatus = {
+  OPEN: "OPEN",
+  VALIDATED: "VALIDATED",
+  INVALIDATED: "INVALIDATED",
+} as const;
+
+export const methodPacks = sqliteTable("method_packs", {
+  id: text("id").primaryKey(),
+  nameKo: text("name_ko").notNull(),
+  tier: text("tier").notNull(),
+  category: text("category").notNull(),
+  whenToUse: text("when_to_use"),
+  requiredInputs: text("required_inputs"),
+  outputArtifacts: text("output_artifacts"),
+  scoreHooks: text("score_hooks"),
+  gateHooks: text("gate_hooks"),
+  quickRun: integer("quick_run").notNull().default(0),
+  timebox: text("timebox"),
+  evidenceMinimum: text("evidence_minimum"),
+  applicableStages: text("applicable_stages", { mode: "json" }).$type<string[]>(),
+  templatePrompt: text("template_prompt"),
+  outputSchema: text("output_schema", { mode: "json" }).$type<Record<string, unknown>>(),
+});
+
+export const methodRuns = sqliteTable(
+  "method_runs",
+  {
+    id: text("id").primaryKey(),
+    discoveryId: text("discovery_id")
+      .notNull()
+      .references(() => discoveries.id, { onDelete: "cascade" }),
+    methodPackId: text("method_pack_id")
+      .notNull()
+      .references(() => methodPacks.id),
+    status: text("status").notNull().default(MethodRunStatus.RUNNING),
+    startedAt: integer("started_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    completedAt: integer("completed_at", { mode: "timestamp" }),
+    structuredOutput: text("structured_output", { mode: "json" }).$type<Record<string, unknown>>(),
+    evidenceIds: text("evidence_ids", { mode: "json" }).$type<string[]>(),
+    executorId: text("executor_id").references(() => users.id),
+    conversationId: text("conversation_id").references(() => conversations.id),
+  },
+  (table) => ({
+    discoveryIdIdx: index("idx_method_runs_discovery_id").on(table.discoveryId),
+    methodPackIdIdx: index("idx_method_runs_method_pack_id").on(table.methodPackId),
+    statusIdx: index("idx_method_runs_status").on(table.status),
+  })
+);
+
+export const gatePackages = sqliteTable(
+  "gate_packages",
+  {
+    id: text("id").primaryKey(),
+    discoveryId: text("discovery_id")
+      .notNull()
+      .references(() => discoveries.id, { onDelete: "cascade" }),
+    gateType: text("gate_type").notNull(),
+    autoDraftedAt: integer("auto_drafted_at", { mode: "timestamp" }),
+    submittedAt: integer("submitted_at", { mode: "timestamp" }),
+    decidedAt: integer("decided_at", { mode: "timestamp" }),
+    decision: text("decision"),
+    rationale: text("rationale"),
+    scorecard: text("scorecard", { mode: "json" }).$type<Record<string, unknown>>(),
+    methodRunSummary: text("method_run_summary", { mode: "json" }).$type<Record<string, unknown>[]>(),
+    evidenceSummary: text("evidence_summary", { mode: "json" }).$type<Record<string, unknown>[]>(),
+    assumptions: text("assumptions_json", { mode: "json" }).$type<Record<string, unknown>[]>(),
+    approverId: text("approver_id").references(() => users.id),
+  },
+  (table) => ({
+    discoveryIdIdx: index("idx_gate_packages_discovery_id").on(table.discoveryId),
+    gateTypeIdx: index("idx_gate_packages_gate_type").on(table.gateType),
+  })
+);
+
+export const assumptions = sqliteTable(
+  "assumptions",
+  {
+    id: text("id").primaryKey(),
+    discoveryId: text("discovery_id")
+      .notNull()
+      .references(() => discoveries.id, { onDelete: "cascade" }),
+    statement: text("statement").notNull(),
+    refutationQuestions: text("refutation_questions", { mode: "json" }).$type<string[]>(),
+    status: text("status").notNull().default(AssumptionStatus.OPEN),
+    evidenceIds: text("evidence_ids", { mode: "json" }).$type<string[]>(),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    discoveryIdIdx: index("idx_assumptions_discovery_id").on(table.discoveryId),
+    statusIdx: index("idx_assumptions_status").on(table.status),
+  })
+);
+
+// ============================================================================
 // TYPES
 // ============================================================================
 
@@ -410,3 +597,21 @@ export type NewMessage = typeof messages.$inferInsert;
 
 export type AgentConfig = typeof agentConfig.$inferSelect;
 export type NewAgentConfig = typeof agentConfig.$inferInsert;
+
+export type Stage = typeof stages.$inferSelect;
+export type NewStage = typeof stages.$inferInsert;
+
+export type SignalMetadata = typeof signalMetadata.$inferSelect;
+export type NewSignalMetadata = typeof signalMetadata.$inferInsert;
+
+export type MethodPack = typeof methodPacks.$inferSelect;
+export type NewMethodPack = typeof methodPacks.$inferInsert;
+
+export type MethodRun = typeof methodRuns.$inferSelect;
+export type NewMethodRun = typeof methodRuns.$inferInsert;
+
+export type GatePackage = typeof gatePackages.$inferSelect;
+export type NewGatePackage = typeof gatePackages.$inferInsert;
+
+export type Assumption = typeof assumptions.$inferSelect;
+export type NewAssumption = typeof assumptions.$inferInsert;

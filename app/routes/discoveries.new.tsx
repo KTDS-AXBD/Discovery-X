@@ -72,7 +72,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       seedSummary: validated.seedSummary,
       seedLinks: validated.seedLinks || null,
       sourceType: validated.sourceType,
-      status: DiscoveryStatus.INBOX,
+      status: DiscoveryStatus.DISCOVERY,
       ownerId: user.id, // Set creator as default owner
     });
 
@@ -125,7 +125,7 @@ function SimilarSeedsPanel({ seeds }: { seeds: SimilarSeed[] }) {
                 ))}
               </div>
             )}
-            {seed.status === "NOT_NOW" && seed.notNowTriggerCondition && (
+            {seed.status === "HOLD" && seed.notNowTriggerCondition && (
               <p className="mt-1 text-xs text-[var(--axis-text-tertiary)]">
                 트리거: {seed.notNowTriggerCondition}
               </p>

@@ -19,11 +19,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const allEvidence = await db.select().from(evidence);
 
   const totalCount = allDiscoveries.length;
-  const inboxCount = allDiscoveries.filter((d) => d.status === DiscoveryStatus.INBOX).length;
-  const openCount = allDiscoveries.filter((d) => d.status === DiscoveryStatus.OPEN).length;
-  const nextCount = allDiscoveries.filter((d) => d.status === DiscoveryStatus.NEXT).length;
-  const notNowCount = allDiscoveries.filter((d) => d.status === DiscoveryStatus.NOT_NOW).length;
-  const deadEndCount = allDiscoveries.filter((d) => d.status === DiscoveryStatus.DEAD_END).length;
+  const inboxCount = allDiscoveries.filter((d) => d.status === DiscoveryStatus.DISCOVERY).length;
+  const openCount = allDiscoveries.filter((d) => d.status === DiscoveryStatus.IDEA_CARD).length;
+  const nextCount = allDiscoveries.filter((d) => d.status === DiscoveryStatus.GATE1).length;
+  const notNowCount = allDiscoveries.filter((d) => d.status === DiscoveryStatus.HOLD).length;
+  const deadEndCount = allDiscoveries.filter((d) => d.status === DiscoveryStatus.DROP).length;
   const decidedCount = nextCount + notNowCount + deadEndCount;
 
   const seedToExperimentRate =
@@ -36,9 +36,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   );
   const oldDecidedDiscoveries = oldDiscoveries.filter(
     (d) =>
-      d.status === DiscoveryStatus.NEXT ||
-      d.status === DiscoveryStatus.NOT_NOW ||
-      d.status === DiscoveryStatus.DEAD_END
+      d.status === DiscoveryStatus.GATE1 ||
+      d.status === DiscoveryStatus.HOLD ||
+      d.status === DiscoveryStatus.DROP
   );
   const twentyEightDayClosureRate =
     oldDiscoveries.length > 0
@@ -48,7 +48,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const now = new Date();
   const recallEvents = allDiscoveries.filter(
     (d) =>
-      d.status === DiscoveryStatus.NOT_NOW &&
+      d.status === DiscoveryStatus.HOLD &&
       d.revisitDate &&
       new Date(d.revisitDate) <= now
   ).length;
@@ -68,11 +68,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     ["지표명", "값", "목표", "달성 여부"],
     ["전체 Discovery", totalCount, "-", "-"],
     ["닫힌 Discovery (P0 기준)", decidedCount, "≥1", decidedCount >= 1 ? "✅" : "❌"],
-    ["INBOX", inboxCount, "-", "-"],
+    ["DISCOVERY", inboxCount, "-", "-"],
     ["OPEN", openCount, "-", "-"],
     ["NEXT", nextCount, "-", "-"],
-    ["NOT_NOW", notNowCount, "-", "-"],
-    ["DEAD_END", deadEndCount, "-", "-"],
+    ["HOLD", notNowCount, "-", "-"],
+    ["DROP", deadEndCount, "-", "-"],
     ["Seed → Experiment 전환율 (%)", seedToExperimentRate, "-", "-"],
     [
       "28일 종료율 (%)",

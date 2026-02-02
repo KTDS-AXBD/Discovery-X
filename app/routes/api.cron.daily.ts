@@ -45,11 +45,11 @@ async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; erro
   const openDiscoveries = await db
     .select()
     .from(discoveries)
-    .where(eq(discoveries.status, DiscoveryStatus.OPEN));
+    .where(eq(discoveries.status, DiscoveryStatus.IDEA_CARD));
   const extDiscoveries = await db
     .select()
     .from(discoveries)
-    .where(eq(discoveries.status, DiscoveryStatus.EXTENSION_REQUESTED));
+    .where(eq(discoveries.status, DiscoveryStatus.IDEA_CARD));
   const activeDiscoveries = [...openDiscoveries, ...extDiscoveries];
 
   const overdueItems: OverdueDiscovery[] = [];
@@ -86,7 +86,7 @@ async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; erro
   const notNowDiscoveries = await db
     .select()
     .from(discoveries)
-    .where(eq(discoveries.status, DiscoveryStatus.NOT_NOW));
+    .where(eq(discoveries.status, DiscoveryStatus.HOLD));
 
   const revisitItems: RevisitDiscovery[] = notNowDiscoveries
     .filter((d) => d.revisitDate && new Date(d.revisitDate) <= now)
@@ -148,7 +148,7 @@ async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; erro
     await db
       .update(discoveries)
       .set({
-        status: DiscoveryStatus.DEAD_END,
+        status: DiscoveryStatus.DROP,
         deadEndFailurePattern: ["time_constraint"],
         deadEndEvidenceReason: `자동 종료: ${daysOverdue}일 기한 초과`,
         decidedAt: now,

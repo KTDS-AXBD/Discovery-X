@@ -45,7 +45,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const openDiscoveries = await db
     .select()
     .from(discoveries)
-    .where(eq(discoveries.status, DiscoveryStatus.OPEN));
+    .where(eq(discoveries.status, DiscoveryStatus.IDEA_CARD));
 
   const needsReview = openDiscoveries.filter((d) => {
     if (!d.dueDate || !d.createdAt) return false;

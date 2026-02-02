@@ -41,7 +41,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   }
 
   // Only INBOX/OPEN can be edited
-  if (discovery.status !== DiscoveryStatus.INBOX && discovery.status !== DiscoveryStatus.OPEN) {
+  if (discovery.status !== DiscoveryStatus.DISCOVERY && discovery.status !== DiscoveryStatus.IDEA_CARD) {
     return redirect(`/discoveries/${id}`);
   }
 
@@ -70,7 +70,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  if (discovery.status !== DiscoveryStatus.INBOX && discovery.status !== DiscoveryStatus.OPEN) {
+  if (discovery.status !== DiscoveryStatus.DISCOVERY && discovery.status !== DiscoveryStatus.IDEA_CARD) {
     return json({ error: "INBOX/OPEN 상태에서만 편집할 수 있습니다" }, { status: 400 });
   }
 

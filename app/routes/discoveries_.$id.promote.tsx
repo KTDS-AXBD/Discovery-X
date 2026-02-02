@@ -41,7 +41,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   }
 
   // Can only promote INBOX discoveries
-  if (discovery.status !== DiscoveryStatus.INBOX) {
+  if (discovery.status !== DiscoveryStatus.DISCOVERY) {
     return redirect(`/discoveries/${id}`);
   }
 
@@ -74,7 +74,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  if (discovery.status !== DiscoveryStatus.INBOX) {
+  if (discovery.status !== DiscoveryStatus.DISCOVERY) {
     return json({ error: "INBOX 상태의 Discovery만 승격할 수 있습니다" }, { status: 400 });
   }
 
@@ -125,7 +125,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     await db
       .update(discoveries)
       .set({
-        status: DiscoveryStatus.OPEN,
+        status: DiscoveryStatus.IDEA_CARD,
         ownerId: validated.ownerId,
         reviewerId: reviewerId ? String(reviewerId) : null,
         dueDate,

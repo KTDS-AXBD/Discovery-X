@@ -1,6 +1,6 @@
 /**
  * Discovery management tools — create, promote, experiment, evidence, decide.
- * Reuses existing validation rules from app/lib/validation/discovery-rules.ts.
+ * v3: 11-stage pipeline (DISCOVERY→IDEA_CARD→...→HANDOFF + HOLD/DROP)
  */
 
 import { eq } from "drizzle-orm";
@@ -10,12 +10,14 @@ import {
   experiments,
   evidence,
   eventLogs,
+  stages,
   DiscoveryStatus,
 } from "~/db/schema";
 import {
   DiscoveryValidationRules,
   ValidationError,
 } from "~/lib/validation/discovery-rules";
+import { ALLOWED_TRANSITIONS } from "~/lib/constants/status";
 
 function generateId(): string {
   return crypto.randomUUID();
@@ -54,11 +56,11 @@ export async function createDiscovery(
     seedSummary: input.seedSummary,
     sourceType: input.sourceType,
     seedLinks: input.seedLinks || [],
-    status: DiscoveryStatus.INBOX,
+    status: DiscoveryStatus.DISCOVERY,
     createdByAgent: 1,
   });
   await logEvent(db, id, "created", { source: "agent", sourceType: input.sourceType });
-  return JSON.stringify({ success: true, discoveryId: id, title: input.title, status: "INBOX" });
+  return JSON.stringify({ success: true, discoveryId: id, title: input.title, status: "DISCOVERY" });
 }
 
 export async function updateDiscovery(
@@ -80,10 +82,10 @@ export async function updateDiscovery(
   if (!discovery[0]) return JSON.stringify({ error: "Discovery를 찾을 수 없습니다.", suggestion: "list_discoveries로 기존 목록을 확인해보세요." });
 
   const status = discovery[0].status;
-  if (status !== DiscoveryStatus.INBOX && status !== DiscoveryStatus.OPEN) {
+  if (status !== DiscoveryStatus.DISCOVERY && status !== DiscoveryStatus.IDEA_CARD) {
     return JSON.stringify({
-      error: `현재 상태(${status})에서는 수정할 수 없습니다. INBOX 또는 OPEN 상태만 가능합니다.`,
-      suggestion: "이미 결정이 완료된 Discovery는 수정할 수 없습니다. 새 Discovery를 생성해보세요.",
+      error: `현재 상태(${status})에서는 수정할 수 없습니다. DISCOVERY 또는 IDEA_CARD 상태만 가능합니다.`,
+      suggestion: "이미 진행 중인 Discovery는 수정할 수 없습니다.",
     });
   }
 
@@ -128,8 +130,8 @@ export async function promoteDiscovery(
     .limit(1);
 
   if (!discovery[0]) return JSON.stringify({ error: "Discovery를 찾을 수 없습니다.", suggestion: "list_discoveries로 기존 목록을 확인해보세요." });
-  if (discovery[0].status !== DiscoveryStatus.INBOX) {
-    return JSON.stringify({ error: `현재 상태(${discovery[0].status})에서는 승격할 수 없습니다. INBOX만 가능.`, suggestion: "get_discovery_detail로 현재 상태를 확인해보세요." });
+  if (discovery[0].status !== DiscoveryStatus.DISCOVERY) {
+    return JSON.stringify({ error: `현재 상태(${discovery[0].status})에서는 승격할 수 없습니다. DISCOVERY만 가능.`, suggestion: "get_discovery_detail로 현재 상태를 확인해보세요." });
   }
 
   try {
@@ -145,9 +147,10 @@ export async function promoteDiscovery(
   await db
     .update(discoveries)
     .set({
-      status: DiscoveryStatus.OPEN,
+      status: DiscoveryStatus.IDEA_CARD,
       ownerId: input.ownerId,
       dueDate,
+      stageUpdatedAt: new Date(),
       updatedAt: new Date(),
     })
     .where(eq(discoveries.id, input.discoveryId));
@@ -161,7 +164,7 @@ export async function promoteDiscovery(
     expectedEvidence: input.expectedEvidence,
   });
 
-  await logEvent(db, input.discoveryId, "promoted_to_open", {
+  await logEvent(db, input.discoveryId, "promoted_to_idea_card", {
     source: "agent",
     ownerId: input.ownerId,
     experimentId,
@@ -170,9 +173,59 @@ export async function promoteDiscovery(
   return JSON.stringify({
     success: true,
     discoveryId: input.discoveryId,
-    status: "OPEN",
+    status: "IDEA_CARD",
     dueDate: dueDate.toISOString(),
     experimentId,
+  });
+}
+
+/**
+ * 범용 단계 전환 도구 — 11단계 파이프라인 내 임의 전환
+ */
+export async function transitionStage(
+  db: DB,
+  input: {
+    discoveryId: string;
+    toStatus: string;
+    rationale?: string;
+  }
+): Promise<string> {
+  const discovery = await db
+    .select()
+    .from(discoveries)
+    .where(eq(discoveries.id, input.discoveryId))
+    .limit(1);
+
+  if (!discovery[0]) return JSON.stringify({ error: "Discovery를 찾을 수 없습니다." });
+
+  try {
+    DiscoveryValidationRules.validateTransition(discovery[0].status, input.toStatus);
+  } catch (e) {
+    if (e instanceof ValidationError) return JSON.stringify({ error: e.message, details: e.details });
+    throw e;
+  }
+
+  await db
+    .update(discoveries)
+    .set({
+      status: input.toStatus,
+      stageUpdatedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(discoveries.id, input.discoveryId));
+
+  await logEvent(db, input.discoveryId, "stage_transition", {
+    source: "agent",
+    from: discovery[0].status,
+    to: input.toStatus,
+    rationale: input.rationale,
+  });
+
+  return JSON.stringify({
+    success: true,
+    discoveryId: input.discoveryId,
+    fromStatus: discovery[0].status,
+    toStatus: input.toStatus,
   });
 }
 
@@ -246,8 +299,21 @@ export async function addEvidence(
     content: string;
     linkOrAttachment?: string;
     experimentId?: string;
+    reliabilityLabel?: string;
+    sourceUrl?: string;
+    publishedOrObservedDate?: string;
   }
 ): Promise<string> {
+  const reliabilityLabel = input.reliabilityLabel || "reported";
+
+  // v3 evidence validation
+  const validation = DiscoveryValidationRules.validateEvidenceForSave({
+    reliabilityLabel,
+    sourceUrl: input.sourceUrl,
+    linkOrAttachment: input.linkOrAttachment,
+    content: input.content,
+  });
+
   const id = generateId();
   await db.insert(evidence).values({
     id,
@@ -257,6 +323,9 @@ export async function addEvidence(
     strength: input.strength,
     content: input.content,
     linkOrAttachment: input.linkOrAttachment || null,
+    reliabilityLabel,
+    sourceUrl: input.sourceUrl || null,
+    publishedOrObservedDate: input.publishedOrObservedDate || null,
     createdById: AGENT_ACTOR_ID,
   });
 
@@ -265,14 +334,19 @@ export async function addEvidence(
     evidenceId: id,
     type: input.type,
     strength: input.strength,
+    reliabilityLabel,
   });
 
-  return JSON.stringify({ success: true, evidenceId: id });
+  return JSON.stringify({
+    success: true,
+    evidenceId: id,
+    warning: validation.warning || null,
+  });
 }
 
-export async function decideNext(
+export async function decideGate(
   db: DB,
-  input: { discoveryId: string; decisionRationale: string }
+  input: { discoveryId: string; decisionRationale: string; gateType?: string }
 ): Promise<string> {
   const discovery = await db
     .select()
@@ -282,32 +356,54 @@ export async function decideNext(
 
   if (!discovery[0]) return JSON.stringify({ error: "Discovery를 찾을 수 없습니다.", suggestion: "list_discoveries로 기존 목록을 확인해보세요." });
 
-  const validation = await DiscoveryValidationRules.validateNextDecision(db, input.discoveryId);
+  const validation = await DiscoveryValidationRules.validateGateDecision(db, input.discoveryId);
+  const evidenceValidation = await DiscoveryValidationRules.validateEvidenceForGate(db, input.discoveryId);
+
+  // Determine target status based on current
+  const currentStatus = discovery[0].status;
+  let targetStatus: string;
+  if (currentStatus === DiscoveryStatus.EVIDENCE_REVIEW) {
+    targetStatus = DiscoveryStatus.GATE1;
+  } else if (currentStatus === DiscoveryStatus.SPRINT) {
+    targetStatus = DiscoveryStatus.GATE2;
+  } else {
+    targetStatus = input.gateType === "GATE2" ? DiscoveryStatus.GATE2 : DiscoveryStatus.GATE1;
+  }
 
   await db
     .update(discoveries)
     .set({
-      status: DiscoveryStatus.NEXT,
-      decisionState: "NEXT",
+      status: targetStatus,
+      decisionState: targetStatus,
       decisionRationale: input.decisionRationale,
       decidedAt: new Date(),
+      stageUpdatedAt: new Date(),
       updatedAt: new Date(),
     })
     .where(eq(discoveries.id, input.discoveryId));
 
-  await logEvent(db, input.discoveryId, "decided_next", {
+  await logEvent(db, input.discoveryId, `decided_${targetStatus.toLowerCase()}`, {
     source: "agent",
     rationale: input.decisionRationale,
   });
 
+  const warnings = [validation.warning, evidenceValidation.warning].filter(Boolean);
   return JSON.stringify({
     success: true,
-    status: "NEXT",
-    warning: validation.warning || null,
+    status: targetStatus,
+    warning: warnings.length > 0 ? warnings.join("; ") : null,
   });
 }
 
-export async function decideNotNow(
+// Legacy aliases
+export async function decideNext(
+  db: DB,
+  input: { discoveryId: string; decisionRationale: string }
+): Promise<string> {
+  return decideGate(db, { ...input, gateType: "GATE1" });
+}
+
+export async function decideHold(
   db: DB,
   input: {
     discoveryId: string;
@@ -320,40 +416,44 @@ export async function decideNotNow(
   const revisitDate = new Date(input.revisitDate);
 
   try {
-    DiscoveryValidationRules.validateNotNowDecision({
+    DiscoveryValidationRules.validateHoldDecision({
       notNowTriggerType: input.notNowTriggerType,
       notNowTriggerCondition: input.notNowTriggerCondition,
       revisitDate,
     });
   } catch (e) {
-    if (e instanceof ValidationError) return JSON.stringify({ error: e.message, suggestion: "NOT_NOW 결정에는 triggerType, condition, revisitDate가 필수입니다." });
+    if (e instanceof ValidationError) return JSON.stringify({ error: e.message, suggestion: "HOLD 결정에는 triggerType, condition, revisitDate가 필수입니다." });
     throw e;
   }
 
   await db
     .update(discoveries)
     .set({
-      status: DiscoveryStatus.NOT_NOW,
-      decisionState: "NOT_NOW",
+      status: DiscoveryStatus.HOLD,
+      decisionState: "HOLD",
       decisionRationale: input.decisionRationale,
       notNowTriggerType: input.notNowTriggerType,
       notNowTriggerCondition: input.notNowTriggerCondition,
       revisitDate,
       decidedAt: new Date(),
+      stageUpdatedAt: new Date(),
       updatedAt: new Date(),
     })
     .where(eq(discoveries.id, input.discoveryId));
 
-  await logEvent(db, input.discoveryId, "decided_not_now", {
+  await logEvent(db, input.discoveryId, "decided_hold", {
     source: "agent",
     triggerType: input.notNowTriggerType,
     revisitDate: input.revisitDate,
   });
 
-  return JSON.stringify({ success: true, status: "NOT_NOW", revisitDate: input.revisitDate });
+  return JSON.stringify({ success: true, status: "HOLD", revisitDate: input.revisitDate });
 }
 
-export async function decideDeadEnd(
+// Legacy alias
+export const decideNotNow = decideHold;
+
+export async function decideDrop(
   db: DB,
   input: {
     discoveryId: string;
@@ -363,35 +463,39 @@ export async function decideDeadEnd(
   }
 ): Promise<string> {
   try {
-    DiscoveryValidationRules.validateDeadEndDecision({
+    DiscoveryValidationRules.validateDropDecision({
       deadEndFailurePattern: input.deadEndFailurePattern,
       deadEndEvidenceReason: input.deadEndEvidenceReason,
     });
   } catch (e) {
-    if (e instanceof ValidationError) return JSON.stringify({ error: e.message, suggestion: "DEAD_END 결정에는 failurePattern과 evidenceBasedReason이 필수입니다." });
+    if (e instanceof ValidationError) return JSON.stringify({ error: e.message, suggestion: "DROP 결정에는 failurePattern과 evidenceBasedReason이 필수입니다." });
     throw e;
   }
 
   await db
     .update(discoveries)
     .set({
-      status: DiscoveryStatus.DEAD_END,
-      decisionState: "DEAD_END",
+      status: DiscoveryStatus.DROP,
+      decisionState: "DROP",
       decisionRationale: input.decisionRationale,
       deadEndFailurePattern: input.deadEndFailurePattern,
       deadEndEvidenceReason: input.deadEndEvidenceReason,
       decidedAt: new Date(),
+      stageUpdatedAt: new Date(),
       updatedAt: new Date(),
     })
     .where(eq(discoveries.id, input.discoveryId));
 
-  await logEvent(db, input.discoveryId, "decided_dead_end", {
+  await logEvent(db, input.discoveryId, "decided_drop", {
     source: "agent",
     failurePatterns: input.deadEndFailurePattern,
   });
 
-  return JSON.stringify({ success: true, status: "DEAD_END", failurePatterns: input.deadEndFailurePattern });
+  return JSON.stringify({ success: true, status: "DROP", failurePatterns: input.deadEndFailurePattern });
 }
+
+// Legacy alias
+export const decideDeadEnd = decideDrop;
 
 export async function requestExtension(
   db: DB,
@@ -408,7 +512,6 @@ export async function requestExtension(
   await db
     .update(discoveries)
     .set({
-      status: DiscoveryStatus.EXTENSION_REQUESTED,
       pendingDecision: "EXTENSION_REQUESTED",
       pendingDecisionData: { extensionRationale: input.extensionRationale },
       approvalStatus: "PENDING",
@@ -423,7 +526,81 @@ export async function requestExtension(
 
   return JSON.stringify({
     success: true,
-    status: "EXTENSION_REQUESTED",
     message: "Reviewer 승인을 기다립니다.",
+  });
+}
+
+/**
+ * v3 신규 도구: get_stage_info — 단계 정의/통과 기준 조회
+ */
+export async function getStageInfo(
+  db: DB,
+  input: { stageId?: string }
+): Promise<string> {
+  if (input.stageId) {
+    const stage = await db
+      .select()
+      .from(stages)
+      .where(eq(stages.id, input.stageId))
+      .limit(1);
+
+    if (!stage[0]) return JSON.stringify({ error: `단계를 찾을 수 없습니다: ${input.stageId}` });
+
+    const transitions = ALLOWED_TRANSITIONS[input.stageId] || [];
+    return JSON.stringify({ stage: stage[0], allowedTransitions: transitions });
+  }
+
+  const allStages = await db.select().from(stages);
+  return JSON.stringify({
+    stages: allStages,
+    transitions: ALLOWED_TRANSITIONS,
+  });
+}
+
+/**
+ * v3 신규 도구: validate_evidence — 근거 검증기
+ */
+export async function validateEvidence(
+  db: DB,
+  input: { discoveryId: string; evidenceId?: string }
+): Promise<string> {
+  const allEvidence = await db
+    .select()
+    .from(evidence)
+    .where(eq(evidence.discoveryId, input.discoveryId));
+
+  if (input.evidenceId) {
+    const ev = allEvidence.find((e) => e.id === input.evidenceId);
+    if (!ev) return JSON.stringify({ error: "근거를 찾을 수 없습니다." });
+
+    const issues: string[] = [];
+    if (!ev.reliabilityLabel) issues.push("신뢰도 라벨 누락");
+    if (!ev.sourceUrl && !ev.linkOrAttachment) issues.push("출처 URL/첨부 누락");
+    if (!ev.publishedOrObservedDate) issues.push("발행/관측일 누락 (Gate 통과 필요)");
+    if (ev.content.length < 200) issues.push(`내용 ${ev.content.length}자 (200자 이상 권장)`);
+
+    return JSON.stringify({
+      evidenceId: ev.id,
+      valid: issues.length === 0,
+      issues,
+    });
+  }
+
+  // Validate all evidence for this discovery
+  const results = allEvidence.map((ev) => {
+    const issues: string[] = [];
+    if (!ev.reliabilityLabel) issues.push("신뢰도 라벨 누락");
+    if (!ev.sourceUrl && !ev.linkOrAttachment) issues.push("출처 누락");
+    if (!ev.publishedOrObservedDate) issues.push("발행/관측일 누락");
+    if (ev.content.length < 200) issues.push("내용 부족");
+    return { evidenceId: ev.id, type: ev.type, strength: ev.strength, valid: issues.length === 0, issues };
+  });
+
+  const validCount = results.filter((r) => r.valid).length;
+  return JSON.stringify({
+    total: results.length,
+    valid: validCount,
+    invalid: results.length - validCount,
+    details: results,
   });
 }

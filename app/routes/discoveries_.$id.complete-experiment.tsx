@@ -45,8 +45,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   }
 
   if (
-    discovery.status !== DiscoveryStatus.OPEN &&
-    discovery.status !== DiscoveryStatus.EXTENSION_REQUESTED
+    discovery.status !== DiscoveryStatus.IDEA_CARD &&
+    discovery.status !== DiscoveryStatus.IDEA_CARD
   ) {
     return redirect(`/discoveries/${id}`);
   }

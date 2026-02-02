@@ -43,8 +43,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 
   // Can only decide from OPEN or EXTENSION_REQUESTED status
   if (
-    discovery.status !== DiscoveryStatus.OPEN &&
-    discovery.status !== DiscoveryStatus.EXTENSION_REQUESTED
+    discovery.status !== DiscoveryStatus.IDEA_CARD &&
+    discovery.status !== DiscoveryStatus.IDEA_CARD
   ) {
     return redirect(`/discoveries/${id}`);
   }
@@ -84,8 +84,8 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   }
 
   if (
-    discovery.status !== DiscoveryStatus.OPEN &&
-    discovery.status !== DiscoveryStatus.EXTENSION_REQUESTED
+    discovery.status !== DiscoveryStatus.IDEA_CARD &&
+    discovery.status !== DiscoveryStatus.IDEA_CARD
   ) {
     return json(
       { error: "OPEN 또는 EXTENSION_REQUESTED 상태의 Discovery만 결정할 수 있습니다" },
@@ -115,7 +115,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
       .update(discoveries)
       .set({
         approvalStatus: "PENDING",
-        pendingDecision: DiscoveryStatus.NEXT,
+        pendingDecision: DiscoveryStatus.GATE1,
         pendingDecisionData: {
           decisionRationale: validated.decisionRationale,
           evidenceWarning: validationResult.warning || null,
@@ -131,7 +131,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
       discoveryId: id,
       eventType: "SUBMIT_FOR_APPROVAL",
       metadata: {
-        pendingDecision: DiscoveryStatus.NEXT,
+        pendingDecision: DiscoveryStatus.GATE1,
         decisionRationale: validated.decisionRationale,
         evidenceWarning: validationResult.warning || null,
       },

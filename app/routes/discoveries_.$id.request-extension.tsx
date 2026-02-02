@@ -44,7 +44,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   }
 
   // Can only request extension from OPEN status
-  if (discovery.status !== DiscoveryStatus.OPEN) {
+  if (discovery.status !== DiscoveryStatus.IDEA_CARD) {
     return redirect(`/discoveries/${id}`);
   }
 
@@ -85,7 +85,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  if (discovery.status !== DiscoveryStatus.OPEN) {
+  if (discovery.status !== DiscoveryStatus.IDEA_CARD) {
     return json(
       { error: "OPEN 상태의 Discovery만 연장 요청할 수 있습니다" },
       { status: 400 }
@@ -130,7 +130,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
       .update(discoveries)
       .set({
         approvalStatus: "PENDING",
-        pendingDecision: DiscoveryStatus.EXTENSION_REQUESTED,
+        pendingDecision: DiscoveryStatus.IDEA_CARD,
         pendingDecisionData: {
           extensionRationale: validated.extensionRationale,
           previousDueDate: discovery.dueDate
@@ -149,7 +149,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
       discoveryId: id,
       eventType: "SUBMIT_FOR_APPROVAL",
       metadata: {
-        pendingDecision: DiscoveryStatus.EXTENSION_REQUESTED,
+        pendingDecision: DiscoveryStatus.IDEA_CARD,
         extensionRationale: validated.extensionRationale,
         previousDueDate: discovery.dueDate
           ? new Date(discovery.dueDate).toISOString()
@@ -171,7 +171,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
             discoveryId: id,
             discoveryTitle: discovery.title,
             ownerName: user.name,
-            decision: "EXTENSION_REQUESTED",
+            decision: "IDEA_CARD",
           });
           await emailClient.send({ to: reviewerUser.email, ...email });
         }

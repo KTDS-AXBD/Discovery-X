@@ -41,8 +41,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 
   // Can only add experiments to OPEN or EXTENSION_REQUESTED discoveries
   if (
-    discovery.status !== DiscoveryStatus.OPEN &&
-    discovery.status !== DiscoveryStatus.EXTENSION_REQUESTED
+    discovery.status !== DiscoveryStatus.IDEA_CARD &&
+    discovery.status !== DiscoveryStatus.IDEA_CARD
   ) {
     return redirect(`/discoveries/${id}`);
   }
@@ -55,7 +55,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 
   const currentCount = experimentCount[0]?.count || 0;
   const maxExperiments =
-    discovery.status === DiscoveryStatus.EXTENSION_REQUESTED ? 3 : 2;
+    discovery.status === DiscoveryStatus.IDEA_CARD ? 3 : 2;
 
   if (currentCount >= maxExperiments) {
     return redirect(`/discoveries/${id}`);
@@ -88,8 +88,8 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   }
 
   if (
-    discovery.status !== DiscoveryStatus.OPEN &&
-    discovery.status !== DiscoveryStatus.EXTENSION_REQUESTED
+    discovery.status !== DiscoveryStatus.IDEA_CARD &&
+    discovery.status !== DiscoveryStatus.IDEA_CARD
   ) {
     return json(
       { error: "OPEN 또는 EXTENSION_REQUESTED 상태의 Discovery만 실험을 추가할 수 있습니다" },
@@ -98,7 +98,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   }
 
   // Validate experiment limit (max 2, or max 3 if EXTENSION_REQUESTED)
-  if (discovery.status === DiscoveryStatus.EXTENSION_REQUESTED) {
+  if (discovery.status === DiscoveryStatus.IDEA_CARD) {
     const expCount = await db
       .select({ count: count() })
       .from(experiments)

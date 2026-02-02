@@ -37,8 +37,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
     const activeDiscoveries = allDiscoveries.filter(
       (d) =>
-        d.status === DiscoveryStatus.OPEN ||
-        d.status === DiscoveryStatus.EXTENSION_REQUESTED
+        d.status === DiscoveryStatus.IDEA_CARD ||
+        d.status === DiscoveryStatus.IDEA_CARD
     );
 
     const overdueOpen = activeDiscoveries.filter(
@@ -54,7 +54,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
     const recallDue = allDiscoveries.filter(
       (d) =>
-        d.status === DiscoveryStatus.NOT_NOW &&
+        d.status === DiscoveryStatus.HOLD &&
         d.revisitDate &&
         new Date(d.revisitDate) <= now
     ).length;

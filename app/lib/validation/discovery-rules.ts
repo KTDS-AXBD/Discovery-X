@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { DB } from "~/db";
 import { eq, count } from "drizzle-orm";
 import { experiments, evidence } from "~/db/schema";
+import { ALLOWED_TRANSITIONS } from "~/lib/constants/status";
 
 // ============================================================================
 // Validation Error
@@ -23,18 +24,36 @@ export type ValidationResult = {
 };
 
 // ============================================================================
-// Discovery Validation Rules (PRD §5.1)
+// Discovery Validation Rules (11단계 파이프라인)
 // ============================================================================
 
 export class DiscoveryValidationRules {
   /**
-   * Rule 1: Owner 필수 (OPEN/NEXT/NOT_NOW/DEAD_END 상태 전환 시)
-   * PRD §5.1: Owner 없이는 OPEN 상태로 전환 불가
+   * 상태 전환 유효성 검사
+   */
+  static validateTransition(fromStatus: string, toStatus: string): void {
+    const allowed = ALLOWED_TRANSITIONS[fromStatus];
+    if (!allowed) {
+      throw new ValidationError(
+        `알 수 없는 상태입니다: ${fromStatus}`,
+        { fromStatus, rule: "unknown_status" }
+      );
+    }
+    if (!allowed.includes(toStatus)) {
+      throw new ValidationError(
+        `${fromStatus}에서 ${toStatus}로 전환할 수 없습니다. 허용된 전환: ${allowed.join(", ")}`,
+        { fromStatus, toStatus, allowed, rule: "invalid_transition" }
+      );
+    }
+  }
+
+  /**
+   * Rule 1: Owner 필수 (IDEA_CARD 이후 단계 전환 시)
    */
   static validateOwnerRequired(ownerId: string | null | undefined): void {
     if (!ownerId) {
       throw new ValidationError(
-        "Owner를 지정해야 OPEN 상태로 전환할 수 있습니다.",
+        "Owner를 지정해야 IDEA_CARD 상태로 전환할 수 있습니다.",
         { field: "ownerId", rule: "owner_required" }
       );
     }
@@ -42,8 +61,6 @@ export class DiscoveryValidationRules {
 
   /**
    * Rule 2: Experiment 최대 2개 제한
-   * PRD §5.1: Discovery당 최대 2개 실험만 허용
-   * 3번째 시도 시 EXTENSION_REQUESTED 상태로 전환 필요
    */
   static async validateExperimentLimit(
     db: DB,
@@ -61,7 +78,7 @@ export class DiscoveryValidationRules {
         "Discovery당 최대 2개 실험만 가능합니다. 3번째 실험은 Reviewer 승인이 필요합니다.",
         {
           currentCount: experimentCount,
-          suggestedAction: "EXTENSION_REQUESTED",
+          suggestedAction: "request_extension",
         }
       );
     }
@@ -70,10 +87,9 @@ export class DiscoveryValidationRules {
   }
 
   /**
-   * Rule 3: NOT_NOW 필수 필드 검증
-   * PRD §5.1: triggerType, triggerCondition, revisitDate 모두 필수
+   * Rule 3: HOLD 필수 필드 검증 (구 NOT_NOW)
    */
-  static validateNotNowDecision(data: {
+  static validateHoldDecision(data: {
     notNowTriggerType?: string | null;
     notNowTriggerCondition?: string | null;
     revisitDate?: Date | null;
@@ -84,7 +100,7 @@ export class DiscoveryValidationRules {
       !data.revisitDate
     ) {
       throw new ValidationError(
-        "NOT_NOW 결정은 트리거 유형, 조건, 재검토 날짜가 모두 필수입니다.",
+        "HOLD 결정은 트리거 유형, 조건, 재검토 날짜가 모두 필수입니다.",
         {
           missing: {
             triggerType: !data.notNowTriggerType,
@@ -95,7 +111,6 @@ export class DiscoveryValidationRules {
       );
     }
 
-    // revisitDate는 미래 날짜여야 함
     if (data.revisitDate && data.revisitDate <= new Date()) {
       throw new ValidationError("재검토 날짜는 미래 날짜여야 합니다.", {
         revisitDate: data.revisitDate,
@@ -104,10 +119,9 @@ export class DiscoveryValidationRules {
   }
 
   /**
-   * Rule 4: DEAD_END 필수 필드 검증
-   * PRD §5.1: failurePattern (1-3개), evidenceReason 필수
+   * Rule 4: DROP 필수 필드 검증 (구 DEAD_END)
    */
-  static validateDeadEndDecision(data: {
+  static validateDropDecision(data: {
     deadEndFailurePattern?: string[] | null;
     deadEndEvidenceReason?: string | null;
   }): void {
@@ -116,7 +130,7 @@ export class DiscoveryValidationRules {
       data.deadEndFailurePattern.length === 0
     ) {
       throw new ValidationError(
-        "DEAD_END는 최소 1개의 실패 패턴 태그가 필요합니다.",
+        "DROP은 최소 1개의 실패 패턴 태그가 필요합니다.",
         { field: "deadEndFailurePattern" }
       );
     }
@@ -128,21 +142,19 @@ export class DiscoveryValidationRules {
     }
 
     if (!data.deadEndEvidenceReason?.trim()) {
-      throw new ValidationError("DEAD_END는 증거 기반 사유가 필수입니다.", {
+      throw new ValidationError("DROP은 증거 기반 사유가 필수입니다.", {
         field: "deadEndEvidenceReason",
       });
     }
   }
 
   /**
-   * Rule 5: NEXT 결정 시 강한 증거 권장
-   * PRD §5.1: A/B급 증거 최소 2개 권장 (경고만 표시)
+   * Rule 5: Gate 통과 시 강한 증거 권장
    */
-  static async validateNextDecision(
+  static async validateGateDecision(
     db: DB,
     discoveryId: string
   ): Promise<ValidationResult> {
-    // A/B급 증거 개수 계산
     const allEvidence = await db
       .select()
       .from(evidence)
@@ -164,7 +176,6 @@ export class DiscoveryValidationRules {
 
   /**
    * Rule 8: Reviewer 필수 (결정 제출 시)
-   * Reviewer 미지정 시 결정 제출 차단
    */
   static validateReviewerRequired(reviewerId: string | null | undefined): void {
     if (!reviewerId) {
@@ -189,7 +200,6 @@ export class DiscoveryValidationRules {
 
   /**
    * Rule 6: 28일 Time-box 자동 설정
-   * PRD §5.1: OPEN 전환 시 createdAt + 28일
    */
   static calculateDueDate(createdAt: Date): Date {
     const dueDate = new Date(createdAt);
@@ -204,6 +214,86 @@ export class DiscoveryValidationRules {
     const newDueDate = new Date(currentDueDate);
     newDueDate.setDate(newDueDate.getDate() + 14);
     return newDueDate;
+  }
+
+  // Legacy aliases
+  static validateNotNowDecision = DiscoveryValidationRules.validateHoldDecision;
+  static validateDeadEndDecision = DiscoveryValidationRules.validateDropDecision;
+  static validateNextDecision = DiscoveryValidationRules.validateGateDecision;
+
+  // ============================================================================
+  // Evidence Validator Rules (v3 기획서 §4)
+  // ============================================================================
+
+  /**
+   * 근거 저장 전 유효성 검사
+   * - reliability_label 없으면 저장 차단
+   * - source_url 또는 linkOrAttachment 중 하나 필수
+   * - summary(content) 200자 미만이면 경고
+   */
+  static validateEvidenceForSave(data: {
+    reliabilityLabel?: string | null;
+    sourceUrl?: string | null;
+    linkOrAttachment?: string | null;
+    content: string;
+  }): ValidationResult {
+    if (!data.reliabilityLabel) {
+      throw new ValidationError(
+        "근거의 신뢰도 라벨(reliability_label)은 필수입니다. confirmed/reported/hypothesis 중 선택하세요.",
+        { field: "reliabilityLabel", rule: "evidence_reliability_required" }
+      );
+    }
+
+    const validLabels = ["confirmed", "reported", "hypothesis"];
+    if (!validLabels.includes(data.reliabilityLabel)) {
+      throw new ValidationError(
+        `잘못된 신뢰도 라벨: ${data.reliabilityLabel}. confirmed/reported/hypothesis 중 선택하세요.`,
+        { field: "reliabilityLabel", rule: "evidence_reliability_invalid" }
+      );
+    }
+
+    if (!data.sourceUrl && !data.linkOrAttachment) {
+      throw new ValidationError(
+        "근거의 출처 URL(source_url) 또는 첨부(linkOrAttachment) 중 하나는 필수입니다.",
+        { rule: "evidence_source_required" }
+      );
+    }
+
+    if (data.content.length < 200) {
+      return {
+        valid: true,
+        warning: `근거 내용이 ${data.content.length}자입니다. 200자 이상 작성을 권장합니다.`,
+      };
+    }
+
+    return { valid: true };
+  }
+
+  /**
+   * Gate 통과 전 근거 검증
+   * - published_or_observed_date 없으면 Gate 통과 불가
+   */
+  static async validateEvidenceForGate(
+    db: DB,
+    discoveryId: string
+  ): Promise<ValidationResult> {
+    const allEvidence = await db
+      .select()
+      .from(evidence)
+      .where(eq(evidence.discoveryId, discoveryId));
+
+    const missingDate = allEvidence.filter(
+      (e) => !e.publishedOrObservedDate
+    );
+
+    if (missingDate.length > 0) {
+      return {
+        valid: true,
+        warning: `${missingDate.length}개 근거에 발행/관측일이 없습니다. Gate 통과를 위해 추가를 권장합니다.`,
+      };
+    }
+
+    return { valid: true };
   }
 }
 
@@ -227,7 +317,7 @@ export const CreateDiscoverySchema = z.object({
   ]),
 });
 
-export const PromoteToOpenSchema = z.object({
+export const PromoteToIdeaCardSchema = z.object({
   ownerId: z.string().min(1, "Owner를 지정해야 합니다"),
   firstExperiment: z.object({
     hypothesis: z
@@ -246,7 +336,10 @@ export const PromoteToOpenSchema = z.object({
   }),
 });
 
-export const NotNowDecisionSchema = z.object({
+// Keep legacy name for backward compatibility
+export const PromoteToOpenSchema = PromoteToIdeaCardSchema;
+
+export const HoldDecisionSchema = z.object({
   decisionRationale: z
     .string()
     .min(1, "결정 근거는 필수입니다")
@@ -266,7 +359,10 @@ export const NotNowDecisionSchema = z.object({
   }),
 });
 
-export const DeadEndDecisionSchema = z.object({
+// Keep legacy name
+export const NotNowDecisionSchema = HoldDecisionSchema;
+
+export const DropDecisionSchema = z.object({
   decisionRationale: z
     .string()
     .min(1, "결정 근거는 필수입니다")
@@ -281,12 +377,18 @@ export const DeadEndDecisionSchema = z.object({
     .max(200, "증거 기반 사유는 200자 이내여야 합니다"),
 });
 
-export const NextDecisionSchema = z.object({
+// Keep legacy name
+export const DeadEndDecisionSchema = DropDecisionSchema;
+
+export const GateDecisionSchema = z.object({
   decisionRationale: z
     .string()
     .min(1, "결정 근거는 필수입니다")
     .max(400, "결정 근거는 400자 이내여야 합니다"),
 });
+
+// Keep legacy name
+export const NextDecisionSchema = GateDecisionSchema;
 
 export const ExtensionRequestedSchema = z.object({
   extensionRationale: z
@@ -335,4 +437,7 @@ export const CreateEvidenceSchema = z.object({
     .max(400, "내용은 400자 이내여야 합니다"),
   linkOrAttachment: z.string().url().optional(),
   experimentId: z.string().optional(),
+  reliabilityLabel: z.enum(["confirmed", "reported", "hypothesis"]).optional().default("reported"),
+  sourceUrl: z.string().url().optional(),
+  publishedOrObservedDate: z.string().optional(),
 });

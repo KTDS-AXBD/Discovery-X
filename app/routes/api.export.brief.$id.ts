@@ -104,7 +104,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   lines.push(`**근거**: ${discovery.decisionRationale || "-"}`);
   lines.push("");
 
-  if (discovery.status === "NOT_NOW") {
+  if (discovery.status === "HOLD") {
     lines.push(
       `- **트리거 유형**: ${discovery.notNowTriggerType || "-"}`
     );
@@ -115,7 +115,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     lines.push("");
   }
 
-  if (discovery.status === "DEAD_END") {
+  if (discovery.status === "DROP") {
     lines.push(
       `- **실패 패턴**: ${discovery.deadEndFailurePattern?.join(", ") || "-"}`
     );

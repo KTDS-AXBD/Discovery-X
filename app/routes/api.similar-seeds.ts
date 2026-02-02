@@ -50,8 +50,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       ${excludeId ? "AND d.id != ?" : ""}
       ORDER BY
         CASE d.status
-          WHEN 'DEAD_END' THEN 0
-          WHEN 'NOT_NOW' THEN 1
+          WHEN 'DROP' THEN 0
+          WHEN 'HOLD' THEN 1
           ELSE 2
         END,
         rank

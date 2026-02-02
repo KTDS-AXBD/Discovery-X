@@ -115,6 +115,10 @@ export async function getDiscoveryDetail(
       content: e.content,
       linkOrAttachment: e.linkOrAttachment,
       experimentId: e.experimentId,
+      reliabilityLabel: e.reliabilityLabel,
+      sourceUrl: e.sourceUrl,
+      publishedOrObservedDate: e.publishedOrObservedDate,
+      validatorId: e.validatorId,
     })),
   });
 }
@@ -185,8 +189,8 @@ export async function getMetrics(
     .from(discoveries)
     .where(
       dateFilter
-        ? and(dateFilter, sql`${discoveries.status} != 'INBOX'`, sql`due_date IS NOT NULL`)
-        : and(sql`${discoveries.status} != 'INBOX'`, sql`due_date IS NOT NULL`)
+        ? and(dateFilter, sql`${discoveries.status} != 'DISCOVERY'`, sql`due_date IS NOT NULL`)
+        : and(sql`${discoveries.status} != 'DISCOVERY'`, sql`due_date IS NOT NULL`)
     );
   const avgDaysToOpen = Math.round(Number(avgRow[0]?.avg ?? 0));
 
@@ -241,10 +245,16 @@ export async function getRadarItems(
 }
 
 export async function getWeeklyReview(db: DB): Promise<string> {
+  // Active = all non-terminal statuses except DISCOVERY
+  const activeStatuses = [
+    DiscoveryStatus.IDEA_CARD, DiscoveryStatus.HYPOTHESIS, DiscoveryStatus.EXPERIMENT,
+    DiscoveryStatus.EVIDENCE_REVIEW, DiscoveryStatus.GATE1, DiscoveryStatus.SPRINT,
+    DiscoveryStatus.GATE2, DiscoveryStatus.HANDOFF,
+  ];
   const openDiscoveries = await db
     .select()
     .from(discoveries)
-    .where(eq(discoveries.status, DiscoveryStatus.OPEN));
+    .where(sql`${discoveries.status} IN (${sql.join(activeStatuses.map(s => sql`${s}`), sql`, `)})`);
 
   const now = Date.now();
   const items = [];
@@ -300,7 +310,7 @@ export async function getRecallQueue(db: DB): Promise<string> {
   const notNowDiscoveries = await db
     .select()
     .from(discoveries)
-    .where(eq(discoveries.status, DiscoveryStatus.NOT_NOW));
+    .where(eq(discoveries.status, DiscoveryStatus.HOLD));
 
   const dueItems = notNowDiscoveries.filter((d) => {
     if (!d.revisitDate) return false;

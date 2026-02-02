@@ -27,11 +27,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // Calculate metrics
   const totalCount = allDiscoveries.length;
-  const inboxCount = allDiscoveries.filter((d) => d.status === DiscoveryStatus.INBOX).length;
-  const openCount = allDiscoveries.filter((d) => d.status === DiscoveryStatus.OPEN).length;
-  const nextCount = allDiscoveries.filter((d) => d.status === DiscoveryStatus.NEXT).length;
-  const notNowCount = allDiscoveries.filter((d) => d.status === DiscoveryStatus.NOT_NOW).length;
-  const deadEndCount = allDiscoveries.filter((d) => d.status === DiscoveryStatus.DEAD_END).length;
+  const inboxCount = allDiscoveries.filter((d) => d.status === DiscoveryStatus.DISCOVERY).length;
+  const openCount = allDiscoveries.filter((d) => d.status === DiscoveryStatus.IDEA_CARD).length;
+  const nextCount = allDiscoveries.filter((d) => d.status === DiscoveryStatus.GATE1).length;
+  const notNowCount = allDiscoveries.filter((d) => d.status === DiscoveryStatus.HOLD).length;
+  const deadEndCount = allDiscoveries.filter((d) => d.status === DiscoveryStatus.DROP).length;
 
   // Total decided (NEXT + NOT_NOW + DEAD_END)
   const decidedCount = nextCount + notNowCount + deadEndCount;
@@ -53,9 +53,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   );
   const oldDecidedDiscoveries = oldDiscoveries.filter(
     (d) =>
-      d.status === DiscoveryStatus.NEXT ||
-      d.status === DiscoveryStatus.NOT_NOW ||
-      d.status === DiscoveryStatus.DEAD_END
+      d.status === DiscoveryStatus.GATE1 ||
+      d.status === DiscoveryStatus.HOLD ||
+      d.status === DiscoveryStatus.DROP
   );
   const twentyEightDayClosureRate =
     oldDiscoveries.length > 0
@@ -66,7 +66,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const now = new Date();
   const recallEvents = allDiscoveries.filter(
     (d) =>
-      d.status === DiscoveryStatus.NOT_NOW &&
+      d.status === DiscoveryStatus.HOLD &&
       d.revisitDate &&
       new Date(d.revisitDate) <= now
   ).length;
@@ -108,7 +108,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // 1. Failure pattern reuse rate
   const deadEndDiscoveries = allDiscoveries.filter(
-    (d) => d.status === DiscoveryStatus.DEAD_END && d.deadEndFailurePattern
+    (d) => d.status === DiscoveryStatus.DROP && d.deadEndFailurePattern
   );
   const patternCounts: Record<string, number> = {};
   for (const d of deadEndDiscoveries) {
@@ -138,15 +138,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     }
     ownerMap[d.ownerId].total++;
     if (
-      d.status === DiscoveryStatus.NEXT ||
-      d.status === DiscoveryStatus.NOT_NOW ||
-      d.status === DiscoveryStatus.DEAD_END
+      d.status === DiscoveryStatus.GATE1 ||
+      d.status === DiscoveryStatus.HOLD ||
+      d.status === DiscoveryStatus.DROP
     ) {
       ownerMap[d.ownerId].decided++;
     }
     if (
-      d.status === DiscoveryStatus.OPEN ||
-      d.status === DiscoveryStatus.EXTENSION_REQUESTED
+      d.status === DiscoveryStatus.IDEA_CARD ||
+      d.status === DiscoveryStatus.IDEA_CARD
     ) {
       ownerMap[d.ownerId].active++;
     }
@@ -188,9 +188,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const decidedDiscoveries = allDiscoveries.filter(
     (d) =>
       d.decidedAt &&
-      (d.status === DiscoveryStatus.NEXT ||
-        d.status === DiscoveryStatus.NOT_NOW ||
-        d.status === DiscoveryStatus.DEAD_END)
+      (d.status === DiscoveryStatus.GATE1 ||
+        d.status === DiscoveryStatus.HOLD ||
+        d.status === DiscoveryStatus.DROP)
   );
   const decisionDays = decidedDiscoveries.map((d) => {
     const created = new Date(d.createdAt).getTime();
@@ -216,7 +216,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const allEventLogs = await db.select().from(eventLogs);
   const extensionEvents = allEventLogs.filter(
     (e) => e.eventType === "SUBMIT_FOR_APPROVAL" &&
-      (e.metadata as Record<string, unknown>)?.pendingDecision === "EXTENSION_REQUESTED"
+      (e.metadata as Record<string, unknown>)?.pendingDecision === "IDEA_CARD"
   ).length;
   // Fallback: also count direct extension events from before approval workflow
   const directExtensionEvents = allEventLogs.filter(

@@ -11,6 +11,7 @@ import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server"
 import { eq } from "drizzle-orm";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Badge } from "~/components/ui/Badge";
+import { StatusBadge } from "~/components/ui/StatusBadge";
 import { MetricCard } from "~/components/dashboard/MetricCard";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -156,23 +157,7 @@ export default function DashboardMetrics() {
           <div className="flex flex-wrap gap-3">
             {Object.entries(metrics.statusCounts).map(([status, count]) => (
               <div key={status} className="flex items-center gap-2">
-                <Badge
-                  variant={
-                    status === "INBOX"
-                      ? "info"
-                      : status === "OPEN"
-                        ? "warning"
-                        : status === "NEXT"
-                          ? "success"
-                          : status === "DEAD_END"
-                            ? "destructive"
-                            : status === "EXTENSION_REQUESTED"
-                              ? "purple"
-                              : "secondary"
-                  }
-                >
-                  {status}
-                </Badge>
+                <StatusBadge status={status} />
                 <span className="text-sm font-medium text-[var(--axis-text-primary)]">
                   {count as number}
                 </span>

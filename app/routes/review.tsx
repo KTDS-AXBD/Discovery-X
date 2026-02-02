@@ -27,7 +27,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const openDiscoveries = await db
     .select()
     .from(discoveries)
-    .where(eq(discoveries.status, DiscoveryStatus.OPEN));
+    .where(eq(discoveries.status, DiscoveryStatus.IDEA_CARD));
 
   // Enrich with owner info and calculate age
   const discoveryList = await Promise.all(
