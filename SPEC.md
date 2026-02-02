@@ -262,6 +262,7 @@ Audit Log 프로덕션 배포 완료 (d9d40471). CREATE_DISCOVERY/UPDATE_DISCOVE
 웹 폼 이벤트 로깅 누락 5건 보완: ADD_EXPERIMENT, ADD_EVIDENCE, START_METHOD_RUN 추가. 프로덕션 배포 완료 (08b2b89b).
 Agent 채팅 품질 튜닝: 시스템 프롬프트 3개 섹션 추가, 도구 스키마 description 보강, 컨텍스트 요약 개선, 에러 처리 세분화.
 Audit Log EVENT_TYPE_MAP 완성: 16종 → 30종 (Web form UPPER_CASE + Agent snake_case + Cron + Radar 전체 매핑). 프로덕션 배포 완료 (1883f958).
+UI 폴리시: 색상 하드코딩 제거(destructive/warning/event/severity 토큰 21개), 접근성 강화(ARIA 속성 10+개), 버튼 일관성(인라인→Button 컴포넌트), fadeSlideIn 애니메이션 정의 추가.
 
 ### PRD P0 구현 상태
 
@@ -283,12 +284,18 @@ Audit Log EVENT_TYPE_MAP 완성: 16종 → 30종 (Web form UPPER_CASE + Agent sn
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
 ### 최근 변경 (세션 70)
-**Audit Log 이벤트 타입 한국어 라벨 매핑 완료**:
-- ✅ `AuditLogList.tsx` EVENT_TYPE_MAP 16종 → 30종 확장
-  - Web form (UPPER_CASE): CREATE_DISCOVERY, UPDATE_DISCOVERY, PROMOTE_OPEN, ADD_EXPERIMENT, COMPLETE_EXPERIMENT, ADD_EVIDENCE, SUBMIT_FOR_APPROVAL, APPROVE_DECISION, REJECT_DECISION, START_METHOD_RUN, CHANGE_OWNER/REVIEWER/GATEKEEPER, REQUEST_GATE_APPROVAL, SUBMIT_GATE_DECISION, AUTO_CLOSED_OVERDUE
-  - Agent (snake_case): created, updated, promoted_to_idea_card, promoted_to_open, stage_transition, experiment_added/completed, evidence_added, decided_next/hold/drop, extension_requested
-  - Radar: AUTO_SEED_CREATED
-- ✅ 프로덕션 배포 완료 (1883f958)
+**UI 폴리시 — 토큰 하드코딩 제거 + 접근성 강화 + 버튼 일관성 + 애니메이션 정리**:
+- ✅ `dx-custom-tokens.css`: destructive 버튼 4토큰, warning 배지 2토큰, 이벤트 border 12토큰(`--dx-event-*`), severity border 3토큰(`--dx-severity-*`) 추가 (light + dark 모두)
+- ✅ `dx-custom-tokens.css`: `@keyframes fadeSlideIn` 정의 추가 (AuditLogList/AlertList 인라인 참조 해소)
+- ✅ `Button.tsx`: destructive variant 하드코딩 → `--axis-button-destructive-*` 토큰
+- ✅ `Badge.tsx`: warning variant 하드코딩 → `--axis-badge-warning-*` 토큰
+- ✅ `AuditLogList.tsx`: 16개 border 색상 → `--dx-event-*` 토큰, EVENT_TYPE_MAP 30종 확장 (Web form + Agent + Radar)
+- ✅ `AlertList.tsx`: severity border → `--dx-severity-*` 토큰, 확인 버튼 → `<Button variant="secondary">`
+- ✅ `ConversationList.tsx`: 삭제 확인 버튼 → destructive 토큰, aria-label 3개 추가
+- ✅ `ToolExecution.tsx`: 토글에 `role="button"`, `aria-expanded`, `tabIndex`, `onKeyDown` 추가
+- ✅ `ChatPanel.tsx`: 로딩 스피너 `role="status"` + `aria-label`, Agent 처리 중 `aria-live="polite"`, 재시도 버튼 → `<Button>`
+- ✅ `dashboard.tsx`: 탭에 `role="tablist"` / `role="tab"` / `aria-selected`, focus-visible ring 추가
+- ✅ `pnpm typecheck` + `pnpm lint` + `pnpm build` 통과
 
 ### 이전 변경 (세션 69)
 **Agent 채팅 품질 튜닝**:
