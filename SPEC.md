@@ -251,10 +251,10 @@ Validation:
 ### 현재 단계
 **🚀 v3 Ontology Ready AI Platform 구현 중 (2026-02-01~)**
 
-v3 R0 (11단계 파이프라인) + R1 (Method Pack) + R2 (Ontology Graph) + R3a (KPI/링크/거버넌스) 구현 완료.
+v3 R0 (11단계 파이프라인) + R1 (Method Pack) + R2 (Ontology Graph) + R3a (KPI/링크/거버넌스) + R3b (알림/웹훅) 구현 완료.
 Docs 페이지 + Google OAuth + admin/user 역할 분리 완료.
 프로덕션 배포 + DB 마이그레이션 3건 (0009_google_auth, 0009_ontology_graph, 0010_r3_indicators_connectors) 적용 완료.
-R3b (알림 엔진/웹훅) 다음 세션 예정.
+R3b 배포 대기 중.
 
 ### PRD P0 구현 상태
 
@@ -275,7 +275,19 @@ R3b (알림 엔진/웹훅) 다음 세션 예정.
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 60)
+### 최근 변경 (세션 61)
+**v3 R3b — 알림 엔진 + 웹훅 커넥터 + Agent 도구 + Dashboard Alerts**:
+- ✅ 알림 엔진 (`alert-engine.ts`): 4가지 유형 스캔 (KPI 임계치, 단계 SLA 14일, 기한 초과, Gate 승인 SLA) + 당일 중복 방지
+- ✅ 웹훅 커넥터 (`webhook.ts`): Slack Block Kit / Teams MessageCard / Custom JSON 페이로드 발송 (5초 타임아웃)
+- ✅ 알림 Cron 라우트 (`api.cron.alerts.ts`): CRON_SECRET 인증 + 기본 4개 규칙 자동 시드
+- ✅ Agent 도구 3개 신규: `get_alerts` (Level 1), `acknowledge_alert` (Level 2), `manage_webhook` (Level 2)
+- ✅ tool-registry.ts: 3개 도구 정의 + autonomy 등록
+- ✅ executor.ts: 3개 switch case + import 추가
+- ✅ `/dashboard/alerts` 라우트 + AlertList 컴포넌트 (severity 색상, 확인 처리 action)
+- ✅ dashboard.tsx: Alerts 탭 링크 + 아이콘 추가
+- ✅ `pnpm typecheck` + `pnpm lint` + `pnpm build` 통과
+
+### 이전 변경 (세션 60)
 **Google OAuth + admin/user 역할 분리**:
 - ✅ Google OAuth: arctic 라이브러리 + /auth/google, /auth/google/callback 라우트
 - ✅ 로그인 페이지: 드롭다운 → "Google로 로그인" 버튼 교체
@@ -853,7 +865,7 @@ R3b (알림 엔진/웹훅) 다음 세션 예정.
 - **v3 R2 Ontology Graph**: ✅ 구현 완료 (맥락 그래프 + 근거 중복 감지)
 - **v3 R3a Indicators/Connectors/Governance**: ✅ 구현 완료 (KPI + 링크 + Gate 승인 + Health 대시보드)
 - **Google OAuth + 역할 분리**: ✅ 세션 60 — arctic + /auth/google 라우트 + admin/user role + requireAdmin 가드
-- **v3 R3b 알림/웹훅**: 다음 세션 구현 예정 (alert_rules/alerts/webhook_configs 테이블 선행 생성 완료)
+- **v3 R3b 알림/웹훅**: ✅ 세션 61 — alert engine (4유형) + webhook (Slack/Teams/Custom) + Agent 도구 3개 + /dashboard/alerts UI
 - **DB 마이그레이션**: ✅ 11개 (0000~0010) 로컬 + 프로덕션 적용 완료
 - **배포 상태**: ✅ 세션 59 프로덕션 배포 완료 — R3a + Google OAuth + 역할 분리 (배포 ID: 0fadaea8)
 - **Agent E2E 테스트**: ✅ 세션 39 풀 플로우 검증 완료 — 6개 도구 정상 (get_metrics, create_discovery, promote_discovery, add_evidence, complete_experiment, decide_next)
@@ -976,6 +988,10 @@ R3b (알림 엔진/웹훅) 다음 세션 예정.
 | **v3 R3a: Agent 도구 8개** | ✅ | register/record/get_kpi + pipeline_health + link/get_linked + request/submit_gate_approval |
 | **v3 R3a: Health 대시보드** | ✅ | /dashboard/health — 체류시간, 전환율, 근거 품질 |
 | **Google OAuth + 역할 분리** | ✅ | arctic + /auth/google + admin/user role + requireAdmin 가드 + /admin/users |
+| **v3 R3b: 알림 엔진** | ✅ | 4유형 스캔 (KPI/SLA/기한/Gate) + 당일 중복 방지 |
+| **v3 R3b: 웹훅 커넥터** | ✅ | Slack Block Kit + Teams MessageCard + Custom JSON |
+| **v3 R3b: Agent 도구 3개** | ✅ | get_alerts + acknowledge_alert + manage_webhook |
+| **v3 R3b: Dashboard Alerts** | ✅ | /dashboard/alerts — 알림 목록 + 확인 처리 |
 
 ### 남은 작업
 - [x] 최종 프로덕션 배포 — 세션 14에서 완료
