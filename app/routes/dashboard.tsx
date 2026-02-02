@@ -41,10 +41,19 @@ const HealthIcon = () => (
   </svg>
 );
 
+const AlertsIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8 1.5L1 13.5h14L8 1.5z" fill="currentColor" opacity="0.5" />
+    <rect x="7.25" y="6" width="1.5" height="4" rx="0.5" fill="white" />
+    <circle cx="8" cy="11.5" r="0.75" fill="white" />
+  </svg>
+);
+
 const tabs = [
   { to: "/dashboard", label: "Pipeline", end: true, icon: <PipelineIcon /> },
   { to: "/dashboard/metrics", label: "Metrics", icon: <MetricsIcon /> },
   { to: "/dashboard/health", label: "Health", icon: <HealthIcon /> },
+  { to: "/dashboard/alerts", label: "Alerts", icon: <AlertsIcon /> },
 ];
 
 export default function DashboardLayout() {

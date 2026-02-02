@@ -66,6 +66,11 @@ import {
   requestGateApproval,
   submitGateApproval,
 } from "./tools/governance-tools";
+import {
+  getAlerts,
+  acknowledgeAlert,
+  manageWebhook,
+} from "./tools/alert-tools";
 
 function generateId(): string {
   return crypto.randomUUID();
@@ -185,6 +190,13 @@ async function executeTool(
       return requestGateApproval(db, toolInput as Parameters<typeof requestGateApproval>[1]);
     case "submit_gate_approval":
       return submitGateApproval(db, toolInput as Parameters<typeof submitGateApproval>[1]);
+    // R3b: Alert tools
+    case "get_alerts":
+      return getAlerts(db, toolInput as unknown as Parameters<typeof getAlerts>[1]);
+    case "acknowledge_alert":
+      return acknowledgeAlert(db, toolInput as unknown as Parameters<typeof acknowledgeAlert>[1]);
+    case "manage_webhook":
+      return manageWebhook(db, toolInput as unknown as Parameters<typeof manageWebhook>[1]);
     default:
       return JSON.stringify({ error: `알 수 없는 도구: ${toolName}` });
   }

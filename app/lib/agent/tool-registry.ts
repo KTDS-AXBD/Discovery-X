@@ -45,6 +45,10 @@ export const TOOL_MIN_AUTONOMY: Record<string, number> = {
   // Governance tools (R3)
   request_gate_approval: 2,
   submit_gate_approval: 3,
+  // Alert tools (R3b)
+  get_alerts: 1,
+  acknowledge_alert: 2,
+  manage_webhook: 2,
   // Level 3: full autonomy
   add_experiment: 3,
   complete_experiment: 3,
@@ -662,6 +666,72 @@ export const AGENT_TOOLS: ClaudeTool[] = [
           description: "결정",
         },
         comment: { type: "string", description: "코멘트 (선택)" },
+      },
+    },
+  },
+
+  // === Alert Tools (v3 R3b) ===
+  {
+    name: "get_alerts",
+    description: "알림 목록을 조회합니다. severity(info/warning/critical)와 acknowledged 상태로 필터 가능.",
+    input_schema: {
+      type: "object",
+      properties: {
+        severity: {
+          type: "string",
+          enum: ["info", "warning", "critical"],
+          description: "심각도 필터 (선택)",
+        },
+        acknowledged: {
+          type: "boolean",
+          description: "확인 여부 필터 (선택, false=미확인만)",
+        },
+        limit: { type: "number", description: "최대 결과 수 (기본 20)" },
+      },
+    },
+  },
+  {
+    name: "acknowledge_alert",
+    description: "알림을 확인(acknowledge) 처리합니다.",
+    input_schema: {
+      type: "object",
+      required: ["alertId"],
+      properties: {
+        alertId: { type: "string", description: "알림 ID" },
+        userId: { type: "string", description: "확인자 사용자 ID (선택)" },
+      },
+    },
+  },
+  {
+    name: "manage_webhook",
+    description: "웹훅 설정을 관리합니다 (생성/수정/삭제/목록). Slack, Teams, Custom 지원.",
+    input_schema: {
+      type: "object",
+      required: ["action"],
+      properties: {
+        action: {
+          type: "string",
+          enum: ["create", "update", "delete", "list"],
+          description: "수행할 작업",
+        },
+        webhookId: { type: "string", description: "웹훅 ID (update/delete 시 필수)" },
+        name: { type: "string", description: "웹훅 이름 (create 시 필수)" },
+        url: { type: "string", description: "웹훅 URL (create 시 필수)" },
+        platform: {
+          type: "string",
+          enum: ["slack", "teams", "custom"],
+          description: "플랫폼 (기본: custom)",
+        },
+        events: {
+          type: "array",
+          items: { type: "string" },
+          description: "구독 이벤트 타입 (예: ['kpi_threshold', 'overdue'], 기본: ['*'])",
+        },
+        headers: {
+          type: "object",
+          description: "커스텀 헤더 (선택)",
+        },
+        enabled: { type: "boolean", description: "활성화 여부 (기본: true)" },
       },
     },
   },
