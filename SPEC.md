@@ -852,8 +852,8 @@ Docs 페이지 + Google OAuth + admin/user 역할 분리 완료. R3b (알림 엔
 - **v3 R3a Indicators/Connectors/Governance**: ✅ 구현 완료 (KPI + 링크 + Gate 승인 + Health 대시보드)
 - **Google OAuth + 역할 분리**: ✅ 세션 60 — arctic + /auth/google 라우트 + admin/user role + requireAdmin 가드
 - **v3 R3b 알림/웹훅**: 다음 세션 구현 예정 (alert_rules/alerts/webhook_configs 테이블 선행 생성 완료)
-- **DB 마이그레이션**: 11개 (0000~0010), 0009~0010은 로컬 적용 대기
-- **배포 상태**: ✅ 세션 51 프로덕션 배포 완료 — AXIS Design System 정합성 수정 (https://dx.minu.best)
+- **DB 마이그레이션**: ✅ 11개 (0000~0010) 로컬 + 프로덕션 적용 완료
+- **배포 상태**: ✅ 세션 59 프로덕션 배포 완료 — R3a + Google OAuth + 역할 분리 (배포 ID: 0fadaea8)
 - **Agent E2E 테스트**: ✅ 세션 39 풀 플로우 검증 완료 — 6개 도구 정상 (get_metrics, create_discovery, promote_discovery, add_evidence, complete_experiment, decide_next)
 - **Agent 채팅 개선**: ✅ 세션 40 — 입력 보존, 제목 로직, 프로그레시브 스트리밍, content 중복 수정
 - **채팅 마크다운**: ✅ 세션 41-42 — react-markdown + remark-gfm + @tailwindcss/typography 기반 Agent 응답 마크다운 렌더링
