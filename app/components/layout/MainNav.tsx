@@ -13,6 +13,7 @@ interface RootLoaderData {
     dueSoon: number;
     recallDue: number;
     pendingApproval: number;
+    unacknowledgedAlerts: number;
   } | null;
 }
 
@@ -30,7 +31,8 @@ export function MainNav({ user }: MainNavProps) {
   const recallBadge = notifications?.recallDue || 0;
   const approvalBadge = notifications?.pendingApproval || 0;
 
-  const totalAlerts = reviewBadge + recallBadge + approvalBadge;
+  const systemAlerts = notifications?.unacknowledgedAlerts || 0;
+  const totalAlerts = reviewBadge + recallBadge + approvalBadge + systemAlerts;
 
   const navLinks = (
     <>

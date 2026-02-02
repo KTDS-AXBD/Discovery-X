@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Select } from "~/components/ui/Select";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { cn } from "~/lib/utils/cn";
-import { eq, or, desc } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { KpiCard } from "~/components/dashboard/KpiCard";
 

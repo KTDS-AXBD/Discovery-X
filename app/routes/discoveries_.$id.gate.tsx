@@ -7,15 +7,22 @@ import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server"
 import {
   discoveries,
   gatePackages,
+  gateApprovals,
+  users,
   evidence,
   experiments,
   methodRuns,
   assumptions,
   MethodRunStatus,
+  GateApprovalDecision,
+  UserRole,
 } from "~/db/schema";
 import { PageLayout } from "~/components/layout/PageLayout";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Button } from "~/components/ui/Button";
+import { Badge } from "~/components/ui/Badge";
+import { Select } from "~/components/ui/Select";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { GatePackageEditor } from "~/components/methods/GatePackageEditor";
 
@@ -42,6 +49,32 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     .from(gatePackages)
     .where(eq(gatePackages.discoveryId, id));
 
+  // Get gate approvals with reviewer info
+  const approvals = [];
+  for (const pkg of packages) {
+    const pkgApprovals = await db
+      .select()
+      .from(gateApprovals)
+      .where(eq(gateApprovals.gatePackageId, pkg.id));
+
+    for (const a of pkgApprovals) {
+      const reviewer = await db.query.users.findFirst({ where: eq(users.id, a.reviewerId) });
+      approvals.push({
+        ...a,
+        requestedAt: a.requestedAt.toISOString(),
+        decidedAt: a.decidedAt?.toISOString() || null,
+        slaDeadline: a.slaDeadline?.toISOString() || null,
+        reviewerName: reviewer?.name || "알 수 없음",
+      });
+    }
+  }
+
+  // Get gatekeepers/admins for reviewer selection
+  const allUsers = await db.select().from(users);
+  const gatekeepers = allUsers.filter(
+    (u) => u.role === UserRole.ADMIN || u.role === UserRole.GATEKEEPER
+  );
+
   return json({
     user,
     discovery: discovery[0],
@@ -58,6 +91,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
       evidenceSummary: p.evidenceSummary as Array<Record<string, unknown>> | null,
       assumptions: p.assumptions as Array<Record<string, unknown>> | null,
     })),
+    approvals,
+    gatekeepers: gatekeepers.map((u) => ({ id: u.id, name: u.name })),
   });
 }
 
@@ -205,17 +240,115 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     return redirect(`/discoveries/${id}/gate`);
   }
 
+  if (intent === "request-approval") {
+    const gatePackageId = formData.get("gatePackageId") as string;
+    const reviewerId = formData.get("reviewerId") as string;
+
+    if (!gatePackageId || !reviewerId) {
+      return json({ error: "패키지와 리뷰어를 선택해주세요." }, { status: 400 });
+    }
+
+    // Verify reviewer is gatekeeper or admin
+    const reviewer = await db.query.users.findFirst({ where: eq(users.id, reviewerId) });
+    if (!reviewer || (reviewer.role !== UserRole.ADMIN && reviewer.role !== UserRole.GATEKEEPER)) {
+      return json({ error: "Gatekeeper 또는 Admin만 리뷰어로 지정할 수 있습니다." }, { status: 400 });
+    }
+
+    const slaDeadline = new Date();
+    slaDeadline.setDate(slaDeadline.getDate() + 3); // 3일 SLA
+
+    await db.insert(gateApprovals).values({
+      id: crypto.randomUUID(),
+      gatePackageId,
+      reviewerId,
+      decision: GateApprovalDecision.PENDING,
+      slaDeadline,
+    });
+
+    return redirect(`/discoveries/${id}/gate`);
+  }
+
+  if (intent === "submit-approval") {
+    const approvalId = formData.get("approvalId") as string;
+    const decision = formData.get("decision") as string;
+    const comment = formData.get("comment") as string;
+
+    if (!approvalId || !decision) {
+      return json({ error: "결정을 선택해주세요." }, { status: 400 });
+    }
+
+    // Verify current user is the reviewer
+    const approval = await db.query.gateApprovals.findFirst({
+      where: eq(gateApprovals.id, approvalId),
+    });
+    if (!approval || approval.reviewerId !== user.id) {
+      return json({ error: "본인에게 할당된 승인만 처리할 수 있습니다." }, { status: 403 });
+    }
+
+    await db
+      .update(gateApprovals)
+      .set({
+        decision,
+        comment: comment || null,
+        decidedAt: new Date(),
+      })
+      .where(eq(gateApprovals.id, approvalId));
+
+    // Auto-aggregate: check if all approvals for the gate package are decided
+    const allApprovals = await db
+      .select()
+      .from(gateApprovals)
+      .where(eq(gateApprovals.gatePackageId, approval.gatePackageId));
+
+    const allDecided = allApprovals.every((a) =>
+      a.id === approvalId ? true : a.decision !== GateApprovalDecision.PENDING
+    );
+
+    if (allDecided) {
+      const decisions = allApprovals.map((a) =>
+        a.id === approvalId ? decision : a.decision
+      );
+      const hasRejection = decisions.includes(GateApprovalDecision.REJECTED);
+      const hasConditional = decisions.includes(GateApprovalDecision.CONDITIONAL);
+      const aggregateDecision = hasRejection
+        ? "NO_GO"
+        : hasConditional
+          ? "CONDITIONAL"
+          : "GO";
+
+      await db
+        .update(gatePackages)
+        .set({
+          decision: aggregateDecision,
+          decidedAt: new Date(),
+          approverId: user.id,
+        })
+        .where(eq(gatePackages.id, approval.gatePackageId));
+    }
+
+    return redirect(`/discoveries/${id}/gate`);
+  }
+
   return json({ error: "알 수 없는 요청" }, { status: 400 });
 }
 
 export default function DiscoveryGatePage() {
-  const { user, discovery, packages } = useLoaderData<typeof loader>();
+  const { user, discovery, packages, approvals, gatekeepers } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
   // Type-safe casting for gate package data
   type GatePackageData = Parameters<typeof GatePackageEditor>[0]["gatePackage"];
+
+  const decisionBadge = (decision: string) => {
+    switch (decision) {
+      case "APPROVED": return <Badge variant="success">승인</Badge>;
+      case "REJECTED": return <Badge variant="destructive">거부</Badge>;
+      case "CONDITIONAL": return <Badge variant="warning">조건부</Badge>;
+      default: return <Badge variant="secondary">대기</Badge>;
+    }
+  };
 
   return (
     <PageLayout user={user}>
@@ -269,6 +402,107 @@ export default function DiscoveryGatePage() {
             <GatePackageEditor key={pkg.id} gatePackage={pkg as unknown as GatePackageData} />
           ))}
         </div>
+      )}
+
+      {/* 승인 현황 */}
+      {packages.length > 0 && (
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle className="text-lg">승인 현황</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {/* 승인 요청 */}
+            <div className="mb-6">
+              <h3 className="mb-3 text-sm font-medium text-[var(--axis-text-secondary)]">승인 요청</h3>
+              <Form method="post" className="flex flex-wrap items-end gap-3">
+                <input type="hidden" name="intent" value="request-approval" />
+                <div>
+                  <label className="block text-xs text-[var(--axis-text-tertiary)]">Gate 패키지</label>
+                  <Select name="gatePackageId" className="mt-1">
+                    {packages.map((pkg) => (
+                      <option key={pkg.id} value={pkg.id}>
+                        {pkg.gateType} {pkg.decision === "PENDING" ? "(대기)" : `(${pkg.decision})`}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-xs text-[var(--axis-text-tertiary)]">리뷰어 (Gatekeeper)</label>
+                  <Select name="reviewerId" className="mt-1">
+                    <option value="">선택...</option>
+                    {gatekeepers.map((g) => (
+                      <option key={g.id} value={g.id}>{g.name}</option>
+                    ))}
+                  </Select>
+                </div>
+                <Button type="submit" size="sm" disabled={isSubmitting}>
+                  승인 요청
+                </Button>
+              </Form>
+            </div>
+
+            {/* 승인 목록 */}
+            {approvals.length === 0 ? (
+              <p className="text-sm text-[var(--axis-text-tertiary)]">아직 승인 요청이 없습니다.</p>
+            ) : (
+              <div className="space-y-3">
+                {approvals.map((a) => (
+                  <div
+                    key={a.id}
+                    className="rounded-md border border-[var(--axis-border-default)] p-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-[var(--axis-text-primary)]">
+                          {a.reviewerName}
+                        </span>
+                        {decisionBadge(a.decision)}
+                        {a.slaDeadline && a.decision === "PENDING" && (
+                          <span className="text-xs text-[var(--axis-text-tertiary)]">
+                            기한: {new Date(a.slaDeadline).toLocaleDateString("ko-KR")}
+                          </span>
+                        )}
+                      </div>
+                      {a.decidedAt && (
+                        <span className="text-xs text-[var(--axis-text-tertiary)]">
+                          {new Date(a.decidedAt).toLocaleDateString("ko-KR")}
+                        </span>
+                      )}
+                    </div>
+                    {a.comment && (
+                      <p className="mt-1 text-sm text-[var(--axis-text-secondary)]">{a.comment}</p>
+                    )}
+
+                    {/* 본인이 리뷰어이고 아직 PENDING인 경우 승인/거부 폼 */}
+                    {a.decision === "PENDING" && a.reviewerId === user.id && (
+                      <Form method="post" className="mt-3 space-y-2 border-t border-[var(--axis-border-default)] pt-3">
+                        <input type="hidden" name="intent" value="submit-approval" />
+                        <input type="hidden" name="approvalId" value={a.id} />
+                        <textarea
+                          name="comment"
+                          placeholder="코멘트 (선택)"
+                          rows={2}
+                          className="w-full rounded-md border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] px-3 py-2 text-sm text-[var(--axis-text-primary)] placeholder-[var(--axis-text-tertiary)]"
+                        />
+                        <div className="flex gap-2">
+                          <Button type="submit" name="decision" value="APPROVED" variant="success" size="sm" disabled={isSubmitting}>
+                            승인
+                          </Button>
+                          <Button type="submit" name="decision" value="CONDITIONAL" variant="secondary" size="sm" disabled={isSubmitting}>
+                            조건부
+                          </Button>
+                          <Button type="submit" name="decision" value="REJECTED" variant="destructive" size="sm" disabled={isSubmitting}>
+                            거부
+                          </Button>
+                        </div>
+                      </Form>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       )}
     </PageLayout>
   );

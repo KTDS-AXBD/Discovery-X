@@ -8,8 +8,9 @@ import {
 import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { discoveries } from "~/db/schema";
+import { discoveries, alerts } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { eq } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { ThemeProvider } from "@axis-ds/theme";
 import stylesheet from "~/styles/tailwind.css?url";
@@ -65,8 +66,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         d.reviewerId === user.id
     ).length;
 
+    const unacknowledgedAlerts = (await db
+      .select()
+      .from(alerts)
+      .where(eq(alerts.acknowledged, 0))
+    ).length;
+
     return json({
-      notifications: { overdueOpen, dueSoon, recallDue, pendingApproval },
+      notifications: { overdueOpen, dueSoon, recallDue, pendingApproval, unacknowledgedAlerts },
     });
   } catch {
     return json({ notifications: null });
