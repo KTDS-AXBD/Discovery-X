@@ -259,6 +259,7 @@ Docs 페이지 + Google OAuth + admin/user/gatekeeper 역할 분리 완료.
 Audit Log 기능 구현: 누락 이벤트 기록 보완, Dashboard Audit Log 탭, Discovery 상세 활동 타임라인.
 Cron 3건 점검 완료 (daily/agent-review/alerts), CRON_SECRET 재설정. 세션 67 배포 (671086a0).
 Audit Log 프로덕션 배포 완료 (d9d40471). CREATE_DISCOVERY/UPDATE_DISCOVERY 이벤트 로깅 추가.
+웹 폼 이벤트 로깅 누락 5건 보완: ADD_EXPERIMENT, ADD_EVIDENCE, START_METHOD_RUN 추가 (세션 68).
 
 ### PRD P0 구현 상태
 
@@ -279,7 +280,16 @@ Audit Log 프로덕션 배포 완료 (d9d40471). CREATE_DISCOVERY/UPDATE_DISCOVE
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 66)
+### 최근 변경 (세션 68)
+**웹 폼 이벤트 로깅 누락 5건 보완**:
+- ✅ `discoveries.new.tsx`: CREATE_DISCOVERY 이벤트 로깅 (metadata: title, sourceType)
+- ✅ `discoveries_.$id.edit.tsx`: UPDATE_DISCOVERY 이벤트 로깅 (metadata: title, sourceType)
+- ✅ `discoveries_.$id.add-experiment.tsx`: ADD_EXPERIMENT 이벤트 로깅 (metadata: experimentId, hypothesis)
+- ✅ `discoveries_.$id.add-evidence.tsx`: ADD_EVIDENCE 이벤트 로깅 (metadata: evidenceId, type, strength)
+- ✅ `discoveries_.$id.methods.tsx`: START_METHOD_RUN 이벤트 로깅 (metadata: methodPackId)
+- ✅ `pnpm typecheck` + `pnpm lint` + `pnpm build` 통과
+
+### 이전 변경 (세션 66)
 **Audit Log 기능 구현 + 프로덕션 배포**:
 - ✅ 누락 이벤트 기록 보완: CHANGE_GATEKEEPER, CHANGE_REVIEWER, REQUEST_GATE_APPROVAL, SUBMIT_GATE_DECISION
 - ✅ `/dashboard/audit-log` 라우트: 최근 100건 조회, eventType/actorType 필터, admin/gatekeeper 권한 체크
