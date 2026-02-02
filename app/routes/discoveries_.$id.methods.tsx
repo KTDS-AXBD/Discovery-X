@@ -16,7 +16,6 @@ import { Card, CardContent } from "~/components/ui/Card";
 import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { MethodRunTimeline } from "~/components/methods/MethodRunTimeline";
-import { MethodRecommender } from "~/components/methods/MethodRecommender";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
