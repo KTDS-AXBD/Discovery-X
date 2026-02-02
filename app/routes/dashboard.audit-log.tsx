@@ -8,7 +8,7 @@ import { useLoaderData, useSearchParams } from "@remix-run/react";
 import { getDb } from "~/db";
 import { eventLogs, discoveries, users, UserRole } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { AuditLogList } from "~/components/dashboard/AuditLogList";
 import { Badge } from "~/components/ui/Badge";
 import { Select } from "~/components/ui/Select";
