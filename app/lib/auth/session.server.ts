@@ -76,6 +76,19 @@ export async function requireAdmin(
   return user;
 }
 
+// Require gatekeeper or admin role
+export async function requireGatekeeper(
+  request: Request,
+  db: DB,
+  secret: string
+) {
+  const user = await requireUser(request, db, secret);
+  if (user.role !== UserRole.ADMIN && user.role !== UserRole.GATEKEEPER) {
+    throw json({ error: "Gatekeeper 권한이 필요합니다" }, { status: 403 });
+  }
+  return user;
+}
+
 // Create session
 export async function createSession(
   userId: string,

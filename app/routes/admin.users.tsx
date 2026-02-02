@@ -9,6 +9,7 @@ import { PageLayout } from "~/components/layout/PageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Button } from "~/components/ui/Button";
 import { Badge } from "~/components/ui/Badge";
+import { Select } from "~/components/ui/Select";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -31,7 +32,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const userId = formData.get("userId") as string;
   const newRole = formData.get("role") as string;
 
-  if (!userId || !newRole || ![UserRole.ADMIN, UserRole.USER].includes(newRole as typeof UserRole.ADMIN)) {
+  const validRoles = [UserRole.ADMIN, UserRole.USER, UserRole.GATEKEEPER];
+  if (!userId || !newRole || !validRoles.includes(newRole as typeof UserRole.ADMIN)) {
     return json({ error: "잘못된 요청입니다" }, { status: 400 });
   }
 
@@ -101,20 +103,18 @@ export default function AdminUsers() {
                   {user.googleId && (
                     <Badge variant="secondary">Google 연동</Badge>
                   )}
-                  <Badge variant={user.role === "admin" ? "default" : "secondary"}>
-                    {user.role === "admin" ? "Admin" : "User"}
+                  <Badge variant={user.role === "admin" ? "default" : user.role === "gatekeeper" ? "purple" : "secondary"}>
+                    {user.role === "admin" ? "Admin" : user.role === "gatekeeper" ? "Gatekeeper" : "User"}
                   </Badge>
                   {user.id !== currentUser.id && (
-                    <Form method="post">
+                    <Form method="post" className="flex items-center gap-1">
                       <input type="hidden" name="userId" value={user.id} />
-                      <input
-                        type="hidden"
-                        name="role"
-                        value={user.role === "admin" ? "user" : "admin"}
-                      />
-                      <Button type="submit" variant="secondary" size="sm">
-                        {user.role === "admin" ? "User로 변경" : "Admin으로 변경"}
-                      </Button>
+                      <Select name="role" defaultValue={user.role}>
+                        <option value="admin">Admin</option>
+                        <option value="gatekeeper">Gatekeeper</option>
+                        <option value="user">User</option>
+                      </Select>
+                      <Button type="submit" variant="secondary" size="sm">변경</Button>
                     </Form>
                   )}
                 </div>

@@ -74,6 +74,7 @@ export const EvidenceStrength = {
 export const UserRole = {
   ADMIN: "admin",
   USER: "user",
+  GATEKEEPER: "gatekeeper",
 } as const;
 
 export const users = sqliteTable("users", {

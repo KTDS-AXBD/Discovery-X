@@ -2,7 +2,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, experiments, evidence, users, eventLogs } from "~/db/schema";
+import { discoveries, experiments, evidence, users, eventLogs, discoveryKpis, kpiMeasurements, discoveryLinks } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { PageLayout } from "~/components/layout/PageLayout";
 import { StatusBadge } from "~/components/ui/StatusBadge";
@@ -12,8 +12,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Select } from "~/components/ui/Select";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { cn } from "~/lib/utils/cn";
-import { eq } from "drizzle-orm";
+import { eq, or, desc } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
+import { KpiCard } from "~/components/dashboard/KpiCard";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -47,6 +48,10 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     ? await db.query.users.findFirst({ where: eq(users.id, discovery.reviewerId) })
     : null;
 
+  const gatekeeper = discovery.gatekeeperId
+    ? await db.query.users.findFirst({ where: eq(users.id, discovery.gatekeeperId) })
+    : null;
+
   // Get experiments
   const discoveryExperiments = await db
     .select()
@@ -62,14 +67,70 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   // Get all users for Owner selection
   const allUsers = await db.select().from(users);
 
+  // Get KPIs + recent measurements
+  const kpis = await db
+    .select()
+    .from(discoveryKpis)
+    .where(eq(discoveryKpis.discoveryId, id));
+
+  const kpiWithMeasurements = await Promise.all(
+    kpis.map(async (kpi) => {
+      const measurements = await db
+        .select()
+        .from(kpiMeasurements)
+        .where(eq(kpiMeasurements.kpiId, kpi.id))
+        .orderBy(desc(kpiMeasurements.measuredAt))
+        .limit(5);
+      return {
+        kpi,
+        measurements: measurements.map((m) => ({
+          id: m.id,
+          value: m.value,
+          measuredAt: m.measuredAt.toISOString(),
+        })),
+      };
+    })
+  );
+
+  // Get discovery links (from and to)
+  const linksFrom = await db
+    .select()
+    .from(discoveryLinks)
+    .where(eq(discoveryLinks.fromDiscoveryId, id));
+  const linksTo = await db
+    .select()
+    .from(discoveryLinks)
+    .where(eq(discoveryLinks.toDiscoveryId, id));
+
+  const linkedDiscoveryIds = [
+    ...linksFrom.map((l) => l.toDiscoveryId),
+    ...linksTo.map((l) => l.fromDiscoveryId),
+  ];
+  const linkedDiscoveries = linkedDiscoveryIds.length > 0
+    ? await Promise.all(
+        linkedDiscoveryIds.map((lid) =>
+          db.query.discoveries.findFirst({ where: eq(discoveries.id, lid) })
+        )
+      )
+    : [];
+
+  const allLinks = [
+    ...linksFrom.map((l) => ({ ...l, direction: "from" as const })),
+    ...linksTo.map((l) => ({ ...l, direction: "to" as const })),
+  ];
+
   return json({
     user,
     discovery,
     owner,
     reviewer,
+    gatekeeper,
     experiments: discoveryExperiments,
     evidence: discoveryEvidence,
     allUsers,
+    kpiWithMeasurements,
+    allLinks,
+    linkedDiscoveries: linkedDiscoveries.filter(Boolean),
   });
 }
 
@@ -122,6 +183,16 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     return redirect(`/discoveries/${id}`);
   }
 
+  if (intent === "changeGatekeeper") {
+    const newGatekeeperId = formData.get("gatekeeperId") || null;
+    await db
+      .update(discoveries)
+      .set({ gatekeeperId: newGatekeeperId ? String(newGatekeeperId) : null, updatedAt: new Date() })
+      .where(eq(discoveries.id, id));
+
+    return redirect(`/discoveries/${id}`);
+  }
+
   if (intent === "changeReviewer") {
     if (discovery.status !== DiscoveryStatus.DISCOVERY && discovery.status !== DiscoveryStatus.IDEA_CARD) {
       return json({ error: "INBOX/OPEN 상태에서만 Reviewer를 변경할 수 있습니다" }, { status: 400 });
@@ -140,8 +211,10 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
 
 
 export default function DiscoveryDetail() {
-  const { user, discovery, owner, reviewer, experiments, evidence, allUsers } =
-    useLoaderData<typeof loader>();
+  const {
+    user, discovery, owner, reviewer, gatekeeper, experiments, evidence, allUsers,
+    kpiWithMeasurements, allLinks, linkedDiscoveries,
+  } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
 
   const canPromoteToOpen = discovery.status === DiscoveryStatus.DISCOVERY;
@@ -170,6 +243,7 @@ export default function DiscoveryDetail() {
             <div className="mt-2 flex items-center space-x-4 text-sm text-[var(--axis-text-tertiary)]">
               <span>Owner: {owner?.name || "미지정"}</span>
               <span>Reviewer: {reviewer?.name || "미지정"}</span>
+              <span>Gatekeeper: {gatekeeper?.name || "미지정"}</span>
               <span>생성: {new Date(discovery.createdAt).toLocaleDateString("ko-KR")}</span>
               {discovery.dueDate && (
                 <span className="text-[var(--axis-text-error)]">
@@ -324,7 +398,7 @@ export default function DiscoveryDetail() {
                 <p>{actionData.error}</p>
               </AlertBanner>
             )}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <Form method="post">
                 <input type="hidden" name="intent" value="changeOwner" />
                 <label className="block text-sm font-medium text-[var(--axis-text-secondary)]">Owner</label>
@@ -343,6 +417,19 @@ export default function DiscoveryDetail() {
                 <label className="block text-sm font-medium text-[var(--axis-text-secondary)]">Reviewer</label>
                 <div className="mt-1 flex space-x-2">
                   <Select name="reviewerId" defaultValue={discovery.reviewerId || ""}>
+                    <option value="">없음</option>
+                    {allUsers.map((u) => (
+                      <option key={u.id} value={u.id}>{u.name}</option>
+                    ))}
+                  </Select>
+                  <Button type="submit" size="sm">변경</Button>
+                </div>
+              </Form>
+              <Form method="post">
+                <input type="hidden" name="intent" value="changeGatekeeper" />
+                <label className="block text-sm font-medium text-[var(--axis-text-secondary)]">Gatekeeper</label>
+                <div className="mt-1 flex space-x-2">
+                  <Select name="gatekeeperId" defaultValue={discovery.gatekeeperId || ""}>
                     <option value="">없음</option>
                     {allUsers.map((u) => (
                       <option key={u.id} value={u.id}>{u.name}</option>
@@ -431,7 +518,7 @@ export default function DiscoveryDetail() {
       </Card>
 
       {/* Evidence */}
-      <Card>
+      <Card className="mb-6">
         <CardHeader className="flex-row items-center justify-between space-y-0">
           <CardTitle className="text-lg">Evidence ({evidence.length})</CardTitle>
           {discovery.status !== DiscoveryStatus.DISCOVERY && (
@@ -485,6 +572,69 @@ export default function DiscoveryDetail() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* KPI 추적 */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-lg">KPI 추적</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {kpiWithMeasurements.length === 0 ? (
+            <p className="text-sm text-[var(--axis-text-tertiary)]">
+              KPI가 등록되지 않았습니다. Agent에게 KPI 등록을 요청하세요.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {kpiWithMeasurements.map(({ kpi, measurements }) => (
+                <KpiCard key={kpi.id} kpi={kpi} measurements={measurements} />
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* 연결된 Discovery */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">연결된 Discovery</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {allLinks.length === 0 ? (
+            <p className="text-sm text-[var(--axis-text-tertiary)]">연결된 Discovery가 없습니다.</p>
+          ) : (
+            <div className="space-y-2">
+              {allLinks.map((link) => {
+                const targetId = link.direction === "from" ? link.toDiscoveryId : link.fromDiscoveryId;
+                const linked = linkedDiscoveries.find((d) => d?.id === targetId);
+                if (!linked) return null;
+                const relationLabel =
+                  link.linkType === "predecessor" ? "선행"
+                    : link.linkType === "successor" ? "후행"
+                    : link.linkType === "similar" ? "유사"
+                    : link.linkType === "alternative" ? "대안"
+                    : link.linkType;
+                return (
+                  <div
+                    key={link.id}
+                    className="flex items-center justify-between rounded-md border border-[var(--axis-border-default)] p-3"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Link
+                        to={`/discoveries/${linked.id}`}
+                        className="text-sm font-medium text-[var(--axis-text-brand)] hover:underline"
+                      >
+                        {linked.title}
+                      </Link>
+                      <StatusBadge status={linked.status} size="sm" />
+                    </div>
+                    <Badge variant="secondary">{relationLabel}</Badge>
+                  </div>
+                );
+              })}
             </div>
           )}
         </CardContent>
