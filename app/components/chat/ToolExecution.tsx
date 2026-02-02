@@ -190,7 +190,16 @@ export function ToolExecution({ toolName, result, isRunning }: ToolExecutionProp
     >
       <div
         className="flex cursor-pointer items-center gap-2 text-xs"
+        role="button"
+        aria-expanded={expanded}
+        tabIndex={0}
         onClick={() => hasContent && setExpanded(!expanded)}
+        onKeyDown={(e) => {
+          if ((e.key === "Enter" || e.key === " ") && hasContent) {
+            e.preventDefault();
+            setExpanded(!expanded);
+          }
+        }}
       >
         <Badge variant={hasError ? "error" : "info"} className="text-[10px]">
           도구

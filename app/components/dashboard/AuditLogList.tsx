@@ -24,28 +24,44 @@ interface AuditLogListProps {
 type BadgeVariant = "success" | "info" | "warning" | "destructive" | "secondary" | "purple";
 
 const EVENT_TYPE_MAP: Record<string, { label: string; border: string; variant: BadgeVariant }> = {
-  CREATE_DISCOVERY: { label: "Discovery \uC0DD\uC131", border: "border-l-emerald-500", variant: "success" },
-  PROMOTE: { label: "\uC2B9\uACA9", border: "border-l-blue-500", variant: "info" },
-  ADD_EXPERIMENT: { label: "\uC2E4\uD5D8 \uCD94\uAC00", border: "border-l-blue-400", variant: "info" },
-  COMPLETE_EXPERIMENT: { label: "\uC2E4\uD5D8 \uC644\uB8CC", border: "border-l-teal-500", variant: "success" },
-  ADD_EVIDENCE: { label: "\uADFC\uAC70 \uCD94\uAC00", border: "border-l-indigo-500", variant: "info" },
-  DECIDE_NEXT: { label: "NEXT \uACB0\uC815", border: "border-l-green-600", variant: "success" },
-  DECIDE_NOT_NOW: { label: "NOT NOW \uACB0\uC815", border: "border-l-amber-500", variant: "warning" },
-  DECIDE_DEAD_END: { label: "DEAD END \uACB0\uC815", border: "border-l-red-500", variant: "destructive" },
-  REQUEST_EXTENSION: { label: "\uC5F0\uC7A5 \uC694\uCCAD", border: "border-l-purple-500", variant: "purple" },
-  CHANGE_OWNER: { label: "Owner \uBCC0\uACBD", border: "border-l-slate-500", variant: "secondary" },
-  CHANGE_REVIEWER: { label: "Reviewer \uBCC0\uACBD", border: "border-l-slate-400", variant: "secondary" },
-  CHANGE_GATEKEEPER: { label: "Gatekeeper \uBCC0\uACBD", border: "border-l-slate-400", variant: "secondary" },
-  REQUEST_GATE_APPROVAL: { label: "Gate \uC2B9\uC778 \uC694\uCCAD", border: "border-l-violet-500", variant: "purple" },
-  SUBMIT_GATE_DECISION: { label: "Gate \uACB0\uC815 \uC81C\uCD9C", border: "border-l-violet-600", variant: "purple" },
-  AUTO_CLOSE: { label: "\uC790\uB3D9 \uC885\uB8CC", border: "border-l-red-400", variant: "destructive" },
-  STAGE_TRANSITION: { label: "\uB2E8\uACC4 \uC804\uD658", border: "border-l-blue-600", variant: "info" },
+  // Web form events (UPPER_CASE)
+  CREATE_DISCOVERY: { label: "Discovery \uC0DD\uC131", border: "border-l-[var(--dx-event-create)]", variant: "success" },
+  UPDATE_DISCOVERY: { label: "Discovery \uC218\uC815", border: "border-l-[var(--dx-event-neutral)]", variant: "secondary" },
+  PROMOTE_OPEN: { label: "OPEN \uC2B9\uACA9", border: "border-l-[var(--dx-event-promote)]", variant: "info" },
+  ADD_EXPERIMENT: { label: "\uC2E4\uD5D8 \uCD94\uAC00", border: "border-l-[var(--dx-event-experiment)]", variant: "info" },
+  COMPLETE_EXPERIMENT: { label: "\uC2E4\uD5D8 \uC644\uB8CC", border: "border-l-[var(--dx-event-complete)]", variant: "success" },
+  ADD_EVIDENCE: { label: "\uADFC\uAC70 \uCD94\uAC00", border: "border-l-[var(--dx-event-evidence)]", variant: "info" },
+  SUBMIT_FOR_APPROVAL: { label: "\uACB0\uC815 \uC81C\uCD9C", border: "border-l-[var(--dx-event-gate)]", variant: "purple" },
+  APPROVE_DECISION: { label: "\uACB0\uC815 \uC2B9\uC778", border: "border-l-[var(--dx-event-next)]", variant: "success" },
+  REJECT_DECISION: { label: "\uACB0\uC815 \uAC70\uBD80", border: "border-l-[var(--dx-event-destructive)]", variant: "destructive" },
+  START_METHOD_RUN: { label: "\uBC29\uBC95\uB860 \uC2E4\uD589", border: "border-l-[var(--dx-event-experiment)]", variant: "info" },
+  CHANGE_OWNER: { label: "Owner \uBCC0\uACBD", border: "border-l-[var(--dx-event-neutral)]", variant: "secondary" },
+  CHANGE_REVIEWER: { label: "Reviewer \uBCC0\uACBD", border: "border-l-[var(--dx-event-neutral)]", variant: "secondary" },
+  CHANGE_GATEKEEPER: { label: "Gatekeeper \uBCC0\uACBD", border: "border-l-[var(--dx-event-neutral)]", variant: "secondary" },
+  REQUEST_GATE_APPROVAL: { label: "Gate \uC2B9\uC778 \uC694\uCCAD", border: "border-l-[var(--dx-event-gate)]", variant: "purple" },
+  SUBMIT_GATE_DECISION: { label: "Gate \uACB0\uC815 \uC81C\uCD9C", border: "border-l-[var(--dx-event-gate)]", variant: "purple" },
+  AUTO_CLOSED_OVERDUE: { label: "\uC790\uB3D9 \uC885\uB8CC", border: "border-l-[var(--dx-event-auto-close)]", variant: "destructive" },
+  // Agent events (snake_case)
+  created: { label: "Discovery \uC0DD\uC131", border: "border-l-[var(--dx-event-create)]", variant: "success" },
+  updated: { label: "Discovery \uC218\uC815", border: "border-l-[var(--dx-event-neutral)]", variant: "secondary" },
+  promoted_to_idea_card: { label: "Idea Card \uC2B9\uACA9", border: "border-l-[var(--dx-event-promote)]", variant: "info" },
+  promoted_to_open: { label: "OPEN \uC2B9\uACA9", border: "border-l-[var(--dx-event-promote)]", variant: "info" },
+  stage_transition: { label: "\uB2E8\uACC4 \uC804\uD658", border: "border-l-[var(--dx-event-promote)]", variant: "info" },
+  experiment_added: { label: "\uC2E4\uD5D8 \uCD94\uAC00", border: "border-l-[var(--dx-event-experiment)]", variant: "info" },
+  experiment_completed: { label: "\uC2E4\uD5D8 \uC644\uB8CC", border: "border-l-[var(--dx-event-complete)]", variant: "success" },
+  evidence_added: { label: "\uADFC\uAC70 \uCD94\uAC00", border: "border-l-[var(--dx-event-evidence)]", variant: "info" },
+  decided_next: { label: "NEXT \uACB0\uC815", border: "border-l-[var(--dx-event-next)]", variant: "success" },
+  decided_hold: { label: "HOLD \uACB0\uC815", border: "border-l-[var(--dx-event-warning)]", variant: "warning" },
+  decided_drop: { label: "DROP \uACB0\uC815", border: "border-l-[var(--dx-event-destructive)]", variant: "destructive" },
+  extension_requested: { label: "\uC5F0\uC7A5 \uC694\uCCAD", border: "border-l-[var(--dx-event-purple)]", variant: "purple" },
+  // Radar events
+  AUTO_SEED_CREATED: { label: "Radar Seed", border: "border-l-[var(--dx-event-create)]", variant: "success" },
 };
 
 function getEventMeta(eventType: string) {
   return EVENT_TYPE_MAP[eventType] || {
     label: eventType,
-    border: "border-l-gray-400",
+    border: "border-l-[var(--dx-event-neutral)]",
     variant: "secondary" as BadgeVariant,
   };
 }

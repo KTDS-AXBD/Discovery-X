@@ -67,13 +67,15 @@ export function ConversationList({
                       onDelete(conv.id);
                       setPendingDeleteId(null);
                     }}
-                    className="rounded bg-red-500 px-1.5 py-0.5 text-white hover:bg-red-600"
+                    className="rounded bg-[var(--axis-button-destructive-bg-default)] px-1.5 py-0.5 text-[var(--axis-button-destructive-text-default)] hover:bg-[var(--axis-button-destructive-bg-hover)]"
+                    aria-label="삭제 확인"
                   >
                     확인
                   </button>
                   <button
                     onClick={() => setPendingDeleteId(null)}
                     className="rounded bg-[var(--axis-surface-secondary)] px-1.5 py-0.5 text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-tertiary)]"
+                    aria-label="삭제 취소"
                   >
                     취소
                   </button>
@@ -87,7 +89,7 @@ export function ConversationList({
                       setPendingDeleteId(conv.id);
                     }}
                     className="ml-2 hidden text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-error)] group-hover:inline"
-                    title="대화 삭제"
+                    aria-label={`${conv.title} 대화 삭제`}
                   >
                     ×
                   </button>

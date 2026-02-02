@@ -259,7 +259,7 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages }
       <div className="flex-1 overflow-y-auto px-4 py-4">
         <div className="mx-auto max-w-3xl space-y-4">
           {isLoadingMessages && (
-            <div className="flex items-center justify-center py-12">
+            <div className="flex items-center justify-center py-12" role="status" aria-label="대화 불러오는 중">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--axis-border-default)] border-t-[var(--axis-text-brand)]" />
               <span className="ml-2 text-sm text-[var(--axis-text-tertiary)]">대화 불러오는 중...</span>
             </div>
@@ -300,12 +300,9 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages }
             <AlertBanner variant="destructive">
               <div className="flex items-center gap-2">
                 <span>전송 실패: {sendError}</span>
-                <button
-                  onClick={handleRetry}
-                  className="ml-auto rounded bg-[var(--axis-button-bg-default)] px-2 py-1 text-xs text-[var(--axis-button-text-default)] hover:bg-[var(--axis-button-bg-hover)]"
-                >
+                <Button variant="secondary" size="sm" onClick={handleRetry} className="ml-auto">
                   재시도
-                </button>
+                </Button>
               </div>
             </AlertBanner>
           )}
@@ -334,7 +331,7 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages }
           ))}
 
           {isLoading && pendingToolCalls.length === 0 && (
-            <div className="flex items-center gap-2 text-sm text-[var(--axis-text-tertiary)]">
+            <div className="flex items-center gap-2 text-sm text-[var(--axis-text-tertiary)]" role="status" aria-live="polite">
               <div className="h-2 w-2 animate-pulse rounded-full bg-[var(--axis-text-brand)]" />
               Agent가 처리 중...
               <button

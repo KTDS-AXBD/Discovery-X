@@ -28,7 +28,7 @@ const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
         <AxisBadge
           ref={ref}
           className={cn(
-            "border-transparent bg-amber-100 text-amber-800",
+            "border-transparent bg-[var(--axis-badge-warning-bg)] text-[var(--axis-badge-warning-text)]",
             className
           )}
           {...props}

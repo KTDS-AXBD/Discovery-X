@@ -4,6 +4,7 @@
 
 import { useFetcher } from "@remix-run/react";
 import { Badge } from "~/components/ui/Badge";
+import { Button } from "~/components/ui/Button";
 import { Card, CardContent } from "~/components/ui/Card";
 
 interface AlertItem {
@@ -34,11 +35,11 @@ function severityVariant(severity: string) {
 function severityBorder(severity: string) {
   switch (severity) {
     case "critical":
-      return "border-l-4 border-l-red-500";
+      return "border-l-4 border-l-[var(--dx-severity-critical)]";
     case "warning":
-      return "border-l-4 border-l-amber-500";
+      return "border-l-4 border-l-[var(--dx-severity-warning)]";
     default:
-      return "border-l-4 border-l-blue-500";
+      return "border-l-4 border-l-[var(--dx-severity-info)]";
   }
 }
 
@@ -107,13 +108,15 @@ export function AlertList({ alerts }: AlertListProps) {
                 <fetcher.Form method="post">
                   <input type="hidden" name="alertId" value={alert.id} />
                   <input type="hidden" name="_action" value="acknowledge" />
-                  <button
+                  <Button
                     type="submit"
+                    variant="secondary"
+                    size="sm"
                     disabled={isAcking}
-                    className="shrink-0 rounded-md border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] px-3 py-1.5 text-xs font-medium text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-tertiary)] transition-colors disabled:opacity-50"
+                    className="shrink-0"
                   >
                     {isAcking ? "..." : "확인"}
-                  </button>
+                  </Button>
                 </fetcher.Form>
               )}
             </CardContent>

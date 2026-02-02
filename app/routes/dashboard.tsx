@@ -75,7 +75,7 @@ export default function DashboardLayout() {
       <MainNav user={user} />
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {/* Tab navigation */}
-        <div className="mb-6 flex gap-1 border-b border-[var(--axis-border-default)]">
+        <div className="mb-6 flex gap-1 border-b border-[var(--axis-border-default)]" role="tablist">
           {tabs.map((tab) => {
             const isActive = tab.end
               ? location.pathname === tab.to
@@ -84,8 +84,10 @@ export default function DashboardLayout() {
               <Link
                 key={tab.to}
                 to={tab.to}
+                role="tab"
+                aria-selected={isActive}
                 className={cn(
-                  "px-4 py-2 text-sm font-medium transition-colors",
+                  "px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--axis-button-border-focus)] focus-visible:ring-offset-2",
                   isActive
                     ? "border-b-2 border-[var(--axis-text-brand)] text-[var(--axis-text-brand)]"
                     : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]"

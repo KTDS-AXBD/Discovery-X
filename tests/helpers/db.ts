@@ -28,6 +28,11 @@ export function createTestDb() {
   runMigrationSQL(sqlite, resolve(migrationsDir, "0004_add_radar_tables.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0005_add_agent_chat_tables.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0006_add_model_id.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0007_stage_system.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0008_method_packs.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0009_google_auth.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0009_ontology_graph.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0010_r3_indicators_connectors.sql"));
 
   return drizzle(sqlite, { schema });
 }

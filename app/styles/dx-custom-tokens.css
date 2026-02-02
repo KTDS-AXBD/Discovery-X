@@ -40,6 +40,16 @@
   --axis-button-success-bg-active: #15803D;
   --axis-button-success-text-default: #FFFFFF;
 
+  /* Destructive button variant */
+  --axis-button-destructive-bg-default: #DC2626;
+  --axis-button-destructive-bg-hover: #B91C1C;
+  --axis-button-destructive-bg-active: #991B1B;
+  --axis-button-destructive-text-default: #FFFFFF;
+
+  /* Warning badge variant */
+  --axis-badge-warning-bg: #FEF3C7;
+  --axis-badge-warning-text: #92400E;
+
   /* Chart semantic tokens */
   --axis-chart-inbox: #93C5FD;
   --axis-chart-open: #FCD34D;
@@ -48,11 +58,36 @@
   --axis-chart-dead-end: #FCA5A5;
   --axis-chart-bar: #60A5FA;
   --axis-chart-empty: #E5E7EB;
+
+  /* Audit Log event border semantic tokens */
+  --dx-event-create: #10B981;
+  --dx-event-promote: #3B82F6;
+  --dx-event-experiment: #60A5FA;
+  --dx-event-complete: #14B8A6;
+  --dx-event-evidence: #6366F1;
+  --dx-event-next: #16A34A;
+  --dx-event-warning: #F59E0B;
+  --dx-event-destructive: #EF4444;
+  --dx-event-purple: #A855F7;
+  --dx-event-neutral: #64748B;
+  --dx-event-gate: #7C3AED;
+  --dx-event-auto-close: #F87171;
+
+  /* Alert severity border tokens */
+  --dx-severity-critical: #EF4444;
+  --dx-severity-warning: #F59E0B;
+  --dx-severity-info: #3B82F6;
 }
 
 /* fade-in-up stagger animation */
 @keyframes dx-fade-in-up {
   from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* fade-slide-in animation (AuditLogList, AlertList) */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -72,6 +107,16 @@
   --axis-button-success-bg-active: #166534;
   --axis-button-success-text-default: #FFFFFF;
 
+  /* Destructive button variant */
+  --axis-button-destructive-bg-default: #B91C1C;
+  --axis-button-destructive-bg-hover: #991B1B;
+  --axis-button-destructive-bg-active: #7F1D1D;
+  --axis-button-destructive-text-default: #FFFFFF;
+
+  /* Warning badge variant */
+  --axis-badge-warning-bg: #78350F;
+  --axis-badge-warning-text: #FDE68A;
+
   /* Chart semantic tokens */
   --axis-chart-inbox: #3B82F6;
   --axis-chart-open: #EAB308;
@@ -80,4 +125,23 @@
   --axis-chart-dead-end: #EF4444;
   --axis-chart-bar: #3B82F6;
   --axis-chart-empty: #374151;
+
+  /* Audit Log event border semantic tokens */
+  --dx-event-create: #059669;
+  --dx-event-promote: #2563EB;
+  --dx-event-experiment: #3B82F6;
+  --dx-event-complete: #0D9488;
+  --dx-event-evidence: #4F46E5;
+  --dx-event-next: #15803D;
+  --dx-event-warning: #D97706;
+  --dx-event-destructive: #DC2626;
+  --dx-event-purple: #9333EA;
+  --dx-event-neutral: #475569;
+  --dx-event-gate: #6D28D9;
+  --dx-event-auto-close: #EF4444;
+
+  /* Alert severity border tokens */
+  --dx-severity-critical: #DC2626;
+  --dx-severity-warning: #D97706;
+  --dx-severity-info: #2563EB;
 }
