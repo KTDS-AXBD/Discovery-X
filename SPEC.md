@@ -260,6 +260,7 @@ Audit Log 기능 구현: 누락 이벤트 기록 보완, Dashboard Audit Log 탭
 Cron 3건 점검 완료 (daily/agent-review/alerts), CRON_SECRET 재설정. 세션 67 배포 (671086a0).
 Audit Log 프로덕션 배포 완료 (d9d40471). CREATE_DISCOVERY/UPDATE_DISCOVERY 이벤트 로깅 추가.
 웹 폼 이벤트 로깅 누락 5건 보완: ADD_EXPERIMENT, ADD_EVIDENCE, START_METHOD_RUN 추가. 프로덕션 배포 완료 (08b2b89b).
+Agent 채팅 품질 튜닝: 시스템 프롬프트 3개 섹션 추가, 도구 스키마 description 보강, 컨텍스트 요약 개선, 에러 처리 세분화.
 
 ### PRD P0 구현 상태
 
@@ -280,7 +281,15 @@ Audit Log 프로덕션 배포 완료 (d9d40471). CREATE_DISCOVERY/UPDATE_DISCOVE
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 68)
+### 최근 변경 (세션 69)
+**Agent 채팅 품질 튜닝**:
+- ✅ `system-prompt.ts`: "응답 원칙", "도구 사용 전략", "대화 패턴" 3개 섹션 추가/교체
+- ✅ `tool-registry.ts`: 핵심 도구 10개 description 보강 (사용 시점, 선행 조건, 주의사항)
+- ✅ `context-builder.ts`: summarizeSkippedMessages에 사용자 메시지 핵심 추출 추가
+- ✅ `executor.ts`: 도구 에러 컨텍스트 추가, MAX_ROUNDS 메시지에 도구 목록 포함, 스트리밍 에러 분류(API/내부)
+- ✅ `pnpm typecheck` + `pnpm lint` + `pnpm build` 통과
+
+### 이전 변경 (세션 68)
 **웹 폼 이벤트 로깅 누락 5건 보완**:
 - ✅ `discoveries.new.tsx`: CREATE_DISCOVERY 이벤트 로깅 (metadata: title, sourceType)
 - ✅ `discoveries_.$id.edit.tsx`: UPDATE_DISCOVERY 이벤트 로깅 (metadata: title, sourceType)
@@ -290,7 +299,7 @@ Audit Log 프로덕션 배포 완료 (d9d40471). CREATE_DISCOVERY/UPDATE_DISCOVE
 - ✅ `pnpm typecheck` + `pnpm lint` + `pnpm build` 통과
 - ✅ 프로덕션 배포 완료 (e8abb313)
 
-### 이전 변경 (세션 66)
+### 이전 변경 (세션 66–67)
 **Audit Log 기능 구현 + 프로덕션 배포**:
 - ✅ 누락 이벤트 기록 보완: CHANGE_GATEKEEPER, CHANGE_REVIEWER, REQUEST_GATE_APPROVAL, SUBMIT_GATE_DECISION
 - ✅ `/dashboard/audit-log` 라우트: 최근 100건 조회, eventType/actorType 필터, admin/gatekeeper 권한 체크
