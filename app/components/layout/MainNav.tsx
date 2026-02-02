@@ -60,6 +60,13 @@ export function MainNav({ user }: MainNavProps) {
         Radar
       </Link>
       <Link
+        to="/docs"
+        className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-[var(--axis-text-tertiary)] hover:border-[var(--axis-border-secondary)] hover:text-[var(--axis-text-primary)]"
+        onClick={() => setMobileMenuOpen(false)}
+      >
+        Docs
+      </Link>
+      <Link
         to="/settings"
         className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-[var(--axis-text-tertiary)] hover:border-[var(--axis-border-secondary)] hover:text-[var(--axis-text-primary)]"
         onClick={() => setMobileMenuOpen(false)}
