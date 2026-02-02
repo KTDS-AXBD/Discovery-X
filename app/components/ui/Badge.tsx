@@ -6,7 +6,7 @@ import { cn } from "~/lib/utils/cn";
 export interface BadgeProps
   extends Omit<AxisBadgeProps, "variant">,
     React.PropsWithChildren {
-  variant?: AxisBadgeProps["variant"] | "purple";
+  variant?: AxisBadgeProps["variant"] | "purple" | "warning";
 }
 
 const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
@@ -17,6 +17,18 @@ const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
           ref={ref}
           className={cn(
             "border-transparent bg-[var(--axis-badge-purple-bg)] text-[var(--axis-badge-purple-text)]",
+            className
+          )}
+          {...props}
+        />
+      );
+    }
+    if (variant === "warning") {
+      return (
+        <AxisBadge
+          ref={ref}
+          className={cn(
+            "border-transparent bg-amber-100 text-amber-800",
             className
           )}
           {...props}

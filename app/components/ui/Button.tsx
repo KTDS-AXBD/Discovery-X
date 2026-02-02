@@ -8,6 +8,8 @@ const customVariants = {
     "bg-[var(--axis-button-success-bg-default)] text-[var(--axis-button-success-text-default)] hover:bg-[var(--axis-button-success-bg-hover)] active:bg-[var(--axis-button-success-bg-active)]",
   purple:
     "bg-[var(--axis-button-purple-bg-default)] text-[var(--axis-button-purple-text-default)] hover:bg-[var(--axis-button-purple-bg-hover)] active:bg-[var(--axis-button-purple-bg-active)]",
+  destructive:
+    "bg-red-600 text-white hover:bg-red-700 active:bg-red-800",
 } as const;
 
 type CustomVariant = keyof typeof customVariants;

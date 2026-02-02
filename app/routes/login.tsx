@@ -16,6 +16,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   token_exchange_failed: "Google 인증에 실패했습니다.",
   userinfo_failed: "사용자 정보를 가져올 수 없습니다.",
   user_creation_failed: "사용자 생성에 실패했습니다.",
+  pending_approval: "관리자 승인 대기 중입니다. 승인 후 이용 가능합니다.",
 };
 
 export default function Login() {
