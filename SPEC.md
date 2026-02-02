@@ -100,6 +100,7 @@ Flow G: 방법론 실행 (R1)
 /docs                 → 프로젝트 문서 (기획서/운영문서 뷰어 + GitHub Project)
 /evidence/duplicates  → 중복 근거 관리 (Ontology Graph)
 /dashboard/health     → 시스템 건강도 지표
+/dashboard/audit-log  → Audit Log (이벤트 로그 조회)
 /auth/google          → Google OAuth 인증
 ```
 
@@ -255,6 +256,7 @@ v3 R0 (11단계 파이프라인) + R1 (Method Pack) + R2 (Ontology Graph) + R3a 
 Docs 페이지 + Google OAuth + admin/user/gatekeeper 역할 분리 완료.
 프로덕션 배포 + DB 마이그레이션 3건 (0009_google_auth, 0009_ontology_graph, 0010_r3_indicators_connectors) 적용 완료.
 가입 승인 제도 + 화이트리스트(AX BD팀 6명) 구현 완료. 최종 프로덕션 배포 (세션 64, d36b28e9).
+Audit Log 기능 구현: 누락 이벤트 기록 보완, Dashboard Audit Log 탭, Discovery 상세 활동 타임라인.
 
 ### PRD P0 구현 상태
 
@@ -275,7 +277,16 @@ Docs 페이지 + Google OAuth + admin/user/gatekeeper 역할 분리 완료.
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 65)
+### 최근 변경 (세션 66)
+**Audit Log 기능 구현 — 이벤트 기록 보완 + Dashboard 탭 + Discovery 타임라인**:
+- ✅ 누락 이벤트 기록 보완: CHANGE_GATEKEEPER, CHANGE_REVIEWER, REQUEST_GATE_APPROVAL, SUBMIT_GATE_DECISION
+- ✅ `/dashboard/audit-log` 라우트: 최근 100건 조회, eventType/actorType 필터, admin/gatekeeper 권한 체크
+- ✅ AuditLogList 컴포넌트: eventType별 좌측 border 색상 + 한국어 라벨 매핑 (16종)
+- ✅ Dashboard 탭 내비게이션에 Audit Log 탭 추가 (아이콘 포함)
+- ✅ Discovery 상세 활동 타임라인: 해당 Discovery의 최근 50건 이벤트를 타임라인 UI로 표시
+- ✅ `pnpm typecheck` + `pnpm build` 통과
+
+### 이전 변경 (세션 65)
 **가입 승인 제도 + 화이트리스트 프로덕션 배포**:
 - ✅ `UserRole.PENDING` 추가: 신규 사용자는 pending → admin 승인 후 사용 가능
 - ✅ 화이트리스트 6명 (AX BD팀): 최초 로그인 시 자동 `role: "user"` 부여 (pending 건너뜀)
