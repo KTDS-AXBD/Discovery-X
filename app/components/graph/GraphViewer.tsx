@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 
 interface GraphNode {
   id: string;
@@ -78,7 +78,9 @@ export function GraphViewer({ nodes, edges, ontologyTypes, onNodeClick }: GraphV
 
   // Simple force simulation using ref to avoid circular dependency
   const edgesRef = useRef(edges);
-  edgesRef.current = edges;
+  useEffect(() => {
+    edgesRef.current = edges;
+  }, [edges]);
 
   useEffect(() => {
     const tick = () => {

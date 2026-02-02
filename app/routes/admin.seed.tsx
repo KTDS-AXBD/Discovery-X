@@ -1,14 +1,24 @@
-import type { ActionFunctionArgs } from "@remix-run/cloudflare";
+import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { Form, useActionData } from "@remix-run/react";
 import { seedDatabase } from "~/db/seed";
 import { getDb } from "~/db";
+import { requireAdmin, getSessionSecret } from "~/lib/auth/session.server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 
-export async function action({ context }: ActionFunctionArgs) {
+export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
+  const secret = getSessionSecret(context.cloudflare.env);
+  await requireAdmin(request, db, secret);
+  return json({});
+}
+
+export async function action({ request, context }: ActionFunctionArgs) {
+  const db = getDb(context.cloudflare.env.DB);
+  const secret = getSessionSecret(context.cloudflare.env);
+  await requireAdmin(request, db, secret);
 
   try {
     await seedDatabase(db);
