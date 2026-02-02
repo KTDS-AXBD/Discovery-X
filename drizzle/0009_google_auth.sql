@@ -1,5 +1,6 @@
 -- Google OAuth: add google_id, avatar_url, role to users
-ALTER TABLE users ADD COLUMN google_id TEXT UNIQUE;
+ALTER TABLE users ADD COLUMN google_id TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id);
 ALTER TABLE users ADD COLUMN avatar_url TEXT;
 ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user';
 
