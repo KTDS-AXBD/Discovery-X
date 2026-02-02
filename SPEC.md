@@ -234,7 +234,7 @@ Validation:
 ### 현재 단계
 **🚀 v3 Ontology Ready AI Platform 구현 중 (2026-02-01~)**
 
-v3 R0 (11단계 파이프라인) 코드 구현 완료 → R1 (방법론 실행 + Gate1 패키지) 구현 진행.
+v3 R0 (11단계 파이프라인) + R1 (Method Pack 12종 + Gate 패키지) 프로덕션 배포 완료.
 
 ### PRD P0 구현 상태
 
@@ -255,7 +255,15 @@ v3 R0 (11단계 파이프라인) 코드 구현 완료 → R1 (방법론 실행 +
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 55)
+### 최근 변경 (세션 56)
+**v3 R0 + R1 프로덕션 배포**:
+- ✅ 프로덕션 DB 마이그레이션: 0007 (stage_system) + 0008 (method_packs) 적용
+- ✅ 기존 데이터 매핑 확인: INBOX→발견(21건), NEXT→Gate1(1건) 정상 전환
+- ✅ 프로덕션 배포: Cloudflare Pages (7a49eec9)
+- ✅ R0 E2E 검증: 11단계 칸반 대시보드, Agent 채팅, 지표 정상 동작
+- ✅ R1 검증: /methods 라이브러리 12종 Method Pack 정상 표시 (Tier-0/1/2 필터)
+
+### 이전 변경 (세션 55)
 **v3 R0 현행화 + R1 Method Pack 구현**:
 - ✅ SPEC.md 현행화 — §1~§6 11단계 파이프라인 반영
 - ✅ v3 R1: DB 스키마 4개 테이블 추가 (method_packs, method_runs, gate_packages, assumptions)
@@ -899,10 +907,10 @@ v3 R0 (11단계 파이프라인) 코드 구현 완료 → R1 (방법론 실행 +
 - [x] Resend secrets 설정 + 외부 cron 서비스 연동 — 세션 23에서 완료
 - [x] Radar 프로덕션 배포 — 세션 27에서 완료 (DB 마이그레이션 + Worker 배포 + 소스 시딩 + 수동 트리거 검증)
 
-- [ ] R0 마이그레이션 적용 + 프로덕션 배포 (`pnpm db:migrate && pnpm db:migrate:prod && pnpm deploy`)
-- [ ] R0 프로덕션 E2E 검증 (Agent 채팅으로 DISCOVERY 생성, 근거 validator 동작 확인)
-- [ ] R1 마이그레이션 적용 + 프로덕션 배포
-- [ ] R1 프로덕션 검증 (Method Pack 라이브러리, Agent 추천, Gate 패키지)
+- [x] R0 마이그레이션 적용 + 프로덕션 배포 — 세션 56에서 완료
+- [x] R0 프로덕션 E2E 검증 (11단계 칸반, Agent 채팅 정상) — 세션 56에서 완료
+- [x] R1 마이그레이션 적용 + 프로덕션 배포 — 세션 56에서 완료
+- [x] R1 프로덕션 검증 (Method Pack 12종, Tier 필터) — 세션 56에서 완료
 
 ### 미래 작업
 
