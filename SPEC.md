@@ -254,7 +254,7 @@ Validation:
 v3 R0 (11단계 파이프라인) + R1 (Method Pack) + R2 (Ontology Graph) + R3a (KPI/링크/거버넌스) + R3b (알림/웹훅) 구현 완료.
 Docs 페이지 + Google OAuth + admin/user 역할 분리 완료.
 프로덕션 배포 + DB 마이그레이션 3건 (0009_google_auth, 0009_ontology_graph, 0010_r3_indicators_connectors) 적용 완료.
-R3b 배포 대기 중.
+R3b 배포 대기 중. 로그인 + 관리자 화면 UI 정비 완료.
 
 ### PRD P0 구현 상태
 
@@ -275,7 +275,13 @@ R3b 배포 대기 중.
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 61)
+### 최근 변경 (세션 62)
+**로그인 + 관리자 화면 UI 정비**:
+- ✅ `/login`: 컴파스 아이콘 추가, v0.1.0 버전 뱃지, Google 버튼 브랜드 가이드라인 스타일 (흰 배경 + 구글 컬러 아이콘), "AX Lab · 2026" footer
+- ✅ `/admin/seed`: 독립 Card 레이아웃 → PageLayout 래퍼 적용 (MainNav 포함)
+- ✅ `/admin/users`: 아바타 h-8→h-10, 가입일 표시, 본인 "(나)" 라벨, Google 연동 뱃지
+
+### 이전 변경 (세션 61)
 **v3 R3b — 알림 엔진 + 웹훅 커넥터 + Agent 도구 + Dashboard Alerts**:
 - ✅ 알림 엔진 (`alert-engine.ts`): 4가지 유형 스캔 (KPI 임계치, 단계 SLA 14일, 기한 초과, Gate 승인 SLA) + 당일 중복 방지
 - ✅ 웹훅 커넥터 (`webhook.ts`): Slack Block Kit / Teams MessageCard / Custom JSON 페이로드 발송 (5초 타임아웃)
