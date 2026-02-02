@@ -257,6 +257,7 @@ Docs 페이지 + Google OAuth + admin/user/gatekeeper 역할 분리 완료.
 프로덕션 배포 + DB 마이그레이션 3건 (0009_google_auth, 0009_ontology_graph, 0010_r3_indicators_connectors) 적용 완료.
 가입 승인 제도 + 화이트리스트(AX BD팀 6명) 구현 완료. 최종 프로덕션 배포 (세션 64, d36b28e9).
 Audit Log 기능 구현: 누락 이벤트 기록 보완, Dashboard Audit Log 탭, Discovery 상세 활동 타임라인.
+Cron 3건 점검 완료 (daily/agent-review/alerts), CRON_SECRET 재설정. 세션 67 배포 (671086a0).
 
 ### PRD P0 구현 상태
 
@@ -908,7 +909,8 @@ Audit Log 기능 구현: 누락 이벤트 기록 보완, Dashboard Audit Log 탭
 - **Google OAuth + 역할 분리**: ✅ 세션 60 — arctic + /auth/google 라우트 + admin/user role + requireAdmin 가드
 - **v3 R3b 알림/웹훅**: ✅ 세션 61 — alert engine (4유형) + webhook (Slack/Teams/Custom) + Agent 도구 3개 + /dashboard/alerts UI
 - **DB 마이그레이션**: ✅ 11개 (0000~0010) 로컬 + 프로덕션 적용 완료
-- **배포 상태**: ✅ 세션 62 프로덕션 배포 완료 — R3b 알림/웹훅 + login/admin UI 정비 (배포 ID: ad8c51e8)
+- **배포 상태**: ✅ 세션 67 프로덕션 배포 완료 — Audit Log + cron 점검 (배포 ID: 671086a0)
+- **Cron 설정**: ✅ 3건 정상 — daily (GET, 09:00), agent-review (POST, 10:00), alerts (GET, 09:30), CRON_SECRET 재설정 완료
 - **Agent E2E 테스트**: ✅ 세션 39 풀 플로우 검증 완료 — 6개 도구 정상 (get_metrics, create_discovery, promote_discovery, add_evidence, complete_experiment, decide_next)
 - **Agent 채팅 개선**: ✅ 세션 40 — 입력 보존, 제목 로직, 프로그레시브 스트리밍, content 중복 수정
 - **채팅 마크다운**: ✅ 세션 41-42 — react-markdown + remark-gfm + @tailwindcss/typography 기반 Agent 응답 마크다운 렌더링
