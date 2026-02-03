@@ -7,7 +7,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 
 ### 범위
 
-**In-scope (PRD §7.1 P0 + v3 확장)**
+**In-scope (PRD §7.1 P0 + v3 확장 + v4 Venture Discovery Sprint)**
 - Discovery CRUD + 11단계 파이프라인 (DISCOVERY → IDEA_CARD → HYPOTHESIS → EXPERIMENT → EVIDENCE_REVIEW → GATE1 → SPRINT → GATE2 → HANDOFF + HOLD/DROP)
 - Owner/Reviewer 지정 및 승계
 - Experiment 최대 2개 관리 (Extension 승인 시 3개)
@@ -18,6 +18,13 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 - Recall Queue 뷰 (Revisit 도래 HOLD 목록)
 - 최소 지표 집계/Export
 - Method Pack 12종 라이브러리 + 추천 + 실행 + Gate 패키지 자동 초안 (R1)
+- `/venture/*` sub-app 라우팅 (v4)
+- 5일 부트캠프 템플릿 기반 스프린트 운영 (v4)
+- AI Agent 오토파일럿 + HITL Gate 의사결정 (v4)
+- Decision Center (블라인드 투표/집계/재투표) (v4)
+- Analytics (Depth Score, Effort, Next-ROI 추천) (v4)
+- venture-worker (D1 폴링 큐 기반) (v4)
+- Epic 구조 티켓 분해 (A~F: 라우팅/스키마/서비스/API/워커/Analytics) (v4 DevSpec)
 
 **Out-of-scope (PRD §2.2, §7.3)**
 - 전사 공식 포털/플랫폼
@@ -69,6 +76,16 @@ Flow F: Weekly Decision Review (30분)
 Flow G: 방법론 실행 (R1)
   → Method Pack 추천 → 실행 시작 → structured output 저장
   → Gate 패키지 자동 초안 생성
+
+Flow H: Venture Discovery Sprint (v4)
+  → 스프린트 생성 (산업/범위 선택) → status=DRAFT
+  → Day 1: Scope 확정 (HITL) → Signal/Problem 수집 → Long List v1
+  → Day 2: 카드 정제 → Gate1 준비 (블라인드 점수)
+  → Gate 1 (HITL): Quick Score 집계/승인 → Shortlist 6~8
+  → Day 3: Deep Dive 자동 생성 (Assumption/Pre-mortem/Lean Canvas 초안)
+  → Gate 2 (HITL): 재평가/토론/재투표 → Final 2~3 확정
+  → Day 5: Packaging (피치/요약문서) + 리허설 (Q&A 레드팀)
+  → status=COMPLETED → ARCHIVED
 ```
 
 ### UI 요소
@@ -85,6 +102,10 @@ Flow G: 방법론 실행 (R1)
 | Recall Queue | Revisit Date 도래 NOT_NOW 목록 |
 | Radar | 자동 수집 소스 관리 + 실행 이력 + 수집 아이템 |
 | Docs | 프로젝트 기획서/운영문서 마크다운 뷰어 + GitHub Project 보드 |
+| Venture Sprint List | 스프린트 목록/생성/상태 |
+| Venture Sprint Detail | Inbox/Longlist/Gate/Deepdive/Packaging/Analytics 탭 |
+| Venture Decision Center | Agent 추천안 + 블라인드 투표 + 재투표 |
+| Venture Analytics | 퍼널/도메인 분포/Depth-Effort 스캐터/White-space |
 
 ### 페이지 구성 (Remix Routes)
 
@@ -102,6 +123,20 @@ Flow G: 방법론 실행 (R1)
 /dashboard/health     → 시스템 건강도 지표
 /dashboard/audit-log  → Audit Log (이벤트 로그 조회)
 /auth/google          → Google OAuth 인증
+
+# Venture Discovery Sprint (v4)
+/venture              → Venture 메인 (Overview 리다이렉트)
+/venture/overview     → 전체 요약 (퍼널 + 최근 스프린트)
+/venture/sprints      → 스프린트 목록
+/venture/sprints/new  → 스프린트 생성 (템플릿 선택)
+/venture/sprints/:id  → 스프린트 상세 레이아웃 (탭)
+  /inbox              → Signal/Evidence 수집함
+  /longlist           → 클러스터/카드 뷰
+  /gate               → Decision Center (HITL)
+  /deepdive           → Assumption/Pre-mortem/Lean Canvas
+  /packaging          → 피치/문서 정리 + Export
+  /analytics          → 해당 스프린트 통계
+/venture/analytics    → 전체 누적 통계
 ```
 
 ---
@@ -153,6 +188,94 @@ Cron (매일 9:00 KST) → radar-worker (별도 CF Worker)
       → SSE 스트리밍 응답 → 채팅 UI
 ```
 
+### 도메인 모듈 분리 (v4 Venture)
+
+```
+app/features/venture/
+├── db/
+│   └── schema.ts         # vd_* 18개 테이블 (Drizzle)
+├── types.ts              # VdSprint, VdOpportunity 등 공유 타입
+├── constants/
+│   ├── sprint-status.ts  # 8단계 상태 (DRAFT→COMPLETED)
+│   ├── decision-types.ts # 4가지 결정 타입
+│   ├── evaluation-criteria.ts # 평가 기준 프리셋
+│   └── task-types.ts     # 8가지 Task 타입 (VdTaskType enum)
+├── schemas/
+│   ├── sprint.schema.ts  # Zod I/O 스키마 (v0.3 §4.1)
+│   ├── opportunity.schema.ts
+│   ├── decision.schema.ts
+│   └── task.schema.ts    # EnqueueTaskInput/Output
+├── domain/
+│   ├── sprint-state-machine.ts  # 상태 전환 로직
+│   └── analytics-calculator.ts  # Depth/Effort/ROI 계산 (v0.3 §6)
+├── worker/
+│   └── task-types.ts     # VdTaskType enum (8개 타입)
+├── repositories/
+│   ├── sprint.repository.ts
+│   ├── opportunity.repository.ts
+│   ├── decision.repository.ts
+│   ├── signal.repository.ts
+│   ├── analytics.repository.ts
+│   └── task-queue.repository.ts
+└── ui/
+    ├── OpportunityCard.tsx
+    ├── DecisionCard.tsx
+    ├── ScoreSheet.tsx
+    ├── FunnelChart.tsx
+    └── ...
+```
+
+**경계 원칙**:
+- 경계 1: 라우팅 — `/venture/*` 프리픽스로 sub-app 분리
+- 경계 2: 데이터 — `vd_*` 테이블 prefix로 논리 분리
+- 경계 3: 워커 — venture-worker가 `vd_task_queue` 소비 (격리)
+
+### 워커 아키텍처 (v4 venture-worker)
+
+**Task 타입 (VdTaskType enum)**:
+```typescript
+enum VdTaskType {
+  CLUSTER_ENTITIES              // 신호/문제/기회 클러스터링
+  GENERATE_PROBLEMS_FROM_SIGNALS
+  GENERATE_OPPORTUNITIES_FROM_PROBLEMS
+  PREPARE_GATE1_DECISION        // Gate1 의사결정 초안
+  PREPARE_GATE2_DECISION        // Gate2 의사결정 초안
+  GENERATE_DEEPDIVE_PACK        // 가정/프리모텀/Lean Canvas
+  GENERATE_PACKAGING            // 피치/요약문서/Q&A팩
+  ANALYTICS_SNAPSHOT            // 분석 스냅샷 생성
+}
+```
+
+**Retry/Backoff 정책**:
+- 기본 max_attempts: 6
+- Backoff: exponential (base=30s, factor=2, max=30m) + jitter (0.8~1.2)
+- 에러 분류:
+  - Retryable: LLM 5xx/429, timeout, 네트워크, D1 락
+  - Repair-then-Retry: JSON 스키마 실패 (max 3회)
+  - Non-retryable: 엔티티 누락, 권한 오류, 상태 머신 위반
+
+**Idempotency**:
+- dedupe_key로 중복 enqueue 방지
+- 예: `snapshot:<sprintId>:latest`, `deepdive:<oppId>:v1`
+
+### Analytics 계산 규칙 (v4)
+
+**Depth Score (0~100)** — Opportunity 기준:
+- Evidence Depth (0~40): min(40, evidenceCount × 10)
+- Assumption Coverage (0~25): min(25, assumptionCount × 5)
+- Risk Readiness (0~15): min(15, premortemCount × 3)
+- Execution Clarity (0~20): +10(buyer) +5(budget_hint) +5(solution_one_liner)
+
+**Effort Score** — 이벤트 가중치 합산:
+- vd_work_events action 가중치 적용
+- Agent effort 별도 집계
+
+**추천 분류**:
+- INVEST: Potential high + Confidence medium+ + Unknowns solvable + Effort low/medium
+- EXPLORE: Potential mid + Effort low
+- HOLD: Potential high + Unknowns structural (blocker=true)
+- DROP: Potential low + Effort high
+
 ### DB 스키마 (구현 완료)
 
 | 테이블 | 역할 | PRD 매핑 |
@@ -186,6 +309,25 @@ Cron (매일 9:00 KST) → radar-worker (별도 CF Worker)
 | `alerts` | 발생된 알림 | v3 R3 |
 | `webhook_configs` | 외부 웹훅 설정 | v3 R3 |
 | `gate_approvals` | Gate 승인 요청/결정 | v3 R3 |
+| **v4 Venture Discovery Sprint (18개 테이블)** | | |
+| `vd_sprints` | 스프린트 메인 | v4 |
+| `vd_sprint_members` | 스프린트 멤버 (OWNER/CONTRIBUTOR/REVIEWER) | v4 DevSpec |
+| `vd_signals` | 신호 수집 | v4 |
+| `vd_problems` | 문제 정의 | v4 |
+| `vd_themes` | 토픽/클러스터 | v4 |
+| `vd_theme_memberships` | 테마-엔티티 소속 (다대다) | v4 DevSpec |
+| `vd_opportunities` | 기회 카드 | v4 |
+| `vd_evidences` | 근거 | v4 |
+| `vd_assumptions` | 가정 | v4 |
+| `vd_premortems` | Pre-mortem | v4 |
+| `vd_artifacts` | Lean Canvas/Pitch 등 | v4 |
+| `vd_rubric_templates` | 평가 기준 템플릿 | v4 DevSpec |
+| `vd_decisions` | Gate 의사결정 | v4 |
+| `vd_votes` | 투표 | v4 |
+| `vd_scores` | 점수 | v4 |
+| `vd_work_events` | 이벤트 로그 | v4 |
+| `vd_analytics_snapshots` | 분석 스냅샷 | v4 |
+| `vd_task_queue` | 작업 큐 | v4 |
 
 ### 상태 전환 규칙 (11단계 파이프라인)
 ```
@@ -212,6 +354,27 @@ Validation:
 - HOLD: trigger_type + revisit_date 필수
 - DROP: failure_pattern 필수
 - Evidence: reliability_label + source_url/linkOrAttachment 필수, Gate 통과 시 published_date 권장
+
+### Venture Sprint 상태 전환 (8단계)
+```
+DRAFT → RUNNING → GATE1_PENDING → DEEPDIVE → GATE2_PENDING → PACKAGING → COMPLETED → ARCHIVED
+```
+
+허용된 전환 맵:
+- DRAFT → RUNNING (스프린트 시작)
+- RUNNING → GATE1_PENDING (Day 2 완료)
+- GATE1_PENDING → DEEPDIVE (Gate1 승인)
+- DEEPDIVE → GATE2_PENDING (Day 4 완료)
+- GATE2_PENDING → PACKAGING (Gate2 승인)
+- PACKAGING → COMPLETED (패키징 완료)
+- COMPLETED → ARCHIVED (아카이브)
+- 모든 단계 → ARCHIVED (강제 종료)
+
+Validation:
+- RUNNING 전환 시 최소 1개 scope 선택 필수
+- GATE1_PENDING 전환 시 최소 N개 opportunity 필요
+- GATE1 승인 시 shortlist 6~8개 선정
+- GATE2 승인 시 final 2~3개 선정
 
 ---
 
@@ -250,10 +413,13 @@ Validation:
 > **이 섹션은 매 세션마다 업데이트한다.**
 
 ### 현재 단계
-**🚀 v3 Ontology Ready AI Platform 운영 중 (2026-02-01~)**
+**🚀 v4 Venture Discovery Sprint 개발 중 (2026-02-03~)**
 
-v3 R0 (11단계 파이프라인) + R1 (Method Pack) + R2 (Ontology Graph) + R3a (KPI/링크/거버넌스) + R3b (알림/웹훅) 구현 완료.
-프로덕션 운영 중, 전체 338개 테스트 통과. Agent 도구 8개 파일 전체 테스트 커버.
+v3 R0~R3b 완료 후, v4 Venture Discovery Sprint 추가 개발 시작.
+- vd_* 18개 테이블 스키마 설계 완료 (DevSpec v0.3 반영)
+- 도메인 모듈 구조 설계 완료 (types/constants/schemas/domain/worker/repositories/ui)
+- `/venture/*` 라우트 구조 설계 완료
+- Epic 구조 티켓 분해 완료 (A~F: 라우팅/스키마/서비스/API/워커/Analytics)
 
 ### PRD P0 구현 상태
 
@@ -274,7 +440,22 @@ v3 R0 (11단계 파이프라인) + R1 (Method Pack) + R2 (Ontology Graph) + R3a 
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 79)
+### 최근 변경 (세션 81)
+**v4 PRD v0.3 DevSpec 반영**:
+- ✅ `SPEC.md` §1: In-scope에 Epic 구조 티켓 분해 언급
+- ✅ `SPEC.md` §3: vd_* 테이블 16개 → 18개 (sprint_members, theme_memberships, rubric_templates 추가)
+- ✅ `SPEC.md` §3: 워커 아키텍처 (VdTaskType 8개, Retry/Backoff/Idempotency 정책)
+- ✅ `SPEC.md` §3: Analytics 계산 규칙 (Depth Score 0~100, Effort Score, 추천 분류)
+- ✅ `SPEC.md` §5: v0.3 DevSpec 반영 완료 기록
+
+### 이전 변경 (세션 80)
+**v4 Venture Discovery Sprint 구현 시작**:
+- ✅ `SPEC.md`: v4 섹션 추가 (§1 In-scope, §2 Flow H + UI, §3 도메인 모듈/vd_* 테이블/상태 전환)
+- ✅ `app/features/venture/db/schema.ts`: vd_* 16개 테이블 스키마 구현 완료
+- 🔄 도메인 모듈 (types/constants/schemas/domain/repositories) 구현 중
+- 🔄 `/venture/*` 라우트 구현 중
+
+### 이전 변경 (세션 79)
 **테스트 커버리지 확장 Phase 5 — Agent 도구 전체 커버**:
 - ✅ `indicator-tools.test.ts` (신규 19건): registerKpi(4), recordKpiMeasurement(5), getKpiStatus(4), getPipelineHealth(6)
 - ✅ `connector-tools.test.ts` (신규 15건): linkDiscoveries(9), getLinkedDiscoveries(6)
