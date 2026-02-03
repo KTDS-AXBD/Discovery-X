@@ -15,9 +15,11 @@ export default defineConfig({
     tsconfigPaths(),
     tailwindcss(),
   ],
+  resolve: {
+    dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime"],
+  },
   optimizeDeps: {
-    include: ["react", "react-dom"],
-    exclude: ["@axis-ds/ui-react"],
+    include: ["react", "react-dom", "@axis-ds/ui-react"],
   },
   ssr: {
     noExternal: ["@axis-ds/ui-react"],
