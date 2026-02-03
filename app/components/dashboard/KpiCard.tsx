@@ -1,4 +1,5 @@
 import { cn } from "~/lib/utils/cn";
+import { formatDate } from "~/lib/format-date";
 
 interface KpiMeasurement {
   id: string;
@@ -106,7 +107,7 @@ export function KpiCard({ kpi, measurements }: KpiCardProps) {
                   key={m.id}
                   className="w-2 rounded-t bg-[var(--axis-brand-500)]"
                   style={{ height: h }}
-                  title={`${m.value} (${new Date(m.measuredAt).toLocaleDateString("ko-KR")})`}
+                  title={`${m.value} (${formatDate(m.measuredAt)})`}
                 />
               );
             })}

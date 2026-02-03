@@ -15,6 +15,7 @@ import { eq, and } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { CompleteExperimentSchema } from "~/lib/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
+import { formatDate } from "~/lib/format-date";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -172,7 +173,7 @@ export default function CompleteExperiment() {
             <div>
               <dt className="font-medium text-[var(--axis-text-tertiary)]">마감일</dt>
               <dd className="mt-1 text-[var(--axis-text-primary)]">
-                {new Date(experiment.deadline).toLocaleDateString("ko-KR")}
+                {formatDate(experiment.deadline)}
               </dd>
             </div>
           </dl>

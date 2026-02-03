@@ -14,6 +14,7 @@ import { STATUS_CONFIG } from "~/lib/constants/status";
 import { cn } from "~/lib/utils/cn";
 import { eq } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
+import { formatDate, isOverdue } from "~/lib/format-date";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -39,8 +40,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       (d) =>
         (d.status === DiscoveryStatus.IDEA_CARD ||
           d.status === DiscoveryStatus.IDEA_CARD) &&
-        d.dueDate &&
-        new Date(d.dueDate) < now
+        isOverdue(d.dueDate)
     );
   } else if (statusFilter && statusFilter in DiscoveryStatus) {
     allDiscoveries = await db.select().from(discoveries).where(eq(discoveries.status, statusFilter));
@@ -64,8 +64,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       const isOpenOverdue =
         (discovery.status === DiscoveryStatus.IDEA_CARD ||
           discovery.status === DiscoveryStatus.IDEA_CARD) &&
-        discovery.dueDate &&
-        new Date(discovery.dueDate) < now;
+        isOverdue(discovery.dueDate);
 
       return {
         ...discovery,
@@ -163,7 +162,7 @@ export default function DiscoveriesIndex() {
               </div>
               <div className="mt-2 flex items-center gap-3 text-xs text-[var(--axis-text-tertiary)]">
                 <span>{discovery.ownerName || "미지정"}</span>
-                <span>{new Date(discovery.createdAt).toLocaleDateString("ko-KR")}</span>
+                <span>{formatDate(discovery.createdAt)}</span>
                 {discovery.isInboxOverdue && <Badge variant="destructive">7일 초과</Badge>}
                 {discovery.isOpenOverdue && <Badge variant="destructive">OVERDUE</Badge>}
               </div>
@@ -220,7 +219,7 @@ export default function DiscoveriesIndex() {
                   </TableCell>
                   <TableCell>{discovery.ownerName || "—"}</TableCell>
                   <TableCell>
-                    {new Date(discovery.createdAt).toLocaleDateString("ko-KR")}
+                    {formatDate(discovery.createdAt)}
                   </TableCell>
                   <TableCell className="text-right pr-6">
                     <Link

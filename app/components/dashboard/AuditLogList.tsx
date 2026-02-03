@@ -5,6 +5,7 @@
 import { Link } from "@remix-run/react";
 import { Badge } from "~/components/ui/Badge";
 import { Card, CardContent } from "~/components/ui/Card";
+import { formatDateTime } from "~/lib/format-date";
 
 interface AuditLogItem {
   id: string;
@@ -66,13 +67,8 @@ function getEventMeta(eventType: string) {
   };
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString("ko-KR", {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+function formatDateLocal(iso: string): string {
+  return formatDateTime(iso);
 }
 
 function formatActorName(actorId: string, actorName: string): string {
@@ -132,7 +128,7 @@ export function AuditLogList({ logs }: AuditLogListProps) {
                   {formatActorName(log.actorId, log.actorName)}
                 </span>
                 <span className="ml-auto text-xs text-[var(--axis-text-tertiary)]">
-                  {formatDate(log.timestamp)}
+                  {formatDateLocal(log.timestamp)}
                 </span>
               </div>
               <div className="flex items-center gap-2">

@@ -12,6 +12,7 @@ import { Card, CardContent } from "~/components/ui/Card";
 import { Badge } from "~/components/ui/Badge";
 import { StatusBadge } from "~/components/ui/StatusBadge";
 import { PIPELINE_COLUMNS, STAGE_CATEGORIES } from "~/lib/constants/status";
+import { formatDate } from "~/lib/format-date";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -111,7 +112,7 @@ export default function DashboardPipeline() {
                               </div>
                               {d.dueDate && (
                                 <p className="mt-1 text-[10px] text-[var(--axis-text-tertiary)]">
-                                  기한: {new Date(d.dueDate).toLocaleDateString("ko-KR")}
+                                  기한: {formatDate(d.dueDate)}
                                 </p>
                               )}
                             </CardContent>

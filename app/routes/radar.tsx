@@ -22,6 +22,7 @@ import { FormField } from "~/components/ui/FormField";
 import { Badge } from "~/components/ui/Badge";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "~/components/ui/Table";
+import { formatDateLocalTime } from "~/lib/format-date";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -110,15 +111,9 @@ const RUN_STATUS_VARIANT: Record<string, "warning" | "success" | "destructive"> 
   [RadarRunStatus.FAILED]: "destructive",
 };
 
-function formatDate(timestamp: string | number | Date | null) {
+function formatDateLocalLocal(timestamp: string | number | Date | null) {
   if (!timestamp) return "-";
-  const d = new Date(timestamp);
-  return d.toLocaleDateString("ko-KR", {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatDateLocalTime(timestamp);
 }
 
 export default function RadarPage() {
@@ -286,7 +281,7 @@ export default function RadarPage() {
               {runs.map((run) => (
                 <TableRow key={run.id}>
                   <TableCell className="pl-4 text-[var(--axis-text-primary)]">
-                    {formatDate(run.startedAt)}
+                    {formatDateLocal(run.startedAt)}
                   </TableCell>
                   <TableCell>
                     <Badge variant={RUN_STATUS_VARIANT[run.status] || "secondary"}>
@@ -306,7 +301,7 @@ export default function RadarPage() {
                     {run.seedsCreated}
                   </TableCell>
                   <TableCell className="text-[var(--axis-text-tertiary)]">
-                    {formatDate(run.completedAt)}
+                    {formatDateLocal(run.completedAt)}
                   </TableCell>
                 </TableRow>
               ))}
@@ -344,7 +339,7 @@ export default function RadarPage() {
                         >
                           {item.url}
                         </a>
-                        <span>{formatDate(item.collectedAt)}</span>
+                        <span>{formatDateLocal(item.collectedAt)}</span>
                       </div>
                     </div>
                     <div className="ml-4 flex flex-col items-end gap-1">

@@ -11,6 +11,7 @@ import { Button } from "~/components/ui/Button";
 import { Badge } from "~/components/ui/Badge";
 import { Select } from "~/components/ui/Select";
 import { AlertBanner } from "~/components/ui/AlertBanner";
+import { formatDate } from "~/lib/format-date";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -101,7 +102,7 @@ export default function AdminUsers() {
                         {user.email}
                         {user.createdAt && (
                           <span className="ml-2">
-                            &middot; 신청 {new Date(user.createdAt).toLocaleDateString("ko-KR")}
+                            &middot; 신청 {formatDate(user.createdAt)}
                           </span>
                         )}
                       </p>
@@ -159,7 +160,7 @@ export default function AdminUsers() {
                       {user.email}
                       {user.createdAt && (
                         <span className="ml-2">
-                          &middot; 가입 {new Date(user.createdAt).toLocaleDateString("ko-KR")}
+                          &middot; 가입 {formatDate(user.createdAt)}
                         </span>
                       )}
                     </p>

@@ -1,5 +1,6 @@
 import { Card, CardContent } from "~/components/ui/Card";
 import { Badge } from "~/components/ui/Badge";
+import { formatDate } from "~/lib/format-date";
 
 interface GatePackageData {
   id: string;
@@ -92,7 +93,7 @@ export function GatePackageEditor({ gatePackage }: GatePackageEditorProps) {
           </h3>
           {gatePackage.autoDraftedAt && (
             <p className="text-xs text-[var(--axis-text-tertiary)]">
-              자동 초안: {new Date(gatePackage.autoDraftedAt).toLocaleDateString("ko-KR")}
+              자동 초안: {formatDate(gatePackage.autoDraftedAt)}
             </p>
           )}
         </div>
@@ -242,7 +243,7 @@ export function GatePackageEditor({ gatePackage }: GatePackageEditorProps) {
                   <div className="flex items-center gap-2">
                     {run.completedAt && (
                       <span className="text-[var(--axis-text-tertiary)]">
-                        {new Date(run.completedAt).toLocaleDateString("ko-KR")}
+                        {formatDate(run.completedAt)}
                       </span>
                     )}
                     {run.hasOutput ? (

@@ -13,6 +13,7 @@ import { Badge } from "~/components/ui/Badge";
 import { cn } from "~/lib/utils/cn";
 import { eq } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
+import { formatDate, daysUntilDue } from "~/lib/format-date";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -45,18 +46,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       );
 
       // Calculate days until due date
-      const daysUntilDue = discovery.dueDate
-        ? Math.floor(
-            (new Date(discovery.dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-          )
-        : null;
+      const daysLeft = daysUntilDue(discovery.dueDate);
 
       return {
         ...discovery,
         ownerName: owner?.name,
         ageInDays,
-        daysUntilDue,
-        isOverdue: daysUntilDue !== null && daysUntilDue < 0,
+        daysUntilDue: daysLeft,
+        isOverdue: daysLeft !== null && daysLeft < 0,
       };
     })
   );
@@ -193,7 +190,7 @@ export default function WeeklyReview() {
                   <TableCell className="whitespace-nowrap">
                     {discovery.dueDate ? (
                       <div>
-                        <div>{new Date(discovery.dueDate).toLocaleDateString("ko-KR")}</div>
+                        <div>{formatDate(discovery.dueDate)}</div>
                         {discovery.isOverdue ? (
                           <Badge variant="destructive">OVERDUE</Badge>
                         ) : discovery.daysUntilDue !== null ? (

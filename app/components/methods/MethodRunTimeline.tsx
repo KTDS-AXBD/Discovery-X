@@ -1,4 +1,5 @@
 import { Badge } from "~/components/ui/Badge";
+import { formatDate } from "~/lib/format-date";
 
 interface MethodRun {
   id: string;
@@ -66,11 +67,11 @@ export function MethodRunTimeline({ runs }: MethodRunTimelineProps) {
 
               <div className="mt-1 flex gap-3 text-[10px] text-[var(--axis-text-tertiary)]">
                 <span>
-                  시작: {new Date(run.startedAt).toLocaleDateString("ko-KR")}
+                  시작: {formatDate(run.startedAt)}
                 </span>
                 {run.completedAt && (
                   <span>
-                    완료: {new Date(run.completedAt).toLocaleDateString("ko-KR")}
+                    완료: {formatDate(run.completedAt)}
                   </span>
                 )}
               </div>

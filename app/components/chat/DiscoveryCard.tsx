@@ -3,6 +3,7 @@ import { Card, CardContent } from "~/components/ui/Card";
 import { Badge } from "~/components/ui/Badge";
 import { Button } from "~/components/ui/Button";
 import { StatusBadge } from "~/components/ui/StatusBadge";
+import { formatDate } from "~/lib/format-date";
 
 interface DiscoveryCardProps {
   id: string;
@@ -39,7 +40,7 @@ export function DiscoveryCard({
           <div className="mt-0.5 flex gap-3 text-xs text-[var(--axis-text-tertiary)]">
             {ownerId && <span>Owner: {ownerId}</span>}
             {dueDate && (
-              <span>기한: {new Date(dueDate).toLocaleDateString("ko-KR")}</span>
+              <span>기한: {formatDate(dueDate)}</span>
             )}
           </div>
         </div>

@@ -17,6 +17,7 @@ import { ApprovalDecisionSchema } from "~/lib/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
 import { createEmailClient } from "~/lib/notifications/email";
 import { buildApprovalResultEmail } from "~/lib/notifications/templates";
+import { formatDate } from "~/lib/format-date";
 
 const DECISION_LABELS: Record<string, string> = {
   NEXT: "전진 (NEXT)",
@@ -300,7 +301,7 @@ export default function ApproveDecision() {
                   <div>
                     <dt className="text-sm font-medium text-[var(--axis-text-tertiary)]">재검토 날짜</dt>
                     <dd className="mt-1 text-sm text-[var(--axis-text-primary)]">
-                      {new Date(String(pendingDecisionData.revisitDate)).toLocaleDateString("ko-KR")}
+                      {formatDate(String(pendingDecisionData.revisitDate))}
                     </dd>
                   </div>
                 )}

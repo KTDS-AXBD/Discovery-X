@@ -26,6 +26,7 @@ import { Select } from "~/components/ui/Select";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { GatePackageEditor } from "~/components/methods/GatePackageEditor";
+import { formatDate } from "~/lib/format-date";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -477,13 +478,13 @@ export default function DiscoveryGatePage() {
                         {decisionBadge(a.decision)}
                         {a.slaDeadline && a.decision === "PENDING" && (
                           <span className="text-xs text-[var(--axis-text-tertiary)]">
-                            기한: {new Date(a.slaDeadline).toLocaleDateString("ko-KR")}
+                            기한: {formatDate(a.slaDeadline)}
                           </span>
                         )}
                       </div>
                       {a.decidedAt && (
                         <span className="text-xs text-[var(--axis-text-tertiary)]">
-                          {new Date(a.decidedAt).toLocaleDateString("ko-KR")}
+                          {formatDate(a.decidedAt)}
                         </span>
                       )}
                     </div>

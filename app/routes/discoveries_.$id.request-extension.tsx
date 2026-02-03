@@ -20,6 +20,7 @@ import {
 import { getFormErrorMessage } from "~/lib/utils/form-error";
 import { createEmailClient } from "~/lib/notifications/email";
 import { buildApprovalRequestEmail } from "~/lib/notifications/templates";
+import { formatDate } from "~/lib/format-date";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -211,8 +212,7 @@ export default function RequestExtension() {
             <span>실험 수: {experimentCount}/2</span>
             {discovery.dueDate && (
               <span>
-                현재 마감일:{" "}
-                {new Date(discovery.dueDate).toLocaleDateString("ko-KR")}
+                현재 마감일: {formatDate(discovery.dueDate)}
               </span>
             )}
           </div>

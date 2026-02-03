@@ -16,6 +16,7 @@ import { eq } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { DiscoveryValidationRules, PromoteToOpenSchema } from "~/lib/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
+import { formatDate, getDefaultDeadline } from "~/lib/format-date";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -48,7 +49,11 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   // Get all users for Owner selection
   const allUsers = await db.select().from(users);
 
-  return json({ user, discovery, allUsers });
+  // 서버에서 계산하여 hydration 불일치 방지
+  const expectedDueDateStr = formatDate(DiscoveryValidationRules.calculateDueDate(discovery.createdAt));
+  const defaultDeadlineStr = getDefaultDeadline();
+
+  return json({ user, discovery, allUsers, expectedDueDateStr, defaultDeadlineStr });
 }
 
 export async function action({ request, context, params }: ActionFunctionArgs) {
@@ -156,17 +161,8 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
 }
 
 export default function PromoteToOpen() {
-  const { user, discovery, allUsers } = useLoaderData<typeof loader>();
+  const { user, discovery, allUsers, expectedDueDateStr, defaultDeadlineStr } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
-
-  // Calculate default deadline (today + 7 days)
-  const defaultDeadline = new Date();
-  defaultDeadline.setDate(defaultDeadline.getDate() + 7);
-  const defaultDeadlineStr = defaultDeadline.toISOString().split("T")[0];
-
-  // Calculate expected due date (createdAt + 28 days)
-  const expectedDueDate = new Date(discovery.createdAt);
-  expectedDueDate.setDate(expectedDueDate.getDate() + 28);
 
   return (
     <PageLayout user={user}>
@@ -182,10 +178,10 @@ export default function PromoteToOpen() {
           <p className="mt-2 text-sm">{discovery.seedSummary}</p>
           <div className="mt-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:space-x-4 text-xs opacity-80">
             <span>
-              생성: {new Date(discovery.createdAt).toLocaleDateString("ko-KR")}
+              생성: {formatDate(discovery.createdAt)}
             </span>
             <span>
-              → 예상 마감: {expectedDueDate.toLocaleDateString("ko-KR")} (28일)
+              → 예상 마감: {expectedDueDateStr} (28일)
             </span>
           </div>
         </AlertBanner>
@@ -310,7 +306,7 @@ export default function PromoteToOpen() {
           <p className="font-semibold">승격 시 자동 설정:</p>
           <ul className="mt-2 list-inside list-disc space-y-1">
             <li>상태: INBOX → OPEN</li>
-            <li>Discovery 마감일: {expectedDueDate.toLocaleDateString("ko-KR")} (생성일 + 28일)</li>
+            <li>Discovery 마감일: {expectedDueDateStr} (생성일 + 28일)</li>
             <li>첫 번째 Experiment 등록 (최대 2개까지 추가 가능)</li>
             <li>EventLog 기록 (PROMOTE_OPEN)</li>
           </ul>

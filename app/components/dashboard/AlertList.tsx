@@ -6,6 +6,7 @@ import { useFetcher } from "@remix-run/react";
 import { Badge } from "~/components/ui/Badge";
 import { Button } from "~/components/ui/Button";
 import { Card, CardContent } from "~/components/ui/Card";
+import { formatDateTime } from "~/lib/format-date";
 
 interface AlertItem {
   id: string;
@@ -43,13 +44,8 @@ function severityBorder(severity: string) {
   }
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString("ko-KR", {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+function formatDateLocal(iso: string): string {
+  return formatDateTime(iso);
 }
 
 export function AlertList({ alerts }: AlertListProps) {
@@ -92,7 +88,7 @@ export function AlertList({ alerts }: AlertListProps) {
                     </span>
                   )}
                   <span className="ml-auto text-xs text-[var(--axis-text-tertiary)]">
-                    {formatDate(alert.firedAt)}
+                    {formatDateLocal(alert.firedAt)}
                   </span>
                 </div>
                 <p className="text-sm text-[var(--axis-text-primary)] leading-relaxed">

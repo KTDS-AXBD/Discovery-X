@@ -25,6 +25,19 @@ export function formatDateTime(iso: string | Date | null | undefined): string {
   return `${month}월 ${day}일 ${h}:${m}`;
 }
 
+/** ISO 문자열 → "2026-02-09 14:30" 형식 (로컬 타임) */
+export function formatDateLocalTime(iso: string | Date | null | undefined): string {
+  if (!iso) return "-";
+  const d = typeof iso === "string" ? new Date(iso) : iso;
+  if (isNaN(d.getTime())) return "-";
+  const y = d.getFullYear();
+  const mo = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const h = String(d.getHours()).padStart(2, "0");
+  const m = String(d.getMinutes()).padStart(2, "0");
+  return `${y}-${mo}-${day} ${h}:${m}`;
+}
+
 /** ISO 문자열 → "2월 9일" 형식 (시간 제외) */
 export function formatMonthDay(iso: string | Date | null | undefined): string {
   if (!iso) return "-";

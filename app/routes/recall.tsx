@@ -11,6 +11,7 @@ import { AlertBanner } from "~/components/ui/AlertBanner";
 import { Card } from "~/components/ui/Card";
 import { eq, and, lte } from "drizzle-orm";
 import { DiscoveryStatus, TriggerType } from "~/db/schema";
+import { formatDate } from "~/lib/format-date";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -113,7 +114,7 @@ export default function RecallQueue() {
                 <p>{discovery.ownerName || "미지정"}</p>
                 {discovery.revisitDate && (
                   <p>
-                    재검토: {new Date(discovery.revisitDate).toLocaleDateString("ko-KR")}
+                    재검토: {formatDate(discovery.revisitDate)}
                     {discovery.daysSinceRevisit > 0 && ` (${discovery.daysSinceRevisit}일 경과)`}
                   </p>
                 )}
@@ -182,7 +183,7 @@ export default function RecallQueue() {
                         {discovery.revisitDate ? (
                           <div>
                             <div>
-                              {new Date(discovery.revisitDate).toLocaleDateString("ko-KR")}
+                              {formatDate(discovery.revisitDate)}
                             </div>
                             {discovery.daysSinceRevisit > 0 && (
                               <span className="text-xs text-[var(--axis-text-tertiary)]">
