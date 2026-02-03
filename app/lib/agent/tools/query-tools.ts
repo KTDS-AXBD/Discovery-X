@@ -10,7 +10,11 @@ import {
   evidence,
   radarItems,
   users,
+  methodRuns,
+  methodPacks,
+  assumptions,
   DiscoveryStatus,
+  AssumptionStatus,
 } from "~/db/schema";
 
 export async function listDiscoveries(
@@ -120,6 +124,204 @@ export async function getDiscoveryDetail(
       publishedOrObservedDate: e.publishedOrObservedDate,
       validatorId: e.validatorId,
     })),
+  });
+}
+
+/**
+ * 실험 설계를 위한 종합 컨텍스트 조회
+ * Method Run 결과, 미검증 assumptions, 기존 실험, 실험 슬롯 현황 포함
+ */
+export async function getExperimentContext(
+  db: DB,
+  input: { discoveryId: string }
+): Promise<string> {
+  // 1. Discovery 기본 정보
+  const discovery = await db
+    .select()
+    .from(discoveries)
+    .where(eq(discoveries.id, input.discoveryId))
+    .limit(1);
+
+  if (!discovery[0]) {
+    return JSON.stringify({
+      error: "Discovery를 찾을 수 없습니다.",
+      suggestion: "list_discoveries로 기존 목록을 확인해보세요.",
+    });
+  }
+
+  const d = discovery[0];
+
+  // 2. 실험 목록 조회
+  const exps = await db
+    .select()
+    .from(experiments)
+    .where(eq(experiments.discoveryId, input.discoveryId));
+
+  // 3. Method Runs + Method Packs 조인 조회
+  const runs = await db
+    .select({
+      runId: methodRuns.id,
+      methodPackId: methodRuns.methodPackId,
+      status: methodRuns.status,
+      structuredOutput: methodRuns.structuredOutput,
+      startedAt: methodRuns.startedAt,
+      completedAt: methodRuns.completedAt,
+      methodPackName: methodPacks.nameKo,
+      tier: methodPacks.tier,
+    })
+    .from(methodRuns)
+    .innerJoin(methodPacks, eq(methodRuns.methodPackId, methodPacks.id))
+    .where(eq(methodRuns.discoveryId, input.discoveryId));
+
+  // 4. Assumptions 조회
+  const assumptionList = await db
+    .select()
+    .from(assumptions)
+    .where(eq(assumptions.discoveryId, input.discoveryId));
+
+  // 5. Evidence 조회
+  const evs = await db
+    .select()
+    .from(evidence)
+    .where(eq(evidence.discoveryId, input.discoveryId));
+
+  // 6. 실험 슬롯 계산
+  const maxExperiments = 2; // 기본 2개, 연장 시 3개
+  const usedSlots = exps.length;
+  const availableSlots = Math.max(0, maxExperiments - usedSlots);
+  const canAdd = availableSlots > 0;
+
+  // 7. 근거 요약 계산
+  const evidenceByStrength: Record<string, number> = { A: 0, B: 0, C: 0, D: 0 };
+  const strongEvidence: Array<{ id: string; content: string; strength: string }> = [];
+
+  for (const e of evs) {
+    if (e.strength in evidenceByStrength) {
+      evidenceByStrength[e.strength]++;
+    }
+    if (e.strength === "A" || e.strength === "B") {
+      strongEvidence.push({
+        id: e.id,
+        content: e.content.slice(0, 100) + (e.content.length > 100 ? "..." : ""),
+        strength: e.strength,
+      });
+    }
+  }
+
+  // 8. 추천 생성
+  const unvalidatedAssumptions = assumptionList.filter(
+    (a) => a.status === AssumptionStatus.OPEN
+  );
+
+  // 실험 제안 포커스 결정
+  let suggestedExperimentFocus: string[] = [];
+
+  // Completed method runs에서 핵심 인사이트 추출
+  const completedRuns = runs.filter((r) => r.status === "COMPLETED" && r.structuredOutput);
+
+  for (const run of completedRuns) {
+    const output = run.structuredOutput as Record<string, unknown>;
+
+    // frictionMap 또는 friction_points가 있으면 마찰 검증 제안
+    if (output.frictionMap || output.friction_points || output.frictions) {
+      suggestedExperimentFocus.push(`${run.methodPackName} 결과의 마찰점 검증`);
+    }
+
+    // assumptions가 있으면 가정 검증 제안
+    if (output.assumptions && Array.isArray(output.assumptions)) {
+      const unvalidated = (output.assumptions as Array<{ validated?: boolean }>).filter(
+        (a) => !a.validated
+      );
+      if (unvalidated.length > 0) {
+        suggestedExperimentFocus.push(`${run.methodPackName}에서 도출된 ${unvalidated.length}개 가정 검증`);
+      }
+    }
+
+    // hypothesis 또는 hypotheses가 있으면 가설 검증 제안
+    if (output.hypothesis || output.hypotheses) {
+      suggestedExperimentFocus.push(`${run.methodPackName} 가설 검증`);
+    }
+
+    // opportunities가 있으면 기회 검증 제안
+    if (output.opportunities && Array.isArray(output.opportunities)) {
+      suggestedExperimentFocus.push(`${run.methodPackName}에서 식별된 기회 검증`);
+    }
+  }
+
+  // 미검증 assumptions가 있으면 추가
+  if (unvalidatedAssumptions.length > 0) {
+    suggestedExperimentFocus.push(`미검증 가정 ${unvalidatedAssumptions.length}개 검증`);
+  }
+
+  // 중복 제거
+  suggestedExperimentFocus = [...new Set(suggestedExperimentFocus)].slice(0, 3);
+
+  // 다음 Method Pack 추천
+  const executedPackIds = runs.map((r) => r.methodPackId);
+  const nextMethodPacks: string[] = [];
+
+  // Tier-0 팩 중 미실행 항목 확인
+  const tier0Packs = ["MP-01", "MP-02"];
+  for (const packId of tier0Packs) {
+    if (!executedPackIds.includes(packId)) {
+      nextMethodPacks.push(packId);
+    }
+  }
+
+  return JSON.stringify({
+    discovery: {
+      id: d.id,
+      title: d.title,
+      seedSummary: d.seedSummary,
+      status: d.status,
+      dueDate: d.dueDate ? new Date(d.dueDate).toISOString() : null,
+    },
+    experimentSlots: {
+      used: usedSlots,
+      max: maxExperiments,
+      available: availableSlots,
+      canAdd,
+    },
+    experiments: exps.map((e) => ({
+      id: e.id,
+      hypothesis: e.hypothesis,
+      minimalAction: e.minimalAction,
+      deadline: e.deadline ? new Date(e.deadline).toISOString() : null,
+      expectedEvidence: e.expectedEvidence,
+      resultSummary: e.resultSummary,
+      completed: !!e.completedAt,
+    })),
+    methodRuns: runs.map((r) => ({
+      runId: r.runId,
+      methodPackId: r.methodPackId,
+      methodPackName: r.methodPackName,
+      tier: r.tier,
+      status: r.status,
+      structuredOutput: r.structuredOutput,
+      startedAt: r.startedAt ? new Date(r.startedAt).toISOString() : null,
+      completedAt: r.completedAt ? new Date(r.completedAt).toISOString() : null,
+    })),
+    assumptions: assumptionList.map((a) => ({
+      id: a.id,
+      statement: a.statement,
+      refutationQuestions: a.refutationQuestions,
+      status: a.status,
+      evidenceIds: a.evidenceIds,
+    })),
+    evidenceSummary: {
+      total: evs.length,
+      byStrength: evidenceByStrength,
+      strongEvidence,
+    },
+    recommendations: {
+      suggestedExperimentFocus,
+      unvalidatedAssumptions: unvalidatedAssumptions.map((a) => ({
+        id: a.id,
+        statement: a.statement,
+        refutationQuestions: a.refutationQuestions,
+      })),
+      nextMethodPacks,
+    },
   });
 }
 

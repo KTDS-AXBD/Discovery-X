@@ -15,6 +15,7 @@ import { eq, count } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { DiscoveryValidationRules, CreateExperimentSchema } from "~/lib/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
+import { formatDate, getDefaultDeadline } from "~/lib/format-date";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -61,7 +62,11 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     return redirect(`/discoveries/${id}`);
   }
 
-  return json({ user, discovery, currentCount, maxExperiments });
+  // 서버에서 계산하여 hydration 불일치 방지
+  const defaultDeadlineStr = getDefaultDeadline();
+  const dueDateFormatted = formatDate(discovery.dueDate);
+
+  return json({ user, discovery, currentCount, maxExperiments, defaultDeadlineStr, dueDateFormatted });
 }
 
 export async function action({ request, context, params }: ActionFunctionArgs) {
@@ -173,13 +178,8 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
 }
 
 export default function AddExperiment() {
-  const { user, discovery, currentCount, maxExperiments } = useLoaderData<typeof loader>();
+  const { user, discovery, currentCount, maxExperiments, defaultDeadlineStr, dueDateFormatted } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
-
-  // Calculate default deadline (today + 7 days)
-  const defaultDeadline = new Date();
-  defaultDeadline.setDate(defaultDeadline.getDate() + 7);
-  const defaultDeadlineStr = defaultDeadline.toISOString().split("T")[0];
 
   return (
     <PageLayout user={user}>
@@ -204,6 +204,12 @@ export default function AddExperiment() {
         <Card>
           <CardContent className="pt-6">
             <Form method="post" className="space-y-6">
+              <AlertBanner variant="default">
+                <p>
+                  <strong>💡 Tip:</strong> 채팅에서 "실험 추천해줘"라고 요청하면 Method Pack 분석 결과 기반 실험 초안을 받을 수 있습니다.
+                </p>
+              </AlertBanner>
+
               <AlertBanner variant="warning">
                 <p>
                   <strong>주의:</strong> Discovery당 최대 2개의 실험만 가능합니다.
@@ -240,7 +246,7 @@ export default function AddExperiment() {
                 label="실험 마감일"
                 htmlFor="deadline"
                 required
-                hint={`Discovery 마감일: ${discovery.dueDate ? new Date(discovery.dueDate).toLocaleDateString("ko-KR") : "미정"}`}
+                hint={`Discovery 마감일: ${dueDateFormatted}`}
               >
                 <Input
                   type="date"
@@ -248,7 +254,7 @@ export default function AddExperiment() {
                   id="deadline"
                   required
                   defaultValue={defaultDeadlineStr}
-                  max={discovery.dueDate ? new Date(discovery.dueDate).toISOString().split("T")[0] : undefined}
+                  max={discovery.dueDate ? String(discovery.dueDate).split("T")[0] : undefined}
                 />
               </FormField>
 

@@ -11,6 +11,7 @@ export const TOOL_MIN_AUTONOMY: Record<string, number> = {
   // Level 1: read-only queries
   list_discoveries: 1,
   get_discovery_detail: 1,
+  get_experiment_context: 1,
   search_similar: 1,
   get_metrics: 1,
   get_radar_items: 1,
@@ -272,6 +273,17 @@ export const AGENT_TOOLS: ClaudeTool[] = [
       required: ["discoveryId"],
       properties: {
         discoveryId: { type: "string" },
+      },
+    },
+  },
+  {
+    name: "get_experiment_context",
+    description: "실험 설계를 위한 종합 컨텍스트 조회. Method Run 결과(structuredOutput), 미검증 assumptions, 기존 실험, 실험 슬롯 현황 포함. '실험 추가/추천/제안' 요청 시 먼저 호출하여 맥락을 파악하세요.",
+    input_schema: {
+      type: "object",
+      required: ["discoveryId"],
+      properties: {
+        discoveryId: { type: "string", description: "Discovery ID" },
       },
     },
   },

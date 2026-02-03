@@ -30,6 +30,7 @@ import {
 import {
   listDiscoveries,
   getDiscoveryDetail,
+  getExperimentContext,
   searchSimilar,
   getMetrics,
   getRadarItems,
@@ -133,6 +134,8 @@ async function executeTool(
       return listDiscoveries(db, toolInput as Parameters<typeof listDiscoveries>[1]);
     case "get_discovery_detail":
       return getDiscoveryDetail(db, toolInput as Parameters<typeof getDiscoveryDetail>[1]);
+    case "get_experiment_context":
+      return getExperimentContext(db, toolInput as Parameters<typeof getExperimentContext>[1]);
     case "search_similar":
       return searchSimilar(db, toolInput as Parameters<typeof searchSimilar>[1]);
     case "get_metrics":
