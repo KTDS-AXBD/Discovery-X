@@ -34,7 +34,7 @@ import {
   getCurrentDayInfo,
   type SprintTransitionContext,
 } from "~/features/venture/domain/sprint-state-machine";
-import type { VdSprintStatusType, VdSprint, VdSprintScope } from "~/features/venture/types";
+import type { VdSprintStatusType } from "~/features/venture/types";
 
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
