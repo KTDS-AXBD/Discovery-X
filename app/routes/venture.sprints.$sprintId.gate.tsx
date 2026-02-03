@@ -3,6 +3,7 @@
  * /venture/sprints/:sprintId/gate
  */
 
+import { useState } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useLoaderData, useNavigation } from "@remix-run/react";
@@ -23,6 +24,9 @@ import { createWorkEvent } from "~/features/venture/repositories/analytics.repos
 import { VD_DECISION_TYPE_CONFIG, VD_DECISION_STATUS_CONFIG } from "~/features/venture/constants/decision-types";
 import { aggregateVotes } from "~/features/venture/schemas/decision.schema";
 import type { VdDecisionTypeValue, VdDecisionStatusType } from "~/features/venture/types";
+import { MyVoteCard } from "~/features/venture/ui/MyVoteCard";
+import { VoteDistributionChart } from "~/features/venture/ui/VoteDistributionChart";
+import { VoteScale } from "~/features/venture/ui/BlindVoteInput";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -142,6 +146,9 @@ export default function VentureSprintGate() {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
+  // 편집 중인 결정 ID (투표 수정 모드)
+  const [editingDecisionId, setEditingDecisionId] = useState<string | null>(null);
+
   const pendingDecisions = decisions.filter((d) => d.status === "PENDING");
   const completedDecisions = decisions.filter((d) => d.status !== "PENDING");
 
@@ -167,12 +174,15 @@ export default function VentureSprintGate() {
             {pendingDecisions.map((decision) => {
               const typeConfig = VD_DECISION_TYPE_CONFIG[decision.decisionType as VdDecisionTypeValue];
               const hasVoted = !!decision.myVote;
+              const isEditing = editingDecisionId === decision.id;
+              const showVoteForm = !hasVoted || isEditing;
 
               return (
                 <div
                   key={decision.id}
                   className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-6"
                 >
+                  {/* 헤더 */}
                   <div className="mb-4 flex items-start justify-between">
                     <div>
                       <div className="flex items-center gap-2">
@@ -215,56 +225,94 @@ export default function VentureSprintGate() {
                     </div>
                   )}
 
-                  {/* 투표 폼 */}
-                  <Form method="post" className="mt-4 border-t border-[var(--axis-border-default)] pt-4">
-                    <input type="hidden" name="intent" value="vote" />
-                    <input type="hidden" name="decisionId" value={decision.id} />
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-sm font-medium text-[var(--axis-text-primary)]">
-                          점수 (1-10) *
-                        </label>
-                        <div className="mt-1 flex gap-2">
-                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
-                            <label
-                              key={score}
-                              className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border text-sm ${
-                                decision.myVote?.vote === score
-                                  ? "border-[var(--axis-text-brand)] bg-[var(--axis-surface-brand)] text-[var(--axis-text-on-brand)]"
-                                  : "border-[var(--axis-border-default)] hover:border-[var(--axis-border-hover)]"
-                              }`}
+                  {/* 내 투표 카드 (투표 완료 & 편집 아닐 때) */}
+                  {hasVoted && !isEditing && decision.myVote && (
+                    <div className="mb-4">
+                      <MyVoteCard
+                        vote={decision.myVote.vote}
+                        comment={decision.myVote.comment}
+                        createdAt={decision.myVote.createdAt}
+                        updatedAt={decision.myVote.updatedAt}
+                        onEdit={() => setEditingDecisionId(decision.id)}
+                        disabled={isSubmitting}
+                      />
+                    </div>
+                  )}
+
+                  {/* 투표 폼 (미투표 OR 편집 중) */}
+                  {showVoteForm && (
+                    <Form
+                      method="post"
+                      className="mt-4 border-t border-[var(--axis-border-default)] pt-4"
+                      onSubmit={() => {
+                        // 제출 성공 시 편집 모드 종료
+                        setTimeout(() => setEditingDecisionId(null), 100);
+                      }}
+                    >
+                      <input type="hidden" name="intent" value="vote" />
+                      <input type="hidden" name="decisionId" value={decision.id} />
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium text-[var(--axis-text-primary)]">
+                            점수 (1-10) *
+                          </label>
+                          <div className="mt-1 flex gap-2">
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
+                              <label
+                                key={score}
+                                className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border text-sm ${
+                                  decision.myVote?.vote === score
+                                    ? "border-[var(--axis-text-brand)] bg-[var(--axis-surface-brand)] text-[var(--axis-text-on-brand)]"
+                                    : "border-[var(--axis-border-default)] hover:border-[var(--axis-border-hover)]"
+                                }`}
+                              >
+                                <input
+                                  type="radio"
+                                  name="vote"
+                                  value={score}
+                                  defaultChecked={decision.myVote?.vote === score}
+                                  required
+                                  className="sr-only"
+                                />
+                                {score}
+                              </label>
+                            ))}
+                          </div>
+                          <p className="mt-1 text-xs text-[var(--axis-text-tertiary)]">
+                            1 = 강력 반대, 5 = 중립, 10 = 강력 찬성
+                          </p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-[var(--axis-text-primary)]">
+                            코멘트
+                          </label>
+                          <textarea
+                            name="comment"
+                            rows={2}
+                            maxLength={1000}
+                            defaultValue={decision.myVote?.comment || ""}
+                            placeholder="의견을 남겨주세요 (선택)"
+                            className="mt-1 block w-full rounded-md border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] px-3 py-2 text-sm"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button type="submit" disabled={isSubmitting}>
+                            {hasVoted ? "투표 수정" : "투표하기"}
+                          </Button>
+                          {isEditing && (
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              onClick={() => setEditingDecisionId(null)}
+                              disabled={isSubmitting}
                             >
-                              <input
-                                type="radio"
-                                name="vote"
-                                value={score}
-                                defaultChecked={decision.myVote?.vote === score}
-                                required
-                                className="sr-only"
-                              />
-                              {score}
-                            </label>
-                          ))}
+                              취소
+                            </Button>
+                          )}
                         </div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-[var(--axis-text-primary)]">
-                          코멘트
-                        </label>
-                        <textarea
-                          name="comment"
-                          rows={2}
-                          maxLength={1000}
-                          defaultValue={decision.myVote?.comment || ""}
-                          placeholder="의견을 남겨주세요 (선택)"
-                          className="mt-1 block w-full rounded-md border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] px-3 py-2 text-sm"
-                        />
-                      </div>
-                      <Button type="submit" disabled={isSubmitting}>
-                        {hasVoted ? "투표 수정" : "투표하기"}
-                      </Button>
-                    </div>
-                  </Form>
+                    </Form>
+                  )}
 
                   {/* 투표 현황 (블라인드 모드) */}
                   {decision.aggregation && (decision.aggregation.totalVoters ?? 0) > 0 && (
@@ -300,6 +348,7 @@ export default function VentureSprintGate() {
                   key={decision.id}
                   className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-6"
                 >
+                  {/* 헤더 */}
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="flex items-center gap-2">
@@ -331,12 +380,28 @@ export default function VentureSprintGate() {
                     </div>
                   </div>
 
-                  {/* 투표 결과 (공개) */}
+                  {/* 투표 결과 - 히스토그램 */}
                   {decision.aggregation && (decision.aggregation.totalVoters ?? 0) > 0 && (
                     <div className="mt-4 border-t border-[var(--axis-border-default)] pt-4">
-                      <div className="text-sm text-[var(--axis-text-tertiary)]">
-                        평균 점수: {(decision.aggregation.averageScore ?? 0).toFixed(1)} / 10
-                      </div>
+                      <VoteDistributionChart
+                        distribution={decision.aggregation.scoreDistribution || {}}
+                        averageScore={decision.aggregation.averageScore ?? 0}
+                        totalVoters={decision.aggregation.totalVoters ?? 0}
+                        myVoteScore={decision.myVote?.vote}
+                      />
+
+                      {/* 내 투표 표시 */}
+                      {decision.myVote && (
+                        <div className="mt-4 flex items-center gap-3 rounded-md bg-[var(--axis-surface-secondary)] p-3">
+                          <span className="text-sm text-[var(--axis-text-tertiary)]">내 투표:</span>
+                          <VoteScale score={decision.myVote.vote} size="sm" />
+                          {decision.myVote.comment && (
+                            <span className="text-sm text-[var(--axis-text-secondary)]">
+                              &ldquo;{decision.myVote.comment}&rdquo;
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

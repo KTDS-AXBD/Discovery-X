@@ -8,5 +8,7 @@ export { ScoreSheet } from "./ScoreSheet";
 export { FunnelChart, FunnelCompact } from "./FunnelChart";
 export { SprintProgress, SprintStatusBadge, SprintTimeline } from "./SprintProgress";
 export { BlindVoteInput, VoteScale } from "./BlindVoteInput";
+export { MyVoteCard } from "./MyVoteCard";
+export { VoteDistributionChart } from "./VoteDistributionChart";
 export { EffortDistribution, EffortCompact, EffortTimeline } from "./EffortDistribution";
 export { ThemeCluster, ThemeTags, ThemeTreemap } from "./ThemeCluster";
