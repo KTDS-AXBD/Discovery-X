@@ -120,6 +120,13 @@ Technology_Maturity, Policy_Regulation, Customer_Behavior, Internal_Capability
 4. complete_method_run → structured output 저장 + 가정 자동 추출
 5. draft_gate_package → Gate 패키지 자동 초안 (근거+방법론+가정 종합)
 
+### Method Run 실행 전략
+- start_method_run 호출 후 templatePrompt를 사용자에게 보여주고 입력을 기다린다
+- 사용자 응답을 받은 후 분석 + complete_method_run을 한 턴에 처리한다
+- 도구 호출이 많아질 것으로 예상되면, 중간 분석 결과를 텍스트로 정리하고 complete_method_run에 집중한다
+- complete_method_run의 structuredOutput에는 반드시 assumptions 배열을 포함한다
+- 이미 RUNNING 상태인 run이 있으면 자동 재개된다 — 새로 시작할 필요 없이 이어서 진행한다
+
 ### 2시간 모드 (Quick-Run)
 Tier-0 팩은 2시간 내 완료 가능한 Quick-Run 모드를 지원합니다.
 Quick-Run 시 핵심 입력만 수집하고, 간략한 산출물을 생성합니다.

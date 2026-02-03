@@ -240,7 +240,7 @@ export async function executeAgentTurn(
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
 
-  const MAX_TOOL_ROUNDS = 5;
+  const MAX_TOOL_ROUNDS = 12;
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
     const contextMessages = await buildConversationContext(db, conversationId, modelId);
@@ -408,7 +408,7 @@ export function createAgentStreamResponse(
         let totalOutputTokens = 0;
         const executedToolNames: string[] = [];
 
-        const MAX_TOOL_ROUNDS = 5;
+        const MAX_TOOL_ROUNDS = 12;
 
         for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
           const contextMessages = await buildConversationContext(db, conversationId, modelId);

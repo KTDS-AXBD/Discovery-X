@@ -176,8 +176,23 @@ export async function startMethodRun(
 
   if (existing.length > 0) {
     return JSON.stringify({
-      error: "이 방법론은 이미 실행 중입니다.",
-      existingRunId: existing[0].id,
+      resumed: true,
+      runId: existing[0].id,
+      message: "이미 실행 중인 방법론 run을 재개합니다.",
+      methodPack: {
+        id: pack[0].id,
+        nameKo: pack[0].nameKo,
+        tier: pack[0].tier,
+        requiredInputs: pack[0].requiredInputs,
+        outputArtifacts: pack[0].outputArtifacts,
+        evidenceMinimum: pack[0].evidenceMinimum,
+      },
+      templatePrompt: pack[0].templatePrompt || null,
+      discovery: {
+        id: discovery[0].id,
+        title: discovery[0].title,
+        status: discovery[0].status,
+      },
     });
   }
 

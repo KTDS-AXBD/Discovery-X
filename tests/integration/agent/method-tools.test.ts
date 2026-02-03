@@ -209,7 +209,7 @@ describe("Agent method-tools", () => {
       expect(result.error).toBeTruthy();
     });
 
-    it("중복 실행 거부 — 같은 discovery+pack RUNNING 존재 시", async () => {
+    it("RUNNING 재개 — 같은 discovery+pack RUNNING 존재 시 templatePrompt와 함께 반환", async () => {
       const disc = makeDiscovery({ id: "disc-1", status: "DISCOVERY" });
       db.insert(discoveries).values(disc).run();
 
@@ -232,8 +232,10 @@ describe("Agent method-tools", () => {
         })
       );
 
-      expect(result.error).toBeTruthy();
-      expect(result.existingRunId).toBe("run-1");
+      expect(result.resumed).toBe(true);
+      expect(result.runId).toBe("run-1");
+      expect(result.templatePrompt).toBeDefined();
+      expect(result.methodPack).toBeDefined();
     });
   });
 
