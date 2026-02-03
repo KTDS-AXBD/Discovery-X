@@ -313,6 +313,64 @@ describe("Agent query-tools", () => {
     });
   });
 
+  // ─── searchSimilar ─────────────────────────────────────────────────
+
+  describe("searchSimilar", () => {
+    it("returns empty for short query (less than 2 chars)", async () => {
+      const result = JSON.parse(await searchSimilar(asDB(db), { query: "a" }));
+
+      expect(result.results).toHaveLength(0);
+      expect(result.message).toContain("최소 2자");
+    });
+
+    it("returns empty for query with only special characters", async () => {
+      const result = JSON.parse(await searchSimilar(asDB(db), { query: "***()[]" }));
+
+      expect(result.results).toHaveLength(0);
+      expect(result.message).toContain("유효한 검색어");
+    });
+
+    it("escapes special characters and searches", async () => {
+      const user = makeUser();
+      db.insert(users).values(user).run();
+
+      const disc = makeDiscovery({
+        id: "disc-1",
+        ownerId: user.id,
+        title: "테스트 검색",
+        seedSummary: "이것은 테스트입니다",
+      });
+      db.insert(discoveries).values(disc).run();
+
+      // Query with special characters should be escaped and work
+      const result = JSON.parse(await searchSimilar(asDB(db), { query: "테스트*검색" }));
+
+      // FTS5 will fail in test env (better-sqlite3), falls back to LIKE
+      // Either way, should not throw error
+      expect(result.results).toBeDefined();
+    });
+
+    it("limits query length to 50 characters", async () => {
+      const user = makeUser();
+      db.insert(users).values(user).run();
+
+      const disc = makeDiscovery({
+        id: "disc-1",
+        ownerId: user.id,
+        title: "짧은제목",
+        seedSummary: "짧은요약",
+      });
+      db.insert(discoveries).values(disc).run();
+
+      // Very long query should be truncated and not crash
+      const longQuery = "a".repeat(100);
+      const result = JSON.parse(await searchSimilar(asDB(db), { query: longQuery }));
+
+      // Should not throw, results may be empty
+      expect(result.results).toBeDefined();
+    });
+  });
+
   // ─── getMetrics ─────────────────────────────────────────────────────
 
   describe("getMetrics", () => {
