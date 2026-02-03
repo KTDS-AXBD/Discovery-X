@@ -253,7 +253,7 @@ Validation:
 **🚀 v3 Ontology Ready AI Platform 운영 중 (2026-02-01~)**
 
 v3 R0 (11단계 파이프라인) + R1 (Method Pack) + R2 (Ontology Graph) + R3a (KPI/링크/거버넌스) + R3b (알림/웹훅) 구현 완료.
-프로덕션 운영 중, 전체 256개 테스트 통과.
+프로덕션 운영 중, 전체 338개 테스트 통과. Agent 도구 8개 파일 전체 테스트 커버.
 
 ### PRD P0 구현 상태
 
@@ -274,15 +274,20 @@ v3 R0 (11단계 파이프라인) + R1 (Method Pack) + R2 (Ontology Graph) + R3a 
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 78)
+### 최근 변경 (세션 79)
+**테스트 커버리지 확장 Phase 5 — Agent 도구 전체 커버**:
+- ✅ `indicator-tools.test.ts` (신규 19건): registerKpi(4), recordKpiMeasurement(5), getKpiStatus(4), getPipelineHealth(6)
+- ✅ `connector-tools.test.ts` (신규 15건): linkDiscoveries(9), getLinkedDiscoveries(6)
+- ✅ `governance-tools.test.ts` (신규 16건): requestGateApproval(6), submitGateApproval(10)
+- ✅ `alert-tools.test.ts` (신규 32건): getAlerts(8), acknowledgeAlert(4), manageWebhook(20)
+- ✅ `vite.config.ts`: @axis-ds/ui-react SSR 번들링 + React dedupe 설정
+- 전체 338개 테스트 통과 (기존 256 + 신규 82)
+- **Agent 도구 8개 파일 전체 테스트 커버 완료**
+
+### 이전 변경 (세션 78)
 **searchSimilar LIKE 패턴 에러 수정**:
 - ✅ `query-tools.ts`: searchSimilar 입력 검증 + 특수문자 이스케이프
-  - D1 LIKE pattern too complex 에러 방지
-  - 최소 2자 검증 + 특수문자(`'"*(){}[]^~\\%_`) 제거
-  - 길이 50자 제한 (LIKE 패턴 복잡도 방지)
-  - FTS5 쿼리 시 따옴표로 안전하게 감싸기
 - ✅ `query-tools.test.ts`: searchSimilar 테스트 4개 추가
-  - 짧은 쿼리/특수문자만/이스케이프/긴 쿼리 테스트
 - 전체 256개 테스트 통과 (기존 252 + 신규 4)
 
 ### 이전 변경 (세션 77)
@@ -457,7 +462,7 @@ v3 R0 (11단계 파이프라인) + R1 (Method Pack) + R2 (Ontology Graph) + R3a 
 | **Brief 내보내기** | ✅ | `/api/export/brief/:id` — 1-pager Brief 다운로드 |
 | **JSON Export** | ✅ | `/api/export/discoveries-json` — 전체 Discovery JSON |
 | **운영 준비 문서** | ✅ | 킥오프 템플릿, 운영 런북, 치트시트 |
-| **테스트 인프라** | ✅ | Vitest + Playwright, 전체 256개 통과 (unit 76 + DB 스모크 15 + Agent 도구 통합 112 + 기존 integration 53) |
+| **테스트 인프라** | ✅ | Vitest + Playwright, 전체 338개 통과 (unit 76 + DB 스모크 15 + Agent 도구 통합 194 + 기존 integration 53) |
 | **Reviewer 승인 워크플로우** | ✅ | DB 스키마 + validation + approve 라우트 + 이메일 알림 |
 | **유사 Seed 검색** | ✅ | `/api/similar-seeds` + 생성 폼 실시간 유사 Discovery 표시 |
 | **고급 지표** | ✅ | Failure Pattern 재사용률, Owner 부하, Evidence 품질 |
@@ -532,8 +537,9 @@ v3 R0 (11단계 파이프라인) + R1 (Method Pack) + R2 (Ontology Graph) + R3a 
 | **Agent 채팅 품질 튜닝** | ✅ | 시스템 프롬프트 3개 섹션 + 도구 description 보강 + 컨텍스트 요약 개선 + 에러 처리 세분화 |
 | **Audit Log EVENT_TYPE_MAP 30종** | ✅ | Web form UPPER_CASE + Agent snake_case + Cron + Radar 전체 매핑 |
 | **UI 토큰 정리 + 접근성** | ✅ | destructive/warning/event/severity 토큰 21개, ARIA 속성 10+개, fadeSlideIn 정의 |
-| **테스트 커버리지 확장** | ✅ | DB 스모크 15 + Agent discovery-tools 52 + method-tools 20 + ontology-tools 21 → 전체 237개 통과 |
+| **테스트 커버리지 확장** | ✅ | DB 스모크 15 + Agent 도구 8개 파일 194건 (discovery 52 + query 19 + method 20 + ontology 21 + indicator 19 + connector 15 + governance 16 + alert 32) |
 | **Method Run 중단 버그 수정** | ✅ | MAX_TOOL_ROUNDS 5→12, RUNNING run 재개 시 templatePrompt 반환, 시스템 프롬프트에 실행 전략 추가 |
 | **Experiment 반자동 추천** | ✅ | get_experiment_context 도구 + 실험 설계 가이드 + 테스트 15개 (query-tools.test.ts) |
 | **searchSimilar LIKE 에러 수정** | ✅ | 입력 검증 + 특수문자 이스케이프 + 길이 제한 + 테스트 4개 |
+| **Agent 도구 전체 테스트 커버** | ✅ | indicator/connector/governance/alert 4개 파일 82건 추가 → 전체 338개 |
 
