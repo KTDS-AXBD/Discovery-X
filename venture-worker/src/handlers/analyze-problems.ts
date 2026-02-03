@@ -90,7 +90,7 @@ export const analyzeProblemsHandler: TaskHandler = {
     }
 
     // 1. 신호 조회
-    const signals = await getSignals(env.DB, sprintId, input.signalIds);
+    const signals = await getSignals(env.DB, sprintId, input?.signalIds);
     if (signals.length === 0) {
       return { problemsCreated: 0, message: "No signals found" };
     }
