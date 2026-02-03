@@ -15,6 +15,7 @@ import type {
   VdPremortem,
   VdArtifact,
   VdWorkEvent,
+  VdScore,
 } from "../types";
 
 // ============================================================================
@@ -160,6 +161,71 @@ export function calculateDepthScore(input: DepthScoreInput): VdDepthScoreBreakdo
     executionClarity,
     total: evidenceDepth + assumptionCoverage + riskReadiness + executionClarity,
   };
+}
+
+// ============================================================================
+// POTENTIAL SCORE (0-100)
+// ============================================================================
+
+/**
+ * Potential Score (0-100)
+ * - vd_scores 테이블의 'potential' dimension 점수 평균
+ * - 점수가 없으면 Evidence 기반 휴리스틱 (강도 A/B 비율 × 80 + 20)
+ *
+ * @param scores - vd_scores 테이블에서 조회한 점수 배열
+ * @param evidences - 기회와 연결된 근거 배열
+ * @returns 0-100 사이의 Potential Score
+ */
+export function calculatePotentialScore(
+  scores: VdScore[],
+  evidences: VdEvidence[]
+): number {
+  // 1. Gate 점수(potential dimension)가 있으면 평균값 사용
+  const potentialScores = scores.filter((s) => s.dimension === "potential");
+  if (potentialScores.length > 0) {
+    const sum = potentialScores.reduce((acc, s) => acc + s.value, 0);
+    return Math.round(sum / potentialScores.length);
+  }
+
+  // 2. 없으면 Evidence A/B급 비율 기반 휴리스틱
+  if (evidences.length === 0) {
+    return 20; // 최소 20점 보장
+  }
+
+  const strongEvidences = evidences.filter(
+    (e) => e.strength === "A" || e.strength === "B"
+  );
+  const ratio = strongEvidences.length / evidences.length;
+
+  // 비율 × 80 + 20 (최소 20점, 최대 100점)
+  return Math.round(ratio * 80 + 20);
+}
+
+// ============================================================================
+// CONFIDENCE SCORE (0-100)
+// ============================================================================
+
+/**
+ * Confidence Score (0-100)
+ * - Depth 요소 가중 합: Evidence(50%) + Assumption(30%) + Risk(20%)
+ * - 각 요소를 100점 만점으로 정규화하여 가중 합산
+ *
+ * @param depthBreakdown - calculateDepthScore()에서 반환된 세부 점수
+ * @returns 0-100 사이의 Confidence Score
+ */
+export function calculateConfidenceScore(
+  depthBreakdown: VdDepthScoreBreakdown
+): number {
+  // 각 요소의 최대값 기준 정규화
+  const evidenceNormalized = (depthBreakdown.evidenceDepth / 40) * 100; // 최대 40점
+  const assumptionNormalized = (depthBreakdown.assumptionCoverage / 25) * 100; // 최대 25점
+  const riskNormalized = (depthBreakdown.riskReadiness / 15) * 100; // 최대 15점
+
+  // 가중 합: Evidence 50% + Assumption 30% + Risk 20%
+  const confidence =
+    evidenceNormalized * 0.5 + assumptionNormalized * 0.3 + riskNormalized * 0.2;
+
+  return Math.round(confidence);
 }
 
 // ============================================================================

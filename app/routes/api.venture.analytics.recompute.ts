@@ -25,9 +25,12 @@ import {
 } from "~/features/venture/repositories/analytics.repository";
 import {
   calculateDepthScore,
+  calculatePotentialScore,
+  calculateConfidenceScore,
   calculateNextRoi,
   rankOpportunities,
 } from "~/features/venture/domain/scoring-policy";
+import { listScoresByOpportunity } from "~/features/venture/repositories/opportunity.repository";
 import type { VdAnalyticsData } from "~/features/venture/types";
 
 export async function action({ request, context }: ActionFunctionArgs) {
@@ -125,12 +128,13 @@ async function computeSprintAnalytics(db: ReturnType<typeof getDb>, sprintId: st
     getWorkEventCountByActor(db, sprintId),
   ]);
 
-  // 각 기회의 Depth Score 계산 및 업데이트
+  // 각 기회의 Depth/Potential/Confidence Score 계산 및 업데이트
   const opportunityScores = await Promise.all(
     opportunities.map(async (opp) => {
       const full = await getOpportunityFull(db, opp.id);
       if (!full) return null;
 
+      // Depth Score 계산
       const depthBreakdown = calculateDepthScore({
         evidences: full.evidences,
         assumptions: full.assumptions,
@@ -139,18 +143,31 @@ async function computeSprintAnalytics(db: ReturnType<typeof getDb>, sprintId: st
         opportunity: opp,
       });
 
+      // vd_scores 테이블에서 Gate 점수 조회
+      const scores = await listScoresByOpportunity(db, opp.id);
+
+      // Potential Score 자동 계산 (Gate 점수 또는 Evidence 기반)
+      const potentialScore = calculatePotentialScore(scores, full.evidences);
+
+      // Confidence Score 자동 계산 (Depth 요소 기반)
+      const confidenceScore = calculateConfidenceScore(depthBreakdown);
+
+      // Next-ROI 추천 계산
       const nextRoi = calculateNextRoi({
-        potentialScore: opp.potentialScore || 50,
-        confidenceScore: opp.confidenceScore || 50,
+        potentialScore,
+        confidenceScore,
         depthScore: depthBreakdown.total,
         effortScore: opp.effortScore || 0,
         unknowns: full.assumptions.filter((a) => a.status === "OPEN").length,
       });
 
-      // DB 업데이트
+      // DB 업데이트 (Potential, Confidence, Depth 모두 업데이트)
       await updateOpportunity(db, opp.id, {
+        potentialScore,
+        confidenceScore,
         depthScore: depthBreakdown.total,
         effortScore: opp.effortScore || 0,
+        recommendation: nextRoi.recommendation,
       });
 
       return {
