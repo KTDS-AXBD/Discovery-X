@@ -111,7 +111,7 @@ const RUN_STATUS_VARIANT: Record<string, "warning" | "success" | "destructive"> 
   [RadarRunStatus.FAILED]: "destructive",
 };
 
-function formatDateLocalLocal(timestamp: string | number | Date | null) {
+function formatDateLocal(timestamp: string | Date | null) {
   if (!timestamp) return "-";
   return formatDateLocalTime(timestamp);
 }
