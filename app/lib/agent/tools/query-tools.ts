@@ -329,17 +329,41 @@ export async function searchSimilar(
   db: DB,
   input: { query: string }
 ): Promise<string> {
+  // 1. 입력 정규화
+  const q = (input.query || "").trim();
+  if (q.length < 2) {
+    return JSON.stringify({
+      results: [],
+      message: "검색어가 너무 짧습니다 (최소 2자)",
+    });
+  }
+
+  // 2. 특수문자 이스케이프 (FTS5 + LIKE 공통)
+  const escaped = q.replace(/['"*(){}[\]^~\\%_]/g, "");
+  if (!escaped) {
+    return JSON.stringify({
+      results: [],
+      message: "유효한 검색어가 없습니다",
+    });
+  }
+
+  // 3. 길이 제한 (LIKE 패턴 복잡도 방지)
+  const safeQuery = escaped.slice(0, 50);
+
   try {
+    // FTS5 시도
+    const ftsQuery = `"${safeQuery}"`;
     const results = await db.all(
       sql`SELECT d.id, d.title, d.seed_summary, d.status
           FROM discovery_fts fts
           JOIN discoveries d ON d.id = fts.rowid
-          WHERE discovery_fts MATCH ${input.query}
+          WHERE discovery_fts MATCH ${ftsQuery}
           LIMIT 10`
     );
     return JSON.stringify({ results });
   } catch {
-    // FTS5 not available, fall back to LIKE
+    // FTS5 not available, fall back to LIKE (안전한 패턴)
+    const likePattern = `%${safeQuery}%`;
     const results = await db
       .select({
         id: discoveries.id,
@@ -348,7 +372,9 @@ export async function searchSimilar(
         status: discoveries.status,
       })
       .from(discoveries)
-      .where(sql`${discoveries.title} LIKE ${'%' + input.query + '%'} OR ${discoveries.seedSummary} LIKE ${'%' + input.query + '%'}`)
+      .where(
+        sql`${discoveries.title} LIKE ${likePattern} OR ${discoveries.seedSummary} LIKE ${likePattern}`
+      )
       .limit(10);
     return JSON.stringify({ results });
   }
