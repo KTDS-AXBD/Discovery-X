@@ -119,18 +119,19 @@ export const prepareGateHandler: TaskHandler = {
 
   async execute(env: Env, task: VdTaskQueueItem): Promise<Record<string, unknown>> {
     const input = task.input as PrepareGateInput | null;
-    if (!input?.sprintId || !input?.gateType) {
+    const sprintId = input?.sprintId || task.sprintId;
+    if (!sprintId || !input?.gateType) {
       throw new Error("sprintId and gateType are required");
     }
 
     // 1. Sprint 정보 조회
-    const sprint = await getSprint(env.DB, input.sprintId);
+    const sprint = await getSprint(env.DB, sprintId);
     if (!sprint) {
-      throw new Error(`Sprint not found: ${input.sprintId}`);
+      throw new Error(`Sprint not found: ${sprintId}`);
     }
 
     // 2. 기회 조회 (Gate 타입에 따라 필터)
-    const opportunities = await getOpportunities(env.DB, input.sprintId);
+    const opportunities = await getOpportunities(env.DB, sprintId);
 
     let filteredOpportunities = opportunities;
     if (input.gateType === "GATE2") {
@@ -143,7 +144,7 @@ export const prepareGateHandler: TaskHandler = {
     }
 
     // 3. 테마 조회
-    const themes = await getThemes(env.DB, input.sprintId);
+    const themes = await getThemes(env.DB, sprintId);
     const themeMap = new Map(themes.map((t) => [t.id, t.name]));
 
     // 4. 프롬프트 구성
@@ -194,7 +195,7 @@ ${opportunityDescriptions.join("\n\n")}
 
     await insertDecision(env.DB, {
       id: decisionId,
-      sprint_id: input.sprintId,
+      sprint_id: sprintId,
       decision_type: decisionType,
       status: "PENDING",
       agent_recommendation: JSON.stringify({
@@ -215,7 +216,7 @@ ${opportunityDescriptions.join("\n\n")}
     // 7. Work Event 기록
     await insertWorkEvent(env.DB, {
       id: generateUUID(),
-      sprintId: input.sprintId,
+      sprintId: sprintId,
       eventType: "GATE_PREPARED",
       actorType: "agent",
       entityType: "decision",

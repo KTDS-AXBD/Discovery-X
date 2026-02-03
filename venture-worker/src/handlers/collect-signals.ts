@@ -76,12 +76,13 @@ export const collectSignalsHandler: TaskHandler = {
 
   async execute(env: Env, task: VdTaskQueueItem): Promise<Record<string, unknown>> {
     const input = task.input as CollectSignalsInput | null;
-    if (!input?.sprintId) {
+    const sprintId = input?.sprintId || task.sprintId;
+    if (!sprintId) {
       throw new Error("sprintId is required");
     }
 
     // 1. Scope 조회
-    const scopes = await getSprintScopes(env.DB, input.sprintId, true);
+    const scopes = await getSprintScopes(env.DB, sprintId, true);
     if (scopes.length === 0) {
       return { signalsCreated: 0, message: "No selected scopes found" };
     }
@@ -123,7 +124,7 @@ ${scopeDescriptions.map((s, i) => `${i + 1}. ${s}`).join("\n")}
 
       await insertSignal(env.DB, {
         id: signalId,
-        sprint_id: input.sprintId,
+        sprint_id: sprintId,
         signal_type: signal.signalType,
         title: signal.title,
         summary: signal.summary,
@@ -140,7 +141,7 @@ ${scopeDescriptions.map((s, i) => `${i + 1}. ${s}`).join("\n")}
     // 5. Work Event 기록
     await insertWorkEvent(env.DB, {
       id: generateUUID(),
-      sprintId: input.sprintId,
+      sprintId: sprintId,
       eventType: "SIGNALS_COLLECTED",
       actorType: "agent",
       entityType: "task",

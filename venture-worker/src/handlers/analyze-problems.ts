@@ -84,12 +84,13 @@ export const analyzeProblemsHandler: TaskHandler = {
 
   async execute(env: Env, task: VdTaskQueueItem): Promise<Record<string, unknown>> {
     const input = task.input as AnalyzeProblemsInput | null;
-    if (!input?.sprintId) {
+    const sprintId = input?.sprintId || task.sprintId;
+    if (!sprintId) {
       throw new Error("sprintId is required");
     }
 
     // 1. 신호 조회
-    const signals = await getSignals(env.DB, input.sprintId, input.signalIds);
+    const signals = await getSignals(env.DB, sprintId, input.signalIds);
     if (signals.length === 0) {
       return { problemsCreated: 0, message: "No signals found" };
     }
@@ -133,7 +134,7 @@ ${signalDescriptions.join("\n\n")}
 
       await insertProblem(env.DB, {
         id: problemId,
-        sprint_id: input.sprintId,
+        sprint_id: sprintId,
         statement: problem.statement,
         severity: problem.severity,
         frequency: problem.frequency,
@@ -148,7 +149,7 @@ ${signalDescriptions.join("\n\n")}
     // 5. Work Event 기록
     await insertWorkEvent(env.DB, {
       id: generateUUID(),
-      sprintId: input.sprintId,
+      sprintId: sprintId,
       eventType: "PROBLEMS_ANALYZED",
       actorType: "agent",
       entityType: "task",

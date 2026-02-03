@@ -197,12 +197,13 @@ export const generateDeepDiveHandler: TaskHandler = {
 
   async execute(env: Env, task: VdTaskQueueItem): Promise<Record<string, unknown>> {
     const input = task.input as GenerateDeepDiveInput | null;
-    if (!input?.sprintId || !input?.opportunityIds?.length) {
+    const sprintId = input?.sprintId || task.sprintId;
+    if (!sprintId || !input?.opportunityIds?.length) {
       throw new Error("sprintId and opportunityIds are required");
     }
 
     // 1. 기회 조회
-    const opportunities = await getOpportunities(env.DB, input.sprintId, input.opportunityIds);
+    const opportunities = await getOpportunities(env.DB, sprintId, input.opportunityIds);
     if (opportunities.length === 0) {
       return { deepDivesCreated: 0, message: "No opportunities found" };
     }
@@ -278,7 +279,7 @@ export const generateDeepDiveHandler: TaskHandler = {
     // 7. Work Event 기록
     await insertWorkEvent(env.DB, {
       id: generateUUID(),
-      sprintId: input.sprintId,
+      sprintId: sprintId,
       eventType: "DEEPDIVE_GENERATED",
       actorType: "agent",
       entityType: "task",

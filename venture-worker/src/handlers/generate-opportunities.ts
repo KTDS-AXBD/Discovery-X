@@ -76,12 +76,13 @@ export const generateOpportunitiesHandler: TaskHandler = {
 
   async execute(env: Env, task: VdTaskQueueItem): Promise<Record<string, unknown>> {
     const input = task.input as GenerateOpportunitiesInput | null;
-    if (!input?.sprintId) {
+    const sprintId = input?.sprintId || task.sprintId;
+    if (!sprintId) {
       throw new Error("sprintId is required");
     }
 
     // 1. 문제 조회
-    const problems = await getProblems(env.DB, input.sprintId, input.problemIds);
+    const problems = await getProblems(env.DB, sprintId, input?.problemIds);
     if (problems.length === 0) {
       return { opportunitiesCreated: 0, message: "No problems found" };
     }
@@ -128,7 +129,7 @@ ${problemDescriptions.join("\n\n")}
 
       await insertOpportunity(env.DB, {
         id: opportunityId,
-        sprint_id: input.sprintId,
+        sprint_id: sprintId,
         theme_id: null,
         title: opportunity.title,
         description: opportunity.description,
@@ -151,7 +152,7 @@ ${problemDescriptions.join("\n\n")}
     // 5. Work Event 기록
     await insertWorkEvent(env.DB, {
       id: generateUUID(),
-      sprintId: input.sprintId,
+      sprintId: sprintId,
       eventType: "OPPORTUNITIES_GENERATED",
       actorType: "agent",
       entityType: "task",

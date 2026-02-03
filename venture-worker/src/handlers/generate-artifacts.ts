@@ -122,12 +122,13 @@ export const generateArtifactsHandler: TaskHandler = {
 
   async execute(env: Env, task: VdTaskQueueItem): Promise<Record<string, unknown>> {
     const input = task.input as GenerateArtifactsInput | null;
-    if (!input?.sprintId || !input?.opportunityIds?.length || !input?.artifactTypes?.length) {
+    const sprintId = input?.sprintId || task.sprintId;
+    if (!sprintId || !input?.opportunityIds?.length || !input?.artifactTypes?.length) {
       throw new Error("sprintId, opportunityIds, and artifactTypes are required");
     }
 
     // 1. 기회 조회
-    const opportunities = await getOpportunities(env.DB, input.sprintId, input.opportunityIds);
+    const opportunities = await getOpportunities(env.DB, sprintId, input.opportunityIds);
     if (opportunities.length === 0) {
       return { artifactsCreated: 0, message: "No opportunities found" };
     }
@@ -194,7 +195,7 @@ ${promptSuffix}`;
     // 5. Work Event 기록
     await insertWorkEvent(env.DB, {
       id: generateUUID(),
-      sprintId: input.sprintId,
+      sprintId: sprintId,
       eventType: "ARTIFACTS_GENERATED",
       actorType: "agent",
       entityType: "task",

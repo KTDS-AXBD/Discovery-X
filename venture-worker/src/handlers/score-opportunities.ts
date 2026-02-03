@@ -109,12 +109,13 @@ export const scoreOpportunitiesHandler: TaskHandler = {
 
   async execute(env: Env, task: VdTaskQueueItem): Promise<Record<string, unknown>> {
     const input = task.input as ScoreOpportunitiesInput | null;
-    if (!input?.sprintId) {
+    const sprintId = input?.sprintId || task.sprintId;
+    if (!sprintId) {
       throw new Error("sprintId is required");
     }
 
     // 1. 기회 조회
-    const opportunities = await getOpportunities(env.DB, input.sprintId, input.opportunityIds);
+    const opportunities = await getOpportunities(env.DB, sprintId, input?.opportunityIds);
     if (opportunities.length === 0) {
       return { opportunitiesScored: 0, message: "No opportunities found" };
     }
@@ -171,7 +172,7 @@ ${opportunityDescriptions.join("\n\n")}
     // 5. Work Event 기록
     await insertWorkEvent(env.DB, {
       id: generateUUID(),
-      sprintId: input.sprintId,
+      sprintId: sprintId,
       eventType: "OPPORTUNITIES_SCORED",
       actorType: "agent",
       entityType: "task",
