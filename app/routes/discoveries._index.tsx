@@ -29,8 +29,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const statusFilter = url.searchParams.get("status");
 
-  const now = new Date();
-
   // Query discoveries with optional status filter
   let allDiscoveries;
   if (statusFilter === "OVERDUE") {
