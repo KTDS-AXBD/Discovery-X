@@ -1,0 +1,10 @@
+# Copy this file to .dev.vars and fill in the values
+# .dev.vars is for local development with wrangler
+
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+SESSION_SECRET=your-session-secret-at-least-32-chars
+ANTHROPIC_API_KEY=sk-ant-xxxxx
+OPENAI_API_KEY=sk-xxxxx
+RESEND_API_KEY=re_xxxxx
+CRON_SECRET=your-cron-secret
