@@ -413,13 +413,14 @@ Validation:
 > **이 섹션은 매 세션마다 업데이트한다.**
 
 ### 현재 단계
-**🚀 v4 Venture Discovery Sprint 개발 중 (2026-02-03~)**
+**🚀 v4 Venture Discovery Sprint MVP 구현 완료 (2026-02-03)**
 
-v3 R0~R3b 완료 후, v4 Venture Discovery Sprint 추가 개발 시작.
-- vd_* 18개 테이블 스키마 설계 완료 (DevSpec v0.3 반영)
-- 도메인 모듈 구조 설계 완료 (types/constants/schemas/domain/worker/repositories/ui)
-- `/venture/*` 라우트 구조 설계 완료
-- Epic 구조 티켓 분해 완료 (A~F: 라우팅/스키마/서비스/API/워커/Analytics)
+v3 R0~R3b 완료 후, v4 Venture Discovery Sprint MVP 구현 완료.
+- ✅ vd_* 16개 테이블 스키마 완성 (DB 레벨)
+- ✅ 도메인 모듈 전체 구현 완료 (types/constants/schemas/domain/repositories/ui)
+- ✅ `/venture/*` 라우트 17개 구현 완료 (페이지 13개 + API 4개)
+- ✅ UI 컴포넌트 8개 구현 완료
+- 📋 venture-worker (D1 폴링 큐 기반) 구현 대기
 
 ### PRD P0 구현 상태
 
@@ -440,7 +441,19 @@ v3 R0~R3b 완료 후, v4 Venture Discovery Sprint 추가 개발 시작.
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 81)
+### 최근 변경 (세션 82)
+**v4 Venture Discovery Sprint MVP 구현 완료**:
+- ✅ `app/features/venture/types.ts`: 공유 타입 정의 완료
+- ✅ `app/features/venture/constants/`: sprint-status, decision-types, evaluation-criteria, task-types
+- ✅ `app/features/venture/schemas/`: sprint, opportunity, decision Zod 스키마
+- ✅ `app/features/venture/domain/`: sprint-state-machine, scoring-policy
+- ✅ `app/features/venture/repositories/`: sprint, opportunity, decision, signal, analytics, task-queue (6개)
+- ✅ `app/routes/venture.*.tsx`: 페이지 라우트 13개 (overview, sprints, gate, analytics 등)
+- ✅ `app/routes/api.venture.*.ts`: API 라우트 4개 (tasks.claim, tasks.report, decisions.propose, analytics.recompute)
+- ✅ `app/features/venture/ui/`: 재사용 컴포넌트 8개 (OpportunityCard, DecisionCard, ScoreSheet 등)
+- 빌드/타입체크 통과 확인
+
+### 이전 변경 (세션 81)
 **v4 PRD v0.3 DevSpec 반영**:
 - ✅ `SPEC.md` §1: In-scope에 Epic 구조 티켓 분해 언급
 - ✅ `SPEC.md` §3: vd_* 테이블 16개 → 18개 (sprint_members, theme_memberships, rubric_templates 추가)
@@ -452,8 +465,6 @@ v3 R0~R3b 완료 후, v4 Venture Discovery Sprint 추가 개발 시작.
 **v4 Venture Discovery Sprint 구현 시작**:
 - ✅ `SPEC.md`: v4 섹션 추가 (§1 In-scope, §2 Flow H + UI, §3 도메인 모듈/vd_* 테이블/상태 전환)
 - ✅ `app/features/venture/db/schema.ts`: vd_* 16개 테이블 스키마 구현 완료
-- 🔄 도메인 모듈 (types/constants/schemas/domain/repositories) 구현 중
-- 🔄 `/venture/*` 라우트 구현 중
 
 ### 이전 변경 (세션 79)
 **테스트 커버리지 확장 Phase 5 — Agent 도구 전체 커버**:
