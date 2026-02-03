@@ -3,18 +3,23 @@
  * /venture/sprints/:sprintId/packaging
  */
 
-import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
-import { Link, useLoaderData } from "@remix-run/react";
+import { Form, Link, useLoaderData, useNavigation } from "@remix-run/react";
 import { getDb } from "~/db";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { Badge } from "~/components/ui/Badge";
 import { Button } from "~/components/ui/Button";
-import { getSprintById } from "~/features/venture/repositories/sprint.repository";
+import { getSprintById, updateSprintStatus } from "~/features/venture/repositories/sprint.repository";
 import {
   listOpportunitiesBySprint,
   listArtifactsByOpportunity,
+  updateArtifact,
+  createArtifact,
 } from "~/features/venture/repositories/opportunity.repository";
+import { enqueueTask } from "~/features/venture/repositories/task-queue.repository";
+import { createWorkEvent } from "~/features/venture/repositories/analytics.repository";
+import { createArtifactSchema, updateArtifactSchema } from "~/features/venture/schemas/opportunity.schema";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -55,8 +60,147 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   return json({ sprint, opportunities: opportunitiesWithArtifacts });
 }
 
+export async function action({ request, context, params }: ActionFunctionArgs) {
+  const db = getDb(context.cloudflare.env.DB);
+  const secret = getSessionSecret(context.cloudflare.env);
+  const user = await getUserFromSession(request, db, secret);
+
+  if (!user) {
+    return redirect("/login");
+  }
+
+  const { sprintId } = params;
+  if (!sprintId) {
+    return json({ error: "Sprint ID required" }, { status: 400 });
+  }
+
+  const formData = await request.formData();
+  const intent = formData.get("intent") as string;
+
+  // Artifact 추가
+  if (intent === "addArtifact") {
+    const opportunityId = formData.get("opportunityId") as string;
+    const artifactType = formData.get("artifactType") as string;
+    const title = formData.get("title") as string;
+
+    const parseResult = createArtifactSchema.safeParse({
+      artifactType,
+      title,
+    });
+
+    if (!parseResult.success) {
+      return json({ error: parseResult.error.errors[0].message }, { status: 400 });
+    }
+
+    await createArtifact(db, opportunityId, parseResult.data);
+
+    await createWorkEvent(db, sprintId, {
+      eventType: "artifact_create",
+      actorType: "human",
+      actorId: user.id,
+      entityType: "artifact",
+    });
+
+    return json({ success: true });
+  }
+
+  // Artifact 수정
+  if (intent === "updateArtifact") {
+    const artifactId = formData.get("artifactId") as string;
+    const title = formData.get("title") as string;
+    const contentJson = formData.get("content") as string;
+
+    let content;
+    if (contentJson) {
+      try {
+        content = JSON.parse(contentJson);
+      } catch {
+        return json({ error: "유효하지 않은 JSON 형식입니다" }, { status: 400 });
+      }
+    }
+
+    const parseResult = updateArtifactSchema.safeParse({
+      title: title || undefined,
+      content,
+    });
+
+    if (!parseResult.success) {
+      return json({ error: parseResult.error.errors[0].message }, { status: 400 });
+    }
+
+    await updateArtifact(db, artifactId, parseResult.data);
+
+    await createWorkEvent(db, sprintId, {
+      eventType: "artifact_update",
+      actorType: "human",
+      actorId: user.id,
+      entityType: "artifact",
+      entityId: artifactId,
+    });
+
+    return json({ success: true });
+  }
+
+  // 산출물 생성 AI 트리거
+  if (intent === "triggerPackaging") {
+    const opportunityIds = formData.getAll("opportunityIds") as string[];
+    const artifactTypes = formData.getAll("artifactTypes") as string[];
+
+    if (opportunityIds.length === 0) {
+      return json({ error: "기회를 선택해주세요" }, { status: 400 });
+    }
+
+    const types = artifactTypes.length > 0 ? artifactTypes : ["PITCH_DECK", "ONE_PAGER", "EXECUTIVE_SUMMARY"];
+
+    const task = await enqueueTask(db, sprintId, {
+      taskType: "GENERATE_ARTIFACTS",
+      input: { sprintId, opportunityIds, artifactTypes: types },
+      dedupeKey: `artifacts-${sprintId}-${opportunityIds.sort().join("-")}-${types.sort().join("-")}`,
+    });
+
+    await createWorkEvent(db, sprintId, {
+      eventType: "task_enqueue",
+      actorType: "human",
+      actorId: user.id,
+      entityType: "task",
+      entityId: task.id,
+      metadata: { taskType: "GENERATE_ARTIFACTS", opportunityIds, artifactTypes: types },
+    });
+
+    return json({ success: true, taskId: task.id });
+  }
+
+  // 스프린트 완료
+  if (intent === "completeSprint") {
+    const sprint = await getSprintById(db, sprintId);
+    if (!sprint) {
+      return json({ error: "스프린트를 찾을 수 없습니다" }, { status: 404 });
+    }
+
+    if (sprint.status !== "RUNNING") {
+      return json({ error: "실행 중인 스프린트만 완료할 수 있습니다" }, { status: 400 });
+    }
+
+    await updateSprintStatus(db, sprintId, "COMPLETED");
+
+    await createWorkEvent(db, sprintId, {
+      eventType: "sprint_complete",
+      actorType: "human",
+      actorId: user.id,
+      entityType: "sprint",
+      entityId: sprintId,
+    });
+
+    return json({ success: true });
+  }
+
+  return json({ error: "Unknown intent" }, { status: 400 });
+}
+
 export default function VentureSprintPackaging() {
   const { sprint, opportunities } = useLoaderData<typeof loader>();
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
 
   if (opportunities.length === 0) {
     return (
@@ -76,6 +220,30 @@ export default function VentureSprintPackaging() {
 
   return (
     <div className="space-y-6">
+      {/* AI 문서 생성 트리거 섹션 */}
+      <div className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-medium text-[var(--axis-text-primary)]">AI 문서 생성</h3>
+            <p className="text-sm text-[var(--axis-text-tertiary)]">
+              Final 기회에 대해 피치 덱, 1-Pager, Executive Summary를 AI가 생성합니다.
+            </p>
+          </div>
+          <Form method="post">
+            <input type="hidden" name="intent" value="triggerPackaging" />
+            {opportunities.map((opp) => (
+              <input key={opp.id} type="hidden" name="opportunityIds" value={opp.id} />
+            ))}
+            <input type="hidden" name="artifactTypes" value="PITCH_DECK" />
+            <input type="hidden" name="artifactTypes" value="ONE_PAGER" />
+            <input type="hidden" name="artifactTypes" value="EXECUTIVE_SUMMARY" />
+            <Button type="submit" disabled={isSubmitting || opportunities.length === 0}>
+              {isSubmitting ? "생성 중..." : `문서 생성 (${opportunities.length}개)`}
+            </Button>
+          </Form>
+        </div>
+      </div>
+
       <p className="text-sm text-[var(--axis-text-tertiary)]">
         Final 기회에 대해 피치 덱, 1-pager, 요약 문서를 작성합니다.
       </p>
@@ -147,9 +315,14 @@ export default function VentureSprintPackaging() {
                   5~7장 슬라이드 구성
                 </p>
                 {!opp.hasPitchDeck && (
-                  <Button variant="secondary" size="sm" className="mt-2" disabled>
-                    생성 (준비중)
-                  </Button>
+                  <Form method="post" className="mt-2">
+                    <input type="hidden" name="intent" value="triggerPackaging" />
+                    <input type="hidden" name="opportunityIds" value={opp.id} />
+                    <input type="hidden" name="artifactTypes" value="PITCH_DECK" />
+                    <Button type="submit" variant="secondary" size="sm" disabled={isSubmitting}>
+                      생성
+                    </Button>
+                  </Form>
                 )}
               </div>
 
@@ -173,9 +346,14 @@ export default function VentureSprintPackaging() {
                   1페이지 요약 문서
                 </p>
                 {!opp.hasOnePager && (
-                  <Button variant="secondary" size="sm" className="mt-2" disabled>
-                    생성 (준비중)
-                  </Button>
+                  <Form method="post" className="mt-2">
+                    <input type="hidden" name="intent" value="triggerPackaging" />
+                    <input type="hidden" name="opportunityIds" value={opp.id} />
+                    <input type="hidden" name="artifactTypes" value="ONE_PAGER" />
+                    <Button type="submit" variant="secondary" size="sm" disabled={isSubmitting}>
+                      생성
+                    </Button>
+                  </Form>
                 )}
               </div>
 
@@ -199,9 +377,14 @@ export default function VentureSprintPackaging() {
                   경영진용 2페이지 요약
                 </p>
                 {!opp.hasExecutiveSummary && (
-                  <Button variant="secondary" size="sm" className="mt-2" disabled>
-                    생성 (준비중)
-                  </Button>
+                  <Form method="post" className="mt-2">
+                    <input type="hidden" name="intent" value="triggerPackaging" />
+                    <input type="hidden" name="opportunityIds" value={opp.id} />
+                    <input type="hidden" name="artifactTypes" value="EXECUTIVE_SUMMARY" />
+                    <Button type="submit" variant="secondary" size="sm" disabled={isSubmitting}>
+                      생성
+                    </Button>
+                  </Form>
                 )}
               </div>
             </div>
@@ -250,6 +433,33 @@ export default function VentureSprintPackaging() {
           </Button>
         </div>
       </div>
+
+      {/* 스프린트 완료 섹션 */}
+      {sprint.status === "RUNNING" && (
+        <div className="rounded-lg border border-[var(--axis-badge-success-border)] bg-[var(--axis-badge-success-bg)] p-6">
+          <h3 className="mb-2 font-semibold text-[var(--axis-text-primary)]">스프린트 완료</h3>
+          <p className="mb-4 text-sm text-[var(--axis-text-tertiary)]">
+            모든 산출물이 준비되었다면 스프린트를 완료할 수 있습니다.
+          </p>
+          <Form method="post">
+            <input type="hidden" name="intent" value="completeSprint" />
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "완료 처리 중..." : "스프린트 완료"}
+            </Button>
+          </Form>
+        </div>
+      )}
+
+      {sprint.status === "COMPLETED" && (
+        <div className="rounded-lg border border-[var(--axis-badge-success-border)] bg-[var(--axis-badge-success-bg)] p-6">
+          <div className="flex items-center gap-2">
+            <Badge variant="success">완료됨</Badge>
+            <span className="text-sm text-[var(--axis-text-primary)]">
+              이 스프린트는 완료되었습니다.
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -156,6 +156,10 @@ export const createPremortemSchema = z.object({
 
 export type CreatePremortemInput = z.infer<typeof createPremortemSchema>;
 
+export const updatePremortemSchema = createPremortemSchema.partial();
+
+export type UpdatePremortemInput = z.infer<typeof updatePremortemSchema>;
+
 // ============================================================================
 // ARTIFACT
 // ============================================================================

@@ -3,19 +3,32 @@
  * /venture/sprints/:sprintId/deepdive
  */
 
-import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
-import { Link, useLoaderData } from "@remix-run/react";
+import { Form, Link, useLoaderData, useNavigation } from "@remix-run/react";
 import { getDb } from "~/db";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { Badge } from "~/components/ui/Badge";
+import { Button } from "~/components/ui/Button";
 import { getSprintById } from "~/features/venture/repositories/sprint.repository";
 import {
   listOpportunitiesBySprint,
   listAssumptionsByOpportunity,
   listPremortemsByOpportunity,
   listArtifactsByOpportunity,
+  updateAssumption,
+  updatePremortem,
+  createAssumption,
+  createPremortem,
 } from "~/features/venture/repositories/opportunity.repository";
+import { enqueueTask } from "~/features/venture/repositories/task-queue.repository";
+import { createWorkEvent } from "~/features/venture/repositories/analytics.repository";
+import {
+  createAssumptionSchema,
+  updateAssumptionSchema,
+  createPremortemSchema,
+  updatePremortemSchema,
+} from "~/features/venture/schemas/opportunity.schema";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -61,8 +74,180 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   return json({ sprint, opportunities: opportunitiesWithDeepDive });
 }
 
+export async function action({ request, context, params }: ActionFunctionArgs) {
+  const db = getDb(context.cloudflare.env.DB);
+  const secret = getSessionSecret(context.cloudflare.env);
+  const user = await getUserFromSession(request, db, secret);
+
+  if (!user) {
+    return redirect("/login");
+  }
+
+  const { sprintId } = params;
+  if (!sprintId) {
+    return json({ error: "Sprint ID required" }, { status: 400 });
+  }
+
+  const formData = await request.formData();
+  const intent = formData.get("intent") as string;
+
+  // 가정(Assumption) 추가
+  if (intent === "addAssumption") {
+    const opportunityId = formData.get("opportunityId") as string;
+    const statement = formData.get("statement") as string;
+    const criticality = formData.get("criticality") ? Number(formData.get("criticality")) : undefined;
+    const validationMethod = formData.get("validationMethod") as string;
+
+    const parseResult = createAssumptionSchema.safeParse({
+      statement,
+      criticality,
+      validationMethod: validationMethod || undefined,
+    });
+
+    if (!parseResult.success) {
+      return json({ error: parseResult.error.errors[0].message }, { status: 400 });
+    }
+
+    await createAssumption(db, opportunityId, parseResult.data);
+
+    await createWorkEvent(db, sprintId, {
+      eventType: "assumption_create",
+      actorType: "human",
+      actorId: user.id,
+      entityType: "assumption",
+    });
+
+    return json({ success: true });
+  }
+
+  // 가정(Assumption) 수정
+  if (intent === "updateAssumption") {
+    const assumptionId = formData.get("assumptionId") as string;
+    const statement = formData.get("statement") as string;
+    const criticality = formData.get("criticality") ? Number(formData.get("criticality")) : undefined;
+    const validationMethod = formData.get("validationMethod") as string;
+    const status = formData.get("status") as string;
+
+    const parseResult = updateAssumptionSchema.safeParse({
+      statement: statement || undefined,
+      criticality,
+      validationMethod: validationMethod || undefined,
+      status: status || undefined,
+    });
+
+    if (!parseResult.success) {
+      return json({ error: parseResult.error.errors[0].message }, { status: 400 });
+    }
+
+    await updateAssumption(db, assumptionId, parseResult.data);
+
+    await createWorkEvent(db, sprintId, {
+      eventType: "assumption_update",
+      actorType: "human",
+      actorId: user.id,
+      entityType: "assumption",
+      entityId: assumptionId,
+    });
+
+    return json({ success: true });
+  }
+
+  // Pre-mortem 추가
+  if (intent === "addPremortem") {
+    const opportunityId = formData.get("opportunityId") as string;
+    const failureScenario = formData.get("failureScenario") as string;
+    const probability = formData.get("probability") ? Number(formData.get("probability")) : undefined;
+    const impact = formData.get("impact") ? Number(formData.get("impact")) : undefined;
+    const mitigationStrategy = formData.get("mitigationStrategy") as string;
+
+    const parseResult = createPremortemSchema.safeParse({
+      failureScenario,
+      probability,
+      impact,
+      mitigationStrategy: mitigationStrategy || undefined,
+    });
+
+    if (!parseResult.success) {
+      return json({ error: parseResult.error.errors[0].message }, { status: 400 });
+    }
+
+    await createPremortem(db, opportunityId, parseResult.data);
+
+    await createWorkEvent(db, sprintId, {
+      eventType: "premortem_create",
+      actorType: "human",
+      actorId: user.id,
+      entityType: "premortem",
+    });
+
+    return json({ success: true });
+  }
+
+  // Pre-mortem 수정
+  if (intent === "updatePremortem") {
+    const premortemId = formData.get("premortemId") as string;
+    const failureScenario = formData.get("failureScenario") as string;
+    const probability = formData.get("probability") ? Number(formData.get("probability")) : undefined;
+    const impact = formData.get("impact") ? Number(formData.get("impact")) : undefined;
+    const mitigationStrategy = formData.get("mitigationStrategy") as string;
+
+    const parseResult = updatePremortemSchema.safeParse({
+      failureScenario: failureScenario || undefined,
+      probability,
+      impact,
+      mitigationStrategy: mitigationStrategy || undefined,
+    });
+
+    if (!parseResult.success) {
+      return json({ error: parseResult.error.errors[0].message }, { status: 400 });
+    }
+
+    await updatePremortem(db, premortemId, parseResult.data);
+
+    await createWorkEvent(db, sprintId, {
+      eventType: "premortem_update",
+      actorType: "human",
+      actorId: user.id,
+      entityType: "premortem",
+      entityId: premortemId,
+    });
+
+    return json({ success: true });
+  }
+
+  // Deep Dive AI 분석 트리거
+  if (intent === "triggerDeepDive") {
+    const opportunityIds = formData.getAll("opportunityIds") as string[];
+
+    if (opportunityIds.length === 0) {
+      return json({ error: "기회를 선택해주세요" }, { status: 400 });
+    }
+
+    const task = await enqueueTask(db, sprintId, {
+      taskType: "GENERATE_DEEPDIVE",
+      input: { sprintId, opportunityIds },
+      dedupeKey: `deepdive-${sprintId}-${opportunityIds.sort().join("-")}`,
+    });
+
+    await createWorkEvent(db, sprintId, {
+      eventType: "task_enqueue",
+      actorType: "human",
+      actorId: user.id,
+      entityType: "task",
+      entityId: task.id,
+      metadata: { taskType: "GENERATE_DEEPDIVE", opportunityIds },
+    });
+
+    return json({ success: true, taskId: task.id });
+  }
+
+  return json({ error: "Unknown intent" }, { status: 400 });
+}
+
 export default function VentureSprintDeepDive() {
   const { sprint, opportunities } = useLoaderData<typeof loader>();
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
 
   if (opportunities.length === 0) {
     return (
@@ -82,6 +267,27 @@ export default function VentureSprintDeepDive() {
 
   return (
     <div className="space-y-6">
+      {/* AI 분석 트리거 섹션 */}
+      <div className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-medium text-[var(--axis-text-primary)]">AI 분석 생성</h3>
+            <p className="text-sm text-[var(--axis-text-tertiary)]">
+              선택된 기회에 대해 Assumption, Pre-mortem 초안을 AI가 생성합니다.
+            </p>
+          </div>
+          <Form method="post">
+            <input type="hidden" name="intent" value="triggerDeepDive" />
+            {opportunities.map((opp) => (
+              <input key={opp.id} type="hidden" name="opportunityIds" value={opp.id} />
+            ))}
+            <Button type="submit" disabled={isSubmitting || opportunities.length === 0}>
+              {isSubmitting ? "생성 중..." : `AI 분석 생성 (${opportunities.length}개)`}
+            </Button>
+          </Form>
+        </div>
+      </div>
+
       <p className="text-sm text-[var(--axis-text-tertiary)]">
         Shortlist된 기회에 대해 Assumption Map, Pre-mortem, Lean Canvas를 작성합니다.
       </p>
@@ -162,22 +368,20 @@ export default function VentureSprintDeepDive() {
                         <span className="text-[var(--axis-text-secondary)]">
                           {assumption.statement}
                         </span>
-                        <Badge
-                          variant={
-                            assumption.status === "VALIDATED"
-                              ? "success"
-                              : assumption.status === "INVALIDATED"
-                                ? "destructive"
-                                : "secondary"
-                          }
-                          className="ml-2 shrink-0 text-xs"
-                        >
-                          {assumption.status === "VALIDATED"
-                            ? "검증됨"
-                            : assumption.status === "INVALIDATED"
-                              ? "무효"
-                              : "미검증"}
-                        </Badge>
+                        <Form method="post" className="ml-2 shrink-0">
+                          <input type="hidden" name="intent" value="updateAssumption" />
+                          <input type="hidden" name="assumptionId" value={assumption.id} />
+                          <select
+                            name="status"
+                            defaultValue={assumption.status}
+                            onChange={(e) => e.target.form?.requestSubmit()}
+                            className="rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] px-1 py-0.5 text-xs"
+                          >
+                            <option value="OPEN">미검증</option>
+                            <option value="VALIDATED">검증됨</option>
+                            <option value="INVALIDATED">무효</option>
+                          </select>
+                        </Form>
                       </div>
                       {assumption.criticality && (
                         <div className="mt-1 text-xs text-[var(--axis-text-tertiary)]">
@@ -188,6 +392,35 @@ export default function VentureSprintDeepDive() {
                   ))}
                 </ul>
               )}
+              {/* 가정 추가 폼 */}
+              <Form method="post" className="mt-3 space-y-2 border-t border-[var(--axis-border-default)] pt-3">
+                <input type="hidden" name="intent" value="addAssumption" />
+                <input type="hidden" name="opportunityId" value={opp.id} />
+                <input
+                  type="text"
+                  name="statement"
+                  placeholder="새 가정 입력..."
+                  required
+                  maxLength={1000}
+                  className="w-full rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] px-2 py-1 text-sm"
+                />
+                <div className="flex gap-2">
+                  <select
+                    name="criticality"
+                    className="rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] px-2 py-1 text-xs"
+                  >
+                    <option value="">중요도</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                  </select>
+                  <Button type="submit" size="sm" variant="secondary" disabled={isSubmitting}>
+                    추가
+                  </Button>
+                </div>
+              </Form>
             </div>
 
             {/* Pre-mortem */}
@@ -224,6 +457,46 @@ export default function VentureSprintDeepDive() {
                   ))}
                 </ul>
               )}
+              {/* Pre-mortem 추가 폼 */}
+              <Form method="post" className="mt-3 space-y-2 border-t border-[var(--axis-border-default)] pt-3">
+                <input type="hidden" name="intent" value="addPremortem" />
+                <input type="hidden" name="opportunityId" value={opp.id} />
+                <input
+                  type="text"
+                  name="failureScenario"
+                  placeholder="실패 시나리오..."
+                  required
+                  maxLength={1000}
+                  className="w-full rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] px-2 py-1 text-sm"
+                />
+                <div className="flex gap-2">
+                  <select
+                    name="probability"
+                    className="rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] px-2 py-1 text-xs"
+                  >
+                    <option value="">확률%</option>
+                    <option value="10">10%</option>
+                    <option value="25">25%</option>
+                    <option value="50">50%</option>
+                    <option value="75">75%</option>
+                    <option value="90">90%</option>
+                  </select>
+                  <select
+                    name="impact"
+                    className="rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] px-2 py-1 text-xs"
+                  >
+                    <option value="">영향</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                  </select>
+                  <Button type="submit" size="sm" variant="secondary" disabled={isSubmitting}>
+                    추가
+                  </Button>
+                </div>
+              </Form>
             </div>
 
             {/* Lean Canvas */}

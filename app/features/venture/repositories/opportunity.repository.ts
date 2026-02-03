@@ -33,6 +33,7 @@ import type {
   CreateAssumptionInput,
   UpdateAssumptionInput,
   CreatePremortemInput,
+  UpdatePremortemInput,
   CreateArtifactInput,
   UpdateArtifactInput,
   CreateScoreInput,
@@ -308,6 +309,26 @@ export async function createPremortem(
   await db.insert(vdPremortems).values(premortem);
 
   return premortem as VdPremortem;
+}
+
+export async function updatePremortem(
+  db: DB,
+  premortemId: string,
+  input: UpdatePremortemInput
+): Promise<VdPremortem | null> {
+  const [existing] = await db.select().from(vdPremortems).where(eq(vdPremortems.id, premortemId));
+  if (!existing) return null;
+
+  const updates: Partial<VdPremortem> = {
+    ...(input.failureScenario !== undefined && { failureScenario: input.failureScenario }),
+    ...(input.probability !== undefined && { probability: input.probability }),
+    ...(input.impact !== undefined && { impact: input.impact }),
+    ...(input.mitigationStrategy !== undefined && { mitigationStrategy: input.mitigationStrategy }),
+  };
+
+  await db.update(vdPremortems).set(updates).where(eq(vdPremortems.id, premortemId));
+
+  return { ...existing, ...updates };
 }
 
 export async function listPremortemsByOpportunity(db: DB, opportunityId: string): Promise<VdPremortem[]> {

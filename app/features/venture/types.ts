@@ -145,6 +145,7 @@ export type VdEntityType =
   | "artifact"
   | "evidence"
   | "assumption"
+  | "premortem"
   | "vote"
   | "task";
 
