@@ -5,7 +5,7 @@
  */
 
 import { Badge } from "~/components/ui/Badge";
-import type { VdTheme, VdOpportunity } from "../types";
+import type { VdOpportunity } from "../types";
 
 interface ThemeData {
   id: string;

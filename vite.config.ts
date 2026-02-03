@@ -13,6 +13,7 @@ export default defineConfig({
         v3_relativeSplatPath: true,
         v3_throwAbortReason: true,
       },
+      // @ts-expect-error - getLoadContext is valid but not typed in @remix-run/dev
       async getLoadContext() {
         const { env, cf, ctx } = await getPlatformProxy<Env>();
         return { cloudflare: { env, cf, ctx } };

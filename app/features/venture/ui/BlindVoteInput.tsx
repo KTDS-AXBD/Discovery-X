@@ -16,7 +16,7 @@ interface BlindVoteInputProps {
 }
 
 export function BlindVoteInput({
-  decisionId,
+  decisionId: _decisionId,
   existingVote,
   existingComment,
   onSubmit,
