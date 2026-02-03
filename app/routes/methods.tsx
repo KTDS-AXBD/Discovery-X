@@ -1,12 +1,14 @@
+import { useState } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, useSearchParams } from "@remix-run/react";
 import { getDb } from "~/db";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { methodPacks } from "~/db/schema";
+import { methodPacks, type MethodPack } from "~/db/schema";
 import { PageLayout } from "~/components/layout/PageLayout";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { MethodPackCard } from "~/components/methods/MethodPackCard";
+import { MethodPackDetailDialog } from "~/components/methods/MethodPackDetailDialog";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -22,11 +24,18 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 export default function MethodsPage() {
   const { user, packs } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedPack, setSelectedPack] = useState<MethodPack | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const tierFilter = searchParams.get("tier");
 
   const filteredPacks = tierFilter
     ? packs.filter((p) => p.tier === tierFilter)
     : packs;
+
+  const handleCardClick = (pack: MethodPack) => {
+    setSelectedPack(pack);
+    setDialogOpen(true);
+  };
 
   const tiers = ["Tier-0", "Tier-1", "Tier-2"];
 
@@ -81,6 +90,7 @@ export default function MethodsPage() {
             whenToUse={pack.whenToUse}
             evidenceMinimum={pack.evidenceMinimum}
             delay={idx * 60}
+            onClick={() => handleCardClick(pack as MethodPack)}
           />
         ))}
       </div>
@@ -90,6 +100,13 @@ export default function MethodsPage() {
           해당 티어에 등록된 방법론이 없습니다.
         </p>
       )}
+
+      {/* Detail Dialog */}
+      <MethodPackDetailDialog
+        pack={selectedPack}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+      />
     </PageLayout>
   );
 }
