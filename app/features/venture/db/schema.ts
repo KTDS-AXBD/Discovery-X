@@ -538,6 +538,7 @@ export const vdTaskQueue = sqliteTable(
       .notNull()
       .default(sql`(unixepoch())`),
     scheduledAt: integer("scheduled_at", { mode: "timestamp" }),
+    dedupeKey: text("dedupe_key"), // Idempotency key for duplicate prevention
   },
   (table) => ({
     sprintIdx: index("idx_vd_task_queue_sprint").on(table.sprintId),

@@ -7,6 +7,34 @@ import type { DB } from "~/db";
 import { vdTaskQueue, type VdTaskQueueItem, type NewVdTaskQueueItem } from "../db/schema";
 import type { VdTaskTypeValue, VdTaskStatusType } from "../types";
 import { getTaskMaxRetries, getTaskDefaultPriority } from "../constants/task-types";
+import {
+  type ErrorClassification,
+  getEffectiveMaxRetries,
+} from "../utils/error-classifier";
+
+// ============================================================================
+// BACKOFF CONFIGURATION
+// ============================================================================
+
+const BACKOFF_BASE_SECONDS = 30; // 30초 base
+const BACKOFF_MAX_SECONDS = 30 * 60; // 30분 cap
+
+/**
+ * Exponential backoff with jitter 계산
+ * - base: 30초
+ * - exponential: 30 * 2^retryCount
+ * - cap: 30분
+ * - jitter: 0.8~1.2
+ */
+function calculateBackoffMs(retryCount: number): number {
+  // exponential: 30 * 2^retryCount (초)
+  const rawSeconds = BACKOFF_BASE_SECONDS * Math.pow(2, retryCount);
+  // 30분 캡
+  const cappedSeconds = Math.min(rawSeconds, BACKOFF_MAX_SECONDS);
+  // jitter 0.8~1.2
+  const jitter = 0.8 + Math.random() * 0.4;
+  return Math.floor(cappedSeconds * jitter * 1000); // ms로 반환
+}
 
 // ============================================================================
 // TASK QUEUE CRUD
@@ -17,6 +45,7 @@ export interface EnqueueTaskInput {
   input?: Record<string, unknown>;
   priority?: number;
   scheduledAt?: Date;
+  dedupeKey?: string; // Idempotency key
 }
 
 export async function enqueueTask(
@@ -24,6 +53,19 @@ export async function enqueueTask(
   sprintId: string,
   taskInput: EnqueueTaskInput
 ): Promise<VdTaskQueueItem> {
+  // Idempotency: dedupeKey가 있으면 기존 task 확인
+  if (taskInput.dedupeKey) {
+    const existing = await db
+      .select()
+      .from(vdTaskQueue)
+      .where(eq(vdTaskQueue.dedupeKey, taskInput.dedupeKey))
+      .limit(1);
+
+    if (existing.length > 0) {
+      return existing[0]; // 기존 task 반환 (중복 방지)
+    }
+  }
+
   const id = crypto.randomUUID();
   const now = new Date();
 
@@ -38,6 +80,7 @@ export async function enqueueTask(
     retryCount: 0,
     scheduledAt: taskInput.scheduledAt ?? now,
     createdAt: now,
+    dedupeKey: taskInput.dedupeKey ?? null,
   };
 
   await db.insert(vdTaskQueue).values(task);
@@ -123,13 +166,16 @@ export async function completeTask(
 
 /**
  * 작업 실패 보고
- * - 재시도 가능하면 PENDING으로 복귀
- * - 최대 재시도 초과 시 FAILED
+ * - 에러 분류에 따라 재시도 정책 적용
+ * - non-retryable: 즉시 FAILED
+ * - repair: 최대 3회 재시도
+ * - retryable: maxRetries까지 재시도 (30초 base, 30분 cap, jitter 0.8~1.2)
  */
 export async function failTask(
   db: DB,
   taskId: string,
-  error: string
+  error: string,
+  errorType?: ErrorClassification
 ): Promise<VdTaskQueueItem | null> {
   const existing = await getTaskById(db, taskId);
   if (!existing) return null;
@@ -137,12 +183,25 @@ export async function failTask(
   const now = new Date();
   const newRetryCount = existing.retryCount + 1;
 
+  // 에러 분류에 따른 최대 재시도 횟수 결정
+  const effectiveMaxRetries = errorType
+    ? getEffectiveMaxRetries(existing.maxRetries, errorType)
+    : existing.maxRetries;
+
   let updates: Partial<VdTaskQueueItem>;
 
-  if (newRetryCount < existing.maxRetries) {
+  // non-retryable이면 즉시 FAILED
+  if (errorType === "non-retryable") {
+    updates = {
+      status: "FAILED",
+      retryCount: newRetryCount,
+      error,
+      completedAt: now,
+    };
+  } else if (newRetryCount < effectiveMaxRetries) {
     // 재시도: PENDING으로 복귀, 백오프 적용
-    const backoffMinutes = Math.pow(2, newRetryCount); // 2, 4, 8, ...
-    const scheduledAt = new Date(now.getTime() + backoffMinutes * 60 * 1000);
+    const backoffMs = calculateBackoffMs(newRetryCount);
+    const scheduledAt = new Date(now.getTime() + backoffMs);
 
     updates = {
       status: "PENDING",

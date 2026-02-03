@@ -14,6 +14,7 @@ import {
   getTaskById,
 } from "~/features/venture/repositories/task-queue.repository";
 import { createWorkEvent } from "~/features/venture/repositories/analytics.repository";
+import { classifyError } from "~/features/venture/utils/error-classifier";
 
 export async function action({ request, context }: ActionFunctionArgs) {
   if (request.method !== "POST") {
@@ -77,7 +78,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
         return json({ error: "error message is required for FAILED status" }, { status: 400 });
       }
 
-      updatedTask = await failTask(db, taskId, error);
+      // 에러 분류 적용
+      const errorType = classifyError(error);
+      updatedTask = await failTask(db, taskId, error, errorType);
 
       // Work Event 기록 (실패)
       await createWorkEvent(db, existingTask.sprintId, {
