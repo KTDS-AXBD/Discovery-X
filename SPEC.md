@@ -413,13 +413,14 @@ Validation:
 > **이 섹션은 매 세션마다 업데이트한다.**
 
 ### 현재 단계
-**🚀 v4 Venture Discovery Sprint MVP 구현 완료 (2026-02-03)**
+**🚀 v4 Venture Discovery Sprint 프로덕션 배포 완료 (2026-02-03)**
 
-v3 R0~R3b 완료 후, v4 Venture Discovery Sprint MVP 구현 완료.
-- ✅ vd_* 16개 테이블 스키마 완성 (DB 레벨)
+v3 R0~R3b 완료 후, v4 Venture Discovery Sprint MVP 구현 및 프로덕션 배포 완료.
+- ✅ vd_* 16개 테이블 스키마 완성 + 프로덕션 마이그레이션 적용
 - ✅ 도메인 모듈 전체 구현 완료 (types/constants/schemas/domain/repositories/ui)
 - ✅ `/venture/*` 라우트 17개 구현 완료 (페이지 13개 + API 4개)
 - ✅ UI 컴포넌트 8개 구현 완료
+- ✅ 프로덕션 배포 완료 (https://dx.minu.best)
 - 📋 venture-worker (D1 폴링 큐 기반) 구현 대기
 
 ### PRD P0 구현 상태
@@ -441,7 +442,15 @@ v3 R0~R3b 완료 후, v4 Venture Discovery Sprint MVP 구현 완료.
 | 13 | INBOX 7일 TTL 경고 | ✅ | UI 레벨 시각적 경고 (빨간 배지) |
 | 14 | EXTENSION_REQUESTED 워크플로우 | ✅ | 연장 요청 UI + due_date +14일 + 3번째 실험 허용 |
 
-### 최근 변경 (세션 82)
+### 최근 변경 (세션 83)
+**v4 Venture Discovery Sprint 프로덕션 배포**:
+- ✅ SPEC.md: PRD v0.3 DevSpec 반영 (vd_* 18개 테이블, 워커 아키텍처, Analytics 규칙)
+- ✅ 타입 에러 수정: `~/lib/utils` 모듈 추가, repositories rowsAffected→void, gate 페이지 null 체크
+- ✅ 프로덕션 배포: Cloudflare Pages (c8cbda6c)
+- ✅ DB 마이그레이션: `0011_venture_sprint.sql` 프로덕션 적용 (56개 명령)
+- ✅ 프로덕션 검증 완료: `/venture/overview`, `/venture/sprints/new` 정상 동작
+
+### 이전 변경 (세션 82)
 **v4 Venture Discovery Sprint MVP 구현 완료**:
 - ✅ `app/features/venture/types.ts`: 공유 타입 정의 완료
 - ✅ `app/features/venture/constants/`: sprint-status, decision-types, evaluation-criteria, task-types
