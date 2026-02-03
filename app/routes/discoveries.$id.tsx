@@ -15,6 +15,7 @@ import { cn } from "~/lib/utils/cn";
 import { eq, desc } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { KpiCard } from "~/components/dashboard/KpiCard";
+import { formatDate, formatDateTime, isOverdue as checkOverdue } from "~/lib/format-date";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -147,6 +148,12 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     timestamp: l.timestamp?.toISOString() || new Date().toISOString(),
   }));
 
+  // isOverdue 계산 (서버에서 수행하여 hydration 불일치 방지)
+  const isActive =
+    discovery.status === DiscoveryStatus.IDEA_CARD ||
+    discovery.status === DiscoveryStatus.HYPOTHESIS;
+  const isDiscoveryOverdue = isActive && checkOverdue(discovery.dueDate);
+
   return json({
     user,
     discovery,
@@ -160,6 +167,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     allLinks,
     linkedDiscoveries: linkedDiscoveries.filter(Boolean),
     activityLogs: serializedLogs,
+    isOverdue: isDiscoveryOverdue,
   });
 }
 
@@ -258,7 +266,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
 export default function DiscoveryDetail() {
   const {
     user, discovery, owner, reviewer, gatekeeper, experiments, evidence, allUsers,
-    kpiWithMeasurements, allLinks, linkedDiscoveries, activityLogs,
+    kpiWithMeasurements, allLinks, linkedDiscoveries, activityLogs, isOverdue,
   } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
 
@@ -272,8 +280,6 @@ export default function DiscoveryDetail() {
   const completedExperiments = experiments.filter((e) => e.completedAt);
   const maxExperiments =
     discovery.status === DiscoveryStatus.IDEA_CARD ? 3 : 2;
-  const isOverdue =
-    isActive && discovery.dueDate && new Date(discovery.dueDate) < new Date();
 
   return (
     <PageLayout user={user}>
@@ -289,10 +295,10 @@ export default function DiscoveryDetail() {
               <span>Owner: {owner?.name || "미지정"}</span>
               <span>Reviewer: {reviewer?.name || "미지정"}</span>
               <span>Gatekeeper: {gatekeeper?.name || "미지정"}</span>
-              <span>생성: {new Date(discovery.createdAt).toLocaleDateString("ko-KR")}</span>
+              <span>생성: {formatDate(discovery.createdAt)}</span>
               {discovery.dueDate && (
                 <span className="text-[var(--axis-text-error)]">
-                  마감: {new Date(discovery.dueDate).toLocaleDateString("ko-KR")}
+                  마감: {formatDate(discovery.dueDate)}
                 </span>
               )}
             </div>
@@ -535,7 +541,7 @@ export default function DiscoveryDetail() {
                         예상 근거: {exp.expectedEvidence}
                       </p>
                       <p className="mt-1 text-xs text-[var(--axis-text-tertiary)]">
-                        마감: {new Date(exp.deadline).toLocaleDateString("ko-KR")}
+                        마감: {formatDate(exp.deadline)}
                       </p>
                     </div>
                     <div className="ml-3 flex flex-col items-end gap-1">
@@ -715,12 +721,7 @@ export default function DiscoveryDetail() {
                           {log.actorName}
                         </span>
                         <span className="text-xs text-[var(--axis-text-tertiary)]">
-                          {new Date(log.timestamp).toLocaleString("ko-KR", {
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                          {formatDateTime(log.timestamp)}
                         </span>
                       </div>
                       {log.metadata && Object.keys(log.metadata).length > 0 && (
