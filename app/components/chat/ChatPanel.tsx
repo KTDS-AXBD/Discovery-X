@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Input } from "~/components/ui/Input";
 import { Button } from "~/components/ui/Button";
+import { SuggestionChip } from "~/components/ui/SuggestionChip";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { MessageBubble } from "./MessageBubble";
 import { ToolExecution } from "./ToolExecution";
@@ -280,16 +281,15 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages }
                   "Radar에서 수집된 아이템 확인해줘",
                   "전체 지표 요약해줘",
                 ].map((suggestion) => (
-                  <button
+                  <SuggestionChip
                     key={suggestion}
-                    className="rounded-full border border-[var(--axis-border-default)] px-3 py-1.5 text-xs text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-secondary)] transition-colors"
                     onClick={() => {
                       setInput(suggestion);
                       inputRef.current?.focus();
                     }}
                   >
                     {suggestion}
-                  </button>
+                  </SuggestionChip>
                 ))}
               </div>
             </div>

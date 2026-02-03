@@ -4,6 +4,34 @@
  */
 
 :root {
+  /* ===== Interaction Tokens ===== */
+  /* Transition */
+  --dx-transition-fast: 100ms;
+  --dx-transition-normal: 150ms;
+  --dx-transition-slow: 200ms;
+  --dx-easing-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --dx-easing-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Scale */
+  --dx-scale-pressed: 0.97;
+
+  /* Focus ring */
+  --dx-focus-ring-width: 2px;
+  --dx-focus-ring-offset: 2px;
+  --dx-focus-ring-color-default: var(--axis-border-brand);
+  --dx-focus-ring-color-success: #86EFAC;
+  --dx-focus-ring-color-destructive: #FCA5A5;
+  --dx-focus-ring-color-purple: #D8B4FE;
+
+  /* Disabled - variant별 */
+  --axis-button-success-bg-disabled: #86EFAC;
+  --axis-button-purple-bg-disabled: #D8B4FE;
+  --axis-button-destructive-bg-disabled: #FCA5A5;
+
+  /* Toggle selected */
+  --dx-toggle-selected-bg: var(--axis-surface-brand);
+  --dx-toggle-selected-ring: var(--axis-border-brand);
+
   /* Primitive color aliases (패키지 → 로컬 호환) */
   --axis-blue-100: var(--axis-color-blue-100);
   --axis-blue-200: var(--axis-color-blue-200);
@@ -91,8 +119,30 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Press effect keyframe */
+@keyframes dx-press {
+  0% { transform: scale(1); }
+  50% { transform: scale(var(--dx-scale-pressed, 0.97)); }
+  100% { transform: scale(1); }
+}
+
+/* Loading pulse */
+@keyframes dx-loading-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
 /* Dark mode overrides */
 .dark {
+  /* Interaction Tokens (Dark) */
+  --dx-focus-ring-color-success: #4ADE80;
+  --dx-focus-ring-color-destructive: #F87171;
+  --dx-focus-ring-color-purple: #C084FC;
+
+  --axis-button-success-bg-disabled: #166534;
+  --axis-button-purple-bg-disabled: #581C87;
+  --axis-button-destructive-bg-disabled: #7F1D1D;
+
   /* Purple variant */
   --axis-badge-purple-bg: #581C87;
   --axis-badge-purple-text: #E9D5FF;
