@@ -48,7 +48,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const description = formData.get("description") as string;
   const targetEndDateStr = formData.get("targetEndDate") as string;
   const industries = formData.getAll("industry") as string[];
-  const presetId = formData.get("presetId") as string;
+  // const presetId = formData.get("presetId") as string; // TODO: 프리셋 기능 구현
 
   // 입력 검증
   const parseResult = createSprintSchema.safeParse({

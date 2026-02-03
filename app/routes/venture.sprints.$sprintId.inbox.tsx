@@ -146,7 +146,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
 }
 
 export default function VentureSprintInbox() {
-  const { sprint, signals, evidences, signalCount } = useLoaderData<typeof loader>();
+  const { signals, evidences, signalCount } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 

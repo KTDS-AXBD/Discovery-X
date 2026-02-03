@@ -135,7 +135,6 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 
 export default function VentureSprintAnalytics() {
   const {
-    sprint,
     funnel,
     themeDistribution,
     effortByActor,
@@ -159,7 +158,7 @@ export default function VentureSprintAnalytics() {
             { label: "Opportunities", value: funnel.opportunities },
             { label: "Shortlist", value: funnel.shortlist },
             { label: "Final", value: funnel.final },
-          ].map((item, i) => {
+          ].map((item) => {
             const maxValue = Math.max(funnel.signals, 1);
             const height = Math.max((item.value / maxValue) * 120, 20);
             return (

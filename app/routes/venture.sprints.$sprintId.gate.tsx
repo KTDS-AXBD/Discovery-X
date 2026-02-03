@@ -138,7 +138,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
 }
 
 export default function VentureSprintGate() {
-  const { sprint, decisions, userId } = useLoaderData<typeof loader>();
+  const { decisions } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 

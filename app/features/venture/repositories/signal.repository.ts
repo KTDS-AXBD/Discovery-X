@@ -3,7 +3,7 @@
  * (Signal, Problem, Theme)
  */
 
-import { eq, desc, and, gte, lte } from "drizzle-orm";
+import { eq, desc, and, gte } from "drizzle-orm";
 import type { DB } from "~/db";
 import {
   vdSignals,

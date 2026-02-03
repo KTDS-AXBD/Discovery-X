@@ -3,7 +3,7 @@
  * (Opportunity, Evidence, Assumption, Premortem, Artifact, Score)
  */
 
-import { eq, desc, and, inArray } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import type { DB } from "~/db";
 import {
   vdOpportunities,

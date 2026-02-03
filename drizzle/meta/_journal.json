@@ -15,6 +15,76 @@
       "when": 1769837974805,
       "tag": "0001_magenta_wallflower",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1769838630000,
+      "tag": "0002_add_approval_columns",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1769839200000,
+      "tag": "0003_add_fts5",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1769849400000,
+      "tag": "0004_add_radar_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1769860440000,
+      "tag": "0005_add_agent_chat_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1769927380000,
+      "tag": "0006_add_model_id",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1769977320000,
+      "tag": "0007_stage_system",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1769984580000,
+      "tag": "0008_method_packs",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1769985780000,
+      "tag": "0009_ontology_graph",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1769986020000,
+      "tag": "0010_r3_indicators_connectors",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1770099600000,
+      "tag": "0011_venture_sprint",
+      "breakpoints": true
     }
   ]
 }

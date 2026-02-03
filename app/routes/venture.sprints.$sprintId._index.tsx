@@ -5,7 +5,7 @@
 
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
-import { Form, useLoaderData, useNavigation, useOutletContext } from "@remix-run/react";
+import { Form, useLoaderData, useNavigation } from "@remix-run/react";
 import { getDb } from "~/db";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { Button } from "~/components/ui/Button";
@@ -36,17 +36,6 @@ import {
 } from "~/features/venture/domain/sprint-state-machine";
 import type { VdSprintStatusType, VdSprint, VdSprintScope } from "~/features/venture/types";
 
-interface OutletContextType {
-  sprint: VdSprint;
-  scopes: VdSprintScope[];
-  stats: {
-    opportunityCount: number;
-    shortlistCount: number;
-    finalCount: number;
-    pendingDecisionCount: number;
-  };
-  user: { id: string; name: string | null };
-}
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -175,7 +164,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
 }
 
 export default function VentureSprintOverview() {
-  const { sprint, scopes, recentEvents, progressSummary, dayInfo, nextTransitions, transitionContext } =
+  const { sprint, scopes, recentEvents, progressSummary, dayInfo, nextTransitions } =
     useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";

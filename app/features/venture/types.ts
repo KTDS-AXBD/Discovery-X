@@ -145,7 +145,8 @@ export type VdEntityType =
   | "artifact"
   | "evidence"
   | "assumption"
-  | "vote";
+  | "vote"
+  | "task";
 
 // ============================================================================
 // ANALYTICS
@@ -176,11 +177,45 @@ export interface VdBottleneck {
   pendingHours: number;
 }
 
+export interface VdThemeDistribution {
+  id: string;
+  name: string;
+  count: number;
+  depthScore: number;
+}
+
+export interface VdOpportunityScoreData {
+  id: string;
+  title: string;
+  depthBreakdown: VdDepthScoreBreakdown;
+  nextRoi: {
+    recommendation: VdRecommendationType;
+    rationale: string;
+    scores: {
+      potential: number;
+      confidence: number;
+      investmentValue: number;
+      unknownPenalty: number;
+    };
+  };
+}
+
+export interface VdRankedOpportunity {
+  id: string;
+  rank: number;
+  compositeScore: number;
+}
+
 export interface VdAnalyticsData {
+  computedAt?: string;
+  type?: string;
   funnel?: VdFunnelData;
   domainDistribution?: VdDomainDistribution[];
+  themeDistribution?: VdThemeDistribution[];
   effortByActor?: VdEffortByActor;
   bottlenecks?: VdBottleneck[];
+  opportunityScores?: VdOpportunityScoreData[];
+  rankedOpportunities?: VdRankedOpportunity[];
 }
 
 // ============================================================================

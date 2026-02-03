@@ -50,6 +50,13 @@ export function MainNav({ user }: MainNavProps) {
         )}
       </Link>
       <Link
+        to="/venture"
+        className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-[var(--axis-text-tertiary)] hover:border-[var(--axis-border-secondary)] hover:text-[var(--axis-text-primary)]"
+        onClick={() => setMobileMenuOpen(false)}
+      >
+        Venture
+      </Link>
+      <Link
         to="/methods"
         className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-[var(--axis-text-tertiary)] hover:border-[var(--axis-border-secondary)] hover:text-[var(--axis-text-primary)]"
         onClick={() => setMobileMenuOpen(false)}

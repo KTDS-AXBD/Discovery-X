@@ -13,7 +13,7 @@ import { Badge } from "~/components/ui/Badge";
 import { listSprints } from "~/features/venture/repositories/sprint.repository";
 import { getGlobalSnapshots } from "~/features/venture/repositories/analytics.repository";
 import { VD_SPRINT_STATUS_CONFIG } from "~/features/venture/constants/sprint-status";
-import type { VdSprintStatusType, VdAnalyticsData } from "~/features/venture/types";
+import type { VdSprintStatusType } from "~/features/venture/types";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
