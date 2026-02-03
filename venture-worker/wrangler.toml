@@ -1,0 +1,22 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "venture-worker"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+main = "src/index.ts"
+
+[triggers]
+crons = ["*/5 * * * *"]   # 5분마다
+
+[[d1_databases]]
+binding = "DB"
+database_name = "discovery-x-db"
+database_id = "1bab6138-6b2f-45eb-8285-55ba7b543957"
+
+[vars]
+POLL_BATCH_SIZE = "5"
+MAX_CONCURRENT = "3"
+CLAUDE_MODEL = "claude-sonnet-4-20250514"
+
+# Secrets (set via CLI):
+# wrangler secret put ANTHROPIC_API_KEY
+# wrangler secret put CRON_SECRET
