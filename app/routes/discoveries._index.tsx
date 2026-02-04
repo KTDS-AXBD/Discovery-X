@@ -94,15 +94,15 @@ export default function DiscoveriesIndex() {
         }
       />
 
-      {/* Filters — pill toggle style */}
-      <div className="mt-6 flex flex-wrap gap-1.5">
+      {/* Filters — flat text style */}
+      <div className="mt-6 flex flex-wrap gap-4">
         <Link
           to="/discoveries"
           className={cn(
-            "rounded-full px-3.5 py-1.5 text-sm font-medium transition-all duration-[var(--dx-transition-normal)]",
+            "pb-1 text-sm font-medium transition-colors duration-[var(--dx-transition-normal)]",
             !currentFilter
-              ? "bg-[var(--axis-surface-brand)] text-[var(--axis-text-brand)]"
-              : "text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-primary)]"
+              ? "text-[var(--axis-text-primary)] font-semibold border-b-2 border-[var(--axis-text-brand)]"
+              : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]"
           )}
         >
           전체
@@ -112,10 +112,10 @@ export default function DiscoveriesIndex() {
             key={status}
             to={`/discoveries?status=${status}`}
             className={cn(
-              "rounded-full px-3.5 py-1.5 text-sm font-medium transition-all duration-[var(--dx-transition-normal)]",
+              "pb-1 text-sm font-medium transition-colors duration-[var(--dx-transition-normal)]",
               currentFilter === status
-                ? "bg-[var(--axis-surface-brand)] text-[var(--axis-text-brand)]"
-                : "text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-primary)]"
+                ? "text-[var(--axis-text-primary)] font-semibold border-b-2 border-[var(--axis-text-brand)]"
+                : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]"
             )}
           >
             {label}
@@ -124,10 +124,10 @@ export default function DiscoveriesIndex() {
         <Link
           to="/discoveries?status=OVERDUE"
           className={cn(
-            "rounded-full px-3.5 py-1.5 text-sm font-medium transition-all duration-[var(--dx-transition-normal)]",
+            "pb-1 text-sm font-medium transition-colors duration-[var(--dx-transition-normal)]",
             currentFilter === "OVERDUE"
-              ? "bg-[var(--axis-button-destructive-bg-default)] text-white"
-              : "text-[var(--axis-text-error)] hover:bg-[var(--axis-surface-error)]"
+              ? "text-[var(--axis-text-error)] font-semibold border-b-2 border-[var(--axis-text-error)]"
+              : "text-[var(--axis-text-error)] opacity-60 hover:opacity-100"
           )}
         >
           기한초과
@@ -146,7 +146,7 @@ export default function DiscoveriesIndex() {
               key={discovery.id}
               to={`/discoveries/${discovery.id}`}
               className={cn(
-                "block rounded-[var(--dx-card-radius)] bg-[var(--axis-surface-default)] p-4 shadow-[var(--dx-card-shadow)] border border-[var(--dx-card-border-subtle)] transition-shadow hover:shadow-[var(--dx-card-shadow-hover)]",
+                "block rounded-[var(--dx-card-radius)] bg-[var(--dx-surface-card,var(--axis-surface-default))] p-5 border border-[var(--dx-border-subtle,var(--dx-card-border-subtle))] transition-colors hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))]",
                 (discovery.isInboxOverdue || discovery.isOpenOverdue) && "ring-2 ring-[var(--axis-border-error)]"
               )}
             >
