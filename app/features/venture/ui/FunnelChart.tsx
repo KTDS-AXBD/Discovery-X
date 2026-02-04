@@ -1,7 +1,7 @@
 /**
  * Funnel Chart 컴포넌트
  *
- * Signals → Problems → Opportunities → Shortlist → Final 퍼널 시각화
+ * 신호 → 문제 → 기회 → 선별 목록 → 최종 선정 퍼널 시각화
  */
 
 import type { VdFunnelData } from "../types";
@@ -15,11 +15,11 @@ export function FunnelChart({ data, className = "" }: FunnelChartProps) {
   const maxValue = Math.max(data.signals, 1);
 
   const stages = [
-    { key: "signals", label: "Signals", value: data.signals },
-    { key: "problems", label: "Problems", value: data.problems },
-    { key: "opportunities", label: "Opportunities", value: data.opportunities },
-    { key: "shortlist", label: "Shortlist", value: data.shortlist },
-    { key: "final", label: "Final", value: data.final },
+    { key: "signals", label: "신호", value: data.signals },
+    { key: "problems", label: "문제", value: data.problems },
+    { key: "opportunities", label: "기회", value: data.opportunities },
+    { key: "shortlist", label: "선별 목록", value: data.shortlist },
+    { key: "final", label: "최종 선정", value: data.final },
   ];
 
   return (

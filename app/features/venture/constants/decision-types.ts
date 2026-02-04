@@ -28,14 +28,14 @@ export const VD_DECISION_TYPE_CONFIG: Record<
     defaultTimeoutHours: 24,
   },
   GATE1_SHORTLIST: {
-    label: "Gate 1 Shortlist",
-    description: "Long List에서 Shortlist 선정",
+    label: "1차 선별",
+    description: "후보 목록에서 선별 목록 선정",
     expectedOutcome: "6~8개 기회 선정",
     defaultTimeoutHours: 48,
   },
   GATE2_FINAL: {
-    label: "Gate 2 Final",
-    description: "Shortlist에서 Final 선정",
+    label: "최종 선정",
+    description: "선별 목록에서 최종 선정",
     expectedOutcome: "2~3개 기회 최종 선정",
     defaultTimeoutHours: 48,
   },

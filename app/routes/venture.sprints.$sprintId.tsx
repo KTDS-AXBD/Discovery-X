@@ -68,12 +68,12 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 
 const tabs = [
   { to: "", label: "개요", end: true },
-  { to: "inbox", label: "Inbox" },
-  { to: "longlist", label: "Long List" },
-  { to: "gate", label: "Gate", badge: true },
-  { to: "deepdive", label: "Deep Dive" },
-  { to: "packaging", label: "Packaging" },
-  { to: "analytics", label: "Analytics" },
+  { to: "inbox", label: "신호함" },
+  { to: "longlist", label: "후보 목록" },
+  { to: "gate", label: "검토 단계", badge: true },
+  { to: "deepdive", label: "심층 분석" },
+  { to: "packaging", label: "산출물 정리" },
+  { to: "analytics", label: "분석" },
 ];
 
 export default function VentureSprintLayout() {
@@ -102,7 +102,7 @@ export default function VentureSprintLayout() {
         <div className="mb-6">
           <nav className="mb-2 text-sm text-[var(--axis-text-tertiary)]">
             <Link to="/venture" className="hover:underline">
-              Venture
+              사업 탐색
             </Link>
             {" / "}
             <Link to="/venture/sprints" className="hover:underline">
@@ -167,13 +167,13 @@ export default function VentureSprintLayout() {
               </span>
             </div>
             <div>
-              <span className="text-[var(--axis-text-tertiary)]">Shortlist: </span>
+              <span className="text-[var(--axis-text-tertiary)]">선별 목록: </span>
               <span className="text-[var(--axis-text-primary)]">
                 {stats.shortlistCount}개
               </span>
             </div>
             <div>
-              <span className="text-[var(--axis-text-tertiary)]">Final: </span>
+              <span className="text-[var(--axis-text-tertiary)]">최종 선정: </span>
               <span className="text-[var(--axis-text-primary)]">
                 {stats.finalCount}개
               </span>

@@ -50,9 +50,9 @@ interface GatePackageEditorProps {
 }
 
 const DECISION_BADGE: Record<string, { variant: "success" | "destructive" | "warning" | "secondary"; label: string }> = {
-  GO: { variant: "success", label: "GO" },
-  NO_GO: { variant: "destructive", label: "NO GO" },
-  CONDITIONAL: { variant: "warning", label: "CONDITIONAL" },
+  GO: { variant: "success", label: "진행" },
+  NO_GO: { variant: "destructive", label: "중단" },
+  CONDITIONAL: { variant: "warning", label: "조건부 진행" },
   PENDING: { variant: "secondary", label: "대기" },
 };
 

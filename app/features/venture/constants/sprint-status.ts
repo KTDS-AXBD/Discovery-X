@@ -26,37 +26,37 @@ export const VD_SPRINT_STATUS_CONFIG: Record<
   }
 > = {
   DRAFT: {
-    label: "초안",
+    label: "준비 중",
     variant: "secondary",
     description: "스프린트 설정 중",
     order: 1,
   },
   RUNNING: {
-    label: "진행중",
+    label: "진행 중",
     variant: "info",
-    description: "Day 1-2: Signal 수집 및 Long List 작성",
+    description: "Day 1-2: 신호 수집 및 후보 목록 작성",
     order: 2,
   },
   GATE1_PENDING: {
-    label: "Gate 1 대기",
+    label: "1차 검토",
     variant: "warning",
-    description: "Shortlist 선정을 위한 투표 진행 중",
+    description: "선별 목록 선정을 위한 투표 진행 중",
     order: 3,
   },
   DEEPDIVE: {
-    label: "Deep Dive",
+    label: "심층 분석",
     variant: "purple",
     description: "Day 3-4: Assumption/Pre-mortem/Lean Canvas 작성",
     order: 4,
   },
   GATE2_PENDING: {
-    label: "Gate 2 대기",
+    label: "2차 검토",
     variant: "warning",
-    description: "Final 선정을 위한 투표 진행 중",
+    description: "최종 선정을 위한 투표 진행 중",
     order: 5,
   },
   PACKAGING: {
-    label: "패키징",
+    label: "산출물 정리",
     variant: "success",
     description: "Day 5: 피치/요약문서 작성",
     order: 6,
@@ -68,9 +68,9 @@ export const VD_SPRINT_STATUS_CONFIG: Record<
     order: 7,
   },
   ARCHIVED: {
-    label: "아카이브",
+    label: "보관됨",
     variant: "secondary",
-    description: "아카이브됨",
+    description: "보관됨",
     order: 8,
   },
 };
