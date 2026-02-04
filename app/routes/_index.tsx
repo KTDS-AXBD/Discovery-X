@@ -9,6 +9,7 @@ import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server"
 import { MainNav } from "~/components/layout/MainNav";
 import { ConversationList } from "~/components/chat/ConversationList";
 import { ChatPanel } from "~/components/chat/ChatPanel";
+import { ContextPanel, extractContextItems, type ContextItem } from "~/components/chat/ContextPanel";
 
 function sanitizeTitle(raw: string | null): string {
   if (!raw) return "새 대화";
@@ -76,6 +77,8 @@ export default function Index() {
   const [chatMessages, setChatMessages] = useState<ChatMessageData[]>([]);
   const [messagesLoaded, setMessagesLoaded] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [contextPanelOpen, setContextPanelOpen] = useState(false);
+  const [contextItems, setContextItems] = useState<ContextItem[]>([]);
 
   const isLoadingMessages = activeConversationId !== null && !messagesLoaded;
 
@@ -123,6 +126,21 @@ export default function Index() {
     }
   }, []);
 
+  const handleToolResult = useCallback(
+    (toolName: string, result: Record<string, unknown>) => {
+      const newItems = extractContextItems(toolName, result);
+      if (newItems.length > 0) {
+        setContextItems((prev) => {
+          const existing = new Set(prev.map((i) => `${i.type}-${i.id}`));
+          const unique = newItems.filter((i) => !existing.has(`${i.type}-${i.id}`));
+          return [...prev, ...unique];
+        });
+        setContextPanelOpen(true);
+      }
+    },
+    []
+  );
+
   const handleDeleteConversation = useCallback(
     async (id: string) => {
       try {
@@ -168,6 +186,7 @@ export default function Index() {
               setActiveConversationId(id);
               setMessagesLoaded(false);
               setSidebarOpen(false);
+              setContextItems([]);
             }}
             onNew={handleNewConversation}
             onDelete={handleDeleteConversation}
@@ -175,12 +194,14 @@ export default function Index() {
         </div>
 
         {/* Chat area */}
-        <div className="flex-1 bg-[var(--axis-surface-default)]">
+        <div className="flex flex-1 overflow-hidden">
+          <div className="flex-1 bg-[var(--axis-surface-default)]">
           {activeConversationId ? (
             <ChatPanel
               conversationId={activeConversationId}
               initialMessages={chatMessages}
               isLoadingMessages={isLoadingMessages}
+              onToolResult={handleToolResult}
             />
           ) : (
             <div className="flex h-full items-center justify-center">
@@ -201,6 +222,17 @@ export default function Index() {
                   </Link>
                 </div>
               </div>
+            </div>
+          )}
+          </div>
+
+          {/* Context panel */}
+          {contextPanelOpen && contextItems.length > 0 && (
+            <div className="hidden w-72 shrink-0 lg:block">
+              <ContextPanel
+                items={contextItems}
+                onClose={() => setContextPanelOpen(false)}
+              />
             </div>
           )}
         </div>

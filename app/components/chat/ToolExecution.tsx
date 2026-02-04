@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Badge } from "~/components/ui/Badge";
 import { cn } from "~/lib/utils/cn";
+import { PipelineFlow } from "./PipelineFlow";
+import { EvidenceChart } from "./EvidenceChart";
+import { EvidenceCard } from "./EvidenceCard";
 
 interface ToolExecutionProps {
   toolName: string;
@@ -28,6 +31,36 @@ const TOOL_LABELS: Record<string, string> = {
   get_weekly_review: "주간 리뷰",
   get_recall_queue: "재검토 큐",
   list_users: "사용자 조회",
+  generate_discovery_digest: "Discovery 리포트",
+  get_experiment_context: "실험 컨텍스트",
+  get_stage_info: "단계 정보",
+  validate_evidence: "근거 검증",
+  list_method_packs: "방법론 팩 목록",
+  recommend_methods: "방법론 추천",
+  start_method_run: "방법론 실행 시작",
+  complete_method_run: "방법론 실행 완료",
+  draft_gate_package: "Gate 패키지 초안",
+  get_gate_package: "Gate 패키지 조회",
+  extract_entities: "엔티티 추출",
+  link_entities: "엔티티 연결",
+  query_graph: "그래프 조회",
+  get_duplicate_queue: "중복 큐 조회",
+  review_duplicate: "중복 검토",
+  register_kpi: "KPI 등록",
+  record_kpi_measurement: "KPI 측정",
+  get_kpi_status: "KPI 현황",
+  get_pipeline_health: "파이프라인 건강도",
+  link_discoveries: "Discovery 연결",
+  get_linked_discoveries: "연결된 Discovery",
+  request_gate_approval: "Gate 승인 요청",
+  submit_gate_approval: "Gate 승인 제출",
+  get_alerts: "알림 조회",
+  acknowledge_alert: "알림 확인",
+  manage_webhook: "웹훅 관리",
+  transition_stage: "단계 전환",
+  decide_gate: "Gate 결정",
+  decide_hold: "보류 결정",
+  decide_drop: "종료 결정",
 };
 
 const QUERY_TOOLS = new Set([
@@ -147,8 +180,19 @@ function DetailCard({ data }: { data: Record<string, unknown> }) {
   const evs = (data.evidence || []) as Array<Record<string, unknown>>;
   if (!discovery) return null;
 
+  // Evidence strength distribution for chart
+  const strengthDist: Record<string, number> = { A: 0, B: 0, C: 0, D: 0 };
+  for (const e of evs) {
+    const s = String(e.strength);
+    if (s in strengthDist) strengthDist[s]++;
+  }
+
   return (
     <div className="space-y-2 text-xs">
+      {/* Pipeline flow diagram */}
+      {!!discovery.status && (
+        <PipelineFlow currentStatus={String(discovery.status)} />
+      )}
       <div className="rounded bg-[var(--axis-surface-secondary)] p-2">
         <div className="font-medium">{String(discovery.title)}</div>
         <div className="mt-1 text-[var(--axis-text-secondary)]">{String(discovery.seedSummary || "")}</div>
@@ -171,13 +215,21 @@ function DetailCard({ data }: { data: Record<string, unknown> }) {
       {evs.length > 0 && (
         <div>
           <div className="font-medium mb-1">근거 ({evs.length})</div>
+          <EvidenceChart distribution={strengthDist} total={evs.length} />
           {evs.map((e) => (
-            <div key={String(e.id)} className="ml-2 text-[var(--axis-text-secondary)]">
-              [{String(e.type)}/{String(e.strength)}] {String(e.content)}
-            </div>
+            <EvidenceCard key={String(e.id)} evidence={e} />
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function DigestView({ data }: { data: Record<string, unknown> }) {
+  if (!data.digest) return null;
+  return (
+    <div className="text-xs text-[var(--axis-text-secondary)]">
+      <p>리포트가 Agent 응답에 포함됩니다.</p>
     </div>
   );
 }
@@ -192,6 +244,8 @@ function formatResult(toolName: string, result: Record<string, unknown>) {
       return <MetricsView data={result} />;
     case "search_similar":
       return <SearchResults data={result} />;
+    case "generate_discovery_digest":
+      return <DigestView data={result} />;
     default:
       return null;
   }

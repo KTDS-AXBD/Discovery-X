@@ -603,6 +603,133 @@ export async function getRecallQueue(db: DB): Promise<string> {
   });
 }
 
+/**
+ * Discovery 요약 리포트 생성 (구조화된 마크다운)
+ */
+export async function generateDiscoveryDigest(
+  db: DB,
+  input: { discoveryId: string }
+): Promise<string> {
+  const discovery = await db
+    .select()
+    .from(discoveries)
+    .where(eq(discoveries.id, input.discoveryId))
+    .limit(1);
+
+  if (!discovery[0]) return JSON.stringify({ error: "Discovery를 찾을 수 없습니다.", suggestion: "list_discoveries로 기존 목록을 확인해보세요." });
+
+  const d = discovery[0];
+  const exps = await db
+    .select()
+    .from(experiments)
+    .where(eq(experiments.discoveryId, input.discoveryId));
+  const evs = await db
+    .select()
+    .from(evidence)
+    .where(eq(evidence.discoveryId, input.discoveryId));
+  const runs = await db
+    .select({
+      runId: methodRuns.id,
+      methodPackId: methodRuns.methodPackId,
+      status: methodRuns.status,
+      methodPackName: methodPacks.nameKo,
+      tier: methodPacks.tier,
+      completedAt: methodRuns.completedAt,
+    })
+    .from(methodRuns)
+    .innerJoin(methodPacks, eq(methodRuns.methodPackId, methodPacks.id))
+    .where(eq(methodRuns.discoveryId, input.discoveryId));
+
+  const fmtDate = (v: Date | string | null) =>
+    v ? new Date(v).toISOString().slice(0, 10) : "-";
+
+  // Evidence strength distribution
+  const strengthDist: Record<string, number> = { A: 0, B: 0, C: 0, D: 0 };
+  for (const e of evs) {
+    if (e.strength in strengthDist) strengthDist[e.strength]++;
+  }
+
+  let md = `## Discovery Digest: ${d.title}\n\n`;
+  md += `**상태**: ${d.status} | **Owner**: ${d.ownerId || "미지정"} | **생성일**: ${fmtDate(d.createdAt)} | **기한**: ${fmtDate(d.dueDate)}\n\n`;
+
+  // Seed
+  md += `## Seed\n\n${d.seedSummary || "요약 없음"}\n\n`;
+  if (d.seedLinks) {
+    try {
+      const links = JSON.parse(d.seedLinks as unknown as string) as string[];
+      if (links.length > 0) {
+        md += links.map((l) => `- ${l}`).join("\n") + "\n\n";
+      }
+    } catch { /* ignore */ }
+  }
+
+  // Experiments
+  md += `## 실험 (${exps.length}/${2})\n\n`;
+  if (exps.length === 0) {
+    md += "실험 없음\n\n";
+  } else {
+    for (const e of exps) {
+      const status = e.completedAt ? "완료" : "진행 중";
+      md += `### ${e.hypothesis} [${status}]\n\n`;
+      md += `- **최소 행동**: ${e.minimalAction}\n`;
+      md += `- **기한**: ${fmtDate(e.deadline)}\n`;
+      md += `- **예상 근거**: ${e.expectedEvidence}\n`;
+      if (e.resultSummary) md += `- **결과**: ${e.resultSummary}\n`;
+      md += "\n";
+    }
+  }
+
+  // Evidence
+  md += `## 근거 (${evs.length}건)\n\n`;
+  if (evs.length > 0) {
+    md += `강도 분포: A=${strengthDist.A} B=${strengthDist.B} C=${strengthDist.C} D=${strengthDist.D}\n\n`;
+    md += "| 유형 | 강도 | 신뢰도 | 내용 |\n|------|------|--------|------|\n";
+    for (const e of evs) {
+      const content = e.content.replace(/\|/g, "\\|").replace(/\n/g, " ");
+      md += `| ${e.type} | ${e.strength} | ${e.reliabilityLabel || "-"} | ${content.slice(0, 100)} |\n`;
+    }
+    md += "\n";
+  }
+
+  // Method Runs
+  if (runs.length > 0) {
+    md += `## 방법론 실행 (${runs.length}건)\n\n`;
+    for (const r of runs) {
+      md += `- **${r.methodPackName}** (${r.tier}) — ${r.status}${r.completedAt ? ` (${fmtDate(r.completedAt)})` : ""}\n`;
+    }
+    md += "\n";
+  }
+
+  // Decision
+  if (d.decisionState) {
+    md += `## 결정\n\n`;
+    md += `**${d.decisionState}**: ${d.decisionRationale || "사유 없음"}\n\n`;
+  }
+
+  // HOLD info
+  if (d.status === "HOLD") {
+    md += `## 보류 정보\n\n`;
+    md += `- **트리거**: ${d.notNowTriggerType || "-"}\n`;
+    md += `- **조건**: ${d.notNowTriggerCondition || "-"}\n`;
+    md += `- **재검토일**: ${fmtDate(d.revisitDate)}\n\n`;
+  }
+
+  // DROP info
+  if (d.status === "DROP") {
+    md += `## 종료 정보\n\n`;
+    md += `- **실패 패턴**: ${d.deadEndFailurePattern || "-"}\n`;
+    md += `- **근거**: ${d.deadEndEvidenceReason || "-"}\n\n`;
+  }
+
+  md += `---\n*생성: ${new Date().toISOString().slice(0, 10)}*`;
+
+  return JSON.stringify({
+    discoveryId: d.id,
+    title: d.title,
+    digest: md,
+  });
+}
+
 export async function listUsers(db: DB): Promise<string> {
   const allUsers = await db
     .select({ id: users.id, name: users.name, email: users.email })

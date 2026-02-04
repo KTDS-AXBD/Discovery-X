@@ -37,6 +37,7 @@ import {
   listUsers,
   getWeeklyReview,
   getRecallQueue,
+  generateDiscoveryDigest,
 } from "./tools/query-tools";
 import {
   listMethodPacks,
@@ -148,6 +149,8 @@ async function executeTool(
       return getRecallQueue(db);
     case "list_users":
       return listUsers(db);
+    case "generate_discovery_digest":
+      return generateDiscoveryDigest(db, toolInput as Parameters<typeof generateDiscoveryDigest>[1]);
     case "get_stage_info":
       return getStageInfo(db, toolInput as Parameters<typeof getStageInfo>[1]);
     case "validate_evidence":

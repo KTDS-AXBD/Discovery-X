@@ -22,6 +22,7 @@ export const TOOL_MIN_AUTONOMY: Record<string, number> = {
   validate_evidence: 1,
   list_method_packs: 1,
   get_gate_package: 1,
+  generate_discovery_digest: 1,
   // Level 2: create + promote
   recommend_methods: 2,
   draft_gate_package: 2,
@@ -339,6 +340,17 @@ export const AGENT_TOOLS: ClaudeTool[] = [
     input_schema: {
       type: "object",
       properties: {},
+    },
+  },
+  {
+    name: "generate_discovery_digest",
+    description: "Discovery의 구조화된 요약 리포트를 마크다운으로 생성합니다. Seed, 실험, 근거, 방법론, 결정 정보를 종합합니다.",
+    input_schema: {
+      type: "object",
+      required: ["discoveryId"],
+      properties: {
+        discoveryId: { type: "string", description: "Discovery ID" },
+      },
     },
   },
   {

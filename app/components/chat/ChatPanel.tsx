@@ -27,6 +27,7 @@ interface ChatPanelProps {
   conversationId: string | null;
   initialMessages: ChatMessage[];
   isLoadingMessages?: boolean;
+  onToolResult?: (toolName: string, result: Record<string, unknown>) => void;
 }
 
 interface BudgetWarning {
@@ -50,7 +51,7 @@ function parseSuggestions(content: string): { cleanContent: string; suggestions:
   }
 }
 
-export function ChatPanel({ conversationId, initialMessages, isLoadingMessages }: ChatPanelProps) {
+export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, onToolResult }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -191,6 +192,10 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages }
                   },
                 ];
               });
+              // Notify parent about tool result for context panel
+              if (onToolResult && event.result && !("error" in event.result)) {
+                onToolResult(event.name!, event.result);
+              }
               // Append separator so next round's text is visually distinct
               if (streamingStarted) {
                 setMessages((prev) =>
