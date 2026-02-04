@@ -17,6 +17,25 @@ import type {
 } from "./types";
 
 // ============================================================================
+// TASK TYPE 의존성 설정
+// ============================================================================
+
+const VD_TASK_PRECEDING_TYPES: Record<VdTaskTypeValue, VdTaskTypeValue[]> = {
+  COLLECT_SIGNALS: [],
+  ANALYZE_PROBLEMS: ["COLLECT_SIGNALS"],
+  GENERATE_OPPORTUNITIES: ["ANALYZE_PROBLEMS"],
+  CLUSTER_THEMES: ["GENERATE_OPPORTUNITIES"],
+  SCORE_OPPORTUNITIES: ["GENERATE_OPPORTUNITIES"],
+  GENERATE_DEEPDIVE: ["PREPARE_GATE"],
+  GENERATE_ARTIFACTS: ["GENERATE_DEEPDIVE"],
+  PREPARE_GATE: ["SCORE_OPPORTUNITIES"],
+};
+
+function getPrecedingTaskTypes(taskType: VdTaskTypeValue): VdTaskTypeValue[] {
+  return VD_TASK_PRECEDING_TYPES[taskType] || [];
+}
+
+// ============================================================================
 // ROW → ITEM 변환
 // ============================================================================
 
@@ -44,7 +63,42 @@ function rowToTask(row: VdTaskQueueRow): VdTaskQueueItem {
 // ============================================================================
 
 /**
+ * 선행 task들이 모두 완료되었는지 확인
+ */
+async function arePrecedingTasksCompleted(
+  db: D1Database,
+  sprintId: string,
+  taskType: VdTaskTypeValue
+): Promise<boolean> {
+  const precedingTypes = getPrecedingTaskTypes(taskType);
+  if (precedingTypes.length === 0) return true;
+
+  for (const precedingType of precedingTypes) {
+    // 해당 타입의 task가 있는지, 그리고 완료(COMPLETED/FAILED)되었는지 확인
+    const result = await db
+      .prepare(
+        `SELECT status FROM vd_task_queue
+         WHERE sprint_id = ? AND task_type = ?`
+      )
+      .bind(sprintId, precedingType)
+      .all<{ status: string }>();
+
+    // 선행 타입의 task가 없으면 의존성 충족 안됨
+    if (!result.results || result.results.length === 0) return false;
+
+    // PENDING 또는 RUNNING인 task가 있으면 의존성 충족 안됨
+    const hasIncomplete = result.results.some(
+      (t) => t.status === "PENDING" || t.status === "RUNNING"
+    );
+    if (hasIncomplete) return false;
+  }
+
+  return true;
+}
+
+/**
  * PENDING 상태 Task를 claim하여 RUNNING으로 전환
+ * - 선행 task 의존성 검증 포함
  */
 export async function claimTasks(
   db: D1Database,
@@ -52,7 +106,7 @@ export async function claimTasks(
 ): Promise<VdTaskQueueItem[]> {
   const nowEpoch = Math.floor(Date.now() / 1000);
 
-  // 1. PENDING 상태이고 scheduled_at <= now인 Task 조회
+  // 1. PENDING 상태이고 scheduled_at <= now인 Task 조회 (limit * 2로 여유있게)
   const result = await db
     .prepare(
       `SELECT * FROM vd_task_queue
@@ -61,17 +115,28 @@ export async function claimTasks(
        ORDER BY priority DESC, created_at ASC
        LIMIT ?`
     )
-    .bind(nowEpoch, limit)
+    .bind(nowEpoch, limit * 2)
     .all<VdTaskQueueRow>();
 
   if (!result.results || result.results.length === 0) {
     return [];
   }
 
-  // 2. 각 Task를 RUNNING으로 업데이트
+  // 2. 각 Task의 의존성 검증 후 RUNNING으로 업데이트
   const claimedTasks: VdTaskQueueItem[] = [];
 
   for (const row of result.results) {
+    if (claimedTasks.length >= limit) break;
+
+    // 선행 task 의존성 검증
+    const canClaim = await arePrecedingTasksCompleted(
+      db,
+      row.sprint_id,
+      row.task_type as VdTaskTypeValue
+    );
+
+    if (!canClaim) continue;
+
     const updateResult = await db
       .prepare(
         `UPDATE vd_task_queue

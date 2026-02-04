@@ -6,7 +6,7 @@ import { eq, desc, and, lte, asc } from "drizzle-orm";
 import type { DB } from "~/db";
 import { vdTaskQueue, type VdTaskQueueItem, type NewVdTaskQueueItem } from "../db/schema";
 import type { VdTaskTypeValue, VdTaskStatusType } from "../types";
-import { getTaskMaxRetries, getTaskDefaultPriority } from "../constants/task-types";
+import { getTaskMaxRetries, getTaskDefaultPriority, getPrecedingTaskTypes } from "../constants/task-types";
 import {
   type ErrorClassification,
   getEffectiveMaxRetries,
@@ -100,29 +100,79 @@ export async function getTaskById(db: DB, taskId: string): Promise<VdTaskQueueIt
 }
 
 /**
+ * 선행 task들이 모두 완료되었는지 확인
+ * - 같은 스프린트 내에서 선행 타입의 task가 COMPLETED 또는 FAILED 상태여야 함
+ * - FAILED도 "완료"로 간주하여 후행 task 실행 허용 (에러 전파 방지)
+ */
+async function arePrecedingTasksCompleted(
+  db: DB,
+  sprintId: string,
+  taskType: VdTaskTypeValue
+): Promise<boolean> {
+  const precedingTypes = getPrecedingTaskTypes(taskType);
+  if (precedingTypes.length === 0) return true;
+
+  for (const precedingType of precedingTypes) {
+    // 해당 타입의 task가 있는지, 그리고 완료(COMPLETED/FAILED)되었는지 확인
+    const tasks = await db
+      .select()
+      .from(vdTaskQueue)
+      .where(
+        and(
+          eq(vdTaskQueue.sprintId, sprintId),
+          eq(vdTaskQueue.taskType, precedingType)
+        )
+      );
+
+    // 선행 타입의 task가 없으면 의존성 충족 안됨
+    if (tasks.length === 0) return false;
+
+    // PENDING 또는 RUNNING인 task가 있으면 의존성 충족 안됨
+    const hasIncomplete = tasks.some(
+      (t) => t.status === "PENDING" || t.status === "RUNNING"
+    );
+    if (hasIncomplete) return false;
+  }
+
+  return true;
+}
+
+/**
  * Worker가 작업을 가져가기 (claim)
  * - status=PENDING AND scheduledAt <= now
+ * - 선행 task 의존성 검증
  * - 우선순위 높은 순, 생성 시간 순
  */
 export async function claimTasks(db: DB, limit: number = 5): Promise<VdTaskQueueItem[]> {
   const now = new Date();
 
-  // 1. PENDING 상태이고 예약 시간이 지난 작업 조회
+  // 1. PENDING 상태이고 예약 시간이 지난 작업 조회 (limit * 2로 여유있게)
   const pendingTasks = await db
     .select()
     .from(vdTaskQueue)
     .where(and(eq(vdTaskQueue.status, "PENDING"), lte(vdTaskQueue.scheduledAt, now)))
     .orderBy(desc(vdTaskQueue.priority), asc(vdTaskQueue.createdAt))
-    .limit(limit);
+    .limit(limit * 2);
 
   if (pendingTasks.length === 0) {
     return [];
   }
 
-  // 2. 각 작업을 RUNNING으로 업데이트 (낙관적 락)
+  // 2. 각 작업의 의존성 검증 후 RUNNING으로 업데이트 (낙관적 락)
   const claimedTasks: VdTaskQueueItem[] = [];
 
   for (const task of pendingTasks) {
+    if (claimedTasks.length >= limit) break;
+
+    // 선행 task 의존성 검증
+    const canClaim = await arePrecedingTasksCompleted(
+      db,
+      task.sprintId,
+      task.taskType as VdTaskTypeValue
+    );
+
+    if (!canClaim) continue;
+
     await db
       .update(vdTaskQueue)
       .set({
