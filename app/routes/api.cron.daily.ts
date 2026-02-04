@@ -1,8 +1,9 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { discoveries, users } from "~/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
+import { ACTIVE_STATUSES } from "~/lib/constants/status";
 import { createEmailClient } from "~/lib/notifications/email";
 import {
   buildOverdueEmail,
@@ -11,10 +12,12 @@ import {
   buildAutoClosedEmail,
   buildGateExpiredEmail,
   buildGateReminderEmail,
+  buildStalledStageEmail,
   type OverdueDiscovery,
   type ExpiringDiscovery,
   type RevisitDiscovery,
   type AutoClosedDiscovery,
+  type StalledStageDiscovery,
 } from "~/lib/notifications/templates";
 import { processExpiredGateApprovals } from "~/lib/notifications/alert-engine";
 import { eventLogs } from "~/db/schema";
@@ -25,14 +28,14 @@ interface CronEnv {
   CRON_SECRET?: string;
 }
 
-async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; errors: string[]; autoClosed: number }> {
+async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; errors: string[]; autoClosed: number; gateExpired: number; gateHeld: number }> {
   const db = getDb(env.DB);
   const errors: string[] = [];
   let sent = 0;
 
   const apiKey = env.RESEND_API_KEY;
   if (!apiKey) {
-    return { sent: 0, errors: ["RESEND_API_KEY not configured"], autoClosed: 0 };
+    return { sent: 0, errors: ["RESEND_API_KEY not configured"], autoClosed: 0, gateExpired: 0, gateHeld: 0 };
   }
 
   const emailClient = createEmailClient(apiKey);
@@ -44,16 +47,12 @@ async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; erro
   const allUsers = await db.select().from(users);
   const userMap = new Map(allUsers.map((u) => [u.id, u]));
 
-  // 1. Find overdue OPEN/EXTENSION_REQUESTED discoveries
-  const openDiscoveries = await db
+  // 1. Find overdue active discoveries
+  const statusList = ACTIVE_STATUSES.map((s) => `'${s}'`).join(",");
+  const activeDiscoveries = await db
     .select()
     .from(discoveries)
-    .where(eq(discoveries.status, DiscoveryStatus.IDEA_CARD));
-  const extDiscoveries = await db
-    .select()
-    .from(discoveries)
-    .where(eq(discoveries.status, DiscoveryStatus.IDEA_CARD));
-  const activeDiscoveries = [...openDiscoveries, ...extDiscoveries];
+    .where(sql`${discoveries.status} IN (${sql.raw(statusList)})`);
 
   const overdueItems: OverdueDiscovery[] = [];
   const dueSoonItems: ExpiringDiscovery[] = [];
@@ -184,7 +183,35 @@ async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; erro
     }
   }
 
-  // 5. Process expired gate approvals (auto-reject + HOLD)
+  // 5. Stage SLA check — notify for discoveries stalled > 14 days in a stage
+  const STAGE_SLA_DAYS = 14;
+  const stalledItems: StalledStageDiscovery[] = [];
+  for (const d of activeDiscoveries) {
+    if (!d.stageUpdatedAt) continue;
+    const stageDate = new Date(d.stageUpdatedAt);
+    const daysInStage = Math.floor((now.getTime() - stageDate.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysInStage > STAGE_SLA_DAYS) {
+      const owner = d.ownerId ? userMap.get(d.ownerId) : null;
+      stalledItems.push({
+        id: d.id,
+        title: d.title,
+        status: d.status,
+        ownerName: owner?.name || "미지정",
+        daysInStage,
+      });
+    }
+  }
+
+  if (stalledItems.length > 0) {
+    const { subject, html } = buildStalledStageEmail(stalledItems);
+    for (const email of recipients) {
+      const result = await emailClient.send({ to: email, subject, html });
+      if (result.success) sent++;
+      else if (result.error) errors.push(`stalledStage→${email}: ${result.error}`);
+    }
+  }
+
+  // 6. Process expired gate approvals (auto-reject + HOLD)
   let gateExpired = 0;
   let gateHeld = 0;
   try {

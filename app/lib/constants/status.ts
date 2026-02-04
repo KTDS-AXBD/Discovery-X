@@ -65,6 +65,20 @@ export const ALLOWED_TRANSITIONS: Record<string, string[]> = {
 };
 
 /**
+ * 활성 상태 (파이프라인 진행 중, HOLD/DROP/HANDOFF 제외)
+ */
+export const ACTIVE_STATUSES = [
+  "DISCOVERY",
+  "IDEA_CARD",
+  "HYPOTHESIS",
+  "EXPERIMENT",
+  "EVIDENCE_REVIEW",
+  "GATE1",
+  "SPRINT",
+  "GATE2",
+] as const;
+
+/**
  * 모든 유효한 상태값 배열
  */
 export const ALL_STATUSES = Object.keys(STATUS_CONFIG);

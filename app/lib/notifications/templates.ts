@@ -290,3 +290,96 @@ export function buildApprovalResultEmail(data: ApprovalResultData): { subject: s
     `),
   };
 }
+
+// ============================================================================
+// STALLED STAGE EMAIL
+// ============================================================================
+
+export interface StalledStageDiscovery {
+  id: string;
+  title: string;
+  status: string;
+  ownerName: string;
+  daysInStage: number;
+}
+
+export function buildStalledStageEmail(items: StalledStageDiscovery[]): { subject: string; html: string } {
+  const cards = items
+    .map(
+      (d) => `
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <strong>${d.title}</strong>
+        <span class="badge badge-red">${d.daysInStage}일 체류</span>
+      </div>
+      <p style="margin: 4px 0; font-size: 14px; color: #6b7280;">단계: ${d.status} | Owner: ${d.ownerName}</p>
+      <a href="${BASE_URL}/discoveries/${d.id}" class="btn" style="color: white;">확인하기</a>
+    </div>`
+    )
+    .join("");
+
+  return {
+    subject: `[Discovery-X] 단계 체류 SLA 초과 ${items.length}건`,
+    html: layout(`
+      <h2 style="color: #991b1b;">단계 체류 SLA 초과</h2>
+      <p>아래 Discovery가 현재 단계에 14일 이상 머물고 있습니다. 상태를 점검하고 필요한 조치를 취해주세요.</p>
+      ${cards}
+      <p><a href="${BASE_URL}/review" class="btn" style="color: white;">Weekly Review 열기</a></p>
+    `),
+  };
+}
+
+// ============================================================================
+// WEEKLY SUMMARY EMAIL
+// ============================================================================
+
+export interface WeeklySummaryData {
+  totalActive: number;
+  statusCounts: Record<string, number>;
+  overdueCount: number;
+  stalledCount: number;
+  newThisWeek: number;
+  completedThisWeek: number;
+}
+
+export function buildWeeklySummaryEmail(data: WeeklySummaryData): { subject: string; html: string } {
+  const statusRows = Object.entries(data.statusCounts)
+    .map(([status, count]) => `<tr><td style="padding: 4px 12px;">${status}</td><td style="padding: 4px 12px; text-align: right; font-weight: 600;">${count}</td></tr>`)
+    .join("");
+
+  return {
+    subject: `[Discovery-X] 주간 요약 — Active ${data.totalActive}건`,
+    html: layout(`
+      <h2 style="color: #2563eb;">주간 요약 리포트</h2>
+
+      <div class="card">
+        <h3 style="margin-top: 0;">파이프라인 현황</h3>
+        <table style="width: 100%; font-size: 14px;">
+          <thead><tr><th style="padding: 4px 12px; text-align: left;">단계</th><th style="padding: 4px 12px; text-align: right;">건수</th></tr></thead>
+          <tbody>${statusRows}</tbody>
+        </table>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0;">
+        <div class="card" style="text-align: center;">
+          <div style="font-size: 24px; font-weight: 700; color: #2563eb;">${data.totalActive}</div>
+          <div style="font-size: 12px; color: #6b7280;">Active</div>
+        </div>
+        <div class="card" style="text-align: center;">
+          <div style="font-size: 24px; font-weight: 700; color: ${data.overdueCount > 0 ? "#dc2626" : "#059669"};">${data.overdueCount}</div>
+          <div style="font-size: 12px; color: #6b7280;">기한 초과</div>
+        </div>
+        <div class="card" style="text-align: center;">
+          <div style="font-size: 24px; font-weight: 700; color: ${data.stalledCount > 0 ? "#f59e0b" : "#059669"};">${data.stalledCount}</div>
+          <div style="font-size: 12px; color: #6b7280;">단계 체류 초과</div>
+        </div>
+        <div class="card" style="text-align: center;">
+          <div style="font-size: 24px; font-weight: 700; color: #059669;">+${data.newThisWeek} / ${data.completedThisWeek}</div>
+          <div style="font-size: 12px; color: #6b7280;">신규 / 완료</div>
+        </div>
+      </div>
+
+      <p><a href="${BASE_URL}/dashboard" class="btn" style="color: white;">대시보드 열기</a></p>
+    `),
+  };
+}

@@ -155,6 +155,9 @@ export const discoveries = sqliteTable(
 
     // Gatekeeper (v3 R3)
     gatekeeperId: text("gatekeeper_id").references(() => users.id),
+
+    // Embedding tracking
+    embeddingUpdatedAt: integer("embedding_updated_at", { mode: "timestamp" }),
   },
   (table) => ({
     statusIdx: index("idx_discoveries_status").on(table.status),
@@ -205,6 +208,9 @@ export const evidence = sqliteTable("evidence", {
   publishedOrObservedDate: text("published_or_observed_date"),
   validatorId: text("validator_id"),
   validatedAt: integer("validated_at", { mode: "timestamp" }),
+
+  // Embedding tracking
+  embeddingUpdatedAt: integer("embedding_updated_at", { mode: "timestamp" }),
 
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()

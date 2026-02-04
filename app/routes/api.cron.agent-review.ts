@@ -7,8 +7,9 @@
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { discoveries, agentConfig, conversations, DiscoveryStatus } from "~/db/schema";
-import { eq } from "drizzle-orm";
+import { discoveries, agentConfig, conversations } from "~/db/schema";
+import { eq, sql } from "drizzle-orm";
+import { ACTIVE_STATUSES } from "~/lib/constants/status";
 import { executeAgentTurn } from "~/lib/agent/executor";
 
 export async function action({ request, context }: ActionFunctionArgs) {
@@ -40,12 +41,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ message: "Agent autonomy level too low for autonomous review", level: autonomyLevel });
   }
 
-  // Find OPEN discoveries past 50% of their time-box
+  // Find active discoveries past 50% of their time-box
   const now = new Date();
+  const statusList = ACTIVE_STATUSES.map((s) => `'${s}'`).join(",");
   const openDiscoveries = await db
     .select()
     .from(discoveries)
-    .where(eq(discoveries.status, DiscoveryStatus.IDEA_CARD));
+    .where(sql`${discoveries.status} IN (${sql.raw(statusList)})`);
 
   const needsReview = openDiscoveries.filter((d) => {
     if (!d.dueDate || !d.createdAt) return false;

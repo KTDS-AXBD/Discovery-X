@@ -11,9 +11,9 @@ import { AlertBanner } from "~/components/ui/AlertBanner";
 import { Card } from "~/components/ui/Card";
 import { Badge } from "~/components/ui/Badge";
 import { cn } from "~/lib/utils/cn";
-import { eq } from "drizzle-orm";
-import { DiscoveryStatus } from "~/db/schema";
+import { sql } from "drizzle-orm";
 import { formatDate, daysUntilDue } from "~/lib/format-date";
+import { ACTIVE_STATUSES, STATUS_CONFIG } from "~/lib/constants/status";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -24,18 +24,19 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return redirect("/login");
   }
 
-  // Get all OPEN discoveries
+  // Get all active discoveries (all pipeline statuses except HOLD/DROP/HANDOFF)
+  const statusList = ACTIVE_STATUSES.map((s) => `'${s}'`).join(",");
   const openDiscoveries = await db
     .select()
     .from(discoveries)
-    .where(eq(discoveries.status, DiscoveryStatus.IDEA_CARD));
+    .where(sql`${discoveries.status} IN (${sql.raw(statusList)})`);
 
   // Enrich with owner info and calculate age
   const discoveryList = await Promise.all(
     openDiscoveries.map(async (discovery) => {
       const owner = discovery.ownerId
         ? await db.query.users.findFirst({
-            where: eq(users.id, discovery.ownerId),
+            where: (u, { eq }) => eq(u.id, discovery.ownerId!),
           })
         : null;
 
@@ -204,7 +205,9 @@ export default function WeeklyReview() {
                     )}
                   </TableCell>
                   <TableCell className="whitespace-nowrap">
-                    <Badge variant="warning">진행 중</Badge>
+                    <Badge variant={STATUS_CONFIG[discovery.status]?.variant ?? "warning"}>
+                      {STATUS_CONFIG[discovery.status]?.label ?? discovery.status}
+                    </Badge>
                   </TableCell>
                   <TableCell className="whitespace-nowrap pr-6 text-right font-medium">
                     <Link
