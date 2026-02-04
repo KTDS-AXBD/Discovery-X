@@ -48,7 +48,7 @@ export function MainNav({ user }: MainNavProps) {
   const isDashboardActive = location.pathname.startsWith("/dashboard");
 
   return (
-    <nav className="border-b border-[var(--axis-border-default)] bg-[var(--axis-surface-default)]" style={{ height: "var(--dx-nav-height)" }}>
+    <nav className="border-b border-[var(--dx-border-muted,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))]" style={{ height: "var(--dx-nav-height)" }}>
       <div className="mx-auto flex h-full max-w-[1400px] items-center justify-between px-4 sm:px-6">
         {/* Left: Logo + Navigation */}
         <div className="flex items-center gap-8">
@@ -67,10 +67,10 @@ export function MainNav({ user }: MainNavProps) {
             <Link
               to="/dashboard"
               className={cn(
-                "rounded-full px-3.5 py-1.5 text-sm font-medium transition-all duration-[var(--dx-transition-normal)]",
+                "px-3 py-1.5 text-sm font-medium transition-colors duration-[var(--dx-transition-normal)]",
                 isDashboardActive
-                  ? "bg-[var(--axis-surface-brand)] text-[var(--axis-text-brand)]"
-                  : "text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-primary)]",
+                  ? "text-[var(--axis-text-primary)] font-semibold"
+                  : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]",
               )}
             >
               대시보드
@@ -126,7 +126,7 @@ export function MainNav({ user }: MainNavProps) {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="border-t border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] sm:hidden dx-animate-slide-left">
+        <div className="border-t border-[var(--dx-border-muted,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))] sm:hidden dx-animate-slide-left">
           <div className="flex flex-col gap-1 px-4 py-3">
             {/* 대시보드 — direct link */}
             <Link
@@ -135,8 +135,8 @@ export function MainNav({ user }: MainNavProps) {
               className={cn(
                 "rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                 isDashboardActive
-                  ? "bg-[var(--axis-surface-brand)] text-[var(--axis-text-brand)]"
-                  : "text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-secondary)]",
+                  ? "text-[var(--axis-text-primary)] font-semibold"
+                  : "text-[var(--axis-text-secondary)] hover:text-[var(--axis-text-primary)]",
               )}
             >
               대시보드

@@ -59,7 +59,7 @@ const defaultInteractionStyles = cn(
 export interface ButtonProps
   extends Omit<AxisButtonProps, "variant" | "size">,
     React.PropsWithChildren {
-  variant?: AxisButtonProps["variant"] | CustomVariant;
+  variant?: AxisButtonProps["variant"] | CustomVariant | "outline";
   size?: AxisButtonProps["size"] | IconSize;
   loading?: boolean;
 }
@@ -94,9 +94,30 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       );
     }
 
+    // outline variant: border only, transparent bg
+    if (variant === "outline") {
+      return (
+        <AxisButton
+          ref={ref}
+          disabled={isDisabled}
+          size={axisSize}
+          className={cn(
+            "border border-[var(--dx-button-outline-border,rgba(0,0,0,0.12))] bg-transparent text-[var(--axis-text-secondary)]",
+            "hover:bg-[var(--dx-button-outline-hover-bg,rgba(0,0,0,0.04))] hover:text-[var(--axis-text-primary)]",
+            defaultInteractionStyles,
+            iconSizeClass,
+            className
+          )}
+          {...props}
+        >
+          {content}
+        </AxisButton>
+      );
+    }
+
     // ghost variant: transparent background, subtle hover
     const ghostStyles = variant === "ghost"
-      ? "bg-transparent hover:bg-[var(--axis-surface-secondary)] text-[var(--axis-text-secondary)] hover:text-[var(--axis-text-primary)]"
+      ? "bg-transparent hover:bg-[var(--dx-button-outline-hover-bg,var(--axis-surface-secondary))] text-[var(--axis-text-secondary)] hover:text-[var(--axis-text-primary)]"
       : undefined;
 
     return (

@@ -48,8 +48,8 @@ export function NavDropdown({ label, items, mobile, onNavigate }: NavDropdownPro
           className={cn(
             "flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
             isGroupActive
-              ? "bg-[var(--axis-surface-brand)] text-[var(--axis-text-brand)]"
-              : "text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-secondary)]",
+              ? "text-[var(--axis-text-primary)] font-semibold"
+              : "text-[var(--axis-text-secondary)] hover:text-[var(--axis-text-primary)]",
           )}
           aria-expanded={open}
         >
@@ -94,10 +94,10 @@ export function NavDropdown({ label, items, mobile, onNavigate }: NavDropdownPro
         type="button"
         onClick={() => setOpen(!open)}
         className={cn(
-          "flex items-center gap-1 rounded-full px-3.5 py-1.5 text-sm font-medium transition-all duration-[var(--dx-transition-normal)]",
+          "flex items-center gap-1 px-3 py-1.5 text-sm font-medium transition-colors duration-[var(--dx-transition-normal)]",
           isGroupActive
-            ? "bg-[var(--axis-surface-brand)] text-[var(--axis-text-brand)]"
-            : "text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-primary)]",
+            ? "text-[var(--axis-text-primary)] font-semibold"
+            : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]",
         )}
         aria-expanded={open}
       >
@@ -114,7 +114,7 @@ export function NavDropdown({ label, items, mobile, onNavigate }: NavDropdownPro
       </button>
 
       {open && (
-        <div className="dx-panel dx-animate-scale-in absolute left-0 top-full z-50 mt-2 w-48 overflow-hidden">
+        <div className="dx-animate-scale-in absolute left-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-[var(--dx-card-radius)] border border-[var(--dx-border-subtle,var(--dx-card-border-subtle))] bg-[var(--dx-surface-card,var(--axis-surface-default))]">
           <div className="p-1.5">
             {items.map((item) => (
               <Link
@@ -124,8 +124,8 @@ export function NavDropdown({ label, items, mobile, onNavigate }: NavDropdownPro
                 className={cn(
                   "flex items-center rounded-lg px-3 py-2 text-sm transition-colors",
                   location.pathname.startsWith(item.to)
-                    ? "bg-[var(--axis-surface-brand)] font-medium text-[var(--axis-text-brand)]"
-                    : "text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-primary)]",
+                    ? "font-medium text-[var(--axis-text-primary)]"
+                    : "text-[var(--axis-text-secondary)] hover:text-[var(--axis-text-primary)]",
                 )}
               >
                 {item.label}

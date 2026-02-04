@@ -16,7 +16,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     <AxisCard
       ref={ref}
       className={cn(
-        "rounded-[var(--dx-card-radius)] shadow-[var(--dx-card-shadow)] transition-shadow duration-200",
+        "rounded-[var(--dx-card-radius)] shadow-none border border-[var(--dx-border-subtle,var(--dx-card-border-subtle))] bg-[var(--dx-surface-card,var(--axis-surface-default))] transition-colors duration-200",
         className,
       )}
       {...props}
@@ -42,7 +42,7 @@ function CardSection({
   className?: string;
 }) {
   return (
-    <div className={cn("px-4 py-3", className)}>
+    <div className={cn("px-5 py-4", className)}>
       {title && (
         <h4 className="dx-section-title mb-2">{title}</h4>
       )}
