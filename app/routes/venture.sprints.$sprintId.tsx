@@ -98,7 +98,7 @@ export default function VentureSprintLayout() {
   return (
     <div className="min-h-screen bg-[var(--axis-surface-secondary)]">
       <MainNav user={user} />
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
         {/* 브레드크럼 + 헤더 */}
         <div className="mb-6">
           <nav className="mb-2 text-sm text-[var(--axis-text-tertiary)]">
@@ -182,8 +182,8 @@ export default function VentureSprintLayout() {
           </div>
         </div>
 
-        {/* 탭 네비게이션 */}
-        <div className="mb-6 flex gap-1 border-b border-[var(--axis-border-default)]" role="tablist">
+        {/* 탭 네비게이션 — pill/segment style */}
+        <div className="mb-6 flex gap-1 overflow-x-auto rounded-xl bg-[var(--axis-surface-secondary)] p-1" role="tablist">
           {tabs.map((tab) => {
             const tabPath = tab.to ? `${basePath}/${tab.to}` : basePath;
             const isActive = tab.end
@@ -197,9 +197,9 @@ export default function VentureSprintLayout() {
                 role="tab"
                 aria-selected={isActive}
                 className={cn(
-                  "relative px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--axis-button-border-focus)] focus-visible:ring-offset-2",
+                  "whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all duration-[var(--dx-transition-normal)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--axis-button-border-focus)] focus-visible:ring-offset-1",
                   isActive
-                    ? "border-b-2 border-[var(--axis-text-brand)] text-[var(--axis-text-brand)]"
+                    ? "bg-[var(--axis-surface-default)] text-[var(--axis-text-primary)] shadow-sm"
                     : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]"
                 )}
               >

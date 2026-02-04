@@ -81,26 +81,30 @@ export default function DocsPage() {
         </p>
       </div>
 
-      {/* Tab bar */}
-      <div className="mb-6 flex gap-1 border-b border-[var(--axis-border-default)]">
+      {/* Tab bar — pill/segment style */}
+      <div className="mb-6 flex gap-1 overflow-x-auto rounded-xl bg-[var(--axis-surface-secondary)] p-1" role="tablist">
         <button
           type="button"
+          role="tab"
+          aria-selected={tab === "docs"}
           onClick={() => handleTabChange("docs")}
-          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+          className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all duration-[var(--dx-transition-normal)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--axis-button-border-focus)] focus-visible:ring-offset-1 ${
             tab === "docs"
-              ? "border-[var(--axis-border-brand)] text-[var(--axis-text-brand)]"
-              : "border-transparent text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]"
+              ? "bg-[var(--axis-surface-default)] text-[var(--axis-text-primary)] shadow-sm"
+              : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]"
           }`}
         >
           기획서
         </button>
         <button
           type="button"
+          role="tab"
+          aria-selected={tab === "github"}
           onClick={() => handleTabChange("github")}
-          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+          className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all duration-[var(--dx-transition-normal)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--axis-button-border-focus)] focus-visible:ring-offset-1 ${
             tab === "github"
-              ? "border-[var(--axis-border-brand)] text-[var(--axis-text-brand)]"
-              : "border-transparent text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]"
+              ? "bg-[var(--axis-surface-default)] text-[var(--axis-text-primary)] shadow-sm"
+              : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]"
           }`}
         >
           GitHub Project

@@ -588,7 +588,7 @@ export default function VentureSprintDeepDive() {
               <h4 className="mb-3 font-medium text-[var(--axis-text-primary)]">Lean Canvas</h4>
               {editingCanvasOppId === opp.id ? (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                  <div className="h-[90vh] w-[95vw] max-w-7xl overflow-hidden rounded-lg bg-[var(--axis-surface-primary)] shadow-xl">
+                  <div className="h-[90vh] w-[95vw] max-w-[1400px] overflow-hidden rounded-lg bg-[var(--axis-surface-primary)] shadow-xl">
                     <LeanCanvasEditor
                       artifactId={opp.leanCanvas?.id}
                       opportunityId={opp.id}

@@ -48,7 +48,7 @@ export default function Login() {
           <Link to="/auth/google" className="block">
             <button
               type="button"
-              className="flex w-full items-center justify-center gap-3 rounded-lg border border-[var(--axis-border-default)] bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+              className="flex w-full items-center justify-center gap-3 rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] px-4 py-2.5 text-sm font-medium text-[var(--axis-text-primary)] shadow-sm transition-colors hover:bg-[var(--axis-surface-secondary)]"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
                 <path
