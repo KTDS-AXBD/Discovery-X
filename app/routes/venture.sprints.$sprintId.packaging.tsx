@@ -453,12 +453,32 @@ export default function VentureSprintPackaging() {
       {/* Export 섹션 */}
       <div className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-6">
         <h3 className="mb-4 font-semibold text-[var(--axis-text-primary)]">Export</h3>
-        <div className="flex gap-3">
+        <p className="mb-4 text-sm text-[var(--axis-text-tertiary)]">
+          Final 기회와 산출물을 파일로 내보냅니다.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <a
+            href={`/api/venture/export/${sprint.id}?format=markdown`}
+            download
+            className="inline-flex items-center gap-2 rounded-md border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-4 py-2 text-sm font-medium text-[var(--axis-text-primary)] hover:bg-[var(--axis-surface-tertiary)] transition-colors"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Markdown 다운로드
+          </a>
+          <a
+            href={`/api/venture/export/${sprint.id}?format=json`}
+            download
+            className="inline-flex items-center gap-2 rounded-md border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-4 py-2 text-sm font-medium text-[var(--axis-text-primary)] hover:bg-[var(--axis-surface-tertiary)] transition-colors"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            JSON 다운로드
+          </a>
           <Button variant="secondary" disabled>
-            전체 PDF 다운로드 (준비중)
-          </Button>
-          <Button variant="secondary" disabled>
-            Markdown 다운로드 (준비중)
+            PDF 다운로드 (준비중)
           </Button>
         </div>
       </div>
