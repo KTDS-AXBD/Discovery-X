@@ -273,17 +273,21 @@ describe("task-queue.repository", () => {
     });
 
     it("priority 높은 순, createdAt 빠른 순 정렬한다", async () => {
+      // 의존성 없는 COLLECT_SIGNALS 타입으로만 테스트
       const task1 = await enqueueTask(db, testSprintId, {
         taskType: "COLLECT_SIGNALS",
         priority: 1,
+        dedupeKey: "task1",
       });
       const task2 = await enqueueTask(db, testSprintId, {
-        taskType: "ANALYZE_PROBLEMS",
+        taskType: "COLLECT_SIGNALS",
         priority: 10, // 높은 priority
+        dedupeKey: "task2",
       });
       const task3 = await enqueueTask(db, testSprintId, {
-        taskType: "CLUSTER_THEMES",
+        taskType: "COLLECT_SIGNALS",
         priority: 10, // 같은 priority, 나중에 생성
+        dedupeKey: "task3",
       });
 
       const claimed = await claimTasks(db, 10);
@@ -296,9 +300,10 @@ describe("task-queue.repository", () => {
     });
 
     it("limit 개수만큼만 반환한다", async () => {
-      await enqueueTask(db, testSprintId, { taskType: "COLLECT_SIGNALS" });
-      await enqueueTask(db, testSprintId, { taskType: "ANALYZE_PROBLEMS" });
-      await enqueueTask(db, testSprintId, { taskType: "CLUSTER_THEMES" });
+      // 의존성 없는 COLLECT_SIGNALS 타입으로만 테스트
+      await enqueueTask(db, testSprintId, { taskType: "COLLECT_SIGNALS", dedupeKey: "t1" });
+      await enqueueTask(db, testSprintId, { taskType: "COLLECT_SIGNALS", dedupeKey: "t2" });
+      await enqueueTask(db, testSprintId, { taskType: "COLLECT_SIGNALS", dedupeKey: "t3" });
 
       const claimed = await claimTasks(db, 2);
 
@@ -670,6 +675,246 @@ describe("task-queue.repository", () => {
     it("존재하지 않는 task도 에러 없이 처리한다", async () => {
       // 에러가 발생하지 않아야 함
       await expect(deleteTask(db, "non-existent-id")).resolves.not.toThrow();
+    });
+  });
+
+  describe("claimTasks 의존성 검증", () => {
+    it("COLLECT_SIGNALS는 선행 task 없이 바로 claim 가능", async () => {
+      const task = await enqueueTask(db, testSprintId, {
+        taskType: "COLLECT_SIGNALS",
+      });
+
+      const claimed = await claimTasks(db, 10);
+
+      expect(claimed.length).toBe(1);
+      expect(claimed[0].id).toBe(task.id);
+    });
+
+    it("ANALYZE_PROBLEMS는 COLLECT_SIGNALS가 완료되어야 claim 가능", async () => {
+      // COLLECT_SIGNALS 없이 ANALYZE_PROBLEMS 생성
+      await enqueueTask(db, testSprintId, {
+        taskType: "ANALYZE_PROBLEMS",
+        input: { signalIds: [] },
+      });
+
+      // COLLECT_SIGNALS가 없으므로 claim 불가
+      const claimed1 = await claimTasks(db, 10);
+      expect(claimed1.length).toBe(0);
+
+      // COLLECT_SIGNALS 추가 후 COMPLETED로 설정
+      const collectTask = await enqueueTask(db, testSprintId, {
+        taskType: "COLLECT_SIGNALS",
+      });
+      await testDb
+        .update(vdTaskQueue)
+        .set({ status: "COMPLETED", completedAt: new Date() })
+        .where(eq(vdTaskQueue.id, collectTask.id));
+
+      // 이제 ANALYZE_PROBLEMS claim 가능
+      const claimed2 = await claimTasks(db, 10);
+      expect(claimed2.length).toBe(1);
+      expect(claimed2[0].taskType).toBe("ANALYZE_PROBLEMS");
+    });
+
+    it("CLUSTER_THEMES는 GENERATE_OPPORTUNITIES 완료 전 claim 불가", async () => {
+      // 파이프라인 task들 생성: COLLECT_SIGNALS → ANALYZE_PROBLEMS → GENERATE_OPPORTUNITIES → CLUSTER_THEMES
+      const collectTask = await enqueueTask(db, testSprintId, {
+        taskType: "COLLECT_SIGNALS",
+      });
+      await testDb
+        .update(vdTaskQueue)
+        .set({ status: "COMPLETED", completedAt: new Date() })
+        .where(eq(vdTaskQueue.id, collectTask.id));
+
+      const analyzeTask = await enqueueTask(db, testSprintId, {
+        taskType: "ANALYZE_PROBLEMS",
+        input: { signalIds: [] },
+      });
+      await testDb
+        .update(vdTaskQueue)
+        .set({ status: "COMPLETED", completedAt: new Date() })
+        .where(eq(vdTaskQueue.id, analyzeTask.id));
+
+      // GENERATE_OPPORTUNITIES는 PENDING 상태
+      await enqueueTask(db, testSprintId, {
+        taskType: "GENERATE_OPPORTUNITIES",
+        input: { problemIds: [] },
+      });
+
+      // CLUSTER_THEMES 생성
+      await enqueueTask(db, testSprintId, {
+        taskType: "CLUSTER_THEMES",
+        input: { opportunityIds: [] },
+      });
+
+      // GENERATE_OPPORTUNITIES가 PENDING이므로 CLUSTER_THEMES claim 불가
+      // GENERATE_OPPORTUNITIES만 claim됨
+      const claimed = await claimTasks(db, 10);
+      expect(claimed.length).toBe(1);
+      expect(claimed[0].taskType).toBe("GENERATE_OPPORTUNITIES");
+    });
+
+    it("SCORE_OPPORTUNITIES도 GENERATE_OPPORTUNITIES 완료 전 claim 불가", async () => {
+      // 선행 task 완료
+      const collectTask = await enqueueTask(db, testSprintId, {
+        taskType: "COLLECT_SIGNALS",
+      });
+      await testDb
+        .update(vdTaskQueue)
+        .set({ status: "COMPLETED", completedAt: new Date() })
+        .where(eq(vdTaskQueue.id, collectTask.id));
+
+      const analyzeTask = await enqueueTask(db, testSprintId, {
+        taskType: "ANALYZE_PROBLEMS",
+        input: { signalIds: [] },
+      });
+      await testDb
+        .update(vdTaskQueue)
+        .set({ status: "COMPLETED", completedAt: new Date() })
+        .where(eq(vdTaskQueue.id, analyzeTask.id));
+
+      // GENERATE_OPPORTUNITIES는 RUNNING 상태
+      const genOppTask = await enqueueTask(db, testSprintId, {
+        taskType: "GENERATE_OPPORTUNITIES",
+        input: { problemIds: [] },
+      });
+      await testDb
+        .update(vdTaskQueue)
+        .set({ status: "RUNNING", startedAt: new Date() })
+        .where(eq(vdTaskQueue.id, genOppTask.id));
+
+      // SCORE_OPPORTUNITIES 생성
+      await enqueueTask(db, testSprintId, {
+        taskType: "SCORE_OPPORTUNITIES",
+        input: { opportunityIds: [] },
+      });
+
+      // GENERATE_OPPORTUNITIES가 RUNNING이므로 claim 불가
+      const claimed = await claimTasks(db, 10);
+      expect(claimed.length).toBe(0);
+    });
+
+    it("다른 스프린트의 task 상태는 영향 없음", async () => {
+      // 다른 스프린트 생성
+      const otherSprintId = crypto.randomUUID();
+      await testDb.insert(vdSprints).values({
+        id: otherSprintId,
+        name: "Other Sprint",
+        ownerId: testUserId,
+        status: "RUNNING",
+      });
+
+      // 다른 스프린트에서 COLLECT_SIGNALS PENDING
+      await enqueueTask(db, otherSprintId, {
+        taskType: "COLLECT_SIGNALS",
+      });
+
+      // 테스트 스프린트에서 COLLECT_SIGNALS COMPLETED
+      const collectTask = await enqueueTask(db, testSprintId, {
+        taskType: "COLLECT_SIGNALS",
+      });
+      await testDb
+        .update(vdTaskQueue)
+        .set({ status: "COMPLETED", completedAt: new Date() })
+        .where(eq(vdTaskQueue.id, collectTask.id));
+
+      // 테스트 스프린트에서 ANALYZE_PROBLEMS 생성
+      await enqueueTask(db, testSprintId, {
+        taskType: "ANALYZE_PROBLEMS",
+        input: { signalIds: [] },
+      });
+
+      // 다른 스프린트의 COLLECT_SIGNALS PENDING에 영향받지 않음
+      const claimed = await claimTasks(db, 10);
+
+      // COLLECT_SIGNALS(otherSprint) + ANALYZE_PROBLEMS(testSprint)가 claim됨
+      expect(claimed.some(t => t.taskType === "COLLECT_SIGNALS")).toBe(true);
+      expect(claimed.some(t => t.taskType === "ANALYZE_PROBLEMS")).toBe(true);
+    });
+
+    it("FAILED 상태도 완료로 간주하여 후행 task 실행 허용", async () => {
+      // COLLECT_SIGNALS FAILED
+      const collectTask = await enqueueTask(db, testSprintId, {
+        taskType: "COLLECT_SIGNALS",
+      });
+      await testDb
+        .update(vdTaskQueue)
+        .set({ status: "FAILED", error: "Test error", completedAt: new Date() })
+        .where(eq(vdTaskQueue.id, collectTask.id));
+
+      // ANALYZE_PROBLEMS 생성
+      await enqueueTask(db, testSprintId, {
+        taskType: "ANALYZE_PROBLEMS",
+        input: { signalIds: [] },
+      });
+
+      // FAILED도 완료로 간주되어 claim 가능
+      const claimed = await claimTasks(db, 10);
+      expect(claimed.length).toBe(1);
+      expect(claimed[0].taskType).toBe("ANALYZE_PROBLEMS");
+    });
+
+    it("전체 파이프라인 순서 보장: 순차적으로만 claim됨", async () => {
+      // 모든 task 동시에 생성 (역순으로)
+      await enqueueTask(db, testSprintId, {
+        taskType: "PREPARE_GATE",
+        input: { gateType: "GATE1" },
+        priority: 1, // 낮은 priority
+      });
+      await enqueueTask(db, testSprintId, {
+        taskType: "SCORE_OPPORTUNITIES",
+        input: { opportunityIds: [] },
+        priority: 2,
+      });
+      await enqueueTask(db, testSprintId, {
+        taskType: "CLUSTER_THEMES",
+        input: { opportunityIds: [] },
+        priority: 3,
+      });
+      await enqueueTask(db, testSprintId, {
+        taskType: "GENERATE_OPPORTUNITIES",
+        input: { problemIds: [] },
+        priority: 4,
+      });
+      await enqueueTask(db, testSprintId, {
+        taskType: "ANALYZE_PROBLEMS",
+        input: { signalIds: [] },
+        priority: 5,
+      });
+      await enqueueTask(db, testSprintId, {
+        taskType: "COLLECT_SIGNALS",
+        priority: 6, // 가장 높은 priority
+      });
+
+      // 첫 번째 claim: COLLECT_SIGNALS만 가능
+      const claimed1 = await claimTasks(db, 10);
+      expect(claimed1.length).toBe(1);
+      expect(claimed1[0].taskType).toBe("COLLECT_SIGNALS");
+
+      // COLLECT_SIGNALS 완료
+      await completeTask(db, claimed1[0].id);
+
+      // 두 번째 claim: ANALYZE_PROBLEMS만 가능
+      const claimed2 = await claimTasks(db, 10);
+      expect(claimed2.length).toBe(1);
+      expect(claimed2[0].taskType).toBe("ANALYZE_PROBLEMS");
+
+      // ANALYZE_PROBLEMS 완료
+      await completeTask(db, claimed2[0].id);
+
+      // 세 번째 claim: GENERATE_OPPORTUNITIES만 가능
+      const claimed3 = await claimTasks(db, 10);
+      expect(claimed3.length).toBe(1);
+      expect(claimed3[0].taskType).toBe("GENERATE_OPPORTUNITIES");
+
+      // GENERATE_OPPORTUNITIES 완료
+      await completeTask(db, claimed3[0].id);
+
+      // 네 번째 claim: CLUSTER_THEMES와 SCORE_OPPORTUNITIES 둘 다 가능 (병렬 가능)
+      const claimed4 = await claimTasks(db, 10);
+      expect(claimed4.length).toBe(2);
+      const taskTypes4 = claimed4.map(t => t.taskType).sort();
+      expect(taskTypes4).toEqual(["CLUSTER_THEMES", "SCORE_OPPORTUNITIES"]);
     });
   });
 });
