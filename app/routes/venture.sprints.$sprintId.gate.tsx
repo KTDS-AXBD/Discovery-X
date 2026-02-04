@@ -19,8 +19,11 @@ import {
   updateVote,
   getVoteByVoterAndDecision,
   submitDecision,
+  createDecision,
 } from "~/features/venture/repositories/decision.repository";
 import { createWorkEvent } from "~/features/venture/repositories/analytics.repository";
+import { listOpportunitiesBySprint, updateOpportunity } from "~/features/venture/repositories/opportunity.repository";
+import { getDecisionById } from "~/features/venture/repositories/decision.repository";
 import { VD_DECISION_TYPE_CONFIG, VD_DECISION_STATUS_CONFIG } from "~/features/venture/constants/decision-types";
 import { aggregateVotes } from "~/features/venture/schemas/decision.schema";
 import type { VdDecisionTypeValue, VdDecisionStatusType } from "~/features/venture/types";
@@ -125,7 +128,18 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     const selectedOption = formData.get("selectedOption") as string;
     const humanRationale = formData.get("humanRationale") as string;
 
+    // Decision 정보 조회
+    const decision = await getDecisionById(db, decisionId);
+
     await submitDecision(db, decisionId, { selectedOption, humanRationale }, user.id);
+
+    // Gate 2 승인 시 Shortlist 기회들을 Final로 마킹
+    if (decision?.decisionType === "GATE2_FINAL") {
+      const shortlistedOpportunities = await listOpportunitiesBySprint(db, sprintId, { shortlistedOnly: true });
+      for (const opp of shortlistedOpportunities) {
+        await updateOpportunity(db, opp.id, { isFinal: true });
+      }
+    }
 
     await createWorkEvent(db, sprintId, {
       eventType: "decision_approve",
@@ -138,11 +152,34 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     return json({ success: true });
   }
 
+  // Gate 2 Decision 생성 (테스트용)
+  if (intent === "createGate2Decision") {
+    const decision = await createDecision(db, sprintId, {
+      decisionType: "GATE2_FINAL",
+      agentRecommendation: {
+        recommendation: "Shortlist 2개 기회를 Final로 선정 권장",
+        rationale: "Deep Dive 분석 결과 모두 충분한 검토가 완료됨",
+        confidence: 85,
+      },
+      timeoutAt: new Date(Date.now() + 48 * 60 * 60 * 1000), // 48시간 후
+    });
+
+    await createWorkEvent(db, sprintId, {
+      eventType: "decision_propose",
+      actorType: "human",
+      actorId: user.id,
+      entityType: "decision",
+      entityId: decision.id,
+    });
+
+    return json({ success: true, decisionId: decision.id });
+  }
+
   return json({ error: "Unknown intent" }, { status: 400 });
 }
 
 export default function VentureSprintGate() {
-  const { decisions } = useLoaderData<typeof loader>();
+  const { sprint, decisions } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
@@ -179,6 +216,14 @@ export default function VentureSprintGate() {
         {pendingDecisions.length === 0 ? (
           <div className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-8 text-center">
             <p className="text-[var(--axis-text-tertiary)]">대기 중인 결정이 없습니다.</p>
+            {sprint.status === "GATE2_PENDING" && (
+              <Form method="post" className="mt-4">
+                <input type="hidden" name="intent" value="createGate2Decision" />
+                <Button type="submit" disabled={isSubmitting}>
+                  Gate 2 Decision 생성
+                </Button>
+              </Form>
+            )}
           </div>
         ) : (
           <div className="space-y-4">

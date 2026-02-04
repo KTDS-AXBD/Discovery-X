@@ -16,6 +16,7 @@ import {
   listArtifactsByOpportunity,
   updateArtifact,
   createArtifact,
+  updateOpportunity,
 } from "~/features/venture/repositories/opportunity.repository";
 import { enqueueTask } from "~/features/venture/repositories/task-queue.repository";
 import { createWorkEvent } from "~/features/venture/repositories/analytics.repository";
@@ -170,6 +171,24 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     return json({ success: true, taskId: task.id });
   }
 
+  // Shortlist 기회들을 Final로 마킹 (테스트용)
+  if (intent === "markShortlistAsFinal") {
+    const shortlistedOpportunities = await listOpportunitiesBySprint(db, sprintId, { shortlistedOnly: true });
+    for (const opp of shortlistedOpportunities) {
+      await updateOpportunity(db, opp.id, { isFinal: true });
+    }
+
+    await createWorkEvent(db, sprintId, {
+      eventType: "opportunity_final",
+      actorType: "human",
+      actorId: user.id,
+      entityType: "opportunity",
+      metadata: { count: shortlistedOpportunities.length },
+    });
+
+    return json({ success: true, count: shortlistedOpportunities.length });
+  }
+
   // 스프린트 완료
   if (intent === "completeSprint") {
     const sprint = await getSprintById(db, sprintId);
@@ -208,12 +227,22 @@ export default function VentureSprintPackaging() {
         <p className="text-[var(--axis-text-tertiary)]">
           Final 기회가 없습니다. Gate 2에서 Final을 선정하세요.
         </p>
-        <Link
-          to={`/venture/sprints/${sprint.id}/gate`}
-          className="mt-4 inline-block text-sm text-[var(--axis-text-brand)] hover:underline"
-        >
-          Gate로 이동
-        </Link>
+        <div className="mt-4 flex items-center justify-center gap-4">
+          <Link
+            to={`/venture/sprints/${sprint.id}/gate`}
+            className="text-sm text-[var(--axis-text-brand)] hover:underline"
+          >
+            Gate로 이동
+          </Link>
+          {sprint.status === "GATE2_PENDING" && (
+            <Form method="post" className="inline">
+              <input type="hidden" name="intent" value="markShortlistAsFinal" />
+              <Button type="submit" variant="secondary" disabled={isSubmitting}>
+                {isSubmitting ? "처리 중..." : "Shortlist를 Final로 마킹"}
+              </Button>
+            </Form>
+          )}
+        </div>
       </div>
     );
   }
