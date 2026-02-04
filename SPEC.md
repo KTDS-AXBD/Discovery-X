@@ -470,23 +470,28 @@ Validation:
 > **이 섹션은 매 세션마다 업데이트한다.**
 
 ### 현재 단계
-**🚀 v4.4 메뉴 구조 개편 + UI 일관성 수정 (세션 114, 2026-02-04)**
+**🚀 v4.5 코드 품질 + 보안 강화 (세션 115, 2026-02-04)**
 
 - ✅ v3 R0~R3b 전체 구현 + 프로덕션 배포 (Agent 45도구, 11단계 파이프라인, 알림/웹훅)
 - ✅ v4 Venture Sprint MVP: 18 라우트, 8 핸들러, Task Queue, Decision Center, Analytics
-- ✅ UX 리팩토링 v4.1~v4.3 + v4.4 메뉴 구조 개편 + UI 일관성 수정
+- ✅ UX 리팩토링 v4.1~v4.4 + 메뉴 구조 개편 + UI 일관성 수정
+- ✅ v4.5: 버그 수정 + 성능 최적화 + 보안 강화 + UI 디자인 개선
 - ✅ Embeddings 인프라 (Vectorize 2개 + Cron 15분 + 초기 동기화 완료)
 - ✅ 채팅 UX 개선 (ContextPanel + Digest + 제안 칩 + 리치 시각화)
 - ✅ 테스트 561개 통과 (unit 76 + integration 342 + venture 143)
 
-### 최근 변경 (세션 114)
+### 최근 변경 (세션 115)
+**코드 품질 + 보안 강화 — 4건의 논리적 커밋**:
+- ✅ 버그 수정: IDEA_CARD 중복 비교 → HYPOTHESIS 수정 (4곳), 상태 전환 검증 추가 (decideGate/Hold/Drop + Cron 자동 DROP)
+- ✅ 보안 강화: Cron 인증 필수화 (CRON_SECRET 미설정 시 bypass 차단 4개), 웹훅/Evidence URL 프로토콜 검증, CSV formula injection 방지
+- ✅ 성능 최적화: root.tsx 전체 select → 5개 COUNT 병렬 쿼리, Export CSV/JSON N+1 → 배치 조회, discoveries 목록 N+1 → inArray, sql.raw → inArray 3곳
+- ✅ SSR hydration mismatch 수정: toLocaleString/toLocaleTimeString → formatTime/String 유틸, SESSION_SECRET 필수화 + localhost secure cookie 처리
+- ✅ UI 디자인: 네비/카드 shadow→border, Button outline variant 추가, 텍스트 기반 활성 메뉴
+
+### 이전 변경 (세션 114)
 **UI 일관성 수정 — 메뉴 개편 후 잔여 불일치 7건**:
 - ✅ venture 라우트 4개 `max-w-7xl` → `max-w-[1400px]` 통일
-  - venture.analytics / venture.sprints.$sprintId / venture.sprints._index / venture.sprints.$sprintId.deepdive
-- ✅ 탭 스타일 pill/segment 통일 (border-b-2 → rounded pill)
-  - venture.sprints.$sprintId (7개 탭) + docs.tsx (2개 탭) → dashboard.tsx 패턴 적용
-- ✅ 로그인 Google 버튼 다크모드 대응
-  - `bg-white text-gray-700` 하드코딩 → AXIS 토큰 교체
+- ✅ 탭 스타일 pill/segment 통일 + 로그인 Google 버튼 다크모드 대응
 
 ### 이전 변경 (세션 113)
 **메뉴 구조 개편 + UI 디자인 시스템 개선**:
