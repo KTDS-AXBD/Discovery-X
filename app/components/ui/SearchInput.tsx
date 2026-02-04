@@ -23,7 +23,7 @@ const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
         ref={ref}
         type="search"
         className={cn(
-          "h-8 w-full rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] pl-8 pr-2 text-xs text-[var(--axis-text-primary)] placeholder:text-[var(--axis-text-tertiary)]",
+          "h-8 w-full rounded-lg border border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-card,var(--axis-surface-default))] pl-8 pr-2 text-xs text-[var(--axis-text-primary)] placeholder:text-[var(--axis-text-tertiary)]",
           "transition-colors focus:border-[var(--axis-border-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--axis-border-brand)]",
           showFilter && "pr-8",
         )}
