@@ -23,31 +23,36 @@ export async function getUserFromSession(
   db: DB,
   secret: string
 ) {
-  const sessionStorage = createSessionStorage(secret, isSecureCookie(request));
-  const session = await sessionStorage.getSession(
-    request.headers.get("Cookie")
-  );
+  try {
+    const sessionStorage = createSessionStorage(secret, isSecureCookie(request));
+    const session = await sessionStorage.getSession(
+      request.headers.get("Cookie")
+    );
 
-  const sessionId = session.get("sessionId");
-  if (!sessionId) {
+    const sessionId = session.get("sessionId");
+    if (!sessionId) {
+      return null;
+    }
+
+    // Verify session exists and is not expired
+    const sessionRecord = await db.query.sessions.findFirst({
+      where: eq(sessions.id, sessionId),
+    });
+
+    if (!sessionRecord || sessionRecord.expiresAt < new Date()) {
+      return null;
+    }
+
+    // Get user
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, sessionRecord.userId),
+    });
+
+    return user || null;
+  } catch (error) {
+    console.error("[getUserFromSession] Error:", error instanceof Error ? error.message : error);
     return null;
   }
-
-  // Verify session exists and is not expired
-  const sessionRecord = await db.query.sessions.findFirst({
-    where: eq(sessions.id, sessionId),
-  });
-
-  if (!sessionRecord || sessionRecord.expiresAt < new Date()) {
-    return null;
-  }
-
-  // Get user
-  const user = await db.query.users.findFirst({
-    where: eq(users.id, sessionRecord.userId),
-  });
-
-  return user || null;
 }
 
 // Require authenticated user (pending 사용자는 승인 대기 페이지로 리다이렉트)
@@ -139,6 +144,10 @@ export function getSessionSecret(env: { SESSION_SECRET?: string }): string {
 
 // Determine if secure cookie should be used (false for localhost dev)
 export function isSecureCookie(request: Request): boolean {
-  const url = new URL(request.url);
-  return url.hostname !== "localhost" && url.hostname !== "127.0.0.1";
+  try {
+    const url = new URL(request.url);
+    return url.hostname !== "localhost" && url.hostname !== "127.0.0.1";
+  } catch {
+    return true;
+  }
 }

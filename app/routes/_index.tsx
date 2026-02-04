@@ -25,29 +25,34 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const db = getDb(context.cloudflare.env.DB);
-  const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
+  try {
+    const db = getDb(context.cloudflare.env.DB);
+    const secret = getSessionSecret(context.cloudflare.env);
+    const user = await getUserFromSession(request, db, secret);
 
-  if (!user) {
+    if (!user) {
+      return redirect("/login");
+    }
+
+    const convs = await db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.userId, user.id))
+      .orderBy(desc(conversations.updatedAt))
+      .limit(50);
+
+    return json({
+      user,
+      conversations: convs.map((c) => ({
+        id: c.id,
+        title: sanitizeTitle(c.title),
+        updatedAt: c.updatedAt ? new Date(c.updatedAt).toISOString() : null,
+      })),
+    });
+  } catch (error) {
+    console.error("[_index.loader] Error:", error instanceof Error ? error.message : error);
     return redirect("/login");
   }
-
-  const convs = await db
-    .select()
-    .from(conversations)
-    .where(eq(conversations.userId, user.id))
-    .orderBy(desc(conversations.updatedAt))
-    .limit(50);
-
-  return json({
-    user,
-    conversations: convs.map((c) => ({
-      id: c.id,
-      title: sanitizeTitle(c.title),
-      updatedAt: c.updatedAt ? new Date(c.updatedAt).toISOString() : null,
-    })),
-  });
 }
 
 interface ConversationData {

@@ -7,15 +7,20 @@ import { MainNav } from "~/components/layout/MainNav";
 import { cn } from "~/lib/utils/cn";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const db = getDb(context.cloudflare.env.DB);
-  const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
+  try {
+    const db = getDb(context.cloudflare.env.DB);
+    const secret = getSessionSecret(context.cloudflare.env);
+    const user = await getUserFromSession(request, db, secret);
 
-  if (!user) {
+    if (!user) {
+      return redirect("/login");
+    }
+
+    return json({ user });
+  } catch (error) {
+    console.error("[dashboard.loader] Error:", error instanceof Error ? error.message : error);
     return redirect("/login");
   }
-
-  return json({ user });
 }
 
 const PipelineIcon = () => (
