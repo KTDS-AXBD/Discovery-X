@@ -9,8 +9,12 @@ export function createGoogleClient(
 }
 
 export function getRedirectUri(request: Request): string {
-  const url = new URL(request.url);
-  return `${url.origin}/auth/google/callback`;
+  try {
+    const url = new URL(request.url);
+    return `${url.origin}/auth/google/callback`;
+  } catch {
+    return "https://dx.minu.best/auth/google/callback";
+  }
 }
 
 export function getGoogleCredentials(env: {
