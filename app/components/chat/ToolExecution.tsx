@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { AlertBanner } from "~/components/ui/AlertBanner";
 import { Badge } from "~/components/ui/Badge";
+import { cn } from "~/lib/utils/cn";
 
 interface ToolExecutionProps {
   toolName: string;
@@ -33,13 +33,50 @@ const TOOL_LABELS: Record<string, string> = {
 const QUERY_TOOLS = new Set([
   "list_discoveries",
   "get_discovery_detail",
+  "get_experiment_context",
   "search_similar",
   "get_metrics",
   "get_radar_items",
   "get_weekly_review",
   "get_recall_queue",
   "list_users",
+  "get_stage_info",
+  "validate_evidence",
+  "list_method_packs",
+  "get_gate_package",
+  "query_graph",
+  "get_duplicate_queue",
+  "get_kpi_status",
+  "get_pipeline_health",
+  "get_linked_discoveries",
+  "get_alerts",
 ]);
+
+type ToolCategory = "query" | "mutation" | "error";
+
+function getToolCategory(toolName: string, hasError: boolean): ToolCategory {
+  if (hasError) return "error";
+  if (QUERY_TOOLS.has(toolName)) return "query";
+  return "mutation";
+}
+
+const CATEGORY_STYLES: Record<ToolCategory, { border: string; icon: string; bg: string }> = {
+  query: {
+    border: "border-l-[var(--axis-text-tertiary)]",
+    icon: "\uD83D\uDCCB",
+    bg: "bg-[var(--axis-surface-default)]",
+  },
+  mutation: {
+    border: "border-l-[var(--axis-text-brand)]",
+    icon: "\u270F\uFE0F",
+    bg: "bg-[var(--axis-surface-default)]",
+  },
+  error: {
+    border: "border-l-[var(--axis-text-error)]",
+    icon: "\u26A0\uFE0F",
+    bg: "bg-[var(--axis-surface-default)]",
+  },
+};
 
 function DiscoveriesTable({ data }: { data: Record<string, unknown> }) {
   const discoveries = (data.discoveries || []) as Array<Record<string, unknown>>;
@@ -164,19 +201,24 @@ export function ToolExecution({ toolName, result, isRunning }: ToolExecutionProp
   const label = TOOL_LABELS[toolName] || toolName;
   const hasError = "error" in result;
   const isQuery = QUERY_TOOLS.has(toolName);
+  const category = getToolCategory(toolName, hasError);
+  const styles = CATEGORY_STYLES[category];
   // Queries default collapsed, mutations default expanded
   const [expanded, setExpanded] = useState(!isQuery);
   const [showJson, setShowJson] = useState(false);
 
   if (isRunning) {
     return (
-      <AlertBanner variant="default" className="my-1">
+      <div className={cn(
+        "my-1.5 rounded-lg border border-[var(--axis-border-default)] border-l-4 p-3",
+        "border-l-[var(--axis-text-brand)] bg-[var(--axis-surface-default)]",
+      )}>
         <div className="flex items-center gap-2 text-xs">
-          <Badge variant="info" className="text-[10px] animate-pulse">도구</Badge>
-          <span className="font-medium">{label}</span>
-          <Badge variant="default" className="text-[10px]">실행 중...</Badge>
+          <span className="text-sm">{styles.icon}</span>
+          <span className="font-medium text-[var(--axis-text-primary)]">{label}</span>
+          <Badge variant="default" className="text-[10px] animate-pulse">실행 중...</Badge>
         </div>
-      </AlertBanner>
+      </div>
     );
   }
 
@@ -184,10 +226,11 @@ export function ToolExecution({ toolName, result, isRunning }: ToolExecutionProp
   const hasContent = formattedResult || (!hasError && Object.keys(result).length > 0);
 
   return (
-    <AlertBanner
-      variant={hasError ? "destructive" : isQuery ? "default" : "info"}
-      className="my-1"
-    >
+    <div className={cn(
+      "my-1.5 rounded-lg border border-[var(--axis-border-default)] border-l-4 p-3",
+      styles.border,
+      styles.bg,
+    )}>
       <div
         className="flex cursor-pointer items-center gap-2 text-xs"
         role="button"
@@ -201,28 +244,26 @@ export function ToolExecution({ toolName, result, isRunning }: ToolExecutionProp
           }
         }}
       >
-        <Badge variant={hasError ? "error" : "info"} className="text-[10px]">
-          도구
-        </Badge>
-        <span className="font-medium">{label}</span>
+        <span className="text-sm">{styles.icon}</span>
+        <span className="font-medium text-[var(--axis-text-primary)]">{label}</span>
         {hasError ? (
           <>
             <Badge variant="error" className="text-[10px]">오류</Badge>
-            <span className="text-[var(--axis-text-error)] truncate">{String(result.error)}</span>
+            <span className="text-[var(--axis-text-error)] truncate max-w-[200px]">{String(result.error)}</span>
           </>
         ) : (
           <Badge variant="success" className="text-[10px]">완료</Badge>
         )}
         {hasContent && (
-          <span className="ml-auto text-[var(--axis-text-tertiary)]">
-            {expanded ? "▲" : "▼"}
+          <span className="ml-auto text-[var(--axis-text-tertiary)] text-[10px]">
+            {expanded ? "▲ 접기" : "▼ 펼치기"}
           </span>
         )}
       </div>
 
       {/* Mutation summary (always visible) */}
       {!isQuery && !hasError && "discoveryId" in result && (
-        <div className="mt-1 text-xs text-[var(--axis-text-secondary)]">
+        <div className="mt-1.5 text-xs text-[var(--axis-text-secondary)]">
           Discovery: {String(result.discoveryId as string).slice(0, 8)}...
           {"status" in result && ` → ${String(result.status)}`}
         </div>
@@ -230,7 +271,7 @@ export function ToolExecution({ toolName, result, isRunning }: ToolExecutionProp
 
       {/* Suggestion on error */}
       {hasError && "suggestion" in result && (
-        <div className="mt-1 text-xs text-[var(--axis-text-secondary)]">
+        <div className="mt-1.5 text-xs text-[var(--axis-text-secondary)]">
           {String(result.suggestion)}
         </div>
       )}
@@ -241,7 +282,7 @@ export function ToolExecution({ toolName, result, isRunning }: ToolExecutionProp
           {!showJson && formattedResult ? (
             formattedResult
           ) : (
-            <pre className="max-h-64 overflow-auto rounded bg-[var(--axis-surface-secondary)] p-2 text-[11px] leading-relaxed">
+            <pre className="max-h-64 overflow-auto rounded-lg bg-[var(--axis-surface-secondary)] p-2 text-[11px] leading-relaxed">
               {JSON.stringify(result, null, 2)}
             </pre>
           )}
@@ -255,6 +296,6 @@ export function ToolExecution({ toolName, result, isRunning }: ToolExecutionProp
           </div>
         </div>
       )}
-    </AlertBanner>
+    </div>
   );
 }

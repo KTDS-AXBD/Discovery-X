@@ -5,6 +5,7 @@ import rehypeHighlight from "rehype-highlight";
 import { Card, CardContent } from "~/components/ui/Card";
 import { Badge } from "~/components/ui/Badge";
 import { cn } from "~/lib/utils/cn";
+import { StructuredMessage, shouldUseStructuredMessage } from "./StructuredMessage";
 
 interface MessageBubbleProps {
   role: "user" | "assistant";
@@ -44,9 +45,67 @@ function CodeBlock({ children, className, ...props }: ComponentProps<"code">) {
 
 function PreBlock({ children, ...props }: ComponentProps<"pre">) {
   return (
-    <pre className="group relative" {...props}>
+    <pre className="group relative rounded-lg border border-[var(--axis-border-default)] bg-[var(--dx-code-bg,var(--axis-surface-secondary))]" {...props}>
       {children}
     </pre>
+  );
+}
+
+function Heading2({ children, ...props }: ComponentProps<"h2">) {
+  return (
+    <h2 className="mt-6 mb-3 border-b border-[var(--axis-border-default)] pb-2 text-base font-semibold text-[var(--axis-text-primary)]" {...props}>
+      {children}
+    </h2>
+  );
+}
+
+function Heading3({ children, ...props }: ComponentProps<"h3">) {
+  return (
+    <h3 className="mt-4 mb-2 border-l-3 border-[var(--axis-text-brand)] pl-3 text-sm font-semibold text-[var(--axis-text-primary)]" {...props}>
+      {children}
+    </h3>
+  );
+}
+
+function TableWrapper({ children, ...props }: ComponentProps<"table">) {
+  return (
+    <div className="my-3 overflow-x-auto rounded-lg border border-[var(--axis-border-default)]">
+      <table className="w-full" {...props}>
+        {children}
+      </table>
+    </div>
+  );
+}
+
+function TableRow({ children, ...props }: ComponentProps<"tr">) {
+  return (
+    <tr className="border-b border-[var(--axis-border-subtle)] even:bg-[var(--axis-surface-secondary)]" {...props}>
+      {children}
+    </tr>
+  );
+}
+
+function TableHead({ children, ...props }: ComponentProps<"th">) {
+  return (
+    <th className="bg-[var(--axis-surface-secondary)] px-3 py-2 text-left text-xs font-semibold text-[var(--axis-text-secondary)]" {...props}>
+      {children}
+    </th>
+  );
+}
+
+function TableCell({ children, ...props }: ComponentProps<"td">) {
+  return (
+    <td className="px-3 py-2 text-sm" {...props}>
+      {children}
+    </td>
+  );
+}
+
+function BlockquoteBlock({ children, ...props }: ComponentProps<"blockquote">) {
+  return (
+    <blockquote className="my-3 border-l-4 border-[var(--axis-text-brand)] bg-[var(--axis-surface-secondary)] py-2 pl-4 pr-3 text-sm italic text-[var(--axis-text-secondary)]" {...props}>
+      {children}
+    </blockquote>
   );
 }
 
@@ -82,23 +141,36 @@ export function MessageBubble({ role, content, timestamp, streaming }: MessageBu
                 {content}
               </div>
             ) : (
-              <div className="prose prose-sm max-w-none text-[var(--axis-text-primary)] prose-headings:text-[var(--axis-text-primary)] prose-strong:text-[var(--axis-text-primary)] prose-code:text-[var(--axis-text-primary)] prose-code:bg-[var(--axis-surface-secondary)] prose-code:rounded prose-code:px-1 prose-code:py-0.5 prose-code:before:content-none prose-code:after:content-none prose-pre:bg-[var(--axis-surface-secondary)] prose-pre:border prose-pre:border-[var(--axis-border-default)] prose-th:text-[var(--axis-text-primary)] prose-td:text-[var(--axis-text-primary)] prose-a:text-[var(--axis-text-brand)]">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  rehypePlugins={[rehypeHighlight]}
-                  components={{
-                    pre: PreBlock,
-                    code: CodeBlock,
-                  }}
-                >
-                  {content}
-                </ReactMarkdown>
-                {streaming && (
-                  <span className="inline-flex gap-0.5 ml-1 items-center">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--axis-text-brand)] animate-bounce [animation-delay:0ms]" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--axis-text-brand)] animate-bounce [animation-delay:150ms]" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--axis-text-brand)] animate-bounce [animation-delay:300ms]" />
-                  </span>
+              <div className="prose prose-base max-w-none text-[var(--axis-text-primary)] prose-headings:text-[var(--axis-text-primary)] prose-strong:text-[var(--axis-text-primary)] prose-code:text-[var(--axis-text-primary)] prose-code:bg-[var(--axis-surface-secondary)] prose-code:rounded prose-code:px-1 prose-code:py-0.5 prose-code:text-[13px] prose-code:before:content-none prose-code:after:content-none prose-pre:bg-[var(--dx-code-bg,var(--axis-surface-secondary))] prose-pre:border-0 prose-pre:p-0 prose-th:text-[var(--axis-text-primary)] prose-td:text-[var(--axis-text-primary)] prose-a:text-[var(--axis-text-brand)] prose-li:my-0.5 prose-p:my-2 prose-ul:my-2 prose-ol:my-2">
+                {shouldUseStructuredMessage(content) ? (
+                  <StructuredMessage content={content} streaming={streaming} />
+                ) : (
+                  <>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeHighlight]}
+                      components={{
+                        pre: PreBlock,
+                        code: CodeBlock,
+                        h2: Heading2,
+                        h3: Heading3,
+                        table: TableWrapper,
+                        tr: TableRow,
+                        th: TableHead,
+                        td: TableCell,
+                        blockquote: BlockquoteBlock,
+                      }}
+                    >
+                      {content}
+                    </ReactMarkdown>
+                    {streaming && (
+                      <span className="inline-flex gap-0.5 ml-1 items-center">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--axis-text-brand)] animate-bounce [animation-delay:0ms]" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--axis-text-brand)] animate-bounce [animation-delay:150ms]" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--axis-text-brand)] animate-bounce [animation-delay:300ms]" />
+                      </span>
+                    )}
+                  </>
                 )}
               </div>
             )}

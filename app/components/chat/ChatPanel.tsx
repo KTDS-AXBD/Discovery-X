@@ -35,6 +35,21 @@ interface BudgetWarning {
   percentUsed: number;
 }
 
+// Parse <!-- SUGGESTIONS: [...] --> from end of message content
+function parseSuggestions(content: string): { cleanContent: string; suggestions: string[] } {
+  const match = content.match(/<!--\s*SUGGESTIONS:\s*(\[.*?\])\s*-->\s*$/s);
+  if (!match) return { cleanContent: content, suggestions: [] };
+  try {
+    const suggestions = JSON.parse(match[1]) as string[];
+    return {
+      cleanContent: content.slice(0, match.index).trimEnd(),
+      suggestions: suggestions.filter((s) => typeof s === "string" && s.length > 0).slice(0, 4),
+    };
+  } catch {
+    return { cleanContent: content, suggestions: [] };
+  }
+}
+
 export function ChatPanel({ conversationId, initialMessages, isLoadingMessages }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
@@ -43,6 +58,7 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages }
   const [budgetWarning, setBudgetWarning] = useState<BudgetWarning | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
   const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
+  const [dynamicSuggestions, setDynamicSuggestions] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -63,6 +79,7 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages }
     setPendingToolCalls([]);
     setSendError(null);
     setLastFailedMessage(null);
+    setDynamicSuggestions([]);
 
     // Optimistic add user message
     const userMsg: ChatMessage = {
@@ -216,6 +233,20 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages }
       setIsLoading(false);
       abortControllerRef.current = null;
       inputRef.current?.focus();
+
+      // Parse SUGGESTIONS from the last assistant message
+      setMessages((prev) => {
+        const lastAssistant = [...prev].reverse().find((m) => m.role === "assistant");
+        if (!lastAssistant) return prev;
+        const { cleanContent, suggestions } = parseSuggestions(lastAssistant.content);
+        setDynamicSuggestions(suggestions);
+        if (cleanContent !== lastAssistant.content) {
+          return prev.map((m) =>
+            m.id === lastAssistant.id ? { ...m, content: cleanContent } : m
+          );
+        }
+        return prev;
+      });
     }
   }, [conversationId, isLoading]);
 
@@ -364,6 +395,26 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages }
                 </button>
               </div>
             </AlertBanner>
+          </div>
+        </div>
+      )}
+
+      {/* Dynamic suggestions */}
+      {dynamicSuggestions.length > 0 && !isLoading && (
+        <div className="border-t border-[var(--axis-border-subtle)] bg-[var(--axis-surface-default)] px-4 pt-3 pb-0">
+          <div className="mx-auto flex max-w-3xl flex-wrap gap-2">
+            {dynamicSuggestions.map((suggestion) => (
+              <SuggestionChip
+                key={suggestion}
+                onClick={() => {
+                  setDynamicSuggestions([]);
+                  setInput("");
+                  sendMessageWithContent(suggestion);
+                }}
+              >
+                {suggestion}
+              </SuggestionChip>
+            ))}
           </div>
         </div>
       )}
