@@ -470,26 +470,31 @@ Validation:
 > **이 섹션은 매 세션마다 업데이트한다.**
 
 ### 현재 단계
-**🚀 v4.7 프로덕션 500 에러 핫픽스 (세션 117, 2026-02-04)**
+**🚀 v4.8 P2 잔여 작업 5건 구현 (세션 118, 2026-02-04)**
 
-- ✅ v3 R0~R3b 전체 구현 + 프로덕션 배포 (Agent 45도구, 11단계 파이프라인, 알림/웹훅)
+- ✅ v3 R0~R3b 전체 구현 + 프로덕션 배포 (Agent 48도구, 11단계 파이프라인, 알림/웹훅)
 - ✅ v4 Venture Sprint MVP: 18 라우트, 8 핸들러, Task Queue, Decision Center, Analytics
 - ✅ UX 리팩토링 v4.1~v4.4 + 메뉴 구조 개편 + UI 일관성 수정
 - ✅ v4.5: 버그 수정 + 성능 최적화 + 보안 강화
 - ✅ v4.6: Figma 기반 전체 UI 개선 — 다크 테마 심화 + 플랫 네비/탭 + 카드 border 기반
 - ✅ v4.7: 프로덕션 500 에러 수정 — 인증 라우트 방어적 try-catch + SESSION_SECRET 환경 변수 설정
+- ✅ v4.8: P2 잔여 작업 5건 (F6~F10) — 응답 요약/비교 도구/간트차트/태그/추천
 - ✅ Embeddings 인프라 (Vectorize 2개 + Cron 15분 + 초기 동기화 완료)
 - ✅ 채팅 UX 개선 (ContextPanel + Digest + 제안 칩 + 리치 시각화)
 - ✅ 테스트 561개 통과 (unit 76 + integration 342 + venture 143)
 
-### 최근 변경 (세션 117)
+### 최근 변경 (세션 118)
+**P2 잔여 작업 5건 구현 — 9개 수정 + 3개 신규 + 1 마이그레이션 (PDCA 97%)**:
+- ✅ F6: `addSummaryHeader()` — 500자+ 응답에 첫 문장 요약 블록인용 자동 삽입
+- ✅ F7: `ExperimentGantt` SVG 컴포넌트 — 실험 타임라인 간트차트 (SSR-safe `now` prop)
+- ✅ F8: `compareDiscoveries()` Agent 도구 — 2~5개 Discovery 마크다운 비교 테이블
+- ✅ F9: Discovery 태그 시스템 — `tags` 컬럼 + `tag_discovery`/`remove_discovery_tag` 도구 + 마이그레이션
+- ✅ F10: `RelatedDiscoveries` 컴포넌트 — Vectorize 코사인 유사도 ≥0.7 기반 추천
+- ✅ Agent 도구 45 → 48개 (+compare_discoveries, +tag_discovery, +remove_discovery_tag)
+- ✅ PDCA 사이클 완료: Plan → Design → Do → Check (97%) → Report
+
+### 이전 변경 (세션 117)
 **프로덕션 500 에러 핫픽스 — 5개 파일 수정, 환경 변수 1개 추가**:
-- ✅ 근본 원인: `SESSION_SECRET` 환경 변수가 Cloudflare Pages에 미설정 → `getSessionSecret()` throw → 500
-- ✅ `session.server.ts`: `getUserFromSession` + `isSecureCookie`에 방어적 try-catch 추가
-- ✅ `_index.tsx` / `dashboard.tsx`: loader에 try-catch 추가 (에러 시 /login redirect)
-- ✅ `auth.google.tsx` / `auth.google.callback.tsx`: loader에 try-catch 추가 (에러 시 /login?error=auth_error)
-- ✅ `google.server.ts`: `getRedirectUri` URL 파싱 방어 코드 추가
-- ✅ Cloudflare Pages에 `SESSION_SECRET` secret 추가 → Google OAuth 정상 작동 확인
 - ✅ 프로덕션 검증: `/`, `/dashboard`, `/auth/google` 모두 500→302 해소
 
 ### 이전 변경 (세션 116)
@@ -551,7 +556,7 @@ Validation:
 - **브랜치 전략**: master 단일 브랜치 (Prototype 기간)
 - **배포**: Cloudflare Pages (master push → `pnpm deploy`)
 - **운영 실험**: 🚀 2026-01-31 시작 (30-60일, 최대 5명, Discovery 5-10건 목표)
-- **DB 마이그레이션**: ✅ 13개 (0000~0013) 로컬 + 프로덕션 적용 완료
+- **DB 마이그레이션**: ✅ 14개 (0000~0014) 로컬 적용 완료 (0014 프로덕션 미적용)
 - **Cron 설정**: daily (09:00) + agent-review (10:00) + alerts (09:30) + embeddings (15분, cron-job.org)
 - **Radar Worker**: 프로덕션 운영 중 (Cron 매일 9:00 KST, 10소스)
 - **이메일**: Resend (`noreply@ideaonaction.ai`), cron-job.org 자동 발송
@@ -567,7 +572,7 @@ Validation:
 | 인프라/스택 | 8 | Remix v2 + D1 + ESLint 9 + SDD 워크플로우 + CF Pages 배포 |
 | Discovery 코어 | 12 | CRUD 15라우트 + 11단계 상태 전환 + 실험/근거/결정 + Extension |
 | UI/UX | 15 | 반응형 + 차트 + 다크모드 + @axis-ds 토큰 + 접근성 + 한국어화 |
-| Agent 시스템 | 12 | v2→v3 재설계 + 45도구 + SSE 스트리밍 + 컨텍스트 최적화 + 채팅 UX |
+| Agent 시스템 | 12 | v2→v3 재설계 + 48도구 + SSE 스트리밍 + 컨텍스트 최적화 + 채팅 UX |
 | v3 파이프라인 | 8 | R0 11단계 + R1 Method Pack + R2 Ontology + R3 KPI/알림/웹훅 |
 | v4 Venture Sprint | 10 | 도메인 모듈 + 워커 8핸들러 + Decision Center + Analytics + E2E |
 | Embeddings | 3 | Vectorize 2개 + Cron 15분 + 시맨틱 검색/중복 감지 |
@@ -601,9 +606,9 @@ Validation:
 
 | # | 항목 | Phase | 상태 | 파일 수 |
 |---|------|-------|------|---------|
-| F6 | 응답 요약 헤더 (500자+ 응답 상단 1-2줄 요약) | v4.3 P2 | 🔲 | 1 |
-| F7 | Experiment 타임라인 간트차트 | v4.3 P2 | 🔲 | 1 |
-| F8 | Discovery 비교 테이블 도구 | v4.3 P2 | 🔲 | 2 |
-| F9 | Discovery 태그 시스템 (DB + Agent 자동 태깅) | v4.3 P2 | 🔲 | 3+ |
-| F10 | 관련 Discovery 추천 (상세 조회 시 자동) | v4.3 P2 | 🔲 | 2 |
+| F6 | 응답 요약 헤더 (500자+ 응답 상단 1-2줄 요약) | v4.8 | ✅ | 2 |
+| F7 | Experiment 타임라인 간트차트 | v4.8 | ✅ | 2 |
+| F8 | Discovery 비교 테이블 도구 | v4.8 | ✅ | 3 |
+| F9 | Discovery 태그 시스템 (DB + Agent 자동 태깅) | v4.8 | ✅ | 6 |
+| F10 | 관련 Discovery 추천 (상세 조회 시 자동) | v4.8 | ✅ | 2 |
 
