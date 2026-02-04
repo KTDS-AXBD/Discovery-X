@@ -3,6 +3,7 @@
  * /venture/overview
  */
 
+import { useState } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
@@ -14,6 +15,8 @@ import { Badge } from "~/components/ui/Badge";
 import { listSprints } from "~/features/venture/repositories/sprint.repository";
 import { VD_SPRINT_STATUS_CONFIG } from "~/features/venture/constants/sprint-status";
 import type { VdSprintStatusType } from "~/features/venture/types";
+import { EmptyState } from "~/components/venture/EmptyState";
+import { OnboardingGuide } from "~/components/venture/OnboardingGuide";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -52,6 +55,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 export default function VentureOverview() {
   const { user, recentSprints, statusCounts, activeCount, totalCount } =
     useLoaderData<typeof loader>();
+  const [showGuide, setShowGuide] = useState(false);
+
+  // 스프린트가 없는 경우 온보딩 UI 표시
+  const isEmpty = totalCount === 0;
 
   return (
     <div className="min-h-screen bg-[var(--axis-surface-secondary)]">
@@ -72,110 +79,112 @@ export default function VentureOverview() {
           </Link>
         </div>
 
-        {/* 요약 카드 */}
-        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <SummaryCard
-            title="전체 스프린트"
-            value={totalCount}
-            description="생성된 스프린트 수"
-          />
-          <SummaryCard
-            title="활성 스프린트"
-            value={activeCount}
-            description="진행 중인 스프린트"
-            highlight
-          />
-          <SummaryCard
-            title="완료"
-            value={statusCounts["COMPLETED"] || 0}
-            description="완료된 스프린트"
-          />
-          <SummaryCard
-            title="아카이브"
-            value={statusCounts["ARCHIVED"] || 0}
-            description="아카이브된 스프린트"
-          />
-        </div>
-
-        {/* 최근 스프린트 */}
-        <div className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[var(--axis-text-primary)]">
-              최근 스프린트
-            </h2>
-            <Link
-              to="/venture/sprints"
-              className="text-sm text-[var(--axis-text-brand)] hover:underline"
-            >
-              전체 보기
-            </Link>
+        {isEmpty ? (
+          /* 빈 상태: 온보딩 UI */
+          <div className="space-y-6">
+            <EmptyState onShowGuide={() => setShowGuide(true)} />
+            <OnboardingGuide visible={showGuide} onDismiss={() => setShowGuide(false)} />
           </div>
+        ) : (
+          /* 스프린트가 있는 경우: 기존 UI */
+          <>
+            {/* 요약 카드 */}
+            <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <SummaryCard
+                title="전체 스프린트"
+                value={totalCount}
+                description="생성된 스프린트 수"
+              />
+              <SummaryCard
+                title="활성 스프린트"
+                value={activeCount}
+                description="진행 중인 스프린트"
+                highlight
+              />
+              <SummaryCard
+                title="완료"
+                value={statusCounts["COMPLETED"] || 0}
+                description="완료된 스프린트"
+              />
+              <SummaryCard
+                title="아카이브"
+                value={statusCounts["ARCHIVED"] || 0}
+                description="아카이브된 스프린트"
+              />
+            </div>
 
-          {recentSprints.length === 0 ? (
-            <div className="py-12 text-center text-[var(--axis-text-tertiary)]">
-              <p className="mb-4">아직 생성된 스프린트가 없습니다.</p>
-              <Link to="/venture/sprints/new">
-                <Button variant="secondary">첫 스프린트 시작하기</Button>
+            {/* 최근 스프린트 */}
+            <div className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-6">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-[var(--axis-text-primary)]">
+                  최근 스프린트
+                </h2>
+                <Link
+                  to="/venture/sprints"
+                  className="text-sm text-[var(--axis-text-brand)] hover:underline"
+                >
+                  전체 보기
+                </Link>
+              </div>
+
+              <div className="space-y-3">
+                {recentSprints.map((sprint) => {
+                  const statusConfig =
+                    VD_SPRINT_STATUS_CONFIG[sprint.status as VdSprintStatusType];
+                  return (
+                    <Link
+                      key={sprint.id}
+                      to={`/venture/sprints/${sprint.id}`}
+                      className="flex items-center justify-between rounded-md border border-[var(--axis-border-default)] p-4 transition-colors hover:bg-[var(--axis-surface-secondary)]"
+                    >
+                      <div>
+                        <div className="font-medium text-[var(--axis-text-primary)]">
+                          {sprint.name}
+                        </div>
+                        {sprint.description && (
+                          <div className="mt-1 text-sm text-[var(--axis-text-tertiary)]">
+                            {sprint.description.length > 100
+                              ? `${sprint.description.slice(0, 100)}...`
+                              : sprint.description}
+                          </div>
+                        )}
+                      </div>
+                      <Badge variant={statusConfig?.variant || "secondary"}>
+                        {statusConfig?.label || sprint.status}
+                      </Badge>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 하단 링크 */}
+            <div className="mt-8 grid gap-4 sm:grid-cols-2">
+              <Link
+                to="/venture/analytics"
+                className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-6 transition-colors hover:bg-[var(--axis-surface-secondary)]"
+              >
+                <h3 className="font-semibold text-[var(--axis-text-primary)]">
+                  Analytics
+                </h3>
+                <p className="mt-1 text-sm text-[var(--axis-text-tertiary)]">
+                  도메인/토픽 분석, Depth/Effort 통계
+                </p>
+              </Link>
+              <Link
+                to="/venture/sprints"
+                className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-6 transition-colors hover:bg-[var(--axis-surface-secondary)]"
+              >
+                <h3 className="font-semibold text-[var(--axis-text-primary)]">
+                  스프린트 목록
+                </h3>
+                <p className="mt-1 text-sm text-[var(--axis-text-tertiary)]">
+                  모든 스프린트 조회 및 관리
+                </p>
               </Link>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {recentSprints.map((sprint) => {
-                const statusConfig =
-                  VD_SPRINT_STATUS_CONFIG[sprint.status as VdSprintStatusType];
-                return (
-                  <Link
-                    key={sprint.id}
-                    to={`/venture/sprints/${sprint.id}`}
-                    className="flex items-center justify-between rounded-md border border-[var(--axis-border-default)] p-4 transition-colors hover:bg-[var(--axis-surface-secondary)]"
-                  >
-                    <div>
-                      <div className="font-medium text-[var(--axis-text-primary)]">
-                        {sprint.name}
-                      </div>
-                      {sprint.description && (
-                        <div className="mt-1 text-sm text-[var(--axis-text-tertiary)]">
-                          {sprint.description.length > 100
-                            ? `${sprint.description.slice(0, 100)}...`
-                            : sprint.description}
-                        </div>
-                      )}
-                    </div>
-                    <Badge variant={statusConfig?.variant || "secondary"}>
-                      {statusConfig?.label || sprint.status}
-                    </Badge>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* 하단 링크 */}
-        <div className="mt-8 grid gap-4 sm:grid-cols-2">
-          <Link
-            to="/venture/analytics"
-            className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-6 transition-colors hover:bg-[var(--axis-surface-secondary)]"
-          >
-            <h3 className="font-semibold text-[var(--axis-text-primary)]">
-              Analytics
-            </h3>
-            <p className="mt-1 text-sm text-[var(--axis-text-tertiary)]">
-              도메인/토픽 분석, Depth/Effort 통계
-            </p>
-          </Link>
-          <Link
-            to="/venture/sprints"
-            className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-6 transition-colors hover:bg-[var(--axis-surface-secondary)]"
-          >
-            <h3 className="font-semibold text-[var(--axis-text-primary)]">
-              스프린트 목록
-            </h3>
-            <p className="mt-1 text-sm text-[var(--axis-text-tertiary)]">
-              모든 스프린트 조회 및 관리
-            </p>
-          </Link>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
