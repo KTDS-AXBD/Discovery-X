@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Badge } from "~/components/ui/Badge";
+import { IconButton } from "~/components/ui/IconButton";
+import { SectionPanel } from "~/components/ui/SectionPanel";
 
 export interface ContextItem {
   type: "discovery" | "evidence" | "experiment";
@@ -12,6 +14,8 @@ export interface ContextItem {
 interface ContextPanelProps {
   items: ContextItem[];
   onClose: () => void;
+  messageCount?: number;
+  toolCallCount?: number;
 }
 
 const TAB_CONFIG = [
@@ -20,7 +24,7 @@ const TAB_CONFIG = [
   { key: "experiment" as const, label: "Experiment" },
 ];
 
-export function ContextPanel({ items, onClose }: ContextPanelProps) {
+export function ContextPanel({ items, onClose, messageCount = 0, toolCallCount = 0 }: ContextPanelProps) {
   const [activeTab, setActiveTab] = useState<"discovery" | "evidence" | "experiment">("discovery");
 
   const filtered = items.filter((item) => item.type === activeTab);
@@ -31,21 +35,36 @@ export function ContextPanel({ items, onClose }: ContextPanelProps) {
   };
 
   return (
-    <div className="flex h-full flex-col border-l border-[var(--axis-border-default)] bg-[var(--axis-surface-default)]">
+    <div className="flex h-full flex-col border-l border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] dx-animate-slide-right">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-[var(--axis-border-default)] px-3 py-2">
-        <span className="text-xs font-semibold text-[var(--axis-text-primary)]">
+      <div className="flex items-center justify-between border-b border-[var(--axis-border-default)] px-3 py-2.5">
+        <span className="text-sm font-semibold text-[var(--axis-text-primary)]">
           컨텍스트
         </span>
-        <button
-          onClick={onClose}
-          className="text-sm text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]"
-        >
-          &times;
-        </button>
+        <IconButton label="패널 닫기" size="xs" onClick={onClose}>
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </IconButton>
       </div>
 
-      {/* Tabs */}
+      {/* Quick stats */}
+      {(messageCount > 0 || toolCallCount > 0) && (
+        <SectionPanel title="대화 통계">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-lg bg-[var(--axis-surface-secondary)] px-3 py-2 text-center">
+              <div className="text-lg font-bold text-[var(--axis-text-primary)]">{messageCount}</div>
+              <div className="text-[10px] text-[var(--axis-text-tertiary)]">메시지</div>
+            </div>
+            <div className="rounded-lg bg-[var(--axis-surface-secondary)] px-3 py-2 text-center">
+              <div className="text-lg font-bold text-[var(--axis-text-primary)]">{toolCallCount}</div>
+              <div className="text-[10px] text-[var(--axis-text-tertiary)]">도구 호출</div>
+            </div>
+          </div>
+        </SectionPanel>
+      )}
+
+      {/* Context items tabs */}
       <div className="flex border-b border-[var(--axis-border-default)]">
         {TAB_CONFIG.map((tab) => (
           <button
@@ -78,7 +97,7 @@ export function ContextPanel({ items, onClose }: ContextPanelProps) {
             {filtered.map((item) => (
               <div
                 key={`${item.type}-${item.id}`}
-                className="rounded-lg border border-[var(--axis-border-default)] p-2 text-xs"
+                className="dx-panel dx-panel-hover rounded-lg p-2.5 text-xs"
               >
                 <div className="flex items-center gap-1.5">
                   <span className="font-mono text-[var(--axis-text-tertiary)]">

@@ -178,7 +178,8 @@ export default function Index() {
         <div
           className={`${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } fixed inset-y-0 left-0 top-16 z-40 w-64 border-r border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] transition-transform sm:static sm:translate-x-0`}
+          } fixed inset-y-0 left-0 z-40 w-[var(--dx-sidebar-width)] border-r border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] transition-transform sm:static sm:translate-x-0`}
+          style={{ top: "var(--dx-nav-height)" }}
         >
           <ConversationList
             conversations={convList}
@@ -211,12 +212,12 @@ export default function Index() {
                   무엇을 하고 싶으신가요?
                 </h2>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <Link to="/venture" className="group rounded-xl border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-6 transition-colors hover:border-[var(--axis-text-brand)]">
+                  <Link to="/venture" className="dx-panel dx-panel-hover group p-6 transition-all hover:border-[var(--axis-text-brand)]">
                     <h3 className="text-lg font-semibold text-[var(--axis-text-primary)]">사업 탐색</h3>
                     <p className="mt-2 text-sm text-[var(--axis-text-tertiary)]">AI가 산업을 분석하고 사업 기회를 발굴합니다</p>
                     <span className="mt-3 inline-block text-sm font-medium text-[var(--axis-text-brand)]">사업 탐색 시작 →</span>
                   </Link>
-                  <Link to="/discoveries" className="group rounded-xl border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-6 transition-colors hover:border-[var(--axis-text-brand)]">
+                  <Link to="/discoveries" className="dx-panel dx-panel-hover group p-6 transition-all hover:border-[var(--axis-text-brand)]">
                     <h3 className="text-lg font-semibold text-[var(--axis-text-primary)]">아이디어 검증</h3>
                     <p className="mt-2 text-sm text-[var(--axis-text-tertiary)]">내가 가진 아이디어를 실험하고 검증합니다</p>
                     <span className="mt-3 inline-block text-sm font-medium text-[var(--axis-text-brand)]">Discovery 시작 →</span>

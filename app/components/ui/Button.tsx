@@ -40,6 +40,14 @@ const customVariants = {
 
 type CustomVariant = keyof typeof customVariants;
 
+const sizeStyles = {
+  "icon-xs": "h-6 w-6 p-0 rounded-md",
+  "icon-sm": "h-8 w-8 p-0 rounded-lg",
+  "icon-md": "h-10 w-10 p-0 rounded-lg",
+} as const;
+
+type IconSize = keyof typeof sizeStyles;
+
 // 기본 variant용 인터랙션 스타일
 const defaultInteractionStyles = cn(
   "transition-all duration-[var(--dx-transition-normal)]",
@@ -49,51 +57,58 @@ const defaultInteractionStyles = cn(
 );
 
 export interface ButtonProps
-  extends Omit<AxisButtonProps, "variant">,
+  extends Omit<AxisButtonProps, "variant" | "size">,
     React.PropsWithChildren {
   variant?: AxisButtonProps["variant"] | CustomVariant;
+  size?: AxisButtonProps["size"] | IconSize;
   loading?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant, className, loading, disabled, children, ...props }, ref) => {
+  ({ variant, size, className, loading, disabled, children, ...props }, ref) => {
     const isDisabled = disabled || loading;
+    const isIconSize = size && size in sizeStyles;
+    const iconSizeClass = isIconSize ? sizeStyles[size as IconSize] : undefined;
+    const axisSize = isIconSize ? undefined : (size as AxisButtonProps["size"]);
+
+    const content = loading ? (
+      <span className="inline-flex items-center gap-2">
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+        {children}
+      </span>
+    ) : (
+      children
+    );
 
     if (variant && variant in customVariants) {
       return (
         <AxisButton
           ref={ref}
           disabled={isDisabled}
-          className={cn(customVariants[variant as CustomVariant], className)}
+          size={axisSize}
+          className={cn(customVariants[variant as CustomVariant], iconSizeClass, className)}
           {...props}
         >
-          {loading ? (
-            <span className="inline-flex items-center gap-2">
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              {children}
-            </span>
-          ) : (
-            children
-          )}
+          {content}
         </AxisButton>
       );
     }
+
+    // ghost variant: transparent background, subtle hover
+    const ghostStyles = variant === "ghost"
+      ? "bg-transparent hover:bg-[var(--axis-surface-secondary)] text-[var(--axis-text-secondary)] hover:text-[var(--axis-text-primary)]"
+      : undefined;
+
     return (
       <AxisButton
         ref={ref}
-        variant={variant as AxisButtonProps["variant"]}
+        variant={variant === "ghost" ? "secondary" : (variant as AxisButtonProps["variant"])}
         disabled={isDisabled}
-        className={cn(defaultInteractionStyles, className)}
+        size={axisSize}
+        className={cn(defaultInteractionStyles, ghostStyles, iconSizeClass, className)}
         {...props}
       >
-        {loading ? (
-          <span className="inline-flex items-center gap-2">
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            {children}
-          </span>
-        ) : (
-          children
-        )}
+        {content}
       </AxisButton>
     );
   }

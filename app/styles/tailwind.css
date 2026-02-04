@@ -2,3 +2,40 @@
 @import "@axis-ds/tokens/css";
 @import "./dx-custom-tokens.css";
 @plugin "@tailwindcss/typography";
+
+@layer utilities {
+  .dx-panel {
+    background: var(--axis-surface-default);
+    border: 1px solid var(--dx-card-border-subtle);
+    border-radius: var(--dx-card-radius);
+    box-shadow: var(--dx-card-shadow);
+  }
+
+  .dx-panel-hover {
+    transition: box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1), border-color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .dx-panel-hover:hover {
+    box-shadow: var(--dx-card-shadow-hover);
+    border-color: var(--axis-border-secondary);
+  }
+
+  .dx-section-title {
+    font-size: var(--dx-text-caption);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--axis-text-tertiary);
+  }
+
+  .dx-animate-scale-in {
+    animation: dx-scale-in 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dx-animate-slide-right {
+    animation: dx-slide-in-right 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dx-animate-slide-left {
+    animation: dx-slide-in-left 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}

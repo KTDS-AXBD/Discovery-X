@@ -10,6 +10,7 @@ import { Link, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { MainNav } from "~/components/layout/MainNav";
+import { PageHeader } from "~/components/layout/PageHeader";
 import { Button } from "~/components/ui/Button";
 import { Badge } from "~/components/ui/Badge";
 import { listSprints } from "~/features/venture/repositories/sprint.repository";
@@ -62,21 +63,21 @@ export default function VentureOverview() {
   return (
     <div className="min-h-screen bg-[var(--axis-surface-secondary)]">
       <MainNav user={user} />
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* 헤더 */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">
-              Venture Discovery Sprint
-            </h1>
-            <p className="mt-1 text-sm text-[var(--axis-text-tertiary)]">
-              AI Agent 주도 신사업 발굴 스프린트
-            </p>
-          </div>
-          <Link to="/venture/sprints/new">
-            <Button>새 스프린트</Button>
-          </Link>
-        </div>
+      <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
+        <PageHeader
+          title="Venture Discovery Sprint"
+          description="AI Agent 주도 신사업 발굴 스프린트"
+          breadcrumbs={[
+            { label: "홈", to: "/" },
+            { label: "사업 발굴", to: "/venture" },
+            { label: "개요" },
+          ]}
+          actions={
+            <Link to="/venture/sprints/new">
+              <Button>새 스프린트</Button>
+            </Link>
+          }
+        />
 
         {isEmpty ? (
           /* 빈 상태: 온보딩 UI */
@@ -137,7 +138,7 @@ export default function VentureOverview() {
                     <Link
                       key={sprint.id}
                       to={`/venture/sprints/${sprint.id}`}
-                      className="flex items-center justify-between rounded-md border border-[var(--axis-border-default)] p-4 transition-colors hover:bg-[var(--axis-surface-secondary)]"
+                      className="flex items-center justify-between rounded-[var(--dx-card-radius)] border border-[var(--axis-border-default)] border-l-4 border-l-[var(--axis-text-brand)] p-4 shadow-[var(--dx-card-shadow)] transition-all hover:shadow-[var(--dx-card-shadow-hover)] hover:bg-[var(--axis-surface-secondary)]"
                     >
                       <div>
                         <div className="font-medium text-[var(--axis-text-primary)]">
@@ -237,12 +238,17 @@ function SummaryCard({
 }) {
   return (
     <div
-      className={`rounded-lg border p-4 ${
+      className={`relative overflow-hidden rounded-[var(--dx-card-radius)] border p-4 shadow-[var(--dx-card-shadow)] ${
         highlight
           ? "border-[var(--axis-text-brand)] bg-[var(--axis-surface-brand-subtle)]"
           : "border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)]"
       }`}
     >
+      <div
+        className={`absolute inset-x-0 top-0 h-1 ${
+          highlight ? "bg-[var(--axis-text-brand)]" : "bg-[var(--axis-border-secondary)]"
+        }`}
+      />
       <div className="text-sm text-[var(--axis-text-tertiary)]">{title}</div>
       <div
         className={`mt-1 text-3xl font-bold ${

@@ -293,8 +293,8 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
   return (
     <div className="flex h-full flex-col">
       {/* Messages area */}
-      <div className="flex-1 overflow-y-auto px-4 py-4">
-        <div className="mx-auto max-w-3xl space-y-4">
+      <div className="flex-1 overflow-y-auto px-4 py-6">
+        <div className="mx-auto max-w-3xl space-y-6">
           {isLoadingMessages && (
             <div className="flex items-center justify-center py-12" role="status" aria-label="대화 불러오는 중">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--axis-border-default)] border-t-[var(--axis-text-brand)]" />
@@ -426,27 +426,34 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
 
       {/* Input area */}
       <div className="border-t border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] p-4">
-        <div className="mx-auto flex max-w-3xl gap-2">
-          <Input
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-              }
-            }}
-            placeholder="메시지를 입력하세요..."
-            disabled={isLoading}
-            className="flex-1"
-          />
-          <Button
-            onClick={sendMessage}
-            disabled={isLoading || !input.trim()}
-          >
-            전송
-          </Button>
+        <div className="mx-auto max-w-3xl">
+          <div className="flex items-center gap-2 rounded-xl border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] px-4 py-2 shadow-sm transition-colors focus-within:border-[var(--axis-border-brand)] focus-within:ring-1 focus-within:ring-[var(--axis-border-brand)]">
+            <Input
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
+              placeholder="메시지를 입력하세요..."
+              disabled={isLoading}
+              className="flex-1 border-0 bg-transparent p-0 shadow-none focus:ring-0 focus-visible:ring-0"
+            />
+            <button
+              type="button"
+              onClick={sendMessage}
+              disabled={isLoading || !input.trim()}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--axis-button-bg-default)] text-[var(--axis-button-text-default)] transition-all hover:bg-[var(--axis-button-bg-hover)] disabled:opacity-40 disabled:cursor-not-allowed"
+              aria-label="전송"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>

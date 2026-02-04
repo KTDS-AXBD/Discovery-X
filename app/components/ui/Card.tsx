@@ -1,1 +1,54 @@
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent } from "@axis-ds/ui-react";
+import * as React from "react";
+import {
+  Card as AxisCard,
+  CardHeader as AxisCardHeader,
+  CardFooter as AxisCardFooter,
+  CardTitle as AxisCardTitle,
+  CardDescription as AxisCardDescription,
+  CardContent as AxisCardContent,
+} from "@axis-ds/ui-react";
+import { cn } from "~/lib/utils/cn";
+
+type CardProps = React.ComponentPropsWithoutRef<typeof AxisCard>;
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, ...props }, ref) => (
+    <AxisCard
+      ref={ref}
+      className={cn(
+        "rounded-[var(--dx-card-radius)] shadow-[var(--dx-card-shadow)] transition-shadow duration-200",
+        className,
+      )}
+      {...props}
+    />
+  ),
+);
+Card.displayName = "Card";
+
+const CardHeader = AxisCardHeader;
+const CardFooter = AxisCardFooter;
+const CardTitle = AxisCardTitle;
+const CardDescription = AxisCardDescription;
+const CardContent = AxisCardContent;
+
+/** Grouped section within a card (used in right panels, detail views) */
+function CardSection({
+  title,
+  children,
+  className,
+}: {
+  title?: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn("px-4 py-3", className)}>
+      {title && (
+        <h4 className="dx-section-title mb-2">{title}</h4>
+      )}
+      {children}
+    </div>
+  );
+}
+
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent, CardSection };

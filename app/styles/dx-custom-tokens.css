@@ -105,6 +105,30 @@
   --dx-severity-critical: #EF4444;
   --dx-severity-warning: #F59E0B;
   --dx-severity-info: #3B82F6;
+
+  /* ===== Panel / Card Tokens ===== */
+  --dx-card-radius: 12px;
+  --dx-card-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  --dx-card-shadow-hover: 0 4px 12px rgba(0,0,0,0.12);
+  --dx-card-border-subtle: rgba(0,0,0,0.06);
+
+  /* Navigation */
+  --dx-nav-height: 56px;
+
+  /* Panel widths */
+  --dx-sidebar-width: 280px;
+  --dx-right-panel-width: 320px;
+
+  /* Typography scale */
+  --dx-text-page-title: 1.5rem;
+  --dx-text-section-title: 1rem;
+  --dx-text-card-title: 0.875rem;
+  --dx-text-body: 0.8125rem;
+  --dx-text-caption: 0.75rem;
+
+  /* Glass effect */
+  --dx-glass-bg: rgba(255,255,255,0.04);
+  --dx-glass-border: rgba(255,255,255,0.08);
 }
 
 /* fade-in-up stagger animation */
@@ -132,6 +156,24 @@
   50% { opacity: 0.6; }
 }
 
+/* Scale-in animation (cards, modals) */
+@keyframes dx-scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Slide-in from right */
+@keyframes dx-slide-in-right {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Slide-in from left */
+@keyframes dx-slide-in-left {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
 /* Prose / content tokens (light) */
 :root {
   --dx-code-bg: #F8FAFC;
@@ -149,6 +191,12 @@
 }
 
 .dark {
+  --dx-card-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  --dx-card-shadow-hover: 0 4px 16px rgba(0,0,0,0.4);
+  --dx-card-border-subtle: rgba(255,255,255,0.06);
+  --dx-glass-bg: rgba(255,255,255,0.04);
+  --dx-glass-border: rgba(255,255,255,0.08);
+
   /* Interaction Tokens (Dark) */
   --dx-focus-ring-color-success: #4ADE80;
   --dx-focus-ring-color-destructive: #F87171;

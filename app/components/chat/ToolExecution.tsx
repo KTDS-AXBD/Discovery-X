@@ -93,20 +93,32 @@ function getToolCategory(toolName: string, hasError: boolean): ToolCategory {
   return "mutation";
 }
 
-const CATEGORY_STYLES: Record<ToolCategory, { border: string; icon: string; bg: string }> = {
+const CATEGORY_STYLES: Record<ToolCategory, { border: string; iconSvg: React.ReactNode; bg: string }> = {
   query: {
     border: "border-l-[var(--axis-text-tertiary)]",
-    icon: "\uD83D\uDCCB",
+    iconSvg: (
+      <svg className="h-4 w-4 text-[var(--axis-text-tertiary)]" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9zm3.75 11.625a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+      </svg>
+    ),
     bg: "bg-[var(--axis-surface-default)]",
   },
   mutation: {
     border: "border-l-[var(--axis-text-brand)]",
-    icon: "\u270F\uFE0F",
+    iconSvg: (
+      <svg className="h-4 w-4 text-[var(--axis-text-brand)]" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+      </svg>
+    ),
     bg: "bg-[var(--axis-surface-default)]",
   },
   error: {
     border: "border-l-[var(--axis-text-error)]",
-    icon: "\u26A0\uFE0F",
+    iconSvg: (
+      <svg className="h-4 w-4 text-[var(--axis-text-error)]" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+      </svg>
+    ),
     bg: "bg-[var(--axis-surface-default)]",
   },
 };
@@ -268,7 +280,7 @@ export function ToolExecution({ toolName, result, isRunning }: ToolExecutionProp
         "border-l-[var(--axis-text-brand)] bg-[var(--axis-surface-default)]",
       )}>
         <div className="flex items-center gap-2 text-xs">
-          <span className="text-sm">{styles.icon}</span>
+          {styles.iconSvg}
           <span className="font-medium text-[var(--axis-text-primary)]">{label}</span>
           <Badge variant="default" className="text-[10px] animate-pulse">실행 중...</Badge>
         </div>
@@ -298,7 +310,7 @@ export function ToolExecution({ toolName, result, isRunning }: ToolExecutionProp
           }
         }}
       >
-        <span className="text-sm">{styles.icon}</span>
+        {styles.iconSvg}
         <span className="font-medium text-[var(--axis-text-primary)]">{label}</span>
         {hasError ? (
           <>
@@ -332,7 +344,7 @@ export function ToolExecution({ toolName, result, isRunning }: ToolExecutionProp
 
       {/* Expanded content */}
       {expanded && hasContent && (
-        <div className="mt-2 border-t border-[var(--axis-border-subtle)] pt-2">
+        <div className="mt-2 border-t border-[var(--axis-border-subtle)] pt-2 dx-animate-scale-in">
           {!showJson && formattedResult ? (
             formattedResult
           ) : (
