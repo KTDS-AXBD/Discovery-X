@@ -23,8 +23,8 @@ export default function Login() {
   const { error } = useLoaderData<typeof loader>();
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--axis-surface-secondary)]" style={{ background: "linear-gradient(135deg, var(--axis-surface-secondary) 0%, var(--axis-surface-default) 50%, var(--axis-surface-secondary) 100%)" }}>
-      <Card className="w-full max-w-md shadow-[var(--dx-card-shadow-hover)]">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--dx-surface-deep,var(--axis-surface-secondary))]" style={{ background: "linear-gradient(135deg, var(--dx-surface-deep, var(--axis-surface-secondary)) 0%, var(--dx-surface-panel, var(--axis-surface-default)) 50%, var(--dx-surface-deep, var(--axis-surface-secondary)) 100%)" }}>
+      <Card className="w-full max-w-md bg-[var(--dx-surface-card,var(--axis-surface-default))]">
         <CardHeader className="text-center">
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--axis-surface-brand-subtle)]">
             <svg className="h-8 w-8 text-[var(--axis-text-brand)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -38,7 +38,7 @@ export default function Login() {
             v0.1.0
           </span>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 px-8 pb-8">
           {error && (
             <AlertBanner variant="destructive">
               {ERROR_MESSAGES[error] || "로그인 중 오류가 발생했습니다."}

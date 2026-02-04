@@ -64,7 +64,7 @@ export function KpiCard({ kpi, measurements }: KpiCardProps) {
   const maxVal = recent.length > 0 ? Math.max(...recent.map((m) => m.value), kpi.targetValue ?? 0) : 1;
 
   return (
-    <div className={cn("rounded-lg border p-4", statusColors[status])}>
+    <div className={cn("rounded-lg border p-5", statusColors[status])}>
       <div className="flex items-start justify-between">
         <div>
           <h4 className="text-sm font-semibold text-[var(--axis-text-primary)]">{kpi.name}</h4>
