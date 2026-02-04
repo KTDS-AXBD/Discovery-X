@@ -44,7 +44,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   // Can only decide from OPEN or EXTENSION_REQUESTED status
   if (
     discovery.status !== DiscoveryStatus.IDEA_CARD &&
-    discovery.status !== DiscoveryStatus.IDEA_CARD
+    discovery.status !== DiscoveryStatus.HYPOTHESIS
   ) {
     return redirect(`/discoveries/${id}`);
   }
@@ -85,7 +85,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
 
   if (
     discovery.status !== DiscoveryStatus.IDEA_CARD &&
-    discovery.status !== DiscoveryStatus.IDEA_CARD
+    discovery.status !== DiscoveryStatus.HYPOTHESIS
   ) {
     return json(
       { error: "OPEN 또는 EXTENSION_REQUESTED 상태의 Discovery만 결정할 수 있습니다" },

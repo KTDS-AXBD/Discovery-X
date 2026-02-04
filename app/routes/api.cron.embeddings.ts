@@ -16,7 +16,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const url = new URL(request.url);
   const secret = url.searchParams.get("secret");
-  if (env.CRON_SECRET && secret !== env.CRON_SECRET) {
+  if (!env.CRON_SECRET || secret !== env.CRON_SECRET) {
     return new Response("Unauthorized", { status: 401 });
   }
 

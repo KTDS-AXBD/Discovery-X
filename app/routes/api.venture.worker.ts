@@ -22,7 +22,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // 인증 검사
   const env = context.cloudflare.env as WorkerEnv & { CRON_SECRET?: string };
-  if (env.CRON_SECRET && secret !== env.CRON_SECRET) {
+  if (!env.CRON_SECRET || secret !== env.CRON_SECRET) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 

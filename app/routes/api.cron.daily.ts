@@ -1,9 +1,11 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { discoveries, users } from "~/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { ACTIVE_STATUSES } from "~/lib/constants/status";
+import { DiscoveryValidationRules, ValidationError } from "~/lib/validation/discovery-rules";
+import { formatDate } from "~/lib/format-date";
 import { createEmailClient } from "~/lib/notifications/email";
 import {
   buildOverdueEmail,
@@ -48,11 +50,10 @@ async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; erro
   const userMap = new Map(allUsers.map((u) => [u.id, u]));
 
   // 1. Find overdue active discoveries
-  const statusList = ACTIVE_STATUSES.map((s) => `'${s}'`).join(",");
   const activeDiscoveries = await db
     .select()
     .from(discoveries)
-    .where(sql`${discoveries.status} IN (${sql.raw(statusList)})`);
+    .where(inArray(discoveries.status, [...ACTIVE_STATUSES]));
 
   const overdueItems: OverdueDiscovery[] = [];
   const dueSoonItems: ExpiringDiscovery[] = [];
@@ -68,7 +69,7 @@ async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; erro
       overdueItems.push({
         id: d.id,
         title: d.title,
-        dueDate: dueDate.toLocaleDateString("ko-KR"),
+        dueDate: formatDate(dueDate),
         ownerName,
         daysOverdue,
       });
@@ -77,7 +78,7 @@ async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; erro
       dueSoonItems.push({
         id: d.id,
         title: d.title,
-        dueDate: dueDate.toLocaleDateString("ko-KR"),
+        dueDate: formatDate(dueDate),
         ownerName,
         daysRemaining,
       });
@@ -95,7 +96,7 @@ async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; erro
     .map((d) => ({
       id: d.id,
       title: d.title,
-      revisitDate: new Date(d.revisitDate!).toLocaleDateString("ko-KR"),
+      revisitDate: formatDate(d.revisitDate!),
       triggerType: d.notNowTriggerType || "",
       triggerCondition: d.notNowTriggerCondition || "",
     }));
@@ -143,6 +144,14 @@ async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; erro
   const autoClosedItems: AutoClosedDiscovery[] = [];
 
   for (const d of autoCloseTargets) {
+    // Validate transition is allowed
+    try {
+      DiscoveryValidationRules.validateTransition(d.status, DiscoveryStatus.DROP);
+    } catch (e) {
+      if (e instanceof ValidationError) continue;
+      throw e;
+    }
+
     const dueDate = new Date(d.dueDate!);
     const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
     const owner = d.ownerId ? userMap.get(d.ownerId) : null;
@@ -266,7 +275,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Verify cron secret for manual triggers
   const url = new URL(request.url);
   const secret = url.searchParams.get("secret");
-  if (env.CRON_SECRET && secret !== env.CRON_SECRET) {
+  if (!env.CRON_SECRET || secret !== env.CRON_SECRET) {
     return new Response("Unauthorized", { status: 401 });
   }
 

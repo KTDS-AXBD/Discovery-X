@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Select } from "~/components/ui/Select";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { cn } from "~/lib/utils/cn";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, inArray } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { KpiCard } from "~/components/dashboard/KpiCard";
 import { formatDate, formatDateTime, isOverdue as checkOverdue } from "~/lib/format-date";
@@ -108,11 +108,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     ...linksTo.map((l) => l.fromDiscoveryId),
   ];
   const linkedDiscoveries = linkedDiscoveryIds.length > 0
-    ? await Promise.all(
-        linkedDiscoveryIds.map((lid) =>
-          db.query.discoveries.findFirst({ where: eq(discoveries.id, lid) })
-        )
-      )
+    ? await db.select().from(discoveries).where(inArray(discoveries.id, linkedDiscoveryIds))
     : [];
 
   const allLinks = [
@@ -129,15 +125,14 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     .limit(50);
 
   const actorIds = [...new Set(activityLogs.map((l) => l.actorId))];
+  const systemActors = ["system-agent", "system-radar", "system"];
+  const nonSystemActorIds = actorIds.filter((aid) => !systemActors.includes(aid));
+  const actorUsers = nonSystemActorIds.length > 0
+    ? await db.select().from(users).where(inArray(users.id, nonSystemActorIds))
+    : [];
   const actorMap = new Map<string, string>();
-  for (const aid of actorIds) {
-    if (aid === "system-agent" || aid === "system-radar" || aid === "system") {
-      actorMap.set(aid, "\uC2DC\uC2A4\uD15C");
-    } else {
-      const u = await db.query.users.findFirst({ where: eq(users.id, aid) });
-      actorMap.set(aid, u?.name || aid);
-    }
-  }
+  for (const aid of systemActors) actorMap.set(aid, "\uC2DC\uC2A4\uD15C");
+  for (const u of actorUsers) actorMap.set(u.id, u.name);
 
   const serializedLogs = activityLogs.map((l) => ({
     id: l.id,
@@ -276,10 +271,10 @@ export default function DiscoveryDetail() {
   const canChangeOwnership = canEdit;
   const isActive =
     discovery.status === DiscoveryStatus.IDEA_CARD ||
-    discovery.status === DiscoveryStatus.IDEA_CARD;
+    discovery.status === DiscoveryStatus.HYPOTHESIS;
   const completedExperiments = experiments.filter((e) => e.completedAt);
   const maxExperiments =
-    discovery.status === DiscoveryStatus.IDEA_CARD ? 3 : 2;
+    discovery.status === DiscoveryStatus.HYPOTHESIS ? 3 : 2;
 
   return (
     <PageLayout user={user}>
@@ -312,7 +307,7 @@ export default function DiscoveryDetail() {
                 </Button>
               )}
               {(discovery.status === DiscoveryStatus.IDEA_CARD ||
-                discovery.status === DiscoveryStatus.IDEA_CARD) &&
+                discovery.status === DiscoveryStatus.HYPOTHESIS) &&
                 discovery.approvalStatus !== "PENDING" && (
                 <>
                   {discovery.status === DiscoveryStatus.IDEA_CARD &&
@@ -508,7 +503,7 @@ export default function DiscoveryDetail() {
             )}
           </div>
           {((discovery.status === DiscoveryStatus.IDEA_CARD && experiments.length < 2) ||
-            (discovery.status === DiscoveryStatus.IDEA_CARD &&
+            (discovery.status === DiscoveryStatus.HYPOTHESIS &&
               experiments.length < 3)) && (
             <Button size="sm" asChild>
               <Link to={`/discoveries/${discovery.id}/add-experiment`}>실험 추가</Link>

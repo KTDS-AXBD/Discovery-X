@@ -370,6 +370,14 @@ export async function decideGate(
     targetStatus = input.gateType === "GATE2" ? DiscoveryStatus.GATE2 : DiscoveryStatus.GATE1;
   }
 
+  // Validate state transition
+  try {
+    DiscoveryValidationRules.validateTransition(currentStatus, targetStatus);
+  } catch (e) {
+    if (e instanceof ValidationError) return JSON.stringify({ error: e.message, suggestion: `현재 상태(${currentStatus})에서 ${targetStatus}로 전환할 수 없습니다.` });
+    throw e;
+  }
+
   await db
     .update(discoveries)
     .set({
@@ -413,6 +421,22 @@ export async function decideHold(
     revisitDate: string;
   }
 ): Promise<string> {
+  const discovery = await db
+    .select()
+    .from(discoveries)
+    .where(eq(discoveries.id, input.discoveryId))
+    .limit(1);
+
+  if (!discovery[0]) return JSON.stringify({ error: "Discovery를 찾을 수 없습니다.", suggestion: "list_discoveries로 기존 목록을 확인해보세요." });
+
+  // Validate state transition
+  try {
+    DiscoveryValidationRules.validateTransition(discovery[0].status, DiscoveryStatus.HOLD);
+  } catch (e) {
+    if (e instanceof ValidationError) return JSON.stringify({ error: e.message, suggestion: `현재 상태(${discovery[0].status})에서 HOLD로 전환할 수 없습니다.` });
+    throw e;
+  }
+
   const revisitDate = new Date(input.revisitDate);
 
   try {
@@ -462,6 +486,22 @@ export async function decideDrop(
     deadEndEvidenceReason: string;
   }
 ): Promise<string> {
+  const discovery = await db
+    .select()
+    .from(discoveries)
+    .where(eq(discoveries.id, input.discoveryId))
+    .limit(1);
+
+  if (!discovery[0]) return JSON.stringify({ error: "Discovery를 찾을 수 없습니다.", suggestion: "list_discoveries로 기존 목록을 확인해보세요." });
+
+  // Validate state transition
+  try {
+    DiscoveryValidationRules.validateTransition(discovery[0].status, DiscoveryStatus.DROP);
+  } catch (e) {
+    if (e instanceof ValidationError) return JSON.stringify({ error: e.message, suggestion: `현재 상태(${discovery[0].status})에서 DROP으로 전환할 수 없습니다.` });
+    throw e;
+  }
+
   try {
     DiscoveryValidationRules.validateDropDecision({
       deadEndFailurePattern: input.deadEndFailurePattern,

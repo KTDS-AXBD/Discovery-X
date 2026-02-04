@@ -12,7 +12,7 @@ import { Button } from "~/components/ui/Button";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "~/components/ui/Table";
 import { STATUS_CONFIG } from "~/lib/constants/status";
 import { cn } from "~/lib/utils/cn";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { formatDate, isOverdue } from "~/lib/format-date";
 
@@ -37,7 +37,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     allDiscoveries = openDiscoveries.filter(
       (d) =>
         (d.status === DiscoveryStatus.IDEA_CARD ||
-          d.status === DiscoveryStatus.IDEA_CARD) &&
+          d.status === DiscoveryStatus.HYPOTHESIS) &&
         isOverdue(d.dueDate)
     );
   } else if (statusFilter && statusFilter in DiscoveryStatus) {
@@ -46,32 +46,32 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     allDiscoveries = await db.select().from(discoveries);
   }
 
-  // Get owner names
-  const discoveryList = await Promise.all(
-    allDiscoveries.map(async (discovery) => {
-      const owner = discovery.ownerId
-        ? await db.query.users.findFirst({
-            where: eq(users.id, discovery.ownerId),
-          })
-        : null;
+  // Batch-fetch owner names
+  const ownerIds = [...new Set(allDiscoveries.map((d) => d.ownerId).filter(Boolean))] as string[];
+  const ownerList = ownerIds.length > 0
+    ? await db.select().from(users).where(inArray(users.id, ownerIds))
+    : [];
+  const ownerMap = new Map(ownerList.map((u) => [u.id, u]));
 
-      const isInboxOverdue =
-        discovery.status === DiscoveryStatus.DISCOVERY &&
-        Date.now() - new Date(discovery.createdAt).getTime() > 7 * 24 * 60 * 60 * 1000;
+  const discoveryList = allDiscoveries.map((discovery) => {
+    const owner = discovery.ownerId ? ownerMap.get(discovery.ownerId) : null;
 
-      const isOpenOverdue =
-        (discovery.status === DiscoveryStatus.IDEA_CARD ||
-          discovery.status === DiscoveryStatus.IDEA_CARD) &&
-        isOverdue(discovery.dueDate);
+    const isInboxOverdue =
+      discovery.status === DiscoveryStatus.DISCOVERY &&
+      Date.now() - new Date(discovery.createdAt).getTime() > 7 * 24 * 60 * 60 * 1000;
 
-      return {
-        ...discovery,
-        ownerName: owner?.name,
-        isInboxOverdue,
-        isOpenOverdue,
-      };
-    })
-  );
+    const isOpenOverdue =
+      (discovery.status === DiscoveryStatus.IDEA_CARD ||
+        discovery.status === DiscoveryStatus.HYPOTHESIS) &&
+      isOverdue(discovery.dueDate);
+
+    return {
+      ...discovery,
+      ownerName: owner?.name,
+      isInboxOverdue,
+      isOpenOverdue,
+    };
+  });
 
   return json({ user, discoveries: discoveryList });
 }
