@@ -5,6 +5,7 @@ import rehypeHighlight from "rehype-highlight";
 import { Card, CardContent } from "~/components/ui/Card";
 import { Badge } from "~/components/ui/Badge";
 import { cn } from "~/lib/utils/cn";
+import { formatTime } from "~/lib/format-date";
 import { StructuredMessage, shouldUseStructuredMessage } from "./StructuredMessage";
 
 interface MessageBubbleProps {
@@ -121,10 +122,7 @@ export function MessageBubble({ role, content, timestamp, streaming }: MessageBu
           </Badge>
           {timestamp && (
             <span className="text-xs text-[var(--axis-text-tertiary)]">
-              {new Date(timestamp).toLocaleTimeString("ko-KR", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+              {formatTime(timestamp)}
             </span>
           )}
         </div>

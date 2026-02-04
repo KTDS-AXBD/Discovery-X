@@ -38,4 +38,20 @@
   .dx-animate-slide-left {
     animation: dx-slide-in-left 200ms cubic-bezier(0.4, 0, 0.2, 1);
   }
+
+  .dx-panel-flush {
+    background: var(--dx-surface-card, var(--axis-surface-default));
+    border: 1px solid var(--dx-border-subtle, var(--dx-card-border-subtle));
+    border-radius: var(--dx-card-radius);
+    box-shadow: none;
+  }
+
+  .dx-btn-outline {
+    border: 1px solid var(--dx-button-outline-border, rgba(0,0,0,0.12));
+    background: transparent;
+    transition: background 150ms ease, border-color 150ms ease;
+  }
+  .dx-btn-outline:hover {
+    background: var(--dx-button-outline-hover-bg, rgba(0,0,0,0.04));
+  }
 }

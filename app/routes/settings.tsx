@@ -6,7 +6,7 @@ import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/cloudfla
 import { json } from "@remix-run/cloudflare";
 import { Form, useLoaderData, useActionData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { agentConfig } from "~/db/schema";
+import { agentConfig, UserRole } from "~/db/schema";
 import { eq } from "drizzle-orm";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
 import { PageLayout } from "~/components/layout/PageLayout";
@@ -40,7 +40,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // Only load agent config for ADMIN
   let config = null;
-  if (user.role === "ADMIN") {
+  if (user.role === UserRole.ADMIN) {
     const rows = await db
       .select()
       .from(agentConfig)
@@ -64,7 +64,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const user = await requireUser(request, db, secret);
 
   // Only ADMIN can save agent config
-  if (user.role !== "ADMIN") {
+  if (user.role !== UserRole.ADMIN) {
     return json({ error: "권한이 없습니다." }, { status: 403 });
   }
 
@@ -91,9 +91,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
 export default function Settings() {
   const { user, config } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
-  const role = user.role || "USER";
-  const isAdmin = role === "ADMIN";
-  const isGatekeeperOrAbove = role === "GATEKEEPER" || isAdmin;
+  const role = user.role || UserRole.USER;
+  const isAdmin = role === UserRole.ADMIN;
+  const isGatekeeperOrAbove = role === UserRole.GATEKEEPER || isAdmin;
 
   return (
     <PageLayout user={user}>
@@ -123,7 +123,7 @@ export default function Settings() {
                 <p className="text-sm font-medium text-[var(--axis-text-primary)]">{user.name}</p>
                 <p className="text-xs text-[var(--axis-text-tertiary)]">{user.email}</p>
               </div>
-              <Badge variant={role === "ADMIN" ? "destructive" : role === "GATEKEEPER" ? "info" : "default"} className="ml-auto">
+              <Badge variant={role === UserRole.ADMIN ? "destructive" : role === UserRole.GATEKEEPER ? "info" : "default"} className="ml-auto">
                 {role}
               </Badge>
             </div>
@@ -209,7 +209,7 @@ export default function Settings() {
                 </FormField>
                 <div className="mt-2 flex items-center gap-2">
                   <span className="text-xs text-[var(--axis-text-tertiary)]">
-                    오늘 사용: {(config.tokensUsedToday || 0).toLocaleString()}
+                    오늘 사용: {String(config.tokensUsedToday || 0)}
                   </span>
                   <Badge
                     variant={

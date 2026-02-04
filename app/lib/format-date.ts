@@ -38,6 +38,16 @@ export function formatDateLocalTime(iso: string | Date | null | undefined): stri
   return `${y}-${mo}-${day} ${h}:${m}`;
 }
 
+/** ISO 문자열 → "14:30" 형식 (시간만) */
+export function formatTime(iso: string | Date | null | undefined): string {
+  if (!iso) return "-";
+  const d = typeof iso === "string" ? new Date(iso) : iso;
+  if (isNaN(d.getTime())) return "-";
+  const h = String(d.getHours()).padStart(2, "0");
+  const m = String(d.getMinutes()).padStart(2, "0");
+  return `${h}:${m}`;
+}
+
 /** ISO 문자열 → "2월 9일" 형식 (시간 제외) */
 export function formatMonthDay(iso: string | Date | null | undefined): string {
   if (!iso) return "-";

@@ -88,11 +88,11 @@ export function KpiCard({ kpi, measurements }: KpiCardProps) {
       <div className="mt-3 flex items-end gap-4">
         <div>
           <p className="text-2xl font-bold text-[var(--axis-text-primary)]">
-            {currentValue !== null ? currentValue.toLocaleString() : "—"}
+            {currentValue !== null ? String(currentValue) : "—"}
           </p>
           {kpi.targetValue !== null && (
             <p className="text-xs text-[var(--axis-text-tertiary)]">
-              목표: {kpi.targetValue.toLocaleString()} {kpi.unit}
+              목표: {String(kpi.targetValue)} {kpi.unit}
             </p>
           )}
         </div>
