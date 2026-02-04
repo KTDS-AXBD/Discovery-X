@@ -58,12 +58,28 @@ const AuditLogIcon = () => (
   </svg>
 );
 
+const ReviewIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.2" opacity="0.5" />
+    <path d="M8 4v4l2.5 2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const RecallIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M3.5 2v4h4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M3.5 6A5.5 5.5 0 1 1 2.5 9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+  </svg>
+);
+
 const tabs = [
   { to: "/dashboard", label: "파이프라인", end: true, icon: <PipelineIcon /> },
   { to: "/dashboard/metrics", label: "지표", icon: <MetricsIcon /> },
   { to: "/dashboard/health", label: "건강도", icon: <HealthIcon /> },
   { to: "/dashboard/alerts", label: "알림", icon: <AlertsIcon /> },
-  { to: "/dashboard/audit-log", label: "활동 기록", icon: <AuditLogIcon /> },
+  { to: "/dashboard/audit-log", label: "활동 기록", end: true, icon: <AuditLogIcon /> },
+  { to: "/dashboard/review", label: "주간 리뷰", end: true, icon: <ReviewIcon /> },
+  { to: "/dashboard/recall", label: "리콜 큐", end: true, icon: <RecallIcon /> },
 ];
 
 export default function DashboardLayout() {
@@ -73,9 +89,9 @@ export default function DashboardLayout() {
   return (
     <div className="min-h-screen bg-[var(--axis-surface-secondary)]">
       <MainNav user={user} />
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* Tab navigation */}
-        <div className="mb-6 flex gap-1 border-b border-[var(--axis-border-default)]" role="tablist">
+      <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
+        {/* Tab navigation — pill/segment style */}
+        <div className="mb-6 flex gap-1 overflow-x-auto rounded-xl bg-[var(--axis-surface-secondary)] p-1" role="tablist">
           {tabs.map((tab) => {
             const isActive = tab.end
               ? location.pathname === tab.to
@@ -87,9 +103,9 @@ export default function DashboardLayout() {
                 role="tab"
                 aria-selected={isActive}
                 className={cn(
-                  "px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--axis-button-border-focus)] focus-visible:ring-offset-2",
+                  "whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all duration-[var(--dx-transition-normal)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--axis-button-border-focus)] focus-visible:ring-offset-1",
                   isActive
-                    ? "border-b-2 border-[var(--axis-text-brand)] text-[var(--axis-text-brand)]"
+                    ? "bg-[var(--axis-surface-default)] text-[var(--axis-text-primary)] shadow-sm"
                     : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]"
                 )}
               >
