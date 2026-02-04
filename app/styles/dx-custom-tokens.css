@@ -132,7 +132,22 @@
   50% { opacity: 0.6; }
 }
 
+/* Prose / content tokens (light) */
+:root {
+  --dx-code-bg: #F8FAFC;
+  --dx-prose-table-border: var(--axis-border-default);
+  --dx-prose-blockquote-bg: #F1F5F9;
+  --dx-prose-blockquote-border: var(--axis-text-brand);
+}
+
 /* Dark mode overrides */
+.dark {
+  --dx-code-bg: #1E293B;
+  --dx-prose-table-border: var(--axis-border-default);
+  --dx-prose-blockquote-bg: #1E293B;
+  --dx-prose-blockquote-border: var(--axis-text-brand);
+}
+
 .dark {
   /* Interaction Tokens (Dark) */
   --dx-focus-ring-color-success: #4ADE80;

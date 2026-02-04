@@ -253,7 +253,7 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
         return prev;
       });
     }
-  }, [conversationId, isLoading]);
+  }, [conversationId, isLoading, onToolResult]);
 
   const sendMessage = useCallback(async () => {
     if (!input.trim()) return;
