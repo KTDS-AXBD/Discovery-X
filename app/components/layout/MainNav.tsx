@@ -42,7 +42,7 @@ export function MainNav({ user }: MainNavProps) {
         className="inline-flex items-center gap-1 border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-[var(--axis-text-tertiary)] hover:border-[var(--axis-border-secondary)] hover:text-[var(--axis-text-primary)]"
         onClick={() => setMobileMenuOpen(false)}
       >
-        Dashboard
+        현황판
         {totalAlerts > 0 && (
           <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[var(--axis-button-destructive-bg-default)] px-1.5 text-xs font-bold text-white">
             {totalAlerts}
@@ -54,35 +54,35 @@ export function MainNav({ user }: MainNavProps) {
         className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-[var(--axis-text-tertiary)] hover:border-[var(--axis-border-secondary)] hover:text-[var(--axis-text-primary)]"
         onClick={() => setMobileMenuOpen(false)}
       >
-        Venture
+        사업 탐색
       </Link>
       <Link
         to="/methods"
         className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-[var(--axis-text-tertiary)] hover:border-[var(--axis-border-secondary)] hover:text-[var(--axis-text-primary)]"
         onClick={() => setMobileMenuOpen(false)}
       >
-        Methods
+        방법론
       </Link>
       <Link
         to="/evidence/duplicates"
         className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-[var(--axis-text-tertiary)] hover:border-[var(--axis-border-secondary)] hover:text-[var(--axis-text-primary)]"
         onClick={() => setMobileMenuOpen(false)}
       >
-        Graph
+        맥락 그래프
       </Link>
       <Link
         to="/radar"
         className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-[var(--axis-text-tertiary)] hover:border-[var(--axis-border-secondary)] hover:text-[var(--axis-text-primary)]"
         onClick={() => setMobileMenuOpen(false)}
       >
-        Radar
+        레이더
       </Link>
       <Link
         to="/docs"
         className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-[var(--axis-text-tertiary)] hover:border-[var(--axis-border-secondary)] hover:text-[var(--axis-text-primary)]"
         onClick={() => setMobileMenuOpen(false)}
       >
-        Docs
+        문서
       </Link>
       {isAdmin && (
         <Link
@@ -90,7 +90,7 @@ export function MainNav({ user }: MainNavProps) {
           className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-[var(--axis-text-tertiary)] hover:border-[var(--axis-border-secondary)] hover:text-[var(--axis-text-primary)]"
           onClick={() => setMobileMenuOpen(false)}
         >
-          Settings
+          설정
         </Link>
       )}
       {isAdmin && (
@@ -99,7 +99,7 @@ export function MainNav({ user }: MainNavProps) {
           className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-[var(--axis-text-tertiary)] hover:border-[var(--axis-border-secondary)] hover:text-[var(--axis-text-primary)]"
           onClick={() => setMobileMenuOpen(false)}
         >
-          Admin
+          관리
         </Link>
       )}
     </>

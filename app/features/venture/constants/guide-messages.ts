@@ -62,7 +62,7 @@ export const SPRINT_GUIDE_MESSAGES: Record<VdSprintStatusType, StatusGuideConfig
         },
       },
       inbox: {
-        message: "스프린트를 시작해야 Signal 수집이 가능합니다. 먼저 개요 탭에서 시작하세요.",
+        message: "스프린트를 시작해야 신호 수집이 가능합니다. 먼저 개요 탭에서 시작하세요.",
         cta: {
           label: "개요로 이동",
           action: "link",
@@ -80,53 +80,53 @@ export const SPRINT_GUIDE_MESSAGES: Record<VdSprintStatusType, StatusGuideConfig
     },
   },
   RUNNING: {
-    title: "Day 1-2: Signal 수집",
+    title: "Day 1-2: 신호 수집",
     description: "관련 정보를 수집하고 기회 카드를 작성하세요",
     tabs: {
       default: {
-        message: "Inbox에서 Signal을 확인하고 Long List에 기회 카드를 작성하세요.",
+        message: "신호함에서 신호를 확인하고 후보 목록에 기회 카드를 작성하세요.",
         cta: {
-          label: "Inbox 보기",
+          label: "신호함 보기",
           action: "link",
           href: "inbox",
         },
       },
       inbox: {
-        message: "Signal과 Evidence를 확인하세요. 유망한 정보가 있다면 기회 카드로 전환하세요. (목표: 20개 이상 수집)",
+        message: "신호와 근거를 확인하세요. 유망한 정보가 있다면 기회 카드로 전환하세요. (목표: 20개 이상 수집)",
         cta: {
-          label: "Signal 추가",
+          label: "신호 추가",
           action: "focus",
         },
       },
       longlist: {
-        message: "기회 카드를 6개 이상 작성하고 Gate 1을 준비하세요.",
+        message: "기회 카드를 6개 이상 작성하고 1차 검토를 준비하세요.",
         cta: {
           label: "카드 추가",
           action: "focus",
         },
       },
       gate: {
-        message: "Long List에 기회 카드가 충분히 작성되면 Gate 1을 시작할 수 있습니다.",
+        message: "후보 목록에 기회 카드가 충분히 작성되면 1차 검토를 시작할 수 있습니다.",
         cta: {
-          label: "Long List 보기",
+          label: "후보 목록 보기",
           action: "link",
           href: "longlist",
         },
       },
       deepdive: {
-        message: "아직 Gate 1 단계입니다. 먼저 Long List 작성 후 Gate 1을 통과하세요.",
+        message: "아직 1차 검토 단계입니다. 먼저 후보 목록 작성 후 1차 검토를 통과하세요.",
       },
       packaging: {
-        message: "아직 Gate 1 단계입니다. 순서대로 진행해주세요.",
+        message: "아직 1차 검토 단계입니다. 순서대로 진행해주세요.",
       },
     },
   },
   GATE1_PENDING: {
-    title: "Gate 1: Shortlist 선정",
-    description: "Long List 중 유망한 기회를 선별하세요",
+    title: "1차 검토: 선별 목록 선정",
+    description: "후보 목록 중 유망한 기회를 선별하세요",
     tabs: {
       default: {
-        message: "Gate 탭에서 Shortlist 선정을 위한 투표를 진행하세요.",
+        message: "검토 탭에서 선별 목록 선정을 위한 투표를 진행하세요.",
         cta: {
           label: "투표하기",
           action: "link",
@@ -134,85 +134,85 @@ export const SPRINT_GUIDE_MESSAGES: Record<VdSprintStatusType, StatusGuideConfig
         },
       },
       inbox: {
-        message: "Gate 1 진행 중입니다. Gate 탭에서 투표를 완료하세요.",
+        message: "1차 검토 진행 중입니다. 검토 탭에서 투표를 완료하세요.",
         cta: {
-          label: "Gate로 이동",
+          label: "검토로 이동",
           action: "link",
           href: "gate",
         },
       },
       longlist: {
-        message: "Gate 1 진행 중입니다. 투표 후 Shortlist가 결정됩니다.",
+        message: "1차 검토 진행 중입니다. 투표 후 선별 목록이 결정됩니다.",
         cta: {
-          label: "Gate로 이동",
+          label: "검토로 이동",
           action: "link",
           href: "gate",
         },
       },
       gate: {
-        message: "각 기회를 평가하고 Shortlist(최대 8개)를 선정하세요.",
+        message: "각 기회를 평가하고 선별 목록(최대 8개)을 선정하세요.",
         cta: {
           label: "투표 제출",
           action: "scroll",
         },
       },
       deepdive: {
-        message: "Gate 1 통과 후 Deep Dive를 시작할 수 있습니다.",
+        message: "1차 검토 통과 후 심층 분석을 시작할 수 있습니다.",
       },
       packaging: {
-        message: "Gate 1과 Gate 2를 통과해야 Packaging 단계로 진입합니다.",
+        message: "1차 검토와 2차 검토를 통과해야 산출물 정리 단계로 진입합니다.",
       },
     },
   },
   DEEPDIVE: {
-    title: "Day 3-4: Deep Dive",
-    description: "Shortlist 기회에 대해 심층 분석을 수행하세요",
+    title: "Day 3-4: 심층 분석",
+    description: "선별 목록 기회에 대해 심층 분석을 수행하세요",
     tabs: {
       default: {
-        message: "Deep Dive 탭에서 가정 검증, Pre-mortem, Lean Canvas를 작성하세요.",
+        message: "심층 분석 탭에서 가정 검증, 프리모템, 린 캔버스를 작성하세요.",
         cta: {
-          label: "Deep Dive 시작",
+          label: "심층 분석 시작",
           action: "link",
           href: "deepdive",
         },
       },
       inbox: {
-        message: "Deep Dive 단계입니다. 추가 Signal 수집보다 심층 분석에 집중하세요.",
+        message: "심층 분석 단계입니다. 추가 신호 수집보다 심층 분석에 집중하세요.",
         cta: {
-          label: "Deep Dive로 이동",
+          label: "심층 분석으로 이동",
           action: "link",
           href: "deepdive",
         },
       },
       longlist: {
-        message: "Shortlist가 확정되었습니다. Deep Dive 분석을 진행하세요.",
+        message: "선별 목록이 확정되었습니다. 심층 분석을 진행하세요.",
         cta: {
-          label: "Deep Dive로 이동",
+          label: "심층 분석으로 이동",
           action: "link",
           href: "deepdive",
         },
       },
       gate: {
-        message: "Gate 1이 완료되었습니다. Deep Dive 완료 후 Gate 2를 진행할 수 있습니다.",
+        message: "1차 검토가 완료되었습니다. 심층 분석 완료 후 2차 검토를 진행할 수 있습니다.",
       },
       deepdive: {
-        message: "각 Shortlist 기회에 대해 Assumption, Pre-mortem, Lean Canvas를 작성하세요.",
+        message: "각 선별 목록 기회에 대해 가정, 프리모템, 린 캔버스를 작성하세요.",
         cta: {
           label: "분석 시작",
           action: "focus",
         },
       },
       packaging: {
-        message: "Gate 2를 통과해야 Packaging 단계로 진입합니다.",
+        message: "2차 검토를 통과해야 산출물 정리 단계로 진입합니다.",
       },
     },
   },
   GATE2_PENDING: {
-    title: "Gate 2: Final 선정",
-    description: "Deep Dive 결과를 바탕으로 최종 기회를 선별하세요",
+    title: "2차 검토: 최종 선정",
+    description: "심층 분석 결과를 바탕으로 최종 기회를 선별하세요",
     tabs: {
       default: {
-        message: "Gate 탭에서 Final 선정을 위한 재투표를 진행하세요.",
+        message: "검토 탭에서 최종 선정을 위한 재투표를 진행하세요.",
         cta: {
           label: "투표하기",
           action: "link",
@@ -220,76 +220,76 @@ export const SPRINT_GUIDE_MESSAGES: Record<VdSprintStatusType, StatusGuideConfig
         },
       },
       inbox: {
-        message: "Gate 2 진행 중입니다. Gate 탭에서 최종 투표를 완료하세요.",
+        message: "2차 검토 진행 중입니다. 검토 탭에서 최종 투표를 완료하세요.",
         cta: {
-          label: "Gate로 이동",
+          label: "검토로 이동",
           action: "link",
           href: "gate",
         },
       },
       longlist: {
-        message: "Gate 2 진행 중입니다. Final 선정 후 Packaging을 시작합니다.",
+        message: "2차 검토 진행 중입니다. 최종 선정 후 산출물 정리를 시작합니다.",
         cta: {
-          label: "Gate로 이동",
+          label: "검토로 이동",
           action: "link",
           href: "gate",
         },
       },
       gate: {
-        message: "Deep Dive 분석을 검토하고 Final(최대 3개)을 선정하세요.",
+        message: "심층 분석을 검토하고 최종 선정(최대 3개)을 진행하세요.",
         cta: {
           label: "투표 제출",
           action: "scroll",
         },
       },
       deepdive: {
-        message: "Gate 2 진행 중입니다. 추가 분석이 필요하면 여기서 보완하세요.",
+        message: "2차 검토 진행 중입니다. 추가 분석이 필요하면 여기서 보완하세요.",
       },
       packaging: {
-        message: "Gate 2 통과 후 Packaging을 시작할 수 있습니다.",
+        message: "2차 검토 통과 후 산출물 정리를 시작할 수 있습니다.",
       },
     },
   },
   PACKAGING: {
-    title: "Day 5: Packaging",
+    title: "Day 5: 산출물 정리",
     description: "최종 결과물을 완성하세요",
     tabs: {
       default: {
-        message: "Packaging 탭에서 피치 덱과 요약 문서를 작성하세요.",
+        message: "산출물 정리 탭에서 피치 덱과 요약 문서를 작성하세요.",
         cta: {
-          label: "Packaging 시작",
+          label: "산출물 정리 시작",
           action: "link",
           href: "packaging",
         },
       },
       inbox: {
-        message: "Packaging 단계입니다. 최종 문서 작성에 집중하세요.",
+        message: "산출물 정리 단계입니다. 최종 문서 작성에 집중하세요.",
         cta: {
-          label: "Packaging으로 이동",
+          label: "산출물 정리로 이동",
           action: "link",
           href: "packaging",
         },
       },
       longlist: {
-        message: "Final이 확정되었습니다. Packaging을 완료하세요.",
+        message: "최종 선정이 확정되었습니다. 산출물 정리를 완료하세요.",
         cta: {
-          label: "Packaging으로 이동",
+          label: "산출물 정리로 이동",
           action: "link",
           href: "packaging",
         },
       },
       gate: {
-        message: "모든 Gate가 완료되었습니다. Packaging을 진행하세요.",
+        message: "모든 검토가 완료되었습니다. 산출물 정리를 진행하세요.",
         cta: {
-          label: "Packaging으로 이동",
+          label: "산출물 정리로 이동",
           action: "link",
           href: "packaging",
         },
       },
       deepdive: {
-        message: "Deep Dive가 완료되었습니다. 결과를 Packaging에 반영하세요.",
+        message: "심층 분석이 완료되었습니다. 결과를 산출물 정리에 반영하세요.",
         cta: {
-          label: "Packaging으로 이동",
+          label: "산출물 정리로 이동",
           action: "link",
           href: "packaging",
         },

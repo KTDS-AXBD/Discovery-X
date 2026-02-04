@@ -59,11 +59,11 @@ const AuditLogIcon = () => (
 );
 
 const tabs = [
-  { to: "/dashboard", label: "Pipeline", end: true, icon: <PipelineIcon /> },
-  { to: "/dashboard/metrics", label: "Metrics", icon: <MetricsIcon /> },
-  { to: "/dashboard/health", label: "Health", icon: <HealthIcon /> },
-  { to: "/dashboard/alerts", label: "Alerts", icon: <AlertsIcon /> },
-  { to: "/dashboard/audit-log", label: "Audit Log", icon: <AuditLogIcon /> },
+  { to: "/dashboard", label: "파이프라인", end: true, icon: <PipelineIcon /> },
+  { to: "/dashboard/metrics", label: "지표", icon: <MetricsIcon /> },
+  { to: "/dashboard/health", label: "건강도", icon: <HealthIcon /> },
+  { to: "/dashboard/alerts", label: "알림", icon: <AlertsIcon /> },
+  { to: "/dashboard/audit-log", label: "활동 기록", icon: <AuditLogIcon /> },
 ];
 
 export default function DashboardLayout() {
