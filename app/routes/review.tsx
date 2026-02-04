@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, users } from "~/db/schema";
+import { discoveries } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { PageLayout } from "~/components/layout/PageLayout";
 import { PageHeader } from "~/components/layout/PageHeader";

@@ -4,7 +4,7 @@
  * Creates alert records in the alerts table.
  */
 
-import { eq, and, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type { DB } from "~/db";
 import {
   alerts,

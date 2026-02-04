@@ -1,7 +1,6 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { discoveries, users } from "~/db/schema";
-import { sql } from "drizzle-orm";
 import { createEmailClient } from "~/lib/notifications/email";
 import { buildWeeklySummaryEmail } from "~/lib/notifications/templates";
 import { ACTIVE_STATUSES } from "~/lib/constants/status";
