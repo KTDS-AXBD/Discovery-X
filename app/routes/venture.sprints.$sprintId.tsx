@@ -23,6 +23,7 @@ import {
   getSprintProgress,
 } from "~/features/venture/constants/sprint-status";
 import type { VdSprintStatusType } from "~/features/venture/types";
+import { NextStepGuide } from "~/components/venture/NextStepGuide";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -84,6 +85,14 @@ export default function VentureSprintLayout() {
   const progress = getSprintProgress(sprint.status as VdSprintStatusType);
 
   const basePath = `/venture/sprints/${params.sprintId}`;
+
+  // 현재 탭 결정 (URL 기반)
+  const currentTab = (() => {
+    const path = location.pathname;
+    if (path === basePath) return "default";
+    const tabMatch = path.replace(`${basePath}/`, "").split("/")[0];
+    return tabMatch || "default";
+  })();
 
   return (
     <div className="min-h-screen bg-[var(--axis-surface-secondary)]">
@@ -203,6 +212,17 @@ export default function VentureSprintLayout() {
             );
           })}
         </div>
+
+        {/* 다음 단계 가이드 */}
+        <NextStepGuide
+          sprint={{
+            status: sprint.status as VdSprintStatusType,
+            currentDay: sprint.currentDay,
+          }}
+          context="sprint-detail"
+          currentTab={currentTab}
+          basePath={basePath}
+        />
 
         {/* 탭 콘텐츠 */}
         <Outlet context={{ sprint, scopes, stats, user }} />

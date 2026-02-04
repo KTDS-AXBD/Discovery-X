@@ -3,4 +3,5 @@
  */
 
 export { EmptyState } from "./EmptyState";
+export { NextStepGuide } from "./NextStepGuide";
 export { OnboardingGuide, isOnboardingDismissed, resetOnboardingGuide } from "./OnboardingGuide";

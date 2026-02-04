@@ -15,8 +15,7 @@ import { Badge } from "~/components/ui/Badge";
 import { listSprints } from "~/features/venture/repositories/sprint.repository";
 import { VD_SPRINT_STATUS_CONFIG } from "~/features/venture/constants/sprint-status";
 import type { VdSprintStatusType } from "~/features/venture/types";
-import { EmptyState } from "~/components/venture/EmptyState";
-import { OnboardingGuide } from "~/components/venture/OnboardingGuide";
+import { EmptyState, NextStepGuide, OnboardingGuide } from "~/components/venture";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -88,6 +87,9 @@ export default function VentureOverview() {
         ) : (
           /* 스프린트가 있는 경우: 기존 UI */
           <>
+            {/* 다음 단계 가이드 */}
+            <NextStepGuide context="overview" />
+
             {/* 요약 카드 */}
             <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <SummaryCard
@@ -159,7 +161,7 @@ export default function VentureOverview() {
             </div>
 
             {/* 하단 링크 */}
-            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <Link
                 to="/venture/analytics"
                 className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-6 transition-colors hover:bg-[var(--axis-surface-secondary)]"
@@ -201,10 +203,10 @@ export default function VentureOverview() {
                       d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"
                     />
                   </svg>
-                  시작 가이드
+                  전체 가이드
                 </h3>
                 <p className="mt-1 text-sm text-[var(--axis-text-tertiary)]">
-                  스프린트 진행 방법 안내
+                  스프린트 진행 방법 상세 안내
                 </p>
               </button>
             </div>

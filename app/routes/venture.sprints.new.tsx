@@ -16,6 +16,7 @@ import {
   VD_EVALUATION_PRESETS,
   VD_DEFAULT_EVALUATION_PRESET_ID,
 } from "~/features/venture/constants/evaluation-criteria";
+import { NextStepGuide } from "~/components/venture/NextStepGuide";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -140,6 +141,9 @@ export default function VentureSprintsNew() {
             5일 부트캠프 템플릿 기반 신사업 발굴 스프린트를 시작합니다.
           </p>
         </div>
+
+        {/* 다음 단계 가이드 */}
+        <NextStepGuide context="new-sprint" />
 
         {/* 에러 메시지 */}
         {actionData?.error && (
