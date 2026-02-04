@@ -173,27 +173,29 @@ Flow H: Venture Discovery Sprint (v4)
 /venture/analytics    → 전체 누적 통계
 ```
 
-### 네비게이션 구조
+### 네비게이션 구조 (v4.9 AppShell)
 
 ```
-메인 네비게이션 (3개 메뉴 + 아바타):
-├── 대시보드 (직접 링크 → /dashboard)
-├── 시장 탐색 (드롭다운)
-│   ├── 레이더 → /radar
-│   └── 맥락 그래프 → /evidence/duplicates
-├── 사업 발굴 (드롭다운)
-│   ├── Discovery 목록 → /discoveries
-│   ├── Venture Sprint → /venture
-│   └── 방법론 → /methods
-└── 아바타 드롭다운 (우측)
-    ├── [이름] + [역할 배지]
-    ├── 문서 → /docs
-    ├── 설정 → /settings
-    ├── 관리 → /admin/users (ADMIN만)
-    ├── 다크/라이트 토글
-    └── 로그아웃
+AppShell (전체 레이아웃)
+├── TopNav (GNB, 상단 고정)
+│   ├── 좌측: "Discovery-X" 풀 텍스트 로고
+│   ├── 중앙: 4개 탭 직접 링크 (아이콘 + 텍스트)
+│   │   ├── 대시보드 → /dashboard
+│   │   ├── 시장 탐색 → /radar
+│   │   ├── 사업 발굴 → /discoveries
+│   │   └── 수집 관리 → /settings
+│   ├── 우측: 알림 벨 (배지) + 사용자명
+│   └── 모바일: 햄버거 → 사이드바 토글
+├── SidebarPanel (좌측 240px, 상시 표시)
+│   ├── "새 채팅" 버튼 (full-width, primary)
+│   ├── 채팅 검색 (SearchInput)
+│   ├── 보관함 (접이식, MVP: "준비 중" placeholder)
+│   ├── 채팅 히스토리 (날짜별 그룹: 오늘/어제/이번 주/이전)
+│   └── 하단: 사용자 프로필 (아바타/이름/팀명/버전) + 테마 토글 + 로그아웃
+└── main (flex-1, 라우트 콘텐츠)
 
-모바일: 햄버거 → 아코디언 메뉴 + 하단 UserMenu
+모바일: 사이드바 overlay + backdrop 클릭으로 닫기
+데스크톱: 사이드바 persistent (localStorage로 상태 유지)
 ```
 
 ---
@@ -224,9 +226,12 @@ Remix file-based routing. `app/routes/` 디렉토리 기반 자동 라우팅.
 
 ### 컴포넌트 패턴
 - `app/routes/` — 라우트 컴포넌트 (loader + action + UI)
-- `app/components/` — 재사용 UI 컴포넌트 (MainNav, StatusDonut, WeeklyBar 등)
+- `app/components/layout/` — AppShell (전체 래퍼), TopNav (GNB), SidebarPanel (좌측 사이드바)
+- `app/components/` — 재사용 UI 컴포넌트 (StatusDonut, WeeklyBar 등)
+- `app/lib/context/sidebar-context.tsx` — SidebarProvider + useSidebar() (열림/닫힘 + localStorage)
 - `app/db/` — DB 스키마 및 접근 레이어
 - `~/` alias → `./app/`
+- 모든 인증 라우트는 `<AppShell user={user}>` 래핑 (기존 PageLayout/MainNav 삭제됨)
 
 ### 데이터 흐름
 ```
@@ -470,7 +475,7 @@ Validation:
 > **이 섹션은 매 세션마다 업데이트한다.**
 
 ### 현재 단계
-**🚀 v4.8 P2 잔여 작업 5건 구현 (세션 118, 2026-02-04)**
+**🚀 v4.9 Figma 2차 전체 레이아웃 개편 (세션 119, 2026-02-04)**
 
 - ✅ v3 R0~R3b 전체 구현 + 프로덕션 배포 (Agent 48도구, 11단계 파이프라인, 알림/웹훅)
 - ✅ v4 Venture Sprint MVP: 18 라우트, 8 핸들러, Task Queue, Decision Center, Analytics
@@ -479,11 +484,23 @@ Validation:
 - ✅ v4.6: Figma 기반 전체 UI 개선 — 다크 테마 심화 + 플랫 네비/탭 + 카드 border 기반
 - ✅ v4.7: 프로덕션 500 에러 수정 — 인증 라우트 방어적 try-catch + SESSION_SECRET 환경 변수 설정
 - ✅ v4.8: P2 잔여 작업 5건 (F6~F10) — 응답 요약/비교 도구/간트차트/태그/추천
+- ✅ v4.9: Figma 2차 전체 레이아웃 개편 — AppShell + TopNav + SidebarPanel (41파일, 4 Phase)
 - ✅ Embeddings 인프라 (Vectorize 2개 + Cron 15분 + 초기 동기화 완료)
 - ✅ 채팅 UX 개선 (ContextPanel + Digest + 제안 칩 + 리치 시각화)
 - ✅ 테스트 561개 통과 (unit 76 + integration 342 + venture 143)
 
-### 최근 변경 (세션 118)
+### 최근 변경 (세션 119)
+**Figma 2차 전체 레이아웃 개편 — 41파일 변경 (신규 4 + 수정 32 + 삭제 5)**:
+- ✅ Phase 1: 기반 컴포넌트 4개 생성 (SidebarContext, TopNav, SidebarPanel, AppShell)
+- ✅ Phase 2: root.tsx에 conversations 쿼리 추가 (전역 사이드바 데이터)
+- ✅ Phase 3: 29개 라우트 마이그레이션 (PageLayout/MainNav → AppShell)
+- ✅ Phase 4: 5개 deprecated 파일 삭제 (PageLayout, NavDropdown, ConversationList, MainNav, UserMenu)
+- ✅ GNB: 3개 드롭다운 메뉴 → 4개 직접 탭 링크 (대시보드/시장 탐색/사업 발굴/수집 관리)
+- ✅ 사이드바: 채팅 히스토리 + 검색 + 보관함(MVP placeholder) + 프로필 상시 표시
+- ✅ CSS 토큰: sidebar-width 280→240px, collapsed-width 추가
+- ✅ typecheck + lint + build 모두 통과
+
+### 이전 변경 (세션 118)
 **P2 잔여 작업 5건 구현 — 9개 수정 + 3개 신규 + 1 마이그레이션 (PDCA 97%)**:
 - ✅ F6: `addSummaryHeader()` — 500자+ 응답에 첫 문장 요약 블록인용 자동 삽입
 - ✅ F7: `ExperimentGantt` SVG 컴포넌트 — 실험 타임라인 간트차트 (SSR-safe `now` prop)
@@ -571,7 +588,7 @@ Validation:
 |---------|--------|----------|
 | 인프라/스택 | 8 | Remix v2 + D1 + ESLint 9 + SDD 워크플로우 + CF Pages 배포 |
 | Discovery 코어 | 12 | CRUD 15라우트 + 11단계 상태 전환 + 실험/근거/결정 + Extension |
-| UI/UX | 15 | 반응형 + 차트 + 다크모드 + @axis-ds 토큰 + 접근성 + 한국어화 |
+| UI/UX | 16 | 반응형 + 차트 + 다크모드 + @axis-ds 토큰 + 접근성 + 한국어화 + AppShell 레이아웃 |
 | Agent 시스템 | 12 | v2→v3 재설계 + 48도구 + SSE 스트리밍 + 컨텍스트 최적화 + 채팅 UX |
 | v3 파이프라인 | 8 | R0 11단계 + R1 Method Pack + R2 Ontology + R3 KPI/알림/웹훅 |
 | v4 Venture Sprint | 10 | 도메인 모듈 + 워커 8핸들러 + Decision Center + Analytics + E2E |
@@ -611,4 +628,5 @@ Validation:
 | F8 | Discovery 비교 테이블 도구 | v4.8 | ✅ | 3 |
 | F9 | Discovery 태그 시스템 (DB + Agent 자동 태깅) | v4.8 | ✅ | 6 |
 | F10 | 관련 Discovery 추천 (상세 조회 시 자동) | v4.8 | ✅ | 2 |
+| F11 | Figma 2차 전체 레이아웃 개편 (AppShell + TopNav + SidebarPanel) | v4.9 | ✅ | 41 |
 
