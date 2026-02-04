@@ -133,19 +133,30 @@ Flow H: Venture Discovery Sprint (v4)
 ### 페이지 구성 (Remix Routes)
 
 ```
-/                     → 대시보드 (Discovery 요약 + 빠른 액션)
+/                     → 채팅 인터페이스 (메인)
 /discoveries          → Discovery 목록 (필터: 상태별)
 /discoveries/new      → Seed 입력 (INBOX 생성)
 /discoveries/:id      → Discovery 상세 (Experiments, Evidence, Decision)
 /discoveries/:id/edit → Discovery 편집
-/review               → Weekly Review 뷰
-/recall               → Recall Queue 뷰
 /radar                → Radar 설정 + 수집 이력
-/docs                 → 프로젝트 문서 (기획서/운영문서 뷰어 + GitHub Project)
 /evidence/duplicates  → 중복 근거 관리 (Ontology Graph)
-/dashboard/health     → 시스템 건강도 지표
-/dashboard/audit-log  → Audit Log (이벤트 로그 조회)
+/docs                 → 프로젝트 문서 (기획서/운영문서 뷰어 + GitHub Project)
+/settings             → 설정 (역할별 분기: 프로필/알림/Gate/Agent)
 /auth/google          → Google OAuth 인증
+/admin/users          → 관리자 사용자 관리
+
+# 대시보드 (7개 탭)
+/dashboard            → 파이프라인 (칸반)
+/dashboard/metrics    → 지표
+/dashboard/health     → 건강도
+/dashboard/alerts     → 알림
+/dashboard/audit-log  → 활동 기록
+/dashboard/review     → 주간 리뷰 (기존 /review에서 이동)
+/dashboard/recall     → 리콜 큐 (기존 /recall에서 이동)
+
+# 리다이렉트
+/review → /dashboard/review (301)
+/recall → /dashboard/recall (301)
 
 # Venture Discovery Sprint (v4)
 /venture              → Venture 메인 (Overview 리다이렉트)
@@ -160,6 +171,29 @@ Flow H: Venture Discovery Sprint (v4)
   /packaging          → 피치/문서 정리 + Export
   /analytics          → 해당 스프린트 통계
 /venture/analytics    → 전체 누적 통계
+```
+
+### 네비게이션 구조
+
+```
+메인 네비게이션 (3개 메뉴 + 아바타):
+├── 대시보드 (직접 링크 → /dashboard)
+├── 시장 탐색 (드롭다운)
+│   ├── 레이더 → /radar
+│   └── 맥락 그래프 → /evidence/duplicates
+├── 사업 발굴 (드롭다운)
+│   ├── Discovery 목록 → /discoveries
+│   ├── Venture Sprint → /venture
+│   └── 방법론 → /methods
+└── 아바타 드롭다운 (우측)
+    ├── [이름] + [역할 배지]
+    ├── 문서 → /docs
+    ├── 설정 → /settings
+    ├── 관리 → /admin/users (ADMIN만)
+    ├── 다크/라이트 토글
+    └── 로그아웃
+
+모바일: 햄버거 → 아코디언 메뉴 + 하단 UserMenu
 ```
 
 ---
@@ -436,32 +470,36 @@ Validation:
 > **이 섹션은 매 세션마다 업데이트한다.**
 
 ### 현재 단계
-**🚀 v4.3 UI/UX 개선 + Claude Code 자동화 구축 (세션 112, 2026-02-04)**
+**🚀 v4.4 메뉴 구조 개편 + UI 디자인 시스템 개선 (세션 113, 2026-02-04)**
 
 - ✅ v3 R0~R3b 전체 구현 + 프로덕션 배포 (Agent 45도구, 11단계 파이프라인, 알림/웹훅)
 - ✅ v4 Venture Sprint MVP: 18 라우트, 8 핸들러, Task Queue, Decision Center, Analytics
-- ✅ UX 리팩토링 v4.1 (WU-A~I 9단위) + v4.2 한국어화 + v4.3 lilys.ai 참고 UI/UX
+- ✅ UX 리팩토링 v4.1~v4.3 + v4.4 메뉴 구조 개편
 - ✅ Embeddings 인프라 (Vectorize 2개 + Cron 15분 + 초기 동기화 완료)
 - ✅ 채팅 UX 개선 (ContextPanel + Digest + 제안 칩 + 리치 시각화)
 - ✅ 테스트 561개 통과 (unit 76 + integration 342 + venture 143)
 
-### 최근 변경 (세션 112)
-**CLAUDE.md 감사/개선 + Claude Code 자동화 추천 + 서브에이전트 생성**:
-- ✅ CLAUDE.md 품질 감사: 62/100 (C) → 88/100 (B+) 개선
-  - 테스트 명령어 6개 추가 (test/test:unit/test:integration/test:coverage/test:e2e/db:studio)
-  - Venture 모듈(70+ 파일) 디렉토리 구조 반영, 수치 현행화 (라우트 75, 테이블 46, 도구 45, cron 5)
-  - Gotchas & 주의사항 섹션 신설 (11개 항목: CF env/D1 날짜/JSON/rowid 등)
-  - 환경 변수 + Cloudflare 바인딩 (Vectorize) 문서화
-- ✅ Claude Code 자동화 추천 리포트 (Hooks/MCP/Skills/Subagents/Plugins)
-- ✅ security-reviewer 서브에이전트 생성 (.claude/agents/security-reviewer.md)
-  - Agent 도구 변경 시 7개 보안 체크: 자율도 레벨/SQL 인젝션/상태 전환/인증 가드/입력 검증/민감 데이터/리소스 제한
-- ✅ SPEC.md §6 완료 요약 테이블 압축 (91건 → 카테고리별 요약 + details 접기)
+### 최근 변경 (세션 113)
+**메뉴 구조 개편 + UI 디자인 시스템 개선**:
+- ✅ 네비게이션 8개 항목 → 3개 메인 메뉴 + 아바타 드롭다운으로 단순화
+  - 대시보드 (직접 링크), 시장 탐색 (드롭다운), 사업 발굴 (드롭다운)
+  - NavDropdown 컴포넌트 (데스크탑 floating / 모바일 아코디언)
+  - UserMenu 아바타 드롭다운 (이름/역할 배지/문서/설정/관리/테마/로그아웃)
+- ✅ 대시보드 탭 5개 → 7개 확장 (주간 리뷰 + 리콜 큐 통합)
+  - /review → /dashboard/review, /recall → /dashboard/recall 이동 (301 리다이렉트)
+- ✅ 설정 페이지 역할별 분기 (requireAdmin → requireUser)
+  - USER: 프로필/알림, GATEKEEPER+: Gate 알림, ADMIN: Agent 설정
+- ✅ UI 컴포넌트 디자인 시스템 개선
+  - Button/Card/Dialog/IconButton/SearchInput/SectionPanel 컴포넌트 개선
+  - dx-custom-tokens.css + tailwind.css 토큰 추가
+  - ChatPanel/ContextPanel/ConversationList/ToolExecution 채팅 UI 개선
 
-### 이전 변경 (세션 111)
-**코드 감사 + CLAUDE.md 동기화**: HeadingWithId 타입 수정, ContextPanel 50개 제한, CLAUDE.md v4.2 동기화
+### 이전 변경 (세션 112)
+**CLAUDE.md 감사/개선 + Claude Code 자동화 추천 + 서브에이전트 생성**
 
-### 이전 변경 (세션 109~110)
-**세션 110**: lilys.ai 참고 UI/UX Phase 1+2 전체 완료 (StructuredMessage/ToolExecution/ContextPanel 등 10개 항목)
+### 이전 변경 (세션 109~111)
+**세션 111**: 코드 감사 + CLAUDE.md 동기화
+**세션 110**: lilys.ai 참고 UI/UX Phase 1+2 전체 완료
 **세션 109**: F4/F5 Embeddings 인프라 + 채팅 UX 대폭 개선 + 프로덕션 배포
 
 <details>
