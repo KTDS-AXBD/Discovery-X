@@ -71,7 +71,7 @@ export const createSprintScopeSchema = z.object({
   geography: z.string().max(100).optional(),
   keywords: z.array(z.string().max(50)).max(20).optional(),
   exclusions: z.array(z.string().max(50)).max(20).optional(),
-  selected: z.boolean().default(false),
+  selected: z.boolean().optional(),
 });
 
 export type CreateSprintScopeInput = z.infer<typeof createSprintScopeSchema>;
