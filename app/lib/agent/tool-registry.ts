@@ -51,6 +51,11 @@ export const TOOL_MIN_AUTONOMY: Record<string, number> = {
   get_alerts: 1,
   acknowledge_alert: 2,
   manage_webhook: 2,
+  // F8: Compare discoveries (read-only)
+  compare_discoveries: 1,
+  // F9: Tag management
+  tag_discovery: 2,
+  remove_discovery_tag: 2,
   // Level 3: full autonomy
   add_experiment: 3,
   complete_experiment: 3,
@@ -756,6 +761,55 @@ export const AGENT_TOOLS: ClaudeTool[] = [
           description: "커스텀 헤더 (선택)",
         },
         enabled: { type: "boolean", description: "활성화 여부 (기본: true)" },
+      },
+    },
+  },
+  {
+    name: "compare_discoveries",
+    description: "여러 Discovery를 나란히 비교 테이블로 보여줍니다. 2~5개 ID를 지정하세요.",
+    input_schema: {
+      type: "object",
+      required: ["discoveryIds"],
+      properties: {
+        discoveryIds: {
+          type: "array",
+          items: { type: "string" },
+          minItems: 2,
+          maxItems: 5,
+          description: "비교할 Discovery ID 배열 (2~5개)",
+        },
+      },
+    },
+  },
+  {
+    name: "tag_discovery",
+    description: "Discovery에 태그를 추가합니다. 최대 10개, 소문자 하이픈 형식.",
+    input_schema: {
+      type: "object",
+      required: ["discoveryId", "tags"],
+      properties: {
+        discoveryId: { type: "string", description: "Discovery ID" },
+        tags: {
+          type: "array",
+          items: { type: "string", maxLength: 20 },
+          description: "추가할 태그 배열",
+        },
+      },
+    },
+  },
+  {
+    name: "remove_discovery_tag",
+    description: "Discovery에서 태그를 제거합니다.",
+    input_schema: {
+      type: "object",
+      required: ["discoveryId", "tags"],
+      properties: {
+        discoveryId: { type: "string", description: "Discovery ID" },
+        tags: {
+          type: "array",
+          items: { type: "string" },
+          description: "제거할 태그 배열",
+        },
       },
     },
   },

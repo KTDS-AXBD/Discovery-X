@@ -15,6 +15,8 @@ import { cn } from "~/lib/utils/cn";
 import { eq, desc, inArray } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { KpiCard } from "~/components/dashboard/KpiCard";
+import { RelatedDiscoveries } from "~/components/discovery/RelatedDiscoveries";
+import { ExperimentGantt } from "~/components/charts/ExperimentGantt";
 import { formatDate, formatDateTime, isOverdue as checkOverdue } from "~/lib/format-date";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
@@ -116,6 +118,22 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     ...linksTo.map((l) => ({ ...l, direction: "to" as const })),
   ];
 
+  // Get related discoveries via embeddings (Vectorize → fallback empty)
+  let relatedDiscoveries: Array<{ id: string; score: number; title?: string }> = [];
+  try {
+    const cfEnv = context.cloudflare.env as unknown as Record<string, unknown>;
+    const embeddingEnv = {
+      OPENAI_API_KEY: cfEnv.OPENAI_API_KEY as string,
+      VECTORIZE_DISCOVERIES: cfEnv.VECTORIZE_DISCOVERIES as import("~/lib/embeddings/embedding-service").EmbeddingEnv["VECTORIZE_DISCOVERIES"],
+    };
+    const { findSimilarDiscoveries } = await import("~/lib/embeddings/embedding-service");
+    const queryText = `${discovery.title}\n${discovery.seedSummary || ""}`;
+    relatedDiscoveries = (await findSimilarDiscoveries(embeddingEnv, queryText, id, 5))
+      .filter((r) => r.score >= 0.7);
+  } catch {
+    // Vectorize 미응답 시 빈 배열 유지
+  }
+
   // Get activity logs for this discovery
   const activityLogs = await db
     .select()
@@ -163,6 +181,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     linkedDiscoveries: linkedDiscoveries.filter(Boolean),
     activityLogs: serializedLogs,
     isOverdue: isDiscoveryOverdue,
+    relatedDiscoveries,
+    serverNow: Date.now(),
   });
 }
 
@@ -261,7 +281,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
 export default function DiscoveryDetail() {
   const {
     user, discovery, owner, reviewer, gatekeeper, experiments, evidence, allUsers,
-    kpiWithMeasurements, allLinks, linkedDiscoveries, activityLogs, isOverdue,
+    kpiWithMeasurements, allLinks, linkedDiscoveries, activityLogs, isOverdue, relatedDiscoveries, serverNow,
   } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
 
@@ -518,6 +538,7 @@ export default function DiscoveryDetail() {
             </p>
           ) : (
             <div className="space-y-4">
+              <ExperimentGantt experiments={experiments} now={serverNow} />
               {experiments.map((exp) => (
                 <div
                   key={exp.id}
@@ -685,6 +706,9 @@ export default function DiscoveryDetail() {
           )}
         </CardContent>
       </Card>
+
+      {/* Related Discoveries */}
+      <RelatedDiscoveries items={relatedDiscoveries} />
 
       {/* Activity Timeline */}
       <Card className="mt-6">

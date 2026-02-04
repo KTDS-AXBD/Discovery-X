@@ -644,3 +644,64 @@ export async function validateEvidence(
     details: results,
   });
 }
+
+export async function tagDiscovery(
+  db: DB,
+  input: { discoveryId: string; tags: string[] }
+): Promise<string> {
+  const disc = await db
+    .select({ id: discoveries.id, tags: discoveries.tags })
+    .from(discoveries)
+    .where(eq(discoveries.id, input.discoveryId))
+    .limit(1);
+
+  if (!disc[0]) return JSON.stringify({ error: "Discovery를 찾을 수 없습니다." });
+
+  const normalize = (t: string) => t.toLowerCase().replace(/\s+/g, "-").slice(0, 20);
+  const currentTags: string[] = (disc[0].tags as string[]) || [];
+  const newTags = input.tags.map(normalize).filter((t) => t.length > 0);
+  const merged = [...new Set([...currentTags, ...newTags])].slice(0, 10);
+
+  await db
+    .update(discoveries)
+    .set({ tags: merged, updatedAt: new Date() })
+    .where(eq(discoveries.id, input.discoveryId));
+
+  await logEvent(db, input.discoveryId, "tags_updated", {
+    source: "agent",
+    added: newTags,
+    total: merged.length,
+  });
+
+  return JSON.stringify({ success: true, tags: merged });
+}
+
+export async function removeDiscoveryTag(
+  db: DB,
+  input: { discoveryId: string; tags: string[] }
+): Promise<string> {
+  const disc = await db
+    .select({ id: discoveries.id, tags: discoveries.tags })
+    .from(discoveries)
+    .where(eq(discoveries.id, input.discoveryId))
+    .limit(1);
+
+  if (!disc[0]) return JSON.stringify({ error: "Discovery를 찾을 수 없습니다." });
+
+  const currentTags: string[] = (disc[0].tags as string[]) || [];
+  const toRemove = new Set(input.tags.map((t) => t.toLowerCase()));
+  const remaining = currentTags.filter((t) => !toRemove.has(t));
+
+  await db
+    .update(discoveries)
+    .set({ tags: remaining, updatedAt: new Date() })
+    .where(eq(discoveries.id, input.discoveryId));
+
+  await logEvent(db, input.discoveryId, "tags_updated", {
+    source: "agent",
+    removed: input.tags,
+    total: remaining.length,
+  });
+
+  return JSON.stringify({ success: true, tags: remaining });
+}

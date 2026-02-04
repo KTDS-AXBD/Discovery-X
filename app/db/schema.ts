@@ -158,6 +158,9 @@ export const discoveries = sqliteTable(
 
     // Embedding tracking
     embeddingUpdatedAt: integer("embedding_updated_at", { mode: "timestamp" }),
+
+    // Tags (F9)
+    tags: text("tags", { mode: "json" }).$type<string[]>().default(sql`'[]'`),
   },
   (table) => ({
     statusIdx: index("idx_discoveries_status").on(table.status),

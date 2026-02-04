@@ -1,0 +1,1 @@
+ALTER TABLE discoveries ADD COLUMN tags TEXT DEFAULT '[]';

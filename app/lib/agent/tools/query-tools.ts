@@ -2,7 +2,7 @@
  * Query tools — read-only operations for listing, searching, metrics, radar.
  */
 
-import { eq, desc, sql, and, gte, lte } from "drizzle-orm";
+import { eq, desc, sql, and, gte, lte, inArray } from "drizzle-orm";
 import type { DB } from "~/db";
 import {
   discoveries,
@@ -741,4 +741,67 @@ export async function listUsers(db: DB): Promise<string> {
   );
 
   return JSON.stringify({ users: humanUsers });
+}
+
+export async function compareDiscoveries(
+  db: DB,
+  input: { discoveryIds: string[] }
+): Promise<string> {
+  const ids = input.discoveryIds;
+  if (ids.length < 2 || ids.length > 5) {
+    return JSON.stringify({ error: "2~5개의 Discovery ID가 필요합니다." });
+  }
+
+  const results = await db
+    .select({
+      id: discoveries.id,
+      title: discoveries.title,
+      status: discoveries.status,
+      ownerId: discoveries.ownerId,
+      sourceType: discoveries.sourceType,
+      createdAt: discoveries.createdAt,
+    })
+    .from(discoveries)
+    .where(inArray(discoveries.id, ids));
+
+  const expCounts = await db
+    .select({
+      discoveryId: experiments.discoveryId,
+      count: sql<number>`count(*)`,
+    })
+    .from(experiments)
+    .where(inArray(experiments.discoveryId, ids))
+    .groupBy(experiments.discoveryId);
+
+  const evCounts = await db
+    .select({
+      discoveryId: evidence.discoveryId,
+      count: sql<number>`count(*)`,
+    })
+    .from(evidence)
+    .where(inArray(evidence.discoveryId, ids))
+    .groupBy(evidence.discoveryId);
+
+  const rowMap = new Map(results.map((r) => [r.id, r]));
+  const expMap = new Map(expCounts.map((e) => [e.discoveryId, e.count]));
+  const evMap = new Map(evCounts.map((e) => [e.discoveryId, e.count]));
+
+  const header = "| 항목 | " + ids.map((id) => rowMap.get(id)?.title?.slice(0, 20) || "(not found)").join(" | ") + " |";
+  const sep = "|------|" + ids.map(() => "------").join("|") + "|";
+  const fmtDate = (d: unknown) => d ? new Date(d as number).toISOString().slice(0, 10) : "-";
+  const rows = [
+    "| ID | " + ids.map((id) => id.slice(0, 8)).join(" | ") + " |",
+    "| 상태 | " + ids.map((id) => rowMap.get(id)?.status || "-").join(" | ") + " |",
+    "| 소유자 | " + ids.map((id) => rowMap.get(id)?.ownerId || "미지정").join(" | ") + " |",
+    "| 소스타입 | " + ids.map((id) => rowMap.get(id)?.sourceType || "-").join(" | ") + " |",
+    "| 실험 수 | " + ids.map((id) => String(expMap.get(id) || 0)).join(" | ") + " |",
+    "| 근거 수 | " + ids.map((id) => String(evMap.get(id) || 0)).join(" | ") + " |",
+    "| 생성일 | " + ids.map((id) => fmtDate(rowMap.get(id)?.createdAt)).join(" | ") + " |",
+  ];
+
+  return JSON.stringify({
+    table: [header, sep, ...rows].join("\n"),
+    found: results.length,
+    notFound: ids.filter((id) => !rowMap.has(id)),
+  });
 }

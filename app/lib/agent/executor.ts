@@ -26,6 +26,8 @@ import {
   requestExtension,
   getStageInfo,
   validateEvidence,
+  tagDiscovery,
+  removeDiscoveryTag,
 } from "./tools/discovery-tools";
 import {
   listDiscoveries,
@@ -38,6 +40,7 @@ import {
   getWeeklyReview,
   getRecallQueue,
   generateDiscoveryDigest,
+  compareDiscoveries,
 } from "./tools/query-tools";
 import {
   listMethodPacks,
@@ -203,6 +206,12 @@ async function executeTool(
       return acknowledgeAlert(db, toolInput as unknown as Parameters<typeof acknowledgeAlert>[1]);
     case "manage_webhook":
       return manageWebhook(db, toolInput as unknown as Parameters<typeof manageWebhook>[1]);
+    case "compare_discoveries":
+      return compareDiscoveries(db, toolInput as Parameters<typeof compareDiscoveries>[1]);
+    case "tag_discovery":
+      return tagDiscovery(db, toolInput as Parameters<typeof tagDiscovery>[1]);
+    case "remove_discovery_tag":
+      return removeDiscoveryTag(db, toolInput as Parameters<typeof removeDiscoveryTag>[1]);
     default:
       return JSON.stringify({ error: `알 수 없는 도구: ${toolName}` });
   }
@@ -273,7 +282,7 @@ export async function executeAgentTurn(
         id: generateId(),
         conversationId,
         role: "assistant",
-        content: assistantText,
+        content: addSummaryHeader(assistantText),
       });
 
       // Update token usage
@@ -497,7 +506,7 @@ export function createAgentStreamResponse(
               id: generateId(),
               conversationId,
               role: "assistant",
-              content: assistantText,
+              content: addSummaryHeader(assistantText),
             });
 
             await updateTokenUsage(db, totalInputTokens + totalOutputTokens);
@@ -622,4 +631,12 @@ async function sendBudgetWarning(
       });
     }
   }
+}
+
+/** 500자 이상 응답 상단에 첫 문장 기반 요약 blockquote를 삽입한다. */
+function addSummaryHeader(text: string): string {
+  if (text.length < 500) return text;
+  const firstSentence = text.match(/^[^.!?]*[.!?]/)?.[0]?.trim();
+  if (!firstSentence || firstSentence.length > 120) return text;
+  return `> **요약**: ${firstSentence}\n\n${text}`;
 }

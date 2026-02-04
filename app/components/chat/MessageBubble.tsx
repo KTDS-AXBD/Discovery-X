@@ -103,8 +103,18 @@ function TableCell({ children, ...props }: ComponentProps<"td">) {
 }
 
 function BlockquoteBlock({ children, ...props }: ComponentProps<"blockquote">) {
+  const text = typeof children === "string" ? children : String(children);
+  const isSummary = text.includes("요약:");
   return (
-    <blockquote className="my-3 border-l-4 border-[var(--axis-text-brand)] bg-[var(--axis-surface-secondary)] py-2 pl-4 pr-3 text-sm italic text-[var(--axis-text-secondary)]" {...props}>
+    <blockquote
+      className={cn(
+        "my-3 border-l-4 pl-4 pr-3",
+        isSummary
+          ? "border-[var(--axis-text-brand)] bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))] rounded-r-lg py-2 text-sm font-medium not-italic"
+          : "border-[var(--axis-text-brand)] bg-[var(--axis-surface-secondary)] py-2 text-sm italic text-[var(--axis-text-secondary)]"
+      )}
+      {...props}
+    >
       {children}
     </blockquote>
   );
