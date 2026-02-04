@@ -5,7 +5,7 @@ import { getDb } from "~/db";
 import { users, UserRole } from "~/db/schema";
 import { eq } from "drizzle-orm";
 import { requireAdmin, getSessionSecret } from "~/lib/auth/session.server";
-import { PageLayout } from "~/components/layout/PageLayout";
+import { AppShell } from "~/components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Button } from "~/components/ui/Button";
 import { Badge } from "~/components/ui/Badge";
@@ -64,7 +64,7 @@ export default function AdminUsers() {
   const activeUsers = userList.filter((u) => u.role !== "pending");
 
   return (
-    <PageLayout user={currentUser}>
+    <AppShell user={currentUser}>
       <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">사용자 관리</h1>
       <p className="mt-1 text-sm text-[var(--axis-text-secondary)]">
         사용자 목록과 역할을 관리합니다.
@@ -190,6 +190,6 @@ export default function AdminUsers() {
           </div>
         </CardContent>
       </Card>
-    </PageLayout>
+    </AppShell>
   );
 }

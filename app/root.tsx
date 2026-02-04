@@ -8,9 +8,9 @@ import {
 import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { discoveries, alerts } from "~/db/schema";
+import { discoveries, alerts, conversations } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { eq, and, inArray, sql } from "drizzle-orm";
+import { eq, and, desc, inArray, sql } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { ACTIVE_STATUSES } from "~/lib/constants/status";
 import { ThemeProvider } from "@axis-ds/theme";
@@ -28,7 +28,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     const user = await getUserFromSession(request, db, secret);
 
     if (!user) {
-      return json({ notifications: null });
+      return json({ notifications: null, conversations: [] });
     }
 
     const nowUnix = Math.floor(Date.now() / 1000);
@@ -69,11 +69,30 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     const pendingApproval = pendingResult[0]?.count ?? 0;
     const unacknowledgedAlerts = alertResult[0]?.count ?? 0;
 
+    // Conversations for sidebar
+    const convs = await db
+      .select({
+        id: conversations.id,
+        title: conversations.title,
+        updatedAt: conversations.updatedAt,
+      })
+      .from(conversations)
+      .where(eq(conversations.userId, user.id))
+      .orderBy(desc(conversations.updatedAt))
+      .limit(50);
+
+    const sanitizedConvs = convs.map((c) => ({
+      id: c.id,
+      title: c.title?.replace(/\uFFFD/g, "").trim() || "새 대화",
+      updatedAt: c.updatedAt ? new Date(c.updatedAt as unknown as number * 1000).toISOString() : null,
+    }));
+
     return json({
       notifications: { overdueOpen, dueSoon, recallDue, pendingApproval, unacknowledgedAlerts },
+      conversations: sanitizedConvs,
     });
   } catch {
-    return json({ notifications: null });
+    return json({ notifications: null, conversations: [] });
   }
 }
 

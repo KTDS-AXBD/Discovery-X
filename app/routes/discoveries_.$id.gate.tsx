@@ -18,7 +18,7 @@ import {
   UserRole,
   eventLogs,
 } from "~/db/schema";
-import { PageLayout } from "~/components/layout/PageLayout";
+import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Button } from "~/components/ui/Button";
 import { Badge } from "~/components/ui/Badge";
@@ -370,7 +370,7 @@ export default function DiscoveryGatePage() {
   };
 
   return (
-    <PageLayout user={user}>
+    <AppShell user={user}>
       <PageHeader
         title={`Gate 패키지 — ${discovery.title}`}
         description={`현재 단계: ${discovery.status}`}
@@ -523,6 +523,6 @@ export default function DiscoveryGatePage() {
           </CardContent>
         </Card>
       )}
-    </PageLayout>
+    </AppShell>
   );
 }

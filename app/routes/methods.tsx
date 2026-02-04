@@ -5,7 +5,7 @@ import { useLoaderData, useSearchParams } from "@remix-run/react";
 import { getDb } from "~/db";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { methodPacks, type MethodPack } from "~/db/schema";
-import { PageLayout } from "~/components/layout/PageLayout";
+import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { MethodPackCard } from "~/components/methods/MethodPackCard";
 import { MethodPackDetailDialog } from "~/components/methods/MethodPackDetailDialog";
@@ -40,7 +40,7 @@ export default function MethodsPage() {
   const tiers = ["Tier-0", "Tier-1", "Tier-2"];
 
   return (
-    <PageLayout user={user}>
+    <AppShell user={user}>
       <PageHeader
         title="Method Pack 라이브러리"
         description="12종 방법론 팩 — 단계별 실험 도구"
@@ -107,6 +107,6 @@ export default function MethodsPage() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
       />
-    </PageLayout>
+    </AppShell>
   );
 }

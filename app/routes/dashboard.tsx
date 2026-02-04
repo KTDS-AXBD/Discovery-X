@@ -3,7 +3,7 @@ import { json, redirect } from "@remix-run/cloudflare";
 import { Link, Outlet, useLoaderData, useLocation } from "@remix-run/react";
 import { getDb } from "~/db";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { MainNav } from "~/components/layout/MainNav";
+import { AppShell } from "~/components/layout/AppShell";
 import { cn } from "~/lib/utils/cn";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -92,8 +92,7 @@ export default function DashboardLayout() {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-[var(--dx-surface-deep,var(--axis-surface-secondary))]">
-      <MainNav user={user} />
+    <AppShell user={user}>
       <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
         {/* Tab navigation — flat text style */}
         <div className="mb-6 flex gap-6 overflow-x-auto border-b border-[var(--dx-border-subtle,var(--axis-border-default))]" role="tablist">
@@ -124,6 +123,6 @@ export default function DashboardLayout() {
         </div>
         <Outlet />
       </div>
-    </div>
+    </AppShell>
   );
 }

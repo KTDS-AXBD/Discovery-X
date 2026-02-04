@@ -9,7 +9,7 @@ import { getDb } from "~/db";
 import { agentConfig, UserRole } from "~/db/schema";
 import { eq } from "drizzle-orm";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
-import { PageLayout } from "~/components/layout/PageLayout";
+import { AppShell } from "~/components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Button } from "~/components/ui/Button";
 import { Input } from "~/components/ui/Input";
@@ -96,7 +96,7 @@ export default function Settings() {
   const isGatekeeperOrAbove = role === UserRole.GATEKEEPER || isAdmin;
 
   return (
-    <PageLayout user={user}>
+    <AppShell user={user}>
       <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">설정</h1>
       <p className="mt-1 text-sm text-[var(--axis-text-secondary)]">
         프로필 및 알림 설정을 관리합니다.
@@ -249,6 +249,6 @@ export default function Settings() {
           </Form>
         )}
       </div>
-    </PageLayout>
+    </AppShell>
   );
 }

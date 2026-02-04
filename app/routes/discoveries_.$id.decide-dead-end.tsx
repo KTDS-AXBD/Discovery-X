@@ -4,7 +4,7 @@ import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries, eventLogs, users } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { PageLayout } from "~/components/layout/PageLayout";
+import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Card, CardContent } from "~/components/ui/Card";
 import { Input } from "~/components/ui/Input";
@@ -177,7 +177,7 @@ export default function DecideDeadEnd() {
   const actionData = useActionData<typeof action>();
 
   return (
-    <PageLayout user={user}>
+    <AppShell user={user}>
       <div className="mx-auto max-w-2xl">
         <PageHeader
           title="DEAD END 결정"
@@ -304,6 +304,6 @@ export default function DecideDeadEnd() {
           </ul>
         </div>
       </div>
-    </PageLayout>
+    </AppShell>
   );
 }

@@ -1,21 +1,12 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
-import { Link, useLoaderData, useRouteError, isRouteErrorResponse } from "@remix-run/react";
+import { Link, useLoaderData, useRouteError, isRouteErrorResponse, useRouteLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { conversations } from "~/db/schema";
-import { eq, desc } from "drizzle-orm";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { MainNav } from "~/components/layout/MainNav";
-import { ConversationList } from "~/components/chat/ConversationList";
+import { AppShell } from "~/components/layout/AppShell";
 import { ChatPanel } from "~/components/chat/ChatPanel";
 import { ContextPanel, extractContextItems, type ContextItem } from "~/components/chat/ContextPanel";
-
-function sanitizeTitle(raw: string | null): string {
-  if (!raw) return "새 대화";
-  const cleaned = raw.replace(/\uFFFD/g, "").trim();
-  return cleaned.length > 0 ? cleaned : "새 대화";
-}
 
 export const meta: MetaFunction = () => {
   return [
@@ -34,31 +25,21 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       return redirect("/login");
     }
 
-    const convs = await db
-      .select()
-      .from(conversations)
-      .where(eq(conversations.userId, user.id))
-      .orderBy(desc(conversations.updatedAt))
-      .limit(50);
-
-    return json({
-      user,
-      conversations: convs.map((c) => ({
-        id: c.id,
-        title: sanitizeTitle(c.title),
-        updatedAt: c.updatedAt ? new Date(c.updatedAt).toISOString() : null,
-      })),
-    });
+    return json({ user });
   } catch (error) {
     console.error("[_index.loader] Error:", error instanceof Error ? error.message : error);
     return redirect("/login");
   }
 }
 
-interface ConversationData {
+interface RootConversation {
   id: string;
   title: string;
   updatedAt: string | null;
+}
+
+interface RootLoaderData {
+  conversations?: RootConversation[];
 }
 
 interface ChatMessageData {
@@ -72,18 +53,23 @@ interface ChatMessageData {
 }
 
 export default function Index() {
-  const { user, conversations: initialConversations } =
-    useLoaderData<typeof loader>();
+  const { user } = useLoaderData<typeof loader>();
+  const rootData = useRouteLoaderData("root") as RootLoaderData | undefined;
+  const rootConversations = useMemo(() => rootData?.conversations ?? [], [rootData?.conversations]);
 
-  const [convList, setConvList] = useState<ConversationData[]>(initialConversations);
+  const [convList, setConvList] = useState<RootConversation[]>(rootConversations);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(
-    initialConversations[0]?.id || null
+    rootConversations[0]?.id || null
   );
   const [chatMessages, setChatMessages] = useState<ChatMessageData[]>([]);
   const [messagesLoaded, setMessagesLoaded] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [contextPanelOpen, setContextPanelOpen] = useState(false);
   const [contextItems, setContextItems] = useState<ContextItem[]>([]);
+
+  // Sync when root conversations change
+  useEffect(() => {
+    setConvList(rootConversations);
+  }, [rootConversations]);
 
   const isLoadingMessages = activeConversationId !== null && !messagesLoaded;
 
@@ -117,7 +103,7 @@ export default function Index() {
         headers: { "Content-Type": "application/json" },
       });
       const data = (await res.json()) as { id: string; title: string };
-      const newConv: ConversationData = {
+      const newConv: RootConversation = {
         id: data.id,
         title: data.title,
         updatedAt: new Date().toISOString(),
@@ -167,42 +153,23 @@ export default function Index() {
     [activeConversationId]
   );
 
+  const handleSelectConversation = useCallback((id: string) => {
+    setActiveConversationId(id);
+    setMessagesLoaded(false);
+    setContextItems([]);
+  }, []);
+
   return (
-    <div className="flex h-screen flex-col bg-[var(--dx-surface-deep,var(--axis-surface-secondary))]">
-      <MainNav user={user} />
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar toggle for mobile */}
-        <button
-          className="fixed bottom-4 left-4 z-50 rounded-full bg-[var(--axis-button-bg-default)] p-3 text-[var(--axis-button-text-default)] shadow-lg sm:hidden"
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-        >
-          {sidebarOpen ? "×" : "☰"}
-        </button>
-
-        {/* Sidebar */}
-        <div
-          className={`${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } fixed inset-y-0 left-0 z-40 w-[var(--dx-sidebar-width)] border-r border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))] transition-transform sm:static sm:translate-x-0`}
-          style={{ top: "var(--dx-nav-height)" }}
-        >
-          <ConversationList
-            conversations={convList}
-            activeId={activeConversationId}
-            onSelect={(id) => {
-              setActiveConversationId(id);
-              setMessagesLoaded(false);
-              setSidebarOpen(false);
-              setContextItems([]);
-            }}
-            onNew={handleNewConversation}
-            onDelete={handleDeleteConversation}
-          />
-        </div>
-
-        {/* Chat area */}
-        <div className="flex flex-1 overflow-hidden">
-          <div className="flex-1 bg-[var(--dx-surface-panel,var(--axis-surface-default))]">
+    <AppShell
+      user={user}
+      conversations={convList}
+      activeConversationId={activeConversationId}
+      onSelectConversation={handleSelectConversation}
+      onNewConversation={handleNewConversation}
+      onDeleteConversation={handleDeleteConversation}
+    >
+      <div className="flex h-full overflow-hidden">
+        <div className="flex-1 bg-[var(--dx-surface-panel,var(--axis-surface-default))]">
           {activeConversationId ? (
             <ChatPanel
               conversationId={activeConversationId}
@@ -231,20 +198,19 @@ export default function Index() {
               </div>
             </div>
           )}
-          </div>
-
-          {/* Context panel */}
-          {contextPanelOpen && contextItems.length > 0 && (
-            <div className="hidden w-72 shrink-0 lg:block">
-              <ContextPanel
-                items={contextItems}
-                onClose={() => setContextPanelOpen(false)}
-              />
-            </div>
-          )}
         </div>
+
+        {/* Context panel */}
+        {contextPanelOpen && contextItems.length > 0 && (
+          <div className="hidden w-72 shrink-0 lg:block">
+            <ContextPanel
+              items={contextItems}
+              onClose={() => setContextPanelOpen(false)}
+            />
+          </div>
+        )}
       </div>
-    </div>
+    </AppShell>
   );
 }
 

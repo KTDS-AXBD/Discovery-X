@@ -4,7 +4,7 @@ import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { seedDatabase } from "~/db/seed";
 import { getDb } from "~/db";
 import { requireAdmin, getSessionSecret } from "~/lib/auth/session.server";
-import { PageLayout } from "~/components/layout/PageLayout";
+import { AppShell } from "~/components/layout/AppShell";
 import { Card, CardContent } from "~/components/ui/Card";
 import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
@@ -38,7 +38,7 @@ export default function AdminSeed() {
   const actionData = useActionData<typeof action>();
 
   return (
-    <PageLayout user={currentUser}>
+    <AppShell user={currentUser}>
       <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">Seed 데이터 생성</h1>
       <p className="mt-1 text-sm text-[var(--axis-text-secondary)]">
         테스트용 사용자 5명과 샘플 Discovery 2개를 생성합니다.
@@ -79,6 +79,6 @@ export default function AdminSeed() {
           </div>
         </CardContent>
       </Card>
-    </PageLayout>
+    </AppShell>
   );
 }

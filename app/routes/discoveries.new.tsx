@@ -5,7 +5,7 @@ import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries, eventLogs } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { PageLayout } from "~/components/layout/PageLayout";
+import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { CreateDiscoverySchema } from "~/lib/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
@@ -179,7 +179,7 @@ export default function NewDiscovery() {
   }, [seedSummary, fetchSimilarSeeds]);
 
   return (
-    <PageLayout user={user}>
+    <AppShell user={user}>
       <div className="mx-auto max-w-2xl">
         <PageHeader
           title="새 Discovery 만들기"
@@ -250,6 +250,6 @@ export default function NewDiscovery() {
           </CardContent>
         </Card>
       </div>
-    </PageLayout>
+    </AppShell>
   );
 }

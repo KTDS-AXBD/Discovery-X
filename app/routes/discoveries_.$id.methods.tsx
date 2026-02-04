@@ -11,7 +11,7 @@ import {
   eventLogs,
   MethodRunStatus,
 } from "~/db/schema";
-import { PageLayout } from "~/components/layout/PageLayout";
+import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Card, CardContent } from "~/components/ui/Card";
 import { Button } from "~/components/ui/Button";
@@ -169,7 +169,7 @@ export default function DiscoveryMethodsPage() {
   const isSubmitting = navigation.state === "submitting";
 
   return (
-    <PageLayout user={user}>
+    <AppShell user={user}>
       <PageHeader
         title={`방법론 — ${discovery.title}`}
         description={`현재 단계: ${discovery.status}`}
@@ -277,6 +277,6 @@ export default function DiscoveryMethodsPage() {
           <MethodRunTimeline runs={timelineRuns} />
         </div>
       </div>
-    </PageLayout>
+    </AppShell>
   );
 }

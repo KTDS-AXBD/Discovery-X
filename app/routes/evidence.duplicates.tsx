@@ -5,7 +5,7 @@ import { eq, desc } from "drizzle-orm";
 import { getDb } from "~/db";
 import { evidenceDuplicateCandidates, evidence } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { PageLayout } from "~/components/layout/PageLayout";
+import { AppShell } from "~/components/layout/AppShell";
 import { DuplicateCard } from "~/components/evidence/DuplicateCard";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -108,7 +108,7 @@ export default function EvidenceDuplicates() {
   const isSubmitting = navigation.state === "submitting";
 
   return (
-    <PageLayout user={user}>
+    <AppShell user={user}>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">근거 중복 리뷰 큐</h1>
         <p className="mt-1 text-sm text-[var(--axis-text-tertiary)]">
@@ -133,6 +133,6 @@ export default function EvidenceDuplicates() {
           ))}
         </div>
       )}
-    </PageLayout>
+    </AppShell>
   );
 }

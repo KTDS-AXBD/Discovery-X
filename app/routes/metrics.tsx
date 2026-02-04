@@ -4,7 +4,7 @@ import { Link, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries, experiments, evidence, eventLogs, users } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { PageLayout } from "~/components/layout/PageLayout";
+import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Card, CardContent } from "~/components/ui/Card";
 import { Button } from "~/components/ui/Button";
@@ -265,7 +265,7 @@ export default function Metrics() {
   const { user, metrics } = useLoaderData<typeof loader>();
 
   return (
-    <PageLayout user={user}>
+    <AppShell user={user}>
       <PageHeader
         title="Metrics"
         description="Discovery-X 운영 지표 및 성공 기준 추적"
@@ -554,6 +554,6 @@ export default function Metrics() {
           CSV" 버튼으로 집계된 지표를 다운로드할 수 있습니다. 운영 실험 종료 시 분석에 활용하세요.
         </p>
       </AlertBanner>
-    </PageLayout>
+    </AppShell>
   );
 }

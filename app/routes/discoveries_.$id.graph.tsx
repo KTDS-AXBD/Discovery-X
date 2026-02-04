@@ -11,7 +11,7 @@ import {
   ontologyTypes,
 } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { PageLayout } from "~/components/layout/PageLayout";
+import { AppShell } from "~/components/layout/AppShell";
 import { Button } from "~/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { GraphViewer } from "~/components/graph/GraphViewer";
@@ -121,7 +121,7 @@ export default function DiscoveryGraph() {
   }));
 
   return (
-    <PageLayout user={user}>
+    <AppShell user={user}>
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">
@@ -185,6 +185,6 @@ export default function DiscoveryGraph() {
           </div>
         </CardContent>
       </Card>
-    </PageLayout>
+    </AppShell>
   );
 }

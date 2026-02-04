@@ -4,7 +4,7 @@ import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries, evidence, eventLogs, users } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { PageLayout } from "~/components/layout/PageLayout";
+import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Card, CardContent } from "~/components/ui/Card";
 import { Textarea } from "~/components/ui/Textarea";
@@ -175,7 +175,7 @@ export default function DecideNext() {
   const hasWarning = strongEvidenceCount < 2;
 
   return (
-    <PageLayout user={user}>
+    <AppShell user={user}>
       <div className="mx-auto max-w-2xl">
         <PageHeader
           title="NEXT 결정"
@@ -273,6 +273,6 @@ export default function DecideNext() {
           </ul>
         </div>
       </div>
-    </PageLayout>
+    </AppShell>
   );
 }

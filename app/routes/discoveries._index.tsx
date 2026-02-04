@@ -4,7 +4,7 @@ import { Link, useLoaderData, useSearchParams } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries, users } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { PageLayout } from "~/components/layout/PageLayout";
+import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { StatusBadge } from "~/components/ui/StatusBadge";
 import { Badge } from "~/components/ui/Badge";
@@ -83,7 +83,7 @@ export default function DiscoveriesIndex() {
   const currentFilter = searchParams.get("status");
 
   return (
-    <PageLayout user={user}>
+    <AppShell user={user}>
       <PageHeader
         title="Discoveries"
         description="전체 Discovery 목록을 확인하고 관리합니다"
@@ -234,6 +234,6 @@ export default function DiscoveriesIndex() {
           </TableBody>
         </Table>
       </div>
-    </PageLayout>
+    </AppShell>
   );
 }

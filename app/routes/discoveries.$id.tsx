@@ -4,7 +4,7 @@ import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries, experiments, evidence, users, eventLogs, discoveryKpis, kpiMeasurements, discoveryLinks } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { PageLayout } from "~/components/layout/PageLayout";
+import { AppShell } from "~/components/layout/AppShell";
 import { StatusBadge } from "~/components/ui/StatusBadge";
 import { Badge } from "~/components/ui/Badge";
 import { Button } from "~/components/ui/Button";
@@ -297,7 +297,7 @@ export default function DiscoveryDetail() {
     discovery.status === DiscoveryStatus.HYPOTHESIS ? 3 : 2;
 
   return (
-    <PageLayout user={user}>
+    <AppShell user={user}>
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between">
@@ -759,6 +759,6 @@ export default function DiscoveryDetail() {
           )}
         </CardContent>
       </Card>
-    </PageLayout>
+    </AppShell>
   );
 }

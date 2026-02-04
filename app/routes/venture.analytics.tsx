@@ -8,7 +8,7 @@ import { json, redirect } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { MainNav } from "~/components/layout/MainNav";
+import { AppShell } from "~/components/layout/AppShell";
 import { Badge } from "~/components/ui/Badge";
 import { listSprints } from "~/features/venture/repositories/sprint.repository";
 import { getGlobalSnapshots } from "~/features/venture/repositories/analytics.repository";
@@ -68,8 +68,7 @@ export default function VentureAnalytics() {
     useLoaderData<typeof loader>();
 
   return (
-    <div className="min-h-screen bg-[var(--axis-surface-secondary)]">
-      <MainNav user={user} />
+    <AppShell user={user}>
       <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
         {/* 헤더 */}
         <div className="mb-8">
@@ -224,7 +223,7 @@ export default function VentureAnalytics() {
           </div>
         )}
       </div>
-    </div>
+    </AppShell>
   );
 }
 

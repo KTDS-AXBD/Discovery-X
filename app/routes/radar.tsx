@@ -12,7 +12,7 @@ import {
   RadarRunStatus,
 } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { PageLayout } from "~/components/layout/PageLayout";
+import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Card, CardContent } from "~/components/ui/Card";
 import { Button } from "~/components/ui/Button";
@@ -124,7 +124,7 @@ export default function RadarPage() {
   const isSubmitting = navigation.state === "submitting";
 
   return (
-    <PageLayout user={user}>
+    <AppShell user={user}>
       <PageHeader
         title="Radar"
         description="자동 토픽 수집 소스를 관리하고 실행 이력을 확인합니다."
@@ -369,6 +369,6 @@ export default function RadarPage() {
           </div>
         )}
       </div>
-    </PageLayout>
+    </AppShell>
   );
 }

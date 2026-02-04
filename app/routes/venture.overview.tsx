@@ -9,7 +9,7 @@ import { json, redirect } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { MainNav } from "~/components/layout/MainNav";
+import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Button } from "~/components/ui/Button";
 import { Badge } from "~/components/ui/Badge";
@@ -61,8 +61,7 @@ export default function VentureOverview() {
   const isEmpty = totalCount === 0;
 
   return (
-    <div className="min-h-screen bg-[var(--axis-surface-secondary)]">
-      <MainNav user={user} />
+    <AppShell user={user}>
       <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
         <PageHeader
           title="Venture Discovery Sprint"
@@ -221,7 +220,7 @@ export default function VentureOverview() {
           </>
         )}
       </div>
-    </div>
+    </AppShell>
   );
 }
 

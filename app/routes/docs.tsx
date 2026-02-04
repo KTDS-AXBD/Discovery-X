@@ -8,7 +8,7 @@ import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, useSearchParams } from "@remix-run/react";
 import { getDb } from "~/db";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { PageLayout } from "~/components/layout/PageLayout";
+import { AppShell } from "~/components/layout/AppShell";
 import { Card, CardContent } from "~/components/ui/Card";
 import { getAllDocs, getDocBySlug } from "~/lib/docs/registry";
 import { DocsSidebar } from "~/components/docs/DocsSidebar";
@@ -71,7 +71,7 @@ export default function DocsPage() {
   );
 
   return (
-    <PageLayout user={user}>
+    <AppShell user={user}>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">
           Docs
@@ -204,6 +204,6 @@ export default function DocsPage() {
           </CardContent>
         </Card>
       )}
-    </PageLayout>
+    </AppShell>
   );
 }
