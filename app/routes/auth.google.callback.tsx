@@ -12,6 +12,7 @@ import {
   createSession,
   createSessionStorage,
   getSessionSecret,
+  isSecureCookie,
 } from "~/lib/auth/session.server";
 
 // AX BD팀 화이트리스트 — 최초 로그인 시 자동으로 role: "user" 부여
@@ -43,7 +44,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // Retrieve stored state and code verifier from session
   const secret = getSessionSecret(context.cloudflare.env);
-  const sessionStorage = createSessionStorage(secret);
+  const sessionStorage = createSessionStorage(secret, isSecureCookie(request));
   const session = await sessionStorage.getSession(request.headers.get("Cookie"));
 
   const storedState = session.get("google_oauth_state");

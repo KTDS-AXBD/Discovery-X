@@ -127,6 +127,9 @@ export async function manageWebhook(db: DB, input: ManageWebhookInput): Promise<
       if (!input.name || !input.url) {
         return JSON.stringify({ error: "name과 url은 필수입니다." });
       }
+      if (!/^https?:\/\//i.test(input.url)) {
+        return JSON.stringify({ error: "웹훅 URL은 http:// 또는 https://로 시작해야 합니다." });
+      }
       const id = crypto.randomUUID();
       await db.insert(webhookConfigs).values({
         id,
@@ -156,7 +159,12 @@ export async function manageWebhook(db: DB, input: ManageWebhookInput): Promise<
 
       const updates: Record<string, unknown> = {};
       if (input.name !== undefined) updates.name = input.name;
-      if (input.url !== undefined) updates.url = input.url;
+      if (input.url !== undefined) {
+        if (!/^https?:\/\//i.test(input.url)) {
+          return JSON.stringify({ error: "웹훅 URL은 http:// 또는 https://로 시작해야 합니다." });
+        }
+        updates.url = input.url;
+      }
       if (input.platform !== undefined) updates.platform = input.platform;
       if (input.events !== undefined) updates.events = input.events;
       if (input.headers !== undefined) updates.headers = input.headers;

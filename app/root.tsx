@@ -10,8 +10,9 @@ import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { discoveries, alerts } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { eq } from "drizzle-orm";
+import { eq, and, inArray, sql } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
+import { ACTIVE_STATUSES } from "~/lib/constants/status";
 import { ThemeProvider } from "@axis-ds/theme";
 import stylesheet from "~/styles/tailwind.css?url";
 
@@ -30,47 +31,43 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       return json({ notifications: null });
     }
 
-    const now = new Date();
-    const threeDaysFromNow = new Date();
-    threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+    const nowUnix = Math.floor(Date.now() / 1000);
+    const threeDaysUnix = nowUnix + 3 * 24 * 60 * 60;
 
-    const allDiscoveries = await db.select().from(discoveries);
+    const [overdueResult, dueSoonResult, recallResult, pendingResult, alertResult] = await Promise.all([
+      db.select({ count: sql<number>`count(*)` }).from(discoveries).where(
+        and(
+          inArray(discoveries.status, [...ACTIVE_STATUSES]),
+          sql`${discoveries.dueDate} < ${nowUnix}`
+        )
+      ),
+      db.select({ count: sql<number>`count(*)` }).from(discoveries).where(
+        and(
+          inArray(discoveries.status, [...ACTIVE_STATUSES]),
+          sql`${discoveries.dueDate} >= ${nowUnix}`,
+          sql`${discoveries.dueDate} <= ${threeDaysUnix}`
+        )
+      ),
+      db.select({ count: sql<number>`count(*)` }).from(discoveries).where(
+        and(
+          eq(discoveries.status, DiscoveryStatus.HOLD),
+          sql`${discoveries.revisitDate} <= ${nowUnix}`
+        )
+      ),
+      db.select({ count: sql<number>`count(*)` }).from(discoveries).where(
+        and(
+          eq(discoveries.approvalStatus, "PENDING"),
+          eq(discoveries.reviewerId, user.id)
+        )
+      ),
+      db.select({ count: sql<number>`count(*)` }).from(alerts).where(eq(alerts.acknowledged, 0)),
+    ]);
 
-    const activeDiscoveries = allDiscoveries.filter(
-      (d) =>
-        d.status === DiscoveryStatus.IDEA_CARD ||
-        d.status === DiscoveryStatus.IDEA_CARD
-    );
-
-    const overdueOpen = activeDiscoveries.filter(
-      (d) => d.dueDate && new Date(d.dueDate) < now
-    ).length;
-
-    const dueSoon = activeDiscoveries.filter(
-      (d) =>
-        d.dueDate &&
-        new Date(d.dueDate) >= now &&
-        new Date(d.dueDate) <= threeDaysFromNow
-    ).length;
-
-    const recallDue = allDiscoveries.filter(
-      (d) =>
-        d.status === DiscoveryStatus.HOLD &&
-        d.revisitDate &&
-        new Date(d.revisitDate) <= now
-    ).length;
-
-    const pendingApproval = allDiscoveries.filter(
-      (d) =>
-        d.approvalStatus === "PENDING" &&
-        d.reviewerId === user.id
-    ).length;
-
-    const unacknowledgedAlerts = (await db
-      .select()
-      .from(alerts)
-      .where(eq(alerts.acknowledged, 0))
-    ).length;
+    const overdueOpen = overdueResult[0]?.count ?? 0;
+    const dueSoon = dueSoonResult[0]?.count ?? 0;
+    const recallDue = recallResult[0]?.count ?? 0;
+    const pendingApproval = pendingResult[0]?.count ?? 0;
+    const unacknowledgedAlerts = alertResult[0]?.count ?? 0;
 
     return json({
       notifications: { overdueOpen, dueSoon, recallDue, pendingApproval, unacknowledgedAlerts },
@@ -94,7 +91,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body>
+      <body className="bg-[var(--dx-surface-deep,var(--axis-surface-secondary))]">
         {children}
         <ScrollRestoration />
         <Scripts />

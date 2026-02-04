@@ -6,7 +6,7 @@ import {
   getRedirectUri,
   getGoogleCredentials,
 } from "~/lib/auth/google.server";
-import { createSessionStorage, getSessionSecret } from "~/lib/auth/session.server";
+import { createSessionStorage, getSessionSecret, isSecureCookie } from "~/lib/auth/session.server";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { clientId, clientSecret } = getGoogleCredentials(context.cloudflare.env);
@@ -24,7 +24,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // Store state and codeVerifier in session cookie
   const secret = getSessionSecret(context.cloudflare.env);
-  const sessionStorage = createSessionStorage(secret);
+  const sessionStorage = createSessionStorage(secret, isSecureCookie(request));
   const session = await sessionStorage.getSession(request.headers.get("Cookie"));
   session.set("google_oauth_state", state);
   session.set("google_code_verifier", codeVerifier);

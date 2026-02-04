@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { discoveries, users, experiments, evidence } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { eq } from "drizzle-orm";
+import { inArray } from "drizzle-orm";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -14,32 +14,41 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   const allDiscoveries = await db.select().from(discoveries);
+  const discoveryIds = allDiscoveries.map((d) => d.id);
 
-  const enrichedData = await Promise.all(
-    allDiscoveries.map(async (discovery) => {
-      const owner = discovery.ownerId
-        ? await db.query.users.findFirst({
-            where: eq(users.id, discovery.ownerId),
-          })
-        : null;
+  // Batch-fetch all related data
+  const userIds = [...new Set([
+    ...allDiscoveries.map((d) => d.ownerId).filter(Boolean),
+    ...allDiscoveries.map((d) => d.reviewerId).filter(Boolean),
+  ])] as string[];
 
-      const reviewer = discovery.reviewerId
-        ? await db.query.users.findFirst({
-            where: eq(users.id, discovery.reviewerId),
-          })
-        : null;
+  const [allUsers, allExperiments, allEvidence] = await Promise.all([
+    userIds.length > 0 ? db.select().from(users).where(inArray(users.id, userIds)) : [],
+    discoveryIds.length > 0 ? db.select().from(experiments).where(inArray(experiments.discoveryId, discoveryIds)) : [],
+    discoveryIds.length > 0 ? db.select().from(evidence).where(inArray(evidence.discoveryId, discoveryIds)) : [],
+  ]);
 
-      const experimentList = await db
-        .select()
-        .from(experiments)
-        .where(eq(experiments.discoveryId, discovery.id));
+  const userMap = new Map(allUsers.map((u) => [u.id, u]));
+  const expMap = new Map<string, typeof allExperiments>();
+  for (const exp of allExperiments) {
+    const arr = expMap.get(exp.discoveryId) || [];
+    arr.push(exp);
+    expMap.set(exp.discoveryId, arr);
+  }
+  const evidenceMap = new Map<string, typeof allEvidence>();
+  for (const ev of allEvidence) {
+    const arr = evidenceMap.get(ev.discoveryId) || [];
+    arr.push(ev);
+    evidenceMap.set(ev.discoveryId, arr);
+  }
 
-      const evidenceList = await db
-        .select()
-        .from(evidence)
-        .where(eq(evidence.discoveryId, discovery.id));
+  const enrichedData = allDiscoveries.map((discovery) => {
+    const owner = discovery.ownerId ? userMap.get(discovery.ownerId) : null;
+    const reviewer = discovery.reviewerId ? userMap.get(discovery.reviewerId) : null;
+    const experimentList = expMap.get(discovery.id) || [];
+    const evidenceList = evidenceMap.get(discovery.id) || [];
 
-      return {
+    return {
         id: discovery.id,
         title: discovery.title,
         status: discovery.status,
@@ -84,8 +93,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
           createdAt: new Date(ev.createdAt).toISOString(),
         })),
       };
-    })
-  );
+    });
+
 
   const payload = {
     exportedAt: new Date().toISOString(),

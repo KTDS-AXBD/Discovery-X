@@ -50,7 +50,7 @@ export function EvidenceCard({ evidence }: EvidenceCardProps) {
       <div className="mt-1 text-xs text-[var(--axis-text-primary)] leading-relaxed">
         {content}
       </div>
-      {!!sourceUrl && (
+      {!!sourceUrl && /^https?:\/\//i.test(String(sourceUrl)) && (
         <div className="mt-1">
           <a
             href={String(sourceUrl)}

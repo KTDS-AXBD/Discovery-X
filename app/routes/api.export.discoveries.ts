@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { discoveries, users, experiments, evidence } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { eq } from "drizzle-orm";
+import { inArray } from "drizzle-orm";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -15,31 +15,40 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // Get all discoveries with related data
   const allDiscoveries = await db.select().from(discoveries);
+  const discoveryIds = allDiscoveries.map((d) => d.id);
+
+  // Batch-fetch all related data
+  const userIds = [...new Set([
+    ...allDiscoveries.map((d) => d.ownerId).filter(Boolean),
+    ...allDiscoveries.map((d) => d.reviewerId).filter(Boolean),
+  ])] as string[];
+
+  const [allUsers, allExperiments, allEvidence] = await Promise.all([
+    userIds.length > 0 ? db.select().from(users).where(inArray(users.id, userIds)) : [],
+    discoveryIds.length > 0 ? db.select().from(experiments).where(inArray(experiments.discoveryId, discoveryIds)) : [],
+    discoveryIds.length > 0 ? db.select().from(evidence).where(inArray(evidence.discoveryId, discoveryIds)) : [],
+  ]);
+
+  const userMap = new Map(allUsers.map((u) => [u.id, u]));
+  const expMap = new Map<string, typeof allExperiments>();
+  for (const exp of allExperiments) {
+    const arr = expMap.get(exp.discoveryId) || [];
+    arr.push(exp);
+    expMap.set(exp.discoveryId, arr);
+  }
+  const evidenceMap = new Map<string, typeof allEvidence>();
+  for (const ev of allEvidence) {
+    const arr = evidenceMap.get(ev.discoveryId) || [];
+    arr.push(ev);
+    evidenceMap.set(ev.discoveryId, arr);
+  }
 
   // Enrich with owner info, experiment count, evidence count
-  const enrichedData = await Promise.all(
-    allDiscoveries.map(async (discovery) => {
-      const owner = discovery.ownerId
-        ? await db.query.users.findFirst({
-            where: eq(users.id, discovery.ownerId),
-          })
-        : null;
-
-      const reviewer = discovery.reviewerId
-        ? await db.query.users.findFirst({
-            where: eq(users.id, discovery.reviewerId),
-          })
-        : null;
-
-      const experimentCount = await db
-        .select()
-        .from(experiments)
-        .where(eq(experiments.discoveryId, discovery.id));
-
-      const evidenceList = await db
-        .select()
-        .from(evidence)
-        .where(eq(evidence.discoveryId, discovery.id));
+  const enrichedData = allDiscoveries.map((discovery) => {
+    const owner = discovery.ownerId ? userMap.get(discovery.ownerId) : null;
+    const reviewer = discovery.reviewerId ? userMap.get(discovery.reviewerId) : null;
+    const experimentCount = expMap.get(discovery.id) || [];
+    const evidenceList = evidenceMap.get(discovery.id) || [];
 
       const strongEvidenceCount = evidenceList.filter(
         (e) => e.strength === "A" || e.strength === "B"
@@ -96,8 +105,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         expSlots,
         evidenceSummary,
       };
-    })
-  );
+    });
+
 
   // Generate CSV
   const headers = [
@@ -138,34 +147,41 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     "근거목록",
   ];
 
+  // Escape CSV field: wrap in quotes, escape internal quotes, strip formula injection chars
+  const esc = (val: string | number | null | undefined): string => {
+    const s = String(val ?? "");
+    const safe = s.replace(/^([=+\-@\t\r])/g, "'$1");
+    return `"${safe.replace(/"/g, '""')}"`;
+  };
+
   const rows = enrichedData.map((d) => [
-    d.id,
-    d.title,
-    d.status,
-    d.sourceType,
-    d.ownerName,
-    d.ownerEmail,
-    d.reviewerName,
-    d.experimentCount,
-    d.evidenceCount,
-    d.strongEvidenceCount,
-    d.createdAt,
-    d.dueDate,
-    d.decidedAt,
-    d.decisionState,
-    d.notNowTriggerType,
-    d.revisitDate,
-    d.deadEndFailurePattern,
-    `"${d.seedSummary.replace(/"/g, '""')}"`, // Escape quotes in CSV
-    `"${d.decisionRationale.replace(/"/g, '""')}"`,
+    esc(d.id),
+    esc(d.title),
+    esc(d.status),
+    esc(d.sourceType),
+    esc(d.ownerName),
+    esc(d.ownerEmail),
+    esc(d.reviewerName),
+    esc(d.experimentCount),
+    esc(d.evidenceCount),
+    esc(d.strongEvidenceCount),
+    esc(d.createdAt),
+    esc(d.dueDate),
+    esc(d.decidedAt),
+    esc(d.decisionState),
+    esc(d.notNowTriggerType),
+    esc(d.revisitDate),
+    esc(d.deadEndFailurePattern),
+    esc(d.seedSummary),
+    esc(d.decisionRationale),
     ...d.expSlots.flatMap((exp) => [
-      `"${exp.hypothesis.replace(/"/g, '""')}"`,
-      `"${exp.action.replace(/"/g, '""')}"`,
-      exp.deadline,
-      `"${exp.result.replace(/"/g, '""')}"`,
-      exp.completedAt,
+      esc(exp.hypothesis),
+      esc(exp.action),
+      esc(exp.deadline),
+      esc(exp.result),
+      esc(exp.completedAt),
     ]),
-    `"${d.evidenceSummary.replace(/"/g, '""')}"`,
+    esc(d.evidenceSummary),
   ]);
 
   const csv = [headers.join(","), ...rows.map((row) => row.join(","))].join("\n");

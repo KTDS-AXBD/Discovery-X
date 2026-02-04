@@ -8,9 +8,10 @@ import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { discoveries, agentConfig, conversations } from "~/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { ACTIVE_STATUSES } from "~/lib/constants/status";
 import { executeAgentTurn } from "~/lib/agent/executor";
+import { formatDate } from "~/lib/format-date";
 
 export async function action({ request, context }: ActionFunctionArgs) {
   // Verify cron secret
@@ -43,11 +44,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   // Find active discoveries past 50% of their time-box
   const now = new Date();
-  const statusList = ACTIVE_STATUSES.map((s) => `'${s}'`).join(",");
   const openDiscoveries = await db
     .select()
     .from(discoveries)
-    .where(sql`${discoveries.status} IN (${sql.raw(statusList)})`);
+    .where(inArray(discoveries.status, [...ACTIVE_STATUSES]));
 
   const needsReview = openDiscoveries.filter((d) => {
     if (!d.dueDate || !d.createdAt) return false;
@@ -67,13 +67,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
   await db.insert(conversations).values({
     id: conversationId,
     userId: "system-agent",
-    title: `자율 리뷰 — ${now.toLocaleDateString("ko-KR")}`,
+    title: `자율 리뷰 — ${formatDate(now)}`,
   });
 
   const reviewPrompt = [
     `오늘 자율 리뷰를 시작합니다. 리뷰 대상 Discovery ${needsReview.length}건:`,
     ...needsReview.map((d) =>
-      `- [${d.id.slice(0, 8)}] ${d.title} (기한: ${d.dueDate ? new Date(d.dueDate).toLocaleDateString("ko-KR") : "없음"})`
+      `- [${d.id.slice(0, 8)}] ${d.title} (기한: ${d.dueDate ? formatDate(d.dueDate) : "없음"})`
     ),
     "",
     "각 Discovery의 상세를 확인하고, 실험/근거를 분석하여 적절한 행동을 취해주세요.",

@@ -4,7 +4,7 @@ import { users, sessions, UserRole } from "~/db/schema";
 import { eq } from "drizzle-orm";
 
 // Session storage configuration
-export function createSessionStorage(secret: string) {
+export function createSessionStorage(secret: string, isSecure = true) {
   return createCookieSessionStorage({
     cookie: {
       name: "__session",
@@ -12,7 +12,7 @@ export function createSessionStorage(secret: string) {
       path: "/",
       sameSite: "lax",
       secrets: [secret],
-      secure: process.env.NODE_ENV === "production",
+      secure: isSecure,
     },
   });
 }
@@ -23,7 +23,7 @@ export async function getUserFromSession(
   db: DB,
   secret: string
 ) {
-  const sessionStorage = createSessionStorage(secret);
+  const sessionStorage = createSessionStorage(secret, isSecureCookie(request));
   const session = await sessionStorage.getSession(
     request.headers.get("Cookie")
   );
@@ -116,7 +116,7 @@ export async function destroySession(
   db: DB,
   secret: string
 ) {
-  const sessionStorage = createSessionStorage(secret);
+  const sessionStorage = createSessionStorage(secret, isSecureCookie(request));
   const session = await sessionStorage.getSession(
     request.headers.get("Cookie")
   );
@@ -129,7 +129,16 @@ export async function destroySession(
   return sessionStorage.destroySession(session);
 }
 
-// Generate random session secret (for development)
+// Get session secret from environment (required)
 export function getSessionSecret(env: { SESSION_SECRET?: string }): string {
-  return env.SESSION_SECRET || "dev-secret-change-in-production";
+  if (!env.SESSION_SECRET) {
+    throw new Error("SESSION_SECRET environment variable is required");
+  }
+  return env.SESSION_SECRET;
+}
+
+// Determine if secure cookie should be used (false for localhost dev)
+export function isSecureCookie(request: Request): boolean {
+  const url = new URL(request.url);
+  return url.hostname !== "localhost" && url.hostname !== "127.0.0.1";
 }
