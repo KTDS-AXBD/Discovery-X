@@ -470,25 +470,31 @@ Validation:
 > **이 섹션은 매 세션마다 업데이트한다.**
 
 ### 현재 단계
-**🚀 v4.6 Figma 기반 전체 UI 개선 (세션 116, 2026-02-04)**
+**🚀 v4.7 프로덕션 500 에러 핫픽스 (세션 117, 2026-02-04)**
 
 - ✅ v3 R0~R3b 전체 구현 + 프로덕션 배포 (Agent 45도구, 11단계 파이프라인, 알림/웹훅)
 - ✅ v4 Venture Sprint MVP: 18 라우트, 8 핸들러, Task Queue, Decision Center, Analytics
 - ✅ UX 리팩토링 v4.1~v4.4 + 메뉴 구조 개편 + UI 일관성 수정
 - ✅ v4.5: 버그 수정 + 성능 최적화 + 보안 강화
 - ✅ v4.6: Figma 기반 전체 UI 개선 — 다크 테마 심화 + 플랫 네비/탭 + 카드 border 기반
+- ✅ v4.7: 프로덕션 500 에러 수정 — 인증 라우트 방어적 try-catch + SESSION_SECRET 환경 변수 설정
 - ✅ Embeddings 인프라 (Vectorize 2개 + Cron 15분 + 초기 동기화 완료)
 - ✅ 채팅 UX 개선 (ContextPanel + Digest + 제안 칩 + 리치 시각화)
 - ✅ 테스트 561개 통과 (unit 76 + integration 342 + venture 143)
 
-### 최근 변경 (세션 116)
+### 최근 변경 (세션 117)
+**프로덕션 500 에러 핫픽스 — 5개 파일 수정, 환경 변수 1개 추가**:
+- ✅ 근본 원인: `SESSION_SECRET` 환경 변수가 Cloudflare Pages에 미설정 → `getSessionSecret()` throw → 500
+- ✅ `session.server.ts`: `getUserFromSession` + `isSecureCookie`에 방어적 try-catch 추가
+- ✅ `_index.tsx` / `dashboard.tsx`: loader에 try-catch 추가 (에러 시 /login redirect)
+- ✅ `auth.google.tsx` / `auth.google.callback.tsx`: loader에 try-catch 추가 (에러 시 /login?error=auth_error)
+- ✅ `google.server.ts`: `getRedirectUri` URL 파싱 방어 코드 추가
+- ✅ Cloudflare Pages에 `SESSION_SECRET` secret 추가 → Google OAuth 정상 작동 확인
+- ✅ 프로덕션 검증: `/`, `/dashboard`, `/auth/google` 모두 500→302 해소
+
+### 이전 변경 (세션 116)
 **Figma 기반 전체 UI 개선 — 21개 파일 수정, 6 Phase 완료**:
-- ✅ Phase 1: 디자인 토큰 — dx-surface-deep/panel/card/card-hover + dx-border-subtle/muted + dx-button-outline 토큰 추가, shadow 약화
-- ✅ Phase 2: 레이아웃 셸 — MainNav/NavDropdown pill → 플랫 텍스트 링크, PageLayout/root.tsx 배경 dx-surface-deep
-- ✅ Phase 3: UI 컴포넌트 — Card shadow→border 기반, Button outline variant 추가, Badge subtle variant, SearchInput/Table/Dialog 토큰 적용
-- ✅ Phase 4: 채팅 — 사이드바 dx-surface-panel, ConversationList dx-surface-card 활성, ChatPanel/MessageBubble 패딩 증가 + 토큰 적용
-- ✅ Phase 5: 대시보드 탭 pill→flat text + underline, Discovery 필터 pill→flat text, 로그인 dx-surface-deep/card, KpiCard 패딩 증가
-- ✅ Phase 6: typecheck + lint + build 전체 통과
+- ✅ Phase 1~6: 디자인 토큰 + 레이아웃 + UI 컴포넌트 + 채팅 + 대시보드 + 빌드 검증
 
 ### 이전 변경 (세션 115)
 **코드 품질 + 보안 강화 — 4건의 논리적 커밋**:
