@@ -470,29 +470,29 @@ Validation:
 > **이 섹션은 매 세션마다 업데이트한다.**
 
 ### 현재 단계
-**🚀 v4.4 메뉴 구조 개편 + UI 디자인 시스템 개선 (세션 113, 2026-02-04)**
+**🚀 v4.4 메뉴 구조 개편 + UI 일관성 수정 (세션 114, 2026-02-04)**
 
 - ✅ v3 R0~R3b 전체 구현 + 프로덕션 배포 (Agent 45도구, 11단계 파이프라인, 알림/웹훅)
 - ✅ v4 Venture Sprint MVP: 18 라우트, 8 핸들러, Task Queue, Decision Center, Analytics
-- ✅ UX 리팩토링 v4.1~v4.3 + v4.4 메뉴 구조 개편
+- ✅ UX 리팩토링 v4.1~v4.3 + v4.4 메뉴 구조 개편 + UI 일관성 수정
 - ✅ Embeddings 인프라 (Vectorize 2개 + Cron 15분 + 초기 동기화 완료)
 - ✅ 채팅 UX 개선 (ContextPanel + Digest + 제안 칩 + 리치 시각화)
 - ✅ 테스트 561개 통과 (unit 76 + integration 342 + venture 143)
 
-### 최근 변경 (세션 113)
+### 최근 변경 (세션 114)
+**UI 일관성 수정 — 메뉴 개편 후 잔여 불일치 7건**:
+- ✅ venture 라우트 4개 `max-w-7xl` → `max-w-[1400px]` 통일
+  - venture.analytics / venture.sprints.$sprintId / venture.sprints._index / venture.sprints.$sprintId.deepdive
+- ✅ 탭 스타일 pill/segment 통일 (border-b-2 → rounded pill)
+  - venture.sprints.$sprintId (7개 탭) + docs.tsx (2개 탭) → dashboard.tsx 패턴 적용
+- ✅ 로그인 Google 버튼 다크모드 대응
+  - `bg-white text-gray-700` 하드코딩 → AXIS 토큰 교체
+
+### 이전 변경 (세션 113)
 **메뉴 구조 개편 + UI 디자인 시스템 개선**:
 - ✅ 네비게이션 8개 항목 → 3개 메인 메뉴 + 아바타 드롭다운으로 단순화
-  - 대시보드 (직접 링크), 시장 탐색 (드롭다운), 사업 발굴 (드롭다운)
-  - NavDropdown 컴포넌트 (데스크탑 floating / 모바일 아코디언)
-  - UserMenu 아바타 드롭다운 (이름/역할 배지/문서/설정/관리/테마/로그아웃)
 - ✅ 대시보드 탭 5개 → 7개 확장 (주간 리뷰 + 리콜 큐 통합)
-  - /review → /dashboard/review, /recall → /dashboard/recall 이동 (301 리다이렉트)
-- ✅ 설정 페이지 역할별 분기 (requireAdmin → requireUser)
-  - USER: 프로필/알림, GATEKEEPER+: Gate 알림, ADMIN: Agent 설정
-- ✅ UI 컴포넌트 디자인 시스템 개선
-  - Button/Card/Dialog/IconButton/SearchInput/SectionPanel 컴포넌트 개선
-  - dx-custom-tokens.css + tailwind.css 토큰 추가
-  - ChatPanel/ContextPanel/ConversationList/ToolExecution 채팅 UI 개선
+- ✅ 설정 페이지 역할별 분기 + UI 컴포넌트 디자인 시스템 개선
 
 ### 이전 변경 (세션 112)
 **CLAUDE.md 감사/개선 + Claude Code 자동화 추천 + 서브에이전트 생성**
