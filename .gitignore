@@ -2,7 +2,10 @@ node_modules
 build
 .wrangler
 .env
+.dev.vars
 *.local
+screenshot.png
+.claude/backup-*/
 nul
 .playwright-mcp/
 
