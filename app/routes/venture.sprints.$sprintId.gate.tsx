@@ -149,6 +149,17 @@ export default function VentureSprintGate() {
   // 편집 중인 결정 ID (투표 수정 모드)
   const [editingDecisionId, setEditingDecisionId] = useState<string | null>(null);
 
+  // 각 결정별 선택된 점수 (UI 피드백용)
+  const [selectedScores, setSelectedScores] = useState<Record<string, number>>(() => {
+    const initial: Record<string, number> = {};
+    for (const d of decisions) {
+      if (d.myVote?.vote) {
+        initial[d.id] = d.myVote.vote;
+      }
+    }
+    return initial;
+  });
+
   const pendingDecisions = decisions.filter((d) => d.status === "PENDING");
   const completedDecisions = decisions.filter((d) => d.status !== "PENDING");
 
@@ -260,8 +271,8 @@ export default function VentureSprintGate() {
                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
                               <label
                                 key={score}
-                                className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border text-sm ${
-                                  decision.myVote?.vote === score
+                                className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border text-sm transition-colors ${
+                                  selectedScores[decision.id] === score
                                     ? "border-[var(--axis-text-brand)] bg-[var(--axis-surface-brand)] text-[var(--axis-text-on-brand)]"
                                     : "border-[var(--axis-border-default)] hover:border-[var(--axis-border-hover)]"
                                 }`}
@@ -270,7 +281,8 @@ export default function VentureSprintGate() {
                                   type="radio"
                                   name="vote"
                                   value={score}
-                                  defaultChecked={decision.myVote?.vote === score}
+                                  checked={selectedScores[decision.id] === score}
+                                  onChange={() => setSelectedScores((prev) => ({ ...prev, [decision.id]: score }))}
                                   required
                                   className="sr-only"
                                 />
