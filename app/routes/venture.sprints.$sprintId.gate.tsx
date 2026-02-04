@@ -11,6 +11,7 @@ import { getDb } from "~/db";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { Button } from "~/components/ui/Button";
 import { Badge } from "~/components/ui/Badge";
+import { EmptyState } from "~/components/venture/EmptyState";
 import { getSprintById } from "~/features/venture/repositories/sprint.repository";
 import {
   listDecisionsBySprint,
@@ -214,13 +215,19 @@ export default function VentureSprintGate() {
         </h2>
 
         {pendingDecisions.length === 0 ? (
-          <div className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-8 text-center">
-            <p className="text-[var(--axis-text-tertiary)]">대기 중인 결정이 없습니다.</p>
+          <div>
+            <EmptyState
+              title="대기 중인 검토가 없습니다"
+              description="후보 목록에 기회가 6개 이상이면 검토를 시작할 수 있습니다"
+              ctaLabel="후보 목록 보기"
+              ctaTo="longlist"
+              features={[]}
+            />
             {sprint.status === "GATE2_PENDING" && (
-              <Form method="post" className="mt-4">
+              <Form method="post" className="mt-4 text-center">
                 <input type="hidden" name="intent" value="createGate2Decision" />
                 <Button type="submit" disabled={isSubmitting}>
-                  Gate 2 Decision 생성
+                  2차 검토 생성
                 </Button>
               </Form>
             )}

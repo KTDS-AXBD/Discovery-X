@@ -10,6 +10,7 @@ import { getDb } from "~/db";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { Button } from "~/components/ui/Button";
 import { Badge } from "~/components/ui/Badge";
+import { EmptyState } from "~/components/venture/EmptyState";
 import { getSprintById } from "~/features/venture/repositories/sprint.repository";
 import {
   listSignalsBySprint,
@@ -223,9 +224,11 @@ export default function VentureSprintInbox() {
       <div className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-6">
         <h2 className="mb-4 font-semibold text-[var(--axis-text-primary)]">수집된 신호</h2>
         {signals.length === 0 ? (
-          <p className="text-sm text-[var(--axis-text-tertiary)]">
-            아직 수집된 신호가 없습니다.
-          </p>
+          <EmptyState
+            title="아직 수집된 신호가 없습니다"
+            description="위 양식으로 직접 추가하거나 AI가 자동 수집합니다"
+            features={[]}
+          />
         ) : (
           <div className="space-y-3">
             {signals.map((signal) => (

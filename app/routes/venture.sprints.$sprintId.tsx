@@ -87,11 +87,12 @@ export default function VentureSprintLayout() {
   const basePath = `/venture/sprints/${params.sprintId}`;
 
   // 현재 탭 결정 (URL 기반)
+  const VALID_TABS = ["inbox", "longlist", "gate", "deepdive", "packaging", "analytics"];
   const currentTab = (() => {
     const path = location.pathname;
     if (path === basePath) return "default";
     const tabMatch = path.replace(`${basePath}/`, "").split("/")[0];
-    return tabMatch || "default";
+    return VALID_TABS.includes(tabMatch) ? tabMatch : "default";
   })();
 
   return (

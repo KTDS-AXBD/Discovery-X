@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
-import { useLoaderData, useRouteError, isRouteErrorResponse } from "@remix-run/react";
+import { Link, useLoaderData, useRouteError, isRouteErrorResponse } from "@remix-run/react";
 import { getDb } from "~/db";
 import { conversations } from "~/db/schema";
 import { eq, desc } from "drizzle-orm";
@@ -176,11 +176,33 @@ export default function Index() {
 
         {/* Chat area */}
         <div className="flex-1 bg-[var(--axis-surface-default)]">
-          <ChatPanel
-            conversationId={activeConversationId}
-            initialMessages={chatMessages}
-            isLoadingMessages={isLoadingMessages}
-          />
+          {activeConversationId ? (
+            <ChatPanel
+              conversationId={activeConversationId}
+              initialMessages={chatMessages}
+              isLoadingMessages={isLoadingMessages}
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <div className="mx-auto max-w-2xl px-4">
+                <h2 className="mb-6 text-center text-xl font-semibold text-[var(--axis-text-primary)]">
+                  무엇을 하고 싶으신가요?
+                </h2>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Link to="/venture" className="group rounded-xl border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-6 transition-colors hover:border-[var(--axis-text-brand)]">
+                    <h3 className="text-lg font-semibold text-[var(--axis-text-primary)]">사업 탐색</h3>
+                    <p className="mt-2 text-sm text-[var(--axis-text-tertiary)]">AI가 산업을 분석하고 사업 기회를 발굴합니다</p>
+                    <span className="mt-3 inline-block text-sm font-medium text-[var(--axis-text-brand)]">사업 탐색 시작 →</span>
+                  </Link>
+                  <Link to="/discoveries" className="group rounded-xl border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-6 transition-colors hover:border-[var(--axis-text-brand)]">
+                    <h3 className="text-lg font-semibold text-[var(--axis-text-primary)]">아이디어 검증</h3>
+                    <p className="mt-2 text-sm text-[var(--axis-text-tertiary)]">내가 가진 아이디어를 실험하고 검증합니다</p>
+                    <span className="mt-3 inline-block text-sm font-medium text-[var(--axis-text-brand)]">Discovery 시작 →</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -10,6 +10,7 @@ import { getDb } from "~/db";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { Button } from "~/components/ui/Button";
 import { Badge } from "~/components/ui/Badge";
+import { EmptyState } from "~/components/venture/EmptyState";
 import { getSprintById } from "~/features/venture/repositories/sprint.repository";
 import {
   listOpportunitiesBySprint,
@@ -241,7 +242,7 @@ export default function VentureSprintLonglist() {
           </span>
         </div>
         <div className="rounded-md bg-[var(--axis-surface-tertiary)] px-3 py-2">
-          <span className="text-[var(--axis-text-tertiary)]">Shortlist: </span>
+          <span className="text-[var(--axis-text-tertiary)]">선별 목록: </span>
           <span className="font-medium text-[var(--axis-text-primary)]">
             {opportunities.filter((o) => o.isShortlisted).length}개
           </span>
@@ -254,9 +255,13 @@ export default function VentureSprintLonglist() {
 
       {/* 기회 목록 (테마별 그룹) */}
       {opportunities.length === 0 ? (
-        <div className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-12 text-center">
-          <p className="text-[var(--axis-text-tertiary)]">아직 생성된 기회가 없습니다.</p>
-        </div>
+        <EmptyState
+          title="아직 생성된 기회가 없습니다"
+          description="신호함에서 신호를 수집하면 AI가 기회를 생성합니다"
+          ctaLabel="신호함으로 이동"
+          ctaTo="inbox"
+          features={[]}
+        />
       ) : (
         <div className="space-y-6">
           {Array.from(opportunitiesByTheme.entries()).map(([themeId, opps]) => {
@@ -286,9 +291,9 @@ export default function VentureSprintLonglist() {
                               {opp.title}
                             </span>
                             {opp.isShortlisted === 1 && (
-                              <Badge variant="success">Shortlist</Badge>
+                              <Badge variant="success">선별됨</Badge>
                             )}
-                            {opp.isFinal === 1 && <Badge variant="info">Final</Badge>}
+                            {opp.isFinal === 1 && <Badge variant="info">최종</Badge>}
                             {opp.recommendation && (
                               <Badge
                                 variant={
@@ -334,7 +339,7 @@ export default function VentureSprintLonglist() {
                             size="sm"
                             disabled={isSubmitting}
                           >
-                            {opp.isShortlisted ? "Shortlist 해제" : "Shortlist 추가"}
+                            {opp.isShortlisted ? "선별 해제" : "선별 추가"}
                           </Button>
                         </Form>
                       </div>
