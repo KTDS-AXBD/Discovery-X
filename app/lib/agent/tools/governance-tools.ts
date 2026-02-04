@@ -54,10 +54,10 @@ export async function requestGateApproval(
     }
   }
 
-  // Calculate SLA deadline
-  const slaDeadline = input.slaDeadlineDays
-    ? new Date(Date.now() + input.slaDeadlineDays * 24 * 60 * 60 * 1000)
-    : undefined;
+  // Calculate SLA deadline (default 7 days)
+  const DEFAULT_SLA_DAYS = 7;
+  const slaDays = input.slaDeadlineDays ?? DEFAULT_SLA_DAYS;
+  const slaDeadline = new Date(Date.now() + slaDays * 24 * 60 * 60 * 1000);
 
   // Create approval requests
   const approvalIds: string[] = [];

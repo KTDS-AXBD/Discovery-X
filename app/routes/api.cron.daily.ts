@@ -9,11 +9,14 @@ import {
   buildDueSoonEmail,
   buildRevisitEmail,
   buildAutoClosedEmail,
+  buildGateExpiredEmail,
+  buildGateReminderEmail,
   type OverdueDiscovery,
   type ExpiringDiscovery,
   type RevisitDiscovery,
   type AutoClosedDiscovery,
 } from "~/lib/notifications/templates";
+import { processExpiredGateApprovals } from "~/lib/notifications/alert-engine";
 import { eventLogs } from "~/db/schema";
 
 interface CronEnv {
@@ -181,7 +184,52 @@ async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; erro
     }
   }
 
-  return { sent, errors, autoClosed: autoClosedItems.length };
+  // 5. Process expired gate approvals (auto-reject + HOLD)
+  let gateExpired = 0;
+  let gateHeld = 0;
+  try {
+    const gateResult = await processExpiredGateApprovals(db);
+    gateExpired = gateResult.expiredCount;
+    gateHeld = gateResult.holdCount;
+
+    // Send gate expired notification
+    if (gateResult.expiredCount > 0) {
+      const { subject, html } = buildGateExpiredEmail({
+        expiredCount: gateResult.expiredCount,
+        holdCount: gateResult.holdCount,
+        items: gateResult.details.expired.map((e) => ({
+          gatePackageId: e.gatePackageId,
+          reviewerId: e.reviewerId,
+        })),
+      });
+      for (const email of recipients) {
+        const result = await emailClient.send({ to: email, subject, html });
+        if (result.success) sent++;
+        else if (result.error) errors.push(`gateExpired→${email}: ${result.error}`);
+      }
+    }
+
+    // Send gate reminder notification (< 24h to deadline)
+    if (gateResult.reminderCount > 0) {
+      const { subject, html } = buildGateReminderEmail({
+        reminderCount: gateResult.reminderCount,
+        items: gateResult.details.reminders.map((r) => ({
+          gatePackageId: r.gatePackageId,
+          reviewerId: r.reviewerId,
+          hoursLeft: r.hoursLeft,
+        })),
+      });
+      for (const email of recipients) {
+        const result = await emailClient.send({ to: email, subject, html });
+        if (result.success) sent++;
+        else if (result.error) errors.push(`gateReminder→${email}: ${result.error}`);
+      }
+    }
+  } catch (e) {
+    errors.push(`gateTimeout: ${e instanceof Error ? e.message : "Unknown error"}`);
+  }
+
+  return { sent, errors, autoClosed: autoClosedItems.length, gateExpired, gateHeld };
 }
 
 // HTTP endpoint for manual trigger

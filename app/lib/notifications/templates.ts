@@ -198,6 +198,69 @@ export function buildApprovalRequestEmail(data: ApprovalRequestData): { subject:
   };
 }
 
+// ============================================================================
+// GATE TIMEOUT EMAILS
+// ============================================================================
+
+export interface GateExpiredEmailData {
+  expiredCount: number;
+  holdCount: number;
+  items: Array<{ gatePackageId: string; reviewerId: string }>;
+}
+
+export function buildGateExpiredEmail(data: GateExpiredEmailData): { subject: string; html: string } {
+  const cards = data.items
+    .map(
+      (item) => `
+    <div class="card">
+      <p>Gate 패키지: <strong>${item.gatePackageId.slice(0, 8)}...</strong></p>
+      <p style="font-size: 14px; color: #6b7280;">리뷰어 ID: ${item.reviewerId.slice(0, 8)}...</p>
+    </div>`
+    )
+    .join("");
+
+  return {
+    subject: `[Discovery-X] Gate 승인 SLA 만료 ${data.expiredCount}건 — 자동 거부 처리`,
+    html: layout(`
+      <h2 style="color: #991b1b;">Gate 승인 SLA 만료</h2>
+      <p>${data.expiredCount}건의 Gate 승인 요청이 SLA 기한을 초과하여 자동 거부되었습니다.</p>
+      ${data.holdCount > 0 ? `<p><span class="badge badge-yellow">${data.holdCount}건</span>의 Discovery가 HOLD 상태로 전환되었습니다.</p>` : ""}
+      ${cards}
+      <p><a href="${BASE_URL}/dashboard" class="btn" style="color: white;">대시보드 확인</a></p>
+    `),
+  };
+}
+
+export interface GateReminderEmailData {
+  reminderCount: number;
+  items: Array<{ gatePackageId: string; reviewerId: string; hoursLeft: number }>;
+}
+
+export function buildGateReminderEmail(data: GateReminderEmailData): { subject: string; html: string } {
+  const cards = data.items
+    .map(
+      (item) => `
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span>Gate 패키지: <strong>${item.gatePackageId.slice(0, 8)}...</strong></span>
+        <span class="badge badge-yellow">${item.hoursLeft}시간 남음</span>
+      </div>
+      <p style="font-size: 14px; color: #6b7280;">리뷰어 ID: ${item.reviewerId.slice(0, 8)}...</p>
+    </div>`
+    )
+    .join("");
+
+  return {
+    subject: `[Discovery-X] Gate 승인 마감 임박 ${data.reminderCount}건 — 24시간 이내`,
+    html: layout(`
+      <h2 style="color: #92400e;">Gate 승인 마감 임박</h2>
+      <p>${data.reminderCount}건의 Gate 승인 요청이 24시간 이내에 마감됩니다. 기한 내 응답하지 않으면 자동 거부됩니다.</p>
+      ${cards}
+      <p><a href="${BASE_URL}/dashboard" class="btn" style="color: white;">대시보드에서 승인 처리</a></p>
+    `),
+  };
+}
+
 export interface ApprovalResultData {
   discoveryId: string;
   discoveryTitle: string;

@@ -4,7 +4,7 @@
  * Creates alert records in the alerts table.
  */
 
-import { eq, sql } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import type { DB } from "~/db";
 import {
   alerts,
@@ -13,8 +13,11 @@ import {
   discoveryKpis,
   kpiMeasurements,
   gateApprovals,
+  gatePackages,
+  eventLogs,
   AlertType,
   AlertSeverity,
+  DiscoveryStatus,
 } from "~/db/schema";
 
 interface FiredAlert {
@@ -231,6 +234,159 @@ async function createAlert(
     discoveryId: params.discoveryId,
     kpiId: params.kpiId,
   };
+}
+
+// ============================================================================
+// GATE TIMEOUT PROCESSING
+// ============================================================================
+
+interface GateTimeoutResult {
+  expiredCount: number;
+  holdCount: number;
+  reminderCount: number;
+  details: {
+    expired: Array<{ approvalId: string; gatePackageId: string; reviewerId: string }>;
+    held: Array<{ discoveryId: string; gatePackageId: string }>;
+    reminders: Array<{ approvalId: string; gatePackageId: string; reviewerId: string; hoursLeft: number }>;
+  };
+}
+
+/**
+ * Process expired gate approvals:
+ * 1. Auto-reject PENDING approvals past SLA deadline
+ * 2. If all approvals decided → update gate package decision
+ * 3. If NO_GO → move discovery to HOLD
+ * 4. Log events and collect reminder candidates (< 24h to deadline)
+ */
+export async function processExpiredGateApprovals(db: DB): Promise<GateTimeoutResult> {
+  const now = new Date();
+  const result: GateTimeoutResult = {
+    expiredCount: 0,
+    holdCount: 0,
+    reminderCount: 0,
+    details: { expired: [], held: [], reminders: [] },
+  };
+
+  // Get all PENDING approvals
+  const pendingApprovals = await db
+    .select()
+    .from(gateApprovals)
+    .where(eq(gateApprovals.decision, "PENDING"));
+
+  for (const approval of pendingApprovals) {
+    if (!approval.slaDeadline) continue;
+
+    const deadlineMs = approval.slaDeadline.getTime();
+    const nowMs = now.getTime();
+
+    // Check if expired
+    if (deadlineMs < nowMs) {
+      // Auto-reject
+      await db
+        .update(gateApprovals)
+        .set({
+          decision: "REJECTED",
+          comment: "SLA 기한 초과 — 자동 거부",
+          decidedAt: now,
+        })
+        .where(eq(gateApprovals.id, approval.id));
+
+      result.expiredCount++;
+      result.details.expired.push({
+        approvalId: approval.id,
+        gatePackageId: approval.gatePackageId,
+        reviewerId: approval.reviewerId,
+      });
+    } else {
+      // Check if within 24 hours of deadline (reminder candidate)
+      const hoursLeft = (deadlineMs - nowMs) / (1000 * 60 * 60);
+      if (hoursLeft <= 24) {
+        result.reminderCount++;
+        result.details.reminders.push({
+          approvalId: approval.id,
+          gatePackageId: approval.gatePackageId,
+          reviewerId: approval.reviewerId,
+          hoursLeft: Math.round(hoursLeft),
+        });
+      }
+    }
+  }
+
+  // For each gate package that had expired approvals, check if all approvals are now decided
+  const affectedPackageIds = new Set(result.details.expired.map((e) => e.gatePackageId));
+
+  for (const packageId of affectedPackageIds) {
+    const allApprovals = await db
+      .select()
+      .from(gateApprovals)
+      .where(eq(gateApprovals.gatePackageId, packageId));
+
+    const stillPending = allApprovals.some((a) => a.decision === "PENDING");
+    if (stillPending) continue;
+
+    // All decided — determine gate decision
+    const rejectedCount = allApprovals.filter((a) => a.decision === "REJECTED").length;
+    const approvedCount = allApprovals.filter((a) => a.decision === "APPROVED").length;
+
+    let gateDecision: string;
+    if (rejectedCount > 0) {
+      gateDecision = "NO_GO";
+    } else if (approvedCount === allApprovals.length) {
+      gateDecision = "GO";
+    } else {
+      gateDecision = "CONDITIONAL";
+    }
+
+    await db
+      .update(gatePackages)
+      .set({ decision: gateDecision, decidedAt: now })
+      .where(eq(gatePackages.id, packageId));
+
+    // If NO_GO → move discovery to HOLD
+    if (gateDecision === "NO_GO") {
+      const pkg = await db
+        .select({ discoveryId: gatePackages.discoveryId })
+        .from(gatePackages)
+        .where(eq(gatePackages.id, packageId))
+        .limit(1);
+
+      if (pkg.length > 0) {
+        const discoveryId = pkg[0].discoveryId;
+        const revisitDate = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+
+        await db
+          .update(discoveries)
+          .set({
+            status: DiscoveryStatus.HOLD,
+            stageUpdatedAt: now,
+            updatedAt: now,
+            notNowTriggerType: "Internal_Capability",
+            revisitDate,
+          })
+          .where(eq(discoveries.id, discoveryId));
+
+        // Log event
+        await db.insert(eventLogs).values({
+          id: crypto.randomUUID(),
+          actorId: "system-radar",
+          discoveryId,
+          eventType: "GATE_AUTO_HOLD",
+          metadata: {
+            gatePackageId: packageId,
+            gateDecision,
+            rejectedCount,
+            approvedCount,
+            reason: "Gate 승인 SLA 만료로 자동 NO_GO → HOLD 전환",
+          },
+        });
+
+        result.holdCount++;
+        result.details.held.push({ discoveryId, gatePackageId: packageId });
+      }
+    }
+  }
+
+  return result;
 }
 
 /**
