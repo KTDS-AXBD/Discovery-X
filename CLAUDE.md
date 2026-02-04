@@ -62,7 +62,7 @@ pnpm db:generate      # Drizzle 마이그레이션 생성
 pnpm db:migrate       # D1 로컬 마이그레이션 적용
 pnpm db:migrate:prod  # D1 원격 마이그레이션 적용
 pnpm db:studio        # Drizzle Studio (DB 브라우저)
-pnpm deploy           # 빌드 + Cloudflare Pages 배포
+pnpm run deploy       # 빌드 + Cloudflare Pages 배포 (pnpm deploy는 workspace 명령이므로 run 필수)
 ```
 
 ## 기술 스택
@@ -299,6 +299,10 @@ const db = getDb(context.DB);
 
 ### SSR 외부화
 - `resend`, `mailparser` 등은 `vite.config.ts`에서 SSR external 처리 → 번들 포함 금지
+
+### 빌드 검증
+- Remix SSR 모드: `build/client/index.html` 없음이 정상
+- 빌드 성공 확인: `build/client/assets/` + `build/server/index.js` 존재 여부로 판단
 
 ### 인증 가드 계층
 ```
