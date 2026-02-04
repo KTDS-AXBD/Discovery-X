@@ -35,6 +35,7 @@ export function createTestDb() {
   runMigrationSQL(sqlite, resolve(migrationsDir, "0010_r3_indicators_connectors.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0011_venture_sprint.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0012_task_queue_dedupe.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0013_embeddings.sql"));
 
   return drizzle(sqlite, { schema });
 }

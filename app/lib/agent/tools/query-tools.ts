@@ -327,7 +327,8 @@ export async function getExperimentContext(
 
 export async function searchSimilar(
   db: DB,
-  input: { query: string }
+  input: { query: string },
+  env?: { OPENAI_API_KEY?: string; VECTORIZE_DISCOVERIES?: unknown }
 ): Promise<string> {
   // 1. 입력 정규화
   const q = (input.query || "").trim();
@@ -338,7 +339,41 @@ export async function searchSimilar(
     });
   }
 
-  // 2. 특수문자 이스케이프 (FTS5 + LIKE 공통)
+  // 2. Vectorize 시맨틱 검색 시도 (가용 시)
+  if (env?.VECTORIZE_DISCOVERIES && env?.OPENAI_API_KEY) {
+    try {
+      const { findSimilarDiscoveries } = await import("~/lib/embeddings/embedding-service");
+      const embeddingEnv = {
+        OPENAI_API_KEY: env.OPENAI_API_KEY,
+        VECTORIZE_DISCOVERIES: env.VECTORIZE_DISCOVERIES as import("~/lib/embeddings/embedding-service").EmbeddingEnv["VECTORIZE_DISCOVERIES"],
+      };
+      const semanticResults = await findSimilarDiscoveries(embeddingEnv, q, undefined, 10);
+      if (semanticResults.length > 0) {
+        // Enrich with DB data
+        const enriched = [];
+        for (const sr of semanticResults) {
+          const disc = await db
+            .select({
+              id: discoveries.id,
+              title: discoveries.title,
+              seedSummary: discoveries.seedSummary,
+              status: discoveries.status,
+            })
+            .from(discoveries)
+            .where(eq(discoveries.id, sr.id))
+            .limit(1);
+          if (disc.length > 0) {
+            enriched.push({ ...disc[0], score: sr.score });
+          }
+        }
+        return JSON.stringify({ results: enriched, source: "vectorize" });
+      }
+    } catch {
+      // Fall through to FTS/LIKE
+    }
+  }
+
+  // 3. 특수문자 이스케이프 (FTS5 + LIKE 공통)
   const escaped = q.replace(/['"*(){}[\]^~\\%_]/g, "");
   if (!escaped) {
     return JSON.stringify({
@@ -347,7 +382,7 @@ export async function searchSimilar(
     });
   }
 
-  // 3. 길이 제한 (LIKE 패턴 복잡도 방지)
+  // 4. 길이 제한 (LIKE 패턴 복잡도 방지)
   const safeQuery = escaped.slice(0, 50);
 
   try {
@@ -360,7 +395,7 @@ export async function searchSimilar(
           WHERE discovery_fts MATCH ${ftsQuery}
           LIMIT 10`
     );
-    return JSON.stringify({ results });
+    return JSON.stringify({ results, source: "fts5" });
   } catch {
     // FTS5 not available, fall back to LIKE (안전한 패턴)
     const likePattern = `%${safeQuery}%`;
@@ -376,7 +411,7 @@ export async function searchSimilar(
         sql`${discoveries.title} LIKE ${likePattern} OR ${discoveries.seedSummary} LIKE ${likePattern}`
       )
       .limit(10);
-    return JSON.stringify({ results });
+    return JSON.stringify({ results, source: "like" });
   }
 }
 
