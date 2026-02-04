@@ -21,6 +21,7 @@ export interface VdTaskTypeConfig {
   defaultPriority: number; // 높을수록 우선
   maxRetries: number;
   timeoutMinutes: number;
+  precedingTaskTypes: VdTaskTypeValue[]; // 이 타입 실행 전 완료되어야 하는 선행 타입들
 }
 
 export const VD_TASK_TYPE_CONFIG: Record<VdTaskTypeValue, VdTaskTypeConfig> = {
@@ -30,6 +31,7 @@ export const VD_TASK_TYPE_CONFIG: Record<VdTaskTypeValue, VdTaskTypeConfig> = {
     defaultPriority: 10,
     maxRetries: 6,
     timeoutMinutes: 30,
+    precedingTaskTypes: [],
   },
   ANALYZE_PROBLEMS: {
     label: "문제 분석",
@@ -37,6 +39,7 @@ export const VD_TASK_TYPE_CONFIG: Record<VdTaskTypeValue, VdTaskTypeConfig> = {
     defaultPriority: 9,
     maxRetries: 6,
     timeoutMinutes: 20,
+    precedingTaskTypes: ["COLLECT_SIGNALS"],
   },
   GENERATE_OPPORTUNITIES: {
     label: "기회 생성",
@@ -44,6 +47,7 @@ export const VD_TASK_TYPE_CONFIG: Record<VdTaskTypeValue, VdTaskTypeConfig> = {
     defaultPriority: 8,
     maxRetries: 6,
     timeoutMinutes: 30,
+    precedingTaskTypes: ["ANALYZE_PROBLEMS"],
   },
   CLUSTER_THEMES: {
     label: "테마 클러스터링",
@@ -51,6 +55,7 @@ export const VD_TASK_TYPE_CONFIG: Record<VdTaskTypeValue, VdTaskTypeConfig> = {
     defaultPriority: 7,
     maxRetries: 6,
     timeoutMinutes: 15,
+    precedingTaskTypes: ["GENERATE_OPPORTUNITIES"],
   },
   SCORE_OPPORTUNITIES: {
     label: "기회 스코어링",
@@ -58,6 +63,7 @@ export const VD_TASK_TYPE_CONFIG: Record<VdTaskTypeValue, VdTaskTypeConfig> = {
     defaultPriority: 6,
     maxRetries: 6,
     timeoutMinutes: 20,
+    precedingTaskTypes: ["GENERATE_OPPORTUNITIES"],
   },
   GENERATE_DEEPDIVE: {
     label: "Deep Dive 생성",
@@ -65,6 +71,7 @@ export const VD_TASK_TYPE_CONFIG: Record<VdTaskTypeValue, VdTaskTypeConfig> = {
     defaultPriority: 5,
     maxRetries: 6,
     timeoutMinutes: 45,
+    precedingTaskTypes: ["PREPARE_GATE"],
   },
   GENERATE_ARTIFACTS: {
     label: "산출물 생성",
@@ -72,6 +79,7 @@ export const VD_TASK_TYPE_CONFIG: Record<VdTaskTypeValue, VdTaskTypeConfig> = {
     defaultPriority: 4,
     maxRetries: 6,
     timeoutMinutes: 60,
+    precedingTaskTypes: ["GENERATE_DEEPDIVE"],
   },
   PREPARE_GATE: {
     label: "Gate 준비",
@@ -79,6 +87,7 @@ export const VD_TASK_TYPE_CONFIG: Record<VdTaskTypeValue, VdTaskTypeConfig> = {
     defaultPriority: 10, // Gate 준비는 최우선
     maxRetries: 6,
     timeoutMinutes: 15,
+    precedingTaskTypes: ["SCORE_OPPORTUNITIES"],
   },
 };
 
@@ -162,4 +171,11 @@ export function getTaskMaxRetries(taskType: VdTaskTypeValue): number {
  */
 export function getTaskDefaultPriority(taskType: VdTaskTypeValue): number {
   return VD_TASK_TYPE_CONFIG[taskType].defaultPriority;
+}
+
+/**
+ * Task 타입의 선행 타입 목록 가져오기
+ */
+export function getPrecedingTaskTypes(taskType: VdTaskTypeValue): VdTaskTypeValue[] {
+  return VD_TASK_TYPE_CONFIG[taskType].precedingTaskTypes;
 }
