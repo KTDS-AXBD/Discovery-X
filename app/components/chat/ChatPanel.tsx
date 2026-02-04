@@ -293,7 +293,7 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
   return (
     <div className="flex h-full flex-col">
       {/* Messages area */}
-      <div className="flex-1 overflow-y-auto px-4 py-6">
+      <div className="flex-1 overflow-y-auto px-6 py-8">
         <div className="mx-auto max-w-3xl space-y-6">
           {isLoadingMessages && (
             <div className="flex items-center justify-center py-12" role="status" aria-label="대화 불러오는 중">
@@ -425,9 +425,9 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
       )}
 
       {/* Input area */}
-      <div className="border-t border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] p-4">
+      <div className="border-t border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))] p-4">
         <div className="mx-auto max-w-3xl">
-          <div className="flex items-center gap-2 rounded-xl border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] px-4 py-2 shadow-sm transition-colors focus-within:border-[var(--axis-border-brand)] focus-within:ring-1 focus-within:ring-[var(--axis-border-brand)]">
+          <div className="flex items-center gap-2 rounded-xl border border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-card,var(--axis-surface-default))] px-4 py-2 transition-colors focus-within:border-[var(--axis-border-brand)] focus-within:ring-1 focus-within:ring-[var(--axis-border-brand)]">
             <Input
               ref={inputRef}
               value={input}

@@ -130,10 +130,10 @@ export function MessageBubble({ role, content, timestamp, streaming }: MessageBu
           className={cn(
             isUser
               ? "bg-[var(--axis-surface-brand)] border-transparent"
-              : "bg-[var(--axis-surface-default)]"
+              : "bg-[var(--dx-surface-card,var(--axis-surface-default))] border-[var(--dx-border-subtle,var(--dx-card-border-subtle))]"
           )}
         >
-          <CardContent className="p-3">
+          <CardContent className="p-4">
             {isUser ? (
               <div className="whitespace-pre-wrap text-sm text-[var(--axis-text-brand)]">
                 {content}

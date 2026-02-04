@@ -90,10 +90,10 @@ export function ConversationList({
                 <div
                   key={conv.id}
                   className={cn(
-                    "group flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm transition-all duration-[var(--dx-transition-normal)]",
+                    "group flex cursor-pointer items-center justify-between rounded-lg px-4 py-3 text-sm transition-all duration-[var(--dx-transition-normal)]",
                     activeId === conv.id
-                      ? "bg-[var(--axis-surface-brand)] text-[var(--axis-text-brand)] shadow-sm"
-                      : "text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-secondary)]"
+                      ? "bg-[var(--dx-surface-card,var(--axis-surface-brand))] text-[var(--axis-text-primary)]"
+                      : "text-[var(--axis-text-secondary)] hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))]"
                   )}
                   onClick={() => onSelect(conv.id)}
                 >

@@ -3,10 +3,10 @@ import { cn } from "~/lib/utils/cn";
 
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
-    <div className="overflow-hidden rounded-lg border border-[var(--axis-card-border-default)] shadow-sm">
+    <div className="overflow-hidden rounded-lg border border-[var(--dx-border-subtle,var(--axis-border-default))]">
       <table
         ref={ref}
-        className={cn("min-w-full divide-y divide-[var(--axis-border-default)]", className)}
+        className={cn("min-w-full divide-y divide-[var(--dx-border-subtle,var(--axis-border-default))]", className)}
         {...props}
       />
     </div>
@@ -29,7 +29,7 @@ const TableBody = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes
   ({ className, ...props }, ref) => (
     <tbody
       ref={ref}
-      className={cn("divide-y divide-[var(--axis-border-default)] bg-[var(--axis-surface-default)]", className)}
+      className={cn("divide-y divide-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-card,var(--axis-surface-default))]", className)}
       {...props}
     />
   )

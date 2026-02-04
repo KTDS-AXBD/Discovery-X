@@ -163,7 +163,7 @@ export default function Index() {
   );
 
   return (
-    <div className="flex h-screen flex-col bg-[var(--axis-surface-secondary)]">
+    <div className="flex h-screen flex-col bg-[var(--dx-surface-deep,var(--axis-surface-secondary))]">
       <MainNav user={user} />
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar toggle for mobile */}
@@ -178,7 +178,7 @@ export default function Index() {
         <div
           className={`${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } fixed inset-y-0 left-0 z-40 w-[var(--dx-sidebar-width)] border-r border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] transition-transform sm:static sm:translate-x-0`}
+          } fixed inset-y-0 left-0 z-40 w-[var(--dx-sidebar-width)] border-r border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))] transition-transform sm:static sm:translate-x-0`}
           style={{ top: "var(--dx-nav-height)" }}
         >
           <ConversationList
@@ -197,7 +197,7 @@ export default function Index() {
 
         {/* Chat area */}
         <div className="flex flex-1 overflow-hidden">
-          <div className="flex-1 bg-[var(--axis-surface-default)]">
+          <div className="flex-1 bg-[var(--dx-surface-panel,var(--axis-surface-default))]">
           {activeConversationId ? (
             <ChatPanel
               conversationId={activeConversationId}
@@ -212,12 +212,12 @@ export default function Index() {
                   무엇을 하고 싶으신가요?
                 </h2>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <Link to="/venture" className="dx-panel dx-panel-hover group p-6 transition-all hover:border-[var(--axis-text-brand)]">
+                  <Link to="/venture" className="dx-panel-flush dx-panel-hover group p-8 transition-all hover:border-[var(--axis-text-brand)]">
                     <h3 className="text-lg font-semibold text-[var(--axis-text-primary)]">사업 탐색</h3>
                     <p className="mt-2 text-sm text-[var(--axis-text-tertiary)]">AI가 산업을 분석하고 사업 기회를 발굴합니다</p>
                     <span className="mt-3 inline-block text-sm font-medium text-[var(--axis-text-brand)]">사업 탐색 시작 →</span>
                   </Link>
-                  <Link to="/discoveries" className="dx-panel dx-panel-hover group p-6 transition-all hover:border-[var(--axis-text-brand)]">
+                  <Link to="/discoveries" className="dx-panel-flush dx-panel-hover group p-8 transition-all hover:border-[var(--axis-text-brand)]">
                     <h3 className="text-lg font-semibold text-[var(--axis-text-primary)]">아이디어 검증</h3>
                     <p className="mt-2 text-sm text-[var(--axis-text-tertiary)]">내가 가진 아이디어를 실험하고 검증합니다</p>
                     <span className="mt-3 inline-block text-sm font-medium text-[var(--axis-text-brand)]">Discovery 시작 →</span>
@@ -257,7 +257,7 @@ export function ErrorBoundary() {
   }
 
   return (
-    <div className="flex h-screen items-center justify-center bg-[var(--axis-surface-secondary)]">
+    <div className="flex h-screen items-center justify-center bg-[var(--dx-surface-deep,var(--axis-surface-secondary))]">
       <div className="max-w-md text-center">
         <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">{title}</h1>
         <p className="mt-2 text-sm text-[var(--axis-text-secondary)]">{message}</p>
