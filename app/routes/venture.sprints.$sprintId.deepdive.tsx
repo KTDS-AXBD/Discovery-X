@@ -3,6 +3,7 @@
  * /venture/sprints/:sprintId/deepdive
  */
 
+import { useState } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, Link, useLoaderData, useNavigation } from "@remix-run/react";
@@ -20,6 +21,8 @@ import {
   updatePremortem,
   createAssumption,
   createPremortem,
+  createArtifact,
+  updateArtifact,
 } from "~/features/venture/repositories/opportunity.repository";
 import { enqueueTask } from "~/features/venture/repositories/task-queue.repository";
 import { createWorkEvent } from "~/features/venture/repositories/analytics.repository";
@@ -28,7 +31,11 @@ import {
   updateAssumptionSchema,
   createPremortemSchema,
   updatePremortemSchema,
+  leanCanvasContentSchema,
+  type LeanCanvasContent,
+  calculateLeanCanvasCompleteness,
 } from "~/features/venture/schemas/opportunity.schema";
+import { LeanCanvasEditor, LeanCanvasViewer } from "~/features/venture/ui/LeanCanvasEditor";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -61,12 +68,20 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
         listArtifactsByOpportunity(db, opp.id),
       ]);
 
+      const leanCanvasArtifact = artifacts.find((a) => a.artifactType === "LEAN_CANVAS");
+
       return {
         ...opp,
         assumptions,
         premortems,
         artifacts,
-        hasLeanCanvas: artifacts.some((a) => a.artifactType === "LEAN_CANVAS"),
+        hasLeanCanvas: !!leanCanvasArtifact,
+        leanCanvas: leanCanvasArtifact
+          ? {
+              id: leanCanvasArtifact.id,
+              content: leanCanvasArtifact.content as LeanCanvasContent | null,
+            }
+          : null,
       };
     })
   );
@@ -241,6 +256,74 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     return json({ success: true, taskId: task.id });
   }
 
+  // Lean Canvas 생성
+  if (intent === "createLeanCanvas") {
+    const opportunityId = formData.get("opportunityId") as string;
+    const contentStr = formData.get("content") as string;
+
+    if (!opportunityId) {
+      return json({ error: "기회 ID가 필요합니다" }, { status: 400 });
+    }
+
+    let content: LeanCanvasContent;
+    try {
+      content = leanCanvasContentSchema.parse(JSON.parse(contentStr));
+    } catch {
+      return json({ error: "유효하지 않은 Lean Canvas 형식입니다" }, { status: 400 });
+    }
+
+    const artifact = await createArtifact(db, opportunityId, {
+      artifactType: "LEAN_CANVAS",
+      title: "Lean Canvas",
+      content,
+    });
+
+    await createWorkEvent(db, sprintId, {
+      eventType: "artifact_create",
+      actorType: "human",
+      actorId: user.id,
+      entityType: "artifact",
+      entityId: artifact.id,
+      metadata: { artifactType: "LEAN_CANVAS" },
+    });
+
+    return json({ success: true, artifactId: artifact.id });
+  }
+
+  // Lean Canvas 수정
+  if (intent === "updateLeanCanvas") {
+    const artifactId = formData.get("artifactId") as string;
+    const contentStr = formData.get("content") as string;
+
+    if (!artifactId) {
+      return json({ error: "Artifact ID가 필요합니다" }, { status: 400 });
+    }
+
+    let content: LeanCanvasContent;
+    try {
+      content = leanCanvasContentSchema.parse(JSON.parse(contentStr));
+    } catch {
+      return json({ error: "유효하지 않은 Lean Canvas 형식입니다" }, { status: 400 });
+    }
+
+    const artifact = await updateArtifact(db, artifactId, { content });
+
+    if (!artifact) {
+      return json({ error: "Artifact를 찾을 수 없습니다" }, { status: 404 });
+    }
+
+    await createWorkEvent(db, sprintId, {
+      eventType: "artifact_update",
+      actorType: "human",
+      actorId: user.id,
+      entityType: "artifact",
+      entityId: artifactId,
+      metadata: { artifactType: "LEAN_CANVAS" },
+    });
+
+    return json({ success: true });
+  }
+
   return json({ error: "Unknown intent" }, { status: 400 });
 }
 
@@ -248,6 +331,7 @@ export default function VentureSprintDeepDive() {
   const { sprint, opportunities } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const [editingCanvasOppId, setEditingCanvasOppId] = useState<string | null>(null);
 
   if (opportunities.length === 0) {
     return (
@@ -502,14 +586,52 @@ export default function VentureSprintDeepDive() {
             {/* Lean Canvas */}
             <div className="rounded-md border border-[var(--axis-border-default)] p-4">
               <h4 className="mb-3 font-medium text-[var(--axis-text-primary)]">Lean Canvas</h4>
-              {!opp.hasLeanCanvas ? (
-                <p className="text-sm text-[var(--axis-text-tertiary)]">
-                  Lean Canvas가 아직 없습니다.
-                </p>
+              {editingCanvasOppId === opp.id ? (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                  <div className="h-[90vh] w-[95vw] max-w-7xl overflow-hidden rounded-lg bg-[var(--axis-surface-primary)] shadow-xl">
+                    <LeanCanvasEditor
+                      artifactId={opp.leanCanvas?.id}
+                      opportunityId={opp.id}
+                      initialContent={opp.leanCanvas?.content ?? undefined}
+                      onClose={() => setEditingCanvasOppId(null)}
+                    />
+                  </div>
+                </div>
+              ) : !opp.hasLeanCanvas ? (
+                <div className="space-y-2">
+                  <p className="text-sm text-[var(--axis-text-tertiary)]">
+                    Lean Canvas가 아직 없습니다.
+                  </p>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setEditingCanvasOppId(opp.id)}
+                  >
+                    Canvas 작성
+                  </Button>
+                </div>
               ) : (
-                <div className="text-sm text-[var(--axis-text-tertiary)]">
-                  Lean Canvas가 작성되었습니다.
-                  {/* TODO: Lean Canvas 상세 보기/편집 링크 */}
+                <div className="space-y-2">
+                  {opp.leanCanvas?.content && (
+                    <LeanCanvasViewer
+                      content={opp.leanCanvas.content}
+                      onEdit={() => setEditingCanvasOppId(opp.id)}
+                    />
+                  )}
+                  {!opp.leanCanvas?.content && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-[var(--axis-text-tertiary)]">
+                        Lean Canvas가 작성되었습니다.
+                      </span>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setEditingCanvasOppId(opp.id)}
+                      >
+                        편집
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

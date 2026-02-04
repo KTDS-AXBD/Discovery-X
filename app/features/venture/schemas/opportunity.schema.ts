@@ -188,6 +188,102 @@ export const updateArtifactSchema = z.object({
 export type UpdateArtifactInput = z.infer<typeof updateArtifactSchema>;
 
 // ============================================================================
+// LEAN CANVAS SCHEMA (9블록)
+// ============================================================================
+
+/**
+ * Lean Canvas 9블록 구조
+ * @see https://leanstack.com/lean-canvas
+ */
+/**
+ * Lean Canvas 개별 블록 스키마
+ */
+const leanCanvasBlockInternalSchema = z.object({
+  items: z.array(z.string()),
+  notes: z.string().max(1000).optional(),
+});
+
+export const leanCanvasBlockSchema = leanCanvasBlockInternalSchema;
+
+export type LeanCanvasBlock = z.infer<typeof leanCanvasBlockSchema>;
+
+export const leanCanvasContentSchema = z.object({
+  // 왼쪽 섹션
+  problem: leanCanvasBlockSchema.describe("고객의 상위 3개 문제"),
+  existingAlternatives: leanCanvasBlockSchema.describe("현재 대안/경쟁 솔루션"),
+  solution: leanCanvasBlockSchema.describe("문제에 대한 상위 3개 솔루션"),
+  keyMetrics: leanCanvasBlockSchema.describe("측정할 핵심 지표"),
+
+  // 중앙 섹션
+  uniqueValueProposition: leanCanvasBlockSchema.describe("명확하고 차별화된 가치 제안"),
+  highLevelConcept: leanCanvasBlockSchema.describe("X for Y 형태의 컨셉"),
+  unfairAdvantage: leanCanvasBlockSchema.describe("쉽게 복제하거나 구매할 수 없는 것"),
+
+  // 오른쪽 섹션
+  channels: leanCanvasBlockSchema.describe("고객에게 도달하는 경로"),
+  customerSegments: leanCanvasBlockSchema.describe("타겟 고객/얼리어답터"),
+  earlyAdopters: leanCanvasBlockSchema.describe("얼리어답터 특성"),
+
+  // 하단 섹션
+  costStructure: leanCanvasBlockSchema.describe("고정/변동 비용"),
+  revenueStreams: leanCanvasBlockSchema.describe("수익 모델/가격 전략"),
+});
+
+export type LeanCanvasContent = z.infer<typeof leanCanvasContentSchema>;
+
+/**
+ * Lean Canvas 블록 라벨 정의
+ */
+export const LEAN_CANVAS_BLOCKS = [
+  { key: "problem", label: "Problem", section: "left" },
+  { key: "existingAlternatives", label: "Existing Alternatives", section: "left" },
+  { key: "solution", label: "Solution", section: "left" },
+  { key: "keyMetrics", label: "Key Metrics", section: "left" },
+  { key: "uniqueValueProposition", label: "Unique Value Proposition", section: "center" },
+  { key: "highLevelConcept", label: "High-Level Concept", section: "center" },
+  { key: "unfairAdvantage", label: "Unfair Advantage", section: "center" },
+  { key: "channels", label: "Channels", section: "right" },
+  { key: "customerSegments", label: "Customer Segments", section: "right" },
+  { key: "earlyAdopters", label: "Early Adopters", section: "right" },
+  { key: "costStructure", label: "Cost Structure", section: "bottom" },
+  { key: "revenueStreams", label: "Revenue Streams", section: "bottom" },
+] as const;
+
+export type LeanCanvasBlockKey = keyof LeanCanvasContent;
+
+/**
+ * 빈 Lean Canvas 생성
+ */
+export function createEmptyLeanCanvas(): LeanCanvasContent {
+  return {
+    problem: { items: [], notes: "" },
+    existingAlternatives: { items: [], notes: "" },
+    solution: { items: [], notes: "" },
+    keyMetrics: { items: [], notes: "" },
+    uniqueValueProposition: { items: [], notes: "" },
+    highLevelConcept: { items: [], notes: "" },
+    unfairAdvantage: { items: [], notes: "" },
+    channels: { items: [], notes: "" },
+    customerSegments: { items: [], notes: "" },
+    earlyAdopters: { items: [], notes: "" },
+    costStructure: { items: [], notes: "" },
+    revenueStreams: { items: [], notes: "" },
+  };
+}
+
+/**
+ * Lean Canvas 완성도 계산 (0-100)
+ */
+export function calculateLeanCanvasCompleteness(content: LeanCanvasContent): number {
+  const blocks = Object.values(content);
+  const totalBlocks = blocks.length;
+  const filledBlocks = blocks.filter(
+    (block) => block.items.length > 0 || (block.notes && block.notes.trim().length > 0)
+  ).length;
+  return Math.round((filledBlocks / totalBlocks) * 100);
+}
+
+// ============================================================================
 // SCORE
 // ============================================================================
 
