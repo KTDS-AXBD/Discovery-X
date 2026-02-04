@@ -14,4 +14,8 @@ export type Env = {
   SESSION_SECRET?: string;
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
+  ANTHROPIC_API_KEY?: string;
+  OPENAI_API_KEY?: string;
+  RESEND_API_KEY?: string;
+  CRON_SECRET?: string;
 };
