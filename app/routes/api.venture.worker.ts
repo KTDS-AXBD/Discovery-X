@@ -26,17 +26,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // 디버그 모드: env 키 확인 (값은 출력하지 않음)
-  if (url.searchParams.get("debug") === "env") {
-    const envKeys = Object.keys(env);
-    const hasOpenAI = !!env.OPENAI_API_KEY;
-    return Response.json({
-      envKeys,
-      hasOpenAI,
-      openaiKeyLength: env.OPENAI_API_KEY?.length || 0,
-    });
-  }
-
   const db = getDb(context.cloudflare.env.DB);
   const limit = parseInt(url.searchParams.get("limit") || "5", 10);
   const timeoutMinutes = parseInt(url.searchParams.get("timeout") || "30", 10);
