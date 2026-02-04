@@ -337,13 +337,13 @@ export default function VentureSprintDeepDive() {
     return (
       <div className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-12 text-center">
         <p className="text-[var(--axis-text-tertiary)]">
-          Shortlist된 기회가 없습니다. Long List에서 기회를 Shortlist에 추가하세요.
+          선별된 기회가 없습니다. 후보 목록에서 기회를 선별 목록에 추가하세요.
         </p>
         <Link
           to={`/venture/sprints/${sprint.id}/longlist`}
           className="mt-4 inline-block text-sm text-[var(--axis-text-brand)] hover:underline"
         >
-          Long List로 이동
+          후보 목록으로 이동
         </Link>
       </div>
     );
@@ -357,7 +357,7 @@ export default function VentureSprintDeepDive() {
           <div>
             <h3 className="font-medium text-[var(--axis-text-primary)]">AI 분석 생성</h3>
             <p className="text-sm text-[var(--axis-text-tertiary)]">
-              선택된 기회에 대해 Assumption, Pre-mortem 초안을 AI가 생성합니다.
+              선택된 기회에 대해 가정, 프리모템 초안을 AI가 생성합니다.
             </p>
           </div>
           <Form method="post">
@@ -373,7 +373,7 @@ export default function VentureSprintDeepDive() {
       </div>
 
       <p className="text-sm text-[var(--axis-text-tertiary)]">
-        Shortlist된 기회에 대해 Assumption Map, Pre-mortem, Lean Canvas를 작성합니다.
+        선별된 기회에 대해 가정 맵, 프리모템, 린 캔버스를 작성합니다.
       </p>
 
       {opportunities.map((opp) => (
@@ -389,7 +389,7 @@ export default function VentureSprintDeepDive() {
                   <span className="font-semibold text-[var(--axis-text-primary)]">
                     {opp.title}
                   </span>
-                  {opp.isFinal === 1 && <Badge variant="info">Final</Badge>}
+                  {opp.isFinal === 1 && <Badge variant="info">최종 선정</Badge>}
                 </div>
                 {opp.description && (
                   <p className="mt-1 text-sm text-[var(--axis-text-tertiary)]">
@@ -425,7 +425,7 @@ export default function VentureSprintDeepDive() {
                       : "bg-[var(--axis-badge-warning-bg)] text-[var(--axis-badge-warning-text)]"
                   }`}
                 >
-                  {opp.hasLeanCanvas ? "Lean Canvas" : "Canvas 없음"}
+                  {opp.hasLeanCanvas ? "린 캔버스" : "캔버스 없음"}
                 </span>
               </div>
             </div>
@@ -435,7 +435,7 @@ export default function VentureSprintDeepDive() {
             {/* Assumption Map */}
             <div className="rounded-md border border-[var(--axis-border-default)] p-4">
               <h4 className="mb-3 font-medium text-[var(--axis-text-primary)]">
-                Assumption Map
+                가정 맵
               </h4>
               {opp.assumptions.length === 0 ? (
                 <p className="text-sm text-[var(--axis-text-tertiary)]">
@@ -509,7 +509,7 @@ export default function VentureSprintDeepDive() {
 
             {/* Pre-mortem */}
             <div className="rounded-md border border-[var(--axis-border-default)] p-4">
-              <h4 className="mb-3 font-medium text-[var(--axis-text-primary)]">Pre-mortem</h4>
+              <h4 className="mb-3 font-medium text-[var(--axis-text-primary)]">프리모템</h4>
               {opp.premortems.length === 0 ? (
                 <p className="text-sm text-[var(--axis-text-tertiary)]">
                   등록된 실패 시나리오가 없습니다.

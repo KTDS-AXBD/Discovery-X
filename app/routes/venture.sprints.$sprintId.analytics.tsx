@@ -150,14 +150,14 @@ export default function VentureSprintAnalytics() {
     <div className="space-y-6">
       {/* Funnel */}
       <div className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-6">
-        <h2 className="mb-4 font-semibold text-[var(--axis-text-primary)]">Funnel</h2>
+        <h2 className="mb-4 font-semibold text-[var(--axis-text-primary)]">퍼널</h2>
         <div className="flex items-end justify-between gap-4">
           {[
-            { label: "Signals", value: funnel.signals },
-            { label: "Problems", value: funnel.problems },
-            { label: "Opportunities", value: funnel.opportunities },
-            { label: "Shortlist", value: funnel.shortlist },
-            { label: "Final", value: funnel.final },
+            { label: "신호", value: funnel.signals },
+            { label: "문제", value: funnel.problems },
+            { label: "기회", value: funnel.opportunities },
+            { label: "선별 목록", value: funnel.shortlist },
+            { label: "최종 선정", value: funnel.final },
           ].map((item) => {
             const maxValue = Math.max(funnel.signals, 1);
             const height = Math.max((item.value / maxValue) * 120, 20);
@@ -182,7 +182,7 @@ export default function VentureSprintAnalytics() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Effort 분포 */}
         <div className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-6">
-          <h2 className="mb-4 font-semibold text-[var(--axis-text-primary)]">Effort 분포</h2>
+          <h2 className="mb-4 font-semibold text-[var(--axis-text-primary)]">작업 분포</h2>
           <div className="mb-4 flex h-6 overflow-hidden rounded-full bg-[var(--axis-surface-tertiary)]">
             <div
               className="bg-[var(--axis-badge-success-bg)]"
@@ -199,13 +199,13 @@ export default function VentureSprintAnalytics() {
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-[var(--axis-badge-success-bg)]" />
               <span className="text-[var(--axis-text-secondary)]">
-                Human: {effortByActor.human} ({humanRatio.toFixed(0)}%)
+                사람: {effortByActor.human} ({humanRatio.toFixed(0)}%)
               </span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-[var(--axis-badge-purple-bg)]" />
               <span className="text-[var(--axis-text-secondary)]">
-                Agent: {effortByActor.agent} ({(100 - humanRatio).toFixed(0)}%)
+                에이전트: {effortByActor.agent} ({(100 - humanRatio).toFixed(0)}%)
               </span>
             </div>
           </div>
@@ -286,12 +286,12 @@ export default function VentureSprintAnalytics() {
                           <span className="text-[var(--axis-text-primary)]">{opp.title}</span>
                           {opp.isShortlisted === 1 && (
                             <Badge variant="success" className="text-xs">
-                              Shortlist
+                              선별
                             </Badge>
                           )}
                           {opp.isFinal === 1 && (
                             <Badge variant="info" className="text-xs">
-                              Final
+                              최종
                             </Badge>
                           )}
                         </div>

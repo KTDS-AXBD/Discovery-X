@@ -108,7 +108,7 @@ export default function DashboardHealth() {
   return (
     <div>
       <h2 className="mb-4 text-lg font-semibold text-[var(--axis-text-primary)]">
-        Pipeline Health
+        파이프라인 건강도
       </h2>
       <HealthMetrics data={health} />
     </div>

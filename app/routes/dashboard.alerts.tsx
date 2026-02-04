@@ -78,11 +78,11 @@ export default function DashboardAlerts() {
     <div>
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-[var(--axis-text-primary)]">
-          Alerts
+          알림
         </h2>
         <div className="flex items-center gap-2">
           {counts.critical > 0 && (
-            <Badge variant="destructive">{counts.critical} critical</Badge>
+            <Badge variant="destructive">{counts.critical} 긴급</Badge>
           )}
           {counts.unack > 0 && (
             <Badge variant="warning">{counts.unack} 미확인</Badge>

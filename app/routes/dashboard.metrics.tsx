@@ -110,7 +110,7 @@ export default function DashboardMetrics() {
   return (
     <div>
       <h2 className="mb-4 text-lg font-semibold text-[var(--axis-text-primary)]">
-        Metrics
+        지표
       </h2>
 
       {/* Discovery Stats */}

@@ -113,7 +113,7 @@ export default function DashboardAuditLog() {
     <div>
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-[var(--axis-text-primary)]">
-          Audit Log
+          활동 기록
         </h2>
         <div className="flex items-center gap-2">
           <Badge variant="secondary">{logs.length} / {total}</Badge>
@@ -124,13 +124,13 @@ export default function DashboardAuditLog() {
       <div className="mb-4 flex flex-wrap gap-3">
         <div>
           <label className="block text-xs text-[var(--axis-text-tertiary)] mb-1">
-            {"\uC774\uBCA4\uD2B8 \uD0C0\uC785"}
+            이벤트 타입
           </label>
           <Select
             value={currentEventType}
             onChange={(e) => updateFilter("eventType", e.target.value)}
           >
-            <option value="">{"\uC804\uCCB4"}</option>
+            <option value="">전체</option>
             {eventTypes.map((et) => (
               <option key={et} value={et}>{et}</option>
             ))}
@@ -138,15 +138,15 @@ export default function DashboardAuditLog() {
         </div>
         <div>
           <label className="block text-xs text-[var(--axis-text-tertiary)] mb-1">
-            {"\uC561\uD130 \uD0C0\uC785"}
+            액터 타입
           </label>
           <Select
             value={currentActorType}
             onChange={(e) => updateFilter("actorType", e.target.value)}
           >
-            <option value="">{"\uC804\uCCB4"}</option>
-            <option value="user">{"\uC0AC\uC6A9\uC790"}</option>
-            <option value="system">{"\uC2DC\uC2A4\uD15C"}</option>
+            <option value="">전체</option>
+            <option value="user">사용자</option>
+            <option value="system">시스템</option>
           </Select>
         </div>
       </div>

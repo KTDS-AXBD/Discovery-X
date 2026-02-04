@@ -225,20 +225,20 @@ export default function VentureSprintPackaging() {
     return (
       <div className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-12 text-center">
         <p className="text-[var(--axis-text-tertiary)]">
-          Final 기회가 없습니다. Gate 2에서 Final을 선정하세요.
+          최종 선정된 기회가 없습니다. 2차 검토에서 최종 선정을 진행하세요.
         </p>
         <div className="mt-4 flex items-center justify-center gap-4">
           <Link
             to={`/venture/sprints/${sprint.id}/gate`}
             className="text-sm text-[var(--axis-text-brand)] hover:underline"
           >
-            Gate로 이동
+            검토 단계로 이동
           </Link>
           {sprint.status === "GATE2_PENDING" && (
             <Form method="post" className="inline">
               <input type="hidden" name="intent" value="markShortlistAsFinal" />
               <Button type="submit" variant="secondary" disabled={isSubmitting}>
-                {isSubmitting ? "처리 중..." : "Shortlist를 Final로 마킹"}
+                {isSubmitting ? "처리 중..." : "선별 목록을 최종 선정으로 전환"}
               </Button>
             </Form>
           )}
@@ -255,7 +255,7 @@ export default function VentureSprintPackaging() {
           <div>
             <h3 className="font-medium text-[var(--axis-text-primary)]">AI 문서 생성</h3>
             <p className="text-sm text-[var(--axis-text-tertiary)]">
-              Final 기회에 대해 피치 덱, 1-Pager, Executive Summary를 AI가 생성합니다.
+              최종 선정 기회에 대해 피치 덱, 1페이지 요약, 경영진 요약을 AI가 생성합니다.
             </p>
           </div>
           <Form method="post">
@@ -274,7 +274,7 @@ export default function VentureSprintPackaging() {
       </div>
 
       <p className="text-sm text-[var(--axis-text-tertiary)]">
-        Final 기회에 대해 피치 덱, 1-pager, 요약 문서를 작성합니다.
+        최종 선정 기회에 대해 피치 덱, 1페이지 요약, 요약 문서를 작성합니다.
       </p>
 
       {opportunities.map((opp) => (
@@ -287,7 +287,7 @@ export default function VentureSprintPackaging() {
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="info">Final</Badge>
+                  <Badge variant="info">최종 선정</Badge>
                   <span className="font-semibold text-[var(--axis-text-primary)]">
                     {opp.title}
                   </span>
@@ -334,7 +334,7 @@ export default function VentureSprintPackaging() {
               >
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-[var(--axis-text-primary)]">
-                    Pitch Deck
+                    피치 덱
                   </span>
                   <Badge variant={opp.hasPitchDeck ? "success" : "secondary"}>
                     {opp.hasPitchDeck ? "완료" : "미작성"}
@@ -365,7 +365,7 @@ export default function VentureSprintPackaging() {
               >
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-[var(--axis-text-primary)]">
-                    One Pager
+                    1페이지 요약
                   </span>
                   <Badge variant={opp.hasOnePager ? "success" : "secondary"}>
                     {opp.hasOnePager ? "완료" : "미작성"}
@@ -396,7 +396,7 @@ export default function VentureSprintPackaging() {
               >
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-[var(--axis-text-primary)]">
-                    Executive Summary
+                    경영진 요약
                   </span>
                   <Badge variant={opp.hasExecutiveSummary ? "success" : "secondary"}>
                     {opp.hasExecutiveSummary ? "완료" : "미작성"}
@@ -452,9 +452,9 @@ export default function VentureSprintPackaging() {
 
       {/* Export 섹션 */}
       <div className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] p-6">
-        <h3 className="mb-4 font-semibold text-[var(--axis-text-primary)]">Export</h3>
+        <h3 className="mb-4 font-semibold text-[var(--axis-text-primary)]">내보내기</h3>
         <p className="mb-4 text-sm text-[var(--axis-text-tertiary)]">
-          Final 기회와 산출물을 파일로 내보냅니다.
+          최종 선정 기회와 산출물을 파일로 내보냅니다.
         </p>
         <div className="flex flex-wrap gap-3">
           <a

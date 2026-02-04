@@ -46,7 +46,7 @@ export default function DashboardPipeline() {
   return (
     <div>
       <h2 className="mb-4 text-lg font-semibold text-[var(--axis-text-primary)]">
-        Discovery Pipeline
+        Discovery 파이프라인
       </h2>
 
       {categories.map((cat) => {
