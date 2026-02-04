@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Discovery-X는 AX 신사업을 위한 내부 실험 중심 사고 시스템입니다. 관찰을 행동으로 전환하고, 행동을 근거 있는 문서로 남기며, 실패를 조직 자산으로 축적하는 것을 목표로 합니다.
 
-**현재 상태**: 🚀 v3 Ontology Ready AI Platform 운영 중 (2026-02-01~)
+**현재 상태**: 🚀 v4.2 Venture Discovery Sprint + Embeddings 운영 중 (2026-02-04~)
 **프로덕션 URL**: https://dx.minu.best (커스텀 도메인) / https://discovery-x.pages.dev
 
 ## 프로젝트 문서 구조
@@ -53,9 +53,15 @@ pnpm dev              # 개발 서버 (Vite)
 pnpm build            # 프로덕션 빌드
 pnpm lint             # ESLint (app/ 대상)
 pnpm typecheck        # TypeScript 타입 체크 (tsc)
+pnpm test             # 전체 테스트 (Vitest, 561개)
+pnpm test:unit        # 유닛 테스트만
+pnpm test:integration # 통합 테스트만
+pnpm test:coverage    # 커버리지 리포트
+pnpm test:e2e         # Playwright E2E 테스트
 pnpm db:generate      # Drizzle 마이그레이션 생성
 pnpm db:migrate       # D1 로컬 마이그레이션 적용
 pnpm db:migrate:prod  # D1 원격 마이그레이션 적용
+pnpm db:studio        # Drizzle Studio (DB 브라우저)
 pnpm deploy           # 빌드 + Cloudflare Pages 배포
 ```
 
@@ -70,44 +76,54 @@ pnpm deploy           # 빌드 + Cloudflare Pages 배포
 - **Lint**: ESLint 9 (flat config) + typescript-eslint + react-hooks
 - **AI (Chat)**: Claude API (tool_use, SSE 스트리밍)
 - **AI (Radar)**: OpenAI gpt-4o-mini (수집 스코어링)
+- **AI (Embeddings)**: OpenAI text-embedding-3-small + Cloudflare Vectorize
+- **Test**: Vitest (unit/integration 561개) + Playwright (E2E)
 
 ## 디렉토리 구조
 
 ```
 app/
 ├── root.tsx              # Remix root layout (다크모드, 알림 배지)
-├── routes/               # 52개 라우트 (주요 그룹)
+├── routes/               # 75개 라우트
 │   ├── _index.tsx        # / (채팅 인터페이스 — 메인)
-│   ├── dashboard.tsx     # /dashboard (레이아웃 + 5탭: Pipeline/Metrics/Health/Alerts/Audit Log)
-│   ├── dashboard.*.tsx   # /dashboard/* (5개 탭 라우트)
+│   ├── dashboard.tsx     # /dashboard (레이아웃 + 5탭)
+│   ├── dashboard.*.tsx   # /dashboard/* (Pipeline/Metrics/Health/Alerts/Audit Log)
 │   ├── settings.tsx      # /settings (Agent 설정)
 │   ├── discoveries.*.tsx           # /discoveries (목록/생성/상세)
 │   ├── discoveries_.$id.*.tsx      # /discoveries/:id/* (편집/승격/실험/근거/결정/Gate/Graph/Methods)
+│   ├── venture.*.tsx               # /venture/* (13개 — 스프린트 관리/분석)
 │   ├── review.tsx / recall.tsx     # Weekly Review / Recall Queue
 │   ├── metrics.tsx / radar.tsx     # Metrics / Radar UI
 │   ├── methods.tsx / docs.tsx      # Method Pack 라이브러리 / Docs
-│   ├── evidence.duplicates.tsx     # 근거 중복 관리
-│   ├── login.tsx / logout.tsx      # 인증
-│   ├── auth.google.*.tsx           # Google OAuth
+│   ├── login.tsx / auth.google.*   # 인증 (Google OAuth)
 │   ├── admin.*.tsx                 # 관리자 (users, seed)
-│   ├── pending.tsx                 # 승인 대기
 │   ├── api.chat.ts                 # SSE 스트리밍 채팅
 │   ├── api.conversations.*.ts      # 대화 CRUD + 메시지
-│   ├── api.cron.*.ts               # Cron 3개 (daily/agent-review/alerts)
-│   ├── api.export.*.ts             # Export (CSV/JSON/Brief)
+│   ├── api.cron.*.ts               # Cron 5개 (daily/agent-review/alerts/embeddings/weekly-summary)
+│   ├── api.export.*.ts             # Export (CSV/JSON/Brief/Metrics)
+│   ├── api.venture.*.ts            # Venture API 7개 (decisions/tasks/worker/export/analytics)
 │   ├── api.radar.*.ts              # Radar (runs/sources/trigger)
-│   └── api.similar-seeds.ts        # 유사 Seed 검색
+│   └── api.similar-seeds.ts        # 유사 Seed 검색 (Vectorize → FTS5 폴백)
 ├── db/
-│   ├── schema.ts         # Drizzle 스키마 (24개 테이블)
-│   ├── index.ts          # DB 헬퍼 (getDb)
+│   ├── schema.ts         # Drizzle 스키마 (30개 테이블)
+│   ├── index.ts          # DB 헬퍼 (getDb, ventureSchema 머지)
 │   └── seed.ts           # 시드 데이터 (stages 11개, method_packs 12개, ontology_types 10개)
+├── features/
+│   └── venture/          # Venture Discovery Sprint 모듈 (v4)
+│       ├── db/schema.ts      # vd_* 16개 테이블 (sprints/opportunities/decisions/signals 등)
+│       ├── constants/        # 스프린트 상태/태스크 타입/의존성
+│       ├── schemas/          # Zod 검증 스키마
+│       ├── domain/           # 상태 머신/스코어링 정책/가드
+│       ├── repositories/     # Sprint/Task Queue 리포지토리
+│       ├── lib/              # Task Executor (8개 AI 핸들러) + Markdown Exporter
+│       └── ui/               # EmptyState/OnboardingGuide/투표 UI 등 13개 컴포넌트
 ├── lib/
 │   ├── agent/            # AI Agent 코어
 │   │   ├── executor.ts       # 메인 Agent 루프 (MAX_ROUNDS, 모델별 컨텍스트 윈도우)
 │   │   ├── claude-client.ts  # Claude API (SSE 스트리밍, fetchWithRetry)
 │   │   ├── system-prompt.ts  # 시스템 프롬프트 빌더
 │   │   ├── context-builder.ts # 대화 컨텍스트 구성 (30+ 메시지 요약)
-│   │   ├── tool-registry.ts  # 도구 정의 43개 (JSON 스키마, TOOL_MIN_AUTONOMY)
+│   │   ├── tool-registry.ts  # 도구 정의 45개 (JSON 스키마, TOOL_MIN_AUTONOMY)
 │   │   └── tools/            # 도구 실행 함수 (8개 파일)
 │   │       ├── discovery-tools.ts  # Discovery CRUD + 상태 전환
 │   │       ├── query-tools.ts      # 조회/검색/지표/Radar
@@ -119,6 +135,7 @@ app/
 │   │       └── alert-tools.ts      # 알림/웹훅 관리
 │   ├── auth/             # 인증 (Google OAuth + 세션 쿠키 + 역할 가드)
 │   ├── constants/        # 상수 (11단계, 타입 등)
+│   ├── embeddings/       # OpenAI Embeddings + Vectorize 동기화
 │   └── validation/       # Zod 스키마 + 비즈니스 규칙
 ├── components/
 │   ├── chat/             # 채팅 UI (ChatPanel, MessageBubble, ToolExecution, ConversationList)
@@ -130,7 +147,7 @@ app/
 │   ├── evidence/         # 근거 중복 관리 (DuplicateCard)
 │   ├── graph/            # 맥락 그래프 시각화 (GraphViewer)
 │   └── methods/          # Method Pack UI 컴포넌트
-└── styles/               # Tailwind CSS + Axis 토큰 + DX 커스텀 토큰
+└── styles/               # Tailwind CSS 4 + Axis 토큰 + DX 커스텀 토큰
 ```
 
 **경로 별칭**: `~/*` → `./app/*` (tsconfig paths)
@@ -183,25 +200,17 @@ PRD §3 참고. 핵심: 30-60일, 최대 5명, Discovery 5-10건 목표.
 - ❌ 고급 예측/추천 모델
 - ❌ 제품 수준 KPI 대시보드
 
-### 필수 구현 (PRD §7.1 P0)
-1. Discovery CRUD + 상태 전환
-2. Owner/Reviewer 지정 및 승계
-3. Experiment 최대 2개 제한
-4. Evidence 타입/강도 관리
-5. NOT_NOW/DEAD_END 필수 필드 강제
-6. Weekly Review / Recall Queue 뷰
-7. 최소 지표 집계/Export
-
-### 구현 상태 (2026-02-03 기준)
-- ✅ P0 전 항목 + v3 R0~R3b 전체 구현 완료
-- ✅ 테스트 216개 통과 (Vitest unit 76 + integration 140)
+### 구현 상태
+- ✅ PRD P0 전 항목 + v3 R0~R3b + v4 Venture Sprint 전체 구현 완료
+- ✅ 테스트 561개 통과 (unit 76 + integration 342 + venture 143)
 - ✅ 프로덕션 배포 완료 (dx.minu.best)
 - ✅ Google OAuth + 역할 분리 (admin/gatekeeper/user/pending)
 - ✅ 다크모드 + @axis-ds 패키지 연동
+- ✅ Embeddings + Vectorize 시맨틱 검색 운영 중
 
 ### Agent 시스템 (v3)
 - Agent 코어: executor, claude-client, system-prompt, context-builder, tool-registry
-- Agent 도구 **43개**: 8개 파일 (discovery/query/method/ontology/indicator/connector/governance/alert)
+- Agent 도구 **45개**: 8개 파일 (discovery/query/method/ontology/indicator/connector/governance/alert)
 - 자율도 레벨 0~3 (TOOL_MIN_AUTONOMY로 도구별 강제)
 - 채팅 UI: ConversationList, ChatPanel, MessageBubble, ToolExecution
 - 대시보드: Pipeline 칸반 (11단계) + Metrics + Health + Alerts + Audit Log
@@ -218,11 +227,11 @@ PRD §3 참고. 핵심: 30-60일, 최대 5명, Discovery 5-10건 목표.
                                     SSE 스트리밍 응답 → 채팅 UI
 ```
 
-### Agent 도구 카테고리 (43개)
+### Agent 도구 카테고리 (45개)
 | 카테고리 | 도구 수 | 파일 |
 |---------|--------|------|
 | Discovery CRUD + 상태 전환 | 11 | discovery-tools.ts |
-| 조회/검색/지표/Radar | 10 | query-tools.ts |
+| 조회/검색/지표/Radar | 12 | query-tools.ts |
 | Method Pack 실행/Gate | 6 | method-tools.ts |
 | 맥락 그래프/엔티티 | 5 | ontology-tools.ts |
 | KPI/건강도 | 4 | indicator-tools.ts |
@@ -231,11 +240,73 @@ PRD §3 참고. 핵심: 30-60일, 최대 5명, Discovery 5-10건 목표.
 | 알림/웹훅 | 3 | alert-tools.ts |
 
 ### 환경 변수
-- `ANTHROPIC_API_KEY`: Claude API 키
-- `OPENAI_API_KEY`: Radar 스코어링 (gpt-4o-mini)
+- `ANTHROPIC_API_KEY`: Claude API 키 (Agent 채팅)
+- `OPENAI_API_KEY`: Radar 스코어링 (gpt-4o-mini) + Embeddings (text-embedding-3-small)
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`: Google OAuth
-- `RESEND_API_KEY`: 이메일 알림 (Resend)
+- `SESSION_SECRET`: 세션 쿠키 서명 키
+- `RESEND_API_KEY`: 이메일 알림 (Resend, 발신: noreply@ideaonaction.ai)
 - `CRON_SECRET`: Cron 엔드포인트 인증
+
+**로컬 개발**: `.dev.vars` 파일에 위 변수 설정 (gitignored)
+
+### Cloudflare 바인딩 (wrangler.toml)
+- `DB`: D1 데이터베이스
+- `VECTORIZE_DISCOVERIES`: Vectorize 인덱스 (dx-discovery-embeddings, 1536차원 cosine)
+- `VECTORIZE_EVIDENCE`: Vectorize 인덱스 (dx-evidence-embeddings, 1536차원 cosine)
+
+## Gotchas & 주의사항
+
+### Cloudflare 환경 접근
+```typescript
+// ✅ 올바른 패턴
+const db = getDb(context.cloudflare.env.DB);
+// ❌ 잘못된 패턴 (타입 정의용일 뿐)
+const db = getDb(context.DB);
+```
+비-DB 바인딩은 타입 캐스팅 필요: `(context.cloudflare.env as unknown as Record<string, string>).ANTHROPIC_API_KEY`
+
+### D1/SQLite 날짜 처리
+- 모든 timestamp는 `integer("field", { mode: "timestamp" })` + `sql\`(unixepoch())\`` 사용
+- 날짜 포맷은 `toLocaleDateString()` 대신 수동 포맷 사용 (SSR/CSR hydration mismatch 방지)
+
+### JSON 컬럼
+- Drizzle가 자동 직렬화/역직렬화 → `JSON.parse()`/`JSON.stringify()` 수동 호출 금지
+
+### 메시지 정렬
+```typescript
+// ✅ rowid 기반 정렬 (초 단위 createdAt은 순서 보장 불가)
+.orderBy(desc(sql`rowid`))
+```
+
+### 테스트 마이그레이션 동기화
+- 새 마이그레이션 추가 시 **반드시** `tests/helpers/db.ts`에도 해당 SQL 파일 추가
+- 누락 시 "no such table/column" 에러 발생
+
+### 상태 전환 검증
+- 직접 DB UPDATE 금지 → 반드시 `DiscoveryValidationRules.validateTransition()` 경유
+- `ALLOWED_TRANSITIONS` (app/lib/constants/status.ts)에 정의된 전환만 허용
+
+### Vectorize 인덱스
+- 인덱스는 수동 생성 필요 (배포 전):
+  ```bash
+  wrangler vectorize create dx-discovery-embeddings --dimensions=1536 --metric=cosine
+  wrangler vectorize create dx-evidence-embeddings --dimensions=1536 --metric=cosine
+  ```
+
+### Venture 스키마 머지
+- `app/db/index.ts`에서 core schema + venture schema를 `{ ...schema, ...ventureSchema }`로 머지
+- 새 feature 모듈 추가 시 동일 패턴 적용
+
+### SSR 외부화
+- `resend`, `mailparser` 등은 `vite.config.ts`에서 SSR external 처리 → 번들 포함 금지
+
+### 인증 가드 계층
+```
+getUserFromSession()  → null 가능 (미인증)
+requireUser()         → /login 리다이렉트, PENDING → /pending
+requireGatekeeper()   → JSON 403 (GATEKEEPER/ADMIN만)
+requireAdmin()        → JSON 403 (ADMIN만)
+```
 
 ## 설계 원칙 (v1.4 §5)
 
