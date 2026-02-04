@@ -337,6 +337,39 @@ export default function VentureSprintGate() {
                           </Badge>
                         )}
                       </div>
+
+                      {/* 승인 폼 (합의 도달 시) */}
+                      {decision.aggregation.hasConsensus && (
+                        <Form method="post" className="mt-4 space-y-3">
+                          <input type="hidden" name="intent" value="approve" />
+                          <input type="hidden" name="decisionId" value={decision.id} />
+                          <div>
+                            <label className="block text-sm font-medium text-[var(--axis-text-primary)]">
+                              선택 옵션
+                            </label>
+                            <input
+                              type="text"
+                              name="selectedOption"
+                              placeholder="선정할 항목 ID 또는 설명"
+                              className="mt-1 block w-full rounded-md border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] px-3 py-2 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-[var(--axis-text-primary)]">
+                              승인 근거
+                            </label>
+                            <textarea
+                              name="humanRationale"
+                              rows={2}
+                              placeholder="승인 사유를 입력하세요"
+                              className="mt-1 block w-full rounded-md border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] px-3 py-2 text-sm"
+                            />
+                          </div>
+                          <Button type="submit" disabled={isSubmitting}>
+                            승인하기
+                          </Button>
+                        </Form>
+                      )}
                     </div>
                   )}
                 </div>
