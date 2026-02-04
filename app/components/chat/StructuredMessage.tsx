@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, type ComponentProps } from "react";
+import { useState, useMemo, useCallback, type ComponentProps, type HTMLAttributes } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
@@ -44,7 +44,7 @@ function extractHeadings(markdown: string): TocItem[] {
   return headings;
 }
 
-function HeadingWithId({ level, children, ...props }: ComponentProps<"h2"> & { level: number }) {
+function HeadingWithId({ level, children, ...props }: HTMLAttributes<HTMLHeadingElement> & { level: number }) {
   const text = typeof children === "string" ? children : String(children);
   const id = text
     .toLowerCase()

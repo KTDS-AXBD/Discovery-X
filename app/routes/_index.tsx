@@ -133,7 +133,8 @@ export default function Index() {
         setContextItems((prev) => {
           const existing = new Set(prev.map((i) => `${i.type}-${i.id}`));
           const unique = newItems.filter((i) => !existing.has(`${i.type}-${i.id}`));
-          return [...prev, ...unique];
+          const merged = [...prev, ...unique];
+          return merged.length > 50 ? merged.slice(-50) : merged;
         });
         setContextPanelOpen(true);
       }
