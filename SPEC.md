@@ -470,23 +470,29 @@ Validation:
 > **이 섹션은 매 세션마다 업데이트한다.**
 
 ### 현재 단계
-**🚀 v4.5 코드 품질 + 보안 강화 (세션 115, 2026-02-04)**
+**🚀 v4.6 Figma 기반 전체 UI 개선 (세션 116, 2026-02-04)**
 
 - ✅ v3 R0~R3b 전체 구현 + 프로덕션 배포 (Agent 45도구, 11단계 파이프라인, 알림/웹훅)
 - ✅ v4 Venture Sprint MVP: 18 라우트, 8 핸들러, Task Queue, Decision Center, Analytics
 - ✅ UX 리팩토링 v4.1~v4.4 + 메뉴 구조 개편 + UI 일관성 수정
-- ✅ v4.5: 버그 수정 + 성능 최적화 + 보안 강화 + UI 디자인 개선
+- ✅ v4.5: 버그 수정 + 성능 최적화 + 보안 강화
+- ✅ v4.6: Figma 기반 전체 UI 개선 — 다크 테마 심화 + 플랫 네비/탭 + 카드 border 기반
 - ✅ Embeddings 인프라 (Vectorize 2개 + Cron 15분 + 초기 동기화 완료)
 - ✅ 채팅 UX 개선 (ContextPanel + Digest + 제안 칩 + 리치 시각화)
 - ✅ 테스트 561개 통과 (unit 76 + integration 342 + venture 143)
 
-### 최근 변경 (세션 115)
+### 최근 변경 (세션 116)
+**Figma 기반 전체 UI 개선 — 21개 파일 수정, 6 Phase 완료**:
+- ✅ Phase 1: 디자인 토큰 — dx-surface-deep/panel/card/card-hover + dx-border-subtle/muted + dx-button-outline 토큰 추가, shadow 약화
+- ✅ Phase 2: 레이아웃 셸 — MainNav/NavDropdown pill → 플랫 텍스트 링크, PageLayout/root.tsx 배경 dx-surface-deep
+- ✅ Phase 3: UI 컴포넌트 — Card shadow→border 기반, Button outline variant 추가, Badge subtle variant, SearchInput/Table/Dialog 토큰 적용
+- ✅ Phase 4: 채팅 — 사이드바 dx-surface-panel, ConversationList dx-surface-card 활성, ChatPanel/MessageBubble 패딩 증가 + 토큰 적용
+- ✅ Phase 5: 대시보드 탭 pill→flat text + underline, Discovery 필터 pill→flat text, 로그인 dx-surface-deep/card, KpiCard 패딩 증가
+- ✅ Phase 6: typecheck + lint + build 전체 통과
+
+### 이전 변경 (세션 115)
 **코드 품질 + 보안 강화 — 4건의 논리적 커밋**:
-- ✅ 버그 수정: IDEA_CARD 중복 비교 → HYPOTHESIS 수정 (4곳), 상태 전환 검증 추가 (decideGate/Hold/Drop + Cron 자동 DROP)
-- ✅ 보안 강화: Cron 인증 필수화 (CRON_SECRET 미설정 시 bypass 차단 4개), 웹훅/Evidence URL 프로토콜 검증, CSV formula injection 방지
-- ✅ 성능 최적화: root.tsx 전체 select → 5개 COUNT 병렬 쿼리, Export CSV/JSON N+1 → 배치 조회, discoveries 목록 N+1 → inArray, sql.raw → inArray 3곳
-- ✅ SSR hydration mismatch 수정: toLocaleString/toLocaleTimeString → formatTime/String 유틸, SESSION_SECRET 필수화 + localhost secure cookie 처리
-- ✅ UI 디자인: 네비/카드 shadow→border, Button outline variant 추가, 텍스트 기반 활성 메뉴
+- ✅ 버그 수정, 보안 강화, 성능 최적화, SSR hydration mismatch 수정
 
 ### 이전 변경 (세션 114)
 **UI 일관성 수정 — 메뉴 개편 후 잔여 불일치 7건**:
