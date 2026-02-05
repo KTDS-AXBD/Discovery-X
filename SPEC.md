@@ -475,9 +475,9 @@ Validation:
 > **이 섹션은 매 세션마다 업데이트한다.**
 
 ### 현재 단계
-**🚀 v4.9 Figma 2차 전체 레이아웃 개편 (세션 119, 2026-02-04)**
+**🚀 v4.10 Compliance, Industry, Patterns 기능 추가 (세션 120, 2026-02-06)**
 
-- ✅ v3 R0~R3b 전체 구현 + 프로덕션 배포 (Agent 48도구, 11단계 파이프라인, 알림/웹훅)
+- ✅ v3 R0~R3b 전체 구현 + 프로덕션 배포 (Agent 48도구 → 51도구, 11단계 파이프라인, 알림/웹훅)
 - ✅ v4 Venture Sprint MVP: 18 라우트, 8 핸들러, Task Queue, Decision Center, Analytics
 - ✅ UX 리팩토링 v4.1~v4.4 + 메뉴 구조 개편 + UI 일관성 수정
 - ✅ v4.5: 버그 수정 + 성능 최적화 + 보안 강화
@@ -485,11 +485,24 @@ Validation:
 - ✅ v4.7: 프로덕션 500 에러 수정 — 인증 라우트 방어적 try-catch + SESSION_SECRET 환경 변수 설정
 - ✅ v4.8: P2 잔여 작업 5건 (F6~F10) — 응답 요약/비교 도구/간트차트/태그/추천
 - ✅ v4.9: Figma 2차 전체 레이아웃 개편 — AppShell + TopNav + SidebarPanel (41파일, 4 Phase)
+- ✅ v4.10: Compliance, Industry, Patterns 기능 추가 — 신규 컴포넌트 3개 + Agent 도구 3개 + 라우트 5개 + 마이그레이션 2개 (21파일)
 - ✅ Embeddings 인프라 (Vectorize 2개 + Cron 15분 + 초기 동기화 완료)
 - ✅ 채팅 UX 개선 (ContextPanel + Digest + 제안 칩 + 리치 시각화)
 - ✅ 테스트 561개 통과 (unit 76 + integration 342 + venture 143)
 
-### 최근 변경 (세션 119)
+### 최근 변경 (세션 120)
+**Compliance, Industry, Patterns 기능 추가 + Agent 도구 확장 — 21파일 변경 (신규 11 + 수정 8 + 삭제 2)**:
+- ✅ Compliance 기능: `ComplianceChecklist` UI + Asset/Compliance Agent 도구 3개 (getAssets/addAsset/analyzeCompliance)
+- ✅ Industry 기능: `IndustrySelector` UI 컴포넌트
+- ✅ Patterns 기능: `PatternCard` UI 컴포넌트
+- ✅ 발견 상세 페이지 확장: 자산 탭 + 준수 탭 + 패턴 탭 (3개 라우트)
+- ✅ Cron 라우트: `pattern-extract` + `log-archive` (2개)
+- ✅ Agent 도구 확장: 51도구 (+3: getAssets, addAsset, analyzeCompliance)
+- ✅ Schema + Seed 업데이트: Asset + Compliance 테이블 + 데이터
+- ✅ SQL 마이그레이션: `0015_industry_adapters.sql` + `0016_decision_logs_assets.sql`
+- ✅ typecheck + lint + build 모두 통과
+
+### 이전 변경 (세션 119)
 **Figma 2차 전체 레이아웃 개편 — 41파일 변경 (신규 4 + 수정 32 + 삭제 5)**:
 - ✅ Phase 1: 기반 컴포넌트 4개 생성 (SidebarContext, TopNav, SidebarPanel, AppShell)
 - ✅ Phase 2: root.tsx에 conversations 쿼리 추가 (전역 사이드바 데이터)
@@ -629,4 +642,5 @@ Validation:
 | F9 | Discovery 태그 시스템 (DB + Agent 자동 태깅) | v4.8 | ✅ | 6 |
 | F10 | 관련 Discovery 추천 (상세 조회 시 자동) | v4.8 | ✅ | 2 |
 | F11 | Figma 2차 전체 레이아웃 개편 (AppShell + TopNav + SidebarPanel) | v4.9 | ✅ | 41 |
+| F12 | Compliance, Industry, Patterns 기능 확장 (UI + Agent 도구 + Routes) | v4.10 | ✅ | 21 |
 
