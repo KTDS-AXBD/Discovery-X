@@ -77,6 +77,13 @@ const RecallIcon = () => (
   </svg>
 );
 
+const AssetsIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8 1L2 4v4c0 4 2.5 6 6 7 3.5-1 6-3 6-7V4L8 1z" fill="currentColor" opacity="0.4" />
+    <path d="M6 8l1.5 1.5L10 6" stroke="white" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 const tabs = [
   { to: "/dashboard", label: "파이프라인", end: true, icon: <PipelineIcon /> },
   { to: "/dashboard/metrics", label: "지표", icon: <MetricsIcon /> },
@@ -85,6 +92,7 @@ const tabs = [
   { to: "/dashboard/audit-log", label: "활동 기록", end: true, icon: <AuditLogIcon /> },
   { to: "/dashboard/review", label: "주간 리뷰", end: true, icon: <ReviewIcon /> },
   { to: "/dashboard/recall", label: "리콜 큐", end: true, icon: <RecallIcon /> },
+  { to: "/dashboard/assets", label: "지식 자산", end: true, icon: <AssetsIcon /> },
 ];
 
 export default function DashboardLayout() {

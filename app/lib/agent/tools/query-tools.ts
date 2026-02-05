@@ -13,6 +13,8 @@ import {
   methodRuns,
   methodPacks,
   assumptions,
+  industryAdapters,
+  industryRules,
   DiscoveryStatus,
   AssumptionStatus,
 } from "~/db/schema";
@@ -804,4 +806,62 @@ export async function compareDiscoveries(
     found: results.length,
     notFound: ids.filter((id) => !rowMap.has(id)),
   });
+}
+
+// ── get_industry_context (Strategic Evolution F1) ─────────────────────────
+
+export async function getIndustryContext(
+  db: DB,
+  input: { industryCode: string; includeRules?: boolean }
+): Promise<string> {
+  const adapter = await db
+    .select()
+    .from(industryAdapters)
+    .where(eq(industryAdapters.code, input.industryCode))
+    .limit(1);
+
+  if (!adapter[0]) {
+    return JSON.stringify({
+      error: `산업 코드 "${input.industryCode}"에 해당하는 어댑터를 찾을 수 없습니다.`,
+      availableCodes: ["manufacturing", "finance", "healthcare", "public", "energy"],
+    });
+  }
+
+  const a = adapter[0];
+  const result: Record<string, unknown> = {
+    id: a.id,
+    code: a.code,
+    name: a.nameKo,
+    description: a.description,
+    icon: a.icon,
+    color: a.color,
+    regulatoryFramework: a.regulatoryFramework,
+    complianceRequirements: a.complianceRequirements,
+    defaultTimeboxDays: a.defaultTimeboxDays,
+    evidenceWeightModifiers: a.evidenceWeightModifiers,
+  };
+
+  if (input.includeRules !== false) {
+    const rules = await db
+      .select()
+      .from(industryRules)
+      .where(
+        and(
+          eq(industryRules.industryAdapterId, a.id),
+          eq(industryRules.enabled, 1)
+        )
+      );
+
+    result.rules = rules.map((r) => ({
+      id: r.id,
+      type: r.ruleType,
+      name: r.nameKo,
+      condition: r.condition,
+      action: r.action,
+      priority: r.priority,
+    }));
+    result.ruleCount = rules.length;
+  }
+
+  return JSON.stringify(result);
 }

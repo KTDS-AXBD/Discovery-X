@@ -11,6 +11,7 @@ import {
   evidence,
   eventLogs,
   stages,
+  industryAdapters,
   DiscoveryStatus,
 } from "~/db/schema";
 import {
@@ -47,9 +48,24 @@ export async function createDiscovery(
     seedSummary: string;
     sourceType: string;
     seedLinks?: string[];
+    industryCode?: string;
   }
 ): Promise<string> {
   const id = generateId();
+
+  // Industry Adapter 연결 (선택)
+  let industryAdapterId: string | undefined;
+  if (input.industryCode) {
+    const adapter = await db
+      .select()
+      .from(industryAdapters)
+      .where(eq(industryAdapters.code, input.industryCode))
+      .limit(1);
+    if (adapter[0]) {
+      industryAdapterId = adapter[0].id;
+    }
+  }
+
   await db.insert(discoveries).values({
     id,
     title: input.title,
@@ -58,9 +74,10 @@ export async function createDiscovery(
     seedLinks: input.seedLinks || [],
     status: DiscoveryStatus.DISCOVERY,
     createdByAgent: 1,
+    industryAdapterId: industryAdapterId,
   });
-  await logEvent(db, id, "created", { source: "agent", sourceType: input.sourceType });
-  return JSON.stringify({ success: true, discoveryId: id, title: input.title, status: "DISCOVERY" });
+  await logEvent(db, id, "created", { source: "agent", sourceType: input.sourceType, industryCode: input.industryCode });
+  return JSON.stringify({ success: true, discoveryId: id, title: input.title, status: "DISCOVERY", industryCode: input.industryCode || null });
 }
 
 export async function updateDiscovery(

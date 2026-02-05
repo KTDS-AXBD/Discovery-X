@@ -161,12 +161,16 @@ export const discoveries = sqliteTable(
 
     // Tags (F9)
     tags: text("tags", { mode: "json" }).$type<string[]>().default(sql`'[]'`),
+
+    // Industry Adapter (Strategic Evolution F1)
+    industryAdapterId: text("industry_adapter_id").references(() => industryAdapters.id),
   },
   (table) => ({
     statusIdx: index("idx_discoveries_status").on(table.status),
     ownerIdIdx: index("idx_discoveries_owner_id").on(table.ownerId),
     dueDateIdx: index("idx_discoveries_due_date").on(table.dueDate),
     revisitDateIdx: index("idx_discoveries_revisit_date").on(table.revisitDate),
+    industryIdx: index("idx_discoveries_industry_drizzle").on(table.industryAdapterId),
   })
 );
 
@@ -899,6 +903,189 @@ export const gateApprovals = sqliteTable(
 );
 
 // ============================================================================
+// INDUSTRY ADAPTER TABLES (Strategic Evolution F1)
+// ============================================================================
+
+export const IndustryCode = {
+  MANUFACTURING: "manufacturing",
+  FINANCE: "finance",
+  HEALTHCARE: "healthcare",
+  PUBLIC: "public",
+  ENERGY: "energy",
+  OTHER: "other",
+} as const;
+
+export const IndustryRuleType = {
+  VALIDATION: "validation",
+  SCORING: "scoring",
+  GATE_CRITERIA: "gate_criteria",
+  METHOD_RECOMMENDATION: "method_recommendation",
+} as const;
+
+export const industryAdapters = sqliteTable(
+  "industry_adapters",
+  {
+    id: text("id").primaryKey(),
+    code: text("code").notNull().unique(),
+    nameKo: text("name_ko").notNull(),
+    description: text("description"),
+    icon: text("icon"),
+    color: text("color").notNull().default("#6B7280"),
+    regulatoryFramework: text("regulatory_framework", { mode: "json" }).$type<string[]>(),
+    complianceRequirements: text("compliance_requirements", { mode: "json" }).$type<string[]>(),
+    defaultTimeboxDays: integer("default_timebox_days").default(28),
+    evidenceWeightModifiers: text("evidence_weight_modifiers", { mode: "json" }).$type<Record<string, number>>(),
+    parentAdapterId: text("parent_adapter_id").references((): any => industryAdapters.id),
+    enabled: integer("enabled").notNull().default(1),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    codeIdx: index("idx_industry_adapters_code_drizzle").on(table.code),
+    enabledIdx: index("idx_industry_adapters_enabled_drizzle").on(table.enabled),
+  })
+);
+
+export const industryRules = sqliteTable(
+  "industry_rules",
+  {
+    id: text("id").primaryKey(),
+    industryAdapterId: text("industry_adapter_id")
+      .notNull()
+      .references(() => industryAdapters.id, { onDelete: "cascade" }),
+    ruleType: text("rule_type").notNull(),
+    nameKo: text("name_ko").notNull(),
+    condition: text("condition", { mode: "json" }).$type<Record<string, unknown>>(),
+    action: text("action", { mode: "json" }).$type<Record<string, unknown>>(),
+    priority: integer("priority").default(0),
+    enabled: integer("enabled").notNull().default(1),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    adapterIdx: index("idx_industry_rules_adapter_drizzle").on(table.industryAdapterId),
+    typeIdx: index("idx_industry_rules_type_drizzle").on(table.ruleType),
+  })
+);
+
+// ============================================================================
+// DECISION LOG & ASSET TABLES (Strategic Evolution F3)
+// ============================================================================
+
+export const DecisionLogType = {
+  STAGE_TRANSITION: "stage_transition",
+  EVIDENCE_EVALUATION: "evidence_evaluation",
+  METHOD_SELECTION: "method_selection",
+  GATE_DECISION: "gate_decision",
+} as const;
+
+export const PatternType = {
+  SUCCESS: "success",
+  FAILURE: "failure",
+  DECISION: "decision",
+  WORKFLOW: "workflow",
+} as const;
+
+export const ReusableRuleType = {
+  VALIDATION: "validation",
+  RECOMMENDATION: "recommendation",
+  ALERT: "alert",
+  AUTOMATION: "automation",
+} as const;
+
+export const ActorType = {
+  AGENT: "agent",
+  USER: "user",
+  SYSTEM: "system",
+} as const;
+
+export const decisionLogs = sqliteTable(
+  "decision_logs",
+  {
+    id: text("id").primaryKey(),
+    discoveryId: text("discovery_id")
+      .notNull()
+      .references(() => discoveries.id, { onDelete: "cascade" }),
+    conversationId: text("conversation_id").references(() => conversations.id),
+    decisionType: text("decision_type").notNull(),
+    inputContext: text("input_context", { mode: "json" }).$type<Record<string, unknown>>(),
+    decisionResult: text("decision_result").notNull(),
+    confidenceScore: integer("confidence_score"),
+    rationale: text("rationale"),
+    actorType: text("actor_type").notNull().default("agent"),
+    actorId: text("actor_id"),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    archivedAt: integer("archived_at", { mode: "timestamp" }),
+    archiveBatchId: text("archive_batch_id"),
+  },
+  (table) => ({
+    discoveryIdx: index("idx_decision_logs_discovery_drizzle").on(table.discoveryId),
+    typeIdx: index("idx_decision_logs_type_drizzle").on(table.decisionType),
+    createdIdx: index("idx_decision_logs_created_drizzle").on(table.createdAt),
+  })
+);
+
+export const extractedPatterns = sqliteTable(
+  "extracted_patterns",
+  {
+    id: text("id").primaryKey(),
+    patternType: text("pattern_type").notNull(),
+    name: text("name").notNull(),
+    description: text("description"),
+    conditions: text("conditions", { mode: "json" }).$type<Record<string, unknown>>(),
+    frequency: integer("frequency").default(1),
+    sourceLogIds: text("source_log_ids", { mode: "json" }).$type<string[]>(),
+    industryAdapterId: text("industry_adapter_id").references(() => industryAdapters.id),
+    confidenceScore: integer("confidence_score"),
+    validatedAt: integer("validated_at", { mode: "timestamp" }),
+    validatedBy: text("validated_by").references(() => users.id),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    typeIdx: index("idx_extracted_patterns_type_drizzle").on(table.patternType),
+  })
+);
+
+export const reusableRules = sqliteTable(
+  "reusable_rules",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    ruleType: text("rule_type").notNull(),
+    conditionExpression: text("condition_expression", { mode: "json" }).$type<Record<string, unknown>>(),
+    actionTemplate: text("action_template", { mode: "json" }).$type<Record<string, unknown>>(),
+    applicableStages: text("applicable_stages", { mode: "json" }).$type<string[]>(),
+    industryAdapterId: text("industry_adapter_id").references(() => industryAdapters.id),
+    sourcePatternId: text("source_pattern_id").references(() => extractedPatterns.id),
+    sourceEvidenceIds: text("source_evidence_ids", { mode: "json" }).$type<string[]>(),
+    enabled: integer("enabled").notNull().default(1),
+    priority: integer("priority").default(0),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    typeIdx: index("idx_reusable_rules_type_drizzle").on(table.ruleType),
+    enabledIdx: index("idx_reusable_rules_enabled_drizzle").on(table.enabled),
+  })
+);
+
+// ============================================================================
 // TYPES
 // ============================================================================
 
@@ -991,3 +1178,18 @@ export type NewWebhookConfig = typeof webhookConfigs.$inferInsert;
 
 export type GateApproval = typeof gateApprovals.$inferSelect;
 export type NewGateApproval = typeof gateApprovals.$inferInsert;
+
+export type IndustryAdapter = typeof industryAdapters.$inferSelect;
+export type NewIndustryAdapter = typeof industryAdapters.$inferInsert;
+
+export type IndustryRule = typeof industryRules.$inferSelect;
+export type NewIndustryRule = typeof industryRules.$inferInsert;
+
+export type DecisionLog = typeof decisionLogs.$inferSelect;
+export type NewDecisionLog = typeof decisionLogs.$inferInsert;
+
+export type ExtractedPattern = typeof extractedPatterns.$inferSelect;
+export type NewExtractedPattern = typeof extractedPatterns.$inferInsert;
+
+export type ReusableRule = typeof reusableRules.$inferSelect;
+export type NewReusableRule = typeof reusableRules.$inferInsert;

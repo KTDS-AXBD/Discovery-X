@@ -41,6 +41,7 @@ import {
   getRecallQueue,
   generateDiscoveryDigest,
   compareDiscoveries,
+  getIndustryContext,
 } from "./tools/query-tools";
 import {
   listMethodPacks,
@@ -76,6 +77,16 @@ import {
   acknowledgeAlert,
   manageWebhook,
 } from "./tools/alert-tools";
+import {
+  generateAuditTrail,
+  checkRegulatoryCompliance,
+  packageEvidenceForAudit,
+  formatComplianceReport,
+} from "./tools/compliance-tools";
+import {
+  extractDecisionPattern,
+  applyReusableRule,
+} from "./tools/asset-tools";
 
 function generateId(): string {
   return crypto.randomUUID();
@@ -212,6 +223,23 @@ async function executeTool(
       return tagDiscovery(db, toolInput as Parameters<typeof tagDiscovery>[1]);
     case "remove_discovery_tag":
       return removeDiscoveryTag(db, toolInput as Parameters<typeof removeDiscoveryTag>[1]);
+    // Strategic Evolution F1: Industry Adapter
+    case "get_industry_context":
+      return getIndustryContext(db, toolInput as unknown as Parameters<typeof getIndustryContext>[1]);
+    // Strategic Evolution F3: Asset tools
+    case "extract_decision_pattern":
+      return extractDecisionPattern(db, toolInput as unknown as Parameters<typeof extractDecisionPattern>[1]);
+    case "apply_reusable_rule":
+      return applyReusableRule(db, toolInput as unknown as Parameters<typeof applyReusableRule>[1]);
+    // Strategic Evolution F5: Compliance tools
+    case "generate_audit_trail":
+      return generateAuditTrail(db, toolInput as unknown as Parameters<typeof generateAuditTrail>[1]);
+    case "check_regulatory_compliance":
+      return checkRegulatoryCompliance(db, toolInput as unknown as Parameters<typeof checkRegulatoryCompliance>[1]);
+    case "package_evidence_for_audit":
+      return packageEvidenceForAudit(db, toolInput as unknown as Parameters<typeof packageEvidenceForAudit>[1]);
+    case "format_compliance_report":
+      return formatComplianceReport(db, toolInput as unknown as Parameters<typeof formatComplianceReport>[1]);
     default:
       return JSON.stringify({ error: `알 수 없는 도구: ${toolName}` });
   }
