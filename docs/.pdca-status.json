@@ -1,10 +1,7 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-07T15:46:27.420Z",
+  "lastUpdated": "2026-02-08T00:00:00.000Z",
   "activeFeatures": [
-    "dx-strategic-evolution-p3",
-    "dx-strategic-evolution-p2",
-    "dx-strategic-evolution",
     "routes",
     "auth",
     "tools",
@@ -31,134 +28,31 @@
     "notifications",
     "embeddings"
   ],
-  "primaryFeature": "dx-strategic-evolution-p3",
+  "primaryFeature": null,
   "features": {
     "dx-strategic-evolution-p3": {
-      "phase": "do",
-      "phaseNumber": 3,
-      "matchRate": null,
-      "iterationCount": 0,
-      "requirements": [
-        "F6. Multi-Tenant 기반 구조"
-      ],
-      "documents": {
-        "plan": "docs/01-plan/features/dx-strategic-evolution-p3.plan.md",
-        "design": "docs/02-design/features/dx-strategic-evolution-p3.design.md"
-      },
-      "timestamps": {
-        "started": "2026-02-06T10:15:00.000Z",
-        "lastUpdated": "2026-02-06T10:45:00.000Z"
-      },
-      "source": "dx-strategic-evolution Phase 1+2 완료 → Phase 3 진행",
-      "scope": {
-        "features": [
-          "F6"
-        ],
-        "subPhases": [
-          "3-A: 기반 구축",
-          "3-B: 기능 테이블 확장",
-          "3-C: UI + Agent"
-        ],
-        "newTables": 2,
-        "alterTables": 25,
-        "newTools": 2,
-        "newRoutes": 4
-      }
+      "phase": "archived",
+      "matchRate": 94,
+      "iterationCount": 3,
+      "startedAt": "2026-02-06T10:15:00.000Z",
+      "archivedAt": "2026-02-08T00:00:00.000Z",
+      "archivedTo": "docs/archive/2026-02/dx-strategic-evolution-p3/"
     },
     "dx-strategic-evolution-p2": {
-      "phase": "completed",
-      "phaseNumber": 6,
+      "phase": "archived",
       "matchRate": 93.4,
       "iterationCount": 0,
-      "requirements": [
-        "F2. Shadow Mode 운영 검증 통합",
-        "F4. Value-up 시나리오 평가 엔진"
-      ],
-      "documents": {
-        "plan": "docs/01-plan/features/dx-strategic-evolution-p2.plan.md",
-        "design": "docs/02-design/features/dx-strategic-evolution-p2.design.md",
-        "analysis": "docs/03-analysis/dx-strategic-evolution-p2.analysis.md",
-        "report": "docs/04-report/dx-strategic-evolution-p2.report.md"
-      },
-      "timestamps": {
-        "started": "2026-02-06T08:40:00.000Z",
-        "lastUpdated": "2026-02-06T10:00:00.000Z",
-        "completedAt": "2026-02-06T10:00:00.000Z"
-      },
-      "source": "dx-strategic-evolution Phase 1 완료 → Phase 2 진행",
-      "scope": {
-        "features": [
-          "F2",
-          "F4"
-        ],
-        "tables": 6,
-        "tools": 7,
-        "crons": 1,
-        "routes": 4,
-        "components": 6
-      },
-      "implementation": {
-        "completedAt": "2026-02-06T09:25:00.000Z",
-        "schema": "6 tables (shadow_runs, shadow_configs, valueup_assessments, valueup_scores, valueup_scenarios, valueup_checklists)",
-        "agentTools": "7 new tools (shadow 3 + valueup 4) → total 62",
-        "crons": "1 (shadow-analyze) → total 8",
-        "routes": "4 (dashboard.shadow, valueup, valueup.$id, api.cron.shadow-analyze)",
-        "components": "6 (ShadowRunCard, ShadowStatsBar, AssessmentCard, ScoreDimension, ScenarioView, ChecklistProgress)",
-        "dashboardTab": "Shadow Mode (9th tab)",
-        "tests": "561 passed",
-        "build": "success (1,527KB)"
-      }
+      "startedAt": "2026-02-06T08:40:00.000Z",
+      "archivedAt": "2026-02-08T00:00:00.000Z",
+      "archivedTo": "docs/archive/2026-02/dx-strategic-evolution-p2/"
     },
     "dx-strategic-evolution": {
-      "phase": "completed",
-      "phaseNumber": 6,
+      "phase": "archived",
       "matchRate": 96.3,
       "iterationCount": 0,
-      "requirements": [
-        "F1. Industry Adapter 프레임워크",
-        "F2. Shadow Mode 운영 검증 통합",
-        "F3. AI 운영 로그 자산화",
-        "F4. Value-up 시나리오 평가 엔진",
-        "F5. 규제·감사 대응 Agent 고도화",
-        "F6. Multi-Tenant 기반 구조"
-      ],
-      "documents": {
-        "plan": "docs/01-plan/features/dx-strategic-evolution.plan.md",
-        "design": "docs/02-design/features/dx-strategic-evolution.design.md",
-        "analysis": "docs/03-analysis/dx-strategic-evolution.analysis.md",
-        "report": "docs/04-report/dx-strategic-evolution.report.md"
-      },
-      "timestamps": {
-        "started": "2026-02-05T07:00:00.000Z",
-        "lastUpdated": "2026-02-06T08:35:00.000Z",
-        "completedAt": "2026-02-06T08:35:00.000Z"
-      },
-      "source": "KT DS 미래 먹거리 Long List 검토 보고서",
-      "scope": {
-        "phase1": [
-          "F3",
-          "F1",
-          "F5"
-        ],
-        "phase2": [
-          "F2",
-          "F4"
-        ],
-        "phase3": [
-          "F6"
-        ]
-      },
-      "phase1Implementation": {
-        "completedAt": "2026-02-06T08:22:00.000Z",
-        "schema": "6 tables (industry_adapters, industry_rules, decision_logs, extracted_patterns, reusable_rules + discoveries.industry_adapter_id)",
-        "seeds": "5 adapters + 9 rules",
-        "agentTools": "7 new tools (compliance 4 + asset 2 + query 1) → total 53",
-        "crons": "2 (log-archive, pattern-extract)",
-        "routes": "3 (patterns, compliance, dashboard.assets)",
-        "components": "4 (IndustrySelector, AuditTimeline, ComplianceChecklist, PatternCard)",
-        "tests": "561 passed",
-        "build": "success"
-      }
+      "startedAt": "2026-02-05T07:00:00.000Z",
+      "archivedAt": "2026-02-08T00:00:00.000Z",
+      "archivedTo": "docs/archive/2026-02/dx-strategic-evolution/"
     },
     "routes": {
       "phase": "do",
