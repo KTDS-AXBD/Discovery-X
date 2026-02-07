@@ -26,7 +26,7 @@ const ROLE_VARIANTS: Record<string, "default" | "purple" | "warning" | "secondar
   viewer: "secondary",
 };
 
-export function MemberList({ members, currentUserId, ownerUserId, onRemove, onRoleChange }: MemberListProps) {
+export function MemberList({ members, currentUserId, ownerUserId, onRemove, onRoleChange: _onRoleChange }: MemberListProps) {
   const isOwner = currentUserId === ownerUserId;
 
   return (

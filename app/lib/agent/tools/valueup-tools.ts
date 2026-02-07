@@ -3,7 +3,7 @@
  * 4개 도구: create_valueup_assessment, run_ai_readiness_diagnosis, generate_valueup_scenario, generate_due_diligence_checklist
  */
 
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import type { DB } from "~/db";
 import {
   discoveries,

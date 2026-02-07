@@ -33,7 +33,6 @@ import {
   updatePremortemSchema,
   leanCanvasContentSchema,
   type LeanCanvasContent,
-  calculateLeanCanvasCompleteness,
 } from "~/features/venture/schemas/opportunity.schema";
 import { LeanCanvasEditor, LeanCanvasViewer } from "~/features/venture/ui/LeanCanvasEditor";
 
@@ -42,7 +41,6 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const secret = getSessionSecret(context.cloudflare.env);
   const ctx = await getSessionContext(request, db, secret);
   if (!ctx) return redirect("/login");
-  const user = ctx.user;
 
   const { sprintId } = params;
   if (!sprintId) {

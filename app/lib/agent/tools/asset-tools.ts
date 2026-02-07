@@ -3,15 +3,13 @@
  * 2개 도구: extract_decision_pattern, apply_reusable_rule
  */
 
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import type { DB } from "~/db";
 import {
   decisionLogs,
   extractedPatterns,
   reusableRules,
   discoveries,
-  evidence,
-  industryAdapters,
 } from "~/db/schema";
 
 // ── extract_decision_pattern ──────────────────────────────────────────────
@@ -123,7 +121,7 @@ export async function extractDecisionPattern(
       patternType: pattern.patternType,
       name: pattern.name,
       description: pattern.description,
-      conditions: { discoveryId: d.id, decisionTypes: Object.keys(clusters) } as any,
+      conditions: { discoveryId: d.id, decisionTypes: Object.keys(clusters) } as Record<string, unknown>,
       frequency: pattern.frequency,
       sourceLogIds: pattern.sourceLogIds,
       industryAdapterId: d.industryAdapterId,
@@ -229,7 +227,7 @@ export async function applyReusableRule(
   // 실제 적용
   const actionTemplate = r.actionTemplate as Record<string, unknown> | null;
 
-  let result: Record<string, unknown> = {
+  const result: Record<string, unknown> = {
     ruleId: r.id,
     ruleName: r.name,
     discoveryId: d.id,

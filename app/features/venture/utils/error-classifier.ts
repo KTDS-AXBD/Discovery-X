@@ -14,7 +14,6 @@ export type ErrorClassification = "retryable" | "repair" | "non-retryable";
  */
 export function classifyError(error: Error | string): ErrorClassification {
   const message = typeof error === "string" ? error : error.message;
-  const lowerMessage = message.toLowerCase();
 
   // Non-retryable 우선 (복구 불가)
   if (

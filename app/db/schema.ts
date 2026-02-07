@@ -1030,6 +1030,7 @@ export const industryAdapters = sqliteTable(
     complianceRequirements: text("compliance_requirements", { mode: "json" }).$type<string[]>(),
     defaultTimeboxDays: integer("default_timebox_days").default(28),
     evidenceWeightModifiers: text("evidence_weight_modifiers", { mode: "json" }).$type<Record<string, number>>(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     parentAdapterId: text("parent_adapter_id").references((): any => industryAdapters.id),
     enabled: integer("enabled").notNull().default(1),
     createdAt: integer("created_at", { mode: "timestamp" })

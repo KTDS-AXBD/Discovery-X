@@ -3,7 +3,7 @@
  * 4개 도구: generate_audit_trail, check_regulatory_compliance, package_evidence_for_audit, format_compliance_report
  */
 
-import { eq, desc, and, gte, lte } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import type { DB } from "~/db";
 import {
@@ -12,7 +12,6 @@ import {
   evidence,
   eventLogs,
   gatePackages,
-  gateApprovals,
   industryAdapters,
   industryRules,
   messages,
@@ -45,7 +44,7 @@ export async function generateAuditTrail(
   const format = input.format || "markdown";
 
   // 1. Event logs 수집
-  let eventsQuery = db
+  const eventsQuery = db
     .select()
     .from(eventLogs)
     .where(eq(eventLogs.discoveryId, input.discoveryId))
@@ -72,9 +71,8 @@ export async function generateAuditTrail(
     .where(eq(gatePackages.discoveryId, input.discoveryId));
 
   // 5. 대화 (선택)
-  let conversationEntries: Array<{ role: string; content: string; createdAt: Date | null }> = [];
   if (input.includeConversations) {
-    const msgs = await db
+    await db
       .select({
         role: messages.role,
         content: messages.content,
@@ -84,7 +82,6 @@ export async function generateAuditTrail(
       .where(eq(messages.discoveryId, input.discoveryId))
       .orderBy(messages.createdAt)
       .limit(100);
-    conversationEntries = msgs;
   }
 
   // 날짜 필터 적용
@@ -238,7 +235,7 @@ export async function checkRegulatoryCompliance(
     .where(eq(evidence.discoveryId, input.discoveryId));
 
   // 방법론 실행 조회
-  const methodRunsResult = await db
+  await db
     .select()
     .from(sql`method_runs`)
     .where(sql`discovery_id = ${input.discoveryId}`);

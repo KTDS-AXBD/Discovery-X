@@ -5,9 +5,9 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
-import { desc, eq, sql } from "drizzle-orm";
+import { desc } from "drizzle-orm";
 import { getDb } from "~/db";
-import { valueupAssessments, valueupScores, industryAdapters } from "~/db/schema";
+import { valueupAssessments, industryAdapters } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { tenantWhere } from "~/lib/query/tenant-scope";
 import { AppShell } from "~/components/layout/AppShell";

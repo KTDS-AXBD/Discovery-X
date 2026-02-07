@@ -2,7 +2,6 @@
  * 감사 추적 타임라인 컴포넌트 (Strategic Evolution F5)
  */
 
-import { cn } from "~/lib/utils/cn";
 
 interface TimelineEntry {
   time: string;

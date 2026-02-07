@@ -13,7 +13,6 @@ import {
   industryRules,
   evidence,
   eventLogs,
-  gatePackages,
 } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
@@ -131,7 +130,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 }
 
 export default function DiscoveryComplianceRoute() {
-  const { user, discovery, adapter, checks, overallCompliance, timeline, evidenceCount } =
+  const { user, discovery, adapter, checks, overallCompliance, timeline } =
     useLoaderData<typeof loader>();
 
   return (

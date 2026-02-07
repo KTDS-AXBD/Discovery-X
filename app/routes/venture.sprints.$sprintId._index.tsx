@@ -42,7 +42,6 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const secret = getSessionSecret(context.cloudflare.env);
   const ctx = await getSessionContext(request, db, secret);
   if (!ctx) return redirect("/login");
-  const user = ctx.user;
 
   const { sprintId } = params;
   if (!sprintId) {
@@ -103,7 +102,6 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   const secret = getSessionSecret(context.cloudflare.env);
   const ctx = await getSessionContext(request, db, secret);
   if (!ctx) return json({ error: "Unauthorized" }, { status: 401 });
-  const user = ctx.user;
 
   const { sprintId } = params;
   if (!sprintId) {

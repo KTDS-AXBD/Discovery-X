@@ -4,7 +4,7 @@
 
 import { eq, and } from "drizzle-orm";
 import type { DB } from "~/db";
-import { tenants, tenantMembers, users, discoveries, experiments, evidence } from "~/db/schema";
+import { tenants, tenantMembers, users, discoveries } from "~/db/schema";
 
 // ── get_tenant_info ──────────────────────────────────────────────────────────
 

@@ -3,7 +3,7 @@
  * 3개 도구: run_shadow_comparison, get_shadow_stats, analyze_shadow_deviation
  */
 
-import { eq, desc, and, gte, sql, count } from "drizzle-orm";
+import { eq, desc, and, gte, sql } from "drizzle-orm";
 import type { DB } from "~/db";
 import {
   discoveries,

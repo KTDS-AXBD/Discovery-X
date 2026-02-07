@@ -59,7 +59,6 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   const ctx = await getSessionContext(request, db, secret);
 
   if (!ctx) return redirect("/login");
-  const user = ctx.user;
 
   const { id } = params;
   if (!id) throw new Response("Not Found", { status: 404 });
