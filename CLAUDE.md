@@ -331,6 +331,7 @@ requireAdmin()        → JSON 403 (ADMIN만)
 | `/session-end [메모]` | Git 커밋 + SPEC.md 업데이트 |
 | `/deploy [--preview]` | CLAUDE.md 참조 기반 배포 |
 | `/lint` | 변경 파일 대상 ESLint + TypeScript 점검/수정 |
+| `/team <작업 설명>` | Agent Teams 병렬 작업 자동화 (tmux split pane) |
 
 ### SPEC.md 구조
 
