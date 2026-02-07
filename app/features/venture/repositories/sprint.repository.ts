@@ -26,7 +26,7 @@ import type {
 
 export async function createSprint(
   db: DB,
-  input: CreateSprintInput & { ownerId: string }
+  input: CreateSprintInput & { ownerId: string; tenantId?: string }
 ): Promise<VdSprint> {
   const id = crypto.randomUUID();
   const now = new Date();
@@ -36,6 +36,7 @@ export async function createSprint(
     name: input.name,
     description: input.description,
     ownerId: input.ownerId,
+    tenantId: input.tenantId,
     targetEndDate: input.targetEndDate,
     config: input.config,
     status: "DRAFT",
@@ -143,6 +144,10 @@ export async function listSprints(
 
   if (filter?.ownerId) {
     conditions.push(eq(vdSprints.ownerId, filter.ownerId));
+  }
+
+  if (filter?.tenantId) {
+    conditions.push(eq(vdSprints.tenantId, filter.tenantId));
   }
 
   if (filter?.fromDate) {

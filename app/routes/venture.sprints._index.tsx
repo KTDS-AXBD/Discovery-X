@@ -7,7 +7,7 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { Link, useLoaderData, useSearchParams } from "@remix-run/react";
 import { getDb } from "~/db";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { Button } from "~/components/ui/Button";
 import { Badge } from "~/components/ui/Badge";
@@ -22,17 +22,16 @@ import type { VdSprintStatusType } from "~/features/venture/types";
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
-
-  if (!user) {
-    return redirect("/login");
-  }
+  const ctx = await getSessionContext(request, db, secret);
+  if (!ctx) return redirect("/login");
+  const user = ctx.user;
 
   const url = new URL(request.url);
   const statusFilter = url.searchParams.get("status");
 
   const sprints = await listSprints(db, {
     status: statusFilter ? [statusFilter as VdSprintStatusType] : undefined,
+    tenantId: ctx.tenantId,
   });
 
   return json({ user, sprints, statusFilter });

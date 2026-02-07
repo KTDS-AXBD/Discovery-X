@@ -3,7 +3,7 @@ import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, Form, useNavigation, useActionData } from "@remix-run/react";
 import { eq, and } from "drizzle-orm";
 import { getDb } from "~/db";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import {
   discoveries,
   gatePackages,
@@ -31,8 +31,9 @@ import { formatDate } from "~/lib/format-date";
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env as unknown as Record<string, string>);
-  const user = await getUserFromSession(request, db, secret);
-  if (!user) return redirect("/login");
+  const ctx = await getSessionContext(request, db, secret);
+  if (!ctx) return redirect("/login");
+  const user = ctx.user;
 
   const { id } = params;
   if (!id) throw new Response("Not Found", { status: 404 });
@@ -101,8 +102,9 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 export async function action({ request, context, params }: ActionFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env as unknown as Record<string, string>);
-  const user = await getUserFromSession(request, db, secret);
-  if (!user) return redirect("/login");
+  const ctx = await getSessionContext(request, db, secret);
+  if (!ctx) return redirect("/login");
+  const user = ctx.user;
 
   const { id } = params;
   if (!id) throw new Response("Not Found", { status: 404 });

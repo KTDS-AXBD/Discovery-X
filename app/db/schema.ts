@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, index, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
 // ============================================================================
@@ -101,6 +101,79 @@ export const sessions = sqliteTable("sessions", {
     .default(sql`(unixepoch())`),
 });
 
+// ============================================================================
+// MULTI-TENANT (Phase 3)
+// ============================================================================
+
+export interface TenantSettings {
+  branding?: {
+    displayName?: string;
+    logoUrl?: string;
+    primaryColor?: string;
+  };
+  features?: {
+    shadowMode?: boolean;
+    valueupEngine?: boolean;
+    radarEnabled?: boolean;
+    maxDiscoveries?: number;
+    maxUsers?: number;
+  };
+  agentOverrides?: {
+    modelId?: string;
+    maxRounds?: number;
+    autonomyLevel?: number;
+  };
+}
+
+export const tenants = sqliteTable(
+  "tenants",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    slug: text("slug").notNull().unique(),
+    settings: text("settings", { mode: "json" }).$type<TenantSettings>().default({}),
+    plan: text("plan").notNull().default("free"),
+    status: text("status").notNull().default("active"),
+    ownerUserId: text("owner_user_id").notNull().references(() => users.id),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    slugIdx: uniqueIndex("idx_tenants_slug_drizzle").on(table.slug),
+    statusIdx: index("idx_tenants_status_drizzle").on(table.status),
+  })
+);
+
+export const tenantMembers = sqliteTable(
+  "tenant_members",
+  {
+    id: text("id").primaryKey(),
+    tenantId: text("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role").notNull().default("member"),
+    joinedAt: integer("joined_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    invitedBy: text("invited_by").references(() => users.id),
+  },
+  (table) => ({
+    tenantIdx: index("idx_tenant_members_tenant_drizzle").on(table.tenantId),
+    userIdx: index("idx_tenant_members_user_drizzle").on(table.userId),
+    uniqueIdx: uniqueIndex("idx_tenant_members_unique_drizzle").on(
+      table.tenantId,
+      table.userId
+    ),
+  })
+);
+
 export const discoveries = sqliteTable(
   "discoveries",
   {
@@ -164,6 +237,9 @@ export const discoveries = sqliteTable(
 
     // Industry Adapter (Strategic Evolution F1)
     industryAdapterId: text("industry_adapter_id").references(() => industryAdapters.id),
+
+    // Multi-Tenant (Phase 3)
+    tenantId: text("tenant_id").references(() => tenants.id),
   },
   (table) => ({
     statusIdx: index("idx_discoveries_status").on(table.status),
@@ -171,6 +247,7 @@ export const discoveries = sqliteTable(
     dueDateIdx: index("idx_discoveries_due_date").on(table.dueDate),
     revisitDateIdx: index("idx_discoveries_revisit_date").on(table.revisitDate),
     industryIdx: index("idx_discoveries_industry_drizzle").on(table.industryAdapterId),
+    tenantIdx: index("idx_discoveries_tenant_drizzle").on(table.tenantId),
   })
 );
 
@@ -291,7 +368,12 @@ export const radarSources = sqliteTable("radar_sources", {
   updatedAt: integer("updated_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),
-});
+
+  // Multi-Tenant (Phase 3)
+  tenantId: text("tenant_id").references(() => tenants.id),
+}, (table) => ({
+  tenantIdx: index("idx_radar_sources_tenant_drizzle").on(table.tenantId),
+}));
 
 export const radarItems = sqliteTable(
   "radar_items",
@@ -336,6 +418,9 @@ export const radarRuns = sqliteTable(
     seedsCreated: integer("seeds_created").default(0),
     errors: text("errors", { mode: "json" }).$type<string[]>(),
     status: text("status").notNull().default(RadarRunStatus.RUNNING),
+
+    // Multi-Tenant (Phase 3)
+    tenantId: text("tenant_id").references(() => tenants.id),
   },
   (table) => ({
     statusIdx: index("idx_radar_runs_status").on(table.status),
@@ -375,10 +460,14 @@ export const conversations = sqliteTable(
     updatedAt: integer("updated_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),
+
+    // Multi-Tenant (Phase 3)
+    tenantId: text("tenant_id").references(() => tenants.id),
   },
   (table) => ({
     userIdIdx: index("idx_conversations_user_id").on(table.userId),
     updatedAtIdx: index("idx_conversations_updated_at").on(table.updatedAt),
+    tenantIdx: index("idx_conversations_tenant_drizzle").on(table.tenantId),
   })
 );
 
@@ -829,6 +918,9 @@ export const alertRules = sqliteTable(
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),
+
+    // Multi-Tenant (Phase 3)
+    tenantId: text("tenant_id").references(() => tenants.id),
   },
   (table) => ({
     alertTypeIdx: index("idx_alert_rules_alert_type").on(table.alertType),
@@ -871,6 +963,9 @@ export const webhookConfigs = sqliteTable(
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),
+
+    // Multi-Tenant (Phase 3)
+    tenantId: text("tenant_id").references(() => tenants.id),
   },
   (table) => ({
     enabledIdx: index("idx_webhook_configs_enabled").on(table.enabled),
@@ -943,6 +1038,9 @@ export const industryAdapters = sqliteTable(
     updatedAt: integer("updated_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),
+
+    // Multi-Tenant (Phase 3)
+    tenantId: text("tenant_id").references(() => tenants.id),
   },
   (table) => ({
     codeIdx: index("idx_industry_adapters_code_drizzle").on(table.code),
@@ -1086,11 +1184,274 @@ export const reusableRules = sqliteTable(
 );
 
 // ============================================================================
+// F2: Shadow Mode (Strategic Evolution Phase 2)
+// ============================================================================
+
+export const ShadowTriggerType = {
+  GATE_DECISION: "gate_decision",
+  STAGE_TRANSITION: "stage_transition",
+  EVIDENCE_EVALUATION: "evidence_evaluation",
+  METHOD_SELECTION: "method_selection",
+} as const;
+
+export const ShadowMatchResult = {
+  MATCH: "match",
+  PARTIAL: "partial",
+  MISMATCH: "mismatch",
+  PENDING: "pending",
+} as const;
+
+export const ShadowDeviationCategory = {
+  RISK_TOLERANCE: "risk_tolerance",
+  INFORMATION_GAP: "information_gap",
+  METHODOLOGY: "methodology",
+  TIMING: "timing",
+  DOMAIN_EXPERTISE: "domain_expertise",
+} as const;
+
+export const shadowRuns = sqliteTable(
+  "shadow_runs",
+  {
+    id: text("id").primaryKey(),
+    discoveryId: text("discovery_id")
+      .notNull()
+      .references(() => discoveries.id, { onDelete: "cascade" }),
+    experimentId: text("experiment_id").references(() => experiments.id),
+
+    triggerType: text("trigger_type").notNull(),
+    triggerRefId: text("trigger_ref_id"),
+
+    baselineDecision: text("baseline_decision", { mode: "json" })
+      .notNull()
+      .$type<{ action: string; rationale?: string; actor?: string }>(),
+    aiSuggestion: text("ai_suggestion", { mode: "json" })
+      .notNull()
+      .$type<{ action: string; rationale?: string; confidence?: number }>(),
+    contextSnapshot: text("context_snapshot", { mode: "json" }).$type<Record<string, unknown>>(),
+
+    matchResult: text("match_result").notNull().default("pending"),
+    matchScore: integer("match_score"),
+    deviationAnalysis: text("deviation_analysis", { mode: "json" }).$type<{
+      category?: string;
+      severity?: string;
+      description?: string;
+      suggestion?: string;
+    }>(),
+    deviationCategory: text("deviation_category"),
+
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    analyzedAt: integer("analyzed_at", { mode: "timestamp" }),
+    reviewedAt: integer("reviewed_at", { mode: "timestamp" }),
+    reviewedBy: text("reviewed_by").references(() => users.id),
+  },
+  (table) => ({
+    discoveryIdx: index("idx_shadow_runs_discovery_drizzle").on(table.discoveryId),
+    triggerIdx: index("idx_shadow_runs_trigger_drizzle").on(table.triggerType),
+    resultIdx: index("idx_shadow_runs_result_drizzle").on(table.matchResult),
+    createdIdx: index("idx_shadow_runs_created_drizzle").on(table.createdAt),
+  })
+);
+
+export const shadowConfigs = sqliteTable(
+  "shadow_configs",
+  {
+    id: text("id").primaryKey(),
+    discoveryId: text("discovery_id").references(() => discoveries.id, { onDelete: "cascade" }),
+
+    triggerTypes: text("trigger_types", { mode: "json" })
+      .notNull()
+      .$type<string[]>()
+      .default(sql`'["gate_decision","stage_transition"]'`),
+    enabled: integer("enabled").notNull().default(1),
+    autoAnalyze: integer("auto_analyze").notNull().default(1),
+
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    createdBy: text("created_by").references(() => users.id),
+  },
+  (table) => ({
+    discoveryIdx: index("idx_shadow_configs_discovery_drizzle").on(table.discoveryId),
+    enabledIdx: index("idx_shadow_configs_enabled_drizzle").on(table.enabled),
+  })
+);
+
+// ============================================================================
+// F4: Value-up Engine (Strategic Evolution Phase 2)
+// ============================================================================
+
+export const ValueupAssessmentType = {
+  ACQUISITION: "acquisition",
+  PARTNERSHIP: "partnership",
+  INVESTMENT: "investment",
+  TRANSFORMATION: "transformation",
+} as const;
+
+export const ValueupStatus = {
+  DRAFT: "draft",
+  IN_PROGRESS: "in_progress",
+  COMPLETED: "completed",
+  ARCHIVED: "archived",
+} as const;
+
+export const ValueupDimension = {
+  AI_READINESS: "ai_readiness",
+  MARKET_POSITION: "market_position",
+  TECH_MATURITY: "tech_maturity",
+  CULTURE_FIT: "culture_fit",
+  FINANCIAL_HEALTH: "financial_health",
+  REGULATORY_COMPLIANCE: "regulatory_compliance",
+} as const;
+
+export const ValueupScenarioType = {
+  OPTIMISTIC: "optimistic",
+  BASE: "base",
+  PESSIMISTIC: "pessimistic",
+} as const;
+
+export const ValueupChecklistType = {
+  DUE_DILIGENCE: "due_diligence",
+  PMI: "pmi",
+  REGULATORY: "regulatory",
+  TECHNICAL: "technical",
+} as const;
+
+export const valueupAssessments = sqliteTable(
+  "valueup_assessments",
+  {
+    id: text("id").primaryKey(),
+    discoveryId: text("discovery_id").references(() => discoveries.id, { onDelete: "set null" }),
+    industryAdapterId: text("industry_adapter_id").references(() => industryAdapters.id),
+
+    targetName: text("target_name").notNull(),
+    targetDescription: text("target_description"),
+    targetProfile: text("target_profile", { mode: "json" }).$type<Record<string, unknown>>(),
+    assessmentType: text("assessment_type").notNull(),
+
+    status: text("status").notNull().default("draft"),
+    overallScore: integer("overall_score"),
+
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    completedAt: integer("completed_at", { mode: "timestamp" }),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => users.id),
+
+    // Multi-Tenant (Phase 3)
+    tenantId: text("tenant_id").references(() => tenants.id),
+  },
+  (table) => ({
+    discoveryIdx: index("idx_valueup_assessments_discovery_drizzle").on(table.discoveryId),
+    statusIdx: index("idx_valueup_assessments_status_drizzle").on(table.status),
+    industryIdx: index("idx_valueup_assessments_industry_drizzle").on(table.industryAdapterId),
+    tenantIdx: index("idx_valueup_assessments_tenant_drizzle").on(table.tenantId),
+  })
+);
+
+export const valueupScores = sqliteTable(
+  "valueup_scores",
+  {
+    id: text("id").primaryKey(),
+    assessmentId: text("assessment_id")
+      .notNull()
+      .references(() => valueupAssessments.id, { onDelete: "cascade" }),
+
+    dimension: text("dimension").notNull(),
+    score: integer("score").notNull(),
+    evidenceSummary: text("evidence_summary"),
+    autoScored: integer("auto_scored").notNull().default(1),
+
+    scoredAt: integer("scored_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    assessmentIdx: index("idx_valueup_scores_assessment_drizzle").on(table.assessmentId),
+    dimensionIdx: index("idx_valueup_scores_dimension_drizzle").on(table.dimension),
+  })
+);
+
+export const valueupScenarios = sqliteTable(
+  "valueup_scenarios",
+  {
+    id: text("id").primaryKey(),
+    assessmentId: text("assessment_id")
+      .notNull()
+      .references(() => valueupAssessments.id, { onDelete: "cascade" }),
+
+    scenarioType: text("scenario_type").notNull(),
+    transformationPlan: text("transformation_plan", { mode: "json" }).$type<
+      Array<{ phase: string; duration: string; actions: string[]; milestones: string[] }>
+    >(),
+    valueProjection: text("value_projection", { mode: "json" }).$type<
+      Array<{ month: number; revenue: string; cost?: string; margin?: string; note?: string }>
+    >(),
+    riskFactors: text("risk_factors", { mode: "json" }).$type<
+      Array<{ factor: string; probability: number; impact: number; mitigation: string }>
+    >(),
+    keyAssumptions: text("key_assumptions", { mode: "json" }).$type<
+      Array<{ assumption: string; confidence: number; validationMethod: string }>
+    >(),
+
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    assessmentIdx: index("idx_valueup_scenarios_assessment_drizzle").on(table.assessmentId),
+    typeIdx: index("idx_valueup_scenarios_type_drizzle").on(table.scenarioType),
+  })
+);
+
+export const valueupChecklists = sqliteTable(
+  "valueup_checklists",
+  {
+    id: text("id").primaryKey(),
+    assessmentId: text("assessment_id")
+      .notNull()
+      .references(() => valueupAssessments.id, { onDelete: "cascade" }),
+
+    checklistType: text("checklist_type").notNull(),
+    items: text("items", { mode: "json" })
+      .notNull()
+      .$type<Array<{ label: string; checked: boolean; note?: string; priority?: string }>>(),
+    progress: integer("progress").notNull().default(0),
+
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    assessmentIdx: index("idx_valueup_checklists_assessment_drizzle").on(table.assessmentId),
+    typeIdx: index("idx_valueup_checklists_type_drizzle").on(table.checklistType),
+  })
+);
+
+// ============================================================================
 // TYPES
 // ============================================================================
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
+
+export type Tenant = typeof tenants.$inferSelect;
+export type NewTenant = typeof tenants.$inferInsert;
+
+export type TenantMember = typeof tenantMembers.$inferSelect;
+export type NewTenantMember = typeof tenantMembers.$inferInsert;
 
 export type Session = typeof sessions.$inferSelect;
 export type NewSession = typeof sessions.$inferInsert;
@@ -1193,3 +1554,21 @@ export type NewExtractedPattern = typeof extractedPatterns.$inferInsert;
 
 export type ReusableRule = typeof reusableRules.$inferSelect;
 export type NewReusableRule = typeof reusableRules.$inferInsert;
+
+export type ShadowRun = typeof shadowRuns.$inferSelect;
+export type NewShadowRun = typeof shadowRuns.$inferInsert;
+
+export type ShadowConfig = typeof shadowConfigs.$inferSelect;
+export type NewShadowConfig = typeof shadowConfigs.$inferInsert;
+
+export type ValueupAssessment = typeof valueupAssessments.$inferSelect;
+export type NewValueupAssessment = typeof valueupAssessments.$inferInsert;
+
+export type ValueupScore = typeof valueupScores.$inferSelect;
+export type NewValueupScore = typeof valueupScores.$inferInsert;
+
+export type ValueupScenario = typeof valueupScenarios.$inferSelect;
+export type NewValueupScenario = typeof valueupScenarios.$inferInsert;
+
+export type ValueupChecklist = typeof valueupChecklists.$inferSelect;
+export type NewValueupChecklist = typeof valueupChecklists.$inferInsert;

@@ -3,7 +3,7 @@ import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries, experiments, eventLogs } from "~/db/schema";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Card, CardContent } from "~/components/ui/Card";
@@ -20,11 +20,12 @@ import { formatDate } from "~/lib/format-date";
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
+  const ctx = await getSessionContext(request, db, secret);
 
-  if (!user) {
+  if (!ctx) {
     return redirect("/login");
   }
+  const user = ctx.user;
 
   const { id } = params;
   if (!id) {
@@ -69,11 +70,12 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 export async function action({ request, context, params }: ActionFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
+  const ctx = await getSessionContext(request, db, secret);
 
-  if (!user) {
+  if (!ctx) {
     return redirect("/login");
   }
+  const user = ctx.user;
 
   const { id } = params;
   if (!id) {

@@ -1,6 +1,7 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { discoveries, users } from "~/db/schema";
+import { discoveries, users, tenants, tenantMembers } from "~/db/schema";
+import { eq } from "drizzle-orm";
 import { createEmailClient } from "~/lib/notifications/email";
 import { buildWeeklySummaryEmail } from "~/lib/notifications/templates";
 import { ACTIVE_STATUSES } from "~/lib/constants/status";
@@ -26,63 +27,82 @@ export async function runWeeklySummary(env: CronEnv): Promise<{ sent: number; er
   const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const STAGE_SLA_DAYS = 14;
 
-  // Get all discoveries
-  const allDiscoveries = await db.select().from(discoveries);
+  // Get all active tenants
+  const activeTenants = await db
+    .select({ id: tenants.id })
+    .from(tenants)
+    .where(eq(tenants.status, "active"));
 
-  // Active discoveries
-  const activeStatuses = new Set<string>(ACTIVE_STATUSES);
-  const activeDiscoveries = allDiscoveries.filter((d) => activeStatuses.has(d.status));
+  for (const tenant of activeTenants) {
+    const tenantId = tenant.id;
 
-  // Status counts
-  const statusCounts: Record<string, number> = {};
-  for (const d of activeDiscoveries) {
-    statusCounts[d.status] = (statusCounts[d.status] || 0) + 1;
-  }
+    // Get discoveries for this tenant
+    const allDiscoveries = await db
+      .select()
+      .from(discoveries)
+      .where(eq(discoveries.tenantId, tenantId));
 
-  // Overdue count
-  const overdueCount = activeDiscoveries.filter((d) => d.dueDate && new Date(d.dueDate) < now).length;
+    // Active discoveries
+    const activeStatuses = new Set<string>(ACTIVE_STATUSES);
+    const activeDiscoveries = allDiscoveries.filter((d) => activeStatuses.has(d.status));
 
-  // Stalled count (> 14 days in current stage)
-  const stalledCount = activeDiscoveries.filter((d) => {
-    if (!d.stageUpdatedAt) return false;
-    const days = (now.getTime() - new Date(d.stageUpdatedAt).getTime()) / (1000 * 60 * 60 * 24);
-    return days > STAGE_SLA_DAYS;
-  }).length;
+    // Status counts
+    const statusCounts: Record<string, number> = {};
+    for (const d of activeDiscoveries) {
+      statusCounts[d.status] = (statusCounts[d.status] || 0) + 1;
+    }
 
-  // New this week
-  const newThisWeek = allDiscoveries.filter(
-    (d) => d.createdAt && new Date(d.createdAt) >= oneWeekAgo
-  ).length;
+    // Overdue count
+    const overdueCount = activeDiscoveries.filter((d) => d.dueDate && new Date(d.dueDate) < now).length;
 
-  // Completed this week (HANDOFF or DROP decided this week)
-  const completedThisWeek = allDiscoveries.filter((d) => {
-    if (d.status !== "HANDOFF" && d.status !== "DROP") return false;
-    if (!d.decidedAt) return false;
-    return new Date(d.decidedAt) >= oneWeekAgo;
-  }).length;
+    // Stalled count (> 14 days in current stage)
+    const stalledCount = activeDiscoveries.filter((d) => {
+      if (!d.stageUpdatedAt) return false;
+      const days = (now.getTime() - new Date(d.stageUpdatedAt).getTime()) / (1000 * 60 * 60 * 24);
+      return days > STAGE_SLA_DAYS;
+    }).length;
 
-  const summaryData = {
-    totalActive: activeDiscoveries.length,
-    statusCounts,
-    overdueCount,
-    stalledCount,
-    newThisWeek,
-    completedThisWeek,
-  };
+    // New this week
+    const newThisWeek = allDiscoveries.filter(
+      (d) => d.createdAt && new Date(d.createdAt) >= oneWeekAgo
+    ).length;
 
-  const { subject, html } = buildWeeklySummaryEmail(summaryData);
+    // Completed this week (HANDOFF or DROP decided this week)
+    const completedThisWeek = allDiscoveries.filter((d) => {
+      if (d.status !== "HANDOFF" && d.status !== "DROP") return false;
+      if (!d.decidedAt) return false;
+      return new Date(d.decidedAt) >= oneWeekAgo;
+    }).length;
 
-  // Send to all non-system users
-  const allUsers = await db.select().from(users);
-  const recipients = allUsers
-    .filter((u) => !u.email.endsWith("@system"))
-    .map((u) => u.email);
+    const summaryData = {
+      totalActive: activeDiscoveries.length,
+      statusCounts,
+      overdueCount,
+      stalledCount,
+      newThisWeek,
+      completedThisWeek,
+    };
 
-  for (const email of recipients) {
-    const result = await emailClient.send({ to: email, subject, html });
-    if (result.success) sent++;
-    else if (result.error) errors.push(`weeklySummary→${email}: ${result.error}`);
-  }
+    const { subject, html } = buildWeeklySummaryEmail(summaryData);
+
+    // Send to tenant members only
+    const tenantMemberRows = await db
+      .select({ userId: tenantMembers.userId })
+      .from(tenantMembers)
+      .where(eq(tenantMembers.tenantId, tenantId));
+    const tenantUserIds = new Set(tenantMemberRows.map((m) => m.userId));
+
+    const allUsers = await db.select().from(users);
+    const recipients = allUsers
+      .filter((u) => tenantUserIds.has(u.id) && !u.email.endsWith("@system"))
+      .map((u) => u.email);
+
+    for (const email of recipients) {
+      const result = await emailClient.send({ to: email, subject, html });
+      if (result.success) sent++;
+      else if (result.error) errors.push(`weeklySummary→${email}: ${result.error}`);
+    }
+  } // end tenant loop
 
   return { sent, errors };
 }

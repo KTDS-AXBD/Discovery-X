@@ -7,7 +7,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, Link, useActionData, useLoaderData, useNavigation } from "@remix-run/react";
 import { getDb } from "~/db";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { Button } from "~/components/ui/Button";
 import { createSprint, createSprintScope } from "~/features/venture/repositories/sprint.repository";
@@ -21,11 +21,9 @@ import { NextStepGuide } from "~/components/venture/NextStepGuide";
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
-
-  if (!user) {
-    return redirect("/login");
-  }
+  const ctx = await getSessionContext(request, db, secret);
+  if (!ctx) return redirect("/login");
+  const user = ctx.user;
 
   return json({
     user,
@@ -37,11 +35,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 export async function action({ request, context }: ActionFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
-
-  if (!user) {
-    return redirect("/login");
-  }
+  const ctx = await getSessionContext(request, db, secret);
+  if (!ctx) return json({ error: "Unauthorized" }, { status: 401 });
+  const user = ctx.user;
 
   const formData = await request.formData();
 
@@ -83,6 +79,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const sprint = await createSprint(db, {
       ...parseResult.data,
       ownerId: user.id,
+      tenantId: ctx.tenantId,
     });
 
     // 산업 범위 생성

@@ -10,7 +10,7 @@ import {
   contextSnapshots,
   ontologyTypes,
 } from "~/db/schema";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { Button } from "~/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
@@ -19,9 +19,10 @@ import { GraphViewer } from "~/components/graph/GraphViewer";
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
+  const ctx = await getSessionContext(request, db, secret);
 
-  if (!user) return redirect("/login");
+  if (!ctx) return redirect("/login");
+  const user = ctx.user;
 
   const { id } = params;
   if (!id) throw new Response("Not Found", { status: 404 });
@@ -55,9 +56,10 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 export async function action({ request, context, params }: ActionFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
+  const ctx = await getSessionContext(request, db, secret);
 
-  if (!user) return redirect("/login");
+  if (!ctx) return redirect("/login");
+  const user = ctx.user;
 
   const { id } = params;
   if (!id) throw new Response("Not Found", { status: 404 });

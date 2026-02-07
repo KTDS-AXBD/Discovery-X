@@ -7,20 +7,21 @@ import { json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { alerts } from "~/db/schema";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { eq, desc } from "drizzle-orm";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
+import { eq, desc, sql } from "drizzle-orm";
 import { AlertList } from "~/components/dashboard/AlertList";
 import { Badge } from "~/components/ui/Badge";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
-  if (!user) return json({ alerts: [], counts: { total: 0, unack: 0, critical: 0 } });
+  const ctx = await getSessionContext(request, db, secret);
+  if (!ctx) return json({ alerts: [], counts: { total: 0, unack: 0, critical: 0 } });
 
   const allAlerts = await db
     .select()
     .from(alerts)
+    .where(sql`${alerts.discoveryId} IN (SELECT id FROM discoveries WHERE tenant_id = ${ctx.tenantId})`)
     .orderBy(desc(alerts.firedAt))
     .limit(100);
 
@@ -46,8 +47,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 export async function action({ request, context }: ActionFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
-  if (!user) return json({ error: "Unauthorized" }, { status: 401 });
+  const ctx = await getSessionContext(request, db, secret);
+  if (!ctx) return json({ error: "Unauthorized" }, { status: 401 });
+  const user = ctx.user;
 
   const formData = await request.formData();
   const actionType = formData.get("_action");

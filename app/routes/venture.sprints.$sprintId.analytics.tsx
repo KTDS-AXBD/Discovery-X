@@ -7,7 +7,7 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { Badge } from "~/components/ui/Badge";
 import { getSprintById } from "~/features/venture/repositories/sprint.repository";
 import {
@@ -36,11 +36,9 @@ const RECOMMENDATION_CONFIG: Record<VdRecommendationType, { label: string; color
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
-
-  if (!user) {
-    return redirect("/login");
-  }
+  const ctx = await getSessionContext(request, db, secret);
+  if (!ctx) return redirect("/login");
+  const user = ctx.user;
 
   const { sprintId } = params;
   if (!sprintId) {

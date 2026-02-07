@@ -7,8 +7,8 @@
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { discoveries, agentConfig, conversations } from "~/db/schema";
-import { eq, inArray } from "drizzle-orm";
+import { discoveries, agentConfig, conversations, tenants } from "~/db/schema";
+import { eq, inArray, and } from "drizzle-orm";
 import { ACTIVE_STATUSES } from "~/lib/constants/status";
 import { executeAgentTurn } from "~/lib/agent/executor";
 import { formatDate } from "~/lib/format-date";
@@ -42,56 +42,91 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ message: "Agent autonomy level too low for autonomous review", level: autonomyLevel });
   }
 
-  // Find active discoveries past 50% of their time-box
+  // Get all active tenants
+  const activeTenants = await db
+    .select({ id: tenants.id })
+    .from(tenants)
+    .where(eq(tenants.status, "active"));
+
   const now = new Date();
-  const openDiscoveries = await db
-    .select()
-    .from(discoveries)
-    .where(inArray(discoveries.status, [...ACTIVE_STATUSES]));
+  let totalReviewed = 0;
+  let totalToolCalls = 0;
+  const totalTokensUsed = { input: 0, output: 0 };
+  const reviewErrors: string[] = [];
 
-  const needsReview = openDiscoveries.filter((d) => {
-    if (!d.dueDate || !d.createdAt) return false;
-    const created = new Date(d.createdAt).getTime();
-    const due = new Date(d.dueDate).getTime();
-    const elapsed = now.getTime() - created;
-    const total = due - created;
-    return total > 0 && elapsed / total >= 0.5;
-  });
+  for (const tenant of activeTenants) {
+    const tenantId = tenant.id;
 
-  if (needsReview.length === 0) {
+    // Find active discoveries past 50% of their time-box for this tenant
+    const openDiscoveries = await db
+      .select()
+      .from(discoveries)
+      .where(and(
+        inArray(discoveries.status, [...ACTIVE_STATUSES]),
+        eq(discoveries.tenantId, tenantId)
+      ));
+
+    const needsReview = openDiscoveries.filter((d) => {
+      if (!d.dueDate || !d.createdAt) return false;
+      const created = new Date(d.createdAt).getTime();
+      const due = new Date(d.dueDate).getTime();
+      const elapsed = now.getTime() - created;
+      const total = due - created;
+      return total > 0 && elapsed / total >= 0.5;
+    });
+
+    if (needsReview.length === 0) {
+      continue;
+    }
+
+    // Create a system conversation for agent review
+    const conversationId = crypto.randomUUID();
+    await db.insert(conversations).values({
+      id: conversationId,
+      userId: "system-agent",
+      title: `자율 리뷰 — ${formatDate(now)}`,
+      tenantId,
+    });
+
+    const reviewPrompt = [
+      `오늘 자율 리뷰를 시작합니다. 리뷰 대상 Discovery ${needsReview.length}건:`,
+      ...needsReview.map((d) =>
+        `- [${d.id.slice(0, 8)}] ${d.title} (기한: ${d.dueDate ? formatDate(d.dueDate) : "없음"})`
+      ),
+      "",
+      "각 Discovery의 상세를 확인하고, 실험/근거를 분석하여 적절한 행동을 취해주세요.",
+      "필요시 상태 전환(NEXT/NOT_NOW/DEAD_END)을 자율적으로 수행하세요.",
+    ].join("\n");
+
+    try {
+      const result = await executeAgentTurn(db, apiKey, conversationId, reviewPrompt);
+      totalReviewed += needsReview.length;
+      totalToolCalls += result.toolCalls.length;
+      totalTokensUsed.input += result.tokensUsed.input;
+      totalTokensUsed.output += result.tokensUsed.output;
+    } catch (error) {
+      reviewErrors.push(`tenant ${tenantId}: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  } // end tenant loop
+
+  if (totalReviewed === 0 && reviewErrors.length === 0) {
     return json({ message: "No discoveries need review", reviewed: 0 });
   }
 
-  // Create a system conversation for agent review
-  const conversationId = crypto.randomUUID();
-  await db.insert(conversations).values({
-    id: conversationId,
-    userId: "system-agent",
-    title: `자율 리뷰 — ${formatDate(now)}`,
-  });
-
-  const reviewPrompt = [
-    `오늘 자율 리뷰를 시작합니다. 리뷰 대상 Discovery ${needsReview.length}건:`,
-    ...needsReview.map((d) =>
-      `- [${d.id.slice(0, 8)}] ${d.title} (기한: ${d.dueDate ? formatDate(d.dueDate) : "없음"})`
-    ),
-    "",
-    "각 Discovery의 상세를 확인하고, 실험/근거를 분석하여 적절한 행동을 취해주세요.",
-    "필요시 상태 전환(NEXT/NOT_NOW/DEAD_END)을 자율적으로 수행하세요.",
-  ].join("\n");
-
-  try {
-    const result = await executeAgentTurn(db, apiKey, conversationId, reviewPrompt);
+  if (reviewErrors.length > 0) {
     return json({
-      message: "Agent review completed",
-      reviewed: needsReview.length,
-      toolCalls: result.toolCalls.length,
-      tokensUsed: result.tokensUsed,
+      message: "Agent review completed with errors",
+      reviewed: totalReviewed,
+      toolCalls: totalToolCalls,
+      tokensUsed: totalTokensUsed,
+      errors: reviewErrors,
     });
-  } catch (error) {
-    return json({
-      error: "Agent review failed",
-      message: error instanceof Error ? error.message : "Unknown error",
-    }, { status: 500 });
   }
+
+  return json({
+    message: "Agent review completed",
+    reviewed: totalReviewed,
+    toolCalls: totalToolCalls,
+    tokensUsed: totalTokensUsed,
+  });
 }

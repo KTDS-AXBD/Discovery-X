@@ -5,7 +5,7 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
-import { sql, eq, desc } from "drizzle-orm";
+import { sql, eq, desc, and } from "drizzle-orm";
 import { getDb } from "~/db";
 import {
   decisionLogs,
@@ -13,20 +13,21 @@ import {
   reusableRules,
   industryAdapters,
 } from "~/db/schema";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import PatternCard from "~/components/patterns/PatternCard";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
-  if (!user) return redirect("/login");
+  const ctx = await getSessionContext(request, db, secret);
+  if (!ctx) return redirect("/login");
 
   // 통계 조회
   const [logStats] = await db
     .select({ count: sql<number>`count(*)` })
-    .from(decisionLogs);
+    .from(decisionLogs)
+    .where(sql`${decisionLogs.discoveryId} IN (SELECT id FROM discoveries WHERE tenant_id = ${ctx.tenantId})`);
 
   const [patternStats] = await db
     .select({ count: sql<number>`count(*)` })
@@ -40,7 +41,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const [adapterStats] = await db
     .select({ count: sql<number>`count(*)` })
     .from(industryAdapters)
-    .where(eq(industryAdapters.enabled, 1));
+    .where(and(eq(industryAdapters.enabled, 1), eq(industryAdapters.tenantId, ctx.tenantId)));
 
   // 최근 패턴
   const recentPatterns = await db
@@ -61,10 +62,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const adapters = await db
     .select()
     .from(industryAdapters)
-    .where(eq(industryAdapters.enabled, 1));
+    .where(and(eq(industryAdapters.enabled, 1), eq(industryAdapters.tenantId, ctx.tenantId)));
 
   return json({
-    user,
+    user: ctx.user,
     stats: {
       logs: logStats?.count || 0,
       patterns: patternStats?.count || 0,

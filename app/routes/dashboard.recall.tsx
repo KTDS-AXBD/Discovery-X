@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
-import { json } from "@remix-run/cloudflare";
+import { json, redirect } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries, users } from "~/db/schema";
@@ -8,11 +8,15 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "~
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { Card } from "~/components/ui/Card";
 import { eq, and, lte } from "drizzle-orm";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { DiscoveryStatus, TriggerType } from "~/db/schema";
 import { formatDate } from "~/lib/format-date";
 
-export async function loader({ context }: LoaderFunctionArgs) {
+export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
+  const secret = getSessionSecret(context.cloudflare.env);
+  const ctx = await getSessionContext(request, db, secret);
+  if (!ctx) return redirect("/login");
 
   const now = new Date();
   const notNowDiscoveries = await db
@@ -21,7 +25,8 @@ export async function loader({ context }: LoaderFunctionArgs) {
     .where(
       and(
         eq(discoveries.status, DiscoveryStatus.HOLD),
-        lte(discoveries.revisitDate, now)
+        lte(discoveries.revisitDate, now),
+        eq(discoveries.tenantId, ctx.tenantId)
       )
     );
 

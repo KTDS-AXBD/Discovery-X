@@ -87,6 +87,21 @@ import {
   extractDecisionPattern,
   applyReusableRule,
 } from "./tools/asset-tools";
+import {
+  runShadowComparison,
+  getShadowStats,
+  analyzeShadowDeviation,
+} from "./tools/shadow-tools";
+import {
+  createValueupAssessment,
+  runAiReadinessDiagnosis,
+  generateValueupScenario,
+  generateDueDiligenceChecklist,
+} from "./tools/valueup-tools";
+import {
+  getTenantInfo,
+  manageTenantMembers,
+} from "./tools/tenant-tools";
 
 function generateId(): string {
   return crypto.randomUUID();
@@ -106,7 +121,8 @@ async function executeTool(
   db: DB,
   toolName: string,
   toolInput: Record<string, unknown>,
-  autonomyLevel?: number
+  autonomyLevel?: number,
+  tenantId?: string
 ): Promise<string> {
   // Enforce autonomy level at execution time
   if (autonomyLevel !== undefined) {
@@ -117,6 +133,11 @@ async function executeTool(
         suggestion: "설정에서 자율도 레벨을 올리거나, 관리자에게 요청하세요.",
       });
     }
+  }
+
+  // Multi-Tenant: 모든 도구 호출에 tenantId 자동 주입
+  if (tenantId) {
+    toolInput.tenantId = tenantId;
   }
 
   switch (toolName) {
@@ -240,6 +261,27 @@ async function executeTool(
       return packageEvidenceForAudit(db, toolInput as unknown as Parameters<typeof packageEvidenceForAudit>[1]);
     case "format_compliance_report":
       return formatComplianceReport(db, toolInput as unknown as Parameters<typeof formatComplianceReport>[1]);
+    // Strategic Evolution F2: Shadow Mode tools
+    case "run_shadow_comparison":
+      return runShadowComparison(db, toolInput as unknown as Parameters<typeof runShadowComparison>[1]);
+    case "get_shadow_stats":
+      return getShadowStats(db, toolInput as unknown as Parameters<typeof getShadowStats>[1]);
+    case "analyze_shadow_deviation":
+      return analyzeShadowDeviation(db, toolInput as unknown as Parameters<typeof analyzeShadowDeviation>[1]);
+    // Strategic Evolution F4: Value-up Engine tools
+    case "create_valueup_assessment":
+      return createValueupAssessment(db, toolInput as unknown as Parameters<typeof createValueupAssessment>[1]);
+    case "run_ai_readiness_diagnosis":
+      return runAiReadinessDiagnosis(db, toolInput as unknown as Parameters<typeof runAiReadinessDiagnosis>[1]);
+    case "generate_valueup_scenario":
+      return generateValueupScenario(db, toolInput as unknown as Parameters<typeof generateValueupScenario>[1]);
+    case "generate_due_diligence_checklist":
+      return generateDueDiligenceChecklist(db, toolInput as unknown as Parameters<typeof generateDueDiligenceChecklist>[1]);
+    // Multi-Tenant tools (F6)
+    case "get_tenant_info":
+      return getTenantInfo(db, toolInput as unknown as Parameters<typeof getTenantInfo>[1]);
+    case "manage_tenant_members":
+      return manageTenantMembers(db, toolInput as unknown as Parameters<typeof manageTenantMembers>[1]);
     default:
       return JSON.stringify({ error: `알 수 없는 도구: ${toolName}` });
   }
@@ -257,7 +299,8 @@ export async function executeAgentTurn(
   apiKey: string,
   conversationId: string,
   userMessage: string,
-  onEvent?: (event: AgentEvent) => void
+  onEvent?: (event: AgentEvent) => void,
+  tenantId?: string
 ): Promise<ExecuteResult> {
   // Save user message
   await db.insert(messages).values({
@@ -343,7 +386,7 @@ export async function executeAgentTurn(
       // Execute tool
       let toolResult: string;
       try {
-        toolResult = await executeTool(db, toolName, toolInput, autonomyLevel);
+        toolResult = await executeTool(db, toolName, toolInput, autonomyLevel, tenantId);
       } catch (e) {
         const errorMessage = e instanceof Error ? e.message : "도구 실행 오류";
         toolResult = JSON.stringify({
@@ -416,7 +459,8 @@ export function createAgentStreamResponse(
   db: DB,
   apiKey: string,
   conversationId: string,
-  userMessage: string
+  userMessage: string,
+  tenantId?: string
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
 
@@ -562,7 +606,7 @@ export function createAgentStreamResponse(
 
             let toolResult: string;
             try {
-              toolResult = await executeTool(db, toolName, toolInput, autonomyLevel);
+              toolResult = await executeTool(db, toolName, toolInput, autonomyLevel, tenantId);
             } catch (e) {
               const errorMessage = e instanceof Error ? e.message : "도구 실행 오류";
               toolResult = JSON.stringify({

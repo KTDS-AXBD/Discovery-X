@@ -8,7 +8,7 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Button } from "~/components/ui/Button";
@@ -21,14 +21,12 @@ import { EmptyState, NextStepGuide, OnboardingGuide } from "~/components/venture
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
-
-  if (!user) {
-    return redirect("/login");
-  }
+  const ctx = await getSessionContext(request, db, secret);
+  if (!ctx) return redirect("/login");
+  const user = ctx.user;
 
   // 최근 스프린트 5개 조회
-  const sprints = await listSprints(db);
+  const sprints = await listSprints(db, { tenantId: ctx.tenantId });
   const recentSprints = sprints.slice(0, 5);
 
   // 상태별 카운트

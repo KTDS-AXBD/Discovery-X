@@ -6,8 +6,8 @@
 
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { decisionLogs } from "~/db/schema";
-import { sql, lte, and, isNull } from "drizzle-orm";
+import { decisionLogs, tenants } from "~/db/schema";
+import { sql, lte, and, isNull, eq } from "drizzle-orm";
 
 interface CronEnv {
   DB: D1Database;
@@ -21,49 +21,64 @@ async function runLogArchive(env: CronEnv): Promise<{
 }> {
   const db = getDb(env.DB);
   const errors: string[] = [];
+  let totalArchived = 0;
 
   const thirtyDaysAgo = Math.floor(Date.now() / 1000) - 30 * 24 * 60 * 60;
   const batchId = `archive-${new Date().toISOString().slice(0, 10)}`;
 
-  try {
-    // 1. 아카이브 대상 선별 (30일 이상 && 미아카이브)
-    const targets = await db
-      .select({ id: decisionLogs.id })
-      .from(decisionLogs)
-      .where(
-        and(
-          lte(decisionLogs.createdAt, new Date(thirtyDaysAgo * 1000)),
-          isNull(decisionLogs.archivedAt)
-        )
-      );
+  // Get all active tenants
+  const activeTenants = await db
+    .select({ id: tenants.id })
+    .from(tenants)
+    .where(eq(tenants.status, "active"));
 
-    if (targets.length === 0) {
-      return { archived: 0, batchId, errors: [] };
+  for (const tenant of activeTenants) {
+    const tenantId = tenant.id;
+
+    try {
+      // 1. 아카이브 대상 선별 (30일 이상 && 미아카이브, tenant 범위)
+      // decisionLogs has no tenantId — scope via discoveryId -> discoveries.tenantId
+      const targets = await db
+        .select({ id: decisionLogs.id })
+        .from(decisionLogs)
+        .where(
+          and(
+            lte(decisionLogs.createdAt, new Date(thirtyDaysAgo * 1000)),
+            isNull(decisionLogs.archivedAt),
+            sql`${decisionLogs.discoveryId} IN (SELECT id FROM discoveries WHERE tenant_id = ${tenantId})`
+          )
+        );
+
+      if (targets.length === 0) {
+        continue;
+      }
+
+      // 2. 배치 아카이브 (input_context 압축은 별도 처리)
+      await db
+        .update(decisionLogs)
+        .set({
+          archivedAt: new Date(),
+          archiveBatchId: batchId,
+        })
+        .where(
+          and(
+            lte(decisionLogs.createdAt, new Date(thirtyDaysAgo * 1000)),
+            isNull(decisionLogs.archivedAt),
+            sql`${decisionLogs.discoveryId} IN (SELECT id FROM discoveries WHERE tenant_id = ${tenantId})`
+          )
+        );
+
+      totalArchived += targets.length;
+    } catch (error) {
+      errors.push(`tenant ${tenantId}: ${error instanceof Error ? error.message : String(error)}`);
     }
+  } // end tenant loop
 
-    // 2. 배치 아카이브 (input_context 압축은 별도 처리)
-    const result = await db
-      .update(decisionLogs)
-      .set({
-        archivedAt: new Date(),
-        archiveBatchId: batchId,
-      })
-      .where(
-        and(
-          lte(decisionLogs.createdAt, new Date(thirtyDaysAgo * 1000)),
-          isNull(decisionLogs.archivedAt)
-        )
-      );
-
-    return {
-      archived: targets.length,
-      batchId,
-      errors,
-    };
-  } catch (error) {
-    errors.push(error instanceof Error ? error.message : String(error));
-    return { archived: 0, batchId, errors };
-  }
+  return {
+    archived: totalArchived,
+    batchId,
+    errors,
+  };
 }
 
 export async function loader({ request, context }: LoaderFunctionArgs) {

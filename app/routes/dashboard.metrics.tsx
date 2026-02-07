@@ -7,8 +7,9 @@ import { json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries, experiments, evidence, agentConfig } from "~/db/schema";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { eq } from "drizzle-orm";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
+import { tenantWhere } from "~/lib/query/tenant-scope";
+import { eq, inArray } from "drizzle-orm";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Badge } from "~/components/ui/Badge";
 import { StatusBadge } from "~/components/ui/StatusBadge";
@@ -17,12 +18,18 @@ import { MetricCard } from "~/components/dashboard/MetricCard";
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
-  if (!user) return json({ metrics: null });
+  const ctx = await getSessionContext(request, db, secret);
+  if (!ctx) return json({ metrics: null });
 
-  const allDiscoveries = await db.select().from(discoveries);
-  const allExperiments = await db.select().from(experiments);
-  const allEvidence = await db.select().from(evidence);
+  const allDiscoveries = await db.select().from(discoveries)
+    .where(tenantWhere(discoveries, ctx.tenantId));
+  const discoveryIds = allDiscoveries.map(d => d.id);
+  const allExperiments = discoveryIds.length > 0
+    ? await db.select().from(experiments).where(inArray(experiments.discoveryId, discoveryIds))
+    : [];
+  const allEvidence = discoveryIds.length > 0
+    ? await db.select().from(evidence).where(inArray(evidence.discoveryId, discoveryIds))
+    : [];
 
   const statusCounts: Record<string, number> = {};
   for (const d of allDiscoveries) {

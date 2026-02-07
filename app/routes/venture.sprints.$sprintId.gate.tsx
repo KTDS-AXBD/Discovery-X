@@ -8,7 +8,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useLoaderData, useNavigation } from "@remix-run/react";
 import { getDb } from "~/db";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { Button } from "~/components/ui/Button";
 import { Badge } from "~/components/ui/Badge";
 import { EmptyState } from "~/components/venture/EmptyState";
@@ -35,11 +35,9 @@ import { VoteScale } from "~/features/venture/ui/BlindVoteInput";
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
-
-  if (!user) {
-    return redirect("/login");
-  }
+  const ctx = await getSessionContext(request, db, secret);
+  if (!ctx) return redirect("/login");
+  const user = ctx.user;
 
   const { sprintId } = params;
   if (!sprintId) {
@@ -74,11 +72,9 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 export async function action({ request, context, params }: ActionFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
-
-  if (!user) {
-    return redirect("/login");
-  }
+  const ctx = await getSessionContext(request, db, secret);
+  if (!ctx) return json({ error: "Unauthorized" }, { status: 401 });
+  const user = ctx.user;
 
   const { sprintId } = params;
   if (!sprintId) {

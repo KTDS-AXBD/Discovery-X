@@ -3,7 +3,7 @@ import { json, redirect } from "@remix-run/cloudflare";
 import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries, experiments, evidence, users, eventLogs, discoveryKpis, kpiMeasurements, discoveryLinks } from "~/db/schema";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { StatusBadge } from "~/components/ui/StatusBadge";
 import { Badge } from "~/components/ui/Badge";
@@ -22,11 +22,12 @@ import { formatDate, formatDateTime, isOverdue as checkOverdue } from "~/lib/for
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
+  const ctx = await getSessionContext(request, db, secret);
 
-  if (!user) {
+  if (!ctx) {
     return redirect("/login");
   }
+  const user = ctx.user;
 
   const { id } = params;
   if (!id) {
@@ -189,11 +190,12 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 export async function action({ request, context, params }: ActionFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
+  const ctx = await getSessionContext(request, db, secret);
 
-  if (!user) {
+  if (!ctx) {
     return redirect("/login");
   }
+  const user = ctx.user;
 
   const { id } = params;
   if (!id) {

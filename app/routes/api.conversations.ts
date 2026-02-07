@@ -10,7 +10,8 @@ import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { conversations } from "~/db/schema";
 import { eq, desc, and } from "drizzle-orm";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
+import { tenantWhere } from "~/lib/query/tenant-scope";
 
 function sanitizeTitle(raw: string | null): string {
   if (!raw) return "새 대화";
@@ -21,16 +22,16 @@ function sanitizeTitle(raw: string | null): string {
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
+  const ctx = await getSessionContext(request, db, secret);
 
-  if (!user) {
+  if (!ctx) {
     return json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const convs = await db
     .select()
     .from(conversations)
-    .where(eq(conversations.userId, user.id))
+    .where(tenantWhere(conversations, ctx.tenantId, eq(conversations.userId, ctx.user.id)))
     .orderBy(desc(conversations.updatedAt))
     .limit(50);
 
@@ -47,9 +48,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 export async function action({ request, context }: ActionFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
+  const ctx = await getSessionContext(request, db, secret);
 
-  if (!user) {
+  if (!ctx) {
     return json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -57,7 +58,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const id = crypto.randomUUID();
     await db.insert(conversations).values({
       id,
-      userId: user.id,
+      userId: ctx.user.id,
+      tenantId: ctx.tenantId,
     });
     return json({ id, title: "새 대화" });
   }
@@ -70,14 +72,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: "conversationId required" }, { status: 400 });
     }
 
-    // Verify ownership
+    // Verify ownership + tenant
     const conv = await db
       .select()
       .from(conversations)
       .where(
         and(
           eq(conversations.id, conversationId),
-          eq(conversations.userId, user.id)
+          eq(conversations.userId, ctx.user.id),
+          eq(conversations.tenantId, ctx.tenantId)
         )
       )
       .limit(1);

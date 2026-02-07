@@ -4,7 +4,7 @@ import { json, redirect } from "@remix-run/cloudflare";
 import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries, eventLogs } from "~/db/schema";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { CreateDiscoverySchema } from "~/lib/validation/discovery-rules";
@@ -23,11 +23,12 @@ import { Badge } from "~/components/ui/Badge";
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
+  const ctx = await getSessionContext(request, db, secret);
 
-  if (!user) {
+  if (!ctx) {
     return redirect("/login");
   }
+  const user = ctx.user;
 
   return json({ user });
 }
@@ -35,11 +36,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 export async function action({ request, context }: ActionFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
+  const ctx = await getSessionContext(request, db, secret);
 
-  if (!user) {
+  if (!ctx) {
     return redirect("/login");
   }
+  const user = ctx.user;
 
   const formData = await request.formData();
   const title = formData.get("title");
@@ -74,6 +76,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       sourceType: validated.sourceType,
       status: DiscoveryStatus.DISCOVERY,
       ownerId: user.id, // Set creator as default owner
+      tenantId: ctx.tenantId,
     });
 
     await db.insert(eventLogs).values({

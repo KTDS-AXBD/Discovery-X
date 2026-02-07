@@ -27,7 +27,8 @@ interface SyncResult {
 export async function syncEmbeddings(
   db: DB,
   env: EmbeddingEnv,
-  batchSize: number = 10
+  batchSize: number = 10,
+  tenantId?: string
 ): Promise<SyncResult> {
   const result: SyncResult = {
     discoveriesSynced: 0,
@@ -37,6 +38,13 @@ export async function syncEmbeddings(
   };
 
   // 1. Sync discovery embeddings
+  const staleCondition = or(
+    isNull(discoveries.embeddingUpdatedAt),
+    lt(discoveries.embeddingUpdatedAt, discoveries.updatedAt)
+  );
+  const discoveriesWhere = tenantId
+    ? and(staleCondition, eq(discoveries.tenantId, tenantId))
+    : staleCondition;
   const staleDiscoveries = await db
     .select({
       id: discoveries.id,
@@ -46,12 +54,7 @@ export async function syncEmbeddings(
       embeddingUpdatedAt: discoveries.embeddingUpdatedAt,
     })
     .from(discoveries)
-    .where(
-      or(
-        isNull(discoveries.embeddingUpdatedAt),
-        lt(discoveries.embeddingUpdatedAt, discoveries.updatedAt)
-      )
-    )
+    .where(discoveriesWhere)
     .limit(batchSize);
 
   for (const disc of staleDiscoveries) {

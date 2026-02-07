@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
-import { json } from "@remix-run/cloudflare";
+import { json, redirect } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries } from "~/db/schema";
@@ -10,17 +10,23 @@ import { Card } from "~/components/ui/Card";
 import { Badge } from "~/components/ui/Badge";
 import { cn } from "~/lib/utils/cn";
 import { sql } from "drizzle-orm";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { formatDate, daysUntilDue } from "~/lib/format-date";
 import { ACTIVE_STATUSES, STATUS_CONFIG } from "~/lib/constants/status";
 
-export async function loader({ context }: LoaderFunctionArgs) {
+export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
+  const secret = getSessionSecret(context.cloudflare.env);
+  const ctx = await getSessionContext(request, db, secret);
+  if (!ctx) return redirect("/login");
 
   const statusList = ACTIVE_STATUSES.map((s) => `'${s}'`).join(",");
   const openDiscoveries = await db
     .select()
     .from(discoveries)
-    .where(sql`${discoveries.status} IN (${sql.raw(statusList)})`);
+    .where(
+      sql`${discoveries.status} IN (${sql.raw(statusList)}) AND ${discoveries.tenantId} = ${ctx.tenantId}`
+    );
 
   const discoveryList = await Promise.all(
     openDiscoveries.map(async (discovery) => {

@@ -15,7 +15,7 @@ import {
   eventLogs,
   gatePackages,
 } from "~/db/schema";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import ComplianceChecklist from "~/components/compliance/ComplianceChecklist";
@@ -24,8 +24,9 @@ import AuditTimeline from "~/components/compliance/AuditTimeline";
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
-  if (!user) return redirect("/login");
+  const ctx = await getSessionContext(request, db, secret);
+  if (!ctx) return redirect("/login");
+  const user = ctx.user;
 
   const { id } = params;
   if (!id) throw new Response("Not Found", { status: 404 });

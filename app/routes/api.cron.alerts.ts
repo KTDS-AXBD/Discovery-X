@@ -5,8 +5,9 @@
  */
 
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
-import { alertRules } from "~/db/schema";
+import { alertRules, tenants } from "~/db/schema";
 import { scanAndFireAlerts, DEFAULT_ALERT_RULES } from "~/lib/notifications/alert-engine";
 import { fireWebhooks } from "~/lib/notifications/webhook";
 
@@ -27,27 +28,36 @@ async function ensureDefaultRules(db: ReturnType<typeof getDb>) {
 async function runAlertScan(env: CronEnv): Promise<{ fired: number; webhooksSent: number; errors: string[] }> {
   const db = getDb(env.DB);
   const errors: string[] = [];
+  let totalFired = 0;
+  let webhooksSent = 0;
 
   // Ensure default alert rules exist
   await ensureDefaultRules(db);
 
-  // Scan and fire alerts
-  const firedAlerts = await scanAndFireAlerts(db);
+  // Multi-tenant: scan alerts per tenant
+  const activeTenants = await db
+    .select({ id: tenants.id })
+    .from(tenants)
+    .where(eq(tenants.status, "active"));
 
-  // Send webhooks for each new alert
-  let webhooksSent = 0;
-  for (const alert of firedAlerts) {
-    try {
-      const sent = await fireWebhooks(db, alert);
-      webhooksSent += sent;
-    } catch (e) {
-      errors.push(
-        `webhook for alert ${alert.id}: ${e instanceof Error ? e.message : "unknown error"}`
-      );
+  for (const tenant of activeTenants) {
+    const firedAlerts = await scanAndFireAlerts(db, tenant.id);
+    totalFired += firedAlerts.length;
+
+    // Send webhooks for each new alert
+    for (const alert of firedAlerts) {
+      try {
+        const sent = await fireWebhooks(db, alert);
+        webhooksSent += sent;
+      } catch (e) {
+        errors.push(
+          `webhook for alert ${alert.id}: ${e instanceof Error ? e.message : "unknown error"}`
+        );
+      }
     }
   }
 
-  return { fired: firedAlerts.length, webhooksSent, errors };
+  return { fired: totalFired, webhooksSent, errors };
 }
 
 // HTTP endpoint for manual trigger

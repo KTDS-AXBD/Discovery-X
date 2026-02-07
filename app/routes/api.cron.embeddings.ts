@@ -1,5 +1,7 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
+import { tenants } from "~/db/schema";
 import { syncEmbeddings } from "~/lib/embeddings/sync";
 import type { EmbeddingEnv } from "~/lib/embeddings/embedding-service";
 
@@ -42,9 +44,20 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   };
 
   const batchSize = Number(url.searchParams.get("batch") || "10");
-  const result = await syncEmbeddings(db, embeddingEnv, batchSize);
 
-  return new Response(JSON.stringify(result, null, 2), {
+  // Multi-tenant: sync embeddings per tenant
+  const activeTenants = await db
+    .select({ id: tenants.id })
+    .from(tenants)
+    .where(eq(tenants.status, "active"));
+
+  const results = [];
+  for (const tenant of activeTenants) {
+    const result = await syncEmbeddings(db, embeddingEnv, batchSize, tenant.id);
+    results.push({ tenantId: tenant.id, ...result });
+  }
+
+  return new Response(JSON.stringify(results, null, 2), {
     headers: { "Content-Type": "application/json" },
   });
 }

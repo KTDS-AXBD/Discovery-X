@@ -7,7 +7,8 @@ import { json } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries } from "~/db/schema";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
+import { tenantWhere } from "~/lib/query/tenant-scope";
 import { Card, CardContent } from "~/components/ui/Card";
 import { Badge } from "~/components/ui/Badge";
 import { StatusBadge } from "~/components/ui/StatusBadge";
@@ -17,10 +18,11 @@ import { formatDate } from "~/lib/format-date";
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
-  if (!user) return json({ columns: {} });
+  const ctx = await getSessionContext(request, db, secret);
+  if (!ctx) return json({ columns: {} });
 
-  const allDiscoveries = await db.select().from(discoveries);
+  const allDiscoveries = await db.select().from(discoveries)
+    .where(tenantWhere(discoveries, ctx.tenantId));
 
   const columns: Record<string, typeof allDiscoveries> = {};
   for (const col of PIPELINE_COLUMNS) {

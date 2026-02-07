@@ -1,7 +1,15 @@
 import { createCookieSessionStorage, redirect, json } from "@remix-run/cloudflare";
 import type { DB } from "~/db";
-import { users, sessions, UserRole } from "~/db/schema";
-import { eq } from "drizzle-orm";
+import { users, sessions, tenantMembers, UserRole } from "~/db/schema";
+import type { User } from "~/db/schema";
+import { eq, and } from "drizzle-orm";
+
+// Session context with tenant information
+export interface SessionContext {
+  user: User;
+  tenantId: string;
+  tenantRole: string; // 'owner' | 'admin' | 'gatekeeper' | 'member' | 'viewer'
+}
 
 // Session storage configuration
 export function createSessionStorage(secret: string, isSecure = true) {
@@ -132,6 +140,67 @@ export async function destroySession(
   }
 
   return sessionStorage.destroySession(session);
+}
+
+// Get session context with tenant information
+export async function getSessionContext(
+  request: Request,
+  db: DB,
+  secret: string
+): Promise<SessionContext | null> {
+  const user = await getUserFromSession(request, db, secret);
+  if (!user) return null;
+
+  const sessionStorage = createSessionStorage(secret, isSecureCookie(request));
+  const session = await sessionStorage.getSession(
+    request.headers.get("Cookie")
+  );
+  const tenantId = session.get("tenantId");
+
+  if (!tenantId) {
+    // tenantId 없으면 첫 번째 Tenant 멤버십 조회
+    const membership = await db.query.tenantMembers.findFirst({
+      where: eq(tenantMembers.userId, user.id),
+    });
+    if (!membership) return null;
+    return { user, tenantId: membership.tenantId, tenantRole: membership.role };
+  }
+
+  // tenantId 있으면 멤버십 검증
+  const membership = await db.query.tenantMembers.findFirst({
+    where: and(
+      eq(tenantMembers.tenantId, tenantId),
+      eq(tenantMembers.userId, user.id)
+    ),
+  });
+  if (!membership) return null;
+
+  return { user, tenantId, tenantRole: membership.role };
+}
+
+// Require authenticated user with tenant membership
+export async function requireTenantMember(
+  request: Request,
+  db: DB,
+  secret: string
+): Promise<SessionContext> {
+  const ctx = await getSessionContext(request, db, secret);
+  if (!ctx) throw redirect("/login");
+  if (ctx.user.role === UserRole.PENDING) throw redirect("/pending");
+  return ctx;
+}
+
+// Require tenant admin (owner or admin role)
+export async function requireTenantAdmin(
+  request: Request,
+  db: DB,
+  secret: string
+): Promise<SessionContext> {
+  const ctx = await requireTenantMember(request, db, secret);
+  if (!["owner", "admin"].includes(ctx.tenantRole)) {
+    throw json({ error: "조직 관리자 권한이 필요합니다" }, { status: 403 });
+  }
+  return ctx;
 }
 
 // Get session secret from environment (required)

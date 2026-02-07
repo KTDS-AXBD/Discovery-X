@@ -8,7 +8,7 @@ import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { conversations } from "~/db/schema";
 import { eq } from "drizzle-orm";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { createAgentStreamResponse } from "~/lib/agent/executor";
 
 export async function action({ request, context }: ActionFunctionArgs) {
@@ -18,11 +18,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
+  const ctx = await getSessionContext(request, db, secret);
 
-  if (!user) {
+  if (!ctx) {
     return json({ error: "Unauthorized" }, { status: 401 });
   }
+  const user = ctx.user;
 
   const apiKey = (context.cloudflare.env as unknown as Record<string, string>).ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -62,7 +63,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       .where(eq(conversations.id, conversationId));
   }
 
-  const stream = createAgentStreamResponse(db, apiKey, conversationId, message);
+  const stream = createAgentStreamResponse(db, apiKey, conversationId, message, ctx.tenantId);
 
   return new Response(stream, {
     headers: {

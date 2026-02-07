@@ -1,6 +1,6 @@
 import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
-import { users } from "~/db/schema";
+import { users, tenants } from "~/db/schema";
 
 // ============================================================================
 // VENTURE DISCOVERY SPRINT ENUMS
@@ -119,10 +119,14 @@ export const vdSprints = sqliteTable(
     updatedAt: integer("updated_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),
+
+    // Multi-Tenant (Phase 3)
+    tenantId: text("tenant_id").references(() => tenants.id),
   },
   (table) => ({
     statusIdx: index("idx_vd_sprints_status").on(table.status),
     ownerIdx: index("idx_vd_sprints_owner").on(table.ownerId),
+    tenantIdx: index("idx_vd_sprints_tenant_drizzle").on(table.tenantId),
   })
 );
 

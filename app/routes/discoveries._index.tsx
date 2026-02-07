@@ -3,7 +3,8 @@ import { json, redirect } from "@remix-run/cloudflare";
 import { Link, useLoaderData, useSearchParams } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries, users } from "~/db/schema";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
+import { tenantWhere } from "~/lib/query/tenant-scope";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { StatusBadge } from "~/components/ui/StatusBadge";
@@ -19,9 +20,9 @@ import { formatDate, isOverdue } from "~/lib/format-date";
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
+  const ctx = await getSessionContext(request, db, secret);
 
-  if (!user) {
+  if (!ctx) {
     return redirect("/login");
   }
 
@@ -29,11 +30,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const statusFilter = url.searchParams.get("status");
 
-  // Query discoveries with optional status filter
+  // Query discoveries with optional status filter + tenant scope
   let allDiscoveries;
   if (statusFilter === "OVERDUE") {
     // Special filter: OPEN/EXTENSION_REQUESTED + dueDate < now
-    const openDiscoveries = await db.select().from(discoveries);
+    const openDiscoveries = await db.select().from(discoveries)
+      .where(tenantWhere(discoveries, ctx.tenantId));
     allDiscoveries = openDiscoveries.filter(
       (d) =>
         (d.status === DiscoveryStatus.IDEA_CARD ||
@@ -41,9 +43,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         isOverdue(d.dueDate)
     );
   } else if (statusFilter && statusFilter in DiscoveryStatus) {
-    allDiscoveries = await db.select().from(discoveries).where(eq(discoveries.status, statusFilter));
+    allDiscoveries = await db.select().from(discoveries)
+      .where(tenantWhere(discoveries, ctx.tenantId, eq(discoveries.status, statusFilter)));
   } else {
-    allDiscoveries = await db.select().from(discoveries);
+    allDiscoveries = await db.select().from(discoveries)
+      .where(tenantWhere(discoveries, ctx.tenantId));
   }
 
   // Batch-fetch owner names
@@ -73,7 +77,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     };
   });
 
-  return json({ user, discoveries: discoveryList });
+  return json({ user: ctx.user, discoveries: discoveryList });
 }
 
 

@@ -1,20 +1,22 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { discoveries, users, experiments, evidence } from "~/db/schema";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
+import { tenantWhere } from "~/lib/query/tenant-scope";
 import { inArray } from "drizzle-orm";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
+  const ctx = await getSessionContext(request, db, secret);
 
-  if (!user) {
+  if (!ctx) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  // Get all discoveries with related data
-  const allDiscoveries = await db.select().from(discoveries);
+  // Get all discoveries with related data (tenant-scoped)
+  const allDiscoveries = await db.select().from(discoveries)
+    .where(tenantWhere(discoveries, ctx.tenantId));
   const discoveryIds = allDiscoveries.map((d) => d.id);
 
   // Batch-fetch all related data

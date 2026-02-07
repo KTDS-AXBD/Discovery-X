@@ -1,7 +1,7 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { discoveries, users } from "~/db/schema";
-import { eq, inArray } from "drizzle-orm";
+import { discoveries, users, tenants, tenantMembers } from "~/db/schema";
+import { eq, inArray, and } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { ACTIVE_STATUSES } from "~/lib/constants/status";
 import { DiscoveryValidationRules, ValidationError } from "~/lib/validation/discovery-rules";
@@ -45,188 +45,221 @@ async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; erro
   const threeDaysFromNow = new Date();
   threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
 
-  // Get all users for email lookup
-  const allUsers = await db.select().from(users);
-  const userMap = new Map(allUsers.map((u) => [u.id, u]));
+  // Get all active tenants
+  const activeTenants = await db
+    .select({ id: tenants.id })
+    .from(tenants)
+    .where(eq(tenants.status, "active"));
 
-  // 1. Find overdue active discoveries
-  const activeDiscoveries = await db
-    .select()
-    .from(discoveries)
-    .where(inArray(discoveries.status, [...ACTIVE_STATUSES]));
-
-  const overdueItems: OverdueDiscovery[] = [];
-  const dueSoonItems: ExpiringDiscovery[] = [];
-
-  for (const d of activeDiscoveries) {
-    if (!d.dueDate) continue;
-    const dueDate = new Date(d.dueDate);
-    const owner = d.ownerId ? userMap.get(d.ownerId) : null;
-    const ownerName = owner?.name || "미지정";
-
-    if (dueDate < now) {
-      const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
-      overdueItems.push({
-        id: d.id,
-        title: d.title,
-        dueDate: formatDate(dueDate),
-        ownerName,
-        daysOverdue,
-      });
-    } else if (dueDate <= threeDaysFromNow) {
-      const daysRemaining = Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-      dueSoonItems.push({
-        id: d.id,
-        title: d.title,
-        dueDate: formatDate(dueDate),
-        ownerName,
-        daysRemaining,
-      });
-    }
-  }
-
-  // 2. Find NOT_NOW discoveries with revisitDate <= today
-  const notNowDiscoveries = await db
-    .select()
-    .from(discoveries)
-    .where(eq(discoveries.status, DiscoveryStatus.HOLD));
-
-  const revisitItems: RevisitDiscovery[] = notNowDiscoveries
-    .filter((d) => d.revisitDate && new Date(d.revisitDate) <= now)
-    .map((d) => ({
-      id: d.id,
-      title: d.title,
-      revisitDate: formatDate(d.revisitDate!),
-      triggerType: d.notNowTriggerType || "",
-      triggerCondition: d.notNowTriggerCondition || "",
-    }));
-
-  // 3. Send emails to all users (broadcast approach for small team)
-  const recipients = allUsers
-    .filter((u) => !u.email.endsWith("@system"))
-    .map((u) => u.email);
-
-  if (overdueItems.length > 0) {
-    const { subject, html } = buildOverdueEmail(overdueItems);
-    for (const email of recipients) {
-      const result = await emailClient.send({ to: email, subject, html });
-      if (result.success) sent++;
-      else if (result.error) errors.push(`overdue→${email}: ${result.error}`);
-    }
-  }
-
-  if (dueSoonItems.length > 0) {
-    const { subject, html } = buildDueSoonEmail(dueSoonItems);
-    for (const email of recipients) {
-      const result = await emailClient.send({ to: email, subject, html });
-      if (result.success) sent++;
-      else if (result.error) errors.push(`dueSoon→${email}: ${result.error}`);
-    }
-  }
-
-  if (revisitItems.length > 0) {
-    const { subject, html } = buildRevisitEmail(revisitItems);
-    for (const email of recipients) {
-      const result = await emailClient.send({ to: email, subject, html });
-      if (result.success) sent++;
-      else if (result.error) errors.push(`revisit→${email}: ${result.error}`);
-    }
-  }
-
-  // 4. Auto-close overdue discoveries as DEAD_END
-  // Exclude items with approvalStatus === "PENDING" (awaiting reviewer approval)
-  const autoCloseTargets = activeDiscoveries.filter((d) => {
-    if (!d.dueDate) return false;
-    if (d.approvalStatus === "PENDING") return false;
-    return new Date(d.dueDate) < now;
-  });
-
-  const autoClosedItems: AutoClosedDiscovery[] = [];
-
-  for (const d of autoCloseTargets) {
-    // Validate transition is allowed
-    try {
-      DiscoveryValidationRules.validateTransition(d.status, DiscoveryStatus.DROP);
-    } catch (e) {
-      if (e instanceof ValidationError) continue;
-      throw e;
-    }
-
-    const dueDate = new Date(d.dueDate!);
-    const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
-    const owner = d.ownerId ? userMap.get(d.ownerId) : null;
-
-    await db
-      .update(discoveries)
-      .set({
-        status: DiscoveryStatus.DROP,
-        deadEndFailurePattern: ["time_constraint"],
-        deadEndEvidenceReason: `자동 종료: ${daysOverdue}일 기한 초과`,
-        decidedAt: now,
-        updatedAt: now,
-      })
-      .where(eq(discoveries.id, d.id));
-
-    await db.insert(eventLogs).values({
-      id: crypto.randomUUID(),
-      actorId: "system-radar",
-      discoveryId: d.id,
-      eventType: "AUTO_CLOSED_OVERDUE",
-      metadata: { daysOverdue, previousStatus: d.status },
-    });
-
-    autoClosedItems.push({
-      id: d.id,
-      title: d.title,
-      ownerName: owner?.name || "미지정",
-      daysOverdue,
-    });
-  }
-
-  if (autoClosedItems.length > 0) {
-    const { subject, html } = buildAutoClosedEmail(autoClosedItems);
-    for (const email of recipients) {
-      const result = await emailClient.send({ to: email, subject, html });
-      if (result.success) sent++;
-      else if (result.error) errors.push(`autoClosed→${email}: ${result.error}`);
-    }
-  }
-
-  // 5. Stage SLA check — notify for discoveries stalled > 14 days in a stage
-  const STAGE_SLA_DAYS = 14;
-  const stalledItems: StalledStageDiscovery[] = [];
-  for (const d of activeDiscoveries) {
-    if (!d.stageUpdatedAt) continue;
-    const stageDate = new Date(d.stageUpdatedAt);
-    const daysInStage = Math.floor((now.getTime() - stageDate.getTime()) / (1000 * 60 * 60 * 24));
-    if (daysInStage > STAGE_SLA_DAYS) {
-      const owner = d.ownerId ? userMap.get(d.ownerId) : null;
-      stalledItems.push({
-        id: d.id,
-        title: d.title,
-        status: d.status,
-        ownerName: owner?.name || "미지정",
-        daysInStage,
-      });
-    }
-  }
-
-  if (stalledItems.length > 0) {
-    const { subject, html } = buildStalledStageEmail(stalledItems);
-    for (const email of recipients) {
-      const result = await emailClient.send({ to: email, subject, html });
-      if (result.success) sent++;
-      else if (result.error) errors.push(`stalledStage→${email}: ${result.error}`);
-    }
-  }
-
-  // 6. Process expired gate approvals (auto-reject + HOLD)
   let gateExpired = 0;
   let gateHeld = 0;
+  let totalAutoClosed = 0;
+
+  for (const tenant of activeTenants) {
+    const tenantId = tenant.id;
+
+    // Get users for this tenant
+    const tenantMemberRows = await db
+      .select({ userId: tenantMembers.userId })
+      .from(tenantMembers)
+      .where(eq(tenantMembers.tenantId, tenantId));
+    const tenantUserIds = new Set(tenantMemberRows.map((m) => m.userId));
+
+    const allUsers = await db.select().from(users);
+    const tenantUsers = allUsers.filter((u) => tenantUserIds.has(u.id));
+    const userMap = new Map(tenantUsers.map((u) => [u.id, u]));
+
+    // 1. Find overdue active discoveries for this tenant
+    const activeDiscoveries = await db
+      .select()
+      .from(discoveries)
+      .where(and(
+        inArray(discoveries.status, [...ACTIVE_STATUSES]),
+        eq(discoveries.tenantId, tenantId)
+      ));
+
+    const overdueItems: OverdueDiscovery[] = [];
+    const dueSoonItems: ExpiringDiscovery[] = [];
+
+    for (const d of activeDiscoveries) {
+      if (!d.dueDate) continue;
+      const dueDate = new Date(d.dueDate);
+      const owner = d.ownerId ? userMap.get(d.ownerId) : null;
+      const ownerName = owner?.name || "미지정";
+
+      if (dueDate < now) {
+        const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+        overdueItems.push({
+          id: d.id,
+          title: d.title,
+          dueDate: formatDate(dueDate),
+          ownerName,
+          daysOverdue,
+        });
+      } else if (dueDate <= threeDaysFromNow) {
+        const daysRemaining = Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        dueSoonItems.push({
+          id: d.id,
+          title: d.title,
+          dueDate: formatDate(dueDate),
+          ownerName,
+          daysRemaining,
+        });
+      }
+    }
+
+    // 2. Find NOT_NOW discoveries with revisitDate <= today for this tenant
+    const notNowDiscoveries = await db
+      .select()
+      .from(discoveries)
+      .where(and(
+        eq(discoveries.status, DiscoveryStatus.HOLD),
+        eq(discoveries.tenantId, tenantId)
+      ));
+
+    const revisitItems: RevisitDiscovery[] = notNowDiscoveries
+      .filter((d) => d.revisitDate && new Date(d.revisitDate) <= now)
+      .map((d) => ({
+        id: d.id,
+        title: d.title,
+        revisitDate: formatDate(d.revisitDate!),
+        triggerType: d.notNowTriggerType || "",
+        triggerCondition: d.notNowTriggerCondition || "",
+      }));
+
+    // 3. Send emails to tenant users (broadcast approach for small team)
+    const recipients = tenantUsers
+      .filter((u) => !u.email.endsWith("@system"))
+      .map((u) => u.email);
+
+    if (overdueItems.length > 0) {
+      const { subject, html } = buildOverdueEmail(overdueItems);
+      for (const email of recipients) {
+        const result = await emailClient.send({ to: email, subject, html });
+        if (result.success) sent++;
+        else if (result.error) errors.push(`overdue→${email}: ${result.error}`);
+      }
+    }
+
+    if (dueSoonItems.length > 0) {
+      const { subject, html } = buildDueSoonEmail(dueSoonItems);
+      for (const email of recipients) {
+        const result = await emailClient.send({ to: email, subject, html });
+        if (result.success) sent++;
+        else if (result.error) errors.push(`dueSoon→${email}: ${result.error}`);
+      }
+    }
+
+    if (revisitItems.length > 0) {
+      const { subject, html } = buildRevisitEmail(revisitItems);
+      for (const email of recipients) {
+        const result = await emailClient.send({ to: email, subject, html });
+        if (result.success) sent++;
+        else if (result.error) errors.push(`revisit→${email}: ${result.error}`);
+      }
+    }
+
+    // 4. Auto-close overdue discoveries as DEAD_END
+    // Exclude items with approvalStatus === "PENDING" (awaiting reviewer approval)
+    const autoCloseTargets = activeDiscoveries.filter((d) => {
+      if (!d.dueDate) return false;
+      if (d.approvalStatus === "PENDING") return false;
+      return new Date(d.dueDate) < now;
+    });
+
+    const autoClosedItems: AutoClosedDiscovery[] = [];
+
+    for (const d of autoCloseTargets) {
+      // Validate transition is allowed
+      try {
+        DiscoveryValidationRules.validateTransition(d.status, DiscoveryStatus.DROP);
+      } catch (e) {
+        if (e instanceof ValidationError) continue;
+        throw e;
+      }
+
+      const dueDate = new Date(d.dueDate!);
+      const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+      const owner = d.ownerId ? userMap.get(d.ownerId) : null;
+
+      await db
+        .update(discoveries)
+        .set({
+          status: DiscoveryStatus.DROP,
+          deadEndFailurePattern: ["time_constraint"],
+          deadEndEvidenceReason: `자동 종료: ${daysOverdue}일 기한 초과`,
+          decidedAt: now,
+          updatedAt: now,
+        })
+        .where(eq(discoveries.id, d.id));
+
+      await db.insert(eventLogs).values({
+        id: crypto.randomUUID(),
+        actorId: "system-radar",
+        discoveryId: d.id,
+        eventType: "AUTO_CLOSED_OVERDUE",
+        metadata: { daysOverdue, previousStatus: d.status },
+      });
+
+      autoClosedItems.push({
+        id: d.id,
+        title: d.title,
+        ownerName: owner?.name || "미지정",
+        daysOverdue,
+      });
+    }
+
+    if (autoClosedItems.length > 0) {
+      const { subject, html } = buildAutoClosedEmail(autoClosedItems);
+      for (const email of recipients) {
+        const result = await emailClient.send({ to: email, subject, html });
+        if (result.success) sent++;
+        else if (result.error) errors.push(`autoClosed→${email}: ${result.error}`);
+      }
+    }
+
+    totalAutoClosed += autoClosedItems.length;
+
+    // 5. Stage SLA check — notify for discoveries stalled > 14 days in a stage
+    const STAGE_SLA_DAYS = 14;
+    const stalledItems: StalledStageDiscovery[] = [];
+    for (const d of activeDiscoveries) {
+      if (!d.stageUpdatedAt) continue;
+      const stageDate = new Date(d.stageUpdatedAt);
+      const daysInStage = Math.floor((now.getTime() - stageDate.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysInStage > STAGE_SLA_DAYS) {
+        const owner = d.ownerId ? userMap.get(d.ownerId) : null;
+        stalledItems.push({
+          id: d.id,
+          title: d.title,
+          status: d.status,
+          ownerName: owner?.name || "미지정",
+          daysInStage,
+        });
+      }
+    }
+
+    if (stalledItems.length > 0) {
+      const { subject, html } = buildStalledStageEmail(stalledItems);
+      for (const email of recipients) {
+        const result = await emailClient.send({ to: email, subject, html });
+        if (result.success) sent++;
+        else if (result.error) errors.push(`stalledStage→${email}: ${result.error}`);
+      }
+    }
+  } // end tenant loop
+
+  // 6. Process expired gate approvals (auto-reject + HOLD) — runs globally
   try {
     const gateResult = await processExpiredGateApprovals(db);
     gateExpired = gateResult.expiredCount;
     gateHeld = gateResult.holdCount;
+
+    // Get all non-system users for gate notifications
+    const allUsers = await db.select().from(users);
+    const recipients = allUsers
+      .filter((u) => !u.email.endsWith("@system"))
+      .map((u) => u.email);
 
     // Send gate expired notification
     if (gateResult.expiredCount > 0) {
@@ -265,7 +298,7 @@ async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; erro
     errors.push(`gateTimeout: ${e instanceof Error ? e.message : "Unknown error"}`);
   }
 
-  return { sent, errors, autoClosed: autoClosedItems.length, gateExpired, gateHeld };
+  return { sent, errors, autoClosed: totalAutoClosed, gateExpired, gateHeld };
 }
 
 // HTTP endpoint for manual trigger

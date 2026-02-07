@@ -87,6 +87,7 @@ export type UpdateSprintScopeInput = z.infer<typeof updateSprintScopeSchema>;
 export const sprintFilterSchema = z.object({
   status: z.array(vdSprintStatusSchema).optional(),
   ownerId: z.string().optional(),
+  tenantId: z.string().optional(),
   fromDate: z.coerce.date().optional(),
   toDate: z.coerce.date().optional(),
 });

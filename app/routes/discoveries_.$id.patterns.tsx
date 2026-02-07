@@ -8,7 +8,7 @@ import { useLoaderData, Link } from "@remix-run/react";
 import { eq, desc } from "drizzle-orm";
 import { getDb } from "~/db";
 import { discoveries, extractedPatterns, reusableRules, decisionLogs } from "~/db/schema";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import PatternCard from "~/components/patterns/PatternCard";
@@ -16,8 +16,9 @@ import PatternCard from "~/components/patterns/PatternCard";
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
-  if (!user) return redirect("/login");
+  const ctx = await getSessionContext(request, db, secret);
+  if (!ctx) return redirect("/login");
+  const user = ctx.user;
 
   const { id } = params;
   if (!id) throw new Response("Not Found", { status: 404 });

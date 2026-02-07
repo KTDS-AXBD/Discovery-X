@@ -7,7 +7,7 @@ import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, useSearchParams } from "@remix-run/react";
 import { getDb } from "~/db";
 import { eventLogs, discoveries, users, UserRole } from "~/db/schema";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { eq, desc } from "drizzle-orm";
 import { AuditLogList } from "~/components/dashboard/AuditLogList";
 import { Badge } from "~/components/ui/Badge";
@@ -16,8 +16,9 @@ import { Select } from "~/components/ui/Select";
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
-  if (!user) return redirect("/login");
+  const ctx = await getSessionContext(request, db, secret);
+  if (!ctx) return redirect("/login");
+  const user = ctx.user;
 
   // Only admin/gatekeeper can view audit logs
   if (user.role !== UserRole.ADMIN && user.role !== UserRole.GATEKEEPER) {
@@ -28,7 +29,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const filterEventType = url.searchParams.get("eventType") || "";
   const filterActorType = url.searchParams.get("actorType") || "";
 
-  // Fetch recent 100 event logs
+  // Fetch recent 100 event logs (tenant-scoped via discoveries)
   const allLogs = await db
     .select({
       id: eventLogs.id,
@@ -39,6 +40,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       timestamp: eventLogs.timestamp,
     })
     .from(eventLogs)
+    .innerJoin(discoveries, eq(eventLogs.discoveryId, discoveries.id))
+    .where(eq(discoveries.tenantId, ctx.tenantId))
     .orderBy(desc(eventLogs.timestamp))
     .limit(100);
 

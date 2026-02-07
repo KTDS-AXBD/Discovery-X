@@ -8,23 +8,31 @@ import { json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { discoveries, evidence, experiments, eventLogs } from "~/db/schema";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { desc } from "drizzle-orm";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
+import { tenantWhere } from "~/lib/query/tenant-scope";
+import { desc, inArray, sql } from "drizzle-orm";
 import { HealthMetrics } from "~/components/dashboard/HealthMetrics";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
-  if (!user) return json({ health: null });
+  const ctx = await getSessionContext(request, db, secret);
+  if (!ctx) return json({ health: null });
 
-  const allDiscoveries = await db.select().from(discoveries);
-  const allEvidence = await db.select().from(evidence);
-  const allExperiments = await db.select().from(experiments);
-  const allEvents = await db
-    .select()
-    .from(eventLogs)
-    .orderBy(desc(eventLogs.timestamp));
+  const allDiscoveries = await db.select().from(discoveries)
+    .where(tenantWhere(discoveries, ctx.tenantId));
+  const discoveryIds = allDiscoveries.map(d => d.id);
+  const allEvidence = discoveryIds.length > 0
+    ? await db.select().from(evidence).where(inArray(evidence.discoveryId, discoveryIds))
+    : [];
+  const allExperiments = discoveryIds.length > 0
+    ? await db.select().from(experiments).where(inArray(experiments.discoveryId, discoveryIds))
+    : [];
+  const allEvents = discoveryIds.length > 0
+    ? await db.select().from(eventLogs)
+        .where(sql`${eventLogs.discoveryId} IN (SELECT id FROM discoveries WHERE tenant_id = ${ctx.tenantId})`)
+        .orderBy(desc(eventLogs.timestamp))
+    : [];
 
   const now = new Date();
 

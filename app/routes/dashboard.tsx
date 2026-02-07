@@ -84,6 +84,14 @@ const AssetsIcon = () => (
   </svg>
 );
 
+const ShadowIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="6" cy="8" r="5" fill="currentColor" opacity="0.3" />
+    <circle cx="10" cy="8" r="5" fill="currentColor" opacity="0.3" />
+    <path d="M7.5 4.5A5 5 0 0 1 8.5 4.5 5 5 0 0 1 10 8a5 5 0 0 1-1.5 3.5A5 5 0 0 1 7.5 11.5 5 5 0 0 1 6 8a5 5 0 0 1 1.5-3.5z" fill="currentColor" opacity="0.5" />
+  </svg>
+);
+
 const tabs = [
   { to: "/dashboard", label: "파이프라인", end: true, icon: <PipelineIcon /> },
   { to: "/dashboard/metrics", label: "지표", icon: <MetricsIcon /> },
@@ -93,6 +101,7 @@ const tabs = [
   { to: "/dashboard/review", label: "주간 리뷰", end: true, icon: <ReviewIcon /> },
   { to: "/dashboard/recall", label: "리콜 큐", end: true, icon: <RecallIcon /> },
   { to: "/dashboard/assets", label: "지식 자산", end: true, icon: <AssetsIcon /> },
+  { to: "/dashboard/shadow", label: "Shadow Mode", end: true, icon: <ShadowIcon /> },
 ];
 
 export default function DashboardLayout() {

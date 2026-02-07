@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useLoaderData, useActionData, useNavigation } from "@remix-run/react";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { getDb } from "~/db";
 import {
   radarSources,
@@ -11,7 +11,7 @@ import {
   RadarSourceType,
   RadarRunStatus,
 } from "~/db/schema";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Card, CardContent } from "~/components/ui/Card";
@@ -27,23 +27,26 @@ import { formatDateLocalTime } from "~/lib/format-date";
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
+  const ctx = await getSessionContext(request, db, secret);
 
-  if (!user) {
+  if (!ctx) {
     return redirect("/login");
   }
+  const user = ctx.user;
 
-  const sources = await db.select().from(radarSources);
+  const sources = await db.select().from(radarSources).where(eq(radarSources.tenantId, ctx.tenantId));
   const runs = await db
     .select()
     .from(radarRuns)
+    .where(eq(radarRuns.tenantId, ctx.tenantId))
     .orderBy(desc(radarRuns.startedAt))
     .limit(20);
 
-  // Get recent items (last 50)
+  // Get recent items (last 50) — radarItems has no tenantId, filter via runId subquery
   const recentItems = await db
     .select()
     .from(radarItems)
+    .where(sql`${radarItems.runId} IN (SELECT id FROM radar_runs WHERE tenant_id = ${ctx.tenantId})`)
     .orderBy(desc(radarItems.collectedAt))
     .limit(50);
 
@@ -53,9 +56,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 export async function action({ request, context }: ActionFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
+  const ctx = await getSessionContext(request, db, secret);
 
-  if (!user) {
+  if (!ctx) {
     return redirect("/login");
   }
 
@@ -76,7 +79,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     const id = crypto.randomUUID();
-    await db.insert(radarSources).values({ id, name, sourceType, url });
+    await db.insert(radarSources).values({ id, name, sourceType, url, tenantId: ctx.tenantId });
     return json({ success: true });
   }
 

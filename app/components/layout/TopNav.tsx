@@ -1,9 +1,16 @@
 import { Link, useLocation, useRouteLoaderData } from "@remix-run/react";
 import { cn } from "~/lib/utils/cn";
 import { useSidebar } from "~/lib/context/sidebar-context";
+import { TenantSwitcher } from "~/components/tenant/TenantSwitcher";
 
 interface TopNavProps {
   user: { id: string; email: string; name: string; role?: string };
+}
+
+interface TenantInfo {
+  id: string;
+  name: string;
+  slug: string;
 }
 
 interface RootLoaderData {
@@ -14,6 +21,8 @@ interface RootLoaderData {
     pendingApproval: number;
     unacknowledgedAlerts: number;
   } | null;
+  tenant: TenantInfo | null;
+  tenantList: TenantInfo[];
 }
 
 const NAV_TABS = [
@@ -59,6 +68,8 @@ export function TopNav({ user }: TopNavProps) {
   const location = useLocation();
   const rootData = useRouteLoaderData("root") as RootLoaderData | undefined;
   const notifications = rootData?.notifications;
+  const tenant = rootData?.tenant;
+  const tenantList = rootData?.tenantList ?? [];
   const { toggle } = useSidebar();
 
   const totalAlerts =
@@ -96,6 +107,14 @@ export function TopNav({ user }: TopNavProps) {
             </svg>
             <span className="text-sm font-bold tracking-tight">Discovery-X</span>
           </Link>
+
+          {/* Tenant Switcher */}
+          {tenant && (
+            <>
+              <span className="hidden text-[var(--axis-text-tertiary)] sm:inline">/</span>
+              <TenantSwitcher currentTenantId={tenant.id} tenants={tenantList} />
+            </>
+          )}
 
           {/* Desktop tab navigation */}
           <div className="hidden items-center gap-1 sm:flex">

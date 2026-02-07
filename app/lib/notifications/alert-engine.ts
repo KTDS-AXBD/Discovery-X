@@ -4,7 +4,7 @@
  * Creates alert records in the alerts table.
  */
 
-import { eq, sql } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import type { DB } from "~/db";
 import {
   alerts,
@@ -35,7 +35,7 @@ const STAGE_SLA_DAYS = 14;
  * Scan all 4 alert types and create alert records for violations.
  * Deduplicates: skips if same alertType + discoveryId already fired today.
  */
-export async function scanAndFireAlerts(db: DB): Promise<FiredAlert[]> {
+export async function scanAndFireAlerts(db: DB, tenantId?: string): Promise<FiredAlert[]> {
   const fired: FiredAlert[] = [];
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
@@ -50,11 +50,14 @@ export async function scanAndFireAlerts(db: DB): Promise<FiredAlert[]> {
     todayAlerts.map((a) => `${a.ruleId}:${a.discoveryId || ""}:${a.kpiId || ""}`)
   );
 
-  // Load enabled rules
+  // Load enabled rules (optionally scoped by tenant)
+  const rulesWhere = tenantId
+    ? and(eq(alertRules.enabled, 1), eq(alertRules.tenantId, tenantId))
+    : eq(alertRules.enabled, 1);
   const rules = await db
     .select()
     .from(alertRules)
-    .where(eq(alertRules.enabled, 1));
+    .where(rulesWhere);
 
   const ruleByType = new Map(rules.map((r) => [r.alertType, r]));
 
@@ -112,12 +115,13 @@ export async function scanAndFireAlerts(db: DB): Promise<FiredAlert[]> {
   const slaRule = ruleByType.get(AlertType.STAGE_SLA);
   if (slaRule) {
     const now = new Date();
+    const activeWhere = tenantId
+      ? sql`${discoveries.status} NOT IN ('HOLD', 'DROP', 'HANDOFF') AND ${discoveries.tenantId} = ${tenantId}`
+      : sql`${discoveries.status} NOT IN ('HOLD', 'DROP', 'HANDOFF')`;
     const activeDiscoveries = await db
       .select()
       .from(discoveries)
-      .where(
-        sql`${discoveries.status} NOT IN ('HOLD', 'DROP', 'HANDOFF')`
-      );
+      .where(activeWhere);
 
     for (const d of activeDiscoveries) {
       if (!d.stageUpdatedAt) continue;
@@ -146,12 +150,13 @@ export async function scanAndFireAlerts(db: DB): Promise<FiredAlert[]> {
   const overdueRule = ruleByType.get(AlertType.OVERDUE);
   if (overdueRule) {
     const now = new Date();
+    const overdueWhere = tenantId
+      ? sql`${discoveries.status} NOT IN ('HOLD', 'DROP', 'HANDOFF') AND ${discoveries.tenantId} = ${tenantId}`
+      : sql`${discoveries.status} NOT IN ('HOLD', 'DROP', 'HANDOFF')`;
     const activeDiscoveries = await db
       .select()
       .from(discoveries)
-      .where(
-        sql`${discoveries.status} NOT IN ('HOLD', 'DROP', 'HANDOFF')`
-      );
+      .where(overdueWhere);
 
     for (const d of activeDiscoveries) {
       if (!d.dueDate) continue;

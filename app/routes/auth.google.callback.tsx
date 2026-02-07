@@ -1,7 +1,7 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { redirect } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { users, UserRole } from "~/db/schema";
+import { users, tenantMembers, UserRole } from "~/db/schema";
 import { eq } from "drizzle-orm";
 import {
   createGoogleClient,
@@ -140,6 +140,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     session.unset("google_oauth_state");
     session.unset("google_code_verifier");
     session.set("sessionId", sessionId);
+
+    // Tenant 멤버십 확인 → tenantId 세션 설정
+    const membership = await db.query.tenantMembers.findFirst({
+      where: eq(tenantMembers.userId, user.id),
+    });
+    if (membership) {
+      session.set("tenantId", membership.tenantId);
+    }
 
     // pending 사용자는 승인 대기 페이지로 리다이렉트
     const redirectTo = user.role === UserRole.PENDING ? "/pending" : "/";

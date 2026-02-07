@@ -3,7 +3,7 @@ import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { Link, useLoaderData, useRouteError, isRouteErrorResponse, useRouteLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { ChatPanel } from "~/components/chat/ChatPanel";
 import { ContextPanel, extractContextItems, type ContextItem } from "~/components/chat/ContextPanel";
@@ -19,11 +19,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   try {
     const db = getDb(context.cloudflare.env.DB);
     const secret = getSessionSecret(context.cloudflare.env);
-    const user = await getUserFromSession(request, db, secret);
+    const ctx = await getSessionContext(request, db, secret);
 
-    if (!user) {
+    if (!ctx) {
       return redirect("/login");
     }
+    const user = ctx.user;
 
     return json({ user });
   } catch (error) {

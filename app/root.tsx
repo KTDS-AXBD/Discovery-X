@@ -8,8 +8,8 @@ import {
 import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { discoveries, alerts, conversations } from "~/db/schema";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { discoveries, alerts, conversations, tenants, tenantMembers } from "~/db/schema";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { eq, and, desc, inArray, sql } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { ACTIVE_STATUSES } from "~/lib/constants/status";
@@ -25,11 +25,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   try {
     const db = getDb(context.cloudflare.env.DB);
     const secret = getSessionSecret(context.cloudflare.env);
-    const user = await getUserFromSession(request, db, secret);
+    const ctx = await getSessionContext(request, db, secret);
 
-    if (!user) {
-      return json({ notifications: null, conversations: [] });
+    if (!ctx) {
+      return json({ notifications: null, conversations: [], tenant: null, tenantList: [] });
     }
+    const user = ctx.user;
 
     const nowUnix = Math.floor(Date.now() / 1000);
     const threeDaysUnix = nowUnix + 3 * 24 * 60 * 60;
@@ -87,12 +88,29 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       updatedAt: c.updatedAt ? new Date(c.updatedAt as unknown as number * 1000).toISOString() : null,
     }));
 
+    // Tenant data for TenantSwitcher
+    const currentTenant = await db.query.tenants.findFirst({
+      where: eq(tenants.id, ctx.tenantId),
+    });
+
+    const userMemberships = await db
+      .select({
+        tenantId: tenantMembers.tenantId,
+        tenantName: tenants.name,
+        tenantSlug: tenants.slug,
+      })
+      .from(tenantMembers)
+      .innerJoin(tenants, eq(tenantMembers.tenantId, tenants.id))
+      .where(eq(tenantMembers.userId, user.id));
+
     return json({
       notifications: { overdueOpen, dueSoon, recallDue, pendingApproval, unacknowledgedAlerts },
       conversations: sanitizedConvs,
+      tenant: currentTenant ? { id: currentTenant.id, name: currentTenant.name, slug: currentTenant.slug } : null,
+      tenantList: userMemberships.map((m) => ({ id: m.tenantId, name: m.tenantName, slug: m.tenantSlug })),
     });
   } catch {
-    return json({ notifications: null, conversations: [] });
+    return json({ notifications: null, conversations: [], tenant: null, tenantList: [] });
   }
 }
 
