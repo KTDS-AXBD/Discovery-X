@@ -257,7 +257,7 @@ build/
 ### 버전
 - **프로토타입**: v5.0 Layout Restructure + Proposals Feature
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 정상 동작
-- **DB**: 22개 마이그레이션 (0000~0021), 로컬 적용 완료, 프로덕션 0021 Pending
+- **DB**: 22개 마이그레이션 (0000~0021), 로컬 + 프로덕션 모두 적용 완료 ✅
 
 ### 주요 지표
 - **라우트**: 100개 (core 46 + ideas 2 + proposals 7 + venture 13 + API 30 + 기타 2)
