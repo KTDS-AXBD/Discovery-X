@@ -260,7 +260,7 @@ build/
 - **DB**: 24개 마이그레이션 (0000~0023), 로컬 + 프로덕션 모두 적용 완료 ✅
 
 ### 주요 지표
-- **라우트**: 108개 (core 46 + ideas 2 + proposals 7 + venture 13 + API 30 + folders 4 + 기타 6)
+- **라우트**: 111개 (core 46 + ideas 2 + proposals 7 + venture 13 + market 3 + API 30 + folders 4 + 기타 6)
 - **테이블**: 68개 (core 44 + venture 16 + proposals 6 + archive 2)
 - **Agent 도구**: 48개
 - **테스트**: 597개 (unit 76 + integration 342 + venture 143 + BD PoC 36)
@@ -269,15 +269,20 @@ build/
 - **Build**: ✅ 성공
 
 ### 최근 변경 (세션 138)
-**대시보드 와이어프레임 기반 재설계**:
+**대시보드 와이어프레임 기반 재설계 + 시장탐색 페이지 추가**:
 - ✅ 대시보드 인덱스 페이지 전면 재설계: Pipeline 칸반 → 요약형 대시보드
 - ✅ 현황 섹션: 3-column 카드 (최근 수집 / 전체 발굴 / 전략 건의) + 수집 소스 수
 - ✅ 통계 섹션: 일별 활동 차트 + 단계별 평균 체류 시간 테이블 + 산업 분포 도넛 차트
 - ✅ 신규 컴포넌트 4개: StatusOverview, StageDurationTable, DailyActivityChart, IndustryDonut
 - ✅ 대시보드 탭 라벨 변경: "파이프라인" → "현황"
 - ✅ Loader: 7개 데이터 소스 통합 (radar items, discoveries, proposals, radar sources, daily activity, stage duration, industry distribution)
-- ✅ tmux Agent Teams 2명 병렬 작업 (components + routes)
-- ✅ ESLint 0 errors, TypeScript 0 errors, Build 성공
+- ✅ 시장탐색 `/market` 라우트 신규 생성 (와이어프레임 기반)
+- ✅ 레이아웃: MarketSidebar (검색/필터 + 아이템 리스트) + MarketAnalysisTabs (5탭: 시장 현황/고객·수요/시장가 데이터/경쟁 분석/규제)
+- ✅ 신규 라우트 3개: market.tsx (레이아웃) + market.$id.tsx (상세) + market._index.tsx (빈 상태)
+- ✅ 신규 컴포넌트 2개: MarketSidebar, MarketAnalysisTabs
+- ✅ TopNav에 "시장 탐색" 탭 추가 (대시보드 ↔ 아이디어 사이)
+- ✅ tmux Agent Teams 2×2명 병렬 작업 (대시보드 + 시장탐색)
+- ✅ ESLint 0 errors, TypeScript 0 errors, Build 성공, CI/CD 배포 2회 완료
 
 ### 이전 변경 (세션 137)
 **PDCA Analyze + Report 완료 — 3개 피처 PDCA 사이클 완결 + 프로덕션 배포**:
