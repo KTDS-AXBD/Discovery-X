@@ -46,6 +46,7 @@ export function createTestDb() {
   runMigrationSQL(sqlite, resolve(migrationsDir, "0021_proposals.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0022_ideas_memo.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0023_archive_folders.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0024_proposal_section_unique.sql"));
 
   return drizzle(sqlite, { schema });
 }

@@ -19,6 +19,24 @@ interface Comment {
   createdAt: string | number | null;
 }
 
+interface Milestone {
+  id: string;
+  title: string;
+  status: string;
+}
+
+interface ActionItem {
+  id: string;
+  title: string;
+  completed: number;
+}
+
+interface ProgressSummary {
+  milestones: Milestone[];
+  actions: ActionItem[];
+  totalProgress: number;
+}
+
 interface ProposalDetailProps {
   proposal: {
     id: string;
@@ -34,6 +52,7 @@ interface ProposalDetailProps {
   currentUserId: string;
   isOwner?: boolean;
   memberNames?: string[];
+  progressSummary?: ProgressSummary;
 }
 
 const TRANSITION_LABELS: Record<string, string> = {
@@ -65,6 +84,7 @@ export function ProposalDetail({
   currentUserId,
   isOwner,
   memberNames,
+  progressSummary,
 }: ProposalDetailProps) {
   const sortedSections = [...sections].sort((a, b) => a.sortOrder - b.sortOrder);
   const fetcher = useFetcher();
@@ -193,6 +213,73 @@ export function ProposalDetail({
           </p>
         )}
       </div>
+
+      {/* Progress summary for tablet/mobile (hidden on desktop where sidebar is visible) */}
+      {progressSummary && (
+        <div className="mb-8 lg:hidden">
+          <Card>
+            <CardContent className="p-4">
+              <h3 className="mb-3 text-sm font-semibold text-[var(--axis-text-primary)]">진행 상황</h3>
+
+              {/* Progress bar */}
+              <div className="mb-3">
+                <div className="mb-1 flex items-center justify-between text-xs">
+                  <span className="text-[var(--axis-text-secondary)]">전체 진행률</span>
+                  <span className="font-medium text-[var(--axis-text-primary)]">{progressSummary.totalProgress}%</span>
+                </div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-[var(--axis-surface-secondary)]">
+                  <div
+                    className="h-full rounded-full bg-[var(--axis-text-brand)] transition-all"
+                    style={{ width: `${progressSummary.totalProgress}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Milestones summary */}
+              {progressSummary.milestones.length > 0 && (
+                <div className="mb-2">
+                  <h4 className="mb-1 text-[10px] font-semibold text-[var(--axis-text-tertiary)]">마일스톤</h4>
+                  <div className="space-y-1">
+                    {progressSummary.milestones.map((ms) => (
+                      <div key={ms.id} className="flex items-center gap-2 text-xs">
+                        {ms.status === "COMPLETED" ? (
+                          <span className="text-[var(--axis-text-success,#22C55E)]">✓</span>
+                        ) : ms.status === "ACTIVE" ? (
+                          <span className="text-[var(--axis-text-brand)]">●</span>
+                        ) : (
+                          <span className="text-[var(--axis-text-tertiary)]">○</span>
+                        )}
+                        <span className={ms.status === "COMPLETED" ? "text-[var(--axis-text-tertiary)] line-through" : "text-[var(--axis-text-primary)]"}>
+                          {ms.title}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Actions summary */}
+              {progressSummary.actions.length > 0 && (
+                <div>
+                  <h4 className="mb-1 text-[10px] font-semibold text-[var(--axis-text-tertiary)]">
+                    액션 아이템 ({progressSummary.actions.filter((a) => a.completed).length}/{progressSummary.actions.length})
+                  </h4>
+                  <div className="space-y-1">
+                    {progressSummary.actions.map((action) => (
+                      <div key={action.id} className="flex items-center gap-2 text-xs">
+                        <span>{action.completed ? "☑" : "☐"}</span>
+                        <span className={action.completed ? "text-[var(--axis-text-tertiary)] line-through" : "text-[var(--axis-text-primary)]"}>
+                          {action.title}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Team Discussion */}
       <TeamDiscussion

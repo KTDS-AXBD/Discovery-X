@@ -169,6 +169,13 @@
       "when": 1771051200000,
       "tag": "0023_archive_folders",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1771137600000,
+      "tag": "0024_proposal_section_unique",
+      "breakpoints": true
     }
   ]
 }

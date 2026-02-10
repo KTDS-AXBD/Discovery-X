@@ -11,7 +11,7 @@ import {
   proposalComments,
   proposalMembers,
 } from "~/features/proposals/db/schema";
-import { users } from "~/db/schema";
+import { users, tenantMembers } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { ProposalDetail } from "~/components/proposals/ProposalDetail";
 import { ProgressPanel } from "~/components/proposals/ProgressPanel";
@@ -84,10 +84,12 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     daysRemaining = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)));
   }
 
-  // Fetch tenant users for member management
+  // Fetch tenant users for member management (filtered by tenant membership)
   const tenantUsers = await db
     .select({ id: users.id, name: users.name })
-    .from(users);
+    .from(users)
+    .innerJoin(tenantMembers, eq(users.id, tenantMembers.userId))
+    .where(eq(tenantMembers.tenantId, ctx.tenantId));
 
   return json({
     proposal,
@@ -136,6 +138,11 @@ export default function ProposalDetailPage() {
           currentUserId={currentUserId}
           isOwner={isOwner}
           memberNames={memberNames}
+          progressSummary={{
+            milestones: milestones.map((ms) => ({ id: ms.id, title: ms.title, status: ms.status })),
+            actions: actions.map((a) => ({ id: a.id, title: a.title, completed: a.completed })),
+            totalProgress,
+          }}
         />
       </div>
 
