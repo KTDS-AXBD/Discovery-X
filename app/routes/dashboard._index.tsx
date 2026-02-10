@@ -1,139 +1,254 @@
 /**
- * /dashboard (Pipeline view) — 11-stage Discovery pipeline.
+ * /dashboard (Overview) — Summary dashboard with status cards and statistics.
  */
 
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { Link, useLoaderData } from "@remix-run/react";
+import { useLoaderData } from "@remix-run/react";
+import { eq, sql, desc } from "drizzle-orm";
 import { getDb } from "~/db";
-import { discoveries } from "~/db/schema";
+import { discoveries, radarItems, radarSources, industryAdapters } from "~/db/schema";
+import { proposals } from "~/features/proposals/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { tenantWhere } from "~/lib/query/tenant-scope";
-import { Card, CardContent } from "~/components/ui/Card";
-import { Badge } from "~/components/ui/Badge";
-import { StatusBadge } from "~/components/ui/StatusBadge";
-import { PIPELINE_COLUMNS, STAGE_CATEGORIES } from "~/lib/constants/status";
-import { formatDate } from "~/lib/format-date";
+import { PIPELINE_COLUMNS, STATUS_CONFIG } from "~/lib/constants/status";
+import { StatusOverview } from "~/components/dashboard/StatusOverview";
+import { StageDurationTable } from "~/components/dashboard/StageDurationTable";
+import { DailyActivityChart } from "~/components/charts/DailyActivityChart";
+import { IndustryDonut } from "~/components/charts/IndustryDonut";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
   const ctx = await getSessionContext(request, db, secret);
-  if (!ctx) return json({ columns: {} });
 
-  const allDiscoveries = await db.select().from(discoveries)
-    .where(tenantWhere(discoveries, ctx.tenantId));
+  const emptyDefaults = {
+    recentCollections: { total: 0, items: [] as { id: string; title: string; summary: string | null }[] },
+    totalDiscoveries: { total: 0, items: [] as { id: string; title: string; status: string }[] },
+    strategyProposals: { total: 0, items: [] as { id: string; title: string; status: string }[] },
+    totalSources: 0,
+    dailyActivity: [] as { date: string; count: number }[],
+    stageDuration: [] as { stage: string; label: string; avgWeeks: number }[],
+    industryData: [] as { name: string; count: number; color: string }[],
+    timestamp: "",
+  };
 
-  const columns: Record<string, typeof allDiscoveries> = {};
-  for (const col of PIPELINE_COLUMNS) {
-    columns[col.status] = allDiscoveries.filter((d) => d.status === col.status);
+  if (!ctx) return json(emptyDefaults);
+
+  // ── Timestamp ──────────────────────────────────────────────
+  const now = new Date();
+  const timestamp = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, "0")}.${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+
+  // ── 1. Recent collections (최근 수집) ──────────────────────
+  let recentCollections = emptyDefaults.recentCollections;
+  try {
+    const tenantRunIds = sql`(SELECT id FROM radar_runs WHERE tenant_id = ${ctx.tenantId})`;
+
+    const countResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(radarItems)
+      .where(sql`${radarItems.runId} IN ${tenantRunIds}`);
+
+    const latestItems = await db
+      .select({
+        id: radarItems.id,
+        title: radarItems.title,
+        summary: radarItems.summary,
+      })
+      .from(radarItems)
+      .where(sql`${radarItems.runId} IN ${tenantRunIds}`)
+      .orderBy(desc(sql`rowid`))
+      .limit(10);
+
+    recentCollections = {
+      total: countResult[0]?.count ?? 0,
+      items: latestItems,
+    };
+  } catch {
+    // Radar tables might not exist in dev
   }
 
-  return json({ columns });
+  // ── 2. All discoveries (전체 발굴) ─────────────────────────
+  const allDiscoveries = await db
+    .select({ id: discoveries.id, title: discoveries.title, status: discoveries.status })
+    .from(discoveries)
+    .where(tenantWhere(discoveries, ctx.tenantId));
+
+  const totalDiscoveries = {
+    total: allDiscoveries.length,
+    items: allDiscoveries,
+  };
+
+  // ── 3. Strategy proposals (전략 건의) ──────────────────────
+  let strategyProposals = emptyDefaults.strategyProposals;
+  try {
+    const allProposals = await db
+      .select({ id: proposals.id, title: proposals.title, status: proposals.status })
+      .from(proposals)
+      .where(eq(proposals.tenantId, ctx.tenantId));
+
+    strategyProposals = {
+      total: allProposals.length,
+      items: allProposals,
+    };
+  } catch {
+    // proposals table might not exist
+  }
+
+  // ── 4. Source count (수집 소스) ─────────────────────────────
+  let totalSources = 0;
+  try {
+    const sourceCountResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(radarSources)
+      .where(eq(radarSources.tenantId, ctx.tenantId));
+    totalSources = sourceCountResult[0]?.count ?? 0;
+  } catch {
+    // radarSources might not exist
+  }
+
+  // ── 5. Daily activity (일별 활동) ──────────────────────────
+  const thirtyDaysAgo = Math.floor(Date.now() / 1000) - 30 * 24 * 3600;
+  const dailyRows = await db
+    .select({
+      day: sql<string>`strftime('%m.%d', ${discoveries.createdAt}, 'unixepoch')`,
+      count: sql<number>`count(*)`,
+    })
+    .from(discoveries)
+    .where(
+      tenantWhere(
+        discoveries,
+        ctx.tenantId,
+        sql`${discoveries.createdAt} >= ${thirtyDaysAgo}`
+      )
+    )
+    .groupBy(sql`strftime('%m.%d', ${discoveries.createdAt}, 'unixepoch')`)
+    .orderBy(sql`strftime('%m.%d', ${discoveries.createdAt}, 'unixepoch')`);
+
+  const dailyActivity = dailyRows.map((r) => ({ date: r.day, count: r.count }));
+
+  // ── 6. Stage duration (단계별 체류시간) ────────────────────
+  const nowUnix = Math.floor(Date.now() / 1000);
+  const stageDuration: { stage: string; label: string; avgWeeks: number }[] = [];
+
+  for (const col of PIPELINE_COLUMNS) {
+    const config = STATUS_CONFIG[col.status];
+    if (!config) continue;
+    // Skip terminal stages
+    if (config.category === "terminal") continue;
+
+    const result = await db
+      .select({
+        avgWeeks: sql<number>`ROUND(AVG((${nowUnix} - ${discoveries.createdAt}) / (7.0 * 24 * 3600)), 1)`,
+      })
+      .from(discoveries)
+      .where(
+        tenantWhere(
+          discoveries,
+          ctx.tenantId,
+          eq(discoveries.status, col.status)
+        )
+      );
+
+    const avgWeeks = result[0]?.avgWeeks ?? 0;
+    stageDuration.push({
+      stage: col.status,
+      label: config.label,
+      avgWeeks,
+    });
+  }
+
+  // ── 7. Industry distribution (산업 분포) ───────────────────
+  const industryRows = await db
+    .select({
+      industryAdapterId: discoveries.industryAdapterId,
+      nameKo: industryAdapters.nameKo,
+      color: industryAdapters.color,
+      count: sql<number>`count(*)`,
+    })
+    .from(discoveries)
+    .leftJoin(industryAdapters, eq(discoveries.industryAdapterId, industryAdapters.id))
+    .where(tenantWhere(discoveries, ctx.tenantId))
+    .groupBy(discoveries.industryAdapterId);
+
+  const industryData = industryRows.map((r) => ({
+    name: r.nameKo ?? "미분류",
+    count: r.count,
+    color: r.color ?? "#9CA3AF",
+  }));
+
+  return json({
+    recentCollections,
+    totalDiscoveries,
+    strategyProposals,
+    totalSources,
+    dailyActivity,
+    stageDuration,
+    industryData,
+    timestamp,
+  });
 }
 
-export default function DashboardPipeline() {
-  const { columns } = useLoaderData<typeof loader>();
-
-  // Group columns by category for visual separation
-  const categories = [
-    { key: "ideation" as const, cols: PIPELINE_COLUMNS.filter((c) => c.category === "ideation") },
-    { key: "validation" as const, cols: PIPELINE_COLUMNS.filter((c) => c.category === "validation") },
-    { key: "execution" as const, cols: PIPELINE_COLUMNS.filter((c) => c.category === "execution") },
-    { key: "terminal" as const, cols: PIPELINE_COLUMNS.filter((c) => c.category === "terminal") },
-  ];
-
-  let globalIndex = 0;
+export default function DashboardOverview() {
+  const {
+    recentCollections,
+    totalDiscoveries,
+    strategyProposals,
+    totalSources,
+    dailyActivity,
+    stageDuration,
+    industryData,
+    timestamp,
+  } = useLoaderData<typeof loader>();
 
   return (
     <div>
-      <h2 className="mb-4 text-lg font-semibold text-[var(--axis-text-primary)]">
-        Discovery 파이프라인
-      </h2>
+      {/* 현황 섹션 */}
+      <StatusOverview
+        recentCollections={recentCollections}
+        totalDiscoveries={totalDiscoveries}
+        strategyProposals={strategyProposals}
+        totalSources={totalSources}
+        timestamp={timestamp}
+      />
 
-      {categories.map((cat) => {
-        const catConfig = STAGE_CATEGORIES[cat.key];
-        return (
-          <div key={cat.key} className="mb-6">
-            <div className="mb-2 flex items-center gap-2">
-              <div
-                className="h-2 w-2 rounded-full"
-                style={{ backgroundColor: catConfig.color }}
-              />
-              <span className="text-xs font-semibold uppercase tracking-wider text-[var(--axis-text-tertiary)]">
-                {catConfig.label}
-              </span>
-            </div>
-            <div
-              className="grid gap-3"
-              style={{
-                gridTemplateColumns: `repeat(${cat.cols.length}, minmax(0, 1fr))`,
-              }}
-            >
-              {cat.cols.map((col) => {
-                const i = globalIndex++;
-                const items = (columns as Record<string, Array<{
-                  id: string;
-                  title: string;
-                  status: string;
-                  ownerId: string | null;
-                  dueDate: Date | string | null;
-                  createdByAgent: number;
-                }>>)[col.status] || [];
-                return (
-                  <div
-                    key={col.status}
-                    className="flex flex-col"
-                    style={{
-                      opacity: 0,
-                      animation: "dx-fade-in-up 0.3s ease-out forwards",
-                      animationDelay: `${i * 40}ms`,
-                    }}
-                  >
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className="text-xs font-semibold text-[var(--axis-text-tertiary)]">
-                        {col.label}
-                      </span>
-                      <Badge variant="outline" className="text-[10px]">
-                        {items.length}
-                      </Badge>
-                    </div>
-                    <div className="max-h-[500px] flex-1 space-y-2 overflow-y-auto">
-                      {items.map((d) => (
-                        <Link key={d.id} to={`/discoveries/${d.id}`}>
-                          <Card className="cursor-pointer transition-shadow hover:shadow-md">
-                            <CardContent className="p-3">
-                              <p className="text-xs font-medium text-[var(--axis-text-primary)] line-clamp-2">
-                                {d.title}
-                              </p>
-                              <div className="mt-1.5 flex items-center gap-1">
-                                <StatusBadge status={d.status} />
-                                {d.createdByAgent ? (
-                                  <Badge variant="purple" className="text-[9px]">AI</Badge>
-                                ) : null}
-                              </div>
-                              {d.dueDate && (
-                                <p className="mt-1 text-[10px] text-[var(--axis-text-tertiary)]">
-                                  기한: {formatDate(d.dueDate)}
-                                </p>
-                              )}
-                            </CardContent>
-                          </Card>
-                        </Link>
-                      ))}
-                      {items.length === 0 && (
-                        <div className="rounded-md border border-dashed border-[var(--axis-border-default)] p-3 text-center text-xs text-[var(--axis-text-tertiary)]">
-                          없음
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
+      {/* 통계 섹션 */}
+      <div className="mt-8">
+        <h2 className="mb-4 text-lg font-semibold text-[var(--axis-text-primary)]">통계</h2>
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {/* 일별 활동 현황 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>일별 활동 현황</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DailyActivityChart data={dailyActivity} />
+            </CardContent>
+          </Card>
+
+          {/* 단계별 평균 체류 시간 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>단계별 평균 체류 시간</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <StageDurationTable data={stageDuration} />
+            </CardContent>
+          </Card>
+
+          {/* 산업 분포 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>산업 분포</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <IndustryDonut data={industryData} />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

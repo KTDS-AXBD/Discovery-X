@@ -84,7 +84,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 const tabs = [
-  { to: "/dashboard", label: "파이프라인", end: true },
+  { to: "/dashboard", label: "현황", end: true },
   { to: "/dashboard/metrics", label: "지표" },
   { to: "/dashboard/health", label: "건강도" },
   { to: "/dashboard/alerts", label: "알림" },
