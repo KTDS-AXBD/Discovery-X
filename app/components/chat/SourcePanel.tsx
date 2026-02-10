@@ -2,7 +2,6 @@
  * SourcePanel — 좌측 패널: 소스 탭 + 히스토리 탭 + 연관 소스
  * BD팀 PoC FR-01, FR-02, FR-05
  */
-import { useState, useEffect } from "react";
 import { Badge } from "~/components/ui/Badge";
 import { Button } from "~/components/ui/Button";
 

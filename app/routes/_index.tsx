@@ -104,7 +104,7 @@ export default function Index() {
   const [statusFilter, setStatusFilter] = useState<"all" | "new" | "viewed" | "archived">("all");
   const [activeSource, setActiveSource] = useState<RadarItem | null>(null);
   const [similarSources, setSimilarSources] = useState<SimilarSource[]>([]);
-  const [candidates, setCandidates] = useState<Discovery[]>([]);
+  const [candidates, _setCandidates] = useState<Discovery[]>([]);
   const [selectedIdea, setSelectedIdea] = useState<Discovery | null>(null);
 
   // Sync when root conversations change

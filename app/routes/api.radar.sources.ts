@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
-import { eq, and, or, isNull } from "drizzle-orm";
+import { eq, or, isNull } from "drizzle-orm";
 import { getDb } from "~/db";
 import { radarSources } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
