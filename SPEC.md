@@ -268,7 +268,18 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 137)
+### 최근 변경 (세션 138)
+**대시보드 와이어프레임 기반 재설계**:
+- ✅ 대시보드 인덱스 페이지 전면 재설계: Pipeline 칸반 → 요약형 대시보드
+- ✅ 현황 섹션: 3-column 카드 (최근 수집 / 전체 발굴 / 전략 건의) + 수집 소스 수
+- ✅ 통계 섹션: 일별 활동 차트 + 단계별 평균 체류 시간 테이블 + 산업 분포 도넛 차트
+- ✅ 신규 컴포넌트 4개: StatusOverview, StageDurationTable, DailyActivityChart, IndustryDonut
+- ✅ 대시보드 탭 라벨 변경: "파이프라인" → "현황"
+- ✅ Loader: 7개 데이터 소스 통합 (radar items, discoveries, proposals, radar sources, daily activity, stage duration, industry distribution)
+- ✅ tmux Agent Teams 2명 병렬 작업 (components + routes)
+- ✅ ESLint 0 errors, TypeScript 0 errors, Build 성공
+
+### 이전 변경 (세션 137)
 **PDCA Analyze + Report 완료 — 3개 피처 PDCA 사이클 완결 + 프로덕션 배포**:
 - ✅ tmux Agent Teams Gap Analysis: proposals 99%, f20-ideas 93%, f22-archive 94%
 - ✅ PDCA Completion Report 3건 생성 (proposals, f20, f22)
