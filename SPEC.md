@@ -268,7 +268,18 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 138)
+### 최근 변경 (세션 139)
+**사업제안 상세 UI 개선 + PDCA 문서 아카이브**:
+- ✅ ProposalDetail: 팀 멤버 이름 표시 (proposalMembers JOIN users)
+- ✅ ProgressPanel: 액션 아이템 담당자 이름 표시 (proposalActions JOIN users)
+- ✅ ProgressPanel: 마일스톤 기간 표시 (startDate~endDate)
+- ✅ ProgressPanel: 레이아웃 재구성 (마일스톤 → 액션 아이템 → 통계 순서)
+- ✅ ProposalListSidebar: 수정일 표시 (updatedAt)
+- ✅ proposals.$id.tsx loader: 멤버/담당자 데이터 JOIN 쿼리 추가
+- ✅ ax-bd-poc PDCA 문서 아카이브 (6개 문서 → docs/archive/2026-02/ax-bd-poc/)
+- ✅ 와이어프레임 이미지 3개 추가 (대시보드/아이디어/사업제안)
+
+### 이전 변경 (세션 138)
 **대시보드 와이어프레임 기반 재설계 + 시장탐색 페이지 추가**:
 - ✅ 대시보드 인덱스 페이지 전면 재설계: Pipeline 칸반 → 요약형 대시보드
 - ✅ 현황 섹션: 3-column 카드 (최근 수집 / 전체 발굴 / 전략 건의) + 수집 소스 수
