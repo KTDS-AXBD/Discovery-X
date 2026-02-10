@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-10T11:34:32.079Z",
+  "lastUpdated": "2026-02-10T11:40:15.813Z",
   "activeFeatures": [
     "routes",
     "auth",
@@ -30,7 +30,8 @@
     "ax-bd-poc",
     "api",
     "ideas",
-    "proposals"
+    "proposals",
+    "archive"
   ],
   "primaryFeature": "ax-bd-poc",
   "features": {
@@ -67,9 +68,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T11:39:12.844Z",
-        "lastUpdated": "2026-02-10T11:33:42.398Z"
+        "lastUpdated": "2026-02-10T11:38:27.988Z"
       },
-      "lastFile": "/mnt/d/01_Projects/Discovery-X/app/routes/api.ideas.memo.ts"
+      "lastFile": "/mnt/d/01_Projects/Discovery-X/app/routes/api.folders.reorder.ts"
     },
     "auth": {
       "phase": "do",
@@ -132,7 +133,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T12:27:47.205Z",
-        "lastUpdated": "2026-02-10T07:19:07.606Z"
+        "lastUpdated": "2026-02-10T11:40:15.813Z"
       },
       "lastFile": "/mnt/d/01_Projects/Discovery-X/app/components/layout/SidebarPanel.tsx"
     },
@@ -197,9 +198,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T13:32:52.354Z",
-        "lastUpdated": "2026-02-10T11:32:58.600Z"
+        "lastUpdated": "2026-02-10T11:37:42.276Z"
       },
-      "lastFile": "/mnt/d/01_Projects/Discovery-X/app/db/schema.ts"
+      "lastFile": "/mnt/d/01_Projects/Discovery-X/app/db/index.ts"
     },
     "helpers": {
       "phase": "do",
@@ -379,9 +380,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-07T08:32:32.098Z",
-        "lastUpdated": "2026-02-10T02:47:20.462Z"
+        "lastUpdated": "2026-02-10T11:35:34.223Z"
       },
-      "lastFile": "D:\\01_Projects\\Discovery-X\\tests\\integration\\embeddings\\sync.test.ts"
+      "lastFile": "/mnt/d/01_Projects/Discovery-X/app/lib/embeddings/similar-items.ts"
     },
     "ax-bd-poc": {
       "phase": "completed",
@@ -438,9 +439,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-10T06:59:09.510Z",
-        "lastUpdated": "2026-02-10T11:34:32.079Z"
+        "lastUpdated": "2026-02-10T11:36:43.435Z"
       },
-      "lastFile": "/mnt/d/01_Projects/Discovery-X/app/components/ideas/FilterBar.tsx"
+      "lastFile": "/mnt/d/01_Projects/Discovery-X/app/components/ideas/MemoPanel.tsx"
     },
     "proposals": {
       "phase": "do",
@@ -454,6 +455,19 @@
         "lastUpdated": "2026-02-10T11:33:26.419Z"
       },
       "lastFile": "/mnt/d/01_Projects/Discovery-X/app/components/proposals/ProposalListSidebar.tsx"
+    },
+    "archive": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-10T11:37:28.137Z",
+        "lastUpdated": "2026-02-10T11:37:28.137Z"
+      },
+      "lastFile": "/mnt/d/01_Projects/Discovery-X/app/features/archive/db/schema.ts"
     }
   },
   "pipeline": {
@@ -464,7 +478,7 @@
   "session": {
     "startedAt": "2026-02-04T11:05:49.371Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-10T11:34:32.079Z"
+    "lastActivity": "2026-02-10T11:40:15.813Z"
   },
   "history": [
     {
@@ -3002,6 +3016,96 @@
     {
       "timestamp": "2026-02-10T11:34:32.079Z",
       "feature": "ideas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:35:05.845Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:35:34.223Z",
+      "feature": "embeddings",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:35:43.942Z",
+      "feature": "ideas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:36:15.488Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:36:42.407Z",
+      "feature": "ideas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:36:43.435Z",
+      "feature": "ideas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:37:28.137Z",
+      "feature": "archive",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:37:38.053Z",
+      "feature": "db",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:37:42.276Z",
+      "feature": "db",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:38:06.184Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:38:12.507Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:38:23.708Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:38:27.988Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:39:17.647Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:40:15.813Z",
+      "feature": "layout",
       "phase": "do",
       "action": "updated"
     }
