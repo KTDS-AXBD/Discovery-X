@@ -103,26 +103,32 @@ Flow I: BD 워크스페이스 (v4.2)
   → 수동 편집 → 팀 공유
 ```
 
-### 페이지 맵 (84개 라우트)
+### 페이지 맵 (100개 라우트)
 
-**Core (32개)**
-- `/` — 채팅 (메인)
-- `/dashboard/*` — 대시보드 + 수집현황 우측 패널 (5개)
-- `/discoveries*` — 목록/생성/상세 (5개)
-- `/discoveries/:id/*` — 상세/편집/승격/실험/근거/결정/Gate/Graph/Methods (9개)
-- `/settings` — Agent 설정 (1개)
-- `/review` — 주간 리뷰 (1개)
-- `/recall` — 재호출 큐 (1개)
-- `/methods` — Method Pack 라이브러리 (1개)
-- `/docs` — 도움말 (1개)
-- `/login`, `/auth/google*` — 인증 (2개)
-- `/admin*` — 관리자 (4개)
+**Core (46개)**
+- `/` — 채팅 (메인) (1)
+- `/dashboard/*` — 대시보드 레이아웃 + 서브탭 (9): _index/metrics/health/alerts/audit-log/review/recall/assets/shadow
+- `/discoveries*` — 목록/생성/상세 (3): _index/new/$id
+- `/discoveries/:id/*` — 편집/승격/실험/근거/결정/Gate/Graph/Methods/승인/연장/규제/패턴 (13)
+- `/settings*` — Agent 설정 + 조직 설정 (2)
+- `/review` — 주간 리뷰 (1)
+- `/recall` — 재호출 큐 (1)
+- `/methods` — Method Pack 라이브러리 (1)
+- `/metrics` — 지표 대시보드 (1)
+- `/docs` — 도움말 (1)
+- `/login`, `/logout`, `/auth/google*` — 인증 (4): login/logout/auth.google/auth.google.callback
+- `/admin*` — 관리자 (2): users/seed
+- `/onboarding` — 온보딩 (1)
+- `/pending` — 승인 대기 (1)
+- `/evidence/duplicates` — 근거 중복 관리 (1)
+- `/valueup*` — Value-up 시나리오 (2): valueup/valueup.$id
+- `/radar` — Radar 소스 관리 (1)
 
 **Ideas (2개)**
 - `/ideas` — 아이디어 목록 + 레이아웃 (좌측 리스트 + Surface + 메모 패널)
 - `/ideas/:id` — 아이디어 상세 (Radar 아이템 재활용, 블랙 헤더바 + 스코어/상태)
 
-**Proposals (6개)**
+**Proposals (7개: 4 pages + 3 API)**
 - `/proposals` — 사업제안 레이아웃 (전용 사이드바 + Surface + 진행상황 패널)
 - `/proposals/_index` — 빈 상태 (첫 제안 선택 유도)
 - `/proposals/:id` — 사업제안 상세 (메타 카드 + 5개 섹션 + 팀 토론 + 진행상황 패널)
@@ -131,17 +137,20 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/api/proposals/:id/comments` — 댓글 API (GET + POST)
 - `/api/proposals/:id/actions` — 액션 아이템 토글 API (POST)
 
-**Radar (5개)**
-- `/radar` — 소스 관리 (1개)
-
-**Metrics/Export (8개)**
-- `/metrics`, `/export*` (3개)
-
 **Venture (13개)**
-- `/venture/*` — 스프린트 관리 (13개)
+- `/venture/*` — 스프린트 관리: _index/overview/analytics + sprints(new/_index/$sprintId 6개 서브라우트)
 
-**API (16개)**
-- `/api/chat`, `/api/conversations*`, `/api/radar*`, `/api/cron*`, `/api/venture*`, `/api/export*`, `/api/similar*`, etc.
+**API (30개, proposals API 제외)**
+- `/api/chat` — SSE 스트리밍 채팅 (1)
+- `/api/conversations*` — 대화 CRUD + 메시지 (2)
+- `/api/cron*` — Cron 8개: daily/agent-review/alerts/embeddings/weekly-summary/log-archive/pattern-extract/shadow-analyze
+- `/api/venture*` — Venture API 7개: decisions.propose/tasks(claim/report/trigger)/worker/export/analytics.recompute
+- `/api/export*` — Export 4개: discoveries/discoveries-json/brief.$id/metrics
+- `/api/radar*` — Radar API 5개: runs/sources/trigger/summarize/items.$id.status
+- `/api/similar*` — 유사 검색 2개: similar-seeds/similar-sources
+- `/api/tenant.switch` — 테넌트 전환 (1)
+
+**라우트 합계**: Core 46 + Ideas 2 + Proposals 7 + Venture 13 + API 30 + 미분류 2 (dashboard.tsx layout) = **100**
 
 ---
 
@@ -177,20 +186,25 @@ root.tsx
 └─ Outlet (하위 라우트)
 ```
 
-### 데이터 모델 (52개 테이블)
+### 데이터 모델 (66개 테이블)
 
-| 카테고리 | 테이블 수 | 예 |
-|---------|---------|-----|
-| Users & Auth | 2 | users, sessions |
-| Discovery Core | 6 | discoveries, experiments, evidence, event_logs, ontology_nodes, ontology_edges |
-| Methods | 3 | method_packs, method_steps, method_runs |
-| Venture Sprint | 16 | vd_sprints, vd_opportunities, vd_decisions, vd_signals, etc. |
-| Radar | 3 | radar_sources, radar_items, radar_item_user_status |
-| Chat | 3 | conversations, messages, event_logs |
-| Indicators | 4 | kpis, indicator_snapshots, links, webhooks |
-| Compliance | 2 | compliance_checks, compliance_audit_logs |
+| 카테고리 | 테이블 수 | 테이블 |
+|---------|---------|--------|
+| Users & Auth | 4 | users, sessions, tenants, tenant_members |
+| Discovery Core | 6 | discoveries, experiments, evidence, event_logs, stages, signal_metadata |
+| Ontology/Graph | 5 | ontology_types, context_nodes, context_edges, context_snapshots, evidence_duplicate_candidates |
+| Methods & Gates | 4 | method_packs, method_runs, gate_packages, assumptions |
+| Venture Sprint | 16 | vd_sprints, vd_sprint_scopes, vd_signals, vd_problems, vd_themes, vd_opportunities, vd_evidences, vd_assumptions, vd_premortems, vd_artifacts, vd_decisions, vd_votes, vd_scores, vd_work_events, vd_analytics_snapshots, vd_task_queue |
+| Radar | 4 | radar_sources, radar_runs, radar_items, radar_item_user_status |
+| Chat & Agent | 3 | conversations, messages, agent_config |
+| Indicators & Alerts | 6 | discovery_kpis, kpi_measurements, discovery_links, webhook_configs, alert_rules, alerts |
+| Gate/Governance | 1 | gate_approvals |
+| Industry Adapters | 2 | industry_adapters, industry_rules |
+| Decision Logs | 3 | decision_logs, extracted_patterns, reusable_rules |
+| Shadow Mode | 2 | shadow_runs, shadow_configs |
+| Value-up Engine | 4 | valueup_assessments, valueup_scores, valueup_scenarios, valueup_checklists |
 | Proposals | 6 | proposals, proposal_sections, proposal_milestones, proposal_actions, proposal_comments, proposal_members |
-| **합계** | **52** | |
+| **합계** | **66** | |
 
 ### Agent 시스템 (48개 도구)
 
@@ -246,8 +260,8 @@ build/
 - **DB**: 20개 마이그레이션 로컬+프로덕션 적용 완료 (0000~0020) + proposals 마이그레이션 Pending
 
 ### 주요 지표
-- **라우트**: 84개 (+9: ideas 2 + proposals 7)
-- **테이블**: 52개 (기존 46 + proposals 6)
+- **라우트**: 100개 (core 46 + ideas 2 + proposals 7 + venture 13 + API 30 + 기타 2)
+- **테이블**: 66개 (core 44 + venture 16 + proposals 6)
 - **Agent 도구**: 48개
 - **테스트**: 597개 (unit 76 + integration 342 + venture 143 + BD PoC 36)
 - **테스트 통과율**: 100%
