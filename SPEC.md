@@ -257,7 +257,7 @@ build/
 ### 버전
 - **프로토타입**: v5.0 Layout Restructure + Proposals Feature
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 정상 동작
-- **DB**: 22개 마이그레이션 (0000~0021), 로컬 + 프로덕션 모두 적용 완료 ✅
+- **DB**: 24개 마이그레이션 (0000~0023), 로컬 적용 완료 ✅ (0022~0023 프로덕션 Pending)
 
 ### 주요 지표
 - **라우트**: 100개 (core 46 + ideas 2 + proposals 7 + venture 13 + API 30 + 기타 2)
@@ -269,14 +269,16 @@ build/
 - **Build**: ✅ 성공
 
 ### 최근 변경 (세션 133)
-**proposals 보안 강화 + 쿼리 최적화 + Design 문서 작성 완료**:
-- ✅ `api.proposals.ts`: PUT 핸들러 추가 (제안서 필드/섹션 업데이트) + DELETE에 tenant/owner 인가 검증
-- ✅ `proposals.$id.tsx`: tenant 검증 추가 + 4개 쿼리 Promise.all 병렬 최적화
-- ✅ `proposals.new.tsx`: sections 배치 insert 개선 (N회 → 1회 쿼리)
-- ✅ F20/F21/F22 Design 문서 추가 (ideas-enhancement, dashboard-charts, archive-folders)
-- ✅ 빌드 성공 (client 1766 modules + SSR 380 modules)
+**proposals 보안 강화 + F20 아이디어 고도화 + F21 차트 통합 + F22 보관함 구현**:
+- ✅ Proposals 보안: PUT API 추가 + DELETE/Actions/Comments 전 라우트 tenant/owner 인가 검증
+- ✅ Proposals 최적화: Promise.all 병렬 쿼리 + 배치 insert + 상수 추출 (constants.ts)
+- ✅ Proposals 컴포넌트: ProgressPanel/TeamDiscussion 개선
+- ✅ F20 아이디어 고도화: 메모 저장 API + FilterBar (점수/상태/검색) + SimilarSources + DB 스키마 memo 컬럼
+- ✅ F21 대시보드 차트: StatusDonut (11→5그룹) + WeeklyBar (8주) + ExperimentGantt 데이터 통합
+- ✅ F22 보관함 폴더: archive feature 모듈 + 폴더 CRUD API 4개 + 드래그드롭 + SidebarPanel 연동 + 마이그레이션
+- ✅ F20/F21/F22 Design 문서 추가
 - ✅ ESLint 0 errors, TypeScript 0 errors
-- ⚠️ 배포: 빌드 성공, wrangler deploy 실패 (비인터랙티브 환경 CLOUDFLARE_API_TOKEN 미설정)
+- ⚠️ 배포: 빌드 성공, wrangler deploy 실패 (비인터랙티브 환경 — 별도 터미널에서 실행 필요)
 
 ### 이전 변경 (세션 132)
 **proposals PDCA Plan + Design 문서 작성 완료**:
@@ -442,7 +444,7 @@ build/
 - **브랜치 전략**: master 단일 브랜치 (Prototype 기간)
 - **배포**: Cloudflare Pages (master push → GitHub Actions CI/CD 자동 배포) — Secrets 설정 완료 ✅
 - **운영 실험**: 🚀 2026-01-31 시작 (30-60일, 최대 5명, Discovery 5-10건 목표)
-- **DB 마이그레이션**: ✅ 22개 (0000~0021) 로컬+프로덕션 적용 완료
+- **DB 마이그레이션**: ✅ 24개 (0000~0023) 로컬 적용 완료 (0022~0023 프로덕션 Pending)
 - **Cron 설정**: daily (09:00) + agent-review (10:00) + alerts (09:30) + embeddings (15분, cron-job.org)
 - **Radar Worker**: 프로덕션 운영 중 (Cron 매일 9:00 KST, 10소스)
 - **이메일**: Resend (`noreply@ideaonaction.ai`), cron-job.org 자동 발송
@@ -463,6 +465,7 @@ build/
 | v4 Venture Sprint | 10 | 도메인 모듈 + 워커 8핸들러 + Decision Center + Analytics + E2E |
 | v4.2 BD Workspace PoC | 6 | PDCA Plan/Design/Do/Check/Act 완료 (96 테스트 + 97% 코드 일치율) |
 | v5.0 Layout + Proposals | 2 | 3탭 GNB + ContextPanel + 아이디어 페이지 + 사업제안 Full CRUD (6 테이블 + 7 라우트 + 6 컴포넌트) |
+| v5.1 Ideas/Charts/Archive | 3 | F20 아이디어 고도화 (메모+필터+유사검색) + F21 대시보드 차트 통합 + F22 보관함 폴더 CRUD |
 | Embeddings | 3 | Vectorize 3개 (Discovery/Evidence/Radar) + Cron 15분 + 시맨틱 검색/중복 감지 |
 | 테스트 | 5 | 597개 (unit 76 + integration 342 + venture 143 + BD PoC 36) |
 | 운영/문서 | 8 | Google OAuth + 이메일 + Radar + 문서 5종 + QA |
@@ -512,7 +515,7 @@ build/
 | **F17** | **AX BD팀 PoC PDCA 완료 — 보고서 + 배포 준비** | **v4.2** | **✅** | **1** |
 | F18 | Figma 3차 레이아웃 재구성 + 사업제안 기능 (3탭 GNB + ContextPanel + 6 DB 테이블 + CRUD) | v5.0 | ✅ | 25 |
 | F19 | Proposals DB 마이그레이션 생성 + 적용 (0021_proposals.sql) | v5.0 | ✅ | 3 |
-| F20 | 아이디어 페이지 고도화 (Radar 연동 심화 + 메모 저장) | v5.1 | Pending | ~5 |
-| F21 | 대시보드 차트 실제 구현 (도넛 차트/바 차트) | v5.1 | Pending | ~5 |
-| F22 | 보관함 폴더 CRUD 구현 (DB 스키마 + API + 아이템 드래그) | v5.1 | Pending | ~8 |
+| F20 | 아이디어 페이지 고도화 (메모 저장 + FilterBar + SimilarSources) | v5.1 | ✅ | 8 |
+| F21 | 대시보드 차트 실제 구현 (StatusDonut/WeeklyBar/ExperimentGantt) | v5.1 | ✅ | 1 |
+| F22 | 보관함 폴더 CRUD 구현 (DB + API 4개 + 드래그드롭 + SidebarPanel) | v5.1 | ✅ | 9 |
 
