@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useFetcher } from "@remix-run/react";
 import { cn } from "~/lib/utils/cn";
 
@@ -18,13 +19,38 @@ interface ActionItem {
   dueDate: string | null;
 }
 
+interface Member {
+  userId: string;
+  userName: string | null;
+}
+
+interface TenantUser {
+  id: string;
+  name: string;
+}
+
 interface ProgressPanelProps {
   proposalId: string;
   milestones: Milestone[];
   actions: ActionItem[];
   totalProgress: number;
   daysRemaining: number | null;
+  isOwner?: boolean;
+  members?: Member[];
+  tenantUsers?: TenantUser[];
 }
+
+const MILESTONE_CYCLE: Record<string, string> = {
+  PENDING: "ACTIVE",
+  ACTIVE: "COMPLETED",
+  COMPLETED: "PENDING",
+};
+
+const MILESTONE_STATUS_LABEL: Record<string, string> = {
+  PENDING: "대기",
+  ACTIVE: "진행 중",
+  COMPLETED: "완료",
+};
 
 export function ProgressPanel({
   proposalId,
@@ -32,20 +58,97 @@ export function ProgressPanel({
   actions,
   totalProgress,
   daysRemaining,
+  isOwner,
+  members = [],
+  tenantUsers = [],
 }: ProgressPanelProps) {
   const fetcher = useFetcher();
+  const milestoneFetcher = useFetcher();
+  const actionFetcher = useFetcher();
+  const memberFetcher = useFetcher();
   const completedActions = actions.filter((a) => a.completed).length;
+
+  const [showAddMilestone, setShowAddMilestone] = useState(false);
+  const [newMilestoneTitle, setNewMilestoneTitle] = useState("");
+  const [showAddAction, setShowAddAction] = useState(false);
+  const [newActionTitle, setNewActionTitle] = useState("");
+  const [showAddMember, setShowAddMember] = useState(false);
+
+  const memberUserIds = new Set(members.map((m) => m.userId));
+  const availableUsers = tenantUsers.filter((u) => !memberUserIds.has(u.id));
 
   return (
     <div className="p-4">
       <h3 className="mb-4 text-sm font-semibold text-[var(--axis-text-primary)]">진행 상황</h3>
 
       {/* Milestones */}
-      <h4 className="mb-2 text-xs font-semibold text-[var(--axis-text-tertiary)]">마일스톤</h4>
+      <div className="mb-1 flex items-center justify-between">
+        <h4 className="text-xs font-semibold text-[var(--axis-text-tertiary)]">마일스톤</h4>
+        {isOwner && (
+          <button
+            type="button"
+            onClick={() => setShowAddMilestone(!showAddMilestone)}
+            className="text-[10px] text-[var(--axis-text-brand)] hover:underline"
+          >
+            {showAddMilestone ? "취소" : "+ 추가"}
+          </button>
+        )}
+      </div>
+
+      {/* Add milestone form */}
+      {showAddMilestone && (
+        <div className="mb-2 flex gap-1">
+          <input
+            type="text"
+            value={newMilestoneTitle}
+            onChange={(e) => setNewMilestoneTitle(e.target.value)}
+            placeholder="마일스톤 이름"
+            className="flex-1 rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] px-2 py-1 text-xs text-[var(--axis-text-primary)] placeholder:text-[var(--axis-text-tertiary)]"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && newMilestoneTitle.trim()) {
+                milestoneFetcher.submit(
+                  JSON.stringify({ title: newMilestoneTitle.trim() }),
+                  { method: "POST", action: `/api/proposals/${proposalId}/milestones`, encType: "application/json" },
+                );
+                setNewMilestoneTitle("");
+                setShowAddMilestone(false);
+              }
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => {
+              if (newMilestoneTitle.trim()) {
+                milestoneFetcher.submit(
+                  JSON.stringify({ title: newMilestoneTitle.trim() }),
+                  { method: "POST", action: `/api/proposals/${proposalId}/milestones`, encType: "application/json" },
+                );
+                setNewMilestoneTitle("");
+                setShowAddMilestone(false);
+              }
+            }}
+            className="rounded bg-[var(--axis-surface-brand)] px-2 py-1 text-[10px] text-white"
+          >
+            추가
+          </button>
+        </div>
+      )}
+
       <div className="mb-4 space-y-2">
         {milestones.map((ms) => (
-          <div key={ms.id} className="flex items-start gap-2">
-            <div className="mt-0.5">
+          <div key={ms.id} className="group flex items-start gap-2">
+            <button
+              type="button"
+              className="mt-0.5 shrink-0"
+              title={`${MILESTONE_STATUS_LABEL[ms.status] || ms.status} → ${MILESTONE_STATUS_LABEL[MILESTONE_CYCLE[ms.status] || "PENDING"]}`}
+              onClick={() => {
+                const nextStatus = MILESTONE_CYCLE[ms.status] || "PENDING";
+                milestoneFetcher.submit(
+                  JSON.stringify({ milestoneId: ms.id, status: nextStatus }),
+                  { method: "PUT", action: `/api/proposals/${proposalId}/milestones`, encType: "application/json" },
+                );
+              }}
+            >
               {ms.status === "COMPLETED" ? (
                 <div className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--axis-text-success,#22C55E)] text-white">
                   <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" strokeWidth="3" stroke="currentColor">
@@ -57,7 +160,7 @@ export function ProgressPanel({
               ) : (
                 <div className="h-4 w-4 rounded-full border-2 border-[var(--axis-border-default)]" />
               )}
-            </div>
+            </button>
             <div className="min-w-0 flex-1">
               <p className={cn(
                 "text-xs",
@@ -76,6 +179,20 @@ export function ProgressPanel({
                 );
               })()}
             </div>
+            {isOwner && (
+              <button
+                type="button"
+                onClick={() => {
+                  milestoneFetcher.submit(
+                    JSON.stringify({ milestoneId: ms.id }),
+                    { method: "DELETE", action: `/api/proposals/${proposalId}/milestones`, encType: "application/json" },
+                  );
+                }}
+                className="hidden shrink-0 text-[10px] text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-destructive,#DC2626)] group-hover:block"
+              >
+                삭제
+              </button>
+            )}
           </div>
         ))}
         {milestones.length === 0 && (
@@ -84,35 +201,109 @@ export function ProgressPanel({
       </div>
 
       {/* Action Items */}
-      <h4 className="mb-2 text-xs font-semibold text-[var(--axis-text-tertiary)]">액션 아이템</h4>
+      <div className="mb-1 flex items-center justify-between">
+        <h4 className="text-xs font-semibold text-[var(--axis-text-tertiary)]">액션 아이템</h4>
+        {isOwner && (
+          <button
+            type="button"
+            onClick={() => setShowAddAction(!showAddAction)}
+            className="text-[10px] text-[var(--axis-text-brand)] hover:underline"
+          >
+            {showAddAction ? "취소" : "+ 추가"}
+          </button>
+        )}
+      </div>
+
+      {/* Add action form */}
+      {showAddAction && (
+        <div className="mb-2 flex gap-1">
+          <input
+            type="text"
+            value={newActionTitle}
+            onChange={(e) => setNewActionTitle(e.target.value)}
+            placeholder="액션 아이템 이름"
+            className="flex-1 rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] px-2 py-1 text-xs text-[var(--axis-text-primary)] placeholder:text-[var(--axis-text-tertiary)]"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && newActionTitle.trim()) {
+                actionFetcher.submit(
+                  JSON.stringify({ title: newActionTitle.trim() }),
+                  { method: "POST", action: `/api/proposals/${proposalId}/actions`, encType: "application/json" },
+                );
+                setNewActionTitle("");
+                setShowAddAction(false);
+              }
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => {
+              if (newActionTitle.trim()) {
+                actionFetcher.submit(
+                  JSON.stringify({ title: newActionTitle.trim() }),
+                  { method: "POST", action: `/api/proposals/${proposalId}/actions`, encType: "application/json" },
+                );
+                setNewActionTitle("");
+                setShowAddAction(false);
+              }
+            }}
+            className="rounded bg-[var(--axis-surface-brand)] px-2 py-1 text-[10px] text-white"
+          >
+            추가
+          </button>
+        </div>
+      )}
+
       <div className="mb-4 space-y-1.5">
         {actions.map((action) => (
-          <div key={action.id}>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={!!action.completed}
-                onChange={() => {
-                  fetcher.submit(
-                    JSON.stringify({ actionId: action.id, completed: !action.completed }),
-                    {
-                      method: "POST",
-                      action: `/api/proposals/${proposalId}/actions`,
-                      encType: "application/json",
-                    }
-                  );
-                }}
-                className="h-3.5 w-3.5 rounded border-[var(--axis-border-default)] text-[var(--axis-text-brand)]"
-              />
-              <span className={cn(
-                "flex-1 text-xs",
-                action.completed
-                  ? "text-[var(--axis-text-tertiary)] line-through"
-                  : "text-[var(--axis-text-primary)]"
-              )}>
-                {action.title}
-              </span>
-            </label>
+          <div key={action.id} className="group">
+            <div className="flex items-center gap-2">
+              <div className="flex flex-1 items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    fetcher.submit(
+                      JSON.stringify({ actionId: action.id, completed: !action.completed }),
+                      {
+                        method: "POST",
+                        action: `/api/proposals/${proposalId}/actions`,
+                        encType: "application/json",
+                      }
+                    );
+                  }}
+                  className="h-4 w-4 shrink-0 appearance-none rounded border-2 border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] relative cursor-pointer flex items-center justify-center"
+                  style={action.completed ? { borderColor: "var(--axis-text-brand)", backgroundColor: "var(--axis-text-brand)" } : undefined}
+                  aria-label={action.completed ? "완료 해제" : "완료 처리"}
+                >
+                  {action.completed ? (
+                    <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="3" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                  ) : null}
+                </button>
+                <span className={cn(
+                  "flex-1 text-xs",
+                  action.completed
+                    ? "text-[var(--axis-text-tertiary)] line-through"
+                    : "text-[var(--axis-text-primary)]"
+                )}>
+                  {action.title}
+                </span>
+              </div>
+              {isOwner && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    actionFetcher.submit(
+                      JSON.stringify({ actionId: action.id }),
+                      { method: "DELETE", action: `/api/proposals/${proposalId}/actions`, encType: "application/json" },
+                    );
+                  }}
+                  className="hidden shrink-0 text-[10px] text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-destructive,#DC2626)] group-hover:block"
+                >
+                  삭제
+                </button>
+              )}
+            </div>
             {action.assigneeName && (
               <p className="ml-6 text-[10px] text-[var(--axis-text-tertiary)]">담당: {action.assigneeName}</p>
             )}
@@ -122,6 +313,110 @@ export function ProgressPanel({
           <p className="text-xs text-[var(--axis-text-tertiary)]">액션 아이템이 없습니다.</p>
         )}
       </div>
+
+      {/* Members */}
+      {members.length > 0 && (
+        <>
+          <div className="mb-1 flex items-center justify-between">
+            <h4 className="text-xs font-semibold text-[var(--axis-text-tertiary)]">팀 멤버</h4>
+            {isOwner && availableUsers.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowAddMember(!showAddMember)}
+                className="text-[10px] text-[var(--axis-text-brand)] hover:underline"
+              >
+                {showAddMember ? "취소" : "+ 추가"}
+              </button>
+            )}
+          </div>
+
+          {showAddMember && (
+            <div className="mb-2">
+              <select
+                onChange={(e) => {
+                  if (e.target.value) {
+                    memberFetcher.submit(
+                      JSON.stringify({ userId: e.target.value }),
+                      { method: "POST", action: `/api/proposals/${proposalId}/members`, encType: "application/json" },
+                    );
+                    setShowAddMember(false);
+                  }
+                }}
+                className="w-full rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] px-2 py-1 text-xs text-[var(--axis-text-primary)]"
+                defaultValue=""
+              >
+                <option value="" disabled>멤버 선택...</option>
+                {availableUsers.map((u) => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div className="mb-4 space-y-1">
+            {members.map((m) => (
+              <div key={m.userId} className="group flex items-center justify-between">
+                <span className="text-xs text-[var(--axis-text-secondary)]">{m.userName || "Unknown"}</span>
+                {isOwner && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      memberFetcher.submit(
+                        JSON.stringify({ userId: m.userId }),
+                        { method: "DELETE", action: `/api/proposals/${proposalId}/members`, encType: "application/json" },
+                      );
+                    }}
+                    className="hidden text-[10px] text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-destructive,#DC2626)] group-hover:block"
+                  >
+                    제거
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Show add member button when no members yet */}
+      {members.length === 0 && isOwner && availableUsers.length > 0 && (
+        <>
+          <div className="mb-1 flex items-center justify-between">
+            <h4 className="text-xs font-semibold text-[var(--axis-text-tertiary)]">팀 멤버</h4>
+            <button
+              type="button"
+              onClick={() => setShowAddMember(!showAddMember)}
+              className="text-[10px] text-[var(--axis-text-brand)] hover:underline"
+            >
+              {showAddMember ? "취소" : "+ 추가"}
+            </button>
+          </div>
+          {showAddMember && (
+            <div className="mb-4">
+              <select
+                onChange={(e) => {
+                  if (e.target.value) {
+                    memberFetcher.submit(
+                      JSON.stringify({ userId: e.target.value }),
+                      { method: "POST", action: `/api/proposals/${proposalId}/members`, encType: "application/json" },
+                    );
+                    setShowAddMember(false);
+                  }
+                }}
+                className="w-full rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] px-2 py-1 text-xs text-[var(--axis-text-primary)]"
+                defaultValue=""
+              >
+                <option value="" disabled>멤버 선택...</option>
+                {availableUsers.map((u) => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          {!showAddMember && (
+            <p className="mb-4 text-xs text-[var(--axis-text-tertiary)]">멤버가 없습니다.</p>
+          )}
+        </>
+      )}
 
       {/* Stats */}
       <div className="space-y-2">

@@ -15,13 +15,25 @@ interface TeamDiscussionProps {
   currentUserId: string;
 }
 
-function formatDate(ts: string | number | null): string {
+function formatRelativeTime(ts: string | number | null): string {
   if (!ts) return "";
   const d = typeof ts === "number" ? new Date(ts * 1000) : new Date(ts);
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+
+  if (diffMin < 1) return "방금 전";
+  if (diffHour < 1) return `${diffMin}분 전`;
+  if (diffDay < 1) return `${diffHour}시간 전`;
+  if (diffDay < 7) return `${diffDay}일 전`;
+
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
+  return `${y}.${m}.${day}`;
 }
 
 export function TeamDiscussion({ proposalId, comments, currentUserId: _currentUserId }: TeamDiscussionProps) {
@@ -58,7 +70,7 @@ export function TeamDiscussion({ proposalId, comments, currentUserId: _currentUs
                 </span>
                 {comment.createdAt && (
                   <span className="text-[10px] text-[var(--axis-text-tertiary)]">
-                    {formatDate(comment.createdAt)}
+                    {formatRelativeTime(comment.createdAt)}
                   </span>
                 )}
               </div>
@@ -72,21 +84,23 @@ export function TeamDiscussion({ proposalId, comments, currentUserId: _currentUs
       </div>
 
       {/* Comment input */}
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <input
-          type="text"
+      <form onSubmit={handleSubmit} className="space-y-2">
+        <textarea
+          rows={3}
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="의견을 입력하세요..."
-          className="flex-1 rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-3 py-2 text-sm text-[var(--axis-text-primary)] placeholder:text-[var(--axis-text-tertiary)] focus:border-[var(--axis-border-brand)] focus:outline-none"
+          placeholder="의견을 남겨주세요..."
+          className="w-full resize-none rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-3 py-2 text-sm text-[var(--axis-text-primary)] placeholder:text-[var(--axis-text-tertiary)] focus:border-[var(--axis-border-brand)] focus:outline-none"
         />
-        <button
-          type="submit"
-          disabled={isSubmitting || !content.trim()}
-          className="shrink-0 rounded-lg bg-[var(--axis-button-bg-default)] px-4 py-2 text-sm font-medium text-[var(--axis-button-text-default)] transition-colors hover:bg-[var(--axis-button-bg-hover)] disabled:opacity-50"
-        >
-          댓글 작성
-        </button>
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            disabled={isSubmitting || !content.trim()}
+            className="shrink-0 rounded-lg bg-[var(--axis-button-bg-default)] px-4 py-2 text-sm font-medium text-[var(--axis-button-text-default)] transition-colors hover:bg-[var(--axis-button-bg-hover)] disabled:opacity-50"
+          >
+            댓글 작성
+          </button>
+        </div>
       </form>
     </div>
   );

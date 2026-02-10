@@ -14,7 +14,6 @@ import { tenantWhere } from "~/lib/query/tenant-scope";
 import { PIPELINE_COLUMNS, STATUS_CONFIG } from "~/lib/constants/status";
 import { StatusOverview } from "~/components/dashboard/StatusOverview";
 import { StageDurationTable } from "~/components/dashboard/StageDurationTable";
-import { DailyActivityChart } from "~/components/charts/DailyActivityChart";
 import { IndustryDonut } from "~/components/charts/IndustryDonut";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 
@@ -28,8 +27,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     totalDiscoveries: { total: 0, items: [] as { id: string; title: string; status: string }[] },
     strategyProposals: { total: 0, items: [] as { id: string; title: string; status: string }[] },
     totalSources: 0,
-    dailyActivity: [] as { date: string; count: number }[],
-    stageDuration: [] as { stage: string; label: string; avgWeeks: number }[],
+    stageDuration: [] as { stage: string; label: string; count: number }[],
     industryData: [] as { name: string; count: number; color: string }[],
     timestamp: "",
   };
@@ -108,29 +106,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     // radarSources might not exist
   }
 
-  // ── 5. Daily activity (일별 활동) ──────────────────────────
-  const thirtyDaysAgo = Math.floor(Date.now() / 1000) - 30 * 24 * 3600;
-  const dailyRows = await db
-    .select({
-      day: sql<string>`strftime('%m.%d', ${discoveries.createdAt}, 'unixepoch')`,
-      count: sql<number>`count(*)`,
-    })
-    .from(discoveries)
-    .where(
-      tenantWhere(
-        discoveries,
-        ctx.tenantId,
-        sql`${discoveries.createdAt} >= ${thirtyDaysAgo}`
-      )
-    )
-    .groupBy(sql`strftime('%m.%d', ${discoveries.createdAt}, 'unixepoch')`)
-    .orderBy(sql`strftime('%m.%d', ${discoveries.createdAt}, 'unixepoch')`);
-
-  const dailyActivity = dailyRows.map((r) => ({ date: r.day, count: r.count }));
-
-  // ── 6. Stage duration (단계별 체류시간) ────────────────────
-  const nowUnix = Math.floor(Date.now() / 1000);
-  const stageDuration: { stage: string; label: string; avgWeeks: number }[] = [];
+  // ── 5. Stage duration — COUNT per stage (단계별 건수) ──────
+  const stageDuration: { stage: string; label: string; count: number }[] = [];
 
   for (const col of PIPELINE_COLUMNS) {
     const config = STATUS_CONFIG[col.status];
@@ -140,7 +117,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
     const result = await db
       .select({
-        avgWeeks: sql<number>`ROUND(AVG((${nowUnix} - ${discoveries.createdAt}) / (7.0 * 24 * 3600)), 1)`,
+        count: sql<number>`count(*)`,
       })
       .from(discoveries)
       .where(
@@ -151,15 +128,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         )
       );
 
-    const avgWeeks = result[0]?.avgWeeks ?? 0;
+    const count = result[0]?.count ?? 0;
     stageDuration.push({
       stage: col.status,
       label: config.label,
-      avgWeeks,
+      count,
     });
   }
 
-  // ── 7. Industry distribution (산업 분포) ───────────────────
+  // ── 6. Industry distribution (산업 분포) ───────────────────
   const industryRows = await db
     .select({
       industryAdapterId: discoveries.industryAdapterId,
@@ -183,7 +160,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     totalDiscoveries,
     strategyProposals,
     totalSources,
-    dailyActivity,
     stageDuration,
     industryData,
     timestamp,
@@ -196,11 +172,13 @@ export default function DashboardOverview() {
     totalDiscoveries,
     strategyProposals,
     totalSources,
-    dailyActivity,
     stageDuration,
     industryData,
     timestamp,
   } = useLoaderData<typeof loader>();
+
+  // Compute total for industry percentage
+  const industryTotal = industryData.reduce((sum, d) => sum + d.count, 0);
 
   return (
     <div>
@@ -213,25 +191,72 @@ export default function DashboardOverview() {
         timestamp={timestamp}
       />
 
+      {/* 데이터 분류 섹션 */}
+      <div className="mt-8">
+        <h2 className="mb-4 text-lg font-semibold text-[var(--axis-text-primary)]">데이터 분류</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[var(--axis-border-default)]">
+                <th className="pb-2 text-left text-xs font-medium text-[var(--axis-text-tertiary)]">
+                  카테고리
+                </th>
+                <th className="pb-2 text-right text-xs font-medium text-[var(--axis-text-tertiary)] w-20">
+                  건수
+                </th>
+                <th className="pb-2 text-right text-xs font-medium text-[var(--axis-text-tertiary)] w-20">
+                  비율
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {industryData.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="py-4 text-center text-xs text-[var(--axis-text-tertiary)]">
+                    데이터 없음
+                  </td>
+                </tr>
+              ) : (
+                industryData.map((row) => {
+                  const pct = industryTotal > 0 ? ((row.count / industryTotal) * 100).toFixed(1) : "0.0";
+                  return (
+                    <tr
+                      key={row.name}
+                      className="border-b border-[var(--axis-border-default)] last:border-b-0"
+                    >
+                      <td className="py-2 text-[var(--axis-text-primary)]">
+                        <span className="inline-flex items-center gap-2">
+                          <span
+                            className="inline-block h-2.5 w-2.5 rounded-full"
+                            style={{ backgroundColor: row.color }}
+                          />
+                          {row.name}
+                        </span>
+                      </td>
+                      <td className="py-2 text-right tabular-nums text-[var(--axis-text-secondary)]">
+                        {row.count}건
+                      </td>
+                      <td className="py-2 text-right tabular-nums text-[var(--axis-text-tertiary)]">
+                        {pct}%
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* 통계 섹션 */}
       <div className="mt-8">
         <h2 className="mb-4 text-lg font-semibold text-[var(--axis-text-primary)]">통계</h2>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* 일별 활동 현황 */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* 단계별 건수 */}
           <Card>
             <CardHeader>
-              <CardTitle>일별 활동 현황</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <DailyActivityChart data={dailyActivity} />
-            </CardContent>
-          </Card>
-
-          {/* 단계별 평균 체류 시간 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>단계별 평균 체류 시간</CardTitle>
+              <CardTitle>단계별 건수</CardTitle>
             </CardHeader>
             <CardContent>
               <StageDurationTable data={stageDuration} />

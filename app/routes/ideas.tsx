@@ -7,10 +7,8 @@ import { radarItems } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { MemoPanel } from "~/components/ideas/MemoPanel";
-import { FilterBar } from "~/components/ideas/FilterBar";
 import { Link } from "@remix-run/react";
 import { cn } from "~/lib/utils/cn";
-import { formatDateLocalTime } from "~/lib/format-date";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -93,7 +91,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export default function IdeasLayout() {
-  const { user, items, totalCount } = useLoaderData<typeof loader>();
+  const { user, items } = useLoaderData<typeof loader>();
   const params = useParams();
   const selectedId = params.id;
 
@@ -113,7 +111,6 @@ export default function IdeasLayout() {
               아이디어
             </h2>
           </div>
-          <FilterBar totalCount={totalCount} filteredCount={items.length} />
           <div className="px-2 pb-3 space-y-0.5">
             {items.map((item) => (
               <Link
@@ -135,17 +132,6 @@ export default function IdeasLayout() {
                       className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--axis-text-brand)]"
                       title="메모 있음"
                     />
-                  )}
-                </div>
-                <div className="mt-1 flex items-center gap-2 text-[10px] text-[var(--axis-text-tertiary)]">
-                  {item.relevanceScore !== null && (
-                    <span className={item.relevanceScore >= 60 ? "text-[var(--axis-text-brand)]" : ""}>
-                      {item.relevanceScore}점
-                    </span>
-                  )}
-                  <span>{item.status}</span>
-                  {item.collectedAt && (
-                    <span>{formatDateLocalTime(item.collectedAt)}</span>
                   )}
                 </div>
               </Link>

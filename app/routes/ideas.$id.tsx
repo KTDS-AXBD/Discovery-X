@@ -5,11 +5,7 @@ import { eq, desc, sql } from "drizzle-orm";
 import { getDb } from "~/db";
 import { radarItems } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { Badge } from "~/components/ui/Badge";
-import { Button } from "~/components/ui/Button";
-import { Card, CardContent } from "~/components/ui/Card";
 import { SimilarSources } from "~/components/ideas/SimilarSources";
-import { formatDateLocalTime } from "~/lib/format-date";
 import { findSimilarRadarItems, type SimilarItemsEnv, type SimilarItem } from "~/lib/embeddings/similar-items";
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
@@ -91,73 +87,47 @@ export default function IdeaDetail() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-6">
-      {/* Black header bar */}
-      <div className="mb-6 flex items-center justify-between rounded-lg bg-[var(--dx-surface-card,#18181B)] px-4 py-3">
-        <div className="flex items-center gap-3">
-          <Badge variant={item.relevanceScore && item.relevanceScore >= 60 ? "success" : "secondary"}>
-            {item.relevanceScore ?? "-"}점
-          </Badge>
-          <Badge variant="info">{item.status}</Badge>
-        </div>
-        <Button variant="default" size="sm">
-          아이디어로 전환
-        </Button>
-      </div>
-
-      {/* Title */}
-      <h1 className="mb-2 text-xl font-bold text-[var(--axis-text-primary)]">
-        {item.titleKo || item.title}
-      </h1>
-
-      {/* Meta */}
-      <div className="mb-6 flex items-center gap-4 text-xs text-[var(--axis-text-tertiary)]">
-        {item.collectedAt && <span>{formatDateLocalTime(item.collectedAt)}</span>}
-        <a
-          href={item.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="truncate hover:text-[var(--axis-text-brand)]"
+      {/* Title + Action */}
+      <div className="mb-6 flex items-start justify-between">
+        <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">
+          {item.titleKo || item.title}
+        </h1>
+        <button
+          type="button"
+          className="shrink-0 rounded-lg bg-[var(--axis-surface-brand)] px-4 py-2 text-sm font-medium text-white"
         >
-          {item.url}
-        </a>
+          새 아이디어 생성
+        </button>
       </div>
 
       {/* Summary */}
       {item.summaryKo && (
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <h3 className="mb-2 text-sm font-semibold text-[var(--axis-text-primary)]">요약</h3>
-            <p className="text-sm leading-relaxed text-[var(--axis-text-secondary)]">
-              {item.summaryKo}
-            </p>
-          </CardContent>
-        </Card>
+        <section className="mb-8">
+          <h2 className="mb-3 text-base font-semibold text-[var(--axis-text-primary)]">요약</h2>
+          <p className="text-sm leading-relaxed text-[var(--axis-text-secondary)]">
+            {item.summaryKo}
+          </p>
+        </section>
       )}
 
       {/* Key Points */}
       {item.keyPoints && (
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <h3 className="mb-2 text-sm font-semibold text-[var(--axis-text-primary)]">핵심 포인트</h3>
-            <ul className="list-inside list-disc space-y-1 text-sm text-[var(--axis-text-secondary)]">
-              {(Array.isArray(item.keyPoints) ? item.keyPoints : []).map((point: string, i: number) => (
-                <li key={i}>{point}</li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
+        <section className="mb-8">
+          <h2 className="mb-3 text-base font-semibold text-[var(--axis-text-primary)]">핵심 포인트</h2>
+          <ol className="list-decimal list-inside space-y-2 text-sm text-[var(--axis-text-secondary)]">
+            {(Array.isArray(item.keyPoints) ? item.keyPoints : []).map((point: string, i: number) => (
+              <li key={i}>{point}</li>
+            ))}
+          </ol>
+        </section>
       )}
 
       {/* Similar Sources */}
       <SimilarSources sources={similarSources} source={similarSource} />
 
       {/* AI Analysis footer */}
-      <div className="mt-8 flex items-center gap-2 text-xs text-[var(--axis-text-tertiary)]">
-        <span className="rounded bg-[var(--axis-surface-secondary)] px-2 py-0.5">GPT 4o-mini</span>
-        <span>|</span>
-        <span className={item.status === "SCORED" ? "text-green-500" : "text-[var(--axis-text-tertiary)]"}>
-          {item.status === "SCORED" ? "Passing" : item.status}
-        </span>
+      <div className="mt-8 text-right">
+        <span className="text-xs text-[var(--axis-text-tertiary)]">GPT 4o-mini Floating</span>
       </div>
     </div>
   );
