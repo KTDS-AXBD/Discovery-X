@@ -242,7 +242,7 @@ build/
 
 ### 버전
 - **프로토타입**: v5.0 Layout Restructure + Proposals Feature
-- **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages)
+- **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 20개 마이그레이션 로컬+프로덕션 적용 완료 (0000~0020) + proposals 마이그레이션 Pending
 
 ### 주요 지표
@@ -254,7 +254,15 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 128)
+### 최근 변경 (세션 129)
+**CI/CD 파이프라인 설정 완료**:
+- ✅ `/deploy` 스킬 CI/CD-first 전환: `git push` → GitHub Actions 자동 배포 (수동 `pnpm deploy` 제거)
+- ✅ GitHub Actions 강화: Lint → Typecheck → Test → Build → Deploy 게이팅
+- ✅ 배포 결과 알림: Job Summary + Discord 웹훅 (선택, `DISCORD_WEBHOOK_URL` secret)
+- ✅ `environment: production` 설정 (GitHub Deployments 이력 추적)
+- ✅ 검증: ESLint 0 errors, TypeScript 0 errors, 597/597 테스트 통과
+
+### 이전 변경 (세션 128)
 **Figma 기반 레이아웃 대폭 재구성 + 사업제안 신규 기능**:
 - ✅ GNB 3탭 전환: 4탭(현황판/시장탐색/아이디어/수집관리) → 3탭(대시보드/아이디어/사업제안) + 테마토글/설정/유저
 - ✅ AppShell 확장: contextPanel/sidebarContent/sidebarMode prop 추가 (하위 호환 유지)
@@ -384,7 +392,7 @@ build/
 - **인증 방식**: Google OAuth (arctic) + Session 기반 (D1), admin/gatekeeper/user/pending 4역할
 - **기술 스택**: Remix v2 + D1 + Drizzle + Tailwind CSS 4 + @axis-ds
 - **브랜치 전략**: master 단일 브랜치 (Prototype 기간)
-- **배포**: Cloudflare Pages (master push → `pnpm deploy`)
+- **배포**: Cloudflare Pages (master push → GitHub Actions CI/CD 자동 배포)
 - **운영 실험**: 🚀 2026-01-31 시작 (30-60일, 최대 5명, Discovery 5-10건 목표)
 - **DB 마이그레이션**: ✅ 20개 (0000~0020) 로컬+프로덕션 적용 완료 + proposals 마이그레이션 Pending
 - **Cron 설정**: daily (09:00) + agent-review (10:00) + alerts (09:30) + embeddings (15분, cron-job.org)
