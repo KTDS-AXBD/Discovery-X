@@ -31,6 +31,7 @@ interface ProposalDetailProps {
   sections: Section[];
   comments: Comment[];
   currentUserId: string;
+  memberNames?: string[];
 }
 
 
@@ -39,6 +40,7 @@ export function ProposalDetail({
   sections,
   comments,
   currentUserId,
+  memberNames,
 }: ProposalDetailProps) {
   const sortedSections = [...sections].sort((a, b) => a.sortOrder - b.sortOrder);
 
@@ -67,6 +69,11 @@ export function ProposalDetail({
             <p className="mt-1 text-lg font-bold text-[var(--axis-text-primary)]">
               {proposal.teamSize ?? "-"}명
             </p>
+            {memberNames && memberNames.length > 0 && (
+              <p className="mt-0.5 text-[10px] text-[var(--axis-text-tertiary)] line-clamp-1">
+                {memberNames.join(", ")}
+              </p>
+            )}
           </CardContent>
         </Card>
         <Card>

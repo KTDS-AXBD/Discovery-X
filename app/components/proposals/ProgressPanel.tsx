@@ -13,6 +13,7 @@ interface ActionItem {
   id: string;
   title: string;
   assigneeId: string | null;
+  assigneeName?: string | null;
   completed: number;
   dueDate: string | null;
 }
@@ -38,24 +39,6 @@ export function ProgressPanel({
   return (
     <div className="p-4">
       <h3 className="mb-4 text-sm font-semibold text-[var(--axis-text-primary)]">진행 상황</h3>
-
-      {/* Stats */}
-      <div className="mb-4 space-y-2">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-[var(--axis-text-secondary)]">전체 진행률</span>
-          <span className="font-medium text-[var(--axis-text-primary)]">{totalProgress}%</span>
-        </div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-[var(--axis-surface-secondary)]">
-          <div
-            className="h-full rounded-full bg-[var(--axis-text-brand)] transition-all"
-            style={{ width: `${totalProgress}%` }}
-          />
-        </div>
-        <div className="flex items-center justify-between text-[10px] text-[var(--axis-text-tertiary)]">
-          <span>완료된 작업 {completedActions}/{actions.length}</span>
-          {daysRemaining !== null && <span>남은 기간 {daysRemaining}일</span>}
-        </div>
-      </div>
 
       {/* Milestones */}
       <h4 className="mb-2 text-xs font-semibold text-[var(--axis-text-tertiary)]">마일스톤</h4>
@@ -84,6 +67,14 @@ export function ProgressPanel({
               )}>
                 {ms.title}
               </p>
+              {ms.startDate && ms.endDate && (() => {
+                const s = new Date(ms.startDate);
+                const e = new Date(ms.endDate);
+                const range = `${s.getFullYear()}.${String(s.getMonth() + 1).padStart(2, "0")}~${String(e.getMonth() + 1).padStart(2, "0")}`;
+                return (
+                  <p className="text-[10px] text-[var(--axis-text-tertiary)]">{range}</p>
+                );
+              })()}
             </div>
           </div>
         ))}
@@ -94,37 +85,61 @@ export function ProgressPanel({
 
       {/* Action Items */}
       <h4 className="mb-2 text-xs font-semibold text-[var(--axis-text-tertiary)]">액션 아이템</h4>
-      <div className="space-y-1.5">
+      <div className="mb-4 space-y-1.5">
         {actions.map((action) => (
-          <label key={action.id} className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={!!action.completed}
-              onChange={() => {
-                fetcher.submit(
-                  JSON.stringify({ actionId: action.id, completed: !action.completed }),
-                  {
-                    method: "POST",
-                    action: `/api/proposals/${proposalId}/actions`,
-                    encType: "application/json",
-                  }
-                );
-              }}
-              className="h-3.5 w-3.5 rounded border-[var(--axis-border-default)] text-[var(--axis-text-brand)]"
-            />
-            <span className={cn(
-              "flex-1 text-xs",
-              action.completed
-                ? "text-[var(--axis-text-tertiary)] line-through"
-                : "text-[var(--axis-text-primary)]"
-            )}>
-              {action.title}
-            </span>
-          </label>
+          <div key={action.id}>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={!!action.completed}
+                onChange={() => {
+                  fetcher.submit(
+                    JSON.stringify({ actionId: action.id, completed: !action.completed }),
+                    {
+                      method: "POST",
+                      action: `/api/proposals/${proposalId}/actions`,
+                      encType: "application/json",
+                    }
+                  );
+                }}
+                className="h-3.5 w-3.5 rounded border-[var(--axis-border-default)] text-[var(--axis-text-brand)]"
+              />
+              <span className={cn(
+                "flex-1 text-xs",
+                action.completed
+                  ? "text-[var(--axis-text-tertiary)] line-through"
+                  : "text-[var(--axis-text-primary)]"
+              )}>
+                {action.title}
+              </span>
+            </label>
+            {action.assigneeName && (
+              <p className="ml-6 text-[10px] text-[var(--axis-text-tertiary)]">담당: {action.assigneeName}</p>
+            )}
+          </div>
         ))}
         {actions.length === 0 && (
           <p className="text-xs text-[var(--axis-text-tertiary)]">액션 아이템이 없습니다.</p>
         )}
+      </div>
+
+      {/* Stats */}
+      <div className="space-y-2">
+        <h4 className="text-xs font-semibold text-[var(--axis-text-tertiary)]">통계</h4>
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-[var(--axis-text-secondary)]">전체 진행률</span>
+          <span className="font-medium text-[var(--axis-text-primary)]">{totalProgress}%</span>
+        </div>
+        <div className="h-1.5 overflow-hidden rounded-full bg-[var(--axis-surface-secondary)]">
+          <div
+            className="h-full rounded-full bg-[var(--axis-text-brand)] transition-all"
+            style={{ width: `${totalProgress}%` }}
+          />
+        </div>
+        <div className="flex items-center justify-between text-[10px] text-[var(--axis-text-tertiary)]">
+          <span>완료된 작업 {completedActions}/{actions.length}</span>
+          {daysRemaining !== null && <span>남은 기간 {daysRemaining}일</span>}
+        </div>
       </div>
     </div>
   );

@@ -87,6 +87,15 @@ export function ProposalListSidebar({ proposals, activeId }: ProposalListSidebar
                       </span>
                     )}
                   </div>
+                  {p.updatedAt && (() => {
+                    const d = new Date(typeof p.updatedAt === "number" ? p.updatedAt * 1000 : p.updatedAt);
+                    const formatted = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+                    return (
+                      <p className="mt-0.5 text-[10px] text-[var(--axis-text-tertiary)]">
+                        📅 {formatted}
+                      </p>
+                    );
+                  })()}
                 </Link>
               );
             })}

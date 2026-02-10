@@ -9,6 +9,7 @@ import {
   proposalMilestones,
   proposalActions,
   proposalComments,
+  proposalMembers,
 } from "~/features/proposals/db/schema";
 import { users } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
@@ -35,10 +36,21 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  const [sections, milestones, actions, commentsRaw] = await Promise.all([
+  const [sections, milestones, actions, commentsRaw, membersRaw] = await Promise.all([
     db.select().from(proposalSections).where(eq(proposalSections.proposalId, params.id!)),
     db.select().from(proposalMilestones).where(eq(proposalMilestones.proposalId, params.id!)),
-    db.select().from(proposalActions).where(eq(proposalActions.proposalId, params.id!)),
+    db.select({
+      id: proposalActions.id,
+      title: proposalActions.title,
+      assigneeId: proposalActions.assigneeId,
+      completed: proposalActions.completed,
+      dueDate: proposalActions.dueDate,
+      createdAt: proposalActions.createdAt,
+      assigneeName: users.name,
+    })
+    .from(proposalActions)
+    .leftJoin(users, eq(proposalActions.assigneeId, users.id))
+    .where(eq(proposalActions.proposalId, params.id!)),
     db.select({
       id: proposalComments.id,
       authorId: proposalComments.authorId,
@@ -49,11 +61,20 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     .from(proposalComments)
     .leftJoin(users, eq(proposalComments.authorId, users.id))
     .where(eq(proposalComments.proposalId, params.id!)),
+    db.select({
+      userId: proposalMembers.userId,
+      userName: users.name,
+    })
+    .from(proposalMembers)
+    .leftJoin(users, eq(proposalMembers.userId, users.id))
+    .where(eq(proposalMembers.proposalId, params.id!)),
   ]);
 
   // Calculate progress
   const completedActions = actions.filter((a) => a.completed).length;
   const totalProgress = actions.length > 0 ? Math.round((completedActions / actions.length) * 100) : 0;
+
+  const memberNames = membersRaw.map((m) => m.userName).filter(Boolean) as string[];
 
   let daysRemaining: number | null = null;
   if (proposal.startDate) {
@@ -72,6 +93,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     totalProgress,
     daysRemaining,
     currentUserId: ctx.user.id,
+    memberNames,
   });
 }
 
@@ -85,6 +107,7 @@ export default function ProposalDetailPage() {
     totalProgress,
     daysRemaining,
     currentUserId,
+    memberNames,
   } = useLoaderData<typeof loader>();
 
   return (
@@ -100,6 +123,7 @@ export default function ProposalDetailPage() {
             createdAt: c.createdAt ? String(c.createdAt) : null,
           }))}
           currentUserId={currentUserId}
+          memberNames={memberNames}
         />
       </div>
 
