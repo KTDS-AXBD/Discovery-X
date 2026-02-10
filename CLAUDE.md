@@ -84,33 +84,40 @@ pnpm run deploy       # 빌드 + Cloudflare Pages 배포 (pnpm deploy는 workspa
 ```
 app/
 ├── root.tsx              # Remix root layout (다크모드, 알림 배지)
-├── routes/               # 75개 라우트
+├── routes/               # 100개 라우트
 │   ├── _index.tsx        # / (채팅 인터페이스 — 메인)
-│   ├── dashboard.tsx     # /dashboard (레이아웃 + 5탭)
-│   ├── dashboard.*.tsx   # /dashboard/* (Pipeline/Metrics/Health/Alerts/Audit Log)
-│   ├── settings.tsx      # /settings (Agent 설정)
+│   ├── dashboard.tsx     # /dashboard (레이아웃 + 9개 서브탭)
+│   ├── dashboard.*.tsx   # /dashboard/* (Metrics/Health/Alerts/Audit Log/Review/Recall/Assets/Shadow)
+│   ├── ideas.tsx / ideas.$id.tsx   # /ideas (아이디어 목록 + 상세)
+│   ├── proposals.*.tsx             # /proposals (사업제안 레이아웃/목록/상세/작성)
+│   ├── settings.*.tsx              # /settings (Agent 설정 + 조직)
 │   ├── discoveries.*.tsx           # /discoveries (목록/생성/상세)
-│   ├── discoveries_.$id.*.tsx      # /discoveries/:id/* (편집/승격/실험/근거/결정/Gate/Graph/Methods)
+│   ├── discoveries_.$id.*.tsx      # /discoveries/:id/* (편집/승격/실험/근거/결정/Gate/Graph/Methods/규제/패턴)
 │   ├── venture.*.tsx               # /venture/* (13개 — 스프린트 관리/분석)
 │   ├── review.tsx / recall.tsx     # Weekly Review / Recall Queue
 │   ├── metrics.tsx / radar.tsx     # Metrics / Radar UI
 │   ├── methods.tsx / docs.tsx      # Method Pack 라이브러리 / Docs
-│   ├── login.tsx / auth.google.*   # 인증 (Google OAuth)
+│   ├── valueup.*.tsx               # Value-up 시나리오 (2개)
+│   ├── login.tsx / logout.tsx / auth.google.*  # 인증 (Google OAuth)
 │   ├── admin.*.tsx                 # 관리자 (users, seed)
+│   ├── onboarding.tsx / pending.tsx  # 온보딩/승인 대기
+│   ├── evidence.duplicates.tsx     # 근거 중복 관리
 │   ├── api.chat.ts                 # SSE 스트리밍 채팅
 │   ├── api.conversations.*.ts      # 대화 CRUD + 메시지
-│   ├── api.cron.*.ts               # Cron 5개 (daily/agent-review/alerts/embeddings/weekly-summary)
+│   ├── api.proposals.*.ts          # 사업제안 CRUD + 댓글 + 액션 (3개)
+│   ├── api.cron.*.ts               # Cron 8개 (daily/agent-review/alerts/embeddings/weekly-summary/log-archive/pattern-extract/shadow-analyze)
 │   ├── api.export.*.ts             # Export (CSV/JSON/Brief/Metrics)
 │   ├── api.venture.*.ts            # Venture API 7개 (decisions/tasks/worker/export/analytics)
-│   ├── api.radar.*.ts              # Radar (runs/sources/trigger)
-│   └── api.similar-seeds.ts        # 유사 Seed 검색 (Vectorize → FTS5 폴백)
+│   ├── api.radar.*.ts              # Radar (runs/sources/trigger/summarize/items.status)
+│   ├── api.similar-*.ts            # 유사 검색 (seeds/sources)
+│   └── api.tenant.switch.ts        # 테넌트 전환
 ├── db/
-│   ├── schema.ts         # Drizzle 스키마 (30개 테이블)
-│   ├── index.ts          # DB 헬퍼 (getDb, ventureSchema 머지)
+│   ├── schema.ts         # Drizzle 스키마 (44개 테이블)
+│   ├── index.ts          # DB 헬퍼 (getDb, ventureSchema + proposalSchema 머지)
 │   └── seed.ts           # 시드 데이터 (stages 11개, method_packs 12개, ontology_types 10개)
 ├── features/
-│   └── venture/          # Venture Discovery Sprint 모듈 (v4)
-│       ├── db/schema.ts      # vd_* 16개 테이블 (sprints/opportunities/decisions/signals 등)
+│   ├── venture/          # Venture Discovery Sprint 모듈 (v4)
+│   │   ├── db/schema.ts      # vd_* 16개 테이블 (sprints/opportunities/decisions/signals 등)
 │       ├── constants/        # 스프린트 상태/태스크 타입/의존성
 │       ├── schemas/          # Zod 검증 스키마
 │       ├── domain/           # 상태 머신/스코어링 정책/가드
