@@ -67,7 +67,7 @@ PROMPT
 ```bash
 # Worker 1 — 첫 번째 pane (세션의 기본 window 활용)
 tmux send-keys -t {팀이름}:workers \
-  "claude -p \"$(cat /tmp/team-{팀이름}-worker-1.txt)\" \
+  "export PATH=\"$PATH\" && claude -p \"$(cat /tmp/team-{팀이름}-worker-1.txt)\" \
   --allowedTools 'Read,Edit,Write,Glob,Grep,Bash' \
   --max-turns 20 \
   --verbose 2>&1 | tee /tmp/team-{팀이름}-worker-1.log; \
@@ -76,7 +76,7 @@ tmux send-keys -t {팀이름}:workers \
 # Worker 2 — 수직 분할
 tmux split-window -t {팀이름}:workers -h -c /mnt/d/01_Projects/Discovery-X
 tmux send-keys -t {팀이름}:workers.1 \
-  "claude -p \"$(cat /tmp/team-{팀이름}-worker-2.txt)\" \
+  "export PATH=\"$PATH\" && claude -p \"$(cat /tmp/team-{팀이름}-worker-2.txt)\" \
   --allowedTools 'Read,Edit,Write,Glob,Grep,Bash' \
   --max-turns 20 \
   --verbose 2>&1 | tee /tmp/team-{팀이름}-worker-2.log; \
@@ -85,7 +85,7 @@ tmux send-keys -t {팀이름}:workers.1 \
 # Worker 3 (필요 시) — Worker 1 아래 수평 분할
 tmux split-window -t {팀이름}:workers.0 -v -c /mnt/d/01_Projects/Discovery-X
 tmux send-keys -t {팀이름}:workers.2 \
-  "claude -p \"$(cat /tmp/team-{팀이름}-worker-3.txt)\" \
+  "export PATH=\"$PATH\" && claude -p \"$(cat /tmp/team-{팀이름}-worker-3.txt)\" \
   --allowedTools 'Read,Edit,Write,Glob,Grep,Bash' \
   --max-turns 20 \
   --verbose 2>&1 | tee /tmp/team-{팀이름}-worker-3.log; \
@@ -94,7 +94,7 @@ tmux send-keys -t {팀이름}:workers.2 \
 # Worker 4 (필요 시) — Worker 2 아래 수평 분할
 tmux split-window -t {팀이름}:workers.1 -v -c /mnt/d/01_Projects/Discovery-X
 tmux send-keys -t {팀이름}:workers.3 \
-  "claude -p \"$(cat /tmp/team-{팀이름}-worker-4.txt)\" \
+  "export PATH=\"$PATH\" && claude -p \"$(cat /tmp/team-{팀이름}-worker-4.txt)\" \
   --allowedTools 'Read,Edit,Write,Glob,Grep,Bash' \
   --max-turns 20 \
   --verbose 2>&1 | tee /tmp/team-{팀이름}-worker-4.log; \
