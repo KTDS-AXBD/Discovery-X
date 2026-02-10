@@ -10,47 +10,49 @@ const MAX_MEMO_LENGTH = 5000;
 
 export function MemoPanel({ itemId, initialMemo }: MemoPanelProps) {
   const [memo, setMemo] = useState(initialMemo ?? "");
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [dirty, setDirty] = useState(false);
   const fetcher = useFetcher<{ success?: boolean; error?: string }>();
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const initialMemoRef = useRef(initialMemo);
 
-  // Sync when itemId or initialMemo changes
-  useEffect(() => {
+  // Reset when item changes (render-time adjustment — React recommended)
+  const [prevItemId, setPrevItemId] = useState(itemId);
+  if (prevItemId !== itemId) {
+    setPrevItemId(itemId);
     setMemo(initialMemo ?? "");
-    setSaveStatus("idle");
-    initialMemoRef.current = initialMemo;
-  }, [itemId, initialMemo]);
+    setDirty(false);
+  }
 
-  // Debounced auto-save (1 second)
+  // Track fetcher completion (render-time adjustment)
+  const [prevFetcherState, setPrevFetcherState] = useState(fetcher.state);
+  if (prevFetcherState !== fetcher.state) {
+    setPrevFetcherState(fetcher.state);
+    if (prevFetcherState !== "idle" && fetcher.state === "idle" && fetcher.data?.success) {
+      setDirty(false);
+    }
+  }
+
+  // Derive save status (no refs, no effects)
+  const saveStatus: "idle" | "saving" | "saved" | "error" =
+    fetcher.state !== "idle"
+      ? "saving"
+      : fetcher.data && !fetcher.data.success
+        ? "error"
+        : !dirty && fetcher.data?.success
+          ? "saved"
+          : "idle";
+
+  // Debounced auto-save — only calls external system (fetcher.submit)
   useEffect(() => {
-    if (!itemId) return;
-    if (memo === (initialMemoRef.current ?? "")) return;
-
-    setSaveStatus("idle");
+    if (!itemId || !dirty) return;
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      setSaveStatus("saving");
       fetcher.submit(
         { itemId, memo },
-        { method: "PUT", action: "/api/ideas/memo", encType: "application/json" }
+        { method: "PUT", action: "/api/ideas/memo", encType: "application/json" },
       );
     }, 1000);
-
     return () => clearTimeout(debounceRef.current);
-  }, [memo, itemId]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Watch fetcher response
-  useEffect(() => {
-    if (fetcher.state === "idle" && fetcher.data) {
-      if (fetcher.data.success) {
-        setSaveStatus("saved");
-        initialMemoRef.current = memo;
-      } else {
-        setSaveStatus("error");
-      }
-    }
-  }, [fetcher.state, fetcher.data]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [memo, itemId, dirty]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="p-4">
@@ -76,7 +78,10 @@ export function MemoPanel({ itemId, initialMemo }: MemoPanelProps) {
         <>
           <textarea
             value={memo}
-            onChange={(e) => setMemo(e.target.value)}
+            onChange={(e) => {
+              setMemo(e.target.value);
+              setDirty(true);
+            }}
             maxLength={MAX_MEMO_LENGTH}
             placeholder="이 아이디어에 대한 메모를 남겨보세요..."
             className="h-40 w-full resize-none rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-3 py-2 text-sm text-[var(--axis-text-primary)] placeholder:text-[var(--axis-text-tertiary)] focus:border-[var(--axis-border-brand)] focus:outline-none"

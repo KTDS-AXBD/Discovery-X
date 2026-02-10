@@ -24,14 +24,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: "orderedIds 배열이 필요합니다" }, { status: 400 });
   }
 
-  await db.batch(
-    body.orderedIds.map((id, index) =>
-      db
-        .update(archiveFolders)
-        .set({ sortOrder: index })
-        .where(and(eq(archiveFolders.id, id), eq(archiveFolders.tenantId, ctx!.tenantId))),
-    ) as [any, ...any[]],
+  const statements = body.orderedIds.map((id, index) =>
+    db
+      .update(archiveFolders)
+      .set({ sortOrder: index })
+      .where(and(eq(archiveFolders.id, id), eq(archiveFolders.tenantId, ctx!.tenantId))),
   );
+  await db.batch(statements as [typeof statements[0], ...typeof statements[0][]]);
 
   return json({ success: true });
 }

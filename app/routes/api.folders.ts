@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { and, asc, count, eq, max, sql } from "drizzle-orm";
+import { asc, count, eq, max, sql } from "drizzle-orm";
 import { getDb } from "~/db";
 import { archiveFolders, archiveFolderItems } from "~/features/archive/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
