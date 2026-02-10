@@ -15,7 +15,6 @@ import { PIPELINE_COLUMNS, STATUS_CONFIG } from "~/lib/constants/status";
 import { StatusOverview } from "~/components/dashboard/StatusOverview";
 import { StageDurationTable } from "~/components/dashboard/StageDurationTable";
 import { IndustryDonut } from "~/components/charts/IndustryDonut";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -254,24 +253,16 @@ export default function DashboardOverview() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* 단계별 건수 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>단계별 건수</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <StageDurationTable data={stageDuration} />
-            </CardContent>
-          </Card>
+          <div>
+            <h3 className="mb-3 text-sm font-semibold text-[var(--axis-text-primary)]">단계별 건수</h3>
+            <StageDurationTable data={stageDuration} />
+          </div>
 
           {/* 산업 분포 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>산업 분포</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <IndustryDonut data={industryData} />
-            </CardContent>
-          </Card>
+          <div>
+            <h3 className="mb-3 text-sm font-semibold text-[var(--axis-text-primary)]">산업 분포</h3>
+            <IndustryDonut data={industryData} />
+          </div>
         </div>
       </div>
     </div>

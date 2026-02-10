@@ -23,11 +23,6 @@ export function StatusOverview({
 }: StatusOverviewProps) {
   return (
     <section>
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-[var(--axis-text-primary)]">현황</h2>
-        <span className="text-xs text-[var(--axis-text-tertiary)]">{timestamp}</span>
-      </div>
-
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* 최근 수집 소스 */}
         <div>

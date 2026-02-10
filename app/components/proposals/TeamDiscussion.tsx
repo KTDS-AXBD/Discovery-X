@@ -53,14 +53,14 @@ export function TeamDiscussion({ proposalId, comments, currentUserId: _currentUs
   };
 
   return (
-    <div>
-      <h3 className="mb-3 text-sm font-semibold text-[var(--axis-text-primary)]">팀 토론</h3>
+    <div className="rounded-xl border border-[var(--axis-border-default)] p-5">
+      <h3 className="mb-4 text-sm font-semibold text-[var(--axis-text-primary)]">팀 토론</h3>
 
       {/* Comment list */}
-      <div className="mb-4 space-y-3">
+      <div className="mb-4 space-y-4">
         {comments.map((comment) => (
-          <div key={comment.id} className="flex gap-2">
-            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--axis-surface-brand)] text-[10px] font-bold text-[var(--axis-text-brand)]">
+          <div key={comment.id} className="flex gap-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--axis-surface-secondary)] text-xs font-bold text-[var(--axis-text-secondary)]">
               {(comment.authorName || "U").charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
