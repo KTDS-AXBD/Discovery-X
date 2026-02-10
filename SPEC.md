@@ -255,13 +255,13 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v5.0 Layout Restructure + Proposals Feature
-- **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 정상 동작
-- **DB**: 24개 마이그레이션 (0000~0023), 로컬 적용 완료 ✅ (0022~0023 프로덕션 Pending)
+- **프로토타입**: v5.1 Ideas/Charts/Archive Enhancement
+- **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 배포 완료
+- **DB**: 24개 마이그레이션 (0000~0023), 로컬 + 프로덕션 모두 적용 완료 ✅
 
 ### 주요 지표
-- **라우트**: 100개 (core 46 + ideas 2 + proposals 7 + venture 13 + API 30 + 기타 2)
-- **테이블**: 66개 (core 44 + venture 16 + proposals 6)
+- **라우트**: 108개 (core 46 + ideas 2 + proposals 7 + venture 13 + API 30 + folders 4 + 기타 6)
+- **테이블**: 68개 (core 44 + venture 16 + proposals 6 + archive 2)
 - **Agent 도구**: 48개
 - **테스트**: 597개 (unit 76 + integration 342 + venture 143 + BD PoC 36)
 - **테스트 통과율**: 100%
@@ -278,7 +278,10 @@ build/
 - ✅ F22 보관함 폴더: archive feature 모듈 + 폴더 CRUD API 4개 + 드래그드롭 + SidebarPanel 연동 + 마이그레이션
 - ✅ F20/F21/F22 Design 문서 추가
 - ✅ ESLint 0 errors, TypeScript 0 errors
-- ⚠️ 배포: 빌드 성공, wrangler deploy 실패 (비인터랙티브 환경 — 별도 터미널에서 실행 필요)
+- ✅ CI/CD 배포 완료 (Lint → Typecheck → Test → Build → Deploy, 1m 22s)
+- ✅ DB 마이그레이션 프로덕션 적용 확인 (0022 + 0023)
+- ✅ MemoPanel React 19 lint 수정 (setState-in-effect → render-time adjustment + derived state)
+- ✅ PDCA 분석 문서: proposals/F20/F22 analysis + report
 
 ### 이전 변경 (세션 132)
 **proposals PDCA Plan + Design 문서 작성 완료**:
@@ -444,7 +447,7 @@ build/
 - **브랜치 전략**: master 단일 브랜치 (Prototype 기간)
 - **배포**: Cloudflare Pages (master push → GitHub Actions CI/CD 자동 배포) — Secrets 설정 완료 ✅
 - **운영 실험**: 🚀 2026-01-31 시작 (30-60일, 최대 5명, Discovery 5-10건 목표)
-- **DB 마이그레이션**: ✅ 24개 (0000~0023) 로컬 적용 완료 (0022~0023 프로덕션 Pending)
+- **DB 마이그레이션**: ✅ 24개 (0000~0023) 로컬+프로덕션 적용 완료
 - **Cron 설정**: daily (09:00) + agent-review (10:00) + alerts (09:30) + embeddings (15분, cron-job.org)
 - **Radar Worker**: 프로덕션 운영 중 (Cron 매일 9:00 KST, 10소스)
 - **이메일**: Resend (`noreply@ideaonaction.ai`), cron-job.org 자동 발송
