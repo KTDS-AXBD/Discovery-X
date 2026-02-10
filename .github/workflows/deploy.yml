@@ -11,6 +11,9 @@ jobs:
     permissions:
       contents: read
       deployments: write
+    environment:
+      name: production
+      url: https://dx.minu.best
     steps:
       - uses: actions/checkout@v4
 
@@ -26,15 +29,48 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Lint
+        run: pnpm lint
+
       - name: Type check
         run: pnpm typecheck
+
+      - name: Run tests
+        run: pnpm test
 
       - name: Build
         run: pnpm build
 
       - name: Deploy to Cloudflare Pages
+        id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy ./build/client --project-name=discovery-x
+
+      - name: Deployment Summary
+        if: always()
+        run: |
+          echo "## Deployment Result" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ **Successfully deployed** to [dx.minu.best](https://dx.minu.best)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Deployment failed**" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Triggered by**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify Discord
+        if: always() && env.DISCORD_WEBHOOK_URL != ''
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          STATUS="${{ job.status }}"
+          EMOJI=$([ "$STATUS" == "success" ] && echo "✅" || echo "❌")
+          curl -H "Content-Type: application/json" \
+            -d "{\"content\": \"${EMOJI} Discovery-X deployment ${STATUS}\\nCommit: ${{ github.sha }}\\nURL: https://dx.minu.best\"}" \
+            $DISCORD_WEBHOOK_URL
