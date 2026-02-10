@@ -1,3 +1,4 @@
+import { useFetcher } from "@remix-run/react";
 import { cn } from "~/lib/utils/cn";
 
 interface Milestone {
@@ -17,6 +18,7 @@ interface ActionItem {
 }
 
 interface ProgressPanelProps {
+  proposalId: string;
   milestones: Milestone[];
   actions: ActionItem[];
   totalProgress: number;
@@ -24,11 +26,13 @@ interface ProgressPanelProps {
 }
 
 export function ProgressPanel({
+  proposalId,
   milestones,
   actions,
   totalProgress,
   daysRemaining,
 }: ProgressPanelProps) {
+  const fetcher = useFetcher();
   const completedActions = actions.filter((a) => a.completed).length;
 
   return (
@@ -60,7 +64,7 @@ export function ProgressPanel({
           <div key={ms.id} className="flex items-start gap-2">
             <div className="mt-0.5">
               {ms.status === "COMPLETED" ? (
-                <div className="flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-white">
+                <div className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--axis-text-success,#22C55E)] text-white">
                   <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" strokeWidth="3" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                   </svg>
@@ -96,7 +100,16 @@ export function ProgressPanel({
             <input
               type="checkbox"
               checked={!!action.completed}
-              readOnly
+              onChange={() => {
+                fetcher.submit(
+                  JSON.stringify({ actionId: action.id, completed: !action.completed }),
+                  {
+                    method: "POST",
+                    action: `/api/proposals/${proposalId}/actions`,
+                    encType: "application/json",
+                  }
+                );
+              }}
               className="h-3.5 w-3.5 rounded border-[var(--axis-border-default)] text-[var(--axis-text-brand)]"
             />
             <span className={cn(

@@ -15,6 +15,15 @@ interface TeamDiscussionProps {
   currentUserId: string;
 }
 
+function formatDate(ts: string | number | null): string {
+  if (!ts) return "";
+  const d = typeof ts === "number" ? new Date(ts * 1000) : new Date(ts);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 export function TeamDiscussion({ proposalId, comments, currentUserId: _currentUserId }: TeamDiscussionProps) {
   const [content, setContent] = useState("");
   const fetcher = useFetcher();
@@ -49,9 +58,7 @@ export function TeamDiscussion({ proposalId, comments, currentUserId: _currentUs
                 </span>
                 {comment.createdAt && (
                   <span className="text-[10px] text-[var(--axis-text-tertiary)]">
-                    {typeof comment.createdAt === "number"
-                      ? new Date(comment.createdAt * 1000).toLocaleDateString("ko-KR")
-                      : comment.createdAt}
+                    {formatDate(comment.createdAt)}
                   </span>
                 )}
               </div>
