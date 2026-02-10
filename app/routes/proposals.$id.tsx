@@ -84,6 +84,11 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     daysRemaining = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)));
   }
 
+  // Fetch tenant users for member management
+  const tenantUsers = await db
+    .select({ id: users.id, name: users.name })
+    .from(users);
+
   return json({
     proposal,
     sections,
@@ -93,7 +98,10 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     totalProgress,
     daysRemaining,
     currentUserId: ctx.user.id,
+    isOwner: proposal.ownerId === ctx.user.id,
     memberNames,
+    members: membersRaw,
+    tenantUsers,
   });
 }
 
@@ -107,7 +115,10 @@ export default function ProposalDetailPage() {
     totalProgress,
     daysRemaining,
     currentUserId,
+    isOwner,
     memberNames,
+    members,
+    tenantUsers,
   } = useLoaderData<typeof loader>();
 
   return (
@@ -123,6 +134,7 @@ export default function ProposalDetailPage() {
             createdAt: c.createdAt ? String(c.createdAt) : null,
           }))}
           currentUserId={currentUserId}
+          isOwner={isOwner}
           memberNames={memberNames}
         />
       </div>
@@ -135,6 +147,9 @@ export default function ProposalDetailPage() {
           actions={actions}
           totalProgress={totalProgress}
           daysRemaining={daysRemaining}
+          isOwner={isOwner}
+          members={members}
+          tenantUsers={tenantUsers}
         />
       </div>
     </div>

@@ -19,6 +19,19 @@ export const PROPOSAL_STATUS_COLORS: Record<string, string> = {
   REJECTED: "bg-[var(--axis-badge-destructive-bg,#FEE2E2)] text-[var(--axis-badge-destructive-text,#991B1B)]",
 };
 
+// Status transition rules: source → allowed targets
+export const PROPOSAL_TRANSITIONS: Record<string, string[]> = {
+  DRAFT: ["REVIEWING"],
+  REVIEWING: ["APPROVED", "REJECTED", "DRAFT"],
+  APPROVED: [],
+  REJECTED: ["DRAFT"],
+};
+
+export function validateProposalTransition(from: string, to: string): boolean {
+  const allowed = PROPOSAL_TRANSITIONS[from];
+  return !!allowed && allowed.includes(to);
+}
+
 export const SECTION_CONFIG = [
   { type: "market", label: "시장 기회", icon: "📈", placeholder: "시장 규모, 성장률, 진입 기회..." },
   { type: "target", label: "목표 고객", icon: "🎯", placeholder: "타겟 고객 세그먼트, 페인포인트..." },

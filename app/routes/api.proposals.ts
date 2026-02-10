@@ -1,8 +1,9 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "~/db";
 import { proposals, proposalSections } from "~/features/proposals/db/schema";
+import { validateProposalTransition } from "~/features/proposals/constants";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -44,10 +45,24 @@ export async function action({ request, context }: ActionFunctionArgs) {
       sections?: Array<{ type: string; content: string }>;
     };
 
-    const proposal = await db.select({ id: proposals.id, tenantId: proposals.tenantId, ownerId: proposals.ownerId })
+    const proposal = await db.select({ id: proposals.id, tenantId: proposals.tenantId, ownerId: proposals.ownerId, status: proposals.status })
       .from(proposals).where(eq(proposals.id, body.id)).get();
     if (!proposal || proposal.tenantId !== ctx.tenantId) {
       return json({ error: "Not found" }, { status: 404 });
+    }
+
+    // Status transition validation
+    if (body.status !== undefined && body.status !== proposal.status) {
+      if (!validateProposalTransition(proposal.status, body.status)) {
+        return json(
+          { error: `상태 전환 불가: ${proposal.status} → ${body.status}` },
+          { status: 400 },
+        );
+      }
+      // Only owner can submit for review or resubmit from rejected
+      if (body.status === "REVIEWING" && proposal.ownerId !== ctx.user.id) {
+        return json({ error: "소유자만 검토를 요청할 수 있습니다" }, { status: 403 });
+      }
     }
 
     const updates: Record<string, unknown> = {};
@@ -59,6 +74,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (body.status !== undefined) updates.status = body.status;
 
     if (Object.keys(updates).length > 0) {
+      updates.updatedAt = sql`(unixepoch())`;
       await db.update(proposals).set(updates).where(eq(proposals.id, body.id));
     }
 
