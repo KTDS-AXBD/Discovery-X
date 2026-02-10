@@ -40,16 +40,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   // Insert sections
   const sectionTypes = Object.values(ProposalSectionType);
-  for (let i = 0; i < sectionTypes.length; i++) {
-    const type = sectionTypes[i];
-    const content = String(formData.get(`section_${type}`) || "").trim();
-    await db.insert(proposalSections).values({
-      proposalId: id,
-      type,
-      content,
-      sortOrder: i,
-    });
-  }
+  const sectionValues = sectionTypes.map((type, i) => ({
+    proposalId: id,
+    type,
+    content: String(formData.get(`section_${type}`) || "").trim(),
+    sortOrder: i,
+  }));
+  await db.insert(proposalSections).values(sectionValues);
 
   return redirect(`/proposals/${id}`);
 }

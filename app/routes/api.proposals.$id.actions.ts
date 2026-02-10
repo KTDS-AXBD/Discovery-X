@@ -1,8 +1,8 @@
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { getDb } from "~/db";
-import { proposalActions } from "~/features/proposals/db/schema";
+import { proposals, proposalActions } from "~/features/proposals/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 
 export async function action({ request, context }: ActionFunctionArgs) {

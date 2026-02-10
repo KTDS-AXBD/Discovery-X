@@ -2,7 +2,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json } from "@remix-run/cloudflare";
 import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
-import { proposalComments } from "~/features/proposals/db/schema";
+import { proposals, proposalComments } from "~/features/proposals/db/schema";
 import { users } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 

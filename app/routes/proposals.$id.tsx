@@ -31,24 +31,15 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  const sections = await db
-    .select()
-    .from(proposalSections)
-    .where(eq(proposalSections.proposalId, params.id!));
+  if (proposal.tenantId !== ctx.tenantId) {
+    throw new Response("Not Found", { status: 404 });
+  }
 
-  const milestones = await db
-    .select()
-    .from(proposalMilestones)
-    .where(eq(proposalMilestones.proposalId, params.id!));
-
-  const actions = await db
-    .select()
-    .from(proposalActions)
-    .where(eq(proposalActions.proposalId, params.id!));
-
-  // Comments with author names
-  const commentsRaw = await db
-    .select({
+  const [sections, milestones, actions, commentsRaw] = await Promise.all([
+    db.select().from(proposalSections).where(eq(proposalSections.proposalId, params.id!)),
+    db.select().from(proposalMilestones).where(eq(proposalMilestones.proposalId, params.id!)),
+    db.select().from(proposalActions).where(eq(proposalActions.proposalId, params.id!)),
+    db.select({
       id: proposalComments.id,
       authorId: proposalComments.authorId,
       content: proposalComments.content,
@@ -57,7 +48,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     })
     .from(proposalComments)
     .leftJoin(users, eq(proposalComments.authorId, users.id))
-    .where(eq(proposalComments.proposalId, params.id!));
+    .where(eq(proposalComments.proposalId, params.id!)),
+  ]);
 
   // Calculate progress
   const completedActions = actions.filter((a) => a.completed).length;
@@ -114,6 +106,7 @@ export default function ProposalDetailPage() {
       {/* Right progress panel */}
       <div className="hidden w-[var(--dx-context-panel-width)] shrink-0 overflow-y-auto border-l border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))] lg:block">
         <ProgressPanel
+          proposalId={proposal.id}
           milestones={milestones}
           actions={actions}
           totalProgress={totalProgress}
