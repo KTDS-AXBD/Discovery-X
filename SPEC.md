@@ -257,10 +257,10 @@ build/
 ### 버전
 - **프로토타입**: v5.1 Ideas/Charts/Archive Enhancement
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 배포 완료
-- **DB**: 24개 마이그레이션 (0000~0023), 로컬 + 프로덕션 모두 적용 완료 ✅
+- **DB**: 25개 마이그레이션 (0000~0024), 로컬 적용 완료 ✅ (0024 프로덕션 미적용)
 
 ### 주요 지표
-- **라우트**: 111개 (core 46 + ideas 2 + proposals 7 + venture 13 + market 3 + API 30 + folders 4 + 기타 6)
+- **라우트**: 112개 (core 46 + ideas 2 + proposals 8 + venture 13 + market 3 + API 30 + folders 4 + 기타 6)
 - **테이블**: 68개 (core 44 + venture 16 + proposals 6 + archive 2)
 - **Agent 도구**: 48개
 - **테스트**: 597개 (unit 76 + integration 342 + venture 143 + BD PoC 36)
@@ -268,7 +268,17 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 140)
+### 최근 변경 (세션 141)
+**PDCA Iterate — proposals MEDIUM 갭 해결 + 편집 라우트 추가**:
+- ✅ Drizzle `relations()` 6개 정의 추가 (proposalsRelations~proposalMembersRelations)
+- ✅ `proposal_sections` (proposal_id, type) 유니크 인덱스 + 마이그레이션 0024
+- ✅ 편집 라우트 `proposals.$id_.edit.tsx` 신규 생성 (DRAFT 상태 소유자만 편집 가능)
+- ✅ ProposalDetail 태블릿/모바일 진행상황 요약 카드 추가 (`lg:hidden`)
+- ✅ tenantUsers 쿼리 테넌트 격리 — `tenantMembers` JOIN으로 필터링
+- ✅ PDCA 분석 v3.0 업데이트: 59.3% → 72.4% (CRITICAL/HIGH/MEDIUM 전부 해결)
+- ✅ typecheck 0 errors, lint 0 errors
+
+### 이전 변경 (세션 140)
 **와이어프레임-구현 정합성 개선 — 대시보드/아이디어/사업제안 3개 페이지 UI 정렬**:
 - ✅ 대시보드: 탭 네비게이션 제거, 우측 사이드바 제거 → 단일 페이지 레이아웃
 - ✅ 대시보드: StatusOverview 3-column Card → 2-column 텍스트 ("최근 수집 소스" + "특집 현황")
