@@ -118,12 +118,14 @@ app/
 ├── features/
 │   ├── venture/          # Venture Discovery Sprint 모듈 (v4)
 │   │   ├── db/schema.ts      # vd_* 16개 테이블 (sprints/opportunities/decisions/signals 등)
-│       ├── constants/        # 스프린트 상태/태스크 타입/의존성
-│       ├── schemas/          # Zod 검증 스키마
-│       ├── domain/           # 상태 머신/스코어링 정책/가드
-│       ├── repositories/     # Sprint/Task Queue 리포지토리
-│       ├── lib/              # Task Executor (8개 AI 핸들러) + Markdown Exporter
-│       └── ui/               # EmptyState/OnboardingGuide/투표 UI 등 13개 컴포넌트
+│   │   ├── constants/        # 스프린트 상태/태스크 타입/의존성
+│   │   ├── schemas/          # Zod 검증 스키마
+│   │   ├── domain/           # 상태 머신/스코어링 정책/가드
+│   │   ├── repositories/     # Sprint/Task Queue 리포지토리
+│   │   ├── lib/              # Task Executor (8개 AI 핸들러) + Markdown Exporter
+│   │   └── ui/               # EmptyState/OnboardingGuide/투표 UI 등 13개 컴포넌트
+│   └── proposals/          # 사업제안 모듈 (v5)
+│       └── db/schema.ts      # proposals 6개 테이블 (proposals/sections/milestones/actions/comments/members)
 ├── lib/
 │   ├── agent/            # AI Agent 코어
 │   │   ├── executor.ts       # 메인 Agent 루프 (MAX_ROUNDS, 모델별 컨텍스트 윈도우)
@@ -146,8 +148,10 @@ app/
 │   └── validation/       # Zod 스키마 + 비즈니스 규칙
 ├── components/
 │   ├── chat/             # 채팅 UI (ChatPanel, MessageBubble, ToolExecution, ConversationList)
-│   ├── dashboard/        # 대시보드 (Pipeline, AuditLogList, AlertList, HealthMetrics)
-│   ├── layout/           # 레이아웃 (MainNav, PageLayout)
+│   ├── dashboard/        # 대시보드 (Pipeline, AuditLogList, AlertList, HealthMetrics, CollectionStatusPanel)
+│   ├── ideas/            # 아이디어 (MemoPanel)
+│   ├── layout/           # 레이아웃 (TopNav, AppShell, SidebarPanel, ContextPanel, ArchiveFolderList)
+│   ├── proposals/        # 사업제안 (ProposalDetail, ProposalForm, ProgressPanel, TeamDiscussion, ProposalListSidebar)
 │   ├── ui/               # Axis 디자인 토큰 기반 공통 컴포넌트
 │   ├── charts/           # 차트 (StatusDonut, WeeklyBar)
 │   ├── docs/             # 문서 뷰어 컴포넌트
