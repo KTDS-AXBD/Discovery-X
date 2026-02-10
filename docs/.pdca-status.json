@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-10T11:16:04.010Z",
+  "lastUpdated": "2026-02-10T11:34:32.079Z",
   "activeFeatures": [
     "routes",
     "auth",
@@ -67,9 +67,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T11:39:12.844Z",
-        "lastUpdated": "2026-02-10T11:16:04.010Z"
+        "lastUpdated": "2026-02-10T11:33:42.398Z"
       },
-      "lastFile": "/mnt/d/01_Projects/Discovery-X/app/routes/api.proposals.ts"
+      "lastFile": "/mnt/d/01_Projects/Discovery-X/app/routes/api.ideas.memo.ts"
     },
     "auth": {
       "phase": "do",
@@ -197,9 +197,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T13:32:52.354Z",
-        "lastUpdated": "2026-02-10T07:00:16.977Z"
+        "lastUpdated": "2026-02-10T11:32:58.600Z"
       },
-      "lastFile": "/mnt/d/01_Projects/Discovery-X/app/db/index.ts"
+      "lastFile": "/mnt/d/01_Projects/Discovery-X/app/db/schema.ts"
     },
     "helpers": {
       "phase": "do",
@@ -210,7 +210,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T13:33:06.221Z",
-        "lastUpdated": "2026-02-10T07:51:28.173Z"
+        "lastUpdated": "2026-02-10T11:33:20.728Z"
       },
       "lastFile": "/mnt/d/01_Projects/Discovery-X/tests/helpers/db.ts"
     },
@@ -438,9 +438,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-10T06:59:09.510Z",
-        "lastUpdated": "2026-02-10T06:59:09.510Z"
+        "lastUpdated": "2026-02-10T11:34:32.079Z"
       },
-      "lastFile": "/mnt/d/01_Projects/Discovery-X/app/components/ideas/MemoPanel.tsx"
+      "lastFile": "/mnt/d/01_Projects/Discovery-X/app/components/ideas/FilterBar.tsx"
     },
     "proposals": {
       "phase": "do",
@@ -451,9 +451,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-10T07:00:11.067Z",
-        "lastUpdated": "2026-02-10T07:19:08.959Z"
+        "lastUpdated": "2026-02-10T11:33:26.419Z"
       },
-      "lastFile": "/mnt/d/01_Projects/Discovery-X/app/components/proposals/TeamDiscussion.tsx"
+      "lastFile": "/mnt/d/01_Projects/Discovery-X/app/components/proposals/ProposalListSidebar.tsx"
     }
   },
   "pipeline": {
@@ -464,7 +464,7 @@
   "session": {
     "startedAt": "2026-02-04T11:05:49.371Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-10T11:16:04.010Z"
+    "lastActivity": "2026-02-10T11:34:32.079Z"
   },
   "history": [
     {
@@ -2792,6 +2792,216 @@
     {
       "timestamp": "2026-02-10T11:16:04.010Z",
       "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:03.357Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:08.330Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:13.283Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:16.440Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:19.475Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:19.957Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:21.674Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:24.075Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:25.967Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:33.159Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:34.994Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:35.959Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:38.654Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:43.568Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:44.437Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:45.306Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:45.640Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:46.343Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:47.916Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:48.855Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:50.084Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:54.740Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:56.808Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:58.601Z",
+      "feature": "db",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:32:58.865Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:33:00.642Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:33:02.833Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:33:04.565Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:33:10.813Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:33:13.158Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:33:20.728Z",
+      "feature": "helpers",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:33:26.419Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:33:42.398Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:34:05.369Z",
+      "feature": "ideas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T11:34:32.079Z",
+      "feature": "ideas",
       "phase": "do",
       "action": "updated"
     }

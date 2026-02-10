@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-02-10T01:37:15.828Z",
+  "timestamp": "2026-02-10T11:31:44.076Z",
   "reason": "compaction",
   "status": {
     "version": "2.0",
-    "lastUpdated": "2026-02-09T07:26:13.850Z",
+    "lastUpdated": "2026-02-10T11:16:04.010Z",
     "activeFeatures": [
       "routes",
       "auth",
@@ -30,7 +30,10 @@
       "repositories",
       "notifications",
       "embeddings",
-      "ax-bd-poc"
+      "ax-bd-poc",
+      "api",
+      "ideas",
+      "proposals"
     ],
     "primaryFeature": "ax-bd-poc",
     "features": {
@@ -67,9 +70,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-04T11:39:12.844Z",
-          "lastUpdated": "2026-02-09T07:26:13.850Z"
+          "lastUpdated": "2026-02-10T11:16:04.010Z"
         },
-        "lastFile": "D:\\01_Projects\\Discovery-X\\app\\routes\\api.cron.embeddings.ts"
+        "lastFile": "/mnt/d/01_Projects/Discovery-X/app/routes/api.proposals.ts"
       },
       "auth": {
         "phase": "do",
@@ -106,9 +109,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-04T11:43:43.775Z",
-          "lastUpdated": "2026-02-09T07:06:30.706Z"
+          "lastUpdated": "2026-02-10T03:37:53.818Z"
         },
-        "lastFile": "D:\\01_Projects\\Discovery-X\\app\\components\\chat\\IdeaCandidateCards.tsx"
+        "lastFile": "D:\\01_Projects\\Discovery-X\\app\\components\\chat\\SourcePanel.tsx"
       },
       "dashboard": {
         "phase": "do",
@@ -119,9 +122,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-04T11:52:49.906Z",
-          "lastUpdated": "2026-02-04T12:33:53.422Z"
+          "lastUpdated": "2026-02-10T06:58:30.745Z"
         },
-        "lastFile": "D:\\01_Projects\\Discovery-X\\app\\components\\dashboard\\KpiCard.tsx"
+        "lastFile": "/mnt/d/01_Projects/Discovery-X/app/components/dashboard/CollectionStatusPanel.tsx"
       },
       "layout": {
         "phase": "do",
@@ -132,9 +135,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-04T12:27:47.205Z",
-          "lastUpdated": "2026-02-07T08:01:13.645Z"
+          "lastUpdated": "2026-02-10T07:19:07.606Z"
         },
-        "lastFile": "D:\\01_Projects\\Discovery-X\\app\\components\\layout\\TopNav.tsx"
+        "lastFile": "/mnt/d/01_Projects/Discovery-X/app/components/layout/SidebarPanel.tsx"
       },
       "ui": {
         "phase": "do",
@@ -158,9 +161,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-04T13:25:45.361Z",
-          "lastUpdated": "2026-02-09T07:22:39.955Z"
+          "lastUpdated": "2026-02-10T03:22:37.131Z"
         },
-        "lastFile": "D:\\01_Projects\\Discovery-X\\app\\lib\\agent\\executor.ts"
+        "lastFile": "D:\\01_Projects\\Discovery-X\\tests\\integration\\agent\\executor-source-context.test.ts"
       },
       "discovery": {
         "phase": "do",
@@ -197,9 +200,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-04T13:32:52.354Z",
-          "lastUpdated": "2026-02-09T06:47:48.553Z"
+          "lastUpdated": "2026-02-10T07:00:16.977Z"
         },
-        "lastFile": "D:\\01_Projects\\Discovery-X\\app\\db\\schema.ts"
+        "lastFile": "/mnt/d/01_Projects/Discovery-X/app/db/index.ts"
       },
       "helpers": {
         "phase": "do",
@@ -210,9 +213,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-04T13:33:06.221Z",
-          "lastUpdated": "2026-02-09T06:50:32.620Z"
+          "lastUpdated": "2026-02-10T07:51:28.173Z"
         },
-        "lastFile": "D:\\01_Projects\\Discovery-X\\tests\\helpers\\db.ts"
+        "lastFile": "/mnt/d/01_Projects/Discovery-X/tests/helpers/db.ts"
       },
       "context": {
         "phase": "do",
@@ -327,9 +330,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-07T08:00:28.362Z",
-          "lastUpdated": "2026-02-07T08:00:40.343Z"
+          "lastUpdated": "2026-02-10T03:38:28.992Z"
         },
-        "lastFile": "D:\\01_Projects\\Discovery-X\\app\\root.tsx"
+        "lastFile": "D:\\01_Projects\\Discovery-X\\eslint.config.js"
       },
       "schemas": {
         "phase": "do",
@@ -379,15 +382,15 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-07T08:32:32.098Z",
-          "lastUpdated": "2026-02-09T07:00:26.642Z"
+          "lastUpdated": "2026-02-10T02:47:20.462Z"
         },
-        "lastFile": "D:\\01_Projects\\Discovery-X\\app\\lib\\embeddings\\sync.ts"
+        "lastFile": "D:\\01_Projects\\Discovery-X\\tests\\integration\\embeddings\\sync.test.ts"
       },
       "ax-bd-poc": {
-        "phase": "check",
-        "phaseNumber": 4,
-        "matchRate": 74,
-        "iterationCount": 1,
+        "phase": "completed",
+        "phaseNumber": 5,
+        "matchRate": 92,
+        "iterationCount": 2,
         "requirements": [
           "FR-01",
           "FR-02",
@@ -404,12 +407,56 @@
         ],
         "documents": {
           "plan": "docs/01-plan/features/ax-bd-poc.plan.md",
-          "design": "docs/02-design/features/ax-bd-poc.design.md"
+          "design": "docs/02-design/features/ax-bd-poc.design.md",
+          "analysis": "docs/03-analysis/ax-bd-poc.analysis.md",
+          "testPlan": "docs/01-plan/features/ax-bd-poc-tests.plan.md",
+          "report": "docs/04-report/ax-bd-poc.report.md"
         },
         "timestamps": {
           "started": "2026-02-09T00:00:00.000Z",
-          "lastUpdated": "2026-02-09T08:00:00.000Z"
-        }
+          "lastUpdated": "2026-02-10T14:00:00.000Z",
+          "completedAt": "2026-02-10T14:00:00.000Z"
+        },
+        "notes": "PDCA 완료. Design v1.0 현행화 완료 (Core Table Extension). 597 테스트 PASS. 배포 준비 완료."
+      },
+      "api": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-10T02:46:22.772Z",
+          "lastUpdated": "2026-02-10T02:46:22.772Z"
+        },
+        "lastFile": "D:\\01_Projects\\Discovery-X\\tests\\integration\\api\\radar-bd.test.ts"
+      },
+      "ideas": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-10T06:59:09.510Z",
+          "lastUpdated": "2026-02-10T06:59:09.510Z"
+        },
+        "lastFile": "/mnt/d/01_Projects/Discovery-X/app/components/ideas/MemoPanel.tsx"
+      },
+      "proposals": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-10T07:00:11.067Z",
+          "lastUpdated": "2026-02-10T07:19:08.959Z"
+        },
+        "lastFile": "/mnt/d/01_Projects/Discovery-X/app/components/proposals/TeamDiscussion.tsx"
       }
     },
     "pipeline": {
@@ -420,7 +467,7 @@
     "session": {
       "startedAt": "2026-02-04T11:05:49.371Z",
       "onboardingCompleted": false,
-      "lastActivity": "2026-02-09T07:26:13.850Z"
+      "lastActivity": "2026-02-10T11:16:04.010Z"
     },
     "history": [
       {
@@ -2393,6 +2440,360 @@
       },
       {
         "timestamp": "2026-02-09T07:26:13.850Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T01:46:45.996Z",
+        "feature": "agent",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T01:46:54.100Z",
+        "feature": "agent",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T01:51:01.339Z",
+        "feature": "agent",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T01:51:05.233Z",
+        "feature": "agent",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T01:51:09.089Z",
+        "feature": "agent",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T01:55:07.132Z",
+        "feature": "agent",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T01:55:53.836Z",
+        "feature": "agent",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T01:57:08.860Z",
+        "feature": "agent",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:12:53.717Z",
+        "feature": "agent",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:13:08.521Z",
+        "feature": "agent",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:13:13.970Z",
+        "feature": "agent",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:46:22.772Z",
+        "feature": "api",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:47:05.975Z",
+        "feature": "embeddings",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:47:20.462Z",
+        "feature": "embeddings",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T03:22:37.131Z",
+        "feature": "agent",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T03:37:41.528Z",
+        "feature": "chat",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T03:37:42.389Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T03:37:43.768Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T03:37:53.818Z",
+        "feature": "chat",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T03:38:28.992Z",
+        "feature": "Discovery-X",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T06:56:06.360Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T06:56:11.863Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T06:56:26.906Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T06:56:40.495Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T06:57:34.551Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T06:58:30.745Z",
+        "feature": "dashboard",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T06:58:52.734Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T06:59:09.510Z",
+        "feature": "ideas",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T06:59:26.829Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T06:59:43.084Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T07:00:11.067Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T07:00:16.977Z",
+        "feature": "db",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T07:00:34.814Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T07:00:55.787Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T07:01:09.150Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T07:01:28.344Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T07:01:46.208Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T07:01:57.594Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T07:02:08.832Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T07:02:18.262Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T07:02:35.237Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T07:02:42.645Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T07:02:50.647Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T07:02:56.549Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T07:04:38.699Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T07:04:44.794Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T07:19:07.606Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T07:19:08.959Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T07:19:10.243Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T07:19:11.417Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T07:19:12.258Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T07:51:28.173Z",
+        "feature": "helpers",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T11:15:48.193Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T11:15:49.529Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T11:15:51.854Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T11:15:52.847Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T11:15:54.294Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T11:15:56.782Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T11:16:04.010Z",
         "feature": "routes",
         "phase": "do",
         "action": "updated"
