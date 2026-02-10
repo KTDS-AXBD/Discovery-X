@@ -6,7 +6,7 @@
 
 import { eq } from "drizzle-orm";
 import type { DB } from "~/db";
-import { messages, agentConfig } from "~/db/schema";
+import { messages, agentConfig, conversations, radarItems } from "~/db/schema";
 import type { ClaudeResponse, ClaudeContentBlock } from "./claude-client";
 import { callClaude, callClaudeStream, parseSSEStream, CLAUDE_MODEL } from "./claude-client";
 import { buildConversationContext } from "./context-builder";
@@ -28,6 +28,9 @@ import {
   validateEvidence,
   tagDiscovery,
   removeDiscoveryTag,
+  generateIdeaCandidates,
+  selectIdeaCandidate,
+  autoFillTemplate,
 } from "./tools/discovery-tools";
 import {
   listDiscoveries,
@@ -282,6 +285,13 @@ async function executeTool(
       return getTenantInfo(db, toolInput as unknown as Parameters<typeof getTenantInfo>[1]);
     case "manage_tenant_members":
       return manageTenantMembers(db, toolInput as unknown as Parameters<typeof manageTenantMembers>[1]);
+    // BD팀 PoC: 아이디어 후보 & 템플릿
+    case "generate_idea_candidates":
+      return generateIdeaCandidates(db, toolInput as Parameters<typeof generateIdeaCandidates>[1]);
+    case "select_idea_candidate":
+      return selectIdeaCandidate(db, toolInput as Parameters<typeof selectIdeaCandidate>[1]);
+    case "auto_fill_template":
+      return autoFillTemplate(db, toolInput as Parameters<typeof autoFillTemplate>[1]);
     default:
       return JSON.stringify({ error: `알 수 없는 도구: ${toolName}` });
   }
@@ -318,7 +328,30 @@ export async function executeAgentTurn(
     .limit(1);
 
   const agentCfg = config[0] || null;
-  const systemPrompt = buildSystemPrompt(agentCfg);
+
+  // BD PoC: 소스 컨텍스트 조회 (conversation.sourceItemId → radarItem)
+  let sourceContext: { title?: string; summaryKo?: string; url?: string; keyPoints?: string[] } | null = null;
+  try {
+    const conv = await db.select({ sourceItemId: conversations.sourceItemId })
+      .from(conversations).where(eq(conversations.id, conversationId)).limit(1);
+    if (conv[0]?.sourceItemId) {
+      const item = await db.select({
+        title: radarItems.title, titleKo: radarItems.titleKo,
+        summaryKo: radarItems.summaryKo, url: radarItems.url,
+        keyPoints: radarItems.keyPoints,
+      }).from(radarItems).where(eq(radarItems.id, conv[0].sourceItemId)).limit(1);
+      if (item[0]) {
+        sourceContext = {
+          title: item[0].titleKo || item[0].title || undefined,
+          summaryKo: item[0].summaryKo || undefined,
+          url: item[0].url || undefined,
+          keyPoints: (item[0].keyPoints as string[]) || undefined,
+        };
+      }
+    }
+  } catch { /* sourceContext is optional */ }
+
+  const systemPrompt = buildSystemPrompt(agentCfg, sourceContext);
   const modelId = agentCfg?.modelId || CLAUDE_MODEL;
   const autonomyLevel = agentCfg?.autonomyLevel ?? 3;
   const filteredTools = getToolsForAutonomyLevel(autonomyLevel);
@@ -487,7 +520,30 @@ export function createAgentStreamResponse(
           .limit(1);
 
         const agentCfg = cfgRows[0] || null;
-        const systemPrompt = buildSystemPrompt(agentCfg);
+
+        // BD PoC: 소스 컨텍스트 조회
+        let sourceCtx: { title?: string; summaryKo?: string; url?: string; keyPoints?: string[] } | null = null;
+        try {
+          const conv = await db.select({ sourceItemId: conversations.sourceItemId })
+            .from(conversations).where(eq(conversations.id, conversationId)).limit(1);
+          if (conv[0]?.sourceItemId) {
+            const item = await db.select({
+              title: radarItems.title, titleKo: radarItems.titleKo,
+              summaryKo: radarItems.summaryKo, url: radarItems.url,
+              keyPoints: radarItems.keyPoints,
+            }).from(radarItems).where(eq(radarItems.id, conv[0].sourceItemId)).limit(1);
+            if (item[0]) {
+              sourceCtx = {
+                title: item[0].titleKo || item[0].title || undefined,
+                summaryKo: item[0].summaryKo || undefined,
+                url: item[0].url || undefined,
+                keyPoints: (item[0].keyPoints as string[]) || undefined,
+              };
+            }
+          }
+        } catch { /* optional */ }
+
+        const systemPrompt = buildSystemPrompt(agentCfg, sourceCtx);
         const modelId = agentCfg?.modelId || CLAUDE_MODEL;
         const autonomyLevel = agentCfg?.autonomyLevel ?? 3;
         const filteredTools = getToolsForAutonomyLevel(autonomyLevel);

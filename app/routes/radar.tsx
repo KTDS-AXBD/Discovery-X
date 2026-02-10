@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { useNavigate } from "@remix-run/react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useLoaderData, useActionData, useNavigation } from "@remix-run/react";
@@ -69,6 +70,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const name = String(formData.get("name") || "").trim();
     const sourceType = String(formData.get("sourceType") || "").trim();
     const url = String(formData.get("url") || "").trim();
+    const keywordsRaw = String(formData.get("keywords") || "").trim();
+    const radarTagsRaw = String(formData.get("radarTags") || "").trim();
 
     if (!name || !sourceType || !url) {
       return json({ error: "이름, 소스 유형, URL은 필수입니다." });
@@ -78,8 +81,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: "소스 유형은 rss, web, youtube 중 하나여야 합니다." });
     }
 
+    // BD팀 PoC: 키워드와 태그 파싱
+    const keywords = keywordsRaw ? keywordsRaw.split(",").map(k => k.trim()).filter(Boolean) : [];
+    const radarTags = radarTagsRaw ? radarTagsRaw.split(",").map(t => t.trim()).filter(Boolean) : [];
+
     const id = crypto.randomUUID();
-    await db.insert(radarSources).values({ id, name, sourceType, url, tenantId: ctx.tenantId });
+    await db.insert(radarSources).values({
+      id,
+      name,
+      sourceType,
+      url,
+      tenantId: ctx.tenantId,
+      userId: ctx.user.id,
+      keywords,
+      radarTags,
+    });
     return json({ success: true });
   }
 
@@ -123,8 +139,25 @@ export default function RadarPage() {
   const { user, sources, runs, recentItems } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
+  const navigate = useNavigate();
   const [showAddForm, setShowAddForm] = useState(false);
   const isSubmitting = navigation.state === "submitting";
+
+  // BD팀 PoC: 소스 아이템에서 대화 시작
+  const handleStartChat = useCallback(async (itemId: string, itemTitle: string) => {
+    try {
+      const res = await fetch("/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: itemTitle, sourceItemId: itemId }),
+      });
+      const data = (await res.json()) as { id: string };
+      navigate(`/?conversationId=${data.id}`);
+    } catch {
+      // Fallback to main page
+      navigate("/");
+    }
+  }, [navigate]);
 
   return (
     <AppShell user={user}>
@@ -181,6 +214,24 @@ export default function RadarPage() {
                       id="url"
                       required
                       placeholder="https://news.hada.io/rss"
+                    />
+                  </FormField>
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mt-4">
+                  <FormField label="키워드" htmlFor="keywords">
+                    <Input
+                      type="text"
+                      name="keywords"
+                      id="keywords"
+                      placeholder="AI, 제조업, SaaS (쉼표 구분)"
+                    />
+                  </FormField>
+                  <FormField label="태그" htmlFor="radarTags">
+                    <Input
+                      type="text"
+                      name="radarTags"
+                      id="radarTags"
+                      placeholder="시장분석, 경쟁사 (쉼표 구분)"
                     />
                   </FormField>
                 </div>
@@ -345,7 +396,7 @@ export default function RadarPage() {
                         <span>{formatDateLocal(item.collectedAt)}</span>
                       </div>
                     </div>
-                    <div className="ml-4 flex flex-col items-end gap-1">
+                    <div className="ml-4 flex flex-col items-end gap-2">
                       {item.relevanceScore !== null && (
                         <Badge variant={item.relevanceScore >= 60 ? "success" : "secondary"}>
                           {item.relevanceScore}점
@@ -364,6 +415,13 @@ export default function RadarPage() {
                       >
                         {item.status}
                       </Badge>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleStartChat(item.id, item.titleKo || item.title)}
+                      >
+                        대화 시작
+                      </Button>
                     </div>
                   </div>
                 </CardContent>

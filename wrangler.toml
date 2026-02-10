@@ -29,6 +29,11 @@ index_name = "dx-discovery-embeddings"
 binding = "VECTORIZE_EVIDENCE"
 index_name = "dx-evidence-embeddings"
 
+#   wrangler vectorize create dx-radar-embeddings --dimensions=1536 --metric=cosine
+[[vectorize]]
+binding = "VECTORIZE_RADAR"
+index_name = "dx-radar-embeddings"
+
 # Environment variables (set via Cloudflare dashboard or wrangler secret)
 # RESEND_API_KEY = "re_xxxxx" (set via: wrangler secret put RESEND_API_KEY)
 # CRON_SECRET = "xxxxx" (set via: wrangler secret put CRON_SECRET)

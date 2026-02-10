@@ -6,6 +6,8 @@ import {
   discoveries,
   evidence,
   evidenceDuplicateCandidates,
+  radarSources,
+  radarItems,
 } from "~/db/schema";
 import { eq } from "drizzle-orm";
 import { syncEmbeddings } from "~/lib/embeddings/sync";
@@ -217,5 +219,66 @@ describe("syncEmbeddings", () => {
     expect(result.discoveriesSynced).toBe(1); // One succeeded
     expect(result.errors).toHaveLength(1); // One failed
     expect(result.errors[0]).toContain("disc-1");
+  });
+
+  // I-28: BD PoC — Radar 아이템 Embedding 동기화
+  it("syncs radar items with null embeddingUpdatedAt when VECTORIZE_RADAR is set", async () => {
+    // Radar 소스 + 아이템 셋업
+    db.insert(radarSources).values({
+      id: "src-radar",
+      name: "TechCrunch",
+      sourceType: "rss",
+      url: "https://techcrunch.com/feed",
+    }).run();
+
+    db.insert(radarItems).values([
+      {
+        id: "radar-1",
+        sourceId: "src-radar",
+        urlHash: "hash-r1",
+        url: "https://techcrunch.com/ai-1",
+        title: "AI Article 1",
+        titleKo: "AI 제조업 품질 검사 기술의 발전",
+        summaryKo: "비전 AI 기반 품질 검사가 급성장 중",
+        embeddingUpdatedAt: undefined, // needs sync
+      },
+      {
+        id: "radar-2",
+        sourceId: "src-radar",
+        urlHash: "hash-r2",
+        url: "https://techcrunch.com/ai-2",
+        title: "AI Article 2",
+        titleKo: "AI 물류 혁신 사례",
+        summaryKo: "자율 물류 시스템 도입 사례",
+        embeddingUpdatedAt: new Date(), // already synced
+      },
+    ]).run();
+
+    const mockDiscIndex = makeMockVectorizeIndex();
+    const mockEvIndex = makeMockVectorizeIndex();
+    const mockRadarIndex = makeMockVectorizeIndex();
+
+    const env = {
+      OPENAI_API_KEY: "test-key",
+      VECTORIZE_DISCOVERIES: mockDiscIndex as unknown as EmbeddingEnv["VECTORIZE_DISCOVERIES"],
+      VECTORIZE_EVIDENCE: mockEvIndex as unknown as EmbeddingEnv["VECTORIZE_EVIDENCE"],
+      VECTORIZE_RADAR: mockRadarIndex as unknown as EmbeddingEnv["VECTORIZE_DISCOVERIES"],
+    };
+
+    const result = await syncEmbeddings(asDB(db), env as unknown as EmbeddingEnv);
+
+    // radar-1만 동기화 (radar-2는 이미 embeddingUpdatedAt 설정됨)
+    expect(result.radarItemsSynced).toBe(1);
+    expect(mockRadarIndex.upsert).toHaveBeenCalledTimes(1);
+
+    // embeddingUpdatedAt 갱신 확인
+    const updated = db.select().from(radarItems)
+      .where(eq(radarItems.id, "radar-1")).get();
+    expect(updated!.embeddingUpdatedAt).toBeTruthy();
+
+    // radar-2는 변경되지 않음
+    const unchanged = db.select().from(radarItems)
+      .where(eq(radarItems.id, "radar-2")).get();
+    expect(unchanged!.embeddingUpdatedAt).toBeTruthy();
   });
 });

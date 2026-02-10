@@ -454,6 +454,35 @@ export default function DiscoveryDetail() {
         </CardContent>
       </Card>
 
+      {/* BD Idea Template (IDEA_CARD 이상) */}
+      {(discovery.status === "IDEA_CARD" || discovery.status === "HYPOTHESIS" || discovery.status === "EXPERIMENT") && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-lg">아이디어 템플릿</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div>
+              <dt className="text-sm font-medium text-[var(--axis-text-tertiary)]">가설</dt>
+              <dd className="mt-1 text-sm text-[var(--axis-text-primary)]">
+                {discovery.seedSummary || <span className="italic text-[var(--axis-text-tertiary)]">미입력</span>}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-[var(--axis-text-tertiary)]">타겟 고객/시장</dt>
+              <dd className="mt-1 text-sm text-[var(--axis-text-primary)]">
+                {discovery.targetSegment || <span className="italic text-[var(--axis-text-tertiary)]">미입력</span>}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-[var(--axis-text-tertiary)]">가치 제안</dt>
+              <dd className="mt-1 text-sm text-[var(--axis-text-primary)]">
+                {discovery.valueProposition || <span className="italic text-[var(--axis-text-tertiary)]">미입력</span>}
+              </dd>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Owner/Reviewer Management */}
       {canChangeOwnership && (
         <Card className="mb-6">

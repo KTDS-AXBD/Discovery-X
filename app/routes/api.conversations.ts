@@ -55,13 +55,30 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   if (request.method === "POST") {
+    // BD팀 PoC: sourceItemId로 소스 연결 대화 생성
+    let title = "새 대화";
+    let sourceItemId: string | undefined;
+
+    const contentType = request.headers.get("Content-Type") || "";
+    if (contentType.includes("application/json")) {
+      try {
+        const body = (await request.json()) as { title?: string; sourceItemId?: string };
+        if (body.title) title = body.title;
+        if (body.sourceItemId) sourceItemId = body.sourceItemId;
+      } catch {
+        // empty body OK
+      }
+    }
+
     const id = crypto.randomUUID();
     await db.insert(conversations).values({
       id,
       userId: ctx.user.id,
       tenantId: ctx.tenantId,
+      title,
+      sourceItemId,
     });
-    return json({ id, title: "새 대화" });
+    return json({ id, title });
   }
 
   if (request.method === "DELETE") {

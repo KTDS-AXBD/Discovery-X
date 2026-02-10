@@ -1,3 +1,8 @@
+---
+name: security-reviewer
+description: Agent 도구 및 인프라 변경 시 보안 검토를 수행하는 서브에이전트
+---
+
 # Security Reviewer Agent
 
 Agent 도구 파일(`app/lib/agent/tools/*.ts`) 및 관련 인프라 변경 시 보안 검토를 수행하는 서브에이전트.

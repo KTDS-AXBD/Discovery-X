@@ -12,7 +12,14 @@ const AUTONOMY_LABELS: Record<number, string> = {
   3: "Autonomous — 전체 자율 실행 (생성→실험→판단→전환)",
 };
 
-export function buildSystemPrompt(config?: AgentConfig | null): string {
+interface SourceContext {
+  title?: string;
+  summaryKo?: string;
+  url?: string;
+  keyPoints?: string[];
+}
+
+export function buildSystemPrompt(config?: AgentConfig | null, sourceContext?: SourceContext | null): string {
   const autonomyLevel = config?.autonomyLevel ?? 3;
   const customPrompt = config?.systemPrompt;
 
@@ -211,5 +218,18 @@ Discovery를 생성하거나 업데이트할 때, 내용에 맞는 태그를 2~4
 태그 형식: 소문자, 공백은 하이픈으로 대체, 20자 이내.
 예: "ai-헬스케어", "b2b-saas", "내부-비효율", "시장-검증"
 
-${customPrompt ? `\n## 커스텀 지침\n${customPrompt}` : ""}`;
+${sourceContext ? `
+## 현재 소스 컨텍스트
+이 대화는 아래 시장 소스에서 시작되었습니다. 소스 내용을 분석하고 사용자의 질문에 답하세요.
+
+**제목**: ${sourceContext.title || "N/A"}
+**요약**: ${sourceContext.summaryKo || "N/A"}
+**URL**: ${sourceContext.url || "N/A"}
+${sourceContext.keyPoints?.length ? `**핵심 포인트**:\n${sourceContext.keyPoints.map((p, i) => `${i + 1}. ${p}`).join("\n")}` : ""}
+
+소스 관련 대화가 진행 중이라면:
+- 소스 내용을 바탕으로 사업 기회를 분석합니다
+- "아이디어 만들어줘" 요청 시 generate_idea_candidates 도구를 사용합니다
+- 아이디어 후보 선택 후 auto_fill_template로 템플릿을 채웁니다
+` : ""}${customPrompt ? `\n## 커스텀 지침\n${customPrompt}` : ""}`;
 }

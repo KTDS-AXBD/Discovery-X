@@ -10,6 +10,7 @@ interface CronEnv {
   OPENAI_API_KEY?: string;
   VECTORIZE_DISCOVERIES?: EmbeddingEnv["VECTORIZE_DISCOVERIES"];
   VECTORIZE_EVIDENCE?: EmbeddingEnv["VECTORIZE_EVIDENCE"];
+  VECTORIZE_RADAR?: unknown;
   CRON_SECRET?: string;
 }
 

@@ -81,6 +81,8 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   const seedSummary = formData.get("seedSummary");
   const seedLinksRaw = formData.get("seedLinks");
   const sourceType = formData.get("sourceType");
+  const targetSegment = formData.get("targetSegment");
+  const valueProposition = formData.get("valueProposition");
 
   const seedLinks = seedLinksRaw
     ? String(seedLinksRaw)
@@ -104,6 +106,8 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
         seedSummary: validated.seedSummary,
         seedLinks: validated.seedLinks || null,
         sourceType: validated.sourceType,
+        targetSegment: targetSegment ? String(targetSegment).slice(0, 200) : null,
+        valueProposition: valueProposition ? String(valueProposition).slice(0, 400) : null,
         updatedAt: new Date(),
       })
       .where(eq(discoveries.id, id));
@@ -202,6 +206,30 @@ export default function EditDiscovery() {
                   id="seedLinks"
                   defaultValue={discovery.seedLinks?.join(", ") || ""}
                   placeholder="https://example.com/article, https://..."
+                />
+              </FormField>
+
+              {/* Target Segment (BD PoC) */}
+              <FormField label="타겟 고객/시장 (선택)" htmlFor="targetSegment" hint="이 아이디어가 노리는 고객 세그먼트나 시장">
+                <Input
+                  type="text"
+                  name="targetSegment"
+                  id="targetSegment"
+                  maxLength={200}
+                  defaultValue={discovery.targetSegment || ""}
+                  placeholder="예: 중소 제조업체, 물류 스타트업"
+                />
+              </FormField>
+
+              {/* Value Proposition (BD PoC) */}
+              <FormField label="가치 제안 (선택)" htmlFor="valueProposition" hint="고객에게 제공하는 핵심 가치">
+                <Textarea
+                  name="valueProposition"
+                  id="valueProposition"
+                  maxLength={400}
+                  rows={3}
+                  defaultValue={discovery.valueProposition || ""}
+                  placeholder="예: AI 기반 품질 검사로 불량률 50% 감소"
                 />
               </FormField>
 

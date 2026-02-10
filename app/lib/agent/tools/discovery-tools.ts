@@ -49,6 +49,7 @@ export async function createDiscovery(
     sourceType: string;
     seedLinks?: string[];
     industryCode?: string;
+    candidateGroupId?: string;
   }
 ): Promise<string> {
   const id = generateId();
@@ -75,6 +76,7 @@ export async function createDiscovery(
     status: DiscoveryStatus.DISCOVERY,
     createdByAgent: 1,
     industryAdapterId: industryAdapterId,
+    candidateGroupId: input.candidateGroupId,
   });
   await logEvent(db, id, "created", { source: "agent", sourceType: input.sourceType, industryCode: input.industryCode });
   return JSON.stringify({ success: true, discoveryId: id, title: input.title, status: "DISCOVERY", industryCode: input.industryCode || null });
@@ -659,6 +661,152 @@ export async function validateEvidence(
     valid: validCount,
     invalid: results.length - validCount,
     details: results,
+  });
+}
+
+// === BD팀 PoC: 아이디어 후보 & 템플릿 도구 (FR-07, FR-08, FR-09) ===
+
+/**
+ * 아이디어 후보 그룹 ID를 발행합니다.
+ * Agent가 이 ID로 create_discovery를 N회 호출하여 후보를 생성합니다.
+ */
+export async function generateIdeaCandidates(
+  _db: DB,
+  input: { count: number; sourceContext?: string; industryCode?: string }
+): Promise<string> {
+  const count = Math.min(Math.max(input.count || 1, 1), 3);
+  const groupId = generateId();
+
+  return JSON.stringify({
+    success: true,
+    candidateGroupId: groupId,
+    count,
+    message: `후보 그룹 ${groupId} 생성 준비 완료. create_discovery를 ${count}회 호출하여 candidateGroupId="${groupId}"를 지정하세요.`,
+    industryCode: input.industryCode || null,
+  });
+}
+
+/**
+ * 아이디어 후보 그룹에서 1개를 선택합니다.
+ * 선택된 후보는 IDEA_CARD로 승격되고, 나머지는 DROP됩니다.
+ */
+export async function selectIdeaCandidate(
+  db: DB,
+  input: { candidateGroupId: string; selectedDiscoveryId: string; reason?: string }
+): Promise<string> {
+  const candidates = await db
+    .select()
+    .from(discoveries)
+    .where(eq(discoveries.candidateGroupId, input.candidateGroupId));
+
+  if (candidates.length === 0) {
+    return JSON.stringify({ error: `후보 그룹 ${input.candidateGroupId}에 Discovery가 없습니다.` });
+  }
+
+  const selected = candidates.find((c) => c.id === input.selectedDiscoveryId);
+  if (!selected) {
+    return JSON.stringify({
+      error: `Discovery ${input.selectedDiscoveryId}가 후보 그룹에 없습니다.`,
+      candidateIds: candidates.map((c) => c.id),
+    });
+  }
+
+  // 선택된 후보 → IDEA_CARD 승격
+  await db
+    .update(discoveries)
+    .set({
+      status: DiscoveryStatus.IDEA_CARD,
+      stageUpdatedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(discoveries.id, input.selectedDiscoveryId));
+
+  await logEvent(db, input.selectedDiscoveryId, "candidate_selected", {
+    source: "agent",
+    candidateGroupId: input.candidateGroupId,
+    reason: input.reason,
+  });
+
+  // 나머지 후보 → DROP
+  const dropped: string[] = [];
+  for (const c of candidates) {
+    if (c.id !== input.selectedDiscoveryId) {
+      await db
+        .update(discoveries)
+        .set({
+          status: DiscoveryStatus.DROP,
+          decisionState: "DROP",
+          decisionRationale: `후보 그룹에서 미선택 (선택: ${input.selectedDiscoveryId})`,
+          decidedAt: new Date(),
+          stageUpdatedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(discoveries.id, c.id));
+
+      await logEvent(db, c.id, "candidate_dropped", {
+        source: "agent",
+        candidateGroupId: input.candidateGroupId,
+        selectedId: input.selectedDiscoveryId,
+      });
+
+      dropped.push(c.id);
+    }
+  }
+
+  return JSON.stringify({
+    success: true,
+    selected: input.selectedDiscoveryId,
+    newStatus: "IDEA_CARD",
+    dropped,
+  });
+}
+
+/**
+ * IDEA_CARD 상태의 Discovery에 BD 아이디어 템플릿 필드를 채웁니다.
+ */
+export async function autoFillTemplate(
+  db: DB,
+  input: {
+    discoveryId: string;
+    hypothesis?: string;
+    targetSegment?: string;
+    valueProposition?: string;
+  }
+): Promise<string> {
+  const disc = await db
+    .select()
+    .from(discoveries)
+    .where(eq(discoveries.id, input.discoveryId))
+    .limit(1);
+
+  if (!disc[0]) {
+    return JSON.stringify({ error: "Discovery를 찾을 수 없습니다." });
+  }
+
+  const updates: Record<string, unknown> = { updatedAt: new Date() };
+
+  if (input.hypothesis) {
+    updates.seedSummary = input.hypothesis;
+  }
+  if (input.targetSegment) updates.targetSegment = input.targetSegment;
+  if (input.valueProposition) updates.valueProposition = input.valueProposition;
+
+  await db
+    .update(discoveries)
+    .set(updates)
+    .where(eq(discoveries.id, input.discoveryId));
+
+  const filledFields = Object.keys(updates).filter((k) => k !== "updatedAt");
+
+  await logEvent(db, input.discoveryId, "template_filled", {
+    source: "agent",
+    fields: filledFields,
+  });
+
+  return JSON.stringify({
+    success: true,
+    discoveryId: input.discoveryId,
+    filledFields,
   });
 }
 

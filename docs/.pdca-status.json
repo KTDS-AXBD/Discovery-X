@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-08T00:00:00.000Z",
+  "lastUpdated": "2026-02-10T02:47:20.462Z",
   "activeFeatures": [
     "routes",
     "auth",
@@ -26,9 +26,11 @@
     "schemas",
     "repositories",
     "notifications",
-    "embeddings"
+    "embeddings",
+    "ax-bd-poc",
+    "api"
   ],
-  "primaryFeature": null,
+  "primaryFeature": "ax-bd-poc",
   "features": {
     "dx-strategic-evolution-p3": {
       "phase": "archived",
@@ -63,9 +65,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T11:39:12.844Z",
-        "lastUpdated": "2026-02-07T08:38:36.471Z"
+        "lastUpdated": "2026-02-09T07:26:13.850Z"
       },
-      "lastFile": "D:\\01_Projects\\Discovery-X\\app\\routes\\_index.tsx"
+      "lastFile": "D:\\01_Projects\\Discovery-X\\app\\routes\\api.cron.embeddings.ts"
     },
     "auth": {
       "phase": "do",
@@ -89,9 +91,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T11:42:03.012Z",
-        "lastUpdated": "2026-02-07T15:46:27.419Z"
+        "lastUpdated": "2026-02-09T07:01:25.901Z"
       },
-      "lastFile": "D:\\01_Projects\\Discovery-X\\app\\lib\\agent\\tools\\asset-tools.ts"
+      "lastFile": "D:\\01_Projects\\Discovery-X\\app\\lib\\agent\\tools\\discovery-tools.ts"
     },
     "chat": {
       "phase": "do",
@@ -102,9 +104,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T11:43:43.775Z",
-        "lastUpdated": "2026-02-04T13:26:23.010Z"
+        "lastUpdated": "2026-02-09T07:06:30.706Z"
       },
-      "lastFile": "D:\\01_Projects\\Discovery-X\\app\\components\\chat\\MessageBubble.tsx"
+      "lastFile": "D:\\01_Projects\\Discovery-X\\app\\components\\chat\\IdeaCandidateCards.tsx"
     },
     "dashboard": {
       "phase": "do",
@@ -154,9 +156,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T13:25:45.361Z",
-        "lastUpdated": "2026-02-07T07:56:24.499Z"
+        "lastUpdated": "2026-02-10T02:13:13.970Z"
       },
-      "lastFile": "D:\\01_Projects\\Discovery-X\\app\\lib\\agent\\executor.ts"
+      "lastFile": "D:\\01_Projects\\Discovery-X\\tests\\integration\\agent\\executor-source-context.test.ts"
     },
     "discovery": {
       "phase": "do",
@@ -193,9 +195,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T13:32:52.354Z",
-        "lastUpdated": "2026-02-06T08:12:52.137Z"
+        "lastUpdated": "2026-02-09T06:47:48.553Z"
       },
-      "lastFile": "D:\\01_Projects\\Discovery-X\\app\\features\\venture\\db\\schema.ts"
+      "lastFile": "D:\\01_Projects\\Discovery-X\\app\\db\\schema.ts"
     },
     "helpers": {
       "phase": "do",
@@ -206,7 +208,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T13:33:06.221Z",
-        "lastUpdated": "2026-02-06T08:13:00.766Z"
+        "lastUpdated": "2026-02-09T06:50:32.620Z"
       },
       "lastFile": "D:\\01_Projects\\Discovery-X\\tests\\helpers\\db.ts"
     },
@@ -375,9 +377,55 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-07T08:32:32.098Z",
-        "lastUpdated": "2026-02-07T08:32:35.374Z"
+        "lastUpdated": "2026-02-10T02:47:20.462Z"
       },
-      "lastFile": "D:\\01_Projects\\Discovery-X\\app\\lib\\embeddings\\sync.ts"
+      "lastFile": "D:\\01_Projects\\Discovery-X\\tests\\integration\\embeddings\\sync.test.ts"
+    },
+    "ax-bd-poc": {
+      "phase": "completed",
+      "phaseNumber": 5,
+      "matchRate": 92,
+      "iterationCount": 2,
+      "requirements": [
+        "FR-01",
+        "FR-02",
+        "FR-03",
+        "FR-04",
+        "FR-05",
+        "FR-06",
+        "FR-07",
+        "FR-08",
+        "FR-09",
+        "FR-10",
+        "FR-11",
+        "FR-12"
+      ],
+      "documents": {
+        "plan": "docs/01-plan/features/ax-bd-poc.plan.md",
+        "design": "docs/02-design/features/ax-bd-poc.design.md",
+        "analysis": "docs/03-analysis/ax-bd-poc.analysis.md",
+        "testPlan": "docs/01-plan/features/ax-bd-poc-tests.plan.md",
+        "report": "docs/04-report/ax-bd-poc.report.md"
+      },
+      "timestamps": {
+        "started": "2026-02-09T00:00:00.000Z",
+        "lastUpdated": "2026-02-10T14:00:00.000Z",
+        "completedAt": "2026-02-10T14:00:00.000Z"
+      },
+      "notes": "PDCA 완료. Design v1.0 현행화 완료 (Core Table Extension). 597 테스트 PASS. 배포 준비 완료."
+    },
+    "api": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-10T02:46:22.772Z",
+        "lastUpdated": "2026-02-10T02:46:22.772Z"
+      },
+      "lastFile": "D:\\01_Projects\\Discovery-X\\tests\\integration\\api\\radar-bd.test.ts"
     }
   },
   "pipeline": {
@@ -388,7 +436,7 @@
   "session": {
     "startedAt": "2026-02-04T11:05:49.371Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-07T15:46:27.420Z"
+    "lastActivity": "2026-02-10T02:47:20.462Z"
   },
   "history": [
     {
@@ -2110,6 +2158,342 @@
     {
       "timestamp": "2026-02-07T15:46:27.419Z",
       "feature": "tools",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T06:46:39.779Z",
+      "feature": "db",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T06:46:53.151Z",
+      "feature": "db",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T06:47:04.779Z",
+      "feature": "db",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T06:47:17.690Z",
+      "feature": "db",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T06:47:33.551Z",
+      "feature": "db",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T06:47:48.553Z",
+      "feature": "db",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T06:50:32.620Z",
+      "feature": "helpers",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T06:56:23.811Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T06:56:37.293Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T06:57:02.728Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T06:57:21.748Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T06:57:41.906Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T06:57:58.848Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T06:58:12.829Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T06:58:23.464Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T06:58:37.466Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T06:58:51.401Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T06:59:15.380Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T06:59:28.279Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T06:59:44.181Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T06:59:59.476Z",
+      "feature": "embeddings",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T07:00:09.844Z",
+      "feature": "embeddings",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T07:00:26.642Z",
+      "feature": "embeddings",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T07:00:58.989Z",
+      "feature": "tools",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T07:01:12.232Z",
+      "feature": "tools",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T07:01:25.901Z",
+      "feature": "tools",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T07:01:39.728Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T07:01:55.635Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T07:02:20.300Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T07:03:56.735Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T07:04:36.003Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T07:05:40.701Z",
+      "feature": "chat",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T07:06:10.976Z",
+      "feature": "chat",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T07:06:30.706Z",
+      "feature": "chat",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T07:22:08.997Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T07:22:26.656Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T07:22:39.955Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T07:23:48.368Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T07:24:18.196Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T07:25:10.776Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T07:25:36.299Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-09T07:26:13.850Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T01:46:45.996Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T01:46:54.100Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T01:51:01.339Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T01:51:05.233Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T01:51:09.089Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T01:55:07.132Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T01:55:53.836Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T01:57:08.860Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T02:12:53.717Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T02:13:08.521Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T02:13:13.970Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T02:46:22.772Z",
+      "feature": "api",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T02:47:05.975Z",
+      "feature": "embeddings",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T02:47:20.462Z",
+      "feature": "embeddings",
       "phase": "do",
       "action": "updated"
     }

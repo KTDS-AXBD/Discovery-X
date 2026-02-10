@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
-import { eq } from "drizzle-orm";
+import { eq, and, or, isNull } from "drizzle-orm";
 import { getDb } from "~/db";
 import { radarSources } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
@@ -14,7 +14,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return redirect("/login");
   }
 
-  const sources = await db.select().from(radarSources);
+  const url = new URL(request.url);
+  const userOnly = url.searchParams.get("userOnly") === "true";
+
+  // BD팀 PoC: userId 필터 — 본인 소스 + 공용 소스(userId=null)
+  const sources = userOnly
+    ? await db.select().from(radarSources).where(
+        or(eq(radarSources.userId, user.id), isNull(radarSources.userId))
+      )
+    : await db.select().from(radarSources);
+
   return json({ sources });
 }
 
@@ -53,6 +62,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
     }
 
+    // BD팀 PoC: keywords, radarTags 파싱
+    const keywordsRaw = String(formData.get("keywords") || "").trim();
+    const radarTagsRaw = String(formData.get("radarTags") || "").trim();
+    let keywords: string[] = [];
+    let radarTags: string[] = [];
+    if (keywordsRaw) {
+      try { keywords = JSON.parse(keywordsRaw); } catch { keywords = keywordsRaw.split(",").map(k => k.trim()).filter(Boolean); }
+    }
+    if (radarTagsRaw) {
+      try { radarTags = JSON.parse(radarTagsRaw); } catch { radarTags = radarTagsRaw.split(",").map(t => t.trim()).filter(Boolean); }
+    }
+
     const id = crypto.randomUUID();
     await db.insert(radarSources).values({
       id,
@@ -60,6 +81,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
       sourceType,
       url,
       config,
+      userId: user.id,
+      keywords,
+      radarTags,
     });
 
     return json({ success: true, id });

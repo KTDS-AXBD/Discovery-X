@@ -240,6 +240,11 @@ export const discoveries = sqliteTable(
 
     // Multi-Tenant (Phase 3)
     tenantId: text("tenant_id").references(() => tenants.id),
+
+    // BD팀 PoC: 아이디어 템플릿 + 후보 그룹 (FR-07, FR-09)
+    targetSegment: text("target_segment", { length: 200 }),
+    valueProposition: text("value_proposition", { length: 400 }),
+    candidateGroupId: text("candidate_group_id"),
   },
   (table) => ({
     statusIdx: index("idx_discoveries_status").on(table.status),
@@ -248,6 +253,7 @@ export const discoveries = sqliteTable(
     revisitDateIdx: index("idx_discoveries_revisit_date").on(table.revisitDate),
     industryIdx: index("idx_discoveries_industry_drizzle").on(table.industryAdapterId),
     tenantIdx: index("idx_discoveries_tenant_drizzle").on(table.tenantId),
+    candidateGroupIdx: index("idx_discoveries_candidate_group").on(table.candidateGroupId),
   })
 );
 
@@ -371,8 +377,14 @@ export const radarSources = sqliteTable("radar_sources", {
 
   // Multi-Tenant (Phase 3)
   tenantId: text("tenant_id").references(() => tenants.id),
+
+  // BD팀 PoC: 사용자별 소스 (FR-01)
+  userId: text("user_id").references(() => users.id),
+  keywords: text("keywords", { mode: "json" }).$type<string[]>(),
+  radarTags: text("radar_tags", { mode: "json" }).$type<string[]>(),
 }, (table) => ({
   tenantIdx: index("idx_radar_sources_tenant_drizzle").on(table.tenantId),
+  userIdx: index("idx_radar_sources_user_id").on(table.userId),
 }));
 
 export const radarItems = sqliteTable(
@@ -395,12 +407,39 @@ export const radarItems = sqliteTable(
     collectedAt: integer("collected_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),
+
+    // BD팀 PoC: 핵심 포인트 + Embedding 추적 (FR-03, FR-05)
+    keyPoints: text("key_points", { mode: "json" }).$type<string[]>(),
+    embeddingUpdatedAt: integer("embedding_updated_at", { mode: "timestamp" }),
   },
   (table) => ({
     sourceIdIdx: index("idx_radar_items_source_id").on(table.sourceId),
     urlHashIdx: index("idx_radar_items_url_hash").on(table.urlHash),
     statusIdx: index("idx_radar_items_status").on(table.status),
     collectedAtIdx: index("idx_radar_items_collected_at").on(table.collectedAt),
+  })
+);
+
+// BD팀 PoC: 사용자별 소스 열람 상태 (FR-02)
+export const radarItemUserStatus = sqliteTable(
+  "radar_item_user_status",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id),
+    itemId: text("item_id")
+      .notNull()
+      .references(() => radarItems.id),
+    status: text("status").notNull().default("new"), // new | viewed | archived
+    viewedAt: integer("viewed_at", { mode: "timestamp" }),
+    archivedAt: integer("archived_at", { mode: "timestamp" }),
+    tenantId: text("tenant_id").references(() => tenants.id),
+  },
+  (table) => ({
+    userItemIdx: index("idx_rius_user_item").on(table.userId, table.itemId),
+    statusIdx: index("idx_rius_status").on(table.status),
+    tenantIdx: index("idx_rius_tenant").on(table.tenantId),
   })
 );
 
@@ -463,6 +502,9 @@ export const conversations = sqliteTable(
 
     // Multi-Tenant (Phase 3)
     tenantId: text("tenant_id").references(() => tenants.id),
+
+    // BD팀 PoC: 소스 연결 대화 (FR-04)
+    sourceItemId: text("source_item_id").references(() => radarItems.id),
   },
   (table) => ({
     userIdIdx: index("idx_conversations_user_id").on(table.userId),
@@ -1573,3 +1615,7 @@ export type NewValueupScenario = typeof valueupScenarios.$inferInsert;
 
 export type ValueupChecklist = typeof valueupChecklists.$inferSelect;
 export type NewValueupChecklist = typeof valueupChecklists.$inferInsert;
+
+// BD팀 PoC types
+export type RadarItemUserStatus = typeof radarItemUserStatus.$inferSelect;
+export type NewRadarItemUserStatus = typeof radarItemUserStatus.$inferInsert;
