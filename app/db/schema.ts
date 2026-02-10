@@ -411,6 +411,9 @@ export const radarItems = sqliteTable(
     // BD팀 PoC: 핵심 포인트 + Embedding 추적 (FR-03, FR-05)
     keyPoints: text("key_points", { mode: "json" }).$type<string[]>(),
     embeddingUpdatedAt: integer("embedding_updated_at", { mode: "timestamp" }),
+
+    // F20: 아이디어 메모
+    memo: text("memo"),
   },
   (table) => ({
     sourceIdIdx: index("idx_radar_items_source_id").on(table.sourceId),
