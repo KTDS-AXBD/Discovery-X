@@ -256,7 +256,7 @@ build/
 
 ### 버전
 - **프로토타입**: v5.0 Layout Restructure + Proposals Feature
-- **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
+- **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 정상 동작
 - **DB**: 20개 마이그레이션 로컬+프로덕션 적용 완료 (0000~0020) + proposals 마이그레이션 Pending
 
 ### 주요 지표
@@ -268,7 +268,15 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 129)
+### 최근 변경 (세션 130)
+**CI/CD 파이프라인 정상화 완료**:
+- ✅ GitHub Secrets 설정: `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` 추가
+- ✅ GitHub Actions 전체 파이프라인 통과: Install → Lint → Typecheck → Test → Build → Deploy (1m 25s)
+- ✅ 로컬 직접 배포 확인: `.dev.vars` 토큰 기반 `wrangler pages deploy` 성공
+- ✅ 프로덕션 정상: https://dx.minu.best (HTTP 302 → 로그인 리다이렉트)
+- ✅ 검증: ESLint 0 errors, TypeScript 0 errors, 597/597 테스트 통과
+
+### 이전 변경 (세션 129)
 **CI/CD 파이프라인 설정 완료**:
 - ✅ `/deploy` 스킬 CI/CD-first 전환: `git push` → GitHub Actions 자동 배포 (수동 `pnpm deploy` 제거)
 - ✅ GitHub Actions 강화: Lint → Typecheck → Test → Build → Deploy 게이팅
@@ -406,7 +414,7 @@ build/
 - **인증 방식**: Google OAuth (arctic) + Session 기반 (D1), admin/gatekeeper/user/pending 4역할
 - **기술 스택**: Remix v2 + D1 + Drizzle + Tailwind CSS 4 + @axis-ds
 - **브랜치 전략**: master 단일 브랜치 (Prototype 기간)
-- **배포**: Cloudflare Pages (master push → GitHub Actions CI/CD 자동 배포)
+- **배포**: Cloudflare Pages (master push → GitHub Actions CI/CD 자동 배포) — Secrets 설정 완료 ✅
 - **운영 실험**: 🚀 2026-01-31 시작 (30-60일, 최대 5명, Discovery 5-10건 목표)
 - **DB 마이그레이션**: ✅ 20개 (0000~0020) 로컬+프로덕션 적용 완료 + proposals 마이그레이션 Pending
 - **Cron 설정**: daily (09:00) + agent-review (10:00) + alerts (09:30) + embeddings (15분, cron-job.org)
