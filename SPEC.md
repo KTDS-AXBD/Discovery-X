@@ -223,7 +223,7 @@ build/
 ### 버전
 - **프로토타입**: v4.2 Venture Discovery Sprint + BD Workspace PoC
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages)
-- **DB**: 14개 마이그레이션 로컬 적용 완료 (0000~0020)
+- **DB**: 20개 마이그레이션 로컬+프로덕션 적용 완료 (0000~0020)
 
 ### 주요 지표
 - **라우트**: 75개
@@ -234,16 +234,24 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 126)
+### 최근 변경 (세션 127)
+**AX BD팀 PoC — 프로덕션 배포 완료**:
+- ✅ 전체 커밋: 50 files changed (feat: AX BD PoC Core Table Extension)
+- ✅ 타입 체크: keyPoints JSON 배열 타입 수정 후 통과
+- ✅ 빌드: client + SSR 성공
+- ✅ DB 마이그레이션: `0020_bd_poc_refactoring.sql` 프로덕션 D1 적용 (16 commands)
+- ✅ Vectorize 인덱스: `dx-radar-embeddings` 신규 생성 (1536차원 cosine)
+- ✅ 프로덕션 배포: https://dx.minu.best 배포 완료
+
+### 이전 변경 (세션 126)
 **AX BD팀 PoC — PDCA 완료 (Plan → Design → Do → Check → Act → Report)**:
 - ✅ 테스트 전체 PASS: 597개 (기존 561 + 신규 36)
 - ✅ Gap 분석: 92% vs Plan, 35% vs Design (의도적 아키텍처 차이)
 - ✅ 완료 보고서: `docs/04-report/ax-bd-poc.report.md`
-- ✅ 구현 현황: 신규 10파일 + 수정 14파일 + 마이그레이션 1개
-- ✅ 배포 준비: Design 문서 현행화 + E2E 테스트 추가 권장
+- ✅ Design 문서 현행화: v0.2 (Feature Module) → v1.0 (Core Table Extension)
 - ✅ FR 준수율: 91% (11/12, FR-12 out of scope)
 
-### 최근 변경 (세션 125)
+### 이전 변경 (세션 125)
 **AX BD팀 PoC — PDCA Act-1 코드 갭 해결 + 테스트 계획 수립**:
 - ✅ executor.ts — sourceContext end-to-end 와이어링 (conversation → radarItem → buildSystemPrompt)
 - ✅ _index.tsx — 3-Pane 레이아웃 통합 (SourcePanel + ChatPanel + SummaryPanel)
@@ -342,7 +350,7 @@ build/
 - **브랜치 전략**: master 단일 브랜치 (Prototype 기간)
 - **배포**: Cloudflare Pages (master push → `pnpm deploy`)
 - **운영 실험**: 🚀 2026-01-31 시작 (30-60일, 최대 5명, Discovery 5-10건 목표)
-- **DB 마이그레이션**: ✅ 20개 (0000~0020) 로컬 적용 완료
+- **DB 마이그레이션**: ✅ 20개 (0000~0020) 로컬+프로덕션 적용 완료
 - **Cron 설정**: daily (09:00) + agent-review (10:00) + alerts (09:30) + embeddings (15분, cron-job.org)
 - **Radar Worker**: 프로덕션 운영 중 (Cron 매일 9:00 KST, 10소스)
 - **이메일**: Resend (`noreply@ideaonaction.ai`), cron-job.org 자동 발송
