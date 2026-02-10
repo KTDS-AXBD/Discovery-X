@@ -8,6 +8,7 @@
 | dx-strategic-evolution-p2 | 93.4% | 2026-02-08 | plan.md, design.md, analysis.md, report.md |
 | dx-strategic-evolution-p3 | 94% | 2026-02-08 | plan.md, design.md, analysis.md, report.md |
 | ax-bd-poc | 92% | 2026-02-10 | plan.md, test-plan.md, design.md, analysis.md, report.md |
+| proposals | 72.4% | 2026-02-11 | plan.md, design.md, analysis.md, report.md |
 
 ## ax-bd-poc (AX BD PoC — Proposal Pipeline)
 
@@ -23,6 +24,20 @@
   - `ax-bd-poc/ax-bd-poc.analysis.md` — Gap Analysis
   - `ax-bd-poc/ax-bd-poc.report.md` — Completion Report
   - `ax-bd-poc/ax-bd-poc.analysis-report.md` — Analysis Report (extended)
+
+## proposals (사업제안 CRUD + 협업)
+
+- **Phase**: Completed (PDCA full cycle)
+- **Duration**: 2026-02-10 ~ 2026-02-11
+- **Match Rate**: 99% (설계 일치) / 72.4% (이슈 해결, severity-weighted ~95%)
+- **Iterations**: 1 (59.3% → 72.4%)
+- **Requirements**: FR-01 ~ FR-10 (10 FRs, 6 tables)
+- **Notes**: 4 Critical 보안갭 전부 해결. 상태 전환 워크플로우 + 마일스톤/액션/멤버 CRUD + 편집 라우트. 프로덕션 배포 완료.
+- **Documents**:
+  - `proposals/proposals.plan.md` — Plan
+  - `proposals/proposals.design.md` — Design
+  - `proposals/proposals.analysis.md` — Gap Analysis (v3.0)
+  - `proposals/proposals.report.md` — Completion Report
 
 ## Discovery-X
 

@@ -419,23 +419,12 @@
       "lastFile": "/mnt/d/01_Projects/Discovery-X/app/components/ideas/MemoPanel.tsx"
     },
     "proposals": {
-      "phase": "completed",
-      "phaseNumber": 6,
+      "phase": "archived",
       "matchRate": 72.4,
       "iterationCount": 1,
-      "requirements": [],
-      "documents": {
-        "plan": "docs/01-plan/features/proposals.plan.md",
-        "design": "docs/02-design/features/proposals.design.md",
-        "analysis": "docs/03-analysis/proposals.analysis.md",
-        "report": "docs/04-report/features/proposals.report.md"
-      },
-      "timestamps": {
-        "started": "2026-02-10T07:00:11.067Z",
-        "lastUpdated": "2026-02-11T00:00:00.000Z",
-        "completed": "2026-02-11T00:00:00.000Z"
-      },
-      "lastFile": "docs/04-report/features/proposals.report.md"
+      "startedAt": "2026-02-10T07:00:11.067Z",
+      "archivedAt": "2026-02-11T00:00:00.000Z",
+      "archivedTo": "docs/archive/2026-02/proposals/"
     },
     "archive": {
       "phase": "do",
