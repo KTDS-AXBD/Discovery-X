@@ -19,7 +19,7 @@ export function StatusOverview({
   recentCollections,
   totalDiscoveries,
   strategyProposals,
-  timestamp,
+  timestamp: _timestamp,
 }: StatusOverviewProps) {
   return (
     <section>
