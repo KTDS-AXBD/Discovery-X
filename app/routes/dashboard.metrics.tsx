@@ -14,6 +14,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Badge } from "~/components/ui/Badge";
 import { StatusBadge } from "~/components/ui/StatusBadge";
 import { MetricCard } from "~/components/dashboard/MetricCard";
+import { StatusDonut } from "~/components/charts/StatusDonut";
+import { WeeklyBar } from "~/components/charts/WeeklyBar";
+import { ExperimentGantt } from "~/components/charts/ExperimentGantt";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -76,6 +79,62 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       e.createdAt < sevenDaysAgo
   ).length;
 
+  // --- Chart data aggregation (no additional DB queries) ---
+
+  // StatusDonut: 11-stage → 5-group mapping
+  const STATUS_GROUP_MAP: Record<string, string> = {
+    DISCOVERY: "inbox",
+    IDEA_CARD: "open",
+    HYPOTHESIS: "open",
+    EXPERIMENT: "open",
+    EVIDENCE_REVIEW: "open",
+    GATE1: "next",
+    SPRINT: "next",
+    GATE2: "next",
+    HANDOFF: "next",
+    HOLD: "notNow",
+    DROP: "deadEnd",
+  };
+  const donutData = { inbox: 0, open: 0, next: 0, notNow: 0, deadEnd: 0 };
+  for (const d of allDiscoveries) {
+    const group = STATUS_GROUP_MAP[d.status];
+    if (group) (donutData as Record<string, number>)[group]++;
+  }
+
+  // WeeklyBar: last 8 weeks creation count
+  const serverNow = Date.now();
+  const weeklyData: { week: string; count: number }[] = [];
+  for (let i = 7; i >= 0; i--) {
+    const weekStart = new Date(serverNow);
+    weekStart.setDate(weekStart.getDate() - (i + 1) * 7);
+    weekStart.setHours(0, 0, 0, 0);
+
+    const weekEnd = new Date(serverNow);
+    weekEnd.setDate(weekEnd.getDate() - i * 7);
+    weekEnd.setHours(0, 0, 0, 0);
+
+    const count = allDiscoveries.filter((d) => {
+      if (!d.createdAt) return false;
+      const created = d.createdAt instanceof Date ? d.createdAt : new Date(d.createdAt);
+      return created >= weekStart && created < weekEnd;
+    }).length;
+
+    const label = `${(weekStart.getMonth() + 1).toString().padStart(2, "0")}/${weekStart.getDate().toString().padStart(2, "0")}`;
+    weeklyData.push({ week: label, count });
+  }
+
+  // ExperimentGantt: active experiments (max 10)
+  const ganttExperiments = allExperiments
+    .filter((e) => !e.completedAt)
+    .slice(0, 10)
+    .map((e) => ({
+      id: e.id,
+      hypothesis: e.hypothesis,
+      createdAt: e.createdAt,
+      deadline: e.deadline,
+      completedAt: e.completedAt,
+    }));
+
   // Agent token usage
   const config = await db
     .select()
@@ -101,6 +160,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         experiments: thisWeekExperiments - prevWeekExperiments,
         evidence: thisWeekEvidence - prevWeekEvidence,
       },
+      donutData,
+      weeklyData,
+      ganttExperiments,
+      serverNow,
     },
   });
 }
@@ -155,24 +218,59 @@ export default function DashboardMetrics() {
         />
       </div>
 
-      {/* Status Breakdown */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle className="text-base">상태별 분포</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-3">
-            {Object.entries(metrics.statusCounts).map(([status, count]) => (
-              <div key={status} className="flex items-center gap-2">
-                <StatusBadge status={status} />
-                <span className="text-sm font-medium text-[var(--axis-text-primary)]">
-                  {count as number}
-                </span>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Charts: Status Distribution + Weekly Trend */}
+      <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
+        {/* Status Distribution (Donut) */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">상태별 분포</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <StatusDonut
+              inbox={metrics.donutData.inbox}
+              open={metrics.donutData.open}
+              next={metrics.donutData.next}
+              notNow={metrics.donutData.notNow}
+              deadEnd={metrics.donutData.deadEnd}
+            />
+            <div className="mt-4 flex flex-wrap gap-3">
+              {Object.entries(metrics.statusCounts).map(([status, count]) => (
+                <div key={status} className="flex items-center gap-2">
+                  <StatusBadge status={status} />
+                  <span className="text-sm font-medium text-[var(--axis-text-primary)]">
+                    {count as number}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Weekly Creation Trend (Bar) */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">주간 생성 추이</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <WeeklyBar data={metrics.weeklyData} />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Experiment Timeline (conditional) */}
+      {metrics.ganttExperiments.length > 0 && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="text-base">실험 타임라인</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ExperimentGantt
+              experiments={metrics.ganttExperiments}
+              now={metrics.serverNow}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Agent Token Usage */}
       <Card className="mt-6">
