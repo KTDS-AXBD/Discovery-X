@@ -268,7 +268,17 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 131)
+### 최근 변경 (세션 132)
+**proposals PDCA Plan + Design 문서 작성 완료**:
+- ✅ `/pdca plan proposals` — Plan 문서 작성 (280줄): 10 FRs, 6 테이블, 15 Known Issues, 파일 인벤토리
+- ✅ `/pdca design proposals` — Design 문서 작성 (677줄): 데이터 모델, API, UI, 보안/성능 분석, 23개 갭
+- ✅ 각 문서 tmux 3 Worker 병렬 분석 (스키마/라우트/UI) 후 리더 통합
+- ✅ F20/F21/F22 Plan 문서 추가 (ideas-enhancement, dashboard-charts, archive-folders)
+- ✅ PDCA 문서: `docs/01-plan/features/proposals.plan.md` + `docs/02-design/features/proposals.design.md`
+- ✅ Design 핵심 발견: 4개 Critical 보안 갭 (테넌트 격리 불완전), Promise.all 미사용 성능 이슈
+- 문서만 변경 — 코드 변경 없음, 빌드/테스트 검증 불필요
+
+### 이전 변경 (세션 131)
 **layout-proposals PDCA 완료 (Gap Analysis + Completion Report)**:
 - ✅ tmux Agent Teams 3명 병렬 Gap Analysis 실행 (Layout Shell / Pages & Routes / API & DB)
 - ✅ Match Rate 93% (57/61) — PDCA completion 기준 충족
