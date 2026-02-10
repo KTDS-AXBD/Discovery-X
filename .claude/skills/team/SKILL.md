@@ -52,53 +52,63 @@ tmux new-session -d -s {팀이름} -n workers -c /mnt/d/01_Projects/Discovery-X
 - 프로젝트 규칙 (CLAUDE.md의 관련 섹션, 간략히)
 - 작업 완료 기준
 
-프롬프트는 셸 이스케이프 문제를 방지하기 위해 **임시 파일**에 저장한다:
+프롬프트는 **임시 파일**에 저장하고, **실행 스크립트**로 감싸서 셸 이스케이프 문제를 방지한다:
 
 ```bash
+# 1) 프롬프트 파일 생성 (worker 수만큼 반복)
 cat > /tmp/team-{팀이름}-worker-{N}.txt << 'PROMPT'
 [worker 프롬프트 내용]
 PROMPT
 ```
 
+claude 실행 경로를 확인한 뒤, 각 worker의 **실행 스크립트**를 생성한다:
+
+```bash
+# 2) claude 경로 캡처 (한 번만)
+CLAUDE_DIR=$(dirname "$(which claude)")
+
+# 3) 실행 스크립트 생성 (worker 수만큼 반복)
+cat > /tmp/team-{팀이름}-run-{N}.sh << RUNNER
+#!/usr/bin/env bash
+export PATH="${CLAUDE_DIR}:\$PATH"
+cd /mnt/d/01_Projects/Discovery-X
+prompt=\$(cat /tmp/team-{팀이름}-worker-{N}.txt)
+claude -p "\$prompt" \\
+  --allowedTools 'Read,Edit,Write,Glob,Grep,Bash' \\
+  --max-turns 20 \\
+  --verbose 2>&1 | tee /tmp/team-{팀이름}-worker-{N}.log
+echo '=== WORKER-{N} DONE ===' >> /tmp/team-{팀이름}-worker-{N}.log
+RUNNER
+chmod +x /tmp/team-{팀이름}-run-{N}.sh
+```
+
+> **핵심**: heredoc 구분자 `RUNNER`가 따옴표 없으므로 `${CLAUDE_DIR}`만 현재 셸에서 확장되고,
+> `\$`로 이스케이프된 변수는 스크립트 런타임에 확장된다.
+
 ### 4. Worker 스폰 (tmux panes)
 
-각 worker를 tmux pane으로 생성한다. **모든 pane 생성을 하나의 Bash 호출로 실행한다:**
+각 worker를 tmux pane으로 생성한다. **runner 스크립트를 사용**하므로 send-keys에 복잡한 명령을 넣지 않는다.
+**모든 pane 생성을 하나의 Bash 호출로 실행한다:**
 
 ```bash
 # Worker 1 — 첫 번째 pane (세션의 기본 window 활용)
 tmux send-keys -t {팀이름}:workers \
-  "export PATH=\"$PATH\" && claude -p \"$(cat /tmp/team-{팀이름}-worker-1.txt)\" \
-  --allowedTools 'Read,Edit,Write,Glob,Grep,Bash' \
-  --max-turns 20 \
-  --verbose 2>&1 | tee /tmp/team-{팀이름}-worker-1.log; \
-  echo '=== WORKER-1 DONE ===' >> /tmp/team-{팀이름}-worker-1.log" Enter
+  'bash /tmp/team-{팀이름}-run-1.sh' Enter
 
-# Worker 2 — 수직 분할
+# Worker 2 — 수직 분할 (split-window 후 새 pane이 자동 활성)
 tmux split-window -t {팀이름}:workers -h -c /mnt/d/01_Projects/Discovery-X
-tmux send-keys -t {팀이름}:workers.1 \
-  "export PATH=\"$PATH\" && claude -p \"$(cat /tmp/team-{팀이름}-worker-2.txt)\" \
-  --allowedTools 'Read,Edit,Write,Glob,Grep,Bash' \
-  --max-turns 20 \
-  --verbose 2>&1 | tee /tmp/team-{팀이름}-worker-2.log; \
-  echo '=== WORKER-2 DONE ===' >> /tmp/team-{팀이름}-worker-2.log" Enter
+tmux send-keys -t {팀이름}:workers \
+  'bash /tmp/team-{팀이름}-run-2.sh' Enter
 
 # Worker 3 (필요 시) — Worker 1 아래 수평 분할
 tmux split-window -t {팀이름}:workers.0 -v -c /mnt/d/01_Projects/Discovery-X
-tmux send-keys -t {팀이름}:workers.2 \
-  "export PATH=\"$PATH\" && claude -p \"$(cat /tmp/team-{팀이름}-worker-3.txt)\" \
-  --allowedTools 'Read,Edit,Write,Glob,Grep,Bash' \
-  --max-turns 20 \
-  --verbose 2>&1 | tee /tmp/team-{팀이름}-worker-3.log; \
-  echo '=== WORKER-3 DONE ===' >> /tmp/team-{팀이름}-worker-3.log" Enter
+tmux send-keys -t {팀이름}:workers \
+  'bash /tmp/team-{팀이름}-run-3.sh' Enter
 
 # Worker 4 (필요 시) — Worker 2 아래 수평 분할
 tmux split-window -t {팀이름}:workers.1 -v -c /mnt/d/01_Projects/Discovery-X
-tmux send-keys -t {팀이름}:workers.3 \
-  "export PATH=\"$PATH\" && claude -p \"$(cat /tmp/team-{팀이름}-worker-4.txt)\" \
-  --allowedTools 'Read,Edit,Write,Glob,Grep,Bash' \
-  --max-turns 20 \
-  --verbose 2>&1 | tee /tmp/team-{팀이름}-worker-4.log; \
-  echo '=== WORKER-4 DONE ===' >> /tmp/team-{팀이름}-worker-4.log" Enter
+tmux send-keys -t {팀이름}:workers \
+  'bash /tmp/team-{팀이름}-run-4.sh' Enter
 
 # 레이아웃 정리 (균등 배치)
 tmux select-layout -t {팀이름}:workers tiled
@@ -176,7 +186,7 @@ done
 
 3. 임시 파일 정리:
 ```bash
-rm -f /tmp/team-{팀이름}-worker-*.txt /tmp/team-{팀이름}-worker-*.log
+rm -f /tmp/team-{팀이름}-worker-*.txt /tmp/team-{팀이름}-worker-*.log /tmp/team-{팀이름}-run-*.sh
 ```
 
 4. 결과 요약 출력
@@ -210,7 +220,8 @@ rm -f /tmp/team-{팀이름}-worker-*.txt /tmp/team-{팀이름}-worker-*.log
 - worker끼리 **같은 파일을 동시 수정하지 않도록** 태스크를 분할한다
 - `--allowedTools` 미지정 시 승인 프롬프트가 떠서 pane이 멈춤 — 반드시 지정
 - `--max-turns`로 무한 루프 방지 (기본 20, 복잡한 작업은 30까지)
-- worker 프롬프트는 `/tmp/` 임시 파일로 전달 (셸 이스케이프 문제 방지)
+- worker 프롬프트는 `/tmp/` 임시 파일 + **runner 스크립트**로 전달 (send-keys 내 `$(cat ...)` 확장 금지)
+- runner 스크립트에서 `claude` PATH를 명시적으로 설정하여 tmux pane 환경 차이를 해소
 - git 작업(commit, push)은 worker에게 시키지 않는다 — 리더만 수행
 - tmux pane 최대 4개 권장 (그 이상은 가시성 저하)
 - `$ARGUMENTS`가 비어있으면 사용자에게 작업 설명을 요청한다
