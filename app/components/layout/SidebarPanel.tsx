@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Link, useLocation } from "@remix-run/react";
+import { Link, useLocation, useFetcher } from "@remix-run/react";
 import { Form } from "@remix-run/react";
 import { useTheme } from "@axis-ds/theme";
 import { SearchInput } from "~/components/ui/SearchInput";
 import { useSidebar } from "~/lib/context/sidebar-context";
 import { ArchiveFolderList } from "./ArchiveFolderList";
+import type { ArchiveFolder } from "./ArchiveFolderList";
 import { cn } from "~/lib/utils/cn";
 
 interface Conversation {
@@ -21,6 +22,7 @@ interface SidebarPanelProps {
   onNewConversation?: () => void;
   onDeleteConversation?: (id: string) => void;
   mode?: "chat" | "proposals";
+  folders?: ArchiveFolder[];
 }
 
 function groupByDate(conversations: Conversation[]) {
@@ -55,12 +57,45 @@ export function SidebarPanel({
   onNewConversation,
   onDeleteConversation,
   mode: _mode = "chat",
+  folders = [],
 }: SidebarPanelProps) {
   const { open, close } = useSidebar();
   const location = useLocation();
   const { resolvedTheme, setTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [activeFolderId, setActiveFolderId] = useState<string | undefined>();
+
+  const folderFetcher = useFetcher();
+
+  const handleCreateFolder = (name: string) => {
+    folderFetcher.submit(
+      { name },
+      { method: "POST", action: "/api/folders", encType: "application/json" },
+    );
+  };
+
+  const handleRenameFolder = (id: string, name: string) => {
+    folderFetcher.submit(
+      { name },
+      { method: "PATCH", action: `/api/folders/${id}`, encType: "application/json" },
+    );
+  };
+
+  const handleDeleteFolder = (id: string) => {
+    folderFetcher.submit(
+      null,
+      { method: "DELETE", action: `/api/folders/${id}` },
+    );
+    if (activeFolderId === id) setActiveFolderId(undefined);
+  };
+
+  const handleDropItem = (folderId: string, itemType: string, itemId: string) => {
+    folderFetcher.submit(
+      { itemType, itemId },
+      { method: "POST", action: `/api/folders/${folderId}/items`, encType: "application/json" },
+    );
+  };
 
   const filtered = searchQuery.trim()
     ? conversations.filter((c) =>
@@ -141,7 +176,15 @@ export function SidebarPanel({
         </div>
 
         {/* Archive folders */}
-        <ArchiveFolderList />
+        <ArchiveFolderList
+          folders={folders}
+          activeFolderId={activeFolderId}
+          onCreateFolder={handleCreateFolder}
+          onRenameFolder={handleRenameFolder}
+          onDeleteFolder={handleDeleteFolder}
+          onDropItem={handleDropItem}
+          onSelectFolder={setActiveFolderId}
+        />
 
         {/* Chat history section label */}
         <div className="mt-2 px-5 pb-1">
@@ -159,6 +202,14 @@ export function SidebarPanel({
                   return (
                     <div
                       key={conv.id}
+                      draggable="true"
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData(
+                          "application/json",
+                          JSON.stringify({ itemType: "conversation", itemId: conv.id }),
+                        );
+                        e.dataTransfer.effectAllowed = "move";
+                      }}
                       className={cn(
                         "group flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm transition-all duration-[var(--dx-transition-normal)]",
                         isActive
