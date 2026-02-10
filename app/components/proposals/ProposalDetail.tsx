@@ -66,7 +66,12 @@ function formatBudget(budget: string | null): string {
   if (!budget) return "";
   const num = Number(budget.replace(/[^0-9.-]/g, ""));
   if (Number.isNaN(num)) return budget;
-  return "W" + new Intl.NumberFormat("ko-KR").format(num);
+  return "₩" + new Intl.NumberFormat("ko-KR").format(num);
+}
+
+function formatDate(date: string | null): string {
+  if (!date) return "-";
+  return date.replace(/-/g, ".");
 }
 
 const TRANSITION_STYLES: Record<string, string> = {
@@ -173,7 +178,7 @@ export function ProposalDetail({
               <span className="text-[10px] text-[var(--axis-text-tertiary)]">예상 시작일</span>
             </div>
             <p className="mt-1 text-sm font-medium text-[var(--axis-text-primary)]">
-              {proposal.startDate || "-"}
+              {formatDate(proposal.startDate)}
             </p>
           </CardContent>
         </Card>
@@ -198,7 +203,7 @@ export function ProposalDetail({
           <Card key={section.id}>
             <CardContent className="p-4">
               <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--axis-text-primary)]">
-                <span>{SECTION_ICONS[section.type] || "📄"}</span>
+                {(SECTION_ICONS[section.type]) && <span>{SECTION_ICONS[section.type]}</span>}
                 {SECTION_LABELS[section.type] || section.type}
               </h3>
               <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--axis-text-secondary)]">

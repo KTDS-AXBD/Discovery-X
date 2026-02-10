@@ -26,7 +26,7 @@ export default function DashboardLayout() {
   const { user } = useLoaderData<typeof loader>();
 
   return (
-    <AppShell user={user}>
+    <AppShell user={user} hideSidebar>
       <div className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8">
         <Outlet />
       </div>

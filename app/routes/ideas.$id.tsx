@@ -100,30 +100,29 @@ export default function IdeaDetail() {
         </button>
       </div>
 
-      {/* Summary */}
-      {item.summaryKo && (
-        <section className="mb-8">
-          <h2 className="mb-3 text-base font-semibold text-[var(--axis-text-primary)]">요약</h2>
-          <p className="text-sm leading-relaxed text-[var(--axis-text-secondary)]">
-            {item.summaryKo}
-          </p>
-        </section>
-      )}
-
-      {/* Key Points */}
-      {item.keyPoints && (
-        <section className="mb-8">
-          <h2 className="mb-3 text-base font-semibold text-[var(--axis-text-primary)]">핵심 포인트</h2>
-          <ol className="list-decimal list-inside space-y-2 text-sm text-[var(--axis-text-secondary)]">
+      {/* Document content */}
+      <div className="mb-8 space-y-4 text-sm leading-relaxed text-[var(--axis-text-secondary)]">
+        {item.summaryKo && <p>{item.summaryKo}</p>}
+        {item.keyPoints && (Array.isArray(item.keyPoints) ? item.keyPoints : []).length > 0 && (
+          <ol className="list-decimal list-inside space-y-2">
             {(Array.isArray(item.keyPoints) ? item.keyPoints : []).map((point: string, i: number) => (
               <li key={i}>{point}</li>
             ))}
           </ol>
-        </section>
-      )}
+        )}
+      </div>
 
-      {/* Similar Sources */}
-      <SimilarSources sources={similarSources} source={similarSource} />
+      {/* Similar Sources — collapsible, hidden by default */}
+      {similarSources.length > 0 && (
+        <details className="mb-4">
+          <summary className="cursor-pointer text-xs text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-secondary)]">
+            관련 소스 ({similarSources.length})
+          </summary>
+          <div className="mt-2">
+            <SimilarSources sources={similarSources} source={similarSource} />
+          </div>
+        </details>
+      )}
 
       {/* AI Analysis footer */}
       <div className="mt-8 text-right">

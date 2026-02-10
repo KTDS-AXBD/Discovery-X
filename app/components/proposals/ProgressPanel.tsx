@@ -134,70 +134,78 @@ export function ProgressPanel({
         </div>
       )}
 
-      <div className="mb-4 space-y-2">
-        {milestones.map((ms) => (
-          <div key={ms.id} className="group flex items-start gap-2">
-            <button
-              type="button"
-              className="mt-0.5 shrink-0"
-              title={`${MILESTONE_STATUS_LABEL[ms.status] || ms.status} → ${MILESTONE_STATUS_LABEL[MILESTONE_CYCLE[ms.status] || "PENDING"]}`}
-              onClick={() => {
-                const nextStatus = MILESTONE_CYCLE[ms.status] || "PENDING";
-                milestoneFetcher.submit(
-                  JSON.stringify({ milestoneId: ms.id, status: nextStatus }),
-                  { method: "PUT", action: `/api/proposals/${proposalId}/milestones`, encType: "application/json" },
-                );
-              }}
-            >
-              {ms.status === "COMPLETED" ? (
-                <div className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--axis-text-success,#22C55E)] text-white">
-                  <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" strokeWidth="3" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                  </svg>
-                </div>
-              ) : ms.status === "ACTIVE" ? (
-                <div className="h-4 w-4 rounded-full border-2 border-[var(--axis-text-brand)] bg-[var(--axis-surface-brand)]" />
-              ) : (
-                <div className="h-4 w-4 rounded-full border-2 border-[var(--axis-border-default)]" />
-              )}
-            </button>
-            <div className="min-w-0 flex-1">
-              <p className={cn(
-                "text-xs",
-                ms.status === "COMPLETED"
-                  ? "text-[var(--axis-text-tertiary)] line-through"
-                  : "text-[var(--axis-text-primary)]"
-              )}>
-                {ms.title}
-              </p>
-              {ms.startDate && ms.endDate && (() => {
-                const s = new Date(ms.startDate);
-                const e = new Date(ms.endDate);
-                const range = `${s.getFullYear()}.${String(s.getMonth() + 1).padStart(2, "0")}~${String(e.getMonth() + 1).padStart(2, "0")}`;
-                return (
-                  <p className="text-[10px] text-[var(--axis-text-tertiary)]">{range}</p>
-                );
-              })()}
-            </div>
-            {isOwner && (
+      <div className="mb-4 relative">
+        {/* Vertical connecting line */}
+        {milestones.length > 1 && (
+          <div
+            className="absolute left-[7px] top-2 bottom-2 w-px bg-[var(--axis-border-default)]"
+          />
+        )}
+        <div className="space-y-3">
+          {milestones.map((ms) => (
+            <div key={ms.id} className="group flex items-start gap-2 relative">
               <button
                 type="button"
+                className="mt-0.5 shrink-0"
+                title={`${MILESTONE_STATUS_LABEL[ms.status] || ms.status} → ${MILESTONE_STATUS_LABEL[MILESTONE_CYCLE[ms.status] || "PENDING"]}`}
                 onClick={() => {
+                  const nextStatus = MILESTONE_CYCLE[ms.status] || "PENDING";
                   milestoneFetcher.submit(
-                    JSON.stringify({ milestoneId: ms.id }),
-                    { method: "DELETE", action: `/api/proposals/${proposalId}/milestones`, encType: "application/json" },
+                    JSON.stringify({ milestoneId: ms.id, status: nextStatus }),
+                    { method: "PUT", action: `/api/proposals/${proposalId}/milestones`, encType: "application/json" },
                   );
                 }}
-                className="hidden shrink-0 text-[10px] text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-destructive,#DC2626)] group-hover:block"
               >
-                삭제
+                {ms.status === "COMPLETED" ? (
+                  <div className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--axis-text-success,#22C55E)] text-white">
+                    <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" strokeWidth="3" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                  </div>
+                ) : ms.status === "ACTIVE" ? (
+                  <div className="h-4 w-4 rounded-full border-2 border-[var(--axis-text-brand)] bg-[var(--axis-surface-brand)]" />
+                ) : (
+                  <div className="h-4 w-4 rounded-full border-2 border-[var(--axis-border-default)]" />
+                )}
               </button>
-            )}
-          </div>
-        ))}
-        {milestones.length === 0 && (
-          <p className="text-xs text-[var(--axis-text-tertiary)]">마일스톤이 없습니다.</p>
-        )}
+              <div className="min-w-0 flex-1">
+                <p className={cn(
+                  "text-xs",
+                  ms.status === "COMPLETED"
+                    ? "text-[var(--axis-text-tertiary)] line-through"
+                    : "text-[var(--axis-text-primary)]"
+                )}>
+                  {ms.title}
+                </p>
+                {ms.startDate && ms.endDate && (() => {
+                  const s = new Date(ms.startDate);
+                  const e = new Date(ms.endDate);
+                  const range = `${s.getFullYear()}.${String(s.getMonth() + 1).padStart(2, "0")}~${String(e.getMonth() + 1).padStart(2, "0")}`;
+                  return (
+                    <p className="text-[10px] text-[var(--axis-text-tertiary)]">{range}</p>
+                  );
+                })()}
+              </div>
+              {isOwner && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    milestoneFetcher.submit(
+                      JSON.stringify({ milestoneId: ms.id }),
+                      { method: "DELETE", action: `/api/proposals/${proposalId}/milestones`, encType: "application/json" },
+                    );
+                  }}
+                  className="hidden shrink-0 text-[10px] text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-destructive,#DC2626)] group-hover:block"
+                >
+                  삭제
+                </button>
+              )}
+            </div>
+          ))}
+          {milestones.length === 0 && (
+            <p className="text-xs text-[var(--axis-text-tertiary)]">마일스톤이 없습니다.</p>
+          )}
+        </div>
       </div>
 
       {/* Action Items */}

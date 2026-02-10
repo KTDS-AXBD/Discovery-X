@@ -33,11 +33,11 @@ export function validateProposalTransition(from: string, to: string): boolean {
 }
 
 export const SECTION_CONFIG = [
-  { type: "market", label: "시장 기회", icon: "📈", placeholder: "시장 규모, 성장률, 진입 기회..." },
-  { type: "target", label: "목표 고객", icon: "🎯", placeholder: "타겟 고객 세그먼트, 페인포인트..." },
-  { type: "model", label: "사업 모델", icon: "💲", placeholder: "수익 모델, 가격 전략..." },
-  { type: "advantage", label: "경쟁 우위", icon: "🏆", placeholder: "핵심 차별점, 진입장벽..." },
-  { type: "finance", label: "재무 계획", icon: "💰", placeholder: "예상 매출, 비용 구조, BEP..." },
+  { type: "market", label: "시장 기회", icon: "\u3030", placeholder: "시장 규모, 성장률, 진입 기회..." },
+  { type: "target", label: "목표 고객", icon: "\u25CE", placeholder: "타겟 고객 세그먼트, 페인포인트..." },
+  { type: "model", label: "사업 모델", icon: "$", placeholder: "수익 모델, 가격 전략..." },
+  { type: "advantage", label: "경쟁 우위", icon: "", placeholder: "핵심 차별점, 진입장벽..." },
+  { type: "finance", label: "재무 계획", icon: "", placeholder: "예상 매출, 비용 구조, BEP..." },
 ] as const;
 
 export const SECTION_ICONS: Record<string, string> = Object.fromEntries(

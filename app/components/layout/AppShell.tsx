@@ -21,6 +21,8 @@ interface AppShellProps {
   sidebarMode?: "chat" | "proposals";
   /** Custom sidebar content (replaces default SidebarPanel) */
   sidebarContent?: ReactNode;
+  /** Hide sidebar entirely (e.g., dashboard) */
+  hideSidebar?: boolean;
 }
 
 interface RootConversation {
@@ -45,6 +47,7 @@ export function AppShell({
   contextPanel,
   sidebarMode = "chat",
   sidebarContent,
+  hideSidebar = false,
 }: AppShellProps) {
   const rootData = useRouteLoaderData("root") as RootLoaderData | undefined;
   const conversations = conversationsProp ?? rootData?.conversations ?? [];
@@ -54,18 +57,20 @@ export function AppShell({
       <div className="flex h-screen flex-col bg-[var(--dx-surface-deep,var(--axis-surface-secondary))]">
         <TopNav user={user} />
         <div className="flex flex-1 overflow-hidden">
-          {sidebarContent ? (
-            sidebarContent
-          ) : (
-            <SidebarPanel
-              user={user}
-              conversations={conversations}
-              activeConversationId={activeConversationId}
-              onSelectConversation={onSelectConversation}
-              onNewConversation={onNewConversation}
-              onDeleteConversation={onDeleteConversation}
-              mode={sidebarMode}
-            />
+          {!hideSidebar && (
+            sidebarContent ? (
+              sidebarContent
+            ) : (
+              <SidebarPanel
+                user={user}
+                conversations={conversations}
+                activeConversationId={activeConversationId}
+                onSelectConversation={onSelectConversation}
+                onNewConversation={onNewConversation}
+                onDeleteConversation={onDeleteConversation}
+                mode={sidebarMode}
+              />
+            )
           )}
           <main className="flex-1 overflow-y-auto">
             {children}
