@@ -13,7 +13,7 @@ F22 보관함 폴더 기능은 설계 대비 **높은 수준으로 구현 완료
 
 주요 갭은 다음과 같습니다:
 1. **마이그레이션 파일명 변경**: 설계상 `0022_archive_folders.sql` → 실제 `0023_archive_folders.sql` (선행 마이그레이션 추가로 번호 밀림, 기능적 영향 없음)
-2. **테스트 헬퍼 미등록**: `tests/helpers/db.ts`에 `0023_archive_folders.sql` 미등록 — 테스트 환경에서 archive 테이블 미생성
+2. ~~**테스트 헬퍼 미등록**~~: ~~`tests/helpers/db.ts`에 `0023_archive_folders.sql` 미등록~~ — **FALSE POSITIVE**: `tests/helpers/db.ts:48`에 이미 등록 확인됨
 3. **인증 가드 패턴 차이**: 설계 `requireUser()` vs 실제 `getSessionContext()` + null 체크 (기능적으로 동등, 패턴만 상이)
 4. **SidebarPanel props 간소화**: 설계는 folder CRUD 콜백을 props로 전달하나, 실제 구현은 `useFetcher`로 내부 처리 (더 깔끔한 구현)
 
