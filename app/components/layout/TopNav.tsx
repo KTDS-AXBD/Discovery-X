@@ -93,8 +93,8 @@ export function TopNav({ user }: TopNavProps) {
             <span className="text-sm font-bold tracking-tight">Discovery-X</span>
           </Link>
 
-          {/* Tenant Switcher */}
-          {tenant && (
+          {/* Tenant Switcher — only show when multiple tenants exist */}
+          {tenant && tenantList.length > 1 && (
             <>
               <span className="hidden text-[var(--axis-text-tertiary)] sm:inline">/</span>
               <TenantSwitcher currentTenantId={tenant.id} tenants={tenantList} />
