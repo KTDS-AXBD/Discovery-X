@@ -83,7 +83,7 @@ describe("Executor sourceContext lookup", () => {
       title: "AI Manufacturing Quality",
       titleKo: "AI 제조업 품질 검사",
       summaryKo: "AI 기반 품질 검사 시장이 급성장 중",
-      keyPoints: JSON.stringify(["비전 AI 정확도 99.5%", "도입 비용 30% 감소"]),
+      keyPoints: ["비전 AI 정확도 99.5%", "도입 비용 30% 감소"],
     }).run();
 
     db.insert(conversations).values({
