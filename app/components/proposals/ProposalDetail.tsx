@@ -1,5 +1,6 @@
 import { Badge } from "~/components/ui/Badge";
 import { Card, CardContent } from "~/components/ui/Card";
+import { PROPOSAL_STATUS_LABELS, PROPOSAL_STATUS_VARIANTS, SECTION_ICONS, SECTION_LABELS } from "~/features/proposals/constants";
 import { TeamDiscussion } from "./TeamDiscussion";
 
 interface Section {
@@ -32,35 +33,6 @@ interface ProposalDetailProps {
   currentUserId: string;
 }
 
-const STATUS_VARIANT: Record<string, "warning" | "success" | "destructive" | "secondary"> = {
-  DRAFT: "secondary",
-  REVIEWING: "warning",
-  APPROVED: "success",
-  REJECTED: "destructive",
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  DRAFT: "작성 중",
-  REVIEWING: "검토 중",
-  APPROVED: "승인됨",
-  REJECTED: "반려됨",
-};
-
-const SECTION_ICONS: Record<string, string> = {
-  market: "📈",
-  target: "🎯",
-  model: "💲",
-  advantage: "🏆",
-  finance: "💰",
-};
-
-const SECTION_LABELS: Record<string, string> = {
-  market: "시장 기회",
-  target: "목표 고객",
-  model: "사업 모델",
-  advantage: "경쟁 우위",
-  finance: "재무 계획",
-};
 
 export function ProposalDetail({
   proposal,
@@ -75,8 +47,8 @@ export function ProposalDetail({
       {/* Title + Status */}
       <div className="mb-4 flex items-center gap-3">
         <h1 className="text-xl font-bold text-[var(--axis-text-primary)]">{proposal.title}</h1>
-        <Badge variant={STATUS_VARIANT[proposal.status] || "secondary"}>
-          {STATUS_LABELS[proposal.status] || proposal.status}
+        <Badge variant={PROPOSAL_STATUS_VARIANTS[proposal.status] || "secondary"}>
+          {PROPOSAL_STATUS_LABELS[proposal.status] || proposal.status}
         </Badge>
       </div>
 
@@ -88,7 +60,7 @@ export function ProposalDetail({
       )}
 
       {/* Meta cards */}
-      <div className="mb-6 grid grid-cols-3 gap-3">
+      <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Card>
           <CardContent className="p-3 text-center">
             <p className="text-[10px] text-[var(--axis-text-tertiary)]">팀 구성</p>

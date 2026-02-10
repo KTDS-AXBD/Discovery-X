@@ -1,4 +1,5 @@
 import { Link, useLocation } from "@remix-run/react";
+import { PROPOSAL_STATUS_LABELS, PROPOSAL_STATUS_COLORS } from "~/features/proposals/constants";
 import { useSidebar } from "~/lib/context/sidebar-context";
 import { cn } from "~/lib/utils/cn";
 
@@ -15,19 +16,6 @@ interface ProposalListSidebarProps {
   activeId?: string;
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  DRAFT: "bg-[var(--axis-badge-secondary-bg,#E5E7EB)] text-[var(--axis-badge-secondary-text,#374151)]",
-  REVIEWING: "bg-[var(--axis-badge-warning-bg)] text-[var(--axis-badge-warning-text)]",
-  APPROVED: "bg-[var(--axis-badge-success-bg,#D1FAE5)] text-[var(--axis-badge-success-text,#065F46)]",
-  REJECTED: "bg-[var(--axis-badge-destructive-bg,#FEE2E2)] text-[var(--axis-badge-destructive-text,#991B1B)]",
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  DRAFT: "작성 중",
-  REVIEWING: "검토 중",
-  APPROVED: "승인됨",
-  REJECTED: "반려됨",
-};
 
 export function ProposalListSidebar({ proposals, activeId }: ProposalListSidebarProps) {
   const location = useLocation();
@@ -89,9 +77,9 @@ export function ProposalListSidebar({ proposals, activeId }: ProposalListSidebar
                   <div className="mt-1 flex items-center gap-2">
                     <span className={cn(
                       "inline-block rounded px-1.5 py-0.5 text-[10px] font-medium",
-                      STATUS_COLORS[p.status] || STATUS_COLORS.DRAFT
+                      PROPOSAL_STATUS_COLORS[p.status] || PROPOSAL_STATUS_COLORS.DRAFT
                     )}>
-                      {STATUS_LABELS[p.status] || p.status}
+                      {PROPOSAL_STATUS_LABELS[p.status] || p.status}
                     </span>
                     {p.teamSize && (
                       <span className="text-[10px] text-[var(--axis-text-tertiary)]">

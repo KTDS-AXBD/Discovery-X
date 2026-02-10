@@ -15,6 +15,12 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     return json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const proposal = await db.select({ tenantId: proposals.tenantId })
+    .from(proposals).where(eq(proposals.id, params.id!)).get();
+  if (!proposal || proposal.tenantId !== ctx.tenantId) {
+    return json({ error: "Not found" }, { status: 404 });
+  }
+
   const comments = await db
     .select({
       id: proposalComments.id,
@@ -37,6 +43,12 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
 
   if (!ctx) {
     return json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const proposal = await db.select({ tenantId: proposals.tenantId })
+    .from(proposals).where(eq(proposals.id, params.id!)).get();
+  if (!proposal || proposal.tenantId !== ctx.tenantId) {
+    return json({ error: "Not found" }, { status: 404 });
   }
 
   if (request.method === "POST") {

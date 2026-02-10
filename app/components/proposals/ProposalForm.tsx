@@ -2,6 +2,7 @@ import { Form, useNavigation } from "@remix-run/react";
 import { Button } from "~/components/ui/Button";
 import { Input } from "~/components/ui/Input";
 import { FormField } from "~/components/ui/FormField";
+import { SECTION_CONFIG } from "~/features/proposals/constants";
 
 interface ProposalFormProps {
   defaultValues?: {
@@ -15,13 +16,6 @@ interface ProposalFormProps {
   action?: string;
 }
 
-const SECTION_TYPES = [
-  { type: "market", label: "시장 기회", icon: "📈", placeholder: "시장 규모, 성장률, 진입 기회..." },
-  { type: "target", label: "목표 고객", icon: "🎯", placeholder: "타겟 고객 세그먼트, 페인포인트..." },
-  { type: "model", label: "사업 모델", icon: "💲", placeholder: "수익 모델, 가격 전략..." },
-  { type: "advantage", label: "경쟁 우위", icon: "🏆", placeholder: "핵심 차별점, 진입장벽..." },
-  { type: "finance", label: "재무 계획", icon: "💰", placeholder: "예상 매출, 비용 구조, BEP..." },
-];
 
 export function ProposalForm({ defaultValues, action }: ProposalFormProps) {
   const navigation = useNavigation();
@@ -57,7 +51,7 @@ export function ProposalForm({ defaultValues, action }: ProposalFormProps) {
       </div>
 
       {/* Meta fields */}
-      <div className="mb-6 grid grid-cols-3 gap-4">
+      <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
         <FormField label="팀 규모 (명)" htmlFor="teamSize">
           <Input
             type="number"
@@ -89,7 +83,7 @@ export function ProposalForm({ defaultValues, action }: ProposalFormProps) {
       {/* Sections */}
       <div className="mb-6 space-y-4">
         <h2 className="text-sm font-semibold text-[var(--axis-text-primary)]">제안 섹션</h2>
-        {SECTION_TYPES.map((sec) => (
+        {SECTION_CONFIG.map((sec) => (
           <div key={sec.type}>
             <label
               htmlFor={`section_${sec.type}`}
