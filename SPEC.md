@@ -268,13 +268,12 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 135)
-**GitHub Project 동기화 완료 (/sync push)**:
-- ✅ SPEC.md §6 → GitHub Project #4 동기화: F6-F22 (17개) 항목 신규 생성 + Done 상태 설정
-- ✅ GitHub Project 총 항목: 37 → 54개 (기존 37 + 신규 17)
-- ✅ 충돌/불일치 없음
+### 최근 변경 (세션 136)
+**F20/F21/F22 v5.1 프로덕션 배포 완료**:
+- ✅ CI/CD 파이프라인 전체 통과 (1m 32s): Lint → Typecheck → Test → Build → Deploy
+- ✅ 프로덕션 배포 성공: https://dx.minu.best
 
-### 이전 변경 (세션 134)
+### 이전 변경 (세션 134~135)
 **F20/F21/F22 병렬 구현 완료 (Agent Teams /pdca do)**:
 - ✅ Proposals 보안: PUT API 추가 + DELETE/Actions/Comments 전 라우트 tenant/owner 인가 검증
 - ✅ Proposals 최적화: Promise.all 병렬 쿼리 + 배치 insert + 상수 추출 (constants.ts)
