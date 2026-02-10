@@ -1,5 +1,5 @@
-import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
-import { sql } from "drizzle-orm";
+import { sqliteTable, text, integer, index, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { sql, relations } from "drizzle-orm";
 import { users, tenants } from "~/db/schema";
 
 // ============================================================================
@@ -68,6 +68,7 @@ export const proposalSections = sqliteTable(
   },
   (table) => ({
     proposalIdx: index("idx_proposal_sections_proposal").on(table.proposalId),
+    uniqueProposalType: uniqueIndex("idx_proposal_sections_unique_type").on(table.proposalId, table.type),
   }),
 );
 
@@ -145,3 +146,35 @@ export const proposalMembers = sqliteTable(
     userIdx: index("idx_proposal_members_user").on(table.userId),
   }),
 );
+
+// ============================================================================
+// DRIZZLE RELATIONS (for relational query API)
+// ============================================================================
+
+export const proposalsRelations = relations(proposals, ({ many }) => ({
+  sections: many(proposalSections),
+  milestones: many(proposalMilestones),
+  actions: many(proposalActions),
+  comments: many(proposalComments),
+  members: many(proposalMembers),
+}));
+
+export const proposalSectionsRelations = relations(proposalSections, ({ one }) => ({
+  proposal: one(proposals, { fields: [proposalSections.proposalId], references: [proposals.id] }),
+}));
+
+export const proposalMilestonesRelations = relations(proposalMilestones, ({ one }) => ({
+  proposal: one(proposals, { fields: [proposalMilestones.proposalId], references: [proposals.id] }),
+}));
+
+export const proposalActionsRelations = relations(proposalActions, ({ one }) => ({
+  proposal: one(proposals, { fields: [proposalActions.proposalId], references: [proposals.id] }),
+}));
+
+export const proposalCommentsRelations = relations(proposalComments, ({ one }) => ({
+  proposal: one(proposals, { fields: [proposalComments.proposalId], references: [proposals.id] }),
+}));
+
+export const proposalMembersRelations = relations(proposalMembers, ({ one }) => ({
+  proposal: one(proposals, { fields: [proposalMembers.proposalId], references: [proposals.id] }),
+}));
