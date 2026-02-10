@@ -1,14 +1,16 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
-import { eq } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { getDb } from "~/db";
 import { radarItems } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { Badge } from "~/components/ui/Badge";
 import { Button } from "~/components/ui/Button";
 import { Card, CardContent } from "~/components/ui/Card";
+import { SimilarSources } from "~/components/ideas/SimilarSources";
 import { formatDateLocalTime } from "~/lib/format-date";
+import { findSimilarRadarItems, type SimilarItemsEnv, type SimilarItem } from "~/lib/embeddings/similar-items";
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -25,11 +27,67 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  return json({ item });
+  // Similar sources recommendation
+  let similarSources: SimilarItem[] = [];
+  let similarSource: "vectorize" | "fallback" | "none" = "none";
+
+  const env = context.cloudflare.env as unknown as Record<string, unknown>;
+
+  if (env.VECTORIZE_RADAR && env.OPENAI_API_KEY) {
+    try {
+      const results = await findSimilarRadarItems(
+        env as unknown as SimilarItemsEnv,
+        item,
+        db,
+        { limit: 3, minScore: 0.7 },
+      );
+      if (results.length > 0) {
+        similarSources = results;
+        similarSource = "vectorize";
+      }
+    } catch {
+      // Vectorize failure → fall through to fallback
+    }
+  }
+
+  // Fallback: relevanceScore proximity (when Vectorize unavailable or returned nothing)
+  if (similarSources.length === 0 && item.relevanceScore) {
+    const score = item.relevanceScore;
+    const fallbackItems = await db
+      .select({
+        id: radarItems.id,
+        title: radarItems.title,
+        titleKo: radarItems.titleKo,
+        summaryKo: radarItems.summaryKo,
+        url: radarItems.url,
+        relevanceScore: radarItems.relevanceScore,
+      })
+      .from(radarItems)
+      .where(
+        sql`${radarItems.id} != ${item.id}
+          AND ${radarItems.relevanceScore} BETWEEN ${score - 20} AND ${score + 20}
+          AND ${radarItems.relevanceScore} IS NOT NULL`
+      )
+      .orderBy(desc(radarItems.relevanceScore))
+      .limit(3);
+
+    similarSources = fallbackItems.map((fi) => ({
+      id: fi.id,
+      title: fi.titleKo || fi.title,
+      summaryKo: fi.summaryKo,
+      url: fi.url,
+      score: fi.relevanceScore
+        ? Math.round((1 - Math.abs(fi.relevanceScore - score) / 100) * 100) / 100
+        : 0,
+    }));
+    similarSource = similarSources.length > 0 ? "fallback" : "none";
+  }
+
+  return json({ item, similarSources, similarSource });
 }
 
 export default function IdeaDetail() {
-  const { item } = useLoaderData<typeof loader>();
+  const { item, similarSources, similarSource } = useLoaderData<typeof loader>();
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-6">
@@ -89,6 +147,9 @@ export default function IdeaDetail() {
           </CardContent>
         </Card>
       )}
+
+      {/* Similar Sources */}
+      <SimilarSources sources={similarSources} source={similarSource} />
 
       {/* AI Analysis footer */}
       <div className="mt-8 flex items-center gap-2 text-xs text-[var(--axis-text-tertiary)]">
