@@ -7,7 +7,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 
 ### 범위
 
-**In-scope (PRD §7.1 P0 + v3 확장 + v4 Venture Discovery Sprint + v5 BD Workspace)**
+**In-scope (PRD §7.1 P0 + v3 확장 + v4 Venture Discovery Sprint + v5 Layout Restructure + Proposals)**
 - Discovery CRUD + 11단계 파이프라인 (DISCOVERY → IDEA_CARD → HYPOTHESIS → EXPERIMENT → EVIDENCE_REVIEW → GATE1 → SPRINT → GATE2 → HANDOFF + HOLD/DROP)
 - Owner/Reviewer 지정 및 승계
 - Experiment 최대 2개 관리 (Extension 승인 시 3개)
@@ -28,6 +28,9 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 - BD 워크스페이스 (v4.2): 키워드 구독 → 소스 수집/요약 → Agent 채팅 → 아이디어 생성/편집 → 팀 공유
 - `_index.tsx`, `/radar` 통합 3-Pane 레이아웃 (v4.2)
 - 1개 신규 + 6개 기존 테이블 확장 (v4.2)
+- 3탭 GNB + ContextPanel + 보관함 사이드바 레이아웃 재구성 (v5.0)
+- 아이디어 페이지: Radar 아이템 재활용 + 메모 패널 (v5.0)
+- 사업제안: DB 6테이블 + CRUD API + 마일스톤/액션/댓글 + 진행상황 패널 (v5.0)
 
 **Out-of-scope (PRD §2.2, §7.3)**
 - 전사 공식 포털/플랫폼
@@ -100,11 +103,11 @@ Flow I: BD 워크스페이스 (v4.2)
   → 수동 편집 → 팀 공유
 ```
 
-### 페이지 맵 (75개 라우트)
+### 페이지 맵 (84개 라우트)
 
 **Core (32개)**
 - `/` — 채팅 (메인)
-- `/dashboard/*` — 파이프라인/메트릭/헬스/알림/감사 (5개)
+- `/dashboard/*` — 대시보드 + 수집현황 우측 패널 (5개)
 - `/discoveries*` — 목록/생성/상세 (5개)
 - `/discoveries/:id/*` — 상세/편집/승격/실험/근거/결정/Gate/Graph/Methods (9개)
 - `/settings` — Agent 설정 (1개)
@@ -114,6 +117,19 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/docs` — 도움말 (1개)
 - `/login`, `/auth/google*` — 인증 (2개)
 - `/admin*` — 관리자 (4개)
+
+**Ideas (2개)**
+- `/ideas` — 아이디어 목록 + 레이아웃 (좌측 리스트 + Surface + 메모 패널)
+- `/ideas/:id` — 아이디어 상세 (Radar 아이템 재활용, 블랙 헤더바 + 스코어/상태)
+
+**Proposals (6개)**
+- `/proposals` — 사업제안 레이아웃 (전용 사이드바 + Surface + 진행상황 패널)
+- `/proposals/_index` — 빈 상태 (첫 제안 선택 유도)
+- `/proposals/:id` — 사업제안 상세 (메타 카드 + 5개 섹션 + 팀 토론 + 진행상황 패널)
+- `/proposals/new` — 새 사업제안 작성 폼
+- `/api/proposals` — 제안 CRUD API (GET 목록 + DELETE)
+- `/api/proposals/:id/comments` — 댓글 API (GET + POST)
+- `/api/proposals/:id/actions` — 액션 아이템 토글 API (POST)
 
 **Radar (5개)**
 - `/radar` — 소스 관리 (1개)
@@ -150,15 +166,18 @@ Flow I: BD 워크스페이스 (v4.2)
 
 ```
 root.tsx
-├─ TopNav (4탭: 현황판/시장탐색/아이디어/수집관리)
-├─ AppShell (SidebarPanel + PageLayout)
-│  ├─ SidebarPanel (대화 히스토리)
-│  └─ PageLayout
-│     └─ routes/{name}.tsx (각 페이지)
+├─ TopNav (3탭: 대시보드/아이디어/사업제안 + 테마토글/설정/유저)
+├─ AppShell (SidebarPanel + Surface + ContextPanel)
+│  ├─ SidebarPanel (보관함 폴더 + 대화 히스토리) — mode: "chat" | "proposals"
+│  │  └─ ArchiveFolderList (1depth 폴더: 중요/리서치/완료)
+│  ├─ Surface (main)
+│  │  └─ routes/{name}.tsx (각 페이지)
+│  └─ ContextPanel (우측 280px, lg+ only) — contextPanel prop
+│     └─ 페이지별 콘텐츠 (CollectionStatusPanel / MemoPanel / ProgressPanel)
 └─ Outlet (하위 라우트)
 ```
 
-### 데이터 모델 (46개 테이블)
+### 데이터 모델 (52개 테이블)
 
 | 카테고리 | 테이블 수 | 예 |
 |---------|---------|-----|
@@ -170,7 +189,8 @@ root.tsx
 | Chat | 3 | conversations, messages, event_logs |
 | Indicators | 4 | kpis, indicator_snapshots, links, webhooks |
 | Compliance | 2 | compliance_checks, compliance_audit_logs |
-| **합계** | **46** | |
+| Proposals | 6 | proposals, proposal_sections, proposal_milestones, proposal_actions, proposal_comments, proposal_members |
+| **합계** | **52** | |
 
 ### Agent 시스템 (48개 도구)
 
@@ -221,20 +241,36 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v4.2 Venture Discovery Sprint + BD Workspace PoC
+- **프로토타입**: v5.0 Layout Restructure + Proposals Feature
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages)
-- **DB**: 20개 마이그레이션 로컬+프로덕션 적용 완료 (0000~0020)
+- **DB**: 20개 마이그레이션 로컬+프로덕션 적용 완료 (0000~0020) + proposals 마이그레이션 Pending
 
 ### 주요 지표
-- **라우트**: 75개
-- **테이블**: 46개 (core 43 + venture 16, 일부 중복) + BD PoC 1개
+- **라우트**: 84개 (+9: ideas 2 + proposals 7)
+- **테이블**: 52개 (기존 46 + proposals 6)
 - **Agent 도구**: 48개
 - **테스트**: 597개 (unit 76 + integration 342 + venture 143 + BD PoC 36)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 127)
+### 최근 변경 (세션 128)
+**Figma 기반 레이아웃 대폭 재구성 + 사업제안 신규 기능**:
+- ✅ GNB 3탭 전환: 4탭(현황판/시장탐색/아이디어/수집관리) → 3탭(대시보드/아이디어/사업제안) + 테마토글/설정/유저
+- ✅ AppShell 확장: contextPanel/sidebarContent/sidebarMode prop 추가 (하위 호환 유지)
+- ✅ ContextPanel 신규: 우측 280px 패널 셸 (lg+ only, CSS 변수 기반)
+- ✅ ArchiveFolderList 신규: 보관함 폴더 1depth (중요/리서치/완료 + 폴더 추가)
+- ✅ Dashboard 리뉴얼: CollectionStatusPanel 우측 패널 (도넛 차트 placeholder + 소스별 통계)
+- ✅ 아이디어 페이지 (2 라우트): ideas.tsx (목록 + 레이아웃) + ideas.$id.tsx (상세, Radar 아이템 재활용)
+- ✅ MemoPanel: 아이디어 메모 우측 패널
+- ✅ 사업제안 DB 스키마: 6 테이블 (proposals/sections/milestones/actions/comments/members)
+- ✅ 사업제안 라우트 (4 페이지): proposals.tsx/proposals._index/proposals.$id/proposals.new
+- ✅ 사업제안 API (3 라우트): api.proposals + api.proposals.$id.comments + api.proposals.$id.actions
+- ✅ 사업제안 컴포넌트 (6개): ProgressPanel/ProposalListSidebar/ProposalDetail/ProposalForm/TeamDiscussion/ProposalListSidebar
+- ✅ SidebarPanel 보관함 모드 + proposals 사이드바 모드 지원
+- ✅ typecheck + lint + build 모두 통과 (19 신규 + 6 수정 파일)
+
+### 이전 변경 (세션 127)
 **AX BD팀 PoC — 프로덕션 배포 완료**:
 - ✅ 전체 커밋: 50 files changed (feat: AX BD PoC Core Table Extension)
 - ✅ 타입 체크: keyPoints JSON 배열 타입 수정 후 통과
@@ -350,7 +386,7 @@ build/
 - **브랜치 전략**: master 단일 브랜치 (Prototype 기간)
 - **배포**: Cloudflare Pages (master push → `pnpm deploy`)
 - **운영 실험**: 🚀 2026-01-31 시작 (30-60일, 최대 5명, Discovery 5-10건 목표)
-- **DB 마이그레이션**: ✅ 20개 (0000~0020) 로컬+프로덕션 적용 완료
+- **DB 마이그레이션**: ✅ 20개 (0000~0020) 로컬+프로덕션 적용 완료 + proposals 마이그레이션 Pending
 - **Cron 설정**: daily (09:00) + agent-review (10:00) + alerts (09:30) + embeddings (15분, cron-job.org)
 - **Radar Worker**: 프로덕션 운영 중 (Cron 매일 9:00 KST, 10소스)
 - **이메일**: Resend (`noreply@ideaonaction.ai`), cron-job.org 자동 발송
@@ -365,11 +401,12 @@ build/
 |---------|--------|----------|
 | 인프라/스택 | 8 | Remix v2 + D1 + ESLint 9 + SDD 워크플로우 + CF Pages 배포 |
 | Discovery 코어 | 12 | CRUD 15라우트 + 11단계 상태 전환 + 실험/근거/결정 + Extension |
-| UI/UX | 16 | 반응형 + 차트 + 다크모드 + @axis-ds 토큰 + 접근성 + 한국어화 + AppShell 레이아웃 |
+| UI/UX | 18 | 반응형 + 차트 + 다크모드 + @axis-ds 토큰 + 접근성 + 한국어화 + AppShell 3-Panel + 3탭 GNB + ContextPanel |
 | Agent 시스템 | 12 | v2→v3 재설계 + 48도구 + SSE 스트리밍 + 컨텍스트 최적화 + 채팅 UX + tenant 도구 3개 + BD PoC 도구 3개 |
 | v3 파이프라인 | 8 | R0 11단계 + R1 Method Pack + R2 Ontology + R3 KPI/알림/웹훅 |
 | v4 Venture Sprint | 10 | 도메인 모듈 + 워커 8핸들러 + Decision Center + Analytics + E2E |
 | v4.2 BD Workspace PoC | 6 | PDCA Plan/Design/Do/Check/Act 완료 (96 테스트 + 97% 코드 일치율) |
+| v5.0 Layout + Proposals | 2 | 3탭 GNB + ContextPanel + 아이디어 페이지 + 사업제안 Full CRUD (6 테이블 + 7 라우트 + 6 컴포넌트) |
 | Embeddings | 3 | Vectorize 3개 (Discovery/Evidence/Radar) + Cron 15분 + 시맨틱 검색/중복 감지 |
 | 테스트 | 5 | 597개 (unit 76 + integration 342 + venture 143 + BD PoC 36) |
 | 운영/문서 | 8 | Google OAuth + 이메일 + Radar + 문서 5종 + QA |
@@ -390,6 +427,8 @@ build/
 **v4 Venture Sprint**: venture-worker 구현(8핸들러), Task Queue Retry/Backoff/Idempotency, Task Executor 시스템, Deep Dive/Packaging Action, Decision Center(투표/집계), Analytics(Depth/Effort/ROI), Sprint Repository 테스트(36개), E2E 파이프라인 테스트, Markdown Export, Gate Timeout 자동 처리
 
 **v4.2 BD Workspace PoC**: PDCA Plan/Design/Do/Check/Act 완료 (신규 10파일 + 수정 14파일 + 마이그레이션 1개 + 테스트 36개), sourceContext end-to-end 와이어링, 3-Pane 레이아웃, Agent 도구 3개 추가
+
+**v5.0 Layout Restructure + Proposals**: Figma 기반 3차 레이아웃 재구성 (3탭 GNB + ContextPanel 우측 패널 + 보관함 사이드바), 아이디어 페이지 (Radar 아이템 재활용 + 메모 패널), 사업제안 Full Feature (6 DB 테이블 + CRUD API 3개 + 4 페이지 라우트 + 6 컴포넌트), 신규 19파일 + 수정 6파일
 
 **Embeddings**: OpenAI text-embedding-3-small + Vectorize, Vectorize 인프라(인덱스 3개: Discovery/Evidence/Radar + 프로덕션 + 초기 동기화), Embeddings Cron(15분), 시맨틱 검색/중복 감지
 
@@ -415,9 +454,9 @@ build/
 | F15 | AX BD팀 PoC 리팩토링 — 코드 구현 (5 Phase) | v4.2 | ✅ | 24 |
 | F16 | AX BD팀 PoC 테스트 — 36건 (Unit 8 + Integration 28) | v4.2 | ✅ | 6 |
 | **F17** | **AX BD팀 PoC PDCA 완료 — 보고서 + 배포 준비** | **v4.2** | **✅** | **1** |
-| F18 | AX BD팀 Workspace - Phase 1: 스키마 + 레이아웃 | v5.0 | Pending | ~15 |
-| F19 | AX BD팀 Workspace - Phase 2: 소스 수집 + 요약 | v5.0 | Pending | ~8 |
-| F20 | AX BD팀 Workspace - Phase 3: 아이디어 생성 + 템플릿 | v5.0 | Pending | ~8 |
-| F21 | AX BD팀 Workspace - Phase 4: 팀 공유 | v5.0 | Pending | ~5 |
-| F22 | AX BD팀 Workspace - Phase 5: LLM 설정 + 오류 처리 | v5.0 | Pending | ~3 |
+| F18 | Figma 3차 레이아웃 재구성 + 사업제안 기능 (3탭 GNB + ContextPanel + 6 DB 테이블 + CRUD) | v5.0 | ✅ | 25 |
+| F19 | Proposals DB 마이그레이션 생성 + 적용 (pnpm db:generate → db:migrate) | v5.0 | Pending | ~1 |
+| F20 | 아이디어 페이지 고도화 (Radar 연동 심화 + 메모 저장) | v5.1 | Pending | ~5 |
+| F21 | 대시보드 차트 실제 구현 (도넛 차트/바 차트) | v5.1 | Pending | ~5 |
+| F22 | 보관함 폴더 CRUD 구현 (DB 스키마 + API + 아이템 드래그) | v5.1 | Pending | ~8 |
 
