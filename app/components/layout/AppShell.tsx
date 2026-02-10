@@ -3,6 +3,7 @@ import { useRouteLoaderData } from "@remix-run/react";
 import { SidebarProvider } from "~/lib/context/sidebar-context";
 import { TopNav } from "./TopNav";
 import { SidebarPanel } from "./SidebarPanel";
+import { ContextPanel } from "./ContextPanel";
 
 interface AppShellProps {
   user: { id: string; email: string; name: string; role?: string };
@@ -14,6 +15,12 @@ interface AppShellProps {
   onSelectConversation?: (id: string) => void;
   onNewConversation?: () => void;
   onDeleteConversation?: (id: string) => void;
+  /** Right context panel content (page-specific) */
+  contextPanel?: ReactNode;
+  /** Sidebar display mode */
+  sidebarMode?: "chat" | "proposals";
+  /** Custom sidebar content (replaces default SidebarPanel) */
+  sidebarContent?: ReactNode;
 }
 
 interface RootConversation {
@@ -35,6 +42,9 @@ export function AppShell({
   onSelectConversation,
   onNewConversation,
   onDeleteConversation,
+  contextPanel,
+  sidebarMode = "chat",
+  sidebarContent,
 }: AppShellProps) {
   const rootData = useRouteLoaderData("root") as RootLoaderData | undefined;
   const conversations = conversationsProp ?? rootData?.conversations ?? [];
@@ -44,17 +54,23 @@ export function AppShell({
       <div className="flex h-screen flex-col bg-[var(--dx-surface-deep,var(--axis-surface-secondary))]">
         <TopNav user={user} />
         <div className="flex flex-1 overflow-hidden">
-          <SidebarPanel
-            user={user}
-            conversations={conversations}
-            activeConversationId={activeConversationId}
-            onSelectConversation={onSelectConversation}
-            onNewConversation={onNewConversation}
-            onDeleteConversation={onDeleteConversation}
-          />
+          {sidebarContent ? (
+            sidebarContent
+          ) : (
+            <SidebarPanel
+              user={user}
+              conversations={conversations}
+              activeConversationId={activeConversationId}
+              onSelectConversation={onSelectConversation}
+              onNewConversation={onNewConversation}
+              onDeleteConversation={onDeleteConversation}
+              mode={sidebarMode}
+            />
+          )}
           <main className="flex-1 overflow-y-auto">
             {children}
           </main>
+          {contextPanel && <ContextPanel>{contextPanel}</ContextPanel>}
         </div>
       </div>
     </SidebarProvider>

@@ -4,6 +4,7 @@ import { Form } from "@remix-run/react";
 import { useTheme } from "@axis-ds/theme";
 import { SearchInput } from "~/components/ui/SearchInput";
 import { useSidebar } from "~/lib/context/sidebar-context";
+import { ArchiveFolderList } from "./ArchiveFolderList";
 import { cn } from "~/lib/utils/cn";
 
 interface Conversation {
@@ -19,6 +20,7 @@ interface SidebarPanelProps {
   onSelectConversation?: (id: string) => void;
   onNewConversation?: () => void;
   onDeleteConversation?: (id: string) => void;
+  mode?: "chat" | "proposals";
 }
 
 function groupByDate(conversations: Conversation[]) {
@@ -52,13 +54,13 @@ export function SidebarPanel({
   onSelectConversation,
   onNewConversation,
   onDeleteConversation,
+  mode: _mode = "chat",
 }: SidebarPanelProps) {
   const { open, close } = useSidebar();
   const location = useLocation();
   const { resolvedTheme, setTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-  const [archiveOpen, setArchiveOpen] = useState(false);
 
   const filtered = searchQuery.trim()
     ? conversations.filter((c) =>
@@ -73,7 +75,6 @@ export function SidebarPanel({
     if (isOnChat && onSelectConversation) {
       onSelectConversation(id);
     }
-    // On mobile, close sidebar after selection
     if (window.innerWidth < 640) close();
   };
 
@@ -99,7 +100,6 @@ export function SidebarPanel({
       <aside
         className={cn(
           "flex h-full flex-col border-r border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))] transition-transform duration-200",
-          // Mobile: overlay
           "fixed inset-y-0 left-0 z-50 sm:static sm:z-auto",
           open ? "translate-x-0" : "-translate-x-full sm:translate-x-0 sm:hidden",
         )}
@@ -140,29 +140,8 @@ export function SidebarPanel({
           />
         </div>
 
-        {/* Archive section (MVP: placeholder) */}
-        <div className="px-3 pt-2">
-          <button
-            onClick={() => setArchiveOpen(!archiveOpen)}
-            className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)]"
-          >
-            <span>보관함</span>
-            <svg
-              className={cn("h-3 w-3 transition-transform", archiveOpen && "rotate-180")}
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="2"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-            </svg>
-          </button>
-          {archiveOpen && (
-            <div className="mt-1 rounded-md border border-dashed border-[var(--dx-border-subtle,var(--axis-border-default))] px-3 py-4 text-center text-xs text-[var(--axis-text-tertiary)]">
-              준비 중
-            </div>
-          )}
-        </div>
+        {/* Archive folders */}
+        <ArchiveFolderList />
 
         {/* Chat history section label */}
         <div className="mt-2 px-5 pb-1">

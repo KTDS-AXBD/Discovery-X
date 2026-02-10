@@ -119,6 +119,7 @@
   --dx-sidebar-width: 240px;
   --dx-sidebar-collapsed-width: 0px;
   --dx-right-panel-width: 320px;
+  --dx-context-panel-width: 280px;
 
   /* Typography scale */
   --dx-text-page-title: 1.5rem;
