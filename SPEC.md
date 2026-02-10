@@ -257,7 +257,7 @@ build/
 ### 버전
 - **프로토타입**: v5.0 Layout Restructure + Proposals Feature
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 정상 동작
-- **DB**: 20개 마이그레이션 로컬+프로덕션 적용 완료 (0000~0020) + proposals 마이그레이션 Pending
+- **DB**: 22개 마이그레이션 (0000~0021), 로컬 적용 완료, 프로덕션 0021 Pending
 
 ### 주요 지표
 - **라우트**: 100개 (core 46 + ideas 2 + proposals 7 + venture 13 + API 30 + 기타 2)
@@ -268,7 +268,17 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 130)
+### 최근 변경 (세션 131)
+**layout-proposals PDCA 완료 (Gap Analysis + Completion Report)**:
+- ✅ tmux Agent Teams 3명 병렬 Gap Analysis 실행 (Layout Shell / Pages & Routes / API & DB)
+- ✅ Match Rate 93% (57/61) — PDCA completion 기준 충족
+- ✅ Gap Analysis 문서: `docs/03-analysis/layout-proposals.analysis.md`
+- ✅ Completion Report: `docs/04-report/layout-proposals.report.md`
+- ✅ 4건 FAIL 식별: 대시보드 Surface 미완성(2, F21), SidebarPanel mode 미사용(1), API POST 위치(1)
+- ✅ proposals DB 마이그레이션 0021 로컬 적용 + drizzle journal 동기화 (0012~0021)
+- ✅ 검증: ESLint 0 errors, TypeScript 0 errors, 597/597 테스트 통과
+
+### 이전 변경 (세션 130)
 **CI/CD 파이프라인 정상화 완료**:
 - ✅ GitHub Secrets 설정: `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` 추가
 - ✅ GitHub Actions 전체 파이프라인 통과: Install → Lint → Typecheck → Test → Build → Deploy (1m 25s)
@@ -485,7 +495,7 @@ build/
 | F16 | AX BD팀 PoC 테스트 — 36건 (Unit 8 + Integration 28) | v4.2 | ✅ | 6 |
 | **F17** | **AX BD팀 PoC PDCA 완료 — 보고서 + 배포 준비** | **v4.2** | **✅** | **1** |
 | F18 | Figma 3차 레이아웃 재구성 + 사업제안 기능 (3탭 GNB + ContextPanel + 6 DB 테이블 + CRUD) | v5.0 | ✅ | 25 |
-| F19 | Proposals DB 마이그레이션 생성 + 적용 (pnpm db:generate → db:migrate) | v5.0 | Pending | ~1 |
+| F19 | Proposals DB 마이그레이션 생성 + 적용 (0021_proposals.sql) | v5.0 | ✅ | 3 |
 | F20 | 아이디어 페이지 고도화 (Radar 연동 심화 + 메모 저장) | v5.1 | Pending | ~5 |
 | F21 | 대시보드 차트 실제 구현 (도넛 차트/바 차트) | v5.1 | Pending | ~5 |
 | F22 | 보관함 폴더 CRUD 구현 (DB 스키마 + API + 아이템 드래그) | v5.1 | Pending | ~8 |
