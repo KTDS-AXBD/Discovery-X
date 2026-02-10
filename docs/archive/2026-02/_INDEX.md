@@ -7,6 +7,22 @@
 | dx-strategic-evolution (P1) | 96.3% | 2026-02-08 | plan.md, design.md, analysis.md, report.md |
 | dx-strategic-evolution-p2 | 93.4% | 2026-02-08 | plan.md, design.md, analysis.md, report.md |
 | dx-strategic-evolution-p3 | 94% | 2026-02-08 | plan.md, design.md, analysis.md, report.md |
+| ax-bd-poc | 92% | 2026-02-10 | plan.md, test-plan.md, design.md, analysis.md, report.md |
+
+## ax-bd-poc (AX BD PoC — Proposal Pipeline)
+
+- **Phase**: Completed (PDCA full cycle)
+- **Duration**: 2026-02-09 ~ 2026-02-10
+- **Match Rate**: 92% (2 iterations)
+- **Requirements**: FR-01 ~ FR-12
+- **Notes**: Design v1.0 현행화 완료 (Core Table Extension). 597 테스트 PASS. 배포 준비 완료.
+- **Documents**:
+  - `ax-bd-poc/ax-bd-poc.plan.md` — Plan
+  - `ax-bd-poc/ax-bd-poc-tests.plan.md` — Test Plan
+  - `ax-bd-poc/ax-bd-poc.design.md` — Design
+  - `ax-bd-poc/ax-bd-poc.analysis.md` — Gap Analysis
+  - `ax-bd-poc/ax-bd-poc.report.md` — Completion Report
+  - `ax-bd-poc/ax-bd-poc.analysis-report.md` — Analysis Report (extended)
 
 ## Discovery-X
 

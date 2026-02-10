@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-10T14:14:59.046Z",
+  "lastUpdated": "2026-02-10T14:40:23.986Z",
   "activeFeatures": [
     "routes",
     "auth",
@@ -27,14 +27,13 @@
     "repositories",
     "notifications",
     "embeddings",
-    "ax-bd-poc",
     "api",
     "ideas",
     "proposals",
     "archive",
     "market"
   ],
-  "primaryFeature": "ax-bd-poc",
+  "primaryFeature": "proposals",
   "features": {
     "dx-strategic-evolution-p3": {
       "phase": "archived",
@@ -69,9 +68,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T11:39:12.844Z",
-        "lastUpdated": "2026-02-10T14:14:48.135Z"
+        "lastUpdated": "2026-02-10T14:40:08.719Z"
       },
-      "lastFile": "/mnt/d/01_Projects/Discovery-X/app/routes/market.$id.tsx"
+      "lastFile": "/mnt/d/01_Projects/Discovery-X/app/routes/proposals.$id.tsx"
     },
     "auth": {
       "phase": "do",
@@ -386,37 +385,12 @@
       "lastFile": "/mnt/d/01_Projects/Discovery-X/app/lib/embeddings/similar-items.ts"
     },
     "ax-bd-poc": {
-      "phase": "completed",
-      "phaseNumber": 5,
+      "phase": "archived",
       "matchRate": 92,
       "iterationCount": 2,
-      "requirements": [
-        "FR-01",
-        "FR-02",
-        "FR-03",
-        "FR-04",
-        "FR-05",
-        "FR-06",
-        "FR-07",
-        "FR-08",
-        "FR-09",
-        "FR-10",
-        "FR-11",
-        "FR-12"
-      ],
-      "documents": {
-        "plan": "docs/01-plan/features/ax-bd-poc.plan.md",
-        "design": "docs/02-design/features/ax-bd-poc.design.md",
-        "analysis": "docs/03-analysis/ax-bd-poc.analysis.md",
-        "testPlan": "docs/01-plan/features/ax-bd-poc-tests.plan.md",
-        "report": "docs/04-report/ax-bd-poc.report.md"
-      },
-      "timestamps": {
-        "started": "2026-02-09T00:00:00.000Z",
-        "lastUpdated": "2026-02-10T14:00:00.000Z",
-        "completedAt": "2026-02-10T14:00:00.000Z"
-      },
-      "notes": "PDCA 완료. Design v1.0 현행화 완료 (Core Table Extension). 597 테스트 PASS. 배포 준비 완료."
+      "startedAt": "2026-02-09T00:00:00.000Z",
+      "archivedAt": "2026-02-10T14:30:00.000Z",
+      "archivedTo": "docs/archive/2026-02/ax-bd-poc/"
     },
     "api": {
       "phase": "do",
@@ -453,9 +427,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-10T07:00:11.067Z",
-        "lastUpdated": "2026-02-10T11:33:26.419Z"
+        "lastUpdated": "2026-02-10T14:40:23.986Z"
       },
-      "lastFile": "/mnt/d/01_Projects/Discovery-X/app/components/proposals/ProposalListSidebar.tsx"
+      "lastFile": "/mnt/d/01_Projects/Discovery-X/app/components/proposals/ProgressPanel.tsx"
     },
     "archive": {
       "phase": "do",
@@ -492,7 +466,7 @@
   "session": {
     "startedAt": "2026-02-04T11:05:49.371Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-10T14:14:59.046Z"
+    "lastActivity": "2026-02-10T14:40:23.986Z"
   },
   "history": [
     {
@@ -3228,6 +3202,78 @@
     {
       "timestamp": "2026-02-10T14:14:59.046Z",
       "feature": "market",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T14:39:48.869Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T14:39:49.509Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T14:39:56.951Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T14:39:59.587Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T14:40:01.707Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T14:40:02.868Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T14:40:07.534Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T14:40:08.719Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T14:40:17.625Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T14:40:19.071Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T14:40:22.127Z",
+      "feature": "proposals",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-10T14:40:23.986Z",
+      "feature": "proposals",
       "phase": "do",
       "action": "updated"
     }
