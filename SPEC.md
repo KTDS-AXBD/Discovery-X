@@ -268,7 +268,23 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 139)
+### 최근 변경 (세션 140)
+**와이어프레임-구현 정합성 개선 — 대시보드/아이디어/사업제안 3개 페이지 UI 정렬**:
+- ✅ 대시보드: 탭 네비게이션 제거, 우측 사이드바 제거 → 단일 페이지 레이아웃
+- ✅ 대시보드: StatusOverview 3-column Card → 2-column 텍스트 ("최근 수집 소스" + "특집 현황")
+- ✅ 대시보드: "데이터 분류" 테이블 신규 추가 (카테고리별 건수/비율)
+- ✅ 대시보드: 통계 3-column → 2-column (DailyActivityChart 제거), StageDuration 건수/퍼센트 표시로 변경
+- ✅ 아이디어: FilterBar 제거, 사이드바 제목만 표시 (심플 리스트)
+- ✅ 아이디어: 블랙 헤더바 + 메타 정보행 제거, text-2xl 타이틀 + "새 아이디어 생성" 버튼
+- ✅ 아이디어: Card 기반 → 문서 스타일 섹션 (section/h2/ol), AI 푸터 "GPT 4o-mini Floating"
+- ✅ 사업제안: 예산 Won 포맷 (W500,000,000), 메타 카드 SVG 아이콘 (팀/달력/예산)
+- ✅ 사업제안: 댓글 상대시간 표시 ("N시간 전"), textarea 멀티행 입력
+- ✅ 사업제안: 커스텀 체크박스 (브랜드 컬러 + SVG 체크마크)
+- ✅ 사업제안 API: milestones/members CRUD 엔드포인트 추가 (세션 139 미커밋분)
+- ✅ 3개 워커 병렬 작업 (Dashboard/Ideas/Proposals 파일 충돌 없이 동시 실행)
+- ✅ pnpm build 성공 (398 modules, 3.42s)
+
+### 이전 변경 (세션 139)
 **사업제안 상세 UI 개선 + PDCA 문서 아카이브**:
 - ✅ ProposalDetail: 팀 멤버 이름 표시 (proposalMembers JOIN users)
 - ✅ ProgressPanel: 액션 아이템 담당자 이름 표시 (proposalActions JOIN users)
