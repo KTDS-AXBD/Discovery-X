@@ -330,6 +330,11 @@ requireAdmin()        → JSON 403 (ADMIN만)
 - **Single-Threaded Ownership**: Discovery당 책임자 1명
 - **Time-boxed**: 무한 탐구 금지 (4주 또는 실험 2회)
 
+## Agent Teams
+
+- agent team 작업 시 항상 `/team` 스킬(tmux split pane 모드)을 사용한다
+- 빌트인 subagent(Task tool) 대신 tmux 기반 `claude -p` 인스턴스를 사용한다
+
 ## SDD (Spec Driven Development) 워크플로우
 
 프로젝트 사양서 `SPEC.md`에 설계/아키텍처/현재 상태를 기록하고, 세션 스킬로 관리한다.
