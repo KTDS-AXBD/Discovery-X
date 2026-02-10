@@ -268,15 +268,21 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 132)
+### 최근 변경 (세션 133)
+**proposals 보안 강화 + 쿼리 최적화 + Design 문서 작성 완료**:
+- ✅ `api.proposals.ts`: PUT 핸들러 추가 (제안서 필드/섹션 업데이트) + DELETE에 tenant/owner 인가 검증
+- ✅ `proposals.$id.tsx`: tenant 검증 추가 + 4개 쿼리 Promise.all 병렬 최적화
+- ✅ `proposals.new.tsx`: sections 배치 insert 개선 (N회 → 1회 쿼리)
+- ✅ F20/F21/F22 Design 문서 추가 (ideas-enhancement, dashboard-charts, archive-folders)
+- ✅ 빌드 성공 (client 1766 modules + SSR 380 modules)
+- ✅ ESLint 0 errors, TypeScript 0 errors
+- ⚠️ 배포: 빌드 성공, wrangler deploy 실패 (비인터랙티브 환경 CLOUDFLARE_API_TOKEN 미설정)
+
+### 이전 변경 (세션 132)
 **proposals PDCA Plan + Design 문서 작성 완료**:
 - ✅ `/pdca plan proposals` — Plan 문서 작성 (280줄): 10 FRs, 6 테이블, 15 Known Issues, 파일 인벤토리
 - ✅ `/pdca design proposals` — Design 문서 작성 (677줄): 데이터 모델, API, UI, 보안/성능 분석, 23개 갭
-- ✅ 각 문서 tmux 3 Worker 병렬 분석 (스키마/라우트/UI) 후 리더 통합
-- ✅ F20/F21/F22 Plan 문서 추가 (ideas-enhancement, dashboard-charts, archive-folders)
-- ✅ PDCA 문서: `docs/01-plan/features/proposals.plan.md` + `docs/02-design/features/proposals.design.md`
 - ✅ Design 핵심 발견: 4개 Critical 보안 갭 (테넌트 격리 불완전), Promise.all 미사용 성능 이슈
-- 문서만 변경 — 코드 변경 없음, 빌드/테스트 검증 불필요
 
 ### 이전 변경 (세션 131)
 **layout-proposals PDCA 완료 (Gap Analysis + Completion Report)**:
@@ -436,7 +442,7 @@ build/
 - **브랜치 전략**: master 단일 브랜치 (Prototype 기간)
 - **배포**: Cloudflare Pages (master push → GitHub Actions CI/CD 자동 배포) — Secrets 설정 완료 ✅
 - **운영 실험**: 🚀 2026-01-31 시작 (30-60일, 최대 5명, Discovery 5-10건 목표)
-- **DB 마이그레이션**: ✅ 20개 (0000~0020) 로컬+프로덕션 적용 완료 + proposals 마이그레이션 Pending
+- **DB 마이그레이션**: ✅ 22개 (0000~0021) 로컬+프로덕션 적용 완료
 - **Cron 설정**: daily (09:00) + agent-review (10:00) + alerts (09:30) + embeddings (15분, cron-job.org)
 - **Radar Worker**: 프로덕션 운영 중 (Cron 매일 9:00 KST, 10소스)
 - **이메일**: Resend (`noreply@ideaonaction.ai`), cron-job.org 자동 발송
