@@ -43,6 +43,7 @@ export function createTestDb() {
   runMigrationSQL(sqlite, resolve(migrationsDir, "0018_valueup_engine.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0019_multi_tenant.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0020_bd_poc_refactoring.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0021_proposals.sql"));
 
   return drizzle(sqlite, { schema });
 }
