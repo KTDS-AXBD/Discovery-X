@@ -17,6 +17,14 @@ interface IdeaChatWrapperProps {
   onToolResult?: (toolName: string, result: Record<string, unknown>) => void;
 }
 
+const RESEARCH_CATEGORIES = [
+  { key: "regulation", label: "규제/법" },
+  { key: "market_research", label: "시장 조사" },
+  { key: "customer_research", label: "고객 조사" },
+  { key: "feasibility", label: "사업성 검증" },
+  { key: "differentiation", label: "차별화" },
+];
+
 export function IdeaChatWrapper({
   conversationId,
   messages,
@@ -40,10 +48,36 @@ export function IdeaChatWrapper({
             onToolResult={onToolResult}
           />
         ) : (
-          <div className="flex h-full items-center justify-center px-4">
-            <p className="text-center text-sm text-[var(--axis-text-tertiary)]">
-              소스를 선택하면 AI와 대화할 수 있습니다.
+          <div className="flex h-full flex-col items-center justify-center px-6">
+            {/* Empty state with speech bubble icon */}
+            <div className="rounded-full bg-[var(--axis-surface-secondary)] p-3">
+              <svg className="h-6 w-6 text-[var(--axis-text-tertiary)]" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+              </svg>
+            </div>
+            <p className="mt-3 text-center text-sm text-[var(--axis-text-secondary)]">
+              에이전트와 함께 아이디어를 사업으로 발전시켜보세요.
             </p>
+
+            {/* Research category checklist */}
+            <div className="mt-4 w-full space-y-1.5">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--axis-text-tertiary)]">
+                리서치 카테고리
+              </p>
+              {RESEARCH_CATEGORIES.map((cat) => (
+                <label
+                  key={cat.key}
+                  className="flex items-center gap-2 rounded-md px-2 py-1 text-xs text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-secondary)]"
+                >
+                  <input
+                    type="checkbox"
+                    className="h-3.5 w-3.5 rounded border-[var(--axis-border-default)] text-[var(--axis-text-brand)] focus:ring-[var(--axis-text-brand)]"
+                    defaultChecked
+                  />
+                  {cat.label}
+                </label>
+              ))}
+            </div>
           </div>
         )}
       </div>
