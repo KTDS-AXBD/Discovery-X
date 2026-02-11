@@ -28,7 +28,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 - BD 워크스페이스 (v4.2): 키워드 구독 → 소스 수집/요약 → Agent 채팅 → 아이디어 생성/편집 → 팀 공유
 - `_index.tsx`, `/radar` 통합 3-Pane 레이아웃 (v4.2)
 - 1개 신규 + 6개 기존 테이블 확장 (v4.2)
-- 3탭 GNB + ContextPanel + 보관함 사이드바 레이아웃 재구성 (v5.0)
+- 4탭 GNB (대시보드/아이디어/사업제안/온톨로지) + ContextPanel + 보관함 사이드바 레이아웃 재구성 (v5.0+)
 - 아이디어 페이지: Radar 아이템 재활용 + 메모 패널 (v5.0)
 - 사업제안: DB 6테이블 + CRUD API + 마일스톤/액션/댓글 + 진행상황 패널 (v5.0)
 - 온톨로지 인텔리전스: LLM 자동 엔티티 추출 + 글로벌 엔티티 매칭 + 관계 분석 엔진 + 시뮬레이션 (v5.3)
@@ -284,7 +284,7 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v5.7 Ideas Page Meta Filtering + Analysis Tab Data
+- **프로토타입**: v5.8 Ontology GNB + Analysis Tab Fix
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 배포 완료 (세션 149)
 - **DB**: 26개 마이그레이션 (0000~0025), 로컬+프로덕션 적용 완료 ✅
 
@@ -297,7 +297,14 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 154)
+### 최근 변경 (세션 155)
+**온톨로지 GNB 노출 + 분석 탭 오류 수정**:
+- ✅ `TopNav.tsx`: GNB NAV_TABS에 온톨로지 탭 추가 (share 아이콘) — /ontology 직접 URL 없이도 접근 가능
+- ✅ `InsightPanel.tsx`: TYPE_LABELS 키를 API 계약과 동일한 복수형으로 통일 (`pattern`→`patterns`, `contradiction`→`contradictions`, `cluster`→`clusters`) — TypeError 해결
+- ✅ `ontology.analysis.tsx`: 불필요한 타입 캐스팅 제거
+- ✅ typecheck 0 에러 / lint 0 에러
+
+### 이전 변경 (세션 154)
 **아이디어 페이지 메타 정보 필터링 + 분석 탭 데이터 전달**:
 - ✅ `display-title.ts` 공통 유틸리티 추출: `isMeaningfulTitle` + `displayTitle` (META_RE 정규식 기반 "댓글 N개" 등 메타 텍스트 필터링)
 - ✅ `ideas.tsx` loader: 메타데이터 전용 항목 필터링 추가 (대시보드와 동일 패턴)
