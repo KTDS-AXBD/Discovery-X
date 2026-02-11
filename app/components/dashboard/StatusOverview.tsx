@@ -1,29 +1,33 @@
+import { useState } from "react";
+import { cn } from "~/lib/utils/cn";
+
 interface StatusOverviewProps {
   recentCollections: {
     total: number;
-    items: { id: string; title: string; summary?: string | null }[];
+    items: {
+      id: string;
+      title: string;
+      titleKo: string | null;
+      summaryKo: string | null;
+      summary: string | null;
+      keyPoints: string[] | null;
+      url: string;
+    }[];
   };
-  totalDiscoveries: {
-    total: number;
-    items: { id: string; title: string; status: string }[];
-  };
-  strategyProposals: {
-    total: number;
-    items: { id: string; title: string; status: string }[];
-  };
-  totalSources: number;
-  timestamp: string;
 }
 
-export function StatusOverview({
-  recentCollections,
-  totalDiscoveries,
-  strategyProposals,
-  timestamp: _timestamp,
-}: StatusOverviewProps) {
+export function StatusOverview({ recentCollections }: StatusOverviewProps) {
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(
+    recentCollections.items[0]?.id ?? null
+  );
+
+  const selectedItem = recentCollections.items.find(
+    (item) => item.id === selectedItemId
+  );
+
   return (
     <section>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-[1fr_2fr] gap-6">
         {/* 최근 수집 소스 */}
         <div>
           <h3 className="mb-3 text-sm font-semibold text-[var(--axis-text-primary)]">
@@ -33,16 +37,26 @@ export function StatusOverview({
             {recentCollections.items.map((item) => (
               <div
                 key={item.id}
-                className="border-b border-[var(--axis-border-default)] py-2.5 last:border-b-0"
-              >
-                <p className="text-sm font-medium text-[var(--axis-text-primary)] truncate">
-                  {item.title}
-                </p>
-                {item.summary && (
-                  <p className="mt-0.5 text-xs text-[var(--axis-text-tertiary)] line-clamp-2">
-                    {item.summary}
-                  </p>
+                role="button"
+                tabIndex={0}
+                onClick={() => setSelectedItemId(item.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setSelectedItemId(item.id);
+                  }
+                }}
+                className={cn(
+                  "cursor-pointer border-b border-[var(--axis-border-default)] px-2.5 py-2.5 last:border-b-0",
+                  "transition-colors",
+                  selectedItemId === item.id
+                    ? "bg-[var(--dx-surface-card,var(--axis-surface-brand))]"
+                    : "hover:bg-[var(--axis-surface-secondary)]"
                 )}
+              >
+                <p className="truncate text-sm font-medium text-[var(--axis-text-primary)]">
+                  {item.titleKo || item.title}
+                </p>
               </div>
             ))}
             {recentCollections.items.length === 0 && (
@@ -53,33 +67,61 @@ export function StatusOverview({
           </div>
         </div>
 
-        {/* 특집 현황 */}
+        {/* 요약/정리 */}
         <div>
           <h3 className="mb-3 text-sm font-semibold text-[var(--axis-text-primary)]">
-            특집 현황
+            요약/정리
           </h3>
-          <div className="space-y-4 text-sm text-[var(--axis-text-secondary)]">
-            <p>
-              현재 등록된 발굴(Discovery)은 총{" "}
-              <span className="font-semibold text-[var(--axis-text-primary)]">
-                {totalDiscoveries.total}
-              </span>
-              건입니다.
-              {totalDiscoveries.total > 0 && (
-                <> 파이프라인 내 다양한 단계에서 진행 중이며, 각 발굴 건별 실험과 근거 수집이 이루어지고 있습니다.</>
+          {selectedItem ? (
+            <div className="space-y-4">
+              <h3 className="text-base font-bold text-[var(--axis-text-primary)]">
+                {selectedItem.titleKo || selectedItem.title}
+              </h3>
+
+              {(selectedItem.summaryKo || selectedItem.summary) && (
+                <div className="space-y-2 text-sm text-[var(--axis-text-secondary)]">
+                  {(selectedItem.summaryKo || selectedItem.summary)!
+                    .split("\n")
+                    .filter((p) => p.trim())
+                    .map((paragraph, i) => (
+                      <p key={i}>{paragraph}</p>
+                    ))}
+                </div>
               )}
-            </p>
-            <p>
-              사업제안(Proposal)은 총{" "}
-              <span className="font-semibold text-[var(--axis-text-primary)]">
-                {strategyProposals.total}
-              </span>
-              건이 등록되어 있습니다.
-              {strategyProposals.total > 0 && (
-                <> 제출된 제안에 대한 검토 및 의사결정이 진행되고 있습니다.</>
+
+              {selectedItem.keyPoints &&
+                selectedItem.keyPoints.length > 0 && (
+                  <div>
+                    <h4 className="mb-1 text-xs font-semibold text-[var(--axis-text-tertiary)]">
+                      키워드
+                    </h4>
+                    <p className="text-sm text-[var(--axis-text-secondary)]">
+                      {selectedItem.keyPoints.join(", ")}
+                    </p>
+                  </div>
+                )}
+
+              {selectedItem.url && (
+                <div>
+                  <h4 className="mb-1 text-xs font-semibold text-[var(--axis-text-tertiary)]">
+                    원본 링크
+                  </h4>
+                  <a
+                    href={selectedItem.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-[var(--axis-text-link)] hover:underline"
+                  >
+                    {selectedItem.url}
+                  </a>
+                </div>
               )}
+            </div>
+          ) : (
+            <p className="py-8 text-center text-sm text-[var(--axis-text-tertiary)]">
+              소스를 선택하세요
             </p>
-          </div>
+          )}
         </div>
       </div>
     </section>

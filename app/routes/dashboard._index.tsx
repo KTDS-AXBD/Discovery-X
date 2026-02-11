@@ -13,8 +13,7 @@ import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { tenantWhere } from "~/lib/query/tenant-scope";
 import { PIPELINE_COLUMNS, STATUS_CONFIG } from "~/lib/constants/status";
 import { StatusOverview } from "~/components/dashboard/StatusOverview";
-import { StageDurationTable } from "~/components/dashboard/StageDurationTable";
-import { IndustryDonut } from "~/components/charts/IndustryDonut";
+import { PeerBriefingSection } from "~/components/dashboard/PeerBriefingSection";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -22,7 +21,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const ctx = await getSessionContext(request, db, secret);
 
   const emptyDefaults = {
-    recentCollections: { total: 0, items: [] as { id: string; title: string; summary: string | null }[] },
+    recentCollections: { total: 0, items: [] as { id: string; title: string; summary: string | null; titleKo: string | null; summaryKo: string | null; keyPoints: string[] | null; url: string }[] },
     totalDiscoveries: { total: 0, items: [] as { id: string; title: string; status: string }[] },
     strategyProposals: { total: 0, items: [] as { id: string; title: string; status: string }[] },
     totalSources: 0,
@@ -52,6 +51,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         id: radarItems.id,
         title: radarItems.title,
         summary: radarItems.summary,
+        titleKo: radarItems.titleKo,
+        summaryKo: radarItems.summaryKo,
+        keyPoints: radarItems.keyPoints,
+        url: radarItems.url,
       })
       .from(radarItems)
       .where(sql`${radarItems.runId} IN ${tenantRunIds}`)
@@ -170,101 +173,18 @@ export default function DashboardOverview() {
     recentCollections,
     totalDiscoveries,
     strategyProposals,
-    totalSources,
-    stageDuration,
-    industryData,
-    timestamp,
   } = useLoaderData<typeof loader>();
-
-  // Compute total for industry percentage
-  const industryTotal = industryData.reduce((sum, d) => sum + d.count, 0);
 
   return (
     <div>
       {/* 현황 섹션 */}
-      <StatusOverview
-        recentCollections={recentCollections}
-        totalDiscoveries={totalDiscoveries}
-        strategyProposals={strategyProposals}
-        totalSources={totalSources}
-        timestamp={timestamp}
+      <StatusOverview recentCollections={recentCollections} />
+
+      {/* 피어브리핑 섹션 */}
+      <PeerBriefingSection
+        ideas={totalDiscoveries.items}
+        proposals={strategyProposals.items}
       />
-
-      {/* 데이터 분류 섹션 */}
-      <div className="mt-8">
-        <h2 className="mb-4 text-lg font-semibold text-[var(--axis-text-primary)]">데이터 분류</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-[var(--axis-border-default)]">
-                <th className="pb-2 text-left text-xs font-medium text-[var(--axis-text-tertiary)]">
-                  카테고리
-                </th>
-                <th className="pb-2 text-right text-xs font-medium text-[var(--axis-text-tertiary)] w-20">
-                  건수
-                </th>
-                <th className="pb-2 text-right text-xs font-medium text-[var(--axis-text-tertiary)] w-20">
-                  비율
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {industryData.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="py-4 text-center text-xs text-[var(--axis-text-tertiary)]">
-                    데이터 없음
-                  </td>
-                </tr>
-              ) : (
-                industryData.map((row) => {
-                  const pct = industryTotal > 0 ? ((row.count / industryTotal) * 100).toFixed(1) : "0.0";
-                  return (
-                    <tr
-                      key={row.name}
-                      className="border-b border-[var(--axis-border-default)] last:border-b-0"
-                    >
-                      <td className="py-2 text-[var(--axis-text-primary)]">
-                        <span className="inline-flex items-center gap-2">
-                          <span
-                            className="inline-block h-2.5 w-2.5 rounded-full"
-                            style={{ backgroundColor: row.color }}
-                          />
-                          {row.name}
-                        </span>
-                      </td>
-                      <td className="py-2 text-right tabular-nums text-[var(--axis-text-secondary)]">
-                        {row.count}건
-                      </td>
-                      <td className="py-2 text-right tabular-nums text-[var(--axis-text-tertiary)]">
-                        {pct}%
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* 통계 섹션 */}
-      <div className="mt-8">
-        <h2 className="mb-4 text-lg font-semibold text-[var(--axis-text-primary)]">통계</h2>
-
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* 단계별 건수 */}
-          <div>
-            <h3 className="mb-3 text-sm font-semibold text-[var(--axis-text-primary)]">단계별 건수</h3>
-            <StageDurationTable data={stageDuration} />
-          </div>
-
-          {/* 산업 분포 */}
-          <div>
-            <h3 className="mb-3 text-sm font-semibold text-[var(--axis-text-primary)]">산업 분포</h3>
-            <IndustryDonut data={industryData} />
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
