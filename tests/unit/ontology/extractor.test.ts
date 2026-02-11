@@ -12,6 +12,8 @@ import {
   users,
   evidence,
   ontologyTypes,
+  tenants,
+  tenantMembers,
 } from "~/db/schema";
 import { extractOntologyBatch, type ExtractionResult } from "~/lib/ontology/extractor";
 
@@ -23,6 +25,12 @@ function asDB(db: TestDB) {
 /** 공통 시드 데이터 */
 function seedBase(db: TestDB) {
   db.insert(users).values({ id: "user-1", email: "test@test.com", name: "Tester" }).run();
+  db.insert(tenants)
+    .values({ id: "tenant-1", name: "Test Tenant", slug: "test-tenant", ownerUserId: "user-1" })
+    .run();
+  db.insert(tenantMembers)
+    .values({ id: "tm-1", tenantId: "tenant-1", userId: "user-1" })
+    .run();
   db.insert(ontologyTypes)
     .values([
       { id: "ONT-01", nameKo: "기술", domain: "tech", color: "#000" },
@@ -166,6 +174,10 @@ describe("ontology/extractor", () => {
     });
 
     it("다른 테넌트의 evidence는 포함되지 않는다", async () => {
+      // 테넌트A 시드
+      db.insert(tenants)
+        .values({ id: "tenant-A", name: "Tenant A", slug: "tenant-a", ownerUserId: "user-1" })
+        .run();
       // 테넌트A의 discovery+evidence
       const discA = makeDiscovery({ id: "disc-a", tenantId: "tenant-A" });
       db.insert(discoveries).values(discA).run();
