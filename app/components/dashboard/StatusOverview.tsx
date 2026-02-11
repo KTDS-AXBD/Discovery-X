@@ -1,6 +1,16 @@
 import { useState } from "react";
 import { cn } from "~/lib/utils/cn";
 
+const SHORT_META_RE = /^(댓글\s*\d+개|댓글\s*없음|\d+\s*(comments?|points?|개))$/i;
+
+/** titleKo가 실제 기사 제목인지 판별하여 적절한 제목 반환 */
+function displayTitle(titleKo: string | null, title: string): string {
+  if (!titleKo || titleKo.length < 5 || SHORT_META_RE.test(titleKo.trim())) {
+    return title;
+  }
+  return titleKo;
+}
+
 interface StatusOverviewProps {
   recentCollections: {
     total: number;
@@ -55,7 +65,7 @@ export function StatusOverview({ recentCollections }: StatusOverviewProps) {
                 )}
               >
                 <p className="truncate text-sm font-medium text-[var(--axis-text-primary)]">
-                  {item.titleKo || item.title}
+                  {displayTitle(item.titleKo, item.title)}
                 </p>
               </div>
             ))}
@@ -75,7 +85,7 @@ export function StatusOverview({ recentCollections }: StatusOverviewProps) {
           {selectedItem ? (
             <div className="space-y-4">
               <h3 className="text-base font-bold text-[var(--axis-text-primary)]">
-                {selectedItem.titleKo || selectedItem.title}
+                {displayTitle(selectedItem.titleKo, selectedItem.title)}
               </h3>
 
               {(selectedItem.summaryKo || selectedItem.summary) && (
