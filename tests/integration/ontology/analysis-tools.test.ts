@@ -27,7 +27,7 @@ function asDB(db: TestDB) {
   return db as unknown as Parameters<typeof analyzePatterns>[0];
 }
 
-/** Seed tenant + user + discovery base data. Discoveries need tenantId for analysis tools. */
+/** Seed tenant + user + ontologyTypes base data. */
 function seedTenant(db: TestDB) {
   const user = makeUser({ id: "user-1" });
   db.insert(users).values(user).run();
@@ -43,6 +43,16 @@ function seedTenant(db: TestDB) {
 
   db.insert(tenantMembers)
     .values({ id: "tm-1", tenantId: "tenant-1", userId: "user-1" })
+    .run();
+
+  db.insert(ontologyTypes)
+    .values([
+      { id: "ONT-01", nameKo: "고객", domain: "market", color: "#111" },
+      { id: "ONT-02", nameKo: "트렌드", domain: "market", color: "#222" },
+      { id: "ONT-03", nameKo: "규제", domain: "regulation", color: "#333" },
+      { id: "ONT-04", nameKo: "기술", domain: "tech", color: "#444" },
+    ])
+    .onConflictDoNothing()
     .run();
 }
 

@@ -13,6 +13,7 @@ import {
   users,
   contextNodes,
   contextEdges,
+  ontologyTypes,
   tenants,
   tenantMembers,
 } from "~/db/schema";
@@ -47,6 +48,15 @@ function seedTenant(db: TestDB) {
 
   db.insert(tenantMembers)
     .values({ id: "tm-1", tenantId: "tenant-1", userId: "user-1" })
+    .run();
+
+  db.insert(ontologyTypes)
+    .values([
+      { id: "ONT-03", nameKo: "규제", domain: "regulation", color: "#333" },
+      { id: "ONT-07", nameKo: "금융", domain: "finance", color: "#777" },
+      { id: "ONT-10", nameKo: "기술", domain: "tech", color: "#AAA" },
+    ])
+    .onConflictDoNothing()
     .run();
 }
 
