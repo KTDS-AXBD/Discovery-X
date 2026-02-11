@@ -267,20 +267,35 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v5.4 Dashboard Wireframe Alignment + UI Polish + CI Fix + Deploy
-- **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 배포 완료 (세션 148)
+- **프로토타입**: v5.5 Ontology Tests 48 Pass + Dashboard Statistics + Deploy
+- **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 배포 완료 (세션 149)
 - **DB**: 26개 마이그레이션 (0000~0025), 로컬+프로덕션 적용 완료 ✅
 
 ### 주요 지표
 - **라우트**: 121개 (core 46 + ideas 2 + proposals 8 + ontology 9 + venture 13 + market 3 + API 30 + folders 4 + 기타 6)
 - **테이블**: 68개 (core 44 + venture 16 + proposals 6 + archive 2) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges)
 - **Agent 도구**: 52개 (+4 ontology analysis)
-- **테스트**: 645개 (43 test files, 로컬 + CI 모두 통과)
+- **테스트**: 645개 (48 test files, 로컬 + CI 모두 통과) — 온톨로지 테스트 5파일 48개 포함
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 148)
+### 최근 변경 (세션 149)
+**온톨로지 테스트 48개 통과 + 대시보드 통계 + 배포 완료**:
+- ✅ 온톨로지 테스트 5파일 48개 전체 통과 확인 (unit 3 + integration 2)
+  - matcher.test.ts (11): normalizeLabel, matchGlobalEntity, matchGlobalEntitiesBatch
+  - extractor.test.ts (6): VALID_RELATION_TYPES 검증, 배치 필터링, 테넌트 격리
+  - analyzer.test.ts (14): detectPatterns, detectContradictions, detectClusters, analyzeCentrality
+  - analysis-tools.test.ts (8): Agent 도구 레이어 JSON 직렬화 검증
+  - review-pipeline.test.ts (8): 노드/엣지 review, cross-Discovery 매칭, 거절노드 제외, 풀파이프라인
+- ✅ FK 에러 수정: analysis-tools/review-pipeline 테스트에 ontologyTypes 시드 추가 (이전 세션 반영 확인)
+- ✅ WSL better-sqlite3 네이티브 바이너리 리빌드 (node-gyp rebuild)
+- ✅ 대시보드 통계 섹션 추가: StatisticsSection 컴포넌트 (월별 활동 + 소스 분류)
+- ✅ StatusOverview 선택 항목 하이라이트 색상 수정
+- ✅ CI/CD 전체 통과 (1m 32s): Lint ✓ / Typecheck ✓ / Tests ✓ / Build ✓ / Deploy ✓
+- ✅ 프로덕션 배포 완료 (https://dx.minu.best)
+
+### 이전 변경 (세션 148)
 **이전 세션 중단 배포 완료**:
 - ✅ 세션 147에서 중단된 `/deploy` 재개: `git push origin master` → CI/CD 전체 통과 (1m 33s)
 - ✅ CI/CD: Lint ✓ / Typecheck ✓ / Tests ✓ / Build ✓ / Deploy ✓
