@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { useLoaderData, useFetcher } from "@remix-run/react";
@@ -52,26 +52,19 @@ export default function OntologySimulation() {
   const [magnitude, setMagnitude] = useState("1.0");
   const [question, setQuestion] = useState("");
   const [mode, setMode] = useState<"propagate" | "scenario">("propagate");
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [propagationResult, setPropagationResult] = useState<any>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [scenarioResult, setScenarioResult] = useState<any>(null);
-
   const typeMap = new Map(types.map((t) => [t.id, t.nameKo]));
 
-  useEffect(() => {
-    if (fetcher.data?.success) {
-      if (fetcher.data.result) {
-        setPropagationResult(fetcher.data.result);
-        setScenarioResult(null);
-      }
-      if (fetcher.data.propagation) {
-        setPropagationResult(fetcher.data.propagation);
-      }
-      if (fetcher.data.scenario) {
-        setScenarioResult(fetcher.data.scenario);
-      }
-    }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const propagationResult = useMemo<any>(() => {
+    if (!fetcher.data?.success) return null;
+    return fetcher.data.propagation ?? fetcher.data.result ?? null;
+  }, [fetcher.data]);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const scenarioResult = useMemo<any>(() => {
+    if (!fetcher.data?.success) return null;
+    if (fetcher.data.result) return null;
+    return fetcher.data.scenario ?? null;
   }, [fetcher.data]);
 
   function runSimulation() {
