@@ -14,6 +14,7 @@ import { tenantWhere } from "~/lib/query/tenant-scope";
 import { PIPELINE_COLUMNS, STATUS_CONFIG } from "~/lib/constants/status";
 import { StatusOverview } from "~/components/dashboard/StatusOverview";
 import { PeerBriefingSection } from "~/components/dashboard/PeerBriefingSection";
+import { StatisticsSection } from "~/components/dashboard/StatisticsSection";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -27,6 +28,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     totalSources: 0,
     stageDuration: [] as { stage: string; label: string; count: number }[],
     industryData: [] as { name: string; count: number; color: string }[],
+    monthlyActivity: [] as { month: string; count: number }[],
+    sourceBreakdown: { web: 0, youtube: 0, uncategorized: 0 },
     timestamp: "",
   };
 
@@ -157,6 +160,58 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     color: r.color ?? "#9CA3AF",
   }));
 
+  // ── 7. Monthly activity (월별 활동) ──────────────────────
+  let monthlyActivity = emptyDefaults.monthlyActivity;
+  try {
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+    sixMonthsAgo.setDate(1);
+    const sinceTs = Math.floor(sixMonthsAgo.getTime() / 1000);
+
+    const monthlyRows = await db
+      .select({
+        month: sql<string>`strftime('%y.%m', ${radarItems.collectedAt}, 'unixepoch')`,
+        count: sql<number>`count(*)`,
+      })
+      .from(radarItems)
+      .where(
+        sql`${radarItems.runId} IN (SELECT id FROM radar_runs WHERE tenant_id = ${ctx.tenantId}) AND ${radarItems.collectedAt} >= ${sinceTs}`
+      )
+      .groupBy(sql`strftime('%y.%m', ${radarItems.collectedAt}, 'unixepoch')`)
+      .orderBy(sql`strftime('%y.%m', ${radarItems.collectedAt}, 'unixepoch')`);
+
+    monthlyActivity = monthlyRows.map((r) => ({
+      month: r.month ?? "",
+      count: r.count,
+    }));
+  } catch {
+    // radarItems might not exist
+  }
+
+  // ── 8. Source breakdown (소스 타입 분류) ─────────────────
+  let sourceBreakdown = emptyDefaults.sourceBreakdown;
+  try {
+    const allUrls = await db
+      .select({ url: radarItems.url })
+      .from(radarItems)
+      .where(
+        sql`${radarItems.runId} IN (SELECT id FROM radar_runs WHERE tenant_id = ${ctx.tenantId})`
+      );
+
+    let web = 0;
+    let youtube = 0;
+    let uncategorized = 0;
+    for (const row of allUrls) {
+      const u = (row.url ?? "").toLowerCase();
+      if (u.includes("youtube.com") || u.includes("youtu.be")) youtube++;
+      else if (u.startsWith("http")) web++;
+      else uncategorized++;
+    }
+    sourceBreakdown = { web, youtube, uncategorized };
+  } catch {
+    // radarItems might not exist
+  }
+
   return json({
     recentCollections,
     totalDiscoveries,
@@ -164,6 +219,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     totalSources,
     stageDuration,
     industryData,
+    monthlyActivity,
+    sourceBreakdown,
     timestamp,
   });
 }
@@ -173,6 +230,11 @@ export default function DashboardOverview() {
     recentCollections,
     totalDiscoveries,
     strategyProposals,
+    totalSources,
+    stageDuration,
+    industryData,
+    monthlyActivity,
+    sourceBreakdown,
   } = useLoaderData<typeof loader>();
 
   return (
@@ -184,6 +246,15 @@ export default function DashboardOverview() {
       <PeerBriefingSection
         ideas={totalDiscoveries.items}
         proposals={strategyProposals.items}
+      />
+
+      {/* 통계 섹션 */}
+      <StatisticsSection
+        monthlyActivity={monthlyActivity}
+        stageDuration={stageDuration}
+        industryData={industryData}
+        totalSources={totalSources}
+        sourceBreakdown={sourceBreakdown}
       />
     </div>
   );

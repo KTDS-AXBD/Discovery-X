@@ -50,8 +50,8 @@ export function StatusOverview({ recentCollections }: StatusOverviewProps) {
                   "cursor-pointer border-b border-[var(--axis-border-default)] px-2.5 py-2.5 last:border-b-0",
                   "transition-colors",
                   selectedItemId === item.id
-                    ? "bg-[var(--dx-surface-card,var(--axis-surface-brand))]"
-                    : "hover:bg-[var(--axis-surface-secondary)]"
+                    ? "bg-[var(--axis-surface-secondary)]"
+                    : "hover:bg-[var(--axis-surface-secondary)]/50"
                 )}
               >
                 <p className="truncate text-sm font-medium text-[var(--axis-text-primary)]">
