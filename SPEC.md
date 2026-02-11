@@ -267,8 +267,8 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v5.4 Dashboard Wireframe Alignment + UI Polish + CI Fix
-- **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 배포 완료
+- **프로토타입**: v5.4 Dashboard Wireframe Alignment + UI Polish + CI Fix + Deploy
+- **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 배포 완료 (세션 148)
 - **DB**: 26개 마이그레이션 (0000~0025), 로컬+프로덕션 적용 완료 ✅
 
 ### 주요 지표
@@ -280,7 +280,13 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 147)
+### 최근 변경 (세션 148)
+**이전 세션 중단 배포 완료**:
+- ✅ 세션 147에서 중단된 `/deploy` 재개: `git push origin master` → CI/CD 전체 통과 (1m 33s)
+- ✅ CI/CD: Lint ✓ / Typecheck ✓ / Tests ✓ / Build ✓ / Deploy ✓
+- ✅ 프로덕션 배포 완료 (https://dx.minu.best)
+
+### 이전 변경 (세션 147)
 **CI 통합 테스트 수정 + 재배포 완료**:
 - ✅ `analysis-tools.test.ts` + `review-pipeline.test.ts` onConflictDoNothing 수정 (세션 146에서 누락된 통합 테스트 2개)
 - ✅ CI/CD 전체 통과: Lint ✓ / Typecheck ✓ / Tests ✓ / Build ✓ / Deploy ✓
