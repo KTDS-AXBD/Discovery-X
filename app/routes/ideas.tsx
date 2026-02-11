@@ -1,33 +1,38 @@
+import { useState, useCallback, useEffect } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
-import { Outlet, useLoaderData, useParams } from "@remix-run/react";
+import { Outlet, useLoaderData, useParams, useRevalidator } from "@remix-run/react";
 import { desc, sql } from "drizzle-orm";
 import { getDb } from "~/db";
 import { radarItems } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
-import { MemoPanel } from "~/components/ideas/MemoPanel";
-import { Link } from "@remix-run/react";
-import { cn } from "~/lib/utils/cn";
+import { SourceInputPanel } from "~/components/ideas/SourceInputPanel";
+import { IdeaChatWrapper } from "~/components/ideas/IdeaChatWrapper";
+
+interface ChatMessageData {
+  id: string;
+  role: "user" | "assistant" | "tool_use" | "tool_result";
+  content: string;
+  toolName?: string | null;
+  toolInput?: Record<string, unknown> | null;
+  toolResult?: Record<string, unknown> | null;
+  createdAt?: string | null;
+}
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const db = getDb(context.cloudflare.env.DB);
-  const secret = getSessionSecret(context.cloudflare.env);
-  const ctx = await getSessionContext(request, db, secret);
+  try {
+    const db = getDb(context.cloudflare.env.DB);
+    const secret = getSessionSecret(context.cloudflare.env);
+    const ctx = await getSessionContext(request, db, secret);
 
-  if (!ctx) {
-    return redirect("/login");
-  }
+    if (!ctx) {
+      return redirect("/login");
+    }
 
-  const url = new URL(request.url);
-  const scoreMin = Number(url.searchParams.get("score") || "0");
-  const statusFilter = url.searchParams.get("status") || "ALL";
-  const searchQuery = url.searchParams.get("q") || "";
+    // Tenant scoping
+    const tenantRunIds = sql`(SELECT id FROM radar_runs WHERE tenant_id = ${ctx.tenantId})`;
 
-  // Tenant scoping
-  const tenantRunIds = sql`(SELECT id FROM radar_runs WHERE tenant_id = ${ctx.tenantId})`;
-
-  // Total count (unfiltered, for display)
   let totalCount = 0;
   let items: Array<{
     id: string;
@@ -42,30 +47,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }> = [];
 
   try {
-    // Total count query
     const countResult = await db
       .select({ count: sql<number>`count(*)` })
       .from(radarItems)
       .where(sql`${radarItems.runId} IN ${tenantRunIds}`);
     totalCount = countResult[0]?.count ?? 0;
-
-    // Dynamic WHERE conditions
-    const conditions = [sql`${radarItems.runId} IN ${tenantRunIds}`];
-
-    if (scoreMin > 0) {
-      conditions.push(sql`${radarItems.relevanceScore} >= ${scoreMin}`);
-    }
-
-    if (statusFilter !== "ALL") {
-      conditions.push(sql`${radarItems.status} = ${statusFilter}`);
-    }
-
-    if (searchQuery.trim()) {
-      const like = `%${searchQuery.trim()}%`;
-      conditions.push(
-        sql`(${radarItems.titleKo} LIKE ${like} OR ${radarItems.title} LIKE ${like} OR ${radarItems.summaryKo} LIKE ${like})`
-      );
-    }
 
     items = await db
       .select({
@@ -80,74 +66,134 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         memo: radarItems.memo,
       })
       .from(radarItems)
-      .where(sql.join(conditions, sql` AND `))
+      .where(sql`${radarItems.runId} IN ${tenantRunIds}`)
       .orderBy(desc(radarItems.collectedAt))
       .limit(100);
   } catch {
     // Radar tables might not exist
   }
 
-  return json({ user: ctx.user, items, totalCount });
+    return json({ user: ctx.user, items, totalCount });
+  } catch (error) {
+    console.error("[ideas.loader] Error:", error instanceof Error ? error.message : error);
+    return redirect("/login");
+  }
 }
 
 export default function IdeasLayout() {
   const { user, items } = useLoaderData<typeof loader>();
   const params = useParams();
   const selectedId = params.id;
+  const revalidator = useRevalidator();
 
-  // Find selected item's memo for MemoPanel
-  const selectedItem = selectedId ? items.find((i) => i.id === selectedId) : undefined;
-  const contextPanel = (
-    <MemoPanel itemId={selectedId} initialMemo={selectedItem?.memo} />
+  // Chat state
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [chatMessages, setChatMessages] = useState<ChatMessageData[]>([]);
+  const [messagesLoaded, setMessagesLoaded] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+
+  const isLoadingMessages = conversationId !== null && !messagesLoaded;
+
+  // Create conversation for the selected item
+  useEffect(() => {
+    if (!selectedId) {
+      setConversationId(null);
+      setChatMessages([]);
+      setMessagesLoaded(false);
+      return;
+    }
+
+    // Create or find conversation for this item
+    let cancelled = false;
+    fetch("/api/conversations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: items.find((i) => i.id === selectedId)?.titleKo || "아이디어 분석",
+        sourceItemId: selectedId,
+      }),
+    })
+      .then((r) => r.json() as Promise<{ id: string }>)
+      .then((data) => {
+        if (!cancelled) {
+          setConversationId(data.id);
+          setMessagesLoaded(false);
+        }
+      })
+      .catch(() => {});
+
+    return () => { cancelled = true; };
+  }, [selectedId, items]);
+
+  // Fetch messages when conversation changes
+  useEffect(() => {
+    if (!conversationId) return;
+
+    let cancelled = false;
+    fetch(`/api/conversations/${conversationId}/messages`)
+      .then((res) => res.json() as Promise<{ messages: ChatMessageData[] }>)
+      .then((data) => {
+        if (!cancelled) {
+          setChatMessages(data.messages || []);
+          setMessagesLoaded(true);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setChatMessages([]);
+          setMessagesLoaded(true);
+        }
+      });
+
+    return () => { cancelled = true; };
+  }, [conversationId]);
+
+  const handleAddSource = useCallback(async (url: string) => {
+    setIsAdding(true);
+    try {
+      await fetch("/api/radar/sources", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      revalidator.revalidate();
+    } catch {
+      // Silently fail
+    } finally {
+      setIsAdding(false);
+    }
+  }, [revalidator]);
+
+  const handleToolResult = useCallback(
+    (_toolName: string, _result: Record<string, unknown>) => {
+      // Future: extract context items from tool results
+    },
+    []
   );
 
   return (
-    <AppShell user={user} contextPanel={contextPanel}>
-      <div className="flex h-full">
-        {/* Ideas list (left area within surface) */}
-        <div className="w-72 shrink-0 overflow-y-auto border-r border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))]">
-          <div className="px-3 py-3">
-            <h2 className="text-sm font-semibold text-[var(--axis-text-primary)]">
-              아이디어
-            </h2>
-          </div>
-          <div className="px-2 pb-3 space-y-0.5">
-            {items.map((item) => (
-              <Link
-                key={item.id}
-                to={`/ideas/${item.id}`}
-                className={cn(
-                  "block rounded-lg px-3 py-2.5 transition-colors",
-                  selectedId === item.id
-                    ? "bg-[var(--dx-surface-card,var(--axis-surface-brand))]"
-                    : "hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))]"
-                )}
-              >
-                <div className="flex items-start gap-1.5">
-                  <p className="flex-1 text-sm font-medium text-[var(--axis-text-primary)] line-clamp-2">
-                    {item.titleKo || item.title}
-                  </p>
-                  {item.memo && (
-                    <span
-                      className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--axis-text-brand)]"
-                      title="메모 있음"
-                    />
-                  )}
-                </div>
-              </Link>
-            ))}
-            {items.length === 0 && (
-              <p className="px-3 py-8 text-center text-sm text-[var(--axis-text-tertiary)]">
-                수집된 아이디어가 없습니다.
-              </p>
-            )}
-          </div>
-        </div>
+    <AppShell user={user} hideSidebar>
+      <div className="flex h-full overflow-hidden">
+        {/* Left: Source Input Panel */}
+        <SourceInputPanel
+          items={items}
+          selectedItemId={selectedId}
+          onAddSource={handleAddSource}
+          isAdding={isAdding}
+        />
 
-        {/* Detail area */}
+        {/* Center: Detail / Gadget Tabs */}
         <div className="flex-1 overflow-y-auto">
           <Outlet />
         </div>
+
+        {/* Right: Chat Panel */}
+        <IdeaChatWrapper
+          conversationId={conversationId}
+          messages={chatMessages}
+          isLoadingMessages={isLoadingMessages}
+          onToolResult={handleToolResult}
+        />
       </div>
     </AppShell>
   );
