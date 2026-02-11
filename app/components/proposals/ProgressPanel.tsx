@@ -312,9 +312,7 @@ export function ProgressPanel({
                 </button>
               )}
             </div>
-            {action.assigneeName && (
-              <p className="ml-6 text-[10px] text-[var(--axis-text-tertiary)]">담당: {action.assigneeName}</p>
-            )}
+            <p className="ml-6 text-[10px] text-[var(--axis-text-tertiary)]">담당: {action.assigneeName || "미지정"}</p>
           </div>
         ))}
         {actions.length === 0 && (
