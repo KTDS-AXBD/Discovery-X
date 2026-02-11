@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { useLoaderData, useFetcher } from "@remix-run/react";
@@ -81,12 +82,28 @@ export default function OntologyReview() {
 
   const typeMap = new Map(types.map((t) => [t.id, t]));
 
-  function handleReview(type: "node" | "edge", id: string, action: "approve" | "reject") {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editLabel, setEditLabel] = useState("");
+  const [editTypeId, setEditTypeId] = useState("");
+
+  function handleReview(type: "node" | "edge", id: string, action: "approve" | "reject" | "edit", editedLabel?: string, editedTypeId?: string) {
+    const payload: Record<string, string> = { type, id, action };
+    if (action === "edit") {
+      if (editedLabel) payload.editedLabel = editedLabel;
+      if (editedTypeId) payload.editedTypeId = editedTypeId;
+    }
     fetcher.submit(
-      JSON.stringify({ type, id, action }),
+      JSON.stringify(payload),
       { method: "POST", action: "/api/ontology/review", encType: "application/json" },
     );
+    setEditingId(null);
   }
+
+  const startEdit = useCallback((nodeId: string, label: string, typeId: string | null) => {
+    setEditingId(nodeId);
+    setEditLabel(label);
+    setEditTypeId(typeId ?? "");
+  }, []);
 
   const totalCount = unreviewedNodes.length + unreviewedEdges.length;
 
@@ -112,6 +129,7 @@ export default function OntologyReview() {
           <div className="space-y-2">
             {unreviewedNodes.map((node) => {
               const typeInfo = typeMap.get(node.ontologyTypeId ?? "");
+              const isEditing = editingId === node.id;
               return (
                 <Card key={node.id}>
                   <CardContent className="flex items-center gap-3 p-3">
@@ -124,38 +142,90 @@ export default function OntologyReview() {
                       </span>
                     )}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-[var(--axis-text-primary)]">
-                          {node.label}
-                        </span>
-                        {typeInfo && (
-                          <Badge variant="secondary" className="text-[10px]">
-                            {typeInfo.nameKo}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="mt-0.5 flex items-center gap-2 text-[10px] text-[var(--axis-text-tertiary)]">
-                        <span>신뢰도 {((node.confidence ?? 1) * 100).toFixed(0)}%</span>
-                        {node.globalEntityId && <span>글로벌 엔티티</span>}
-                      </div>
+                      {isEditing ? (
+                        <div className="flex flex-col gap-1.5">
+                          <input
+                            type="text"
+                            value={editLabel}
+                            onChange={(e) => setEditLabel(e.target.value)}
+                            className="rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] px-2 py-1 text-sm text-[var(--axis-text-primary)]"
+                          />
+                          <select
+                            value={editTypeId}
+                            onChange={(e) => setEditTypeId(e.target.value)}
+                            className="rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] px-2 py-1 text-xs text-[var(--axis-text-secondary)]"
+                          >
+                            {types.map((t) => (
+                              <option key={t.id} value={t.id}>{t.nameKo}</option>
+                            ))}
+                          </select>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-[var(--axis-text-primary)]">
+                              {node.label}
+                            </span>
+                            {typeInfo && (
+                              <Badge variant="secondary" className="text-[10px]">
+                                {typeInfo.nameKo}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="mt-0.5 flex items-center gap-2 text-[10px] text-[var(--axis-text-tertiary)]">
+                            <span>신뢰도 {((node.confidence ?? 1) * 100).toFixed(0)}%</span>
+                            {node.globalEntityId && <span>글로벌 엔티티</span>}
+                          </div>
+                        </>
+                      )}
                     </div>
                     <div className="flex gap-1">
-                      <button
-                        type="button"
-                        onClick={() => handleReview("node", node.id, "approve")}
-                        disabled={fetcher.state !== "idle"}
-                        className="rounded bg-[var(--axis-badge-success-bg,#D1FAE5)] px-2 py-1 text-[10px] font-medium text-[var(--axis-badge-success-text,#065F46)] hover:opacity-80"
-                      >
-                        승인
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleReview("node", node.id, "reject")}
-                        disabled={fetcher.state !== "idle"}
-                        className="rounded bg-[var(--axis-badge-destructive-bg,#FEE2E2)] px-2 py-1 text-[10px] font-medium text-[var(--axis-badge-destructive-text,#991B1B)] hover:opacity-80"
-                      >
-                        거절
-                      </button>
+                      {isEditing ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleReview("node", node.id, "edit", editLabel, editTypeId)}
+                            disabled={fetcher.state !== "idle"}
+                            className="rounded bg-[var(--axis-surface-brand)] px-2 py-1 text-[10px] font-medium text-white hover:opacity-80"
+                          >
+                            저장
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingId(null)}
+                            className="rounded bg-[var(--axis-surface-secondary)] px-2 py-1 text-[10px] font-medium text-[var(--axis-text-secondary)] hover:opacity-80"
+                          >
+                            취소
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleReview("node", node.id, "approve")}
+                            disabled={fetcher.state !== "idle"}
+                            className="rounded bg-[var(--axis-badge-success-bg,#D1FAE5)] px-2 py-1 text-[10px] font-medium text-[var(--axis-badge-success-text,#065F46)] hover:opacity-80"
+                          >
+                            승인
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => startEdit(node.id, node.label, node.ontologyTypeId)}
+                            disabled={fetcher.state !== "idle"}
+                            className="rounded bg-[var(--axis-surface-secondary)] px-2 py-1 text-[10px] font-medium text-[var(--axis-text-secondary)] hover:opacity-80"
+                          >
+                            편집
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleReview("node", node.id, "reject")}
+                            disabled={fetcher.state !== "idle"}
+                            className="rounded bg-[var(--axis-badge-destructive-bg,#FEE2E2)] px-2 py-1 text-[10px] font-medium text-[var(--axis-badge-destructive-text,#991B1B)] hover:opacity-80"
+                          >
+                            거절
+                          </button>
+                        </>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

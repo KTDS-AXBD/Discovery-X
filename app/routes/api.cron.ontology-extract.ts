@@ -41,7 +41,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     results.push({ tenantId: tenant.id, ...result });
   }
 
-  return new Response(JSON.stringify(results, null, 2), {
+  return new Response(JSON.stringify({ success: true, results }, null, 2), {
     headers: { "Content-Type": "application/json" },
   });
 }

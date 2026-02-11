@@ -93,13 +93,13 @@ export async function extractFromEvidence(
     validEntities.map((e) => ({ label: e.label, ontologyTypeId: e.ontologyTypeId })),
   );
 
-  // 4. 노드 생성 (confidence ≥ 0.8만 자동 생성)
+  // 4. 노드 생성 (confidence ≥ 0.5 → 검토 큐, ≥ 0.8 → 자동 생성 후보)
   const nodeMap = new Map<string, string>(); // label → nodeId
   let nodesCreated = 0;
   let globalMatched = 0;
 
   for (const entity of validEntities) {
-    if (entity.confidence < 0.8) continue; // 0.5~0.8은 검토 큐만
+    if (entity.confidence < 0.5) continue; // 0.5 미만은 무시
 
     const key = `${entity.label}::${entity.ontologyTypeId}`;
     const matchResult = matchResults.get(key);

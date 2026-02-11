@@ -38,7 +38,7 @@ export default function OntologyAnalysis() {
     if (results[type]) return; // already cached
 
     fetcher.submit(
-      JSON.stringify({ analysisType: type }),
+      JSON.stringify({ type }),
       {
         method: "POST",
         action: "/api/ontology/analyze",
