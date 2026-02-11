@@ -14,6 +14,12 @@ import {
   discoveries,
 } from "~/db/schema";
 import { matchGlobalEntity } from "~/lib/ontology/matcher";
+import {
+  detectPatterns,
+  detectContradictions,
+  detectClusters,
+  analyzeCentrality as computeCentrality,
+} from "~/lib/ontology/analyzer";
 
 function generateId(): string {
   return crypto.randomUUID();
@@ -341,4 +347,48 @@ export async function reviewDuplicate(
     decision: input.decision,
     reviewedStatus,
   });
+}
+
+/**
+ * analyze_patterns — 반복 관계 패턴 감지
+ */
+export async function analyzePatterns(
+  db: DB,
+  input: { tenantId: string },
+): Promise<string> {
+  const results = await detectPatterns(db, input.tenantId);
+  return JSON.stringify(results);
+}
+
+/**
+ * analyze_contradictions — 모순 관계 감지
+ */
+export async function analyzeContradictions(
+  db: DB,
+  input: { tenantId: string },
+): Promise<string> {
+  const results = await detectContradictions(db, input.tenantId);
+  return JSON.stringify(results);
+}
+
+/**
+ * analyze_clusters — 클러스터 분석
+ */
+export async function analyzeClusters(
+  db: DB,
+  input: { tenantId: string },
+): Promise<string> {
+  const results = await detectClusters(db, input.tenantId);
+  return JSON.stringify(results);
+}
+
+/**
+ * analyze_centrality — 중심성 분석
+ */
+export async function analyzeCentralityTool(
+  db: DB,
+  input: { tenantId: string },
+): Promise<string> {
+  const results = await computeCentrality(db, input.tenantId);
+  return JSON.stringify(results);
 }

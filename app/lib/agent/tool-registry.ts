@@ -36,6 +36,10 @@ export const TOOL_MIN_AUTONOMY: Record<string, number> = {
   review_duplicate: 2,
   extract_entities: 3,
   link_entities: 3,
+  analyze_patterns: 1,
+  analyze_contradictions: 1,
+  analyze_clusters: 1,
+  analyze_centrality: 1,
   // Indicator tools (R3)
   get_kpi_status: 1,
   get_pipeline_health: 1,
@@ -606,6 +610,50 @@ export const AGENT_TOOLS: ClaudeTool[] = [
           description: "검토 결정",
         },
         mergeTargetId: { type: "string", description: "병합 시 유지할 Evidence ID (선택)" },
+      },
+    },
+  },
+  {
+    name: "analyze_patterns",
+    description: "글로벌 온톨로지 그래프에서 반복되는 관계 패턴을 감지합니다.",
+    input_schema: {
+      type: "object",
+      required: ["tenantId"],
+      properties: {
+        tenantId: { type: "string", description: "테넌트 ID" },
+      },
+    },
+  },
+  {
+    name: "analyze_contradictions",
+    description: "온톨로지 그래프에서 모순되는 관계(supports vs contradicts)를 감지합니다.",
+    input_schema: {
+      type: "object",
+      required: ["tenantId"],
+      properties: {
+        tenantId: { type: "string", description: "테넌트 ID" },
+      },
+    },
+  },
+  {
+    name: "analyze_clusters",
+    description: "온톨로지 그래프의 노드 클러스터(밀집 연결 그룹)를 분석합니다.",
+    input_schema: {
+      type: "object",
+      required: ["tenantId"],
+      properties: {
+        tenantId: { type: "string", description: "테넌트 ID" },
+      },
+    },
+  },
+  {
+    name: "analyze_centrality",
+    description: "온톨로지 그래프에서 중심성이 높은 핵심 노드를 분석합니다.",
+    input_schema: {
+      type: "object",
+      required: ["tenantId"],
+      properties: {
+        tenantId: { type: "string", description: "테넌트 ID" },
       },
     },
   },
