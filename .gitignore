@@ -3,6 +3,7 @@ build
 .wrangler
 .env
 .dev.vars
+.team-tmp
 *.local
 screenshot.png
 .claude/backup-*/
