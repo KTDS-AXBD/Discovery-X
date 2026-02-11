@@ -267,7 +267,7 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v5.4 Dashboard Wireframe Alignment + UI Polish
+- **프로토타입**: v5.4 Dashboard Wireframe Alignment + UI Polish + CI Fix
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 배포 완료
 - **DB**: 26개 마이그레이션 (0000~0025), 로컬+프로덕션 적용 완료 ✅
 
@@ -280,7 +280,15 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 145)
+### 최근 변경 (세션 146)
+**CI 테스트 수정 + 재배포 완료**:
+- ✅ `extractor.test.ts` FOREIGN KEY constraint 에러 수정: `seedBase()`에 `tenants`/`tenantMembers` 시드 누락
+- ✅ "다른 테넌트" 테스트에서 `tenant-A` 레코드 추가
+- ✅ analyzer/matcher/extractor 3개 온톨로지 테스트 seed 패턴 통일
+- ✅ CI/CD 전체 통과: Lint ✓ / Typecheck ✓ / Tests ✓ / Build ✓ / Deploy ✓
+- ✅ 프로덕션 배포 완료 (https://dx.minu.best)
+
+### 이전 변경 (세션 145)
 **CLAUDE.md 리팩토링 + SDD-primary 워크플로우 통합**:
 - ✅ CLAUDE.md 슬림화: 379줄 → 151줄 (60% 감소) — 코드 추론 가능 정보 제거, @import 도입
 - ✅ 검증 워크플로우 섹션 추가 (typecheck + lint 필수 실행 지시)
