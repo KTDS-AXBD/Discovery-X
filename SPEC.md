@@ -125,12 +125,12 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/radar` — Radar 소스 관리 (1)
 
 **Ideas (2개)**
-- `/ideas` — 아이디어 목록 + 레이아웃 (좌측 리스트 + Surface + 메모 패널)
-- `/ideas/:id` — 아이디어 상세 (Radar 아이템 재활용, 블랙 헤더바 + 스코어/상태)
+- `/ideas` — 아이디어 3-Panel 레이아웃 (좌: SourceInputPanel + 중: Outlet + 우: IdeaChatWrapper)
+- `/ideas/:id` — 아이디어 상세 (제목바 + 8개 가젯 탭: 시장 예시/규제/시장 조사/고객 조사/사업성 검증/자금원/경쟁사/특허)
 
 **Proposals (7개: 4 pages + 3 API)**
 - `/proposals` — 사업제안 레이아웃 (전용 사이드바 + Surface + 진행상황 패널)
-- `/proposals/_index` — 빈 상태 (첫 제안 선택 유도)
+- `/proposals/_index` — 첫 제안 자동 선택 (redirect) / 빈 상태 폴백
 - `/proposals/:id` — 사업제안 상세 (메타 카드 + 5개 섹션 + 팀 토론 + 진행상황 패널)
 - `/proposals/new` — 새 사업제안 작성 폼
 - `/api/proposals` — 제안 CRUD API (GET 목록 + DELETE)
@@ -255,7 +255,7 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v5.1 Ideas/Charts/Archive Enhancement
+- **프로토타입**: v5.2 Ideas 3-Panel + Proposals UX
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 배포 완료
 - **DB**: 25개 마이그레이션 (0000~0024), 로컬 적용 완료 ✅ (0024 프로덕션 미적용)
 
@@ -268,7 +268,18 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 141)
+### 최근 변경 (세션 142)
+**아이디어 3-Panel 재설계 + 사업제안 사이드바 개선**:
+- ✅ 아이디어 페이지 3-Panel 레이아웃 재설계: 소스 패널(좌) + 가젯 탭(중) + AI 채팅(우)
+- ✅ 신규 컴포넌트 3개: SourceInputPanel, IdeaGadgetTabs (8탭), IdeaChatWrapper
+- ✅ ideas.tsx 레이아웃 재작성: AppShell(hideSidebar) + 3-Panel 상태관리
+- ✅ ideas.$id.tsx 중앙 패널: 제목바 + 8개 가젯 탭 뷰로 변경
+- ✅ 사업제안 사이드바: 카드별 진행률 progress bar 추가 (액션 아이템 완료율)
+- ✅ proposals._index.tsx: 첫 제안 자동 선택 (loader redirect)
+- ✅ 프로덕션 배포 + 브라우저 검증 완료
+- ✅ typecheck 0 errors, lint 0 errors, build 성공
+
+### 이전 변경 (세션 141)
 **PDCA Iterate — proposals MEDIUM 갭 해결 + 편집 라우트 추가**:
 - ✅ Drizzle `relations()` 6개 정의 추가 (proposalsRelations~proposalMembersRelations)
 - ✅ `proposal_sections` (proposal_id, type) 유니크 인덱스 + 마이그레이션 0024
@@ -530,6 +541,7 @@ build/
 | v4.2 BD Workspace PoC | 6 | PDCA Plan/Design/Do/Check/Act 완료 (96 테스트 + 97% 코드 일치율) |
 | v5.0 Layout + Proposals | 2 | 3탭 GNB + ContextPanel + 아이디어 페이지 + 사업제안 Full CRUD (6 테이블 + 7 라우트 + 6 컴포넌트) |
 | v5.1 Ideas/Charts/Archive | 3 | F20 아이디어 고도화 (메모+필터+유사검색) + F21 대시보드 차트 통합 + F22 보관함 폴더 CRUD |
+| v5.2 Ideas 3-Panel + Proposals | 1 | F23 아이디어 3-Panel 재설계 (소스+가젯탭+채팅) + 사업제안 사이드바 개선 |
 | Embeddings | 3 | Vectorize 3개 (Discovery/Evidence/Radar) + Cron 15분 + 시맨틱 검색/중복 감지 |
 | 테스트 | 5 | 597개 (unit 76 + integration 342 + venture 143 + BD PoC 36) |
 | 운영/문서 | 8 | Google OAuth + 이메일 + Radar + 문서 5종 + QA |
@@ -582,4 +594,5 @@ build/
 | F20 | 아이디어 페이지 고도화 (메모 저장 + FilterBar + SimilarSources) | v5.1 | ✅ | 8 |
 | F21 | 대시보드 차트 실제 구현 (StatusDonut/WeeklyBar/ExperimentGantt) | v5.1 | ✅ | 1 |
 | F22 | 보관함 폴더 CRUD 구현 (DB + API 4개 + 드래그드롭 + SidebarPanel) | v5.1 | ✅ | 9 |
+| F23 | 아이디어 3-Panel 재설계 (소스+가젯탭+채팅) + 사업제안 사이드바 개선 | v5.2 | ✅ | 8 |
 
