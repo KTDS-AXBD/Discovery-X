@@ -38,6 +38,7 @@ function seedBase(db: TestDB) {
       { id: "ot-risk", nameKo: "리스크", domain: "strategy", color: "#333" },
       { id: "ot-tech", nameKo: "기술", domain: "tech", color: "#444" },
     ])
+    .onConflictDoNothing()
     .run();
 
   // user + tenant + tenantMember

@@ -25,6 +25,7 @@ function seedOntologyTypes(db: TestDB) {
       { id: "ONT-02", nameKo: "시장", domain: "market", color: "#111" },
       { id: "ONT-03", nameKo: "규제", domain: "regulation", color: "#222" },
     ])
+    .onConflictDoNothing()
     .run();
 }
 
