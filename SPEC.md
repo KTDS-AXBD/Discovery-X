@@ -280,7 +280,20 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 144)
+### 최근 변경 (세션 145)
+**CLAUDE.md 리팩토링 + SDD-primary 워크플로우 통합**:
+- ✅ CLAUDE.md 슬림화: 379줄 → 151줄 (60% 감소) — 코드 추론 가능 정보 제거, @import 도입
+- ✅ 검증 워크플로우 섹션 추가 (typecheck + lint 필수 실행 지시)
+- ✅ 컨텍스트 압축 보존 규칙 추가
+- ✅ SDD-primary / bkit PDCA-supplementary 워크플로우 우선순위 확립
+  - SPEC.md §5 = Single Source of Truth
+  - bkit: analyze/iterate/report만 보조 사용, plan/design/do/status 비활성
+  - bkit SessionStart hook AskUserQuestion 오버라이드
+  - bkit Feature Usage Report 비활성화
+- ✅ settings.json 권한 정리: npm→pnpm, git diff/log/add, wrangler 추가
+- ✅ 온톨로지 테스트 seed 수정 (onConflictDoNothing 추가)
+
+### 이전 변경 (세션 144)
 **대시보드 와이어프레임 정합 + Ideas/Proposals UI 디테일 수정**:
 - ✅ 대시보드: "특집 현황" 제거 → "요약/정리" 기사 뷰 (선택된 소스의 제목/본문/키워드/원본링크)
 - ✅ 대시보드: 소스 목록 summary 제거 → 제목만 1줄 + 클릭 선택 (첫 항목 자동 선택)
