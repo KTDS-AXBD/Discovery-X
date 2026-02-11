@@ -10,7 +10,7 @@ interface PeerBriefingSectionProps {
 const TABS = [
   { key: "ideas", label: (count: number) => `아이디어 (${count})` },
   { key: "proposals", label: (count: number) => `사업 제안 (${count})` },
-  { key: "consulting", label: () => "컨설팅 (0)" },
+  { key: "consulting", label: () => "컨설자 (0)" },
   { key: "verification", label: () => "검증 ox / 동료 (0)" },
 ] as const;
 

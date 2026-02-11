@@ -438,6 +438,7 @@ export const radarItemUserStatus = sqliteTable(
       .notNull()
       .references(() => radarItems.id),
     status: text("status").notNull().default("new"), // new | viewed | archived
+    reaction: text("reaction"), // like | dislike | null
     viewedAt: integer("viewed_at", { mode: "timestamp" }),
     archivedAt: integer("archived_at", { mode: "timestamp" }),
     tenantId: text("tenant_id").references(() => tenants.id),
