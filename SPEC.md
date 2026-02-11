@@ -284,7 +284,7 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v5.8 Ontology GNB + Analysis Tab Fix
+- **프로토타입**: v5.9 Ideas Source Input Enhancement
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 배포 완료 (세션 149)
 - **DB**: 26개 마이그레이션 (0000~0025), 로컬+프로덕션 적용 완료 ✅
 
@@ -297,7 +297,15 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 155)
+### 최근 변경 (세션 156)
+**아이디어 페이지 소스 입력 기능 개선 및 프로덕션 테스트 완료**:
+- ✅ `api.ideas.sources.ts` (신규): 수동 소스 추가 전용 API — JSON body `{ inputs: string[] }`, 소스 타입 자동 감지 (web/youtube/text), SHA-256 중복 감지, 일별 manual radar_run 생성으로 tenant 스코핑 유지
+- ✅ `ideas.tsx`: handleAddSource → handleAddSources 리팩토링 — 새 API 호출 (JSON body), Promise 기반 결과 반환
+- ✅ `SourceInputPanel.tsx`: 멀티라인 입력 (줄바꿈 분리), Drag & Drop (URL/텍스트), 인라인 피드백 (성공/실패/중복, 3초 자동 숨김), 로딩 스피너
+- ✅ 프로덕션 테스트 완료: 단일 URL 추가 / 멀티라인 (GitHub+YouTube) / 중복 감지 / 텍스트 메모 — 4개 시나리오 모두 통과
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공 / 프로덕션 배포 완료
+
+### 이전 변경 (세션 155)
 **온톨로지 GNB 노출 + 분석 탭 오류 수정**:
 - ✅ `TopNav.tsx`: GNB NAV_TABS에 온톨로지 탭 추가 (share 아이콘) — /ontology 직접 URL 없이도 접근 가능
 - ✅ `InsightPanel.tsx`: TYPE_LABELS 키를 API 계약과 동일한 복수형으로 통일 (`pattern`→`patterns`, `contradiction`→`contradictions`, `cluster`→`clusters`) — TypeError 해결
