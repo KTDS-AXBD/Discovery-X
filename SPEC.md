@@ -31,7 +31,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 - 3탭 GNB + ContextPanel + 보관함 사이드바 레이아웃 재구성 (v5.0)
 - 아이디어 페이지: Radar 아이템 재활용 + 메모 패널 (v5.0)
 - 사업제안: DB 6테이블 + CRUD API + 마일스톤/액션/댓글 + 진행상황 패널 (v5.0)
-- 온톨로지 인텔리전스: LLM 자동 엔티티 추출 + 글로벌 엔티티 매칭 + 관계 분석 엔진 (v5.3)
+- 온톨로지 인텔리전스: LLM 자동 엔티티 추출 + 글로벌 엔티티 매칭 + 관계 분석 엔진 + 시뮬레이션 (v5.3)
 
 **Out-of-scope (PRD §2.2, §7.3)**
 - 전사 공식 포털/플랫폼
@@ -153,14 +153,16 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/api/proposals/:id/comments` — 댓글 API (GET + POST)
 - `/api/proposals/:id/actions` — 액션 아이템 토글 API (POST)
 
-**Ontology Intelligence (4 pages + 5 API)**
-- `/ontology` — 온톨로지 레이아웃 (4탭: 요약/글로벌 그래프/분석/검토 큐)
+**Ontology Intelligence (5 pages + 6 API)**
+- `/ontology` — 온톨로지 레이아웃 (5탭: 요약/글로벌 그래프/분석/검토 큐/시뮬레이션)
 - `/ontology/_index` — 온톨로지 요약 대시보드 (통계 카드 + 최근 추출)
 - `/ontology/graph` — 글로벌 엔티티 그래프 (GraphViewer 재활용)
 - `/ontology/analysis` — 관계 분석 결과 (패턴/모순/클러스터/중심성)
 - `/ontology/review` — 자동 추출 검토 큐 (승인/반려/편집)
+- `/ontology/simulation` — 시뮬레이션 (영향도 전파 + LLM 시나리오 생성)
 - `/api/ontology/review` — 검토 API (POST approve/reject/edit)
 - `/api/ontology/analyze` — 분석 API (POST by type)
+- `/api/ontology/simulate` — 시뮬레이션 API (POST propagate/scenario/timeline)
 - `/api/cron/ontology-extract` — LLM 엔티티 자동 추출 Cron
 - `/api/cron/ontology-analyze` — 관계 분석 자동 실행 Cron
 
@@ -287,15 +289,28 @@ build/
 - **DB**: 26개 마이그레이션 (0000~0025), 로컬+프로덕션 적용 완료 ✅
 
 ### 주요 지표
-- **라우트**: 121개 (core 46 + ideas 2 + proposals 8 + ontology 9 + venture 13 + market 3 + API 30 + folders 4 + 기타 6)
+- **라우트**: 123개 (core 46 + ideas 2 + proposals 8 + ontology 11 + venture 13 + market 3 + API 30 + folders 4 + 기타 6)
 - **테이블**: 68개 (core 44 + venture 16 + proposals 6 + archive 2) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges)
-- **Agent 도구**: 52개 (+4 ontology analysis)
-- **테스트**: 645개 (48 test files, 로컬 + CI 모두 통과) — 온톨로지 테스트 5파일 48개 포함
+- **Agent 도구**: 53개 (+5 ontology: analysis 4 + simulation 1)
+- **테스트**: 661개 (49 test files, 로컬 + CI 모두 통과) — 온톨로지 테스트 6파일 64개 포함
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 151)
+### 최근 변경 (세션 152)
+**온톨로지 인텔리전스 Phase 3 — 시뮬레이션 엔진**:
+- ✅ BFS 영향 전파 엔진 (`app/lib/ontology/simulator.ts`): edge strength + decay factor 기반 그래프 전파
+- ✅ LLM 시나리오 생성 (Claude Haiku): 전파 결과 → 비즈니스 시나리오 분석
+- ✅ 스냅샷 타임라인 비교: contextSnapshots 기반 단계별 diff
+- ✅ API 엔드포인트 (`api.ontology.simulate`): propagate/scenario/timeline 3타입
+- ✅ Agent 도구 (`simulate_scenario`): autonomy level 2, 동적 import (순환 의존성 방지)
+- ✅ 시뮬레이션 UI (`ontology.simulation.tsx` + `SimulationView.tsx`): 영향도 바 차트 + 시나리오 카드
+- ✅ 온톨로지 탭 5개로 확장 (요약/그래프/분석/검토/시뮬레이션)
+- ✅ 시스템 프롬프트에 시뮬레이션 가이드 추가
+- ✅ 시뮬레이터 테스트 16개 (propagateInfluence 11 + compareSnapshots 5) — 49개 온톨로지 테스트 전체 통과
+- ✅ tmux /team 3 Worker 병렬 (Core Engine / API+Agent / UI+Tab)
+
+### 이전 변경 (세션 151)
 **대시보드 디자인 개선 — Utilitarian Clarity**:
 - ✅ KPI 요약 카드 4개 추가 (수집 아이템/발굴 아이디어/사업 제안/수집 소스) — 각 악센트 색상 아이콘
 - ✅ StatusOverview: `dx-panel` 카드 래퍼 + 선택 시 좌측 파란 보더 인디케이터 + 키워드 pill/badge + 건수 표시
@@ -391,7 +406,7 @@ build/
   - Agent 도구 4개: analyzePatterns, analyzeContradictions, analyzeClusters, analyzeCentrality
   - UI 4개 라우트: ontology layout(4탭) + 요약 대시보드 + 글로벌 그래프 + 분석 결과
   - InsightPanel 컴포넌트: 분석 결과 카드 시각화
-- ✅ PDCA 문서: plan + design 완료, Phase 3 (미래 예측 시뮬레이션) 미착수
+- ✅ PDCA 문서: plan + design 완료, Phase 3 (미래 예측 시뮬레이션) → 세션 152에서 완료
 - ✅ typecheck 0 errors, lint 0 errors, 프로덕션 배포 + DB 마이그레이션 완료
 
 ### 이전 변경 (세션 142)
@@ -668,9 +683,9 @@ build/
 | v5.0 Layout + Proposals | 2 | 3탭 GNB + ContextPanel + 아이디어 페이지 + 사업제안 Full CRUD (6 테이블 + 7 라우트 + 6 컴포넌트) |
 | v5.1 Ideas/Charts/Archive | 3 | F20 아이디어 고도화 (메모+필터+유사검색) + F21 대시보드 차트 통합 + F22 보관함 폴더 CRUD |
 | v5.2 Ideas 3-Panel + Proposals | 1 | F23 아이디어 3-Panel 재설계 (소스+가젯탭+채팅) + 사업제안 사이드바 개선 |
-| v5.3 Ontology Intelligence | 1 | F24 LLM 자동 엔티티 추출 + 글로벌 매칭 + 관계 분석 4종 + UI 4탭 + Agent 도구 4개 |
+| v5.3 Ontology Intelligence | 2 | F24 LLM 엔티티 추출 + 매칭 + 분석 4종, F25 시뮬레이션 (BFS 전파 + LLM 시나리오 + 스냅샷 비교) |
 | Embeddings | 3 | Vectorize 3개 (Discovery/Evidence/Radar) + Cron 15분 + 시맨틱 검색/중복 감지 |
-| 테스트 | 5 | 597개 (unit 76 + integration 342 + venture 143 + BD PoC 36) |
+| 테스트 | 5 | 661개 (unit 76 + integration 342 + venture 143 + BD PoC 36 + ontology 64) |
 | 운영/문서 | 8 | Google OAuth + 이메일 + Radar + 문서 5종 + QA |
 
 <details>
@@ -690,7 +705,7 @@ build/
 
 **v4.2 BD Workspace PoC**: PDCA Plan/Design/Do/Check/Act 완료 (신규 10파일 + 수정 14파일 + 마이그레이션 1개 + 테스트 36개), sourceContext end-to-end 와이어링, 3-Pane 레이아웃, Agent 도구 3개 추가
 
-**v5.3 Ontology Intelligence**: LLM 자동 엔티티 추출 (Claude Haiku, confidence 기반 필터링), 글로벌 엔티티 매칭 (normalizeLabel() Cross-Discovery), 관계 분석 4종 (패턴 탐지/모순 감지/클러스터/중심성), Cron 2개 (extract+analyze), Agent 도구 4개 추가, UI 4탭 (요약/그래프/분석/검토), 검토 큐 (승인/반려/편집), InsightPanel 카드, 마이그레이션 0025
+**v5.3 Ontology Intelligence**: LLM 자동 엔티티 추출 (Claude Haiku, confidence 기반 필터링), 글로벌 엔티티 매칭 (normalizeLabel() Cross-Discovery), 관계 분석 4종 (패턴 탐지/모순 감지/클러스터/중심성), Cron 2개 (extract+analyze), Agent 도구 5개 추가, UI 5탭 (요약/그래프/분석/검토/시뮬레이션), 검토 큐 (승인/반려/편집), InsightPanel 카드, 마이그레이션 0025, Phase 3 시뮬레이션 (BFS 영향 전파 + LLM 시나리오 + 스냅샷 비교 + SimulationView)
 
 **v5.0 Layout Restructure + Proposals**: Figma 기반 3차 레이아웃 재구성 (3탭 GNB + ContextPanel 우측 패널 + 보관함 사이드바), 아이디어 페이지 (Radar 아이템 재활용 + 메모 패널), 사업제안 Full Feature (6 DB 테이블 + CRUD API 3개 + 4 페이지 라우트 + 6 컴포넌트), 신규 19파일 + 수정 6파일
 
@@ -725,4 +740,5 @@ build/
 | F22 | 보관함 폴더 CRUD 구현 (DB + API 4개 + 드래그드롭 + SidebarPanel) | v5.1 | ✅ | 9 |
 | F23 | 아이디어 3-Panel 재설계 (소스+가젯탭+채팅) + 사업제안 사이드바 개선 | v5.2 | ✅ | 8 |
 | F24 | 온톨로지 인텔리전스 Phase 1+2 (LLM 엔티티 추출 + 글로벌 매칭 + 관계 분석 엔진 + UI) | v5.3 | ✅ | 16 |
+| F25 | 온톨로지 인텔리전스 Phase 3 (BFS 영향 전파 + LLM 시나리오 + 스냅샷 비교 + 시뮬레이션 UI) | v5.3 | ✅ | 9 |
 
