@@ -7,6 +7,7 @@ import { contextNodes, contextEdges, discoveries, ontologyTypes } from "~/db/sch
 import { getSessionContext } from "~/lib/auth/session.server";
 import { Card, CardContent } from "~/components/ui/Card";
 import { Badge } from "~/components/ui/Badge";
+import { GraphViewer } from "~/components/graph/GraphViewer";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const env = context.cloudflare.env as unknown as {
@@ -17,14 +18,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const ctx = await getSessionContext(request, db, env.SESSION_SECRET);
   if (!ctx) throw new Response("Unauthorized", { status: 401 });
 
-  // 전체 노드 수
+  // Stats queries
   const [nodeCount] = await db
     .select({ count: sql<number>`COUNT(*)` })
     .from(contextNodes)
     .innerJoin(discoveries, eq(contextNodes.discoveryId, discoveries.id))
     .where(eq(discoveries.tenantId, ctx.tenantId));
 
-  // 전체 엣지 수
   const [edgeCount] = await db
     .select({ count: sql<number>`COUNT(*)` })
     .from(contextEdges)
@@ -32,7 +32,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .innerJoin(discoveries, eq(contextNodes.discoveryId, discoveries.id))
     .where(eq(discoveries.tenantId, ctx.tenantId));
 
-  // 글로벌 엔티티 수 (distinct globalEntityId)
   const [globalEntityCount] = await db
     .select({ count: sql<number>`COUNT(DISTINCT ${contextNodes.globalEntityId})` })
     .from(contextNodes)
@@ -44,7 +43,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       ),
     );
 
-  // 미검토 노드 수
   const [unreviewedNodeCount] = await db
     .select({ count: sql<number>`COUNT(*)` })
     .from(contextNodes)
@@ -57,7 +55,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       ),
     );
 
-  // 미검토 엣지 수
   const [unreviewedEdgeCount] = await db
     .select({ count: sql<number>`COUNT(*)` })
     .from(contextEdges)
@@ -67,6 +64,43 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         eq(contextEdges.reviewed, 0),
       ),
     );
+
+  // Graph nodes (rejected 제외)
+  const graphNodes = await db
+    .select({
+      id: contextNodes.id,
+      label: contextNodes.label,
+      ontologyTypeId: contextNodes.ontologyTypeId,
+      sourceEvidenceId: contextNodes.sourceEvidenceId,
+      metadata: contextNodes.metadata,
+    })
+    .from(contextNodes)
+    .innerJoin(discoveries, eq(contextNodes.discoveryId, discoveries.id))
+    .where(
+      and(
+        eq(discoveries.tenantId, ctx.tenantId),
+        sql`${contextNodes.reviewed} != 2`,
+      ),
+    );
+
+  const nodeIds = new Set(graphNodes.map((n) => n.id));
+
+  // Graph edges (rejected 제외, 양쪽 노드 존재)
+  const allEdges = await db
+    .select({
+      id: contextEdges.id,
+      fromNodeId: contextEdges.fromNodeId,
+      toNodeId: contextEdges.toNodeId,
+      relationType: contextEdges.relationType,
+      strength: contextEdges.strength,
+      sourceEvidenceId: contextEdges.sourceEvidenceId,
+    })
+    .from(contextEdges)
+    .where(sql`${contextEdges.reviewed} != 2`);
+
+  const graphEdges = allEdges.filter(
+    (e) => nodeIds.has(e.fromNodeId) && nodeIds.has(e.toNodeId),
+  );
 
   // 최근 자동 생성 노드 5개
   const recentNodes = await db
@@ -89,7 +123,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .orderBy(sql`${contextNodes.createdAt} DESC`)
     .limit(5);
 
-  // 타입 목록
   const types = await db.select().from(ontologyTypes);
 
   return json({
@@ -100,62 +133,113 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       unreviewedNodes: unreviewedNodeCount.count,
       unreviewedEdges: unreviewedEdgeCount.count,
     },
+    graphNodes,
+    graphEdges,
     recentNodes,
     types,
   });
 }
 
-interface StatCardProps {
-  label: string;
-  value: number;
-  variant?: "default" | "warning";
-}
+const STAT_ITEMS = [
+  { key: "nodes" as const, label: "NODES" },
+  { key: "edges" as const, label: "EDGES" },
+  { key: "globalEntities" as const, label: "GLOBAL" },
+  { key: "unreviewedNodes" as const, label: "UNREV.N", warn: true },
+  { key: "unreviewedEdges" as const, label: "UNREV.E", warn: true },
+];
 
-function StatCard({ label, value, variant = "default" }: StatCardProps) {
-  return (
-    <Card>
-      <CardContent className="p-4">
-        <p className="text-xs text-[var(--axis-text-tertiary)]">{label}</p>
-        <p
-          className={`mt-1 text-2xl font-bold ${
-            variant === "warning"
-              ? "text-[var(--axis-badge-warning-text)]"
-              : "text-[var(--axis-text-primary)]"
-          }`}
-        >
-          {value.toLocaleString()}
-        </p>
-      </CardContent>
-    </Card>
-  );
-}
-
-export default function OntologySummary() {
-  const { stats, recentNodes, types } = useLoaderData<typeof loader>();
+export default function LabOverview() {
+  const { stats, graphNodes, graphEdges, recentNodes, types } = useLoaderData<typeof loader>();
   const typeMap = new Map(types.map((t) => [t.id, t]));
+
+  const preparedNodes = graphNodes.map((n) => ({
+    id: n.id,
+    label: n.label,
+    ontologyTypeId: n.ontologyTypeId,
+    sourceEvidenceId: n.sourceEvidenceId,
+    metadata: n.metadata as Record<string, unknown> | null,
+  }));
+
+  const preparedEdges = graphEdges.map((e) => ({
+    id: e.id,
+    fromNodeId: e.fromNodeId,
+    toNodeId: e.toNodeId,
+    relationType: e.relationType,
+    strength: (e.strength ?? 100) / 100,
+    sourceEvidenceId: e.sourceEvidenceId,
+  }));
 
   return (
     <div className="space-y-6">
-      {/* Stats grid */}
+      {/* Instrument Panel — Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        <StatCard label="전체 노드" value={stats.nodes} />
-        <StatCard label="전체 엣지" value={stats.edges} />
-        <StatCard label="글로벌 엔티티" value={stats.globalEntities} />
-        <StatCard label="미검토 노드" value={stats.unreviewedNodes} variant={stats.unreviewedNodes > 0 ? "warning" : "default"} />
-        <StatCard label="미검토 엣지" value={stats.unreviewedEdges} variant={stats.unreviewedEdges > 0 ? "warning" : "default"} />
+        {STAT_ITEMS.map(({ key, label, warn }) => {
+          const value = stats[key];
+          const isWarning = warn && value > 0;
+          return (
+            <Card key={key} className={isWarning ? "lab-instrument-active" : ""}>
+              <CardContent className="p-4">
+                <p className="lab-stat-terminal">{label}</p>
+                <p
+                  className={`mt-1 text-[30px] font-bold tabular-nums ${
+                    isWarning
+                      ? "text-[var(--dx-lab-accent)]"
+                      : "text-[var(--axis-text-primary)]"
+                  }`}
+                  style={{ fontFamily: "var(--dx-font-mono)" }}
+                >
+                  {value.toLocaleString()}
+                </p>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
-      {/* Recent auto-generated nodes */}
+      {/* Graph Card */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="lab-stat-terminal">KNOWLEDGE GRAPH</p>
+            <span className="text-xs text-[var(--axis-text-tertiary)]" style={{ fontFamily: "var(--dx-font-mono)" }}>
+              {graphNodes.length}N / {graphEdges.length}E
+            </span>
+          </div>
+          <GraphViewer
+            nodes={preparedNodes}
+            edges={preparedEdges}
+            ontologyTypes={types}
+          />
+          {/* Legend */}
+          <div className="mt-3 flex flex-wrap gap-4 text-xs text-[var(--axis-text-secondary)]">
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-0.5 w-6 bg-[var(--axis-badge-success-text)]" /> supports
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-0.5 w-6 border-t-2 border-dashed border-[var(--axis-button-destructive-bg-default)]" /> contradicts
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-0.5 w-6 bg-[var(--axis-badge-purple-text)]" /> causes
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-0.5 w-6 border-t-2 border-dashed border-[var(--axis-text-tertiary)]" /> relates_to
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-0.5 w-6 border-t-2 border-dashed border-[var(--axis-badge-info-text)]" /> depends_on
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Extraction Log — Recent auto-generated nodes */}
       <div>
-        <h2 className="mb-3 text-sm font-semibold text-[var(--axis-text-secondary)]">
-          최근 자동 추출 엔티티
-        </h2>
+        <p className="lab-stat-terminal mb-3">EXTRACTION LOG</p>
         {recentNodes.length === 0 ? (
-          <p className="text-sm text-[var(--axis-text-tertiary)]">
-            자동 추출된 엔티티가 없습니다. Agent 채팅에서 엔티티 추출을 실행하세요.
+          <p className="text-sm text-[var(--axis-text-tertiary)]" style={{ fontFamily: "var(--dx-font-mono)" }}>
+            &gt; No extractions found. Run entity extraction from Agent chat.
           </p>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {recentNodes.map((node) => {
               const typeInfo = typeMap.get(node.ontologyTypeId ?? "");
               return (
@@ -169,7 +253,7 @@ export default function OntologySummary() {
                         {typeInfo.icon}
                       </span>
                     )}
-                    <div className="flex-1 min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-[var(--axis-text-primary)]">
                           {node.label}
@@ -180,9 +264,9 @@ export default function OntologySummary() {
                           </Badge>
                         )}
                       </div>
-                      <div className="mt-0.5 flex items-center gap-2 text-[10px] text-[var(--axis-text-tertiary)]">
-                        <span>신뢰도 {((node.confidence ?? 1) * 100).toFixed(0)}%</span>
-                        {node.globalEntityId && <span>글로벌 엔티티</span>}
+                      <div className="mt-0.5 flex items-center gap-2 text-[10px] text-[var(--axis-text-tertiary)]" style={{ fontFamily: "var(--dx-font-mono)" }}>
+                        <span>CONF {((node.confidence ?? 1) * 100).toFixed(0)}%</span>
+                        {node.globalEntityId && <span>GLOBAL</span>}
                       </div>
                     </div>
                   </CardContent>

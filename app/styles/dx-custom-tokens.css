@@ -135,6 +135,13 @@
   /* Glass effect */
   --dx-glass-bg: rgba(255,255,255,0.04);
   --dx-glass-border: rgba(255,255,255,0.08);
+
+  /* ===== Lab Aesthetic Tokens ===== */
+  --dx-lab-accent: #0891B2;
+  --dx-lab-accent-muted: rgba(8,145,178,0.15);
+  --dx-font-mono: ui-monospace, 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  --dx-lab-grid-color: rgba(0,0,0,0.03);
+  --dx-lab-glow: 0 0 12px rgba(8,145,178,0.2);
 }
 
 /* fade-in-up stagger animation */
@@ -197,6 +204,12 @@
 }
 
 .dark {
+  /* Lab Aesthetic (Dark) */
+  --dx-lab-accent: #22D3EE;
+  --dx-lab-accent-muted: rgba(34,211,238,0.15);
+  --dx-lab-grid-color: rgba(255,255,255,0.03);
+  --dx-lab-glow: 0 0 12px rgba(34,211,238,0.3);
+
   /* Figma-inspired surface hierarchy */
   --dx-surface-deep: #0A0A0B;
   --dx-surface-panel: #111113;
@@ -284,4 +297,46 @@
   --dx-severity-critical: #DC2626;
   --dx-severity-warning: #D97706;
   --dx-severity-info: #2563EB;
+}
+
+/* ===== Lab Utility Classes ===== */
+
+/* Dot-grid background */
+.lab-grid-bg {
+  background-image: radial-gradient(circle, var(--dx-lab-grid-color) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Scanline overlay */
+.lab-scanline {
+  position: relative;
+}
+.lab-scanline::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    var(--dx-lab-grid-color) 2px,
+    var(--dx-lab-grid-color) 4px
+  );
+  opacity: 0.3;
+}
+
+/* Terminal-style stat label */
+.lab-stat-terminal {
+  font-family: var(--dx-font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--dx-lab-accent);
+}
+
+/* Active instrument glow */
+.lab-instrument-active {
+  box-shadow: var(--dx-lab-glow);
+  border-color: var(--dx-lab-accent);
 }

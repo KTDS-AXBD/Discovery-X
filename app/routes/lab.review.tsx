@@ -18,7 +18,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const ctx = await getSessionContext(request, db, env.SESSION_SECRET);
   if (!ctx) throw new Response("Unauthorized", { status: 401 });
 
-  // 미검토 자동생성 노드
   const unreviewedNodes = await db
     .select({
       id: contextNodes.id,
@@ -41,7 +40,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .orderBy(sql`${contextNodes.createdAt} DESC`)
     .limit(50);
 
-  // 미검토 자동생성 엣지
   const unreviewedEdges = await db
     .select({
       id: contextEdges.id,
@@ -62,7 +60,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .orderBy(sql`${contextEdges.createdAt} DESC`)
     .limit(50);
 
-  // 타입 목록
   const types = await db.select().from(ontologyTypes);
 
   return json({ unreviewedNodes, unreviewedEdges, types });
@@ -76,10 +73,32 @@ const RELATION_LABELS: Record<string, string> = {
   depends_on: "의존함",
 };
 
-export default function OntologyReview() {
+function LabButton({ variant, children, ...props }: {
+  variant: "approve" | "reject" | "edit" | "save" | "cancel";
+  children: React.ReactNode;
+} & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  const styles = {
+    approve: "bg-[var(--axis-badge-success-bg,#D1FAE5)] text-[var(--axis-badge-success-text,#065F46)]",
+    reject: "bg-[var(--axis-badge-destructive-bg,#FEE2E2)] text-[var(--axis-badge-destructive-text,#991B1B)]",
+    edit: "bg-[var(--axis-surface-secondary)] text-[var(--axis-text-secondary)]",
+    save: "bg-[var(--dx-lab-accent)] text-white",
+    cancel: "bg-[var(--axis-surface-secondary)] text-[var(--axis-text-secondary)]",
+  };
+  return (
+    <button
+      type="button"
+      className={`rounded px-2 py-1 text-[10px] font-medium uppercase tracking-wide hover:opacity-80 ${styles[variant]}`}
+      style={{ fontFamily: "var(--dx-font-mono)" }}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
+export default function LabReview() {
   const { unreviewedNodes, unreviewedEdges, types } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
-
   const typeMap = new Map(types.map((t) => [t.id, t]));
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -108,24 +127,24 @@ export default function OntologyReview() {
   const totalCount = unreviewedNodes.length + unreviewedEdges.length;
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-6">
+    <div className="mx-auto max-w-3xl">
       <div className="mb-6 flex items-center gap-3">
-        <h1 className="text-xl font-bold text-[var(--axis-text-primary)]">온톨로지 검토 큐</h1>
-        <Badge variant="secondary">{totalCount}건</Badge>
+        <p className="lab-stat-terminal text-sm">REVIEW QUEUE</p>
+        <Badge variant="secondary" className="text-[10px]" style={{ fontFamily: "var(--dx-font-mono)" }}>
+          {totalCount}
+        </Badge>
       </div>
 
       {totalCount === 0 && (
-        <p className="text-sm text-[var(--axis-text-tertiary)]">
-          검토할 항목이 없습니다. 자동 추출이 실행되면 여기에 표시됩니다.
+        <p className="text-sm text-[var(--axis-text-tertiary)]" style={{ fontFamily: "var(--dx-font-mono)" }}>
+          &gt; Queue empty. Items appear after auto-extraction runs.
         </p>
       )}
 
       {/* Nodes */}
       {unreviewedNodes.length > 0 && (
         <div className="mb-8">
-          <h2 className="mb-3 text-sm font-semibold text-[var(--axis-text-secondary)]">
-            엔티티 ({unreviewedNodes.length})
-          </h2>
+          <p className="lab-stat-terminal mb-3">ENTITIES ({unreviewedNodes.length})</p>
           <div className="space-y-2">
             {unreviewedNodes.map((node) => {
               const typeInfo = typeMap.get(node.ontologyTypeId ?? "");
@@ -141,7 +160,7 @@ export default function OntologyReview() {
                         {typeInfo.icon}
                       </span>
                     )}
-                    <div className="flex-1 min-w-0">
+                    <div className="min-w-0 flex-1">
                       {isEditing ? (
                         <div className="flex flex-col gap-1.5">
                           <input
@@ -172,9 +191,9 @@ export default function OntologyReview() {
                               </Badge>
                             )}
                           </div>
-                          <div className="mt-0.5 flex items-center gap-2 text-[10px] text-[var(--axis-text-tertiary)]">
-                            <span>신뢰도 {((node.confidence ?? 1) * 100).toFixed(0)}%</span>
-                            {node.globalEntityId && <span>글로벌 엔티티</span>}
+                          <div className="mt-0.5 flex items-center gap-2 text-[10px] text-[var(--axis-text-tertiary)]" style={{ fontFamily: "var(--dx-font-mono)" }}>
+                            <span>CONF {((node.confidence ?? 1) * 100).toFixed(0)}%</span>
+                            {node.globalEntityId && <span>GLOBAL_ID</span>}
                           </div>
                         </>
                       )}
@@ -182,48 +201,24 @@ export default function OntologyReview() {
                     <div className="flex gap-1">
                       {isEditing ? (
                         <>
-                          <button
-                            type="button"
-                            onClick={() => handleReview("node", node.id, "edit", editLabel, editTypeId)}
-                            disabled={fetcher.state !== "idle"}
-                            className="rounded bg-[var(--axis-surface-brand)] px-2 py-1 text-[10px] font-medium text-white hover:opacity-80"
-                          >
-                            저장
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setEditingId(null)}
-                            className="rounded bg-[var(--axis-surface-secondary)] px-2 py-1 text-[10px] font-medium text-[var(--axis-text-secondary)] hover:opacity-80"
-                          >
-                            취소
-                          </button>
+                          <LabButton variant="save" onClick={() => handleReview("node", node.id, "edit", editLabel, editTypeId)} disabled={fetcher.state !== "idle"}>
+                            SAVE
+                          </LabButton>
+                          <LabButton variant="cancel" onClick={() => setEditingId(null)}>
+                            CANCEL
+                          </LabButton>
                         </>
                       ) : (
                         <>
-                          <button
-                            type="button"
-                            onClick={() => handleReview("node", node.id, "approve")}
-                            disabled={fetcher.state !== "idle"}
-                            className="rounded bg-[var(--axis-badge-success-bg,#D1FAE5)] px-2 py-1 text-[10px] font-medium text-[var(--axis-badge-success-text,#065F46)] hover:opacity-80"
-                          >
-                            승인
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => startEdit(node.id, node.label, node.ontologyTypeId)}
-                            disabled={fetcher.state !== "idle"}
-                            className="rounded bg-[var(--axis-surface-secondary)] px-2 py-1 text-[10px] font-medium text-[var(--axis-text-secondary)] hover:opacity-80"
-                          >
-                            편집
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleReview("node", node.id, "reject")}
-                            disabled={fetcher.state !== "idle"}
-                            className="rounded bg-[var(--axis-badge-destructive-bg,#FEE2E2)] px-2 py-1 text-[10px] font-medium text-[var(--axis-badge-destructive-text,#991B1B)] hover:opacity-80"
-                          >
-                            거절
-                          </button>
+                          <LabButton variant="approve" onClick={() => handleReview("node", node.id, "approve")} disabled={fetcher.state !== "idle"}>
+                            APPROVE
+                          </LabButton>
+                          <LabButton variant="edit" onClick={() => startEdit(node.id, node.label, node.ontologyTypeId)} disabled={fetcher.state !== "idle"}>
+                            EDIT
+                          </LabButton>
+                          <LabButton variant="reject" onClick={() => handleReview("node", node.id, "reject")} disabled={fetcher.state !== "idle"}>
+                            REJECT
+                          </LabButton>
                         </>
                       )}
                     </div>
@@ -238,45 +233,33 @@ export default function OntologyReview() {
       {/* Edges */}
       {unreviewedEdges.length > 0 && (
         <div>
-          <h2 className="mb-3 text-sm font-semibold text-[var(--axis-text-secondary)]">
-            관계 ({unreviewedEdges.length})
-          </h2>
+          <p className="lab-stat-terminal mb-3">RELATIONS ({unreviewedEdges.length})</p>
           <div className="space-y-2">
             {unreviewedEdges.map((edge) => (
               <Card key={edge.id}>
                 <CardContent className="flex items-center gap-3 p-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1 text-sm">
-                      <span className="font-mono text-[var(--axis-text-tertiary)]">{edge.fromNodeId.slice(0, 8)}</span>
-                      <span className="text-[var(--axis-text-secondary)]">→</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1 text-sm" style={{ fontFamily: "var(--dx-font-mono)" }}>
+                      <span className="text-[var(--axis-text-tertiary)]">{edge.fromNodeId.slice(0, 8)}</span>
+                      <span className="text-[var(--dx-lab-accent)]">&rarr;</span>
                       <Badge variant="secondary" className="text-[10px]">
                         {RELATION_LABELS[edge.relationType] || edge.relationType}
                       </Badge>
-                      <span className="text-[var(--axis-text-secondary)]">→</span>
-                      <span className="font-mono text-[var(--axis-text-tertiary)]">{edge.toNodeId.slice(0, 8)}</span>
+                      <span className="text-[var(--dx-lab-accent)]">&rarr;</span>
+                      <span className="text-[var(--axis-text-tertiary)]">{edge.toNodeId.slice(0, 8)}</span>
                     </div>
-                    <div className="mt-0.5 flex items-center gap-2 text-[10px] text-[var(--axis-text-tertiary)]">
-                      <span>강도 {((edge.strength ?? 100) / 100).toFixed(2)}</span>
-                      <span>신뢰도 {((edge.confidence ?? 1) * 100).toFixed(0)}%</span>
+                    <div className="mt-0.5 flex items-center gap-2 text-[10px] text-[var(--axis-text-tertiary)]" style={{ fontFamily: "var(--dx-font-mono)" }}>
+                      <span>STR {((edge.strength ?? 100) / 100).toFixed(2)}</span>
+                      <span>CONF {((edge.confidence ?? 1) * 100).toFixed(0)}%</span>
                     </div>
                   </div>
                   <div className="flex gap-1">
-                    <button
-                      type="button"
-                      onClick={() => handleReview("edge", edge.id, "approve")}
-                      disabled={fetcher.state !== "idle"}
-                      className="rounded bg-[var(--axis-badge-success-bg,#D1FAE5)] px-2 py-1 text-[10px] font-medium text-[var(--axis-badge-success-text,#065F46)] hover:opacity-80"
-                    >
-                      승인
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleReview("edge", edge.id, "reject")}
-                      disabled={fetcher.state !== "idle"}
-                      className="rounded bg-[var(--axis-badge-destructive-bg,#FEE2E2)] px-2 py-1 text-[10px] font-medium text-[var(--axis-badge-destructive-text,#991B1B)] hover:opacity-80"
-                    >
-                      거절
-                    </button>
+                    <LabButton variant="approve" onClick={() => handleReview("edge", edge.id, "approve")} disabled={fetcher.state !== "idle"}>
+                      APPROVE
+                    </LabButton>
+                    <LabButton variant="reject" onClick={() => handleReview("edge", edge.id, "reject")} disabled={fetcher.state !== "idle"}>
+                      REJECT
+                    </LabButton>
                   </div>
                 </CardContent>
               </Card>

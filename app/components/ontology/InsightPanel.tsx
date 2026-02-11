@@ -34,11 +34,11 @@ interface CentralityItem {
   betweenness?: number;
 }
 
-const TYPE_LABELS: Record<InsightPanelProps["type"], { title: string; icon: string }> = {
-  patterns: { title: "패턴 감지", icon: "🔗" },
-  contradictions: { title: "모순 감지", icon: "⚡" },
-  clusters: { title: "클러스터", icon: "🔵" },
-  centrality: { title: "중심성", icon: "🎯" },
+const TYPE_LABELS: Record<InsightPanelProps["type"], { title: string; code: string }> = {
+  patterns: { title: "패턴 감지", code: "PTN" },
+  contradictions: { title: "모순 감지", code: "CTR" },
+  clusters: { title: "클러스터", code: "CLS" },
+  centrality: { title: "중심성", code: "CEN" },
 };
 
 function PatternCard({ item }: { item: PatternItem }) {
@@ -147,16 +147,16 @@ function CentralityCard({ item }: { item: CentralityItem }) {
 }
 
 export function InsightPanel({ type, data, loading }: InsightPanelProps) {
-  const { title, icon } = TYPE_LABELS[type];
+  const { title, code } = TYPE_LABELS[type];
 
   if (loading) {
     return (
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-[var(--axis-text-secondary)]">
-          {icon} {title}
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-[var(--axis-text-secondary)]">
+          <span className="lab-stat-terminal">[{code}]</span> {title}
         </h3>
-        <div className="flex h-32 items-center justify-center rounded-lg border border-[var(--axis-border-default)]">
-          <p className="text-sm text-[var(--axis-text-tertiary)]">분석 중...</p>
+        <div className="flex h-32 items-center justify-center rounded-lg border border-[var(--dx-border-subtle,var(--axis-border-default))]">
+          <p className="text-sm text-[var(--axis-text-tertiary)]" style={{ fontFamily: "var(--dx-font-mono)" }}>ANALYZING...</p>
         </div>
       </div>
     );
@@ -165,8 +165,8 @@ export function InsightPanel({ type, data, loading }: InsightPanelProps) {
   if (!data || (Array.isArray(data) && data.length === 0)) {
     return (
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-[var(--axis-text-secondary)]">
-          {icon} {title}
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-[var(--axis-text-secondary)]">
+          <span className="lab-stat-terminal">[{code}]</span> {title}
         </h3>
         <p className="text-sm text-[var(--axis-text-tertiary)]">결과가 없습니다.</p>
       </div>
@@ -177,8 +177,8 @@ export function InsightPanel({ type, data, loading }: InsightPanelProps) {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-semibold text-[var(--axis-text-secondary)]">
-        {icon} {title}
+      <h3 className="flex items-center gap-2 text-sm font-semibold text-[var(--axis-text-secondary)]">
+        <span className="lab-stat-terminal">[{code}]</span> {title}
         <Badge variant="secondary" className="ml-2 text-[10px]">
           {items.length}건
         </Badge>

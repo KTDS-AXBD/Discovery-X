@@ -45,8 +45,8 @@ const PROBABILITY_LABELS = { high: "높음", medium: "중간", low: "낮음" };
 export function SimulationView({ propagation, scenario, loading }: SimulationViewProps) {
   if (loading) {
     return (
-      <div className="flex h-48 items-center justify-center rounded-lg border border-[var(--axis-border-default)]">
-        <p className="text-sm text-[var(--axis-text-tertiary)]">시뮬레이션 실행 중...</p>
+      <div className="flex h-48 items-center justify-center rounded-lg border border-[var(--dx-border-subtle,var(--axis-border-default))]">
+        <p className="text-sm text-[var(--axis-text-tertiary)]" style={{ fontFamily: "var(--dx-font-mono)" }}>SIMULATING...</p>
       </div>
     );
   }
@@ -58,17 +58,15 @@ export function SimulationView({ propagation, scenario, loading }: SimulationVie
       {/* Source + Summary */}
       <div className="flex items-center gap-3">
         <Badge variant="default">{propagation.sourceNode.label}</Badge>
-        <span className="text-sm text-[var(--axis-text-tertiary)]">&rarr;</span>
-        <span className="text-sm text-[var(--axis-text-secondary)]">
-          {propagation.affectedNodes.length}개 엔티티 영향 (최대 {propagation.maxDepthReached} hop)
+        <span className="text-sm text-[var(--dx-lab-accent)]">&rarr;</span>
+        <span className="text-sm text-[var(--axis-text-secondary)]" style={{ fontFamily: "var(--dx-font-mono)" }}>
+          {propagation.affectedNodes.length} affected ({propagation.maxDepthReached} hops)
         </span>
       </div>
 
       {/* Impact Propagation */}
       <div>
-        <h3 className="mb-3 text-sm font-semibold text-[var(--axis-text-secondary)]">
-          영향도 전파
-        </h3>
+        <p className="lab-stat-terminal mb-3">IMPACT PROPAGATION</p>
         <div className="space-y-1.5">
           {propagation.affectedNodes.map((node) => {
             const barWidth = Math.max(4, Math.round(node.impact * 100));
@@ -82,8 +80,8 @@ export function SimulationView({ propagation, scenario, loading }: SimulationVie
                 </Badge>
                 <div className="h-2 flex-1 rounded-full bg-[var(--axis-surface-secondary)]">
                   <div
-                    className="h-full rounded-full bg-[var(--axis-surface-brand)] transition-all"
-                    style={{ width: `${barWidth}%` }}
+                    className="h-full rounded-full transition-all"
+                    style={{ width: `${barWidth}%`, backgroundColor: "var(--dx-lab-accent)" }}
                   />
                 </div>
                 <span className="w-12 text-right text-[10px] tabular-nums text-[var(--axis-text-tertiary)]">

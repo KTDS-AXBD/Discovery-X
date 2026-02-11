@@ -6,10 +6,8 @@ import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server"
 import { AppShell } from "~/components/layout/AppShell";
 
 const TABS = [
-  { to: "/lab", label: "요약", end: true },
-  { to: "/lab/graph", label: "글로벌 그래프", end: false },
+  { to: "/lab", label: "개요", end: true },
   { to: "/lab/analysis", label: "분석", end: false },
-  { to: "/lab/simulation", label: "시뮬레이션", end: false },
   { to: "/lab/review", label: "검토 큐", end: false },
 ];
 
@@ -35,32 +33,40 @@ export default function LabLayout() {
 
   return (
     <AppShell user={user} hideSidebar>
-      <div className="mx-auto max-w-5xl px-6 py-6">
-        <h1 className="text-xl font-bold text-[var(--axis-text-primary)]">실험실</h1>
-        <p className="mt-1 text-sm text-[var(--axis-text-tertiary)]">
-          엔티티 그래프, 분석, 검토를 관리합니다.
-        </p>
+      <div className="lab-grid-bg min-h-[calc(100vh-var(--dx-nav-height))]">
+        <div className="px-6 py-6">
+          {/* Header */}
+          <div className="mb-6">
+            <h1 className="text-xl font-bold text-[var(--axis-text-primary)]" style={{ fontFamily: "var(--dx-font-mono)" }}>
+              실험실
+            </h1>
+            <p className="mt-1 text-xs tracking-wide text-[var(--dx-lab-accent)]" style={{ fontFamily: "var(--dx-font-mono)" }}>
+              Knowledge Graph Intelligence Laboratory
+            </p>
+          </div>
 
-        <nav className="mt-4 flex gap-1 border-b border-[var(--axis-border-default)]">
-          {TABS.map((tab) => (
-            <NavLink
-              key={tab.to}
-              to={tab.to}
-              end={tab.end}
-              className={({ isActive }) =>
-                `px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "border-b-2 border-[var(--axis-surface-brand)] text-[var(--axis-text-primary)]"
-                    : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-secondary)]"
-                }`
-              }
-            >
-              {tab.label}
-            </NavLink>
-          ))}
-        </nav>
+          {/* Tab Navigation */}
+          <nav className="mb-6 flex gap-1 border-b border-[var(--dx-border-subtle,var(--axis-border-default))]">
+            {TABS.map((tab) => (
+              <NavLink
+                key={tab.to}
+                to={tab.to}
+                end={tab.end}
+                className={({ isActive }) =>
+                  `px-4 py-2 text-xs font-medium uppercase tracking-wider transition-colors ${
+                    isActive
+                      ? "border-b-2 border-[var(--dx-lab-accent)] text-[var(--dx-lab-accent)]"
+                      : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-secondary)]"
+                  }`
+                }
+                style={{ fontFamily: "var(--dx-font-mono)" }}
+              >
+                {tab.label}
+              </NavLink>
+            ))}
+          </nav>
 
-        <div className="mt-6">
+          {/* Content */}
           <Outlet />
         </div>
       </div>
