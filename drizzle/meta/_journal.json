@@ -176,6 +176,13 @@
       "when": 1771137600000,
       "tag": "0024_proposal_section_unique",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1771224000000,
+      "tag": "0025_ontology_auto_extract",
+      "breakpoints": true
     }
   ]
 }
