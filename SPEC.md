@@ -31,7 +31,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 - 4탭 GNB (대시보드/아이디어/사업제안/실험실) + ContextPanel + 보관함 사이드바 레이아웃 재구성 (v5.0+)
 - 아이디어 페이지: Radar 아이템 재활용 + 메모 패널 (v5.0)
 - 사업제안: DB 6테이블 + CRUD API + 마일스톤/액션/댓글 + 진행상황 패널 (v5.0)
-- 실험실 (온톨로지 인텔리전스): LLM 자동 엔티티 추출 + 글로벌 엔티티 매칭 + 관계 분석 엔진 + 시뮬레이션 (v5.3)
+- 실험실 (Lab Intelligence): 3탭 구조 (개요/분석/검토 큐) + LLM 자동 엔티티 추출 + 글로벌 엔티티 매칭 + 관계 분석 엔진 + 시뮬레이션 + 과학 Lab 미학 (v5.3 → v6.1)
 - 대시보드 리디자인: 2컬럼 레이아웃 (SourceSidebar + SummaryCard) + 반응(like/dislike) 버튼 (v6.0)
 
 **Out-of-scope (PRD §2.2, §7.3)**
@@ -154,13 +154,11 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/api/proposals/:id/comments` — 댓글 API (GET + POST)
 - `/api/proposals/:id/actions` — 액션 아이템 토글 API (POST)
 
-**Lab (실험실) (5 pages + 6 API)**
-- `/lab` — 실험실 레이아웃 (5탭: 요약/글로벌 그래프/분석/검토 큐/시뮬레이션)
-- `/lab/_index` — 실험실 요약 대시보드 (통계 카드 + 최근 추출)
-- `/lab/graph` — 글로벌 엔티티 그래프 (GraphViewer 재활용)
-- `/lab/analysis` — 관계 분석 결과 (패턴/모순/클러스터/중심성)
-- `/lab/review` — 자동 추출 검토 큐 (승인/반려/편집)
-- `/lab/simulation` — 시뮬레이션 (영향도 전파 + LLM 시나리오 생성)
+**Lab (실험실) (3 pages + 5 API)**
+- `/lab` — 실험실 레이아웃 (3탭: 개요/분석/검토 큐, 전폭 dot-grid 배경, 모노스페이스 teal accent)
+- `/lab/_index` — 개요 (InstrumentPanel 5개 스탯 + GraphViewer + ExtractionLog)
+- `/lab/analysis` — 분석 + 시뮬레이션 통합 (5모드: 패턴/모순/클러스터/중심성/시뮬레이션)
+- `/lab/review` — 자동 추출 검토 큐 (승인/반려/편집, LabButton 컴포넌트)
 - `/api/lab/review` — 검토 API (POST approve/reject/edit)
 - `/api/lab/analyze` — 분석 API (POST by type)
 - `/api/lab/simulate` — 시뮬레이션 API (POST propagate/scenario/timeline)
@@ -180,7 +178,7 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/api/similar*` — 유사 검색 2개: similar-seeds/similar-sources
 - `/api/tenant.switch` — 테넌트 전환 (1)
 
-**라우트 합계**: Core 46 + Ideas 2 + Proposals 7 + Lab 9 + Venture 13 + API 31 + 미분류 2 (dashboard.tsx layout) = **110**
+**라우트 합계**: Core 46 + Ideas 2 + Proposals 7 + Lab 7 + Venture 13 + API 31 + 미분류 2 (dashboard.tsx layout) = **108**
 
 ---
 
@@ -285,12 +283,12 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.0 Dashboard Redesign + Lab Rename
+- **프로토타입**: v6.1 Lab Redesign (5탭→3탭 통합 + Lab 미학)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 배포 완료 (세션 149)
 - **DB**: 27개 마이그레이션 (0000~0026), 로컬 적용 필요 (0026: dashboard_reaction)
 
 ### 주요 지표
-- **라우트**: 123개 (core 46 + ideas 2 + proposals 8 + lab 11 + venture 13 + market 3 + API 31 + folders 4 + 기타 5)
+- **라우트**: 121개 (core 46 + ideas 2 + proposals 8 + lab 9 + venture 13 + market 3 + API 31 + folders 4 + 기타 5)
 - **테이블**: 68개 (core 44 + venture 16 + proposals 6 + archive 2) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges)
 - **Agent 도구**: 53개 (+5 ontology: analysis 4 + simulation 1)
 - **테스트**: 661개 (49 test files, 로컬 + CI 모두 통과) — 온톨로지 테스트 6파일 64개 포함
@@ -298,7 +296,18 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 156)
+### 최근 변경 (세션 158)
+**실험실 페이지 리디자인 — 5탭→3탭 통합, Lab 미학 적용**:
+- ✅ `lab.tsx`: 전폭 레이아웃 + dot-grid 배경 + 모노스페이스 teal accent 탭 (3탭: 개요/분석/검토 큐)
+- ✅ `lab._index.tsx`: 기존 요약 + 그래프 탭 병합 → InstrumentPanel (5개 대형 모노 스탯) + GraphViewer + ExtractionLog
+- ✅ `lab.analysis.tsx`: 기존 분석 + 시뮬레이션 탭 병합 → 5모드 버튼 (패턴/모순/클러스터/중심성/시뮬레이션)
+- ✅ `lab.review.tsx`: LabButton 컴포넌트 + 모노스페이스 메타데이터 (CONF/GLOBAL_ID/STR)
+- ✅ `dx-custom-tokens.css`: Lab 토큰 추가 (--dx-lab-accent, --dx-font-mono, --dx-lab-grid-color, --dx-lab-glow) + 유틸리티 클래스 4종 (lab-grid-bg, lab-scanline, lab-stat-terminal, lab-instrument-active)
+- ✅ `InsightPanel.tsx` / `SimulationView.tsx`: Lab 코드 라벨 ([PTN]/[CTR]/[CLS]/[CEN]) + teal accent 바
+- ✅ `lab.graph.tsx` / `lab.simulation.tsx` 삭제 (각각 개요/분석에 병합)
+- ✅ typecheck 통과 (lab 에러 0) / lint 통과 (lab 에러 0)
+
+### 이전 변경 (세션 156)
 **아이디어 페이지 소스 입력 기능 개선 및 프로덕션 테스트 완료**:
 - ✅ `api.ideas.sources.ts` (신규): 수동 소스 추가 전용 API — JSON body `{ inputs: string[] }`, 소스 타입 자동 감지 (web/youtube/text), SHA-256 중복 감지, 일별 manual radar_run 생성으로 tenant 스코핑 유지
 - ✅ `ideas.tsx`: handleAddSource → handleAddSources 리팩토링 — 새 API 호출 (JSON body), Promise 기반 결과 반환
