@@ -78,7 +78,7 @@ export default function OntologySimulation() {
     }
     fetcher.submit(JSON.stringify(payload), {
       method: "POST",
-      action: "/api/ontology/simulate",
+      action: "/api/lab/simulate",
       encType: "application/json",
     });
   }

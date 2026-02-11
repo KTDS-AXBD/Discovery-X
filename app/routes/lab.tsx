@@ -6,11 +6,11 @@ import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server"
 import { AppShell } from "~/components/layout/AppShell";
 
 const TABS = [
-  { to: "/ontology", label: "요약", end: true },
-  { to: "/ontology/graph", label: "글로벌 그래프", end: false },
-  { to: "/ontology/analysis", label: "분석", end: false },
-  { to: "/ontology/simulation", label: "시뮬레이션", end: false },
-  { to: "/ontology/review", label: "검토 큐", end: false },
+  { to: "/lab", label: "요약", end: true },
+  { to: "/lab/graph", label: "글로벌 그래프", end: false },
+  { to: "/lab/analysis", label: "분석", end: false },
+  { to: "/lab/simulation", label: "시뮬레이션", end: false },
+  { to: "/lab/review", label: "검토 큐", end: false },
 ];
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -25,18 +25,18 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
     return json({ user });
   } catch (error) {
-    console.error("[ontology.loader] Error:", error instanceof Error ? error.message : error);
+    console.error("[lab.loader] Error:", error instanceof Error ? error.message : error);
     return redirect("/login");
   }
 }
 
-export default function OntologyLayout() {
+export default function LabLayout() {
   const { user } = useLoaderData<typeof loader>();
 
   return (
     <AppShell user={user} hideSidebar>
       <div className="mx-auto max-w-5xl px-6 py-6">
-        <h1 className="text-xl font-bold text-[var(--axis-text-primary)]">온톨로지 인텔리전스</h1>
+        <h1 className="text-xl font-bold text-[var(--axis-text-primary)]">실험실</h1>
         <p className="mt-1 text-sm text-[var(--axis-text-tertiary)]">
           엔티티 그래프, 분석, 검토를 관리합니다.
         </p>

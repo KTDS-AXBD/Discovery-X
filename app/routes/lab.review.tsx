@@ -94,7 +94,7 @@ export default function OntologyReview() {
     }
     fetcher.submit(
       JSON.stringify(payload),
-      { method: "POST", action: "/api/ontology/review", encType: "application/json" },
+      { method: "POST", action: "/api/lab/review", encType: "application/json" },
     );
     setEditingId(null);
   }

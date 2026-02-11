@@ -41,7 +41,7 @@ export default function OntologyAnalysis() {
       JSON.stringify({ type }),
       {
         method: "POST",
-        action: "/api/ontology/analyze",
+        action: "/api/lab/analyze",
         encType: "application/json",
       },
     );
