@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "@remix-run/react";
 import { cn } from "~/lib/utils/cn";
 
@@ -25,23 +25,50 @@ function isRecentItem(item: RadarItem): boolean {
 interface SourceInputPanelProps {
   items: RadarItem[];
   selectedItemId?: string;
-  onAddSource: (url: string) => void;
+  onAddSources: (inputs: string[]) => Promise<{ created: number; error?: string }>;
   isAdding?: boolean;
+  addResult?: { created: number; error?: string } | null;
 }
 
 export function SourceInputPanel({
   items,
   selectedItemId,
-  onAddSource,
+  onAddSources,
   isAdding,
+  addResult,
 }: SourceInputPanelProps) {
   const [inputValue, setInputValue] = useState("");
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
-  const handleSubmit = () => {
+  // Show feedback from addResult
+  useEffect(() => {
+    if (!addResult) return;
+    if (addResult.error) {
+      setFeedback({ type: "error", message: addResult.error });
+    } else if (addResult.created > 0) {
+      setFeedback({ type: "success", message: `${addResult.created}개 소스 추가됨` });
+    } else {
+      setFeedback({ type: "success", message: "중복된 소스입니다" });
+    }
+    const timer = setTimeout(() => setFeedback(null), 3000);
+    return () => clearTimeout(timer);
+  }, [addResult]);
+
+  const handleSubmit = async () => {
     const trimmed = inputValue.trim();
-    if (!trimmed) return;
-    onAddSource(trimmed);
+    if (!trimmed || isAdding) return;
+
+    // Split by newline, filter empty lines
+    const inputs = trimmed
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+
+    if (inputs.length === 0) return;
+
     setInputValue("");
+    await onAddSources(inputs);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -50,6 +77,36 @@ export function SourceInputPanel({
       handleSubmit();
     }
   };
+
+  // Drag & Drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const uriList = e.dataTransfer.getData("text/uri-list");
+    const plainText = e.dataTransfer.getData("text/plain");
+    const dropped = uriList || plainText;
+
+    if (dropped) {
+      setInputValue((prev) => {
+        if (!prev.trim()) return dropped;
+        return prev + "\n" + dropped;
+      });
+    }
+  }, []);
 
   return (
     <div className="flex h-full w-72 shrink-0 flex-col border-r border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))]">
@@ -60,14 +117,25 @@ export function SourceInputPanel({
 
       {/* Input area */}
       <div className="px-3 pb-3">
-        <div className="relative">
+        <div
+          className={cn(
+            "relative rounded-lg border transition-colors",
+            isDragOver
+              ? "border-[var(--axis-text-brand)] bg-[var(--axis-surface-brand)]/5"
+              : "border-[var(--axis-border-default)]"
+          )}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
           <textarea
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="PDF, 웹사이트 링크, 텍스트 입력"
+            placeholder={isDragOver ? "여기에 놓으세요" : "URL, 텍스트 입력 (여러 줄 가능)"}
             rows={2}
-            className="w-full resize-none rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-3 py-2 text-sm text-[var(--axis-text-primary)] placeholder:text-[var(--axis-text-tertiary)] focus:border-[var(--axis-text-brand)] focus:outline-none"
+            disabled={isAdding}
+            className="w-full resize-none rounded-lg border-0 bg-[var(--axis-surface-secondary)] px-3 py-2 text-sm text-[var(--axis-text-primary)] placeholder:text-[var(--axis-text-tertiary)] focus:outline-none disabled:opacity-60"
           />
           <button
             type="button"
@@ -76,15 +144,35 @@ export function SourceInputPanel({
             className="absolute bottom-2.5 right-2 flex h-6 w-6 items-center justify-center rounded-md bg-[var(--axis-surface-brand)] text-white transition-colors hover:opacity-90 disabled:opacity-40"
             aria-label="소스 추가"
           >
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
+            {isAdding ? (
+              <svg className="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+            ) : (
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+            )}
           </button>
         </div>
+
+        {/* Feedback message */}
+        {feedback && (
+          <p
+            className={cn(
+              "mt-1.5 text-xs font-medium transition-opacity",
+              feedback.type === "success"
+                ? "text-green-600 dark:text-green-400"
+                : "text-red-600 dark:text-red-400"
+            )}
+          >
+            {feedback.message}
+          </p>
+        )}
+
         <p className="mt-1 text-[10px] leading-relaxed text-[var(--axis-text-tertiary)]">
-          여러 URL을 추가하려면 줄 바꿈으로 구분하세요
-          <br />
-          현재는 PDF, 웹사이트 및 Youtube 링크, 텍스트 입력만 지원합니다
+          여러 URL은 줄 바꿈으로 구분 | 드래그 앤 드롭 가능
         </p>
       </div>
 
@@ -95,6 +183,7 @@ export function SourceInputPanel({
           const url = item.url?.toLowerCase() ?? "";
           const isPdf = url.endsWith(".pdf") || url.includes("/pdf");
           const isYoutube = url.includes("youtube.com") || url.includes("youtu.be");
+          const isText = url.startsWith("text://");
 
           return (
             <Link
@@ -109,7 +198,11 @@ export function SourceInputPanel({
             >
               {/* Type icon */}
               <span className="shrink-0 text-[var(--axis-text-tertiary)]">
-                {isPdf ? (
+                {isText ? (
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                  </svg>
+                ) : isPdf ? (
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                   </svg>

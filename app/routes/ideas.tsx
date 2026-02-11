@@ -91,6 +91,7 @@ export default function IdeasLayout() {
   const [chatMessages, setChatMessages] = useState<ChatMessageData[]>([]);
   const [messagesLoaded, setMessagesLoaded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  const [addResult, setAddResult] = useState<{ created: number; error?: string } | null>(null);
 
   const isLoadingMessages = conversationId !== null && !messagesLoaded;
 
@@ -148,17 +149,29 @@ export default function IdeasLayout() {
     return () => { cancelled = true; };
   }, [conversationId]);
 
-  const handleAddSource = useCallback(async (url: string) => {
+  const handleAddSources = useCallback(async (inputs: string[]): Promise<{ created: number; error?: string }> => {
     setIsAdding(true);
+    setAddResult(null);
     try {
-      await fetch("/api/radar/sources", {
+      const res = await fetch("/api/ideas/sources", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ inputs }),
       });
+      const data = await res.json() as { created?: number; error?: string };
+      if (!res.ok) {
+        const result = { created: 0, error: data.error || "추가 실패" };
+        setAddResult(result);
+        return result;
+      }
+      const result = { created: data.created ?? 0 };
+      setAddResult(result);
       revalidator.revalidate();
+      return result;
     } catch {
-      // Silently fail
+      const result = { created: 0, error: "네트워크 오류" };
+      setAddResult(result);
+      return result;
     } finally {
       setIsAdding(false);
     }
@@ -178,8 +191,9 @@ export default function IdeasLayout() {
         <SourceInputPanel
           items={items}
           selectedItemId={selectedId}
-          onAddSource={handleAddSource}
+          onAddSources={handleAddSources}
           isAdding={isAdding}
+          addResult={addResult}
         />
 
         {/* Center: Detail / Gadget Tabs */}
