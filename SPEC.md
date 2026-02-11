@@ -31,8 +31,11 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 - 4탭 GNB (대시보드/아이디어/사업제안/실험실) + ContextPanel + 보관함 사이드바 레이아웃 재구성 (v5.0+)
 - 아이디어 페이지: Radar 아이템 재활용 + 메모 패널 (v5.0)
 - 사업제안: DB 6테이블 + CRUD API + 마일스톤/액션/댓글 + 진행상황 패널 (v5.0)
-- 실험실 (Lab Intelligence): 3탭 구조 (개요/분석/검토 큐) + LLM 자동 엔티티 추출 + 글로벌 엔티티 매칭 + 관계 분석 엔진 + 시뮬레이션 + 과학 Lab 미학 (v5.3 → v6.1)
-- 대시보드 리디자인: 2컬럼 레이아웃 (SourceSidebar + SummaryCard) + 반응(like/dislike) 버튼 (v6.0)
+- 실험실 (Lab Intelligence): 3탭 구조 (개요/분석/검토 큐) + LLM 자동 엔티티 추출 + 글로벌 엔티티 매칭 + 관계 분석 엔진 + 시뮬레이션 + 인터랙티브 그래프 (드래그/줌/팬) + 과학 Lab 미학 (v5.3 → v6.2)
+- 대시보드 리디자인 (v6.0+):
+  - 2컬럼 레이아웃: SourceSidebar (280px, 읽음/안읽음 시각 구분) + SummaryCard + PeerBriefing
+  - SummaryCard: "핵심 요약" 배지 + 요약 텍스트 + "키워드" 배지 + "원본 링크" 배지 + 반응(like/dislike) + "소스 수집 관리"/"아이디어 생성" 액션 버튼
+  - 아이템 선택 시 자동 viewed 처리 (radarItemUserStatus.status → "viewed")
 - 아이디어 워크스페이스: ideas 테이블 + 멀티소스 그룹핑 + 전용 헤더 레이아웃 + 6탭 가젯 + 사업 제안 모달 (v6.2)
 
 **Out-of-scope (PRD §2.2, §7.3)**
@@ -160,7 +163,7 @@ Flow I: BD 워크스페이스 (v4.2)
 
 **Lab (실험실) (3 pages + 5 API)**
 - `/lab` — 실험실 레이아웃 (3탭: 개요/분석/검토 큐, 전폭 dot-grid 배경, 모노스페이스 teal accent)
-- `/lab/_index` — 개요 (InstrumentPanel 5개 스탯 + GraphViewer + ExtractionLog)
+- `/lab/_index` — 개요 (InstrumentPanel 5개 스탯 + GraphViewer (인터랙티브 드래그, 줌/팬) + ExtractionLog)
 - `/lab/analysis` — 분석 + 시뮬레이션 통합 (5모드: 패턴/모순/클러스터/중심성/시뮬레이션)
 - `/lab/review` — 자동 추출 검토 큐 (승인/반려/편집, LabButton 컴포넌트)
 - `/api/lab/review` — 검토 API (POST approve/reject/edit)
@@ -288,8 +291,8 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.2 Ideas Workspace Redesign (전용 헤더 + 워크스페이스 모델 + 6탭 가젯 + 사업 제안 모달)
-- **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 배포 완료 (세션 159)
+- **프로토타입**: v6.3 Dashboard Read/Unread + SummaryCard Design (읽음/안읽음 구분 + 섹션 배지 + 반응 버튼 + 액션 버튼)
+- **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 배포 완료 (세션 160)
 - **DB**: 28개 마이그레이션 (0000~0027), 로컬+프로덕션 적용 완료
 
 ### 주요 지표
@@ -301,50 +304,35 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 159)
+### 최근 변경 (세션 160)
+**대시보드 읽음/안읽음 구분 + SummaryCard 디자인 정확 구현**:
+- ✅ `SourceSidebar.tsx`: `viewedItemIds: Set<string>` prop 추가 — 안읽음(font-medium text-primary) / 읽음(font-normal text-tertiary) 시각 구분
+- ✅ `SummaryCard.tsx`: SectionBadge 컴포넌트 + 마크다운 요약 파싱 (단락/소제목/불릿) + 반응 버튼(좋아요/싫어요 + optimistic UI) + "소스 수집 관리"/"아이디어 생성" 액션 버튼
+- ✅ `dashboard._index.tsx`: loader에 viewedItemIds 쿼리 추가, handleSelect에서 자동 viewed 마킹 (useFetcher PATCH)
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
+
+### 이전 변경 (세션 159)
 **아이디어 페이지 리디자인 — 워크스페이스 모델 + 전용 헤더 + 6탭 가젯 + 프로덕션 배포**:
 - ✅ DB 스키마: `ideas` 테이블 (워크스페이스) + `idea_sources` 조인 테이블 + 마이그레이션 0027
 - ✅ 전용 헤더 (`IdeaPageHeader.tsx`): 햄버거 드로어 + 아이디어 제목 + "사업 제안하기" 버튼 + 테마 토글 — TopNav/AppShell 미사용
 - ✅ 아이디어 목록 드로어 (`IdeaListDrawer.tsx`): 최근 아이디어 리스트 + "새 아이디어" 생성 + 슬라이드 애니메이션
 - ✅ API 라우트 2개: `api.ideas.ts` (CRUD) + `api.ideas.$id.sources.ts` (소스 연결)
 - ✅ 탭 구조 변경 (8→6개): 산업별 사업 예시/규제/시장 조사/고객 조사/사업성 검증/차별화 + 출처 배지 + 피드백 버튼
-- ✅ 소스 패널 개선: 24h 토글 + 페이지네이션 + 분리 버튼(추가/전송) + 타입 아이콘
-- ✅ 빈 상태 (`ideas._index.tsx`): 제안 칩 + "분석 시작" 버튼
-- ✅ "사업 제안하기" 모달 (`ProposalCreationModal.tsx`): 아이디어 후보 선택 + 7탭 상세 (Radix Dialog)
-- ✅ 채팅 패널: 리서치 카테고리 체크리스트 (5개) + 빈 상태 개선
 - ✅ 신규 8파일 + 수정 7파일 = 15파일 변경 (+1,213 / -212 lines)
-- ✅ typecheck 0 에러 / lint 0 에러 / 661 테스트 통과 / build 성공
-- ✅ CI/CD 배포 완료 (1m 37s) + 프로덕션 DB 마이그레이션 적용 완료
+- ✅ CI/CD 배포 완료 + 프로덕션 DB 마이그레이션 적용 완료
 
 ### 이전 변경 (세션 158)
 **실험실 페이지 리디자인 — 5탭→3탭 통합, Lab 미학 적용**:
 - ✅ `lab.tsx`: 전폭 레이아웃 + dot-grid 배경 + 모노스페이스 teal accent 탭 (3탭: 개요/분석/검토 큐)
-- ✅ `lab._index.tsx`: 기존 요약 + 그래프 탭 병합 → InstrumentPanel (5개 대형 모노 스탯) + GraphViewer + ExtractionLog
-- ✅ `lab.analysis.tsx`: 기존 분석 + 시뮬레이션 탭 병합 → 5모드 버튼 (패턴/모순/클러스터/중심성/시뮬레이션)
-- ✅ `lab.review.tsx`: LabButton 컴포넌트 + 모노스페이스 메타데이터 (CONF/GLOBAL_ID/STR)
-- ✅ `dx-custom-tokens.css`: Lab 토큰 추가 (--dx-lab-accent, --dx-font-mono, --dx-lab-grid-color, --dx-lab-glow) + 유틸리티 클래스 4종 (lab-grid-bg, lab-scanline, lab-stat-terminal, lab-instrument-active)
-- ✅ `InsightPanel.tsx` / `SimulationView.tsx`: Lab 코드 라벨 ([PTN]/[CTR]/[CLS]/[CEN]) + teal accent 바
-- ✅ `lab.graph.tsx` / `lab.simulation.tsx` 삭제 (각각 개요/분석에 병합)
-- ✅ typecheck 통과 (lab 에러 0) / lint 통과 (lab 에러 0)
+- ✅ `lab._index.tsx`: 기존 요약 + 그래프 탭 병합 → InstrumentPanel + GraphViewer + ExtractionLog
+- ✅ `lab.analysis.tsx`: 기존 분석 + 시뮬레이션 탭 병합 → 5모드 버튼
+- ✅ typecheck 통과 / lint 통과
 
 ### 이전 변경 (세션 156)
 **아이디어 페이지 소스 입력 기능 개선 및 프로덕션 테스트 완료**:
-- ✅ `api.ideas.sources.ts` (신규): 수동 소스 추가 전용 API — JSON body `{ inputs: string[] }`, 소스 타입 자동 감지 (web/youtube/text), SHA-256 중복 감지, 일별 manual radar_run 생성으로 tenant 스코핑 유지
-- ✅ `ideas.tsx`: handleAddSource → handleAddSources 리팩토링 — 새 API 호출 (JSON body), Promise 기반 결과 반환
-- ✅ `SourceInputPanel.tsx`: 멀티라인 입력 (줄바꿈 분리), Drag & Drop (URL/텍스트), 인라인 피드백 (성공/실패/중복, 3초 자동 숨김), 로딩 스피너
-- ✅ 프로덕션 테스트 완료: 단일 URL 추가 / 멀티라인 (GitHub+YouTube) / 중복 감지 / 텍스트 메모 — 4개 시나리오 모두 통과
-- ✅ typecheck 0 에러 / lint 0 에러 / build 성공 / 프로덕션 배포 완료
-
-### 이전 변경 (세션 155)
-**온톨로지 GNB 노출 + 분석 탭 오류 수정**:
-- ✅ `TopNav.tsx`: GNB NAV_TABS에 온톨로지 탭 추가 (share 아이콘) — /ontology 직접 URL 없이도 접근 가능
-- ✅ `InsightPanel.tsx`: TYPE_LABELS 키를 API 계약과 동일한 복수형으로 통일 (`pattern`→`patterns`, `contradiction`→`contradictions`, `cluster`→`clusters`) — TypeError 해결
-- ✅ `ontology.analysis.tsx`: 불필요한 타입 캐스팅 제거
-- ✅ typecheck 0 에러 / lint 0 에러
-
-### 이전 변경 (세션 154)
-**아이디어 페이지 메타 정보 필터링 + 분석 탭 데이터 전달**:
-- ✅ `display-title.ts` 공통 유틸리티 추출: `isMeaningfulTitle` + `displayTitle` (META_RE 정규식 기반 "댓글 N개" 등 메타 텍스트 필터링)
+- ✅ `api.ideas.sources.ts` (신규): 수동 소스 추가 전용 API — 소스 타입 자동 감지, SHA-256 중복 감지
+- ✅ `SourceInputPanel.tsx`: 멀티라인 입력 + Drag & Drop + 인라인 피드백
+- ✅ 프로덕션 테스트 완료: 4개 시나리오 모두 통과
 - ✅ `ideas.tsx` loader: 메타데이터 전용 항목 필터링 추가 (대시보드와 동일 패턴)
 - ✅ `SourceInputPanel.tsx`: `displayTitle` 적용 (사이드바 제목 표시)
 - ✅ `ideas.$id.tsx`: 제목에 `displayTitle` 적용 + `IdeaGadgetTabs`에 sections prop 전달 (keyPoints/summaryKo/summary → "시장 예시" 탭)
