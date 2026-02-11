@@ -28,10 +28,11 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 - BD 워크스페이스 (v4.2): 키워드 구독 → 소스 수집/요약 → Agent 채팅 → 아이디어 생성/편집 → 팀 공유
 - `_index.tsx`, `/radar` 통합 3-Pane 레이아웃 (v4.2)
 - 1개 신규 + 6개 기존 테이블 확장 (v4.2)
-- 4탭 GNB (대시보드/아이디어/사업제안/온톨로지) + ContextPanel + 보관함 사이드바 레이아웃 재구성 (v5.0+)
+- 4탭 GNB (대시보드/아이디어/사업제안/실험실) + ContextPanel + 보관함 사이드바 레이아웃 재구성 (v5.0+)
 - 아이디어 페이지: Radar 아이템 재활용 + 메모 패널 (v5.0)
 - 사업제안: DB 6테이블 + CRUD API + 마일스톤/액션/댓글 + 진행상황 패널 (v5.0)
-- 온톨로지 인텔리전스: LLM 자동 엔티티 추출 + 글로벌 엔티티 매칭 + 관계 분석 엔진 + 시뮬레이션 (v5.3)
+- 실험실 (온톨로지 인텔리전스): LLM 자동 엔티티 추출 + 글로벌 엔티티 매칭 + 관계 분석 엔진 + 시뮬레이션 (v5.3)
+- 대시보드 리디자인: 2컬럼 레이아웃 (SourceSidebar + SummaryCard) + 반응(like/dislike) 버튼 (v6.0)
 
 **Out-of-scope (PRD §2.2, §7.3)**
 - 전사 공식 포털/플랫폼
@@ -153,33 +154,33 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/api/proposals/:id/comments` — 댓글 API (GET + POST)
 - `/api/proposals/:id/actions` — 액션 아이템 토글 API (POST)
 
-**Ontology Intelligence (5 pages + 6 API)**
-- `/ontology` — 온톨로지 레이아웃 (5탭: 요약/글로벌 그래프/분석/검토 큐/시뮬레이션)
-- `/ontology/_index` — 온톨로지 요약 대시보드 (통계 카드 + 최근 추출)
-- `/ontology/graph` — 글로벌 엔티티 그래프 (GraphViewer 재활용)
-- `/ontology/analysis` — 관계 분석 결과 (패턴/모순/클러스터/중심성)
-- `/ontology/review` — 자동 추출 검토 큐 (승인/반려/편집)
-- `/ontology/simulation` — 시뮬레이션 (영향도 전파 + LLM 시나리오 생성)
-- `/api/ontology/review` — 검토 API (POST approve/reject/edit)
-- `/api/ontology/analyze` — 분석 API (POST by type)
-- `/api/ontology/simulate` — 시뮬레이션 API (POST propagate/scenario/timeline)
-- `/api/cron/ontology-extract` — LLM 엔티티 자동 추출 Cron
-- `/api/cron/ontology-analyze` — 관계 분석 자동 실행 Cron
+**Lab (실험실) (5 pages + 6 API)**
+- `/lab` — 실험실 레이아웃 (5탭: 요약/글로벌 그래프/분석/검토 큐/시뮬레이션)
+- `/lab/_index` — 실험실 요약 대시보드 (통계 카드 + 최근 추출)
+- `/lab/graph` — 글로벌 엔티티 그래프 (GraphViewer 재활용)
+- `/lab/analysis` — 관계 분석 결과 (패턴/모순/클러스터/중심성)
+- `/lab/review` — 자동 추출 검토 큐 (승인/반려/편집)
+- `/lab/simulation` — 시뮬레이션 (영향도 전파 + LLM 시나리오 생성)
+- `/api/lab/review` — 검토 API (POST approve/reject/edit)
+- `/api/lab/analyze` — 분석 API (POST by type)
+- `/api/lab/simulate` — 시뮬레이션 API (POST propagate/scenario/timeline)
+- `/api/cron/lab-extract` — LLM 엔티티 자동 추출 Cron
+- `/api/cron/lab-analyze` — 관계 분석 자동 실행 Cron
 
 **Venture (13개)**
 - `/venture/*` — 스프린트 관리: _index/overview/analytics + sprints(new/_index/$sprintId 6개 서브라우트)
 
-**API (30개, proposals/ontology API 제외)**
+**API (31개, proposals/lab API 제외)**
 - `/api/chat` — SSE 스트리밍 채팅 (1)
 - `/api/conversations*` — 대화 CRUD + 메시지 (2)
 - `/api/cron*` — Cron 8개: daily/agent-review/alerts/embeddings/weekly-summary/log-archive/pattern-extract/shadow-analyze
 - `/api/venture*` — Venture API 7개: decisions.propose/tasks(claim/report/trigger)/worker/export/analytics.recompute
 - `/api/export*` — Export 4개: discoveries/discoveries-json/brief.$id/metrics
-- `/api/radar*` — Radar API 5개: runs/sources/trigger/summarize/items.$id.status
+- `/api/radar*` — Radar API 6개: runs/sources/trigger/summarize/items.$id.status/items.$id.reaction
 - `/api/similar*` — 유사 검색 2개: similar-seeds/similar-sources
 - `/api/tenant.switch` — 테넌트 전환 (1)
 
-**라우트 합계**: Core 46 + Ideas 2 + Proposals 7 + Ontology 9 + Venture 13 + API 30 + 미분류 2 (dashboard.tsx layout) = **109**
+**라우트 합계**: Core 46 + Ideas 2 + Proposals 7 + Lab 9 + Venture 13 + API 31 + 미분류 2 (dashboard.tsx layout) = **110**
 
 ---
 
@@ -204,7 +205,7 @@ Flow I: BD 워크스페이스 (v4.2)
 
 ```
 root.tsx
-├─ TopNav (3탭: 대시보드/아이디어/사업제안 + 테마토글/설정/유저)
+├─ TopNav (4탭: 대시보드/아이디어/사업제안/실험실 + 테마토글/설정/유저)
 ├─ AppShell (SidebarPanel + Surface + ContextPanel)
 │  ├─ SidebarPanel (보관함 폴더 + 대화 히스토리) — mode: "chat" | "proposals"
 │  │  └─ ArchiveFolderList (1depth 폴더: 중요/리서치/완료)
@@ -284,12 +285,12 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v5.9 Ideas Source Input Enhancement
+- **프로토타입**: v6.0 Dashboard Redesign + Lab Rename
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 배포 완료 (세션 149)
-- **DB**: 26개 마이그레이션 (0000~0025), 로컬+프로덕션 적용 완료 ✅
+- **DB**: 27개 마이그레이션 (0000~0026), 로컬 적용 필요 (0026: dashboard_reaction)
 
 ### 주요 지표
-- **라우트**: 123개 (core 46 + ideas 2 + proposals 8 + ontology 11 + venture 13 + market 3 + API 30 + folders 4 + 기타 6)
+- **라우트**: 123개 (core 46 + ideas 2 + proposals 8 + lab 11 + venture 13 + market 3 + API 31 + folders 4 + 기타 5)
 - **테이블**: 68개 (core 44 + venture 16 + proposals 6 + archive 2) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges)
 - **Agent 도구**: 53개 (+5 ontology: analysis 4 + simulation 1)
 - **테스트**: 661개 (49 test files, 로컬 + CI 모두 통과) — 온톨로지 테스트 6파일 64개 포함
