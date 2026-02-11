@@ -300,7 +300,9 @@ build/
 - ✅ `/` → `/dashboard` 리다이렉트 (기존 채팅 UI 제거, loader 단순화)
 - ✅ Pretendard Variable 폰트 CDN 적용 (한국어 타이포그래피 최적화)
 - ✅ `--axis-text-on-brand` / `--axis-border-brand` 토큰 정의 (Light + Dark)
+- ✅ CSS Cascade Layer 우선순위 수정 (unlayered로 @axis-ds/tokens 오버라이드)
 - ✅ SPEC.md §2 디자인 시스템 섹션 추가 (타이포그래피/색상/라우팅 정책)
+- ✅ CI/CD 2회 배포 완료 + 브라우저 검증 (리다이렉트/폰트/토큰 정상)
 
 ### 이전 변경 (세션 149)
 **온톨로지 테스트 48개 통과 + 대시보드 통계 + 배포 완료**:
