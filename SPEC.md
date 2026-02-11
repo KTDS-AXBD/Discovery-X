@@ -282,7 +282,7 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v5.5 Ontology Tests 48 Pass + Dashboard Statistics + Deploy
+- **프로토타입**: v5.6 Dashboard Design Polish + Ontology Simulation
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 배포 완료 (세션 149)
 - **DB**: 26개 마이그레이션 (0000~0025), 로컬+프로덕션 적용 완료 ✅
 
@@ -295,7 +295,15 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 150)
+### 최근 변경 (세션 151)
+**대시보드 디자인 개선 — Utilitarian Clarity**:
+- ✅ KPI 요약 카드 4개 추가 (수집 아이템/발굴 아이디어/사업 제안/수집 소스) — 각 악센트 색상 아이콘
+- ✅ StatusOverview: `dx-panel` 카드 래퍼 + 선택 시 좌측 파란 보더 인디케이터 + 키워드 pill/badge + 건수 표시
+- ✅ PeerBriefingSection: `dx-panel` 카드 래퍼 + dot 인디케이터 + hover 배경 + border-b 행 구분선
+- ✅ StatisticsSection: `dx-panel` 카드 래퍼 + 바 차트 블루(`--axis-chart-bar`) + 산업 컬러 도트 + 도넛 블루 그라데이션
+- ✅ typecheck 0 에러 / lint 0 에러 (변경 파일) / build 성공
+
+### 이전 변경 (세션 150)
 **루트 리다이렉트 + Pretendard 폰트 + 색상 가독성 개선**:
 - ✅ `/` → `/dashboard` 리다이렉트 (기존 채팅 UI 제거, loader 단순화)
 - ✅ Pretendard Variable 폰트 CDN 적용 (한국어 타이포그래피 최적화)
