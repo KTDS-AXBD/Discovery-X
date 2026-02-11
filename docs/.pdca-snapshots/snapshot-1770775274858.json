@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-02-10T12:09:14.971Z",
+  "timestamp": "2026-02-11T02:01:14.849Z",
   "reason": "compaction",
   "status": {
     "version": "2.0",
-    "lastUpdated": "2026-02-10T11:55:03.163Z",
+    "lastUpdated": "2026-02-11T01:41:38.741Z",
     "activeFeatures": [
       "routes",
       "auth",
@@ -30,13 +30,14 @@
       "repositories",
       "notifications",
       "embeddings",
-      "ax-bd-poc",
       "api",
       "ideas",
       "proposals",
-      "archive"
+      "archive",
+      "market",
+      "ontology"
     ],
-    "primaryFeature": "ax-bd-poc",
+    "primaryFeature": "ontology-intelligence",
     "features": {
       "dx-strategic-evolution-p3": {
         "phase": "archived",
@@ -71,9 +72,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-04T11:39:12.844Z",
-          "lastUpdated": "2026-02-10T11:50:21.761Z"
+          "lastUpdated": "2026-02-11T01:30:10.639Z"
         },
-        "lastFile": "/mnt/d/01_Projects/Discovery-X/app/routes/api.folders.ts"
+        "lastFile": "D:\\01_Projects\\Discovery-X\\app\\routes\\dashboard._index.tsx"
       },
       "auth": {
         "phase": "do",
@@ -97,9 +98,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-04T11:42:03.012Z",
-          "lastUpdated": "2026-02-09T07:01:25.901Z"
+          "lastUpdated": "2026-02-11T00:37:56.144Z"
         },
-        "lastFile": "D:\\01_Projects\\Discovery-X\\app\\lib\\agent\\tools\\discovery-tools.ts"
+        "lastFile": "/mnt/d/01_Projects/Discovery-X/app/lib/agent/tools/ontology-tools.ts"
       },
       "chat": {
         "phase": "do",
@@ -123,9 +124,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-04T11:52:49.906Z",
-          "lastUpdated": "2026-02-10T06:58:30.745Z"
+          "lastUpdated": "2026-02-11T01:30:25.710Z"
         },
-        "lastFile": "/mnt/d/01_Projects/Discovery-X/app/components/dashboard/CollectionStatusPanel.tsx"
+        "lastFile": "D:\\01_Projects\\Discovery-X\\app\\components\\dashboard\\PeerBriefingSection.tsx"
       },
       "layout": {
         "phase": "do",
@@ -136,9 +137,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-04T12:27:47.205Z",
-          "lastUpdated": "2026-02-10T11:40:15.813Z"
+          "lastUpdated": "2026-02-10T23:57:35.991Z"
         },
-        "lastFile": "/mnt/d/01_Projects/Discovery-X/app/components/layout/SidebarPanel.tsx"
+        "lastFile": "D:\\01_Projects\\Discovery-X\\app\\components\\layout\\TopNav.tsx"
       },
       "ui": {
         "phase": "do",
@@ -162,9 +163,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-04T13:25:45.361Z",
-          "lastUpdated": "2026-02-10T03:22:37.131Z"
+          "lastUpdated": "2026-02-11T00:38:23.953Z"
         },
-        "lastFile": "D:\\01_Projects\\Discovery-X\\tests\\integration\\agent\\executor-source-context.test.ts"
+        "lastFile": "/mnt/d/01_Projects/Discovery-X/app/lib/agent/tool-registry.ts"
       },
       "discovery": {
         "phase": "do",
@@ -188,9 +189,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-04T13:30:44.679Z",
-          "lastUpdated": "2026-02-04T13:37:21.158Z"
+          "lastUpdated": "2026-02-10T13:44:31.617Z"
         },
-        "lastFile": "D:\\01_Projects\\Discovery-X\\app\\components\\charts\\ExperimentGantt.tsx"
+        "lastFile": "/mnt/d/01_Projects/Discovery-X/app/components/charts/IndustryDonut.tsx"
       },
       "db": {
         "phase": "do",
@@ -201,9 +202,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-04T13:32:52.354Z",
-          "lastUpdated": "2026-02-10T11:37:42.276Z"
+          "lastUpdated": "2026-02-11T00:03:01.796Z"
         },
-        "lastFile": "/mnt/d/01_Projects/Discovery-X/app/db/index.ts"
+        "lastFile": "/mnt/d/01_Projects/Discovery-X/app/db/schema.ts"
       },
       "helpers": {
         "phase": "do",
@@ -214,7 +215,7 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-04T13:33:06.221Z",
-          "lastUpdated": "2026-02-10T11:55:03.163Z"
+          "lastUpdated": "2026-02-11T00:03:58.422Z"
         },
         "lastFile": "/mnt/d/01_Projects/Discovery-X/tests/helpers/db.ts"
       },
@@ -388,37 +389,12 @@
         "lastFile": "/mnt/d/01_Projects/Discovery-X/app/lib/embeddings/similar-items.ts"
       },
       "ax-bd-poc": {
-        "phase": "completed",
-        "phaseNumber": 5,
+        "phase": "archived",
         "matchRate": 92,
         "iterationCount": 2,
-        "requirements": [
-          "FR-01",
-          "FR-02",
-          "FR-03",
-          "FR-04",
-          "FR-05",
-          "FR-06",
-          "FR-07",
-          "FR-08",
-          "FR-09",
-          "FR-10",
-          "FR-11",
-          "FR-12"
-        ],
-        "documents": {
-          "plan": "docs/01-plan/features/ax-bd-poc.plan.md",
-          "design": "docs/02-design/features/ax-bd-poc.design.md",
-          "analysis": "docs/03-analysis/ax-bd-poc.analysis.md",
-          "testPlan": "docs/01-plan/features/ax-bd-poc-tests.plan.md",
-          "report": "docs/04-report/ax-bd-poc.report.md"
-        },
-        "timestamps": {
-          "started": "2026-02-09T00:00:00.000Z",
-          "lastUpdated": "2026-02-10T14:00:00.000Z",
-          "completedAt": "2026-02-10T14:00:00.000Z"
-        },
-        "notes": "PDCA 완료. Design v1.0 현행화 완료 (Core Table Extension). 597 테스트 PASS. 배포 준비 완료."
+        "startedAt": "2026-02-09T00:00:00.000Z",
+        "archivedAt": "2026-02-10T14:30:00.000Z",
+        "archivedTo": "docs/archive/2026-02/ax-bd-poc/"
       },
       "api": {
         "phase": "do",
@@ -442,22 +418,28 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-10T06:59:09.510Z",
-          "lastUpdated": "2026-02-10T11:54:45.912Z"
+          "lastUpdated": "2026-02-11T01:16:21.276Z"
         },
-        "lastFile": "/mnt/d/01_Projects/Discovery-X/app/components/ideas/MemoPanel.tsx"
+        "lastFile": "D:\\01_Projects\\Discovery-X\\app\\components\\ideas\\SourceInputPanel.tsx"
+      },
+      "ontology-intelligence": {
+        "phase": "design",
+        "matchRate": 0,
+        "iterationCount": 0,
+        "startedAt": "2026-02-11T00:00:00.000Z"
       },
       "proposals": {
         "phase": "do",
+        "matchRate": 72.4,
+        "iterationCount": 1,
+        "startedAt": "2026-02-10T07:00:11.067Z",
+        "archivedAt": "2026-02-11T00:00:00.000Z",
+        "archivedTo": "docs/archive/2026-02/proposals/",
         "phaseNumber": 3,
-        "matchRate": null,
-        "iterationCount": 0,
-        "requirements": [],
-        "documents": {},
+        "lastFile": "D:\\01_Projects\\Discovery-X\\app\\components\\proposals\\ProgressPanel.tsx",
         "timestamps": {
-          "started": "2026-02-10T07:00:11.067Z",
-          "lastUpdated": "2026-02-10T11:33:26.419Z"
-        },
-        "lastFile": "/mnt/d/01_Projects/Discovery-X/app/components/proposals/ProposalListSidebar.tsx"
+          "lastUpdated": "2026-02-11T01:12:47.240Z"
+        }
       },
       "archive": {
         "phase": "do",
@@ -471,6 +453,32 @@
           "lastUpdated": "2026-02-10T11:37:28.137Z"
         },
         "lastFile": "/mnt/d/01_Projects/Discovery-X/app/features/archive/db/schema.ts"
+      },
+      "market": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-10T14:14:35.351Z",
+          "lastUpdated": "2026-02-10T14:14:59.046Z"
+        },
+        "lastFile": "/mnt/d/01_Projects/Discovery-X/app/components/market/MarketAnalysisTabs.tsx"
+      },
+      "ontology": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-11T00:04:41.521Z",
+          "lastUpdated": "2026-02-11T01:41:38.741Z"
+        },
+        "lastFile": "D:\\01_Projects\\Discovery-X\\tests\\unit\\ontology\\analyzer.test.ts"
       }
     },
     "pipeline": {
@@ -481,7 +489,7 @@
     "session": {
       "startedAt": "2026-02-04T11:05:49.371Z",
       "onboardingCompleted": false,
-      "lastActivity": "2026-02-10T11:55:03.163Z"
+      "lastActivity": "2026-02-11T01:41:38.741Z"
     },
     "history": [
       {
@@ -3139,6 +3147,954 @@
       {
         "timestamp": "2026-02-10T11:55:03.163Z",
         "feature": "helpers",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T13:44:01.805Z",
+        "feature": "dashboard",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T13:44:09.946Z",
+        "feature": "dashboard",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T13:44:21.272Z",
+        "feature": "charts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T13:44:31.617Z",
+        "feature": "charts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T13:44:41.573Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T13:44:52.318Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T13:50:08.891Z",
+        "feature": "dashboard",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T14:14:35.351Z",
+        "feature": "market",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T14:14:36.059Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T14:14:39.777Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T14:14:48.135Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T14:14:50.977Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T14:14:59.046Z",
+        "feature": "market",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T14:39:48.869Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T14:39:49.509Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T14:39:56.951Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T14:39:59.587Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T14:40:01.707Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T14:40:02.868Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T14:40:07.534Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T14:40:08.719Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T14:40:17.625Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T14:40:19.071Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T14:40:22.127Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T14:40:23.986Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:47:24.627Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:47:30.319Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:47:40.934Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:47:52.110Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:47:57.423Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:48:06.406Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:48:18.269Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:48:41.711Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:48:52.993Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:49:07.359Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:50:02.019Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:50:32.097Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:54:53.770Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:55:09.456Z",
+        "feature": "dashboard",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:55:11.313Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:55:15.245Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:55:20.065Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:55:20.821Z",
+        "feature": "dashboard",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:55:25.980Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:55:27.523Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:55:33.981Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:55:39.428Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:55:45.250Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:55:45.345Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:55:49.936Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:55:50.432Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:55:50.954Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:55:57.367Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:55:58.850Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:56:04.439Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T22:56:05.262Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:06:47.532Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:06:54.112Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:07:04.881Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:07:13.135Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:07:18.358Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:07:37.691Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:07:54.795Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:08:02.127Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:08:15.789Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:08:22.770Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:10:29.284Z",
+        "feature": "helpers",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:31:56.914Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:32:04.352Z",
+        "feature": "dashboard",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:32:10.861Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:32:21.647Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:32:32.695Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:35:37.965Z",
+        "feature": "dashboard",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:46:21.596Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:46:22.814Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:46:28.101Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:46:29.364Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:46:47.475Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:46:52.133Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:47:16.603Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:47:20.795Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:47:25.511Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:47:36.204Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:47:57.673Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T23:57:35.991Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:02:33.108Z",
+        "feature": "db",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:02:42.420Z",
+        "feature": "db",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:02:50.445Z",
+        "feature": "db",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:03:01.796Z",
+        "feature": "db",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:03:58.422Z",
+        "feature": "helpers",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:04:41.521Z",
+        "feature": "ontology",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:05:27.379Z",
+        "feature": "ontology",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:05:42.305Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:06:06.101Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:06:40.446Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:06:57.697Z",
+        "feature": "tools",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:07:05.893Z",
+        "feature": "tools",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:07:25.560Z",
+        "feature": "agent",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:12:52.712Z",
+        "feature": "ontology",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:13:27.304Z",
+        "feature": "ideas",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:13:45.236Z",
+        "feature": "ideas",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:13:52.639Z",
+        "feature": "ideas",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:14:17.575Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:14:23.253Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:31:24.685Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:31:35.107Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:31:48.270Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:37:20.599Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:37:27.464Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:37:29.763Z",
+        "feature": "ontology",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:37:35.744Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:37:47.108Z",
+        "feature": "tools",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:37:48.514Z",
+        "feature": "ontology",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:37:56.144Z",
+        "feature": "tools",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:38:08.372Z",
+        "feature": "agent",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:38:22.088Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:38:23.953Z",
+        "feature": "agent",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:38:35.558Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:38:48.422Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:41:32.824Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:47:16.629Z",
+        "feature": "ontology",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:48:48.027Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:49:06.698Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:49:35.437Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T00:49:48.510Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:12:13.722Z",
+        "feature": "ideas",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:12:17.605Z",
+        "feature": "ideas",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:12:32.312Z",
+        "feature": "ideas",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:12:45.565Z",
+        "feature": "ideas",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:12:47.240Z",
+        "feature": "proposals",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:14:58.886Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:15:01.333Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:15:02.007Z",
+        "feature": "ontology",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:15:30.072Z",
+        "feature": "ontology",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:15:43.939Z",
+        "feature": "ideas",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:15:45.171Z",
+        "feature": "ideas",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:15:47.220Z",
+        "feature": "ideas",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:15:58.826Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:16:06.854Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:16:16.329Z",
+        "feature": "ideas",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:16:18.431Z",
+        "feature": "ideas",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:16:19.979Z",
+        "feature": "ideas",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:16:21.276Z",
+        "feature": "ideas",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:16:36.719Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:29:16.657Z",
+        "feature": "dashboard",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:29:40.115Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:29:47.760Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:29:54.186Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:30:10.639Z",
+        "feature": "routes",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:30:25.710Z",
+        "feature": "dashboard",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:33:29.499Z",
+        "feature": "ontology",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:34:04.754Z",
+        "feature": "ontology",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:34:56.741Z",
+        "feature": "ontology",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:35:40.977Z",
+        "feature": "ontology",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:35:53.380Z",
+        "feature": "ontology",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:41:32.962Z",
+        "feature": "ontology",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:41:35.645Z",
+        "feature": "ontology",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-11T01:41:38.741Z",
+        "feature": "ontology",
         "phase": "do",
         "action": "updated"
       }
