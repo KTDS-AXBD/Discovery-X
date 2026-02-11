@@ -9,6 +9,7 @@ const TABS = [
   { to: "/ontology", label: "요약", end: true },
   { to: "/ontology/graph", label: "글로벌 그래프", end: false },
   { to: "/ontology/analysis", label: "분석", end: false },
+  { to: "/ontology/simulation", label: "시뮬레이션", end: false },
   { to: "/ontology/review", label: "검토 큐", end: false },
 ];
 

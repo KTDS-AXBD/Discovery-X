@@ -40,6 +40,7 @@ export const TOOL_MIN_AUTONOMY: Record<string, number> = {
   analyze_contradictions: 1,
   analyze_clusters: 1,
   analyze_centrality: 1,
+  simulate_scenario: 2,
   // Indicator tools (R3)
   get_kpi_status: 1,
   get_pipeline_health: 1,
@@ -654,6 +655,20 @@ export const AGENT_TOOLS: ClaudeTool[] = [
       required: ["tenantId"],
       properties: {
         tenantId: { type: "string", description: "테넌트 ID" },
+      },
+    },
+  },
+  {
+    name: "simulate_scenario",
+    description: "특정 엔티티의 변화가 온톨로지 그래프에 미치는 영향을 시뮬레이션합니다. 영향도 전파 + LLM 시나리오 생성.",
+    input_schema: {
+      type: "object",
+      required: ["tenantId", "sourceNodeId", "question"],
+      properties: {
+        tenantId: { type: "string", description: "테넌트 ID" },
+        sourceNodeId: { type: "string", description: "변화의 시작점이 되는 엔티티 노드 ID" },
+        magnitude: { type: "number", description: "변화 강도 (0.0~1.0, 기본 1.0)" },
+        question: { type: "string", description: "시뮬레이션 질문 (예: 'ESG 시장이 30% 성장하면?')" },
       },
     },
   },
