@@ -33,6 +33,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 - 사업제안: DB 6테이블 + CRUD API + 마일스톤/액션/댓글 + 진행상황 패널 (v5.0)
 - 실험실 (Lab Intelligence): 3탭 구조 (개요/분석/검토 큐) + LLM 자동 엔티티 추출 + 글로벌 엔티티 매칭 + 관계 분석 엔진 + 시뮬레이션 + 과학 Lab 미학 (v5.3 → v6.1)
 - 대시보드 리디자인: 2컬럼 레이아웃 (SourceSidebar + SummaryCard) + 반응(like/dislike) 버튼 (v6.0)
+- 아이디어 워크스페이스: ideas 테이블 + 멀티소스 그룹핑 + 전용 헤더 레이아웃 + 6탭 가젯 + 사업 제안 모달 (v6.2)
 
 **Out-of-scope (PRD §2.2, §7.3)**
 - 전사 공식 포털/플랫폼
@@ -141,9 +142,12 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/valueup*` — Value-up 시나리오 (2): valueup/valueup.$id
 - `/radar` — Radar 소스 관리 (1)
 
-**Ideas (2개)**
-- `/ideas` — 아이디어 3-Panel 레이아웃 (좌: SourceInputPanel + 중: Outlet + 우: IdeaChatWrapper)
-- `/ideas/:id` — 아이디어 상세 (제목바 + 8개 가젯 탭: 시장 예시/규제/시장 조사/고객 조사/사업성 검증/자금원/경쟁사/특허)
+**Ideas (5 pages + 3 API)**
+- `/ideas` — 아이디어 워크스페이스 레이아웃 (전용 헤더 + 드로어 + 좌: SourceInputPanel + 중: Outlet + 우: IdeaChatWrapper)
+- `/ideas/_index` — 빈 상태 (소스 추가 제안 칩 + "분석 시작" 버튼)
+- `/ideas/:id` — 아이디어 상세 (6개 가젯 탭: 산업별 사업 예시/규제/시장 조사/고객 조사/사업성 검증/차별화)
+- `/api/ideas` — 아이디어 CRUD API (GET 목록 + POST 생성 + DELETE 삭제)
+- `/api/ideas/:id/sources` — 아이디어-소스 연결 API (GET 목록 + POST 추가)
 
 **Proposals (7개: 4 pages + 3 API)**
 - `/proposals` — 사업제안 레이아웃 (전용 사이드바 + Surface + 진행상황 패널)
@@ -178,7 +182,7 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/api/similar*` — 유사 검색 2개: similar-seeds/similar-sources
 - `/api/tenant.switch` — 테넌트 전환 (1)
 
-**라우트 합계**: Core 46 + Ideas 2 + Proposals 7 + Lab 7 + Venture 13 + API 31 + 미분류 2 (dashboard.tsx layout) = **108**
+**라우트 합계**: Core 46 + Ideas 8 + Proposals 7 + Lab 7 + Venture 13 + API 31 + 미분류 2 (dashboard.tsx layout) = **114**
 
 ---
 
@@ -223,6 +227,7 @@ root.tsx
 | Ontology/Graph | 5 | ontology_types, context_nodes, context_edges, context_snapshots, evidence_duplicate_candidates |
 | Methods & Gates | 4 | method_packs, method_runs, gate_packages, assumptions |
 | Venture Sprint | 16 | vd_sprints, vd_sprint_scopes, vd_signals, vd_problems, vd_themes, vd_opportunities, vd_evidences, vd_assumptions, vd_premortems, vd_artifacts, vd_decisions, vd_votes, vd_scores, vd_work_events, vd_analytics_snapshots, vd_task_queue |
+| Ideas | 2 | ideas, idea_sources |
 | Radar | 4 | radar_sources, radar_runs, radar_items, radar_item_user_status |
 | Chat & Agent | 3 | conversations, messages, agent_config |
 | Indicators & Alerts | 6 | discovery_kpis, kpi_measurements, discovery_links, webhook_configs, alert_rules, alerts |
@@ -232,7 +237,7 @@ root.tsx
 | Shadow Mode | 2 | shadow_runs, shadow_configs |
 | Value-up Engine | 4 | valueup_assessments, valueup_scores, valueup_scenarios, valueup_checklists |
 | Proposals | 6 | proposals, proposal_sections, proposal_milestones, proposal_actions, proposal_comments, proposal_members |
-| **합계** | **66** | |
+| **합계** | **68** | |
 
 ### Agent 시스템 (52개 도구)
 
@@ -283,20 +288,35 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.1 Lab Redesign (5탭→3탭 통합 + Lab 미학)
-- **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 배포 완료 (세션 149)
-- **DB**: 27개 마이그레이션 (0000~0026), 로컬 적용 필요 (0026: dashboard_reaction)
+- **프로토타입**: v6.2 Ideas Workspace Redesign (전용 헤더 + 워크스페이스 모델 + 6탭 가젯 + 사업 제안 모달)
+- **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 배포 완료 (세션 159)
+- **DB**: 28개 마이그레이션 (0000~0027), 로컬+프로덕션 적용 완료
 
 ### 주요 지표
-- **라우트**: 121개 (core 46 + ideas 2 + proposals 8 + lab 9 + venture 13 + market 3 + API 31 + folders 4 + 기타 5)
-- **테이블**: 68개 (core 44 + venture 16 + proposals 6 + archive 2) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges)
+- **라우트**: 127개 (core 46 + ideas 8 + proposals 8 + lab 9 + venture 13 + market 3 + API 31 + folders 4 + 기타 5)
+- **테이블**: 70개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges)
 - **Agent 도구**: 53개 (+5 ontology: analysis 4 + simulation 1)
-- **테스트**: 661개 (49 test files, 로컬 + CI 모두 통과) — 온톨로지 테스트 6파일 64개 포함
+- **테스트**: 661개 (44 test files, 로컬 + CI 모두 통과) — 온톨로지 테스트 6파일 64개 포함
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 158)
+### 최근 변경 (세션 159)
+**아이디어 페이지 리디자인 — 워크스페이스 모델 + 전용 헤더 + 6탭 가젯 + 프로덕션 배포**:
+- ✅ DB 스키마: `ideas` 테이블 (워크스페이스) + `idea_sources` 조인 테이블 + 마이그레이션 0027
+- ✅ 전용 헤더 (`IdeaPageHeader.tsx`): 햄버거 드로어 + 아이디어 제목 + "사업 제안하기" 버튼 + 테마 토글 — TopNav/AppShell 미사용
+- ✅ 아이디어 목록 드로어 (`IdeaListDrawer.tsx`): 최근 아이디어 리스트 + "새 아이디어" 생성 + 슬라이드 애니메이션
+- ✅ API 라우트 2개: `api.ideas.ts` (CRUD) + `api.ideas.$id.sources.ts` (소스 연결)
+- ✅ 탭 구조 변경 (8→6개): 산업별 사업 예시/규제/시장 조사/고객 조사/사업성 검증/차별화 + 출처 배지 + 피드백 버튼
+- ✅ 소스 패널 개선: 24h 토글 + 페이지네이션 + 분리 버튼(추가/전송) + 타입 아이콘
+- ✅ 빈 상태 (`ideas._index.tsx`): 제안 칩 + "분석 시작" 버튼
+- ✅ "사업 제안하기" 모달 (`ProposalCreationModal.tsx`): 아이디어 후보 선택 + 7탭 상세 (Radix Dialog)
+- ✅ 채팅 패널: 리서치 카테고리 체크리스트 (5개) + 빈 상태 개선
+- ✅ 신규 8파일 + 수정 7파일 = 15파일 변경 (+1,213 / -212 lines)
+- ✅ typecheck 0 에러 / lint 0 에러 / 661 테스트 통과 / build 성공
+- ✅ CI/CD 배포 완료 (1m 37s) + 프로덕션 DB 마이그레이션 적용 완료
+
+### 이전 변경 (세션 158)
 **실험실 페이지 리디자인 — 5탭→3탭 통합, Lab 미학 적용**:
 - ✅ `lab.tsx`: 전폭 레이아웃 + dot-grid 배경 + 모노스페이스 teal accent 탭 (3탭: 개요/분석/검토 큐)
 - ✅ `lab._index.tsx`: 기존 요약 + 그래프 탭 병합 → InstrumentPanel (5개 대형 모노 스탯) + GraphViewer + ExtractionLog
@@ -705,7 +725,7 @@ build/
 - **브랜치 전략**: master 단일 브랜치 (Prototype 기간)
 - **배포**: Cloudflare Pages (master push → GitHub Actions CI/CD 자동 배포) — Secrets 설정 완료 ✅
 - **운영 실험**: 🚀 2026-01-31 시작 (30-60일, 최대 5명, Discovery 5-10건 목표)
-- **DB 마이그레이션**: ✅ 26개 (0000~0025) 로컬+프로덕션 적용 완료
+- **DB 마이그레이션**: ✅ 28개 (0000~0027) 로컬+프로덕션 적용 완료
 - **Cron 설정**: daily (09:00) + agent-review (10:00) + alerts (09:30) + embeddings (15분) + ontology-extract + ontology-analyze (cron-job.org)
 - **Radar Worker**: 프로덕션 운영 중 (Cron 매일 9:00 KST, 10소스)
 - **이메일**: Resend (`noreply@ideaonaction.ai`), cron-job.org 자동 발송
@@ -729,8 +749,9 @@ build/
 | v5.1 Ideas/Charts/Archive | 3 | F20 아이디어 고도화 (메모+필터+유사검색) + F21 대시보드 차트 통합 + F22 보관함 폴더 CRUD |
 | v5.2 Ideas 3-Panel + Proposals | 1 | F23 아이디어 3-Panel 재설계 (소스+가젯탭+채팅) + 사업제안 사이드바 개선 |
 | v5.3 Ontology Intelligence | 2 | F24 LLM 엔티티 추출 + 매칭 + 분석 4종, F25 시뮬레이션 (BFS 전파 + LLM 시나리오 + 스냅샷 비교) |
+| v6.2 Ideas Workspace | 1 | F26 아이디어 워크스페이스 리디자인 (ideas 테이블 + 전용 헤더 + 6탭 가젯 + 사업 제안 모달) |
 | Embeddings | 3 | Vectorize 3개 (Discovery/Evidence/Radar) + Cron 15분 + 시맨틱 검색/중복 감지 |
-| 테스트 | 5 | 661개 (unit 76 + integration 342 + venture 143 + BD PoC 36 + ontology 64) |
+| 테스트 | 5 | 661개 (44 test files, unit 76 + integration 342 + venture 143 + BD PoC 36 + ontology 64) |
 | 운영/문서 | 8 | Google OAuth + 이메일 + Radar + 문서 5종 + QA |
 
 <details>
@@ -786,4 +807,5 @@ build/
 | F23 | 아이디어 3-Panel 재설계 (소스+가젯탭+채팅) + 사업제안 사이드바 개선 | v5.2 | ✅ | 8 |
 | F24 | 온톨로지 인텔리전스 Phase 1+2 (LLM 엔티티 추출 + 글로벌 매칭 + 관계 분석 엔진 + UI) | v5.3 | ✅ | 16 |
 | F25 | 온톨로지 인텔리전스 Phase 3 (BFS 영향 전파 + LLM 시나리오 + 스냅샷 비교 + 시뮬레이션 UI) | v5.3 | ✅ | 9 |
+| F26 | 아이디어 워크스페이스 리디자인 (ideas 테이블 + 전용 헤더 + 6탭 가젯 + 사업 제안 모달) | v6.2 | ✅ | 15 |
 
