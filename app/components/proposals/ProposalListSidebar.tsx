@@ -9,6 +9,7 @@ interface ProposalSummary {
   status: string;
   teamSize: number | null;
   updatedAt: string | number | null;
+  totalProgress?: number;
 }
 
 interface ProposalListSidebarProps {
@@ -87,15 +88,24 @@ export function ProposalListSidebar({ proposals, activeId }: ProposalListSidebar
                       </span>
                     )}
                   </div>
-                  {p.updatedAt && (() => {
-                    const d = new Date(typeof p.updatedAt === "number" ? p.updatedAt * 1000 : p.updatedAt);
-                    const formatted = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
-                    return (
-                      <p className="mt-0.5 text-[10px] text-[var(--axis-text-tertiary)]">
-                        📅 {formatted}
-                      </p>
-                    );
-                  })()}
+                  <div className="mt-1 flex items-center gap-2">
+                    {p.updatedAt && (() => {
+                      const d = new Date(typeof p.updatedAt === "number" ? p.updatedAt * 1000 : p.updatedAt);
+                      const formatted = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+                      return (
+                        <span className="text-[10px] text-[var(--axis-text-tertiary)]">
+                          📅 {formatted}
+                        </span>
+                      );
+                    })()}
+                  </div>
+                  {/* Progress bar */}
+                  <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-[var(--axis-surface-secondary)]">
+                    <div
+                      className="h-full rounded-full bg-[var(--axis-text-brand)] transition-all"
+                      style={{ width: `${p.totalProgress ?? 0}%` }}
+                    />
+                  </div>
                 </Link>
               );
             })}

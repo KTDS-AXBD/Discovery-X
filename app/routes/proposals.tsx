@@ -1,9 +1,9 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { Outlet, useLoaderData, useParams } from "@remix-run/react";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { getDb } from "~/db";
-import { proposals } from "~/features/proposals/db/schema";
+import { proposals, proposalActions } from "~/features/proposals/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { ProposalListSidebar } from "~/components/proposals/ProposalListSidebar";
@@ -23,10 +23,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     status: string;
     teamSize: number | null;
     updatedAt: Date | null;
+    totalProgress: number;
   }> = [];
 
   try {
-    proposalList = await db
+    const rawList = await db
       .select({
         id: proposals.id,
         title: proposals.title,
@@ -37,6 +38,31 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       .from(proposals)
       .where(eq(proposals.tenantId, ctx.tenantId))
       .orderBy(desc(proposals.updatedAt));
+
+    // Fetch action progress per proposal
+    const progressMap = new Map<string, number>();
+    if (rawList.length > 0) {
+      const ids = rawList.map((p) => p.id);
+      const progressRows = await db
+        .select({
+          proposalId: proposalActions.proposalId,
+          total: sql<number>`count(*)`,
+          completed: sql<number>`sum(case when ${proposalActions.completed} = 1 then 1 else 0 end)`,
+        })
+        .from(proposalActions)
+        .where(sql`${proposalActions.proposalId} IN (${sql.join(ids.map((id) => sql`${id}`), sql`, `)})`)
+        .groupBy(proposalActions.proposalId);
+
+      for (const row of progressRows) {
+        const pct = row.total > 0 ? Math.round(((row.completed ?? 0) / row.total) * 100) : 0;
+        progressMap.set(row.proposalId, pct);
+      }
+    }
+
+    proposalList = rawList.map((p) => ({
+      ...p,
+      totalProgress: progressMap.get(p.id) ?? 0,
+    }));
   } catch {
     // Table might not exist yet
   }

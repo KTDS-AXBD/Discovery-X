@@ -1,4 +1,40 @@
+import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { redirect } from "@remix-run/cloudflare";
 import { Link } from "@remix-run/react";
+import { desc, eq } from "drizzle-orm";
+import { getDb } from "~/db";
+import { proposals } from "~/features/proposals/db/schema";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
+
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  try {
+    const db = getDb(context.cloudflare.env.DB);
+    const secret = getSessionSecret(context.cloudflare.env);
+    const ctx = await getSessionContext(request, db, secret);
+
+    if (!ctx) {
+      return redirect("/login");
+    }
+
+    // Auto-select first proposal if available
+    const first = await db
+      .select({ id: proposals.id })
+      .from(proposals)
+      .where(eq(proposals.tenantId, ctx.tenantId))
+      .orderBy(desc(proposals.updatedAt))
+      .limit(1)
+      .get();
+
+    if (first) {
+      return redirect(`/proposals/${first.id}`);
+    }
+  } catch {
+    // Table might not exist
+  }
+
+  // No proposals — show empty state
+  return null;
+}
 
 export default function ProposalsIndex() {
   return (
