@@ -2,10 +2,10 @@
  * /dashboard (Overview) — 2-column layout: SourceSidebar + SummaryCard + PeerBriefing.
  */
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, useFetcher } from "@remix-run/react";
 import { eq, sql, desc, and, inArray } from "drizzle-orm";
 import { getDb } from "~/db";
 import { discoveries, radarItems, radarItemUserStatus } from "~/db/schema";
@@ -37,6 +37,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     totalDiscoveries: { total: 0, items: [] as { id: string; title: string; status: string }[] },
     strategyProposals: { total: 0, items: [] as { id: string; title: string; status: string }[] },
     reactions: {} as Record<string, string | null>,
+    viewedItemIds: [] as string[],
     timestamp: "",
   };
 
@@ -116,14 +117,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     // proposals table might not exist
   }
 
-  // ── 4. Reactions (사용자별 반응) ───────────────────────────
+  // ── 4. Reactions + Viewed status (사용자별 반응 + 읽음 상태) ─
   const reactions: Record<string, string | null> = {};
+  const viewedItemIds: string[] = [];
   if (user && recentCollections.items.length > 0) {
     try {
       const itemIds = recentCollections.items.map((i) => i.id);
       const statuses = await db
         .select({
           itemId: radarItemUserStatus.itemId,
+          status: radarItemUserStatus.status,
           reaction: radarItemUserStatus.reaction,
         })
         .from(radarItemUserStatus)
@@ -136,6 +139,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
       for (const s of statuses) {
         reactions[s.itemId] = s.reaction ?? null;
+        if (s.status === "viewed" || s.status === "archived") {
+          viewedItemIds.push(s.itemId);
+        }
       }
     } catch {
       // radarItemUserStatus might not have reaction column yet
@@ -147,6 +153,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     totalDiscoveries,
     strategyProposals,
     reactions,
+    viewedItemIds,
     timestamp,
   });
 }
@@ -157,10 +164,30 @@ export default function DashboardOverview() {
     totalDiscoveries,
     strategyProposals,
     reactions,
+    viewedItemIds,
   } = useLoaderData<typeof loader>();
 
   const [selectedItemId, setSelectedItemId] = useState<string | null>(
     recentCollections.items[0]?.id ?? null,
+  );
+  const [localViewed, setLocalViewed] = useState<Set<string>>(
+    new Set(viewedItemIds),
+  );
+  const statusFetcher = useFetcher();
+
+  const handleSelect = useCallback(
+    (id: string) => {
+      setSelectedItemId(id);
+      if (!localViewed.has(id)) {
+        setLocalViewed((prev) => new Set(prev).add(id));
+        statusFetcher.submit(JSON.stringify({ status: "viewed" }), {
+          method: "PATCH",
+          action: `/api/radar/items/${id}/status`,
+          encType: "application/json",
+        });
+      }
+    },
+    [localViewed, statusFetcher],
   );
 
   const selectedItem = recentCollections.items.find(
@@ -173,7 +200,8 @@ export default function DashboardOverview() {
       <SourceSidebar
         items={recentCollections.items}
         selectedItemId={selectedItemId}
-        onSelect={setSelectedItemId}
+        viewedItemIds={localViewed}
+        onSelect={handleSelect}
       />
 
       {/* Right: Summary + PeerBriefing */}
