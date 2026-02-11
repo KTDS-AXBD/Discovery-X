@@ -284,7 +284,7 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v5.6 Dashboard Design Polish + Ontology Simulation
+- **프로토타입**: v5.7 Ideas Page Meta Filtering + Analysis Tab Data
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 배포 완료 (세션 149)
 - **DB**: 26개 마이그레이션 (0000~0025), 로컬+프로덕션 적용 완료 ✅
 
@@ -297,7 +297,16 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 153)
+### 최근 변경 (세션 154)
+**아이디어 페이지 메타 정보 필터링 + 분석 탭 데이터 전달**:
+- ✅ `display-title.ts` 공통 유틸리티 추출: `isMeaningfulTitle` + `displayTitle` (META_RE 정규식 기반 "댓글 N개" 등 메타 텍스트 필터링)
+- ✅ `ideas.tsx` loader: 메타데이터 전용 항목 필터링 추가 (대시보드와 동일 패턴)
+- ✅ `SourceInputPanel.tsx`: `displayTitle` 적용 (사이드바 제목 표시)
+- ✅ `ideas.$id.tsx`: 제목에 `displayTitle` 적용 + `IdeaGadgetTabs`에 sections prop 전달 (keyPoints/summaryKo/summary → "시장 예시" 탭)
+- ✅ `StatusOverview.tsx`: 로컬 중복 함수 제거 → 공통 유틸리티 import
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
+
+### 이전 변경 (세션 153)
 **팀 스킬 WSL 호환성 수정**:
 - ✅ `/team` 스킬 tmux pane 분리 안 되는 근본 원인 분석 및 수정
 - 원인 1: Claude Code Bash가 Windows Git Bash에서 실행되어 `tmux: command not found`
