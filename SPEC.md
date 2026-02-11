@@ -275,7 +275,7 @@ build/
 - **라우트**: 121개 (core 46 + ideas 2 + proposals 8 + ontology 9 + venture 13 + market 3 + API 30 + folders 4 + 기타 6)
 - **테이블**: 68개 (core 44 + venture 16 + proposals 6 + archive 2) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges)
 - **Agent 도구**: 52개 (+4 ontology analysis)
-- **테스트**: 597개 (unit 76 + integration 342 + venture 143 + BD PoC 36)
+- **테스트**: 645개 (43 test files, 로컬 + CI 모두 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
@@ -287,6 +287,8 @@ build/
 - ✅ analyzer/matcher/extractor 3개 온톨로지 테스트 seed 패턴 통일
 - ✅ CI/CD 전체 통과: Lint ✓ / Typecheck ✓ / Tests ✓ / Build ✓ / Deploy ✓
 - ✅ 프로덕션 배포 완료 (https://dx.minu.best)
+- ✅ 로컬 node_modules 손상 복구: robocopy 빈 폴더 트릭으로 완전 삭제 후 클린 인스톨
+- ✅ 로컬 테스트 645개 전체 통과 (43 test files, 29.78s)
 
 ### 이전 변경 (세션 145)
 **CLAUDE.md 리팩토링 + SDD-primary 워크플로우 통합**:
