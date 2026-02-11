@@ -1,12 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run *)",
+      "Bash(pnpm *)",
+      "Bash(pnpm run *)",
       "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
       "Bash(git branch *)",
       "Bash(git checkout *)",
+      "Bash(git add *)",
       "Bash(gh *)",
-      "Bash(ls *)"
+      "Bash(ls *)",
+      "Bash(wrangler *)"
     ]
   }
 }
