@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Link } from "@remix-run/react";
 import { cn } from "~/lib/utils/cn";
+import { displayTitle } from "~/lib/utils/display-title";
 
 interface RadarItem {
   id: string;
@@ -27,7 +28,6 @@ interface SourceInputPanelProps {
   selectedItemId?: string;
   onAddSources: (inputs: string[]) => Promise<{ created: number; error?: string }>;
   isAdding?: boolean;
-  addResult?: { created: number; error?: string } | null;
 }
 
 export function SourceInputPanel({
@@ -35,25 +35,23 @@ export function SourceInputPanel({
   selectedItemId,
   onAddSources,
   isAdding,
-  addResult,
 }: SourceInputPanelProps) {
   const [inputValue, setInputValue] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const feedbackTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  // Show feedback from addResult
-  useEffect(() => {
-    if (!addResult) return;
-    if (addResult.error) {
-      setFeedback({ type: "error", message: addResult.error });
-    } else if (addResult.created > 0) {
-      setFeedback({ type: "success", message: `${addResult.created}개 소스 추가됨` });
+  const showFeedback = useCallback((result: { created: number; error?: string }) => {
+    clearTimeout(feedbackTimerRef.current);
+    if (result.error) {
+      setFeedback({ type: "error", message: result.error });
+    } else if (result.created > 0) {
+      setFeedback({ type: "success", message: `${result.created}개 소스 추가됨` });
     } else {
       setFeedback({ type: "success", message: "중복된 소스입니다" });
     }
-    const timer = setTimeout(() => setFeedback(null), 3000);
-    return () => clearTimeout(timer);
-  }, [addResult]);
+    feedbackTimerRef.current = setTimeout(() => setFeedback(null), 3000);
+  }, []);
 
   const handleSubmit = async () => {
     const trimmed = inputValue.trim();
@@ -68,7 +66,8 @@ export function SourceInputPanel({
     if (inputs.length === 0) return;
 
     setInputValue("");
-    await onAddSources(inputs);
+    const result = await onAddSources(inputs);
+    showFeedback(result);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -219,7 +218,7 @@ export function SourceInputPanel({
 
               {/* Title */}
               <span className="min-w-0 flex-1 text-sm font-medium text-[var(--axis-text-primary)] line-clamp-1">
-                {item.titleKo || item.title}
+                {displayTitle(item.titleKo, item.title)}
               </span>
 
               {/* New indicator (red dot) */}

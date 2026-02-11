@@ -6,6 +6,7 @@ import { desc, sql } from "drizzle-orm";
 import { getDb } from "~/db";
 import { radarItems } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
+import { isMeaningfulTitle } from "~/lib/utils/display-title";
 import { AppShell } from "~/components/layout/AppShell";
 import { SourceInputPanel } from "~/components/ideas/SourceInputPanel";
 import { IdeaChatWrapper } from "~/components/ideas/IdeaChatWrapper";
@@ -73,6 +74,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     // Radar tables might not exist
   }
 
+    // Filter out meta-only titles (e.g. "댓글 9개", "princox")
+    items = items.filter(
+      (item) => isMeaningfulTitle(item.titleKo) || isMeaningfulTitle(item.title)
+    );
+
     return json({ user: ctx.user, items, totalCount });
   } catch (error) {
     console.error("[ideas.loader] Error:", error instanceof Error ? error.message : error);
@@ -91,7 +97,6 @@ export default function IdeasLayout() {
   const [chatMessages, setChatMessages] = useState<ChatMessageData[]>([]);
   const [messagesLoaded, setMessagesLoaded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
-  const [addResult, setAddResult] = useState<{ created: number; error?: string } | null>(null);
 
   const isLoadingMessages = conversationId !== null && !messagesLoaded;
 
@@ -151,7 +156,6 @@ export default function IdeasLayout() {
 
   const handleAddSources = useCallback(async (inputs: string[]): Promise<{ created: number; error?: string }> => {
     setIsAdding(true);
-    setAddResult(null);
     try {
       const res = await fetch("/api/ideas/sources", {
         method: "POST",
@@ -160,18 +164,12 @@ export default function IdeasLayout() {
       });
       const data = await res.json() as { created?: number; error?: string };
       if (!res.ok) {
-        const result = { created: 0, error: data.error || "추가 실패" };
-        setAddResult(result);
-        return result;
+        return { created: 0, error: data.error || "추가 실패" };
       }
-      const result = { created: data.created ?? 0 };
-      setAddResult(result);
       revalidator.revalidate();
-      return result;
+      return { created: data.created ?? 0 };
     } catch {
-      const result = { created: 0, error: "네트워크 오류" };
-      setAddResult(result);
-      return result;
+      return { created: 0, error: "네트워크 오류" };
     } finally {
       setIsAdding(false);
     }
@@ -193,7 +191,6 @@ export default function IdeasLayout() {
           selectedItemId={selectedId}
           onAddSources={handleAddSources}
           isAdding={isAdding}
-          addResult={addResult}
         />
 
         {/* Center: Detail / Gadget Tabs */}

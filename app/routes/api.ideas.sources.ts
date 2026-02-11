@@ -1,7 +1,6 @@
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { eq, and, gte } from "drizzle-orm";
-import { sql } from "drizzle-orm";
 import { getDb } from "~/db";
 import { radarSources, radarItems, radarRuns } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
