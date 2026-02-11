@@ -280,15 +280,19 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 146)
-**CI 테스트 수정 + 재배포 완료**:
+### 최근 변경 (세션 147)
+**CI 통합 테스트 수정 + 재배포 완료**:
+- ✅ `analysis-tools.test.ts` + `review-pipeline.test.ts` onConflictDoNothing 수정 (세션 146에서 누락된 통합 테스트 2개)
+- ✅ CI/CD 전체 통과: Lint ✓ / Typecheck ✓ / Tests ✓ / Build ✓ / Deploy ✓
+- ✅ 프로덕션 배포 완료 (https://dx.minu.best)
+
+### 이전 변경 (세션 146)
+**CI 테스트 수정 + node_modules 복구**:
 - ✅ `extractor.test.ts` FOREIGN KEY constraint 에러 수정: `seedBase()`에 `tenants`/`tenantMembers` 시드 누락
 - ✅ "다른 테넌트" 테스트에서 `tenant-A` 레코드 추가
 - ✅ analyzer/matcher/extractor 3개 온톨로지 테스트 seed 패턴 통일
-- ✅ CI/CD 전체 통과: Lint ✓ / Typecheck ✓ / Tests ✓ / Build ✓ / Deploy ✓
-- ✅ 프로덕션 배포 완료 (https://dx.minu.best)
-- ✅ 로컬 node_modules 손상 복구: robocopy 빈 폴더 트릭으로 완전 삭제 후 클린 인스톨
-- ✅ 로컬 테스트 645개 전체 통과 (43 test files, 29.78s)
+- ✅ 로컬 node_modules 손상 복구 + 클린 인스톨
+- ✅ 로컬 테스트 645개 전체 통과 (43 test files)
 
 ### 이전 변경 (세션 145)
 **CLAUDE.md 리팩토링 + SDD-primary 워크플로우 통합**:
