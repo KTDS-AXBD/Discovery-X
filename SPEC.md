@@ -104,10 +104,25 @@ Flow I: BD 워크스페이스 (v4.2)
   → 수동 편집 → 팀 공유
 ```
 
+### 디자인 시스템
+
+**타이포그래피**
+- Primary: Pretendard Variable (CDN, dynamic subset)
+- Fallback: -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif
+- CSS: `--axis-font-family-sans` 오버라이드
+
+**색상 가독성 (WCAG AA 기준)**
+- 브랜드 배경(`--axis-surface-brand`) 위 텍스트: `--axis-text-on-brand: #FFFFFF` (대비 4.5:1 이상)
+- 브랜드 테두리: `--axis-border-brand` (Light/Dark 동일 패턴)
+- GNB 활성 탭: `bg-[--axis-surface-brand] text-[--axis-text-brand]` (기존 유지, AA 통과)
+
+**라우팅 정책**
+- `/` → `/dashboard` 리다이렉트 (인증 시), 미인증 시 `/login` 리다이렉트
+
 ### 페이지 맵 (100개 라우트)
 
 **Core (46개)**
-- `/` — 채팅 (메인) (1)
+- `/` — `/dashboard` 리다이렉트 (1)
 - `/dashboard/*` — 대시보드 레이아웃 + 서브탭 (9): _index/metrics/health/alerts/audit-log/review/recall/assets/shadow
 - `/discoveries*` — 목록/생성/상세 (3): _index/new/$id
 - `/discoveries/:id/*` — 편집/승격/실험/근거/결정/Gate/Graph/Methods/승인/연장/규제/패턴 (13)
@@ -280,7 +295,14 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 149)
+### 최근 변경 (세션 150)
+**루트 리다이렉트 + Pretendard 폰트 + 색상 가독성 개선**:
+- ✅ `/` → `/dashboard` 리다이렉트 (기존 채팅 UI 제거, loader 단순화)
+- ✅ Pretendard Variable 폰트 CDN 적용 (한국어 타이포그래피 최적화)
+- ✅ `--axis-text-on-brand` / `--axis-border-brand` 토큰 정의 (Light + Dark)
+- ✅ SPEC.md §2 디자인 시스템 섹션 추가 (타이포그래피/색상/라우팅 정책)
+
+### 이전 변경 (세션 149)
 **온톨로지 테스트 48개 통과 + 대시보드 통계 + 배포 완료**:
 - ✅ 온톨로지 테스트 5파일 48개 전체 통과 확인 (unit 3 + integration 2)
   - matcher.test.ts (11): normalizeLabel, matchGlobalEntity, matchGlobalEntitiesBatch

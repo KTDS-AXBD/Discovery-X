@@ -32,6 +32,10 @@
   --dx-toggle-selected-bg: var(--axis-surface-brand);
   --dx-toggle-selected-ring: var(--axis-border-brand);
 
+  /* Brand on-surface tokens */
+  --axis-text-on-brand: #FFFFFF;
+  --axis-border-brand: var(--axis-surface-brand);
+
   /* Primitive color aliases (패키지 → 로컬 호환) */
   --axis-blue-100: var(--axis-color-blue-100);
   --axis-blue-200: var(--axis-color-blue-200);
@@ -224,6 +228,10 @@
   --axis-button-success-bg-disabled: #166534;
   --axis-button-purple-bg-disabled: #581C87;
   --axis-button-destructive-bg-disabled: #7F1D1D;
+
+  /* Brand on-surface tokens */
+  --axis-text-on-brand: #FFFFFF;
+  --axis-border-brand: var(--axis-surface-brand);
 
   /* Purple variant */
   --axis-badge-purple-bg: #581C87;

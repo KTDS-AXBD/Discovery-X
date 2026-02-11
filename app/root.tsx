@@ -125,6 +125,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
             __html: `(function(){try{var t=localStorage.getItem("dx-theme");if(t==="dark"||t==="light"){document.documentElement.setAttribute("data-theme",t);document.documentElement.classList.add(t)}else if(window.matchMedia("(prefers-color-scheme:dark)").matches){document.documentElement.setAttribute("data-theme","dark");document.documentElement.classList.add("dark")}}catch(e){}})()`,
           }}
         />
+        <link
+          rel="stylesheet"
+          as="style"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+        />
         <Meta />
         <Links />
       </head>
