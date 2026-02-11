@@ -31,56 +31,58 @@ export function PeerBriefingSection({ ideas, proposals }: PeerBriefingSectionPro
   };
 
   return (
-    <section className="mt-8">
-      <h2 className="mb-4 text-lg font-semibold text-[var(--axis-text-primary)]">
-        피어브리핑
-      </h2>
+    <section className="mt-6">
+      <div className="dx-panel p-5">
+        <h2 className="mb-4 text-lg font-semibold text-[var(--axis-text-primary)]">
+          피어브리핑
+        </h2>
 
-      {/* Tab bar */}
-      <div className="flex gap-4 border-b border-[var(--axis-border-default)]">
-        {TABS.map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={() => setActiveTab(tab.key)}
-            className={cn(
-              "pb-2 text-sm font-medium transition-colors",
-              activeTab === tab.key
-                ? "border-b-2 border-[var(--axis-text-brand)] text-[var(--axis-text-brand)]"
-                : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]"
-            )}
-          >
-            {tab.label(getTabCount(tab.key))}
-          </button>
-        ))}
-      </div>
+        {/* Tab bar */}
+        <div className="flex gap-4 border-b border-[var(--axis-border-default)]">
+          {TABS.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              className={cn(
+                "pb-2 text-sm font-medium transition-colors",
+                activeTab === tab.key
+                  ? "border-b-2 border-[var(--axis-text-brand)] text-[var(--axis-text-brand)]"
+                  : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]"
+              )}
+            >
+              {tab.label(getTabCount(tab.key))}
+            </button>
+          ))}
+        </div>
 
-      {/* Tab content */}
-      <div className="mt-4">
-        {activeTab === "ideas" && (
-          <TabContent
-            items={ideas}
-            linkPrefix="/ideas"
-            emptyMessage="아직 항목이 없습니다."
-          />
-        )}
-        {activeTab === "proposals" && (
-          <TabContent
-            items={proposals}
-            linkPrefix="/proposals"
-            emptyMessage="아직 항목이 없습니다."
-          />
-        )}
-        {activeTab === "consulting" && (
-          <p className="py-4 text-sm text-[var(--axis-text-tertiary)]">
-            아직 항목이 없습니다.
-          </p>
-        )}
-        {activeTab === "verification" && (
-          <p className="py-4 text-sm text-[var(--axis-text-tertiary)]">
-            아직 항목이 없습니다.
-          </p>
-        )}
+        {/* Tab content */}
+        <div className="mt-4">
+          {activeTab === "ideas" && (
+            <TabContent
+              items={ideas}
+              linkPrefix="/ideas"
+              emptyMessage="아직 항목이 없습니다."
+            />
+          )}
+          {activeTab === "proposals" && (
+            <TabContent
+              items={proposals}
+              linkPrefix="/proposals"
+              emptyMessage="아직 항목이 없습니다."
+            />
+          )}
+          {activeTab === "consulting" && (
+            <p className="py-4 text-sm text-[var(--axis-text-tertiary)]">
+              아직 항목이 없습니다.
+            </p>
+          )}
+          {activeTab === "verification" && (
+            <p className="py-4 text-sm text-[var(--axis-text-tertiary)]">
+              아직 항목이 없습니다.
+            </p>
+          )}
+        </div>
       </div>
     </section>
   );
@@ -104,14 +106,18 @@ function TabContent({
   }
 
   return (
-    <div className="grid grid-cols-2 gap-x-6 gap-y-1">
+    <div className="grid grid-cols-2 gap-x-6">
       {items.map((item) => (
         <Link
           key={item.id}
           to={`${linkPrefix}/${item.id}`}
-          className="truncate text-sm text-[var(--axis-text-primary)] hover:underline"
+          className="flex items-center gap-2 border-b border-[var(--axis-border-default)] px-2 py-2 text-sm text-[var(--axis-text-primary)] transition-colors last:border-b-0 hover:bg-[var(--axis-surface-secondary)]/50"
         >
-          {item.title}
+          <span
+            className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
+            style={{ backgroundColor: "var(--axis-chart-bar)" }}
+          />
+          <span className="truncate">{item.title}</span>
         </Link>
       ))}
     </div>

@@ -16,18 +16,20 @@ export function StatisticsSection({
   sourceBreakdown,
 }: StatisticsSectionProps) {
   return (
-    <section className="mt-8">
-      <h2 className="mb-4 text-lg font-semibold text-[var(--axis-text-primary)]">
-        통계
-      </h2>
-      <div className="grid grid-cols-4 gap-6">
-        <MonthlyActivityChart data={monthlyActivity} />
-        <StageDurationBars data={stageDuration} />
-        <IndustryList data={industryData} />
-        <CollectionStats
-          totalSources={totalSources}
-          breakdown={sourceBreakdown}
-        />
+    <section className="mt-6">
+      <div className="dx-panel p-5">
+        <h2 className="mb-4 text-lg font-semibold text-[var(--axis-text-primary)]">
+          통계
+        </h2>
+        <div className="grid grid-cols-4 gap-6">
+          <MonthlyActivityChart data={monthlyActivity} />
+          <StageDurationBars data={stageDuration} />
+          <IndustryList data={industryData} />
+          <CollectionStats
+            totalSources={totalSources}
+            breakdown={sourceBreakdown}
+          />
+        </div>
       </div>
     </section>
   );
@@ -65,7 +67,7 @@ function MonthlyActivityChart({
                     className="w-full max-w-[28px] rounded-sm"
                     style={{
                       height: `${h}%`,
-                      backgroundColor: "var(--axis-text-primary)",
+                      backgroundColor: "var(--axis-chart-bar)",
                       minHeight: d.count > 0 ? 4 : 0,
                     }}
                   />
@@ -120,7 +122,7 @@ function StageDurationBars({
                     className="h-2.5 rounded-full"
                     style={{
                       width: `${pct}%`,
-                      backgroundColor: "var(--axis-text-primary)",
+                      backgroundColor: "var(--axis-chart-bar)",
                       minWidth: pct > 0 ? 4 : 0,
                     }}
                   />
@@ -164,7 +166,11 @@ function IndustryList({
                   key={d.name}
                   className="flex items-center justify-between text-sm"
                 >
-                  <span className="text-[var(--axis-text-primary)]">
+                  <span className="flex items-center gap-1.5 text-[var(--axis-text-primary)]">
+                    <span
+                      className="inline-block h-2 w-2 rounded-full"
+                      style={{ backgroundColor: d.color }}
+                    />
                     {d.name}
                   </span>
                   <span className="tabular-nums text-[var(--axis-text-secondary)]">
@@ -181,6 +187,8 @@ function IndustryList({
 
 /* ── 수집 현황 ──────────────────────────────────────── */
 
+const DONUT_COLORS = ["#3B82F6", "#60A5FA", "#93C5FD"];
+
 function CollectionStats({
   totalSources,
   breakdown,
@@ -191,18 +199,18 @@ function CollectionStats({
   const [hovered, setHovered] = useState<string | null>(null);
 
   const segments = [
-    { key: "web", label: "Web", count: breakdown.web, color: "#6B7280" },
+    { key: "web", label: "Web", count: breakdown.web, color: DONUT_COLORS[0] },
     {
       key: "youtube",
       label: "Youtube",
       count: breakdown.youtube,
-      color: "#9CA3AF",
+      color: DONUT_COLORS[1],
     },
     {
       key: "uncategorized",
       label: "미분류 상태",
       count: breakdown.uncategorized,
-      color: "#D1D5DB",
+      color: DONUT_COLORS[2],
     },
   ].filter((s) => s.count > 0);
 
@@ -264,7 +272,11 @@ function CollectionStats({
         <div className="mt-2 space-y-0.5 text-sm">
           {segments.map((seg) => (
             <div key={seg.key} className="flex items-center justify-between gap-4">
-              <span className="text-[var(--axis-text-secondary)]">
+              <span className="flex items-center gap-1.5 text-[var(--axis-text-secondary)]">
+                <span
+                  className="inline-block h-2 w-2 rounded-full"
+                  style={{ backgroundColor: seg.color }}
+                />
                 {seg.label}
               </span>
               <span className="font-bold text-[var(--axis-text-primary)]">
