@@ -49,7 +49,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       .from(radarItems)
       .where(sql`${radarItems.runId} IN ${tenantRunIds}`);
 
-    const latestItems = await db
+    const latestItemsRaw = await db
       .select({
         id: radarItems.id,
         title: radarItems.title,
@@ -62,7 +62,17 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       .from(radarItems)
       .where(sql`${radarItems.runId} IN ${tenantRunIds}`)
       .orderBy(desc(sql`rowid`))
-      .limit(10);
+      .limit(30);
+
+    const META_RE = /^(댓글\s*\d+개|댓글\s*없음|\d+\s*(comments?|points?|개))$/i;
+    const latestItems = latestItemsRaw
+      .filter((item) => {
+        const t = item.title?.trim() ?? "";
+        const tKo = item.titleKo?.trim() ?? "";
+        const best = tKo.length >= 5 && !META_RE.test(tKo) ? tKo : t;
+        return best.length >= 5 && !META_RE.test(best) && /\s/.test(best);
+      })
+      .slice(0, 10);
 
     recentCollections = {
       total: countResult[0]?.count ?? 0,

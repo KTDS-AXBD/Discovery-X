@@ -1,14 +1,19 @@
 import { useState } from "react";
 import { cn } from "~/lib/utils/cn";
 
-const SHORT_META_RE = /^(댓글\s*\d+개|댓글\s*없음|\d+\s*(comments?|points?|개))$/i;
+const META_RE = /^(댓글\s*\d+개|댓글\s*없음|\d+\s*(comments?|points?|개))$/i;
 
-/** titleKo가 실제 기사 제목인지 판별하여 적절한 제목 반환 */
+function isMeaningfulTitle(text: string | null): boolean {
+  if (!text || text.trim().length < 5) return false;
+  if (META_RE.test(text.trim())) return false;
+  return true;
+}
+
+/** titleKo/title 중 의미 있는 제목을 반환 */
 function displayTitle(titleKo: string | null, title: string): string {
-  if (!titleKo || titleKo.length < 5 || SHORT_META_RE.test(titleKo.trim())) {
-    return title;
-  }
-  return titleKo;
+  if (isMeaningfulTitle(titleKo)) return titleKo!;
+  if (isMeaningfulTitle(title)) return title;
+  return titleKo || title || "제목 없음";
 }
 
 interface StatusOverviewProps {
