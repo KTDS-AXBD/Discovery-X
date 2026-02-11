@@ -2,7 +2,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json } from "@remix-run/cloudflare";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "~/db";
-import { proposals, proposalSections } from "~/features/proposals/db/schema";
+import { proposals, proposalSections, proposalCategories } from "~/features/proposals/db/schema";
 import { validateProposalTransition } from "~/features/proposals/constants";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 
@@ -38,10 +38,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
       id: string;
       title?: string;
       description?: string;
+      category?: string | null;
       teamSize?: number | null;
       startDate?: string | null;
       budget?: string | null;
       status?: string;
+      closeType?: string | null;
       sections?: Array<{ type: string; content: string }>;
     };
 
@@ -59,19 +61,35 @@ export async function action({ request, context }: ActionFunctionArgs) {
           { status: 400 },
         );
       }
-      // Only owner can submit for review or resubmit from rejected
-      if (body.status === "REVIEWING" && proposal.ownerId !== ctx.user.id) {
-        return json({ error: "소유자만 검토를 요청할 수 있습니다" }, { status: 403 });
+      // CLOSED requires close_type
+      if (body.status === "CLOSED" && !body.closeType) {
+        return json(
+          { error: "종료 시 close_type(HOLD/DROP)이 필요합니다" },
+          { status: 400 },
+        );
       }
     }
 
     const updates: Record<string, unknown> = {};
     if (body.title !== undefined) updates.title = body.title;
     if (body.description !== undefined) updates.description = body.description;
+    if (body.category !== undefined) updates.category = body.category;
     if (body.teamSize !== undefined) updates.teamSize = body.teamSize;
     if (body.startDate !== undefined) updates.startDate = body.startDate;
     if (body.budget !== undefined) updates.budget = body.budget;
-    if (body.status !== undefined) updates.status = body.status;
+    if (body.status !== undefined) {
+      updates.status = body.status;
+      if (body.status === "CLOSED") {
+        updates.closeType = body.closeType;
+        updates.closedAt = sql`(unixepoch())`;
+      } else {
+        // Moving out of CLOSED resets close fields
+        if (proposal.status === "CLOSED") {
+          updates.closeType = null;
+          updates.closedAt = null;
+        }
+      }
+    }
 
     if (Object.keys(updates).length > 0) {
       updates.updatedAt = sql`(unixepoch())`;
@@ -86,6 +104,26 @@ export async function action({ request, context }: ActionFunctionArgs) {
             eq(proposalSections.proposalId, body.id),
             eq(proposalSections.type, sec.type)
           ));
+      }
+    }
+
+    // Upsert category into proposal_categories if provided
+    if (body.category) {
+      const existing = await db.select().from(proposalCategories)
+        .where(and(
+          eq(proposalCategories.tenantId, ctx.tenantId),
+          eq(proposalCategories.name, body.category),
+        )).get();
+      if (existing) {
+        await db.update(proposalCategories)
+          .set({ usageCount: sql`${proposalCategories.usageCount} + 1` })
+          .where(eq(proposalCategories.id, existing.id));
+      } else {
+        await db.insert(proposalCategories).values({
+          tenantId: ctx.tenantId,
+          name: body.category,
+          usageCount: 1,
+        });
       }
     }
 

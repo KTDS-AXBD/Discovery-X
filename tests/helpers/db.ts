@@ -49,6 +49,8 @@ export function createTestDb() {
   runMigrationSQL(sqlite, resolve(migrationsDir, "0024_proposal_section_unique.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0025_ontology_auto_extract.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0026_dashboard_reaction.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0027_ideas_workspace.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0028_proposal_redesign.sql"));
 
   return drizzle(sqlite, { schema });
 }

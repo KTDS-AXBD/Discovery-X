@@ -7,10 +7,16 @@ import { users, tenants } from "~/db/schema";
 // ============================================================================
 
 export const ProposalStatus = {
-  DRAFT: "DRAFT",
-  REVIEWING: "REVIEWING",
-  APPROVED: "APPROVED",
-  REJECTED: "REJECTED",
+  PROPOSAL: "PROPOSAL",
+  FORMALIZATION: "FORMALIZATION",
+  VALIDATION: "VALIDATION",
+  COMPLETED: "COMPLETED",
+  CLOSED: "CLOSED",
+} as const;
+
+export const ProposalCloseType = {
+  HOLD: "HOLD",
+  DROP: "DROP",
 } as const;
 
 export const MilestoneStatus = {
@@ -20,6 +26,20 @@ export const MilestoneStatus = {
 } as const;
 
 export const ProposalSectionType = {
+  OVERVIEW: "overview",
+  CONTENT: "content",
+  HYPOTHESIS: "hypothesis",
+  TARGET_MARKET: "target_market",
+  TARGET_CUSTOMER: "target_customer",
+  VALUE_PROPOSITION: "value_proposition",
+  REVENUE_MODEL: "revenue_model",
+  SCENARIO: "scenario",
+  MVP: "mvp",
+  EXECUTION_PLAN: "execution_plan",
+} as const;
+
+/** Legacy section types (for reading old data) */
+export const LegacySectionType = {
   MARKET: "market",
   TARGET: "target",
   MODEL: "model",
@@ -38,11 +58,17 @@ export const proposals = sqliteTable(
     tenantId: text("tenant_id").notNull().references(() => tenants.id),
     title: text("title").notNull(),
     description: text("description"),
-    status: text("status").notNull().default(ProposalStatus.DRAFT),
+    status: text("status").notNull().default(ProposalStatus.PROPOSAL),
+    category: text("category"),
+    closeType: text("close_type"),
+    closedAt: integer("closed_at", { mode: "timestamp" }),
+    submittedAt: integer("submitted_at", { mode: "timestamp" }),
     teamSize: integer("team_size"),
     startDate: text("start_date"),
     budget: text("budget"),
     ownerId: text("owner_id").notNull().references(() => users.id),
+    likeCount: integer("like_count").notNull().default(0),
+    commentCount: integer("comment_count").notNull().default(0),
     createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
     updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
   },
@@ -148,6 +174,42 @@ export const proposalMembers = sqliteTable(
 );
 
 // ============================================================================
+// PROPOSAL LIKES
+// ============================================================================
+
+export const proposalLikes = sqliteTable(
+  "proposal_likes",
+  {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    proposalId: text("proposal_id").notNull().references(() => proposals.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull().references(() => users.id),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    uniqueLike: uniqueIndex("idx_proposal_likes_unique").on(table.proposalId, table.userId),
+    proposalIdx: index("idx_proposal_likes_proposal").on(table.proposalId),
+  }),
+);
+
+// ============================================================================
+// PROPOSAL CATEGORIES
+// ============================================================================
+
+export const proposalCategories = sqliteTable(
+  "proposal_categories",
+  {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    tenantId: text("tenant_id").notNull().references(() => tenants.id),
+    name: text("name").notNull(),
+    usageCount: integer("usage_count").notNull().default(0),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    uniqueName: uniqueIndex("idx_proposal_categories_unique").on(table.tenantId, table.name),
+  }),
+);
+
+// ============================================================================
 // DRIZZLE RELATIONS (for relational query API)
 // ============================================================================
 
@@ -157,6 +219,7 @@ export const proposalsRelations = relations(proposals, ({ many }) => ({
   actions: many(proposalActions),
   comments: many(proposalComments),
   members: many(proposalMembers),
+  likes: many(proposalLikes),
 }));
 
 export const proposalSectionsRelations = relations(proposalSections, ({ one }) => ({
@@ -177,4 +240,12 @@ export const proposalCommentsRelations = relations(proposalComments, ({ one }) =
 
 export const proposalMembersRelations = relations(proposalMembers, ({ one }) => ({
   proposal: one(proposals, { fields: [proposalMembers.proposalId], references: [proposals.id] }),
+}));
+
+export const proposalLikesRelations = relations(proposalLikes, ({ one }) => ({
+  proposal: one(proposals, { fields: [proposalLikes.proposalId], references: [proposals.id] }),
+}));
+
+export const proposalCategoriesRelations = relations(proposalCategories, ({ one }) => ({
+  tenant: one(tenants, { fields: [proposalCategories.tenantId], references: [tenants.id] }),
 }));

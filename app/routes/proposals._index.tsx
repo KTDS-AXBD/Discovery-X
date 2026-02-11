@@ -1,66 +1,145 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
-import { redirect } from "@remix-run/cloudflare";
-import { Link } from "@remix-run/react";
-import { desc, eq } from "drizzle-orm";
+import { json, redirect } from "@remix-run/cloudflare";
+import { useLoaderData, Link } from "@remix-run/react";
+import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
-import { proposals } from "~/features/proposals/db/schema";
+import { proposals, proposalLikes } from "~/features/proposals/db/schema";
+import { users } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
+import { PipelineView } from "~/components/proposals/PipelineView";
+import { CategoryCardRow } from "~/components/proposals/CategoryCardRow";
+import { DelayedProposalsRow } from "~/components/proposals/DelayedProposalsRow";
+import { DELAY_THRESHOLDS } from "~/features/proposals/constants";
+import type { ProposalCardData } from "~/components/proposals/ProposalCard";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  try {
-    const db = getDb(context.cloudflare.env.DB);
-    const secret = getSessionSecret(context.cloudflare.env);
-    const ctx = await getSessionContext(request, db, secret);
+  const db = getDb(context.cloudflare.env.DB);
+  const secret = getSessionSecret(context.cloudflare.env);
+  const ctx = await getSessionContext(request, db, secret);
 
-    if (!ctx) {
-      return redirect("/login");
-    }
-
-    // Auto-select first proposal if available
-    const first = await db
-      .select({ id: proposals.id })
-      .from(proposals)
-      .where(eq(proposals.tenantId, ctx.tenantId))
-      .orderBy(desc(proposals.updatedAt))
-      .limit(1)
-      .get();
-
-    if (first) {
-      return redirect(`/proposals/${first.id}`);
-    }
-  } catch {
-    // Table might not exist
+  if (!ctx) {
+    return redirect("/login");
   }
 
-  // No proposals — show empty state
-  return null;
+  try {
+    // Fetch all proposals with owner name
+    const allProposals = await db
+      .select({
+        id: proposals.id,
+        title: proposals.title,
+        description: proposals.description,
+        status: proposals.status,
+        category: proposals.category,
+        likeCount: proposals.likeCount,
+        commentCount: proposals.commentCount,
+        createdAt: proposals.createdAt,
+        updatedAt: proposals.updatedAt,
+        ownerName: users.name,
+      })
+      .from(proposals)
+      .leftJoin(users, eq(proposals.ownerId, users.id))
+      .where(eq(proposals.tenantId, ctx.tenantId));
+
+    // Get user's likes
+    const userLikes = await db
+      .select({ proposalId: proposalLikes.proposalId })
+      .from(proposalLikes)
+      .where(eq(proposalLikes.userId, ctx.user.id));
+    const likedSet = new Set(userLikes.map((l) => l.proposalId));
+
+    // Pipeline stage counts
+    const stageCounts = new Map<string, number>();
+    for (const p of allProposals) {
+      stageCounts.set(p.status, (stageCounts.get(p.status) || 0) + 1);
+    }
+    const stages = Array.from(stageCounts.entries()).map(([status, count]) => ({ status, count }));
+
+    // Map to card data
+    const cardData: ProposalCardData[] = allProposals.map((p) => ({
+      id: p.id,
+      title: p.title,
+      description: p.description,
+      status: p.status,
+      category: p.category,
+      ownerName: p.ownerName,
+      likeCount: p.likeCount,
+      commentCount: p.commentCount,
+      liked: likedSet.has(p.id),
+      createdAt: p.createdAt ? String(p.createdAt) : null,
+      updatedAt: p.updatedAt ? String(p.updatedAt) : null,
+    }));
+
+    // Group by category
+    const categoryMap = new Map<string, ProposalCardData[]>();
+    for (const p of cardData) {
+      const cat = p.category || "미분류";
+      if (!categoryMap.has(cat)) categoryMap.set(cat, []);
+      categoryMap.get(cat)!.push(p);
+    }
+    const categories = Array.from(categoryMap.entries()).map(([category, items]) => ({
+      category,
+      proposals: items,
+    }));
+
+    // Delayed proposals
+    const now = Math.floor(Date.now() / 1000);
+    const delayed = cardData.filter((p) => {
+      const threshold = DELAY_THRESHOLDS[p.status];
+      if (!threshold) return false;
+      const ts = p.updatedAt ? new Date(p.updatedAt).getTime() / 1000 : 0;
+      return (now - ts) > threshold * 24 * 60 * 60;
+    });
+
+    return json({ stages, categories, delayed });
+  } catch {
+    return json({ stages: [], categories: [], delayed: [] });
+  }
 }
 
 export default function ProposalsIndex() {
+  const { stages, categories, delayed } = useLoaderData<typeof loader>();
+
   return (
-    <div className="flex h-full items-center justify-center">
-      <div className="text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--axis-surface-secondary)]">
-          <svg className="h-8 w-8 text-[var(--axis-text-tertiary)]" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-          </svg>
+    <div className="p-6 space-y-6">
+      {/* Pipeline overview */}
+      <PipelineView stages={stages} />
+
+      {/* Delayed proposals */}
+      <DelayedProposalsRow proposals={delayed} />
+
+      {/* Category rows */}
+      {categories.length > 0 ? (
+        categories.map((cat) => (
+          <CategoryCardRow
+            key={cat.category}
+            category={cat.category}
+            proposals={cat.proposals}
+          />
+        ))
+      ) : (
+        <div className="flex flex-col items-center justify-center py-16">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--axis-surface-secondary)]">
+            <svg className="h-8 w-8 text-[var(--axis-text-tertiary)]" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+            </svg>
+          </div>
+          <h2 className="mb-2 text-lg font-semibold text-[var(--axis-text-primary)]">
+            사업제안이 없습니다
+          </h2>
+          <p className="mb-4 text-sm text-[var(--axis-text-tertiary)]">
+            새 제안을 작성해 보세요.
+          </p>
+          <Link
+            to="/proposals/new"
+            className="inline-flex items-center gap-2 rounded-lg bg-[var(--axis-button-bg-default)] px-4 py-2 text-sm font-medium text-[var(--axis-button-text-default)] transition-colors hover:bg-[var(--axis-button-bg-hover)]"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            새 사업제안서
+          </Link>
         </div>
-        <h2 className="mb-2 text-lg font-semibold text-[var(--axis-text-primary)]">
-          사업제안서를 선택하세요
-        </h2>
-        <p className="mb-4 text-sm text-[var(--axis-text-tertiary)]">
-          왼쪽에서 기존 제안을 선택하거나 새로 작성하세요.
-        </p>
-        <Link
-          to="/proposals/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-[var(--axis-button-bg-default)] px-4 py-2 text-sm font-medium text-[var(--axis-button-text-default)] transition-colors hover:bg-[var(--axis-button-bg-hover)]"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          새 사업제안서
-        </Link>
-      </div>
+      )}
     </div>
   );
 }

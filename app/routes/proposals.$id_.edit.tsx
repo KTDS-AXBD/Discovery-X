@@ -6,6 +6,7 @@ import { getDb } from "~/db";
 import { proposals, proposalSections, ProposalSectionType } from "~/features/proposals/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { ProposalForm } from "~/components/proposals/ProposalForm";
+import { resolveSection } from "~/features/proposals/constants";
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -22,8 +23,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  // Only owner can edit, and only in DRAFT status
-  if (proposal.ownerId !== ctx.user.id || proposal.status !== "DRAFT") {
+  // Only owner can edit, and only in PROPOSAL status
+  if (proposal.ownerId !== ctx.user.id || proposal.status !== "PROPOSAL") {
     return redirect(`/proposals/${params.id}`);
   }
 
@@ -32,9 +33,14 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     .from(proposalSections)
     .where(eq(proposalSections.proposalId, params.id!));
 
+  // Build sections map with legacy resolution
   const sectionsMap: Record<string, string> = {};
   for (const s of sections) {
-    sectionsMap[s.type] = s.content;
+    const resolved = resolveSection(s.type);
+    // Prefer new type over legacy type
+    if (!sectionsMap[resolved] || s.type === resolved) {
+      sectionsMap[resolved] = s.content;
+    }
   }
 
   return json({
@@ -58,7 +64,7 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  if (proposal.ownerId !== ctx.user.id || proposal.status !== "DRAFT") {
+  if (proposal.ownerId !== ctx.user.id || proposal.status !== "PROPOSAL") {
     return json({ error: "편집 권한이 없습니다." }, { status: 403 });
   }
 
@@ -70,6 +76,7 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
   }
 
   const description = String(formData.get("description") || "").trim() || null;
+  const category = String(formData.get("category") || "").trim() || null;
   const teamSize = formData.get("teamSize") ? Number(formData.get("teamSize")) : null;
   const startDate = String(formData.get("startDate") || "").trim() || null;
   const budget = String(formData.get("budget") || "").trim() || null;
@@ -77,13 +84,14 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
   await db.update(proposals).set({
     title,
     description,
+    category,
     teamSize,
     startDate,
     budget,
     updatedAt: sql`(unixepoch())`,
   }).where(eq(proposals.id, params.id!));
 
-  // Upsert sections
+  // Upsert sections (new types)
   const sectionTypes = Object.values(ProposalSectionType);
   for (const type of sectionTypes) {
     const content = String(formData.get(`section_${type}`) || "").trim();
@@ -117,6 +125,7 @@ export default function EditProposal() {
       defaultValues={{
         title: proposal.title,
         description: proposal.description ?? undefined,
+        category: proposal.category ?? undefined,
         teamSize: proposal.teamSize ?? undefined,
         startDate: proposal.startDate ?? undefined,
         budget: proposal.budget ?? undefined,

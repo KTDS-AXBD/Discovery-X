@@ -23,6 +23,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const id = crypto.randomUUID();
   const description = String(formData.get("description") || "").trim() || null;
+  const category = String(formData.get("category") || "").trim() || null;
   const teamSize = formData.get("teamSize") ? Number(formData.get("teamSize")) : null;
   const startDate = String(formData.get("startDate") || "").trim() || null;
   const budget = String(formData.get("budget") || "").trim() || null;
@@ -32,13 +33,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
     tenantId: ctx.tenantId,
     title,
     description,
+    category,
     teamSize,
     startDate,
     budget,
     ownerId: ctx.user.id,
   });
 
-  // Insert sections
+  // Insert new sections
   const sectionTypes = Object.values(ProposalSectionType);
   const sectionValues = sectionTypes.map((type, i) => ({
     proposalId: id,

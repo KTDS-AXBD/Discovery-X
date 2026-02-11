@@ -2,12 +2,14 @@ import { Form, useNavigation } from "@remix-run/react";
 import { Button } from "~/components/ui/Button";
 import { Input } from "~/components/ui/Input";
 import { FormField } from "~/components/ui/FormField";
-import { SECTION_CONFIG } from "~/features/proposals/constants";
+import { SECTION_CONFIG, SECTION_GROUPS } from "~/features/proposals/constants";
+import { CategoryInput } from "./CategoryInput";
 
 interface ProposalFormProps {
   defaultValues?: {
     title?: string;
     description?: string;
+    category?: string;
     teamSize?: number;
     startDate?: string;
     budget?: string;
@@ -15,7 +17,6 @@ interface ProposalFormProps {
   };
   action?: string;
 }
-
 
 export function ProposalForm({ defaultValues, action }: ProposalFormProps) {
   const navigation = useNavigation();
@@ -47,6 +48,9 @@ export function ProposalForm({ defaultValues, action }: ProposalFormProps) {
             className="w-full rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-3 py-2 text-sm text-[var(--axis-text-primary)] placeholder:text-[var(--axis-text-tertiary)] focus:border-[var(--axis-border-brand)] focus:outline-none"
             rows={3}
           />
+        </FormField>
+        <FormField label="분야" htmlFor="category">
+          <CategoryInput defaultValue={defaultValues?.category} />
         </FormField>
       </div>
 
@@ -80,26 +84,41 @@ export function ProposalForm({ defaultValues, action }: ProposalFormProps) {
         </FormField>
       </div>
 
-      {/* Sections */}
-      <div className="mb-6 space-y-4">
+      {/* Sections grouped */}
+      <div className="mb-6 space-y-6">
         <h2 className="text-sm font-semibold text-[var(--axis-text-primary)]">제안 섹션</h2>
-        {SECTION_CONFIG.map((sec) => (
-          <div key={sec.type}>
-            <label
-              htmlFor={`section_${sec.type}`}
-              className="mb-1 flex items-center gap-1.5 text-sm font-medium text-[var(--axis-text-primary)]"
-            >
-              <span>{sec.icon}</span>
-              {sec.label}
-            </label>
-            <textarea
-              name={`section_${sec.type}`}
-              id={`section_${sec.type}`}
-              defaultValue={defaultValues?.sections?.[sec.type]}
-              placeholder={sec.placeholder}
-              className="w-full rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-3 py-2 text-sm text-[var(--axis-text-primary)] placeholder:text-[var(--axis-text-tertiary)] focus:border-[var(--axis-border-brand)] focus:outline-none"
-              rows={4}
-            />
+        {SECTION_GROUPS.map((group) => (
+          <div key={group.name}>
+            <h3 className="mb-2 text-xs font-semibold text-[var(--axis-text-tertiary)] uppercase tracking-wider">
+              {group.name}
+            </h3>
+            <div className="space-y-3">
+              {group.types.map((type) => {
+                const sec = SECTION_CONFIG.find((s) => s.type === type);
+                if (!sec) return null;
+                return (
+                  <div key={sec.type}>
+                    <label
+                      htmlFor={`section_${sec.type}`}
+                      className="mb-1 flex items-center gap-1.5 text-sm font-medium text-[var(--axis-text-primary)]"
+                    >
+                      <span className="flex h-5 w-5 items-center justify-center rounded bg-[var(--axis-surface-secondary)] text-[10px] font-bold text-[var(--axis-text-tertiary)]">
+                        {sec.icon}
+                      </span>
+                      {sec.label}
+                    </label>
+                    <textarea
+                      name={`section_${sec.type}`}
+                      id={`section_${sec.type}`}
+                      defaultValue={defaultValues?.sections?.[sec.type]}
+                      placeholder={sec.placeholder}
+                      className="w-full rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-3 py-2 text-sm text-[var(--axis-text-primary)] placeholder:text-[var(--axis-text-tertiary)] focus:border-[var(--axis-border-brand)] focus:outline-none"
+                      rows={4}
+                    />
+                  </div>
+                );
+              })}
+            </div>
           </div>
         ))}
       </div>

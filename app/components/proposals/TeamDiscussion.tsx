@@ -13,6 +13,7 @@ interface TeamDiscussionProps {
   proposalId: string;
   comments: Comment[];
   currentUserId: string;
+  compact?: boolean;
 }
 
 function formatRelativeTime(ts: string | number | null): string {
@@ -36,7 +37,7 @@ function formatRelativeTime(ts: string | number | null): string {
   return `${y}.${m}.${day}`;
 }
 
-export function TeamDiscussion({ proposalId, comments, currentUserId: _currentUserId }: TeamDiscussionProps) {
+export function TeamDiscussion({ proposalId, comments, currentUserId: _currentUserId, compact }: TeamDiscussionProps) {
   const [content, setContent] = useState("");
   const fetcher = useFetcher();
   const isSubmitting = fetcher.state === "submitting";
@@ -51,6 +52,57 @@ export function TeamDiscussion({ proposalId, comments, currentUserId: _currentUs
     );
     setContent("");
   };
+
+  if (compact) {
+    return (
+      <div>
+        {/* Comment list */}
+        <div className="mb-3 space-y-3">
+          {comments.map((comment) => (
+            <div key={comment.id}>
+              <div className="flex items-center gap-1.5">
+                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--axis-surface-secondary)] text-[8px] font-bold text-[var(--axis-text-secondary)]">
+                  {(comment.authorName || "U").charAt(0).toUpperCase()}
+                </div>
+                <span className="text-[10px] font-medium text-[var(--axis-text-primary)]">
+                  {comment.authorName || "사용자"}
+                </span>
+                {comment.createdAt && (
+                  <span className="text-[8px] text-[var(--axis-text-tertiary)]">
+                    {formatRelativeTime(comment.createdAt)}
+                  </span>
+                )}
+              </div>
+              <p className="ml-6 mt-0.5 text-xs text-[var(--axis-text-secondary)]">{comment.content}</p>
+            </div>
+          ))}
+          {comments.length === 0 && (
+            <p className="text-xs text-[var(--axis-text-tertiary)]">아직 검토 의견이 없습니다.</p>
+          )}
+        </div>
+
+        {/* Compact comment input */}
+        <form onSubmit={handleSubmit}>
+          <textarea
+            rows={2}
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="의견을 남겨주세요..."
+            className="w-full resize-none rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-2 py-1.5 text-xs text-[var(--axis-text-primary)] placeholder:text-[var(--axis-text-tertiary)] focus:border-[var(--axis-border-brand)] focus:outline-none"
+          />
+          <div className="mt-1 flex justify-end">
+            <button
+              type="submit"
+              disabled={isSubmitting || !content.trim()}
+              className="rounded bg-[var(--axis-button-bg-default)] px-2.5 py-1 text-[10px] font-medium text-[var(--axis-button-text-default)] hover:bg-[var(--axis-button-bg-hover)] disabled:opacity-50"
+            >
+              작성
+            </button>
+          </div>
+        </form>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-xl border border-[var(--axis-border-default)] p-5">
