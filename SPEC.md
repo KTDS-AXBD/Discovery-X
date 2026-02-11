@@ -297,7 +297,18 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 152)
+### 최근 변경 (세션 153)
+**팀 스킬 WSL 호환성 수정**:
+- ✅ `/team` 스킬 tmux pane 분리 안 되는 근본 원인 분석 및 수정
+- 원인 1: Claude Code Bash가 Windows Git Bash에서 실행되어 `tmux: command not found`
+- 원인 2: Git Bash `/tmp/`과 WSL `/tmp/`이 다른 위치 — 경로 불일치
+- 원인 3: `wsl bash /mnt/d/...` 호출 시 Git Bash 경로 맹글링
+- ✅ WSL 환경 규칙 추가: `wsl -e` 접두사, `.team-tmp/` 공유 디렉토리, `wsl -e bash -c` 형식
+- ✅ Step 2~4를 단일 launcher 스크립트로 통합 (원자성 확보)
+- ✅ CRITICAL 경고 추가: 백그라운드 프로세스 fallback 명시적 금지
+- ✅ 2-Worker 읽기 전용 테스트로 pane 분리 정상 동작 확인
+
+### 이전 변경 (세션 152)
 **온톨로지 인텔리전스 Phase 3 — 시뮬레이션 엔진**:
 - ✅ BFS 영향 전파 엔진 (`app/lib/ontology/simulator.ts`): edge strength + decay factor 기반 그래프 전파
 - ✅ LLM 시나리오 생성 (Claude Haiku): 전파 결과 → 비즈니스 시나리오 분석
