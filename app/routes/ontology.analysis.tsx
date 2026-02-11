@@ -83,7 +83,7 @@ export default function OntologyAnalysis() {
 
       {/* Results */}
       <InsightPanel
-        type={activeType as "pattern" | "contradiction" | "cluster" | "centrality"}
+        type={activeType}
         data={results[activeType] ?? null}
         loading={isLoading}
       />

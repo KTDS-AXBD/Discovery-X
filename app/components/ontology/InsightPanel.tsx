@@ -2,7 +2,7 @@ import { Card, CardContent } from "~/components/ui/Card";
 import { Badge } from "~/components/ui/Badge";
 
 interface InsightPanelProps {
-  type: "pattern" | "contradiction" | "cluster" | "centrality";
+  type: "patterns" | "contradictions" | "clusters" | "centrality";
   data: unknown;
   loading?: boolean;
 }
@@ -35,9 +35,9 @@ interface CentralityItem {
 }
 
 const TYPE_LABELS: Record<InsightPanelProps["type"], { title: string; icon: string }> = {
-  pattern: { title: "패턴 감지", icon: "🔗" },
-  contradiction: { title: "모순 감지", icon: "⚡" },
-  cluster: { title: "클러스터", icon: "🔵" },
+  patterns: { title: "패턴 감지", icon: "🔗" },
+  contradictions: { title: "모순 감지", icon: "⚡" },
+  clusters: { title: "클러스터", icon: "🔵" },
   centrality: { title: "중심성", icon: "🎯" },
 };
 
@@ -184,11 +184,11 @@ export function InsightPanel({ type, data, loading }: InsightPanelProps) {
         </Badge>
       </h3>
       <div className="space-y-2">
-        {type === "pattern" &&
+        {type === "patterns" &&
           items.map((item, i) => <PatternCard key={i} item={item as PatternItem} />)}
-        {type === "contradiction" &&
+        {type === "contradictions" &&
           items.map((item, i) => <ContradictionCard key={i} item={item as ContradictionItem} />)}
-        {type === "cluster" &&
+        {type === "clusters" &&
           items.map((item, i) => <ClusterCard key={i} item={item as ClusterItem} />)}
         {type === "centrality" &&
           items.map((item, i) => <CentralityCard key={i} item={item as CentralityItem} />)}
