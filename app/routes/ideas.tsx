@@ -8,10 +8,12 @@ import { radarItems } from "~/db/schema";
 import { ideas } from "~/features/ideas/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { SidebarProvider } from "~/lib/context/sidebar-context";
+import { usePanelLayout } from "~/lib/hooks/use-panel-layout";
 import { IdeaPageHeader } from "~/components/ideas/IdeaPageHeader";
 import { IdeaListDrawer } from "~/components/ideas/IdeaListDrawer";
 import { SourceInputPanel } from "~/components/ideas/SourceInputPanel";
 import { IdeaChatWrapper } from "~/components/ideas/IdeaChatWrapper";
+import { PanelResizeHandle } from "~/components/ideas/PanelResizeHandle";
 import { ProposalCreationModal } from "~/components/ideas/ProposalCreationModal";
 
 interface ChatMessageData {
@@ -114,6 +116,9 @@ export default function IdeasLayout() {
   const [messagesLoaded, setMessagesLoaded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [proposalModalOpen, setProposalModalOpen] = useState(false);
+
+  // Panel layout
+  const panel = usePanelLayout();
 
   // Source selection state (multi-select)
   const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>([]);
@@ -354,18 +359,55 @@ ${sourceSummaries || "소스 없음"}
         />
         <IdeaListDrawer ideas={ideaList} selectedIdeaId={selectedIdeaId} />
         <div className="flex flex-1 overflow-hidden">
+          {/* Left panel toggle (collapsed state) */}
+          {!panel.leftOpen && (
+            <button
+              type="button"
+              onClick={panel.toggleLeft}
+              className="flex h-full w-6 shrink-0 items-center justify-center border-r border-[var(--axis-border-default)] bg-[var(--dx-surface-panel,var(--axis-surface-default))] text-[var(--axis-text-tertiary)] transition-colors hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-secondary)]"
+              aria-label="소스 패널 열기"
+              title="소스 패널 열기"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+              </svg>
+            </button>
+          )}
+
           {/* Left: Source Input Panel */}
-          <SourceInputPanel
-            items={ideaSourceItems}
-            collectedItems={allItems}
-            selectedItemIds={selectedSourceIds}
-            onAddSources={handleAddSources}
-            onDeleteSource={selectedIdeaId ? handleDeleteSource : undefined}
-            onToggleItem={handleToggleSource}
-            onToggleAll={handleToggleAll}
-            onSelectItem={(id) => setDetailSourceId((prev) => (prev === id ? null : id))}
-            isAdding={isAdding}
-          />
+          {panel.leftOpen && (
+            <>
+              <div style={{ width: panel.leftWidth }} className="group/left relative shrink-0">
+                {/* Collapse button */}
+                <button
+                  type="button"
+                  onClick={panel.toggleLeft}
+                  className="absolute right-1 top-2.5 z-20 flex h-5 w-5 items-center justify-center rounded text-[var(--axis-text-tertiary)] opacity-0 transition-opacity hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-secondary)] group-hover/left:opacity-100"
+                  aria-label="소스 패널 숨기기"
+                  title="소스 패널 숨기기"
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                  </svg>
+                </button>
+                <SourceInputPanel
+                  items={ideaSourceItems}
+                  collectedItems={allItems}
+                  selectedItemIds={selectedSourceIds}
+                  onAddSources={handleAddSources}
+                  onDeleteSource={selectedIdeaId ? handleDeleteSource : undefined}
+                  onToggleItem={handleToggleSource}
+                  onToggleAll={handleToggleAll}
+                  onSelectItem={(id) => setDetailSourceId((prev) => (prev === id ? null : id))}
+                  isAdding={isAdding}
+                />
+              </div>
+              <PanelResizeHandle
+                side="left"
+                onResize={(delta) => panel.setLeftWidth(panel.leftWidth + delta)}
+              />
+            </>
+          )}
 
           {/* Center: Detail / Gadget Tabs */}
           <div className="flex-1 overflow-y-auto">
@@ -373,15 +415,52 @@ ${sourceSummaries || "소스 없음"}
           </div>
 
           {/* Right: Chat Panel */}
-          <IdeaChatWrapper
-            conversationId={conversationId}
-            messages={chatMessages}
-            isLoadingMessages={isLoadingMessages}
-            onToolResult={handleToolResult}
-            autoMessage={autoMessage}
-            selectedSourceCount={selectedSourceIds.length}
-            totalSourceCount={ideaSourceItems.length}
-          />
+          {panel.rightOpen && (
+            <>
+              <PanelResizeHandle
+                side="right"
+                onResize={(delta) => panel.setRightWidth(panel.rightWidth + delta)}
+              />
+              <div style={{ width: panel.rightWidth }} className="group/right relative shrink-0">
+                {/* Collapse button */}
+                <button
+                  type="button"
+                  onClick={panel.toggleRight}
+                  className="absolute left-1 top-2.5 z-20 flex h-5 w-5 items-center justify-center rounded text-[var(--axis-text-tertiary)] opacity-0 transition-opacity hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-secondary)] group-hover/right:opacity-100"
+                  aria-label="채팅 패널 숨기기"
+                  title="채팅 패널 숨기기"
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                  </svg>
+                </button>
+                <IdeaChatWrapper
+                  conversationId={conversationId}
+                  messages={chatMessages}
+                  isLoadingMessages={isLoadingMessages}
+                  onToolResult={handleToolResult}
+                  autoMessage={autoMessage}
+                  selectedSourceCount={selectedSourceIds.length}
+                  totalSourceCount={ideaSourceItems.length}
+                />
+              </div>
+            </>
+          )}
+
+          {/* Right panel toggle (collapsed state) */}
+          {!panel.rightOpen && (
+            <button
+              type="button"
+              onClick={panel.toggleRight}
+              className="flex h-full w-6 shrink-0 items-center justify-center border-l border-[var(--axis-border-default)] bg-[var(--dx-surface-panel,var(--axis-surface-default))] text-[var(--axis-text-tertiary)] transition-colors hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-secondary)]"
+              aria-label="채팅 패널 열기"
+              title="채팅 패널 열기"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+              </svg>
+            </button>
+          )}
         </div>
 
         {/* Proposal modal */}
