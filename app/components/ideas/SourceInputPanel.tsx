@@ -286,7 +286,7 @@ export function SourceInputPanel({
 
                     {/* Title */}
                     <span className="min-w-0 flex-1 text-sm font-medium text-[var(--axis-text-primary)] line-clamp-1">
-                      {displayTitle(item.titleKo, item.title)}
+                      {displayTitle(item.titleKo, item.title, item.url)}
                     </span>
                   </Link>
                 );
@@ -343,7 +343,7 @@ export function SourceInputPanel({
                 className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition-colors hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))] disabled:opacity-60"
               >
                 <span className="min-w-0 flex-1 text-xs text-[var(--axis-text-secondary)] line-clamp-1">
-                  {displayTitle(item.titleKo, item.title)}
+                  {displayTitle(item.titleKo, item.title, item.url)}
                 </span>
               </button>
             ))}

@@ -91,7 +91,7 @@ export function SummaryCard({ item, reaction }: SummaryCardProps) {
             {paragraphs.length > 0 ? (
               paragraphs.map((p, i) => <p key={i}>{p}</p>)
             ) : (
-              <p>{displayTitle(item.titleKo, item.title)}</p>
+              <p>{displayTitle(item.titleKo, item.title, item.url)}</p>
             )}
           </div>
         </div>

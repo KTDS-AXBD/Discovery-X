@@ -1,6 +1,14 @@
-import { Link } from "@remix-run/react";
+import { Link, useLocation } from "@remix-run/react";
 import { useTheme } from "@axis-ds/theme";
+import { cn } from "~/lib/utils/cn";
 import { useSidebar } from "~/lib/context/sidebar-context";
+
+const NAV_TABS = [
+  { to: "/dashboard", label: "대시보드" },
+  { to: "/ideas", label: "아이디어" },
+  { to: "/proposals", label: "사업제안" },
+  { to: "/lab", label: "실험실" },
+];
 
 interface IdeaPageHeaderProps {
   title?: string;
@@ -11,6 +19,7 @@ interface IdeaPageHeaderProps {
 export function IdeaPageHeader({ title, user, onOpenProposalModal }: IdeaPageHeaderProps) {
   const { toggle } = useSidebar();
   const { resolvedTheme, setTheme } = useTheme();
+  const location = useLocation();
 
   return (
     <nav
@@ -18,7 +27,7 @@ export function IdeaPageHeader({ title, user, onOpenProposalModal }: IdeaPageHea
       style={{ height: "var(--dx-nav-height)" }}
     >
       <div className="flex h-full items-center justify-between px-4">
-        {/* Left: hamburger + title */}
+        {/* Left: hamburger + logo + GNB tabs */}
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -41,7 +50,29 @@ export function IdeaPageHeader({ title, user, onOpenProposalModal }: IdeaPageHea
 
           <span className="text-[var(--axis-text-tertiary)]">/</span>
 
-          <h1 className="truncate text-sm font-semibold text-[var(--axis-text-primary)]">
+          {/* GNB nav tabs */}
+          <div className="hidden items-center gap-1 sm:flex">
+            {NAV_TABS.map((tab) => {
+              const isActive = location.pathname === tab.to || location.pathname.startsWith(tab.to + "/");
+              return (
+                <Link
+                  key={tab.to}
+                  to={tab.to}
+                  className={cn(
+                    "rounded-md px-2.5 py-1 text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-[var(--axis-surface-brand)] text-[var(--axis-text-brand)]"
+                      : "text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-primary)]",
+                  )}
+                >
+                  {tab.label}
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Mobile: show current title only */}
+          <h1 className="truncate text-sm font-semibold text-[var(--axis-text-primary)] sm:hidden">
             {title || "아이디어"}
           </h1>
         </div>

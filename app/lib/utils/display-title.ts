@@ -6,9 +6,23 @@ export function isMeaningfulTitle(text: string | null): boolean {
   return true;
 }
 
-/** titleKo/title 중 의미 있는 제목을 반환 */
-export function displayTitle(titleKo: string | null, title: string): string {
+/** URL에서 표시용 호스트+경로 라벨 추출 */
+export function getUrlLabel(url: string | null | undefined): string | null {
+  if (!url || url.startsWith("text://")) return null;
+  try {
+    const u = new URL(url);
+    const path = u.pathname.length > 1 ? u.pathname.slice(0, 40) : "";
+    return u.hostname + (path.length > 1 ? path : "");
+  } catch {
+    return null;
+  }
+}
+
+/** titleKo/title 중 의미 있는 제목을 반환, fallback으로 URL 라벨 사용 */
+export function displayTitle(titleKo: string | null, title: string, fallbackUrl?: string | null): string {
   if (isMeaningfulTitle(titleKo)) return titleKo!;
   if (isMeaningfulTitle(title)) return title;
-  return titleKo || title || "제목 없음";
+  const urlLabel = getUrlLabel(fallbackUrl);
+  if (urlLabel) return urlLabel;
+  return "제목 없음";
 }
