@@ -294,13 +294,13 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.9 Ideas Panel Resize + Methodology Cards
+- **프로토타입**: v6.10 Token Usage Logging + Methodology Cards Complete
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 28개 마이그레이션 (0000~0027), 로컬+프로덕션 적용 완료 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
+- **DB**: 30개 마이그레이션 (0000~0029), 로컬+프로덕션 적용 완료 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
 
 ### 주요 지표
 - **라우트**: 128개 (core 46 + ideas 8 + proposals 8 + lab 10 + venture 13 + market 3 + API 31 + folders 4 + 기타 5)
-- **테이블**: 70개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges)
+- **테이블**: 71개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges)
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
 - **테스트**: 661개 (44 test files, 로컬 + CI 모두 통과) — 온톨로지 테스트 6파일 64개 포함
 - **테스트 통과율**: 100%
@@ -308,14 +308,16 @@ build/
 - **Build**: ✅ 성공
 
 ### 최근 변경 (세션 170)
-**방법론 카드 마이그레이션 완료 + 패널 리사이즈 안정화**:
+**방법론 카드 마이그레이션 완료 + 토큰 사용량 로깅 + 배포**:
 - ✅ `IdeaChatWrapper.tsx`: `RESEARCH_CATEGORIES` → `PRIMARY_METHODOLOGIES` import 교체 (상수 중복 제거)
 - ✅ `IdeaGadgetTabs.tsx` 삭제: `MethodologyCards.tsx`로 완전 대체
 - ✅ `ideas._index.tsx`: "분석 시작" 단일 버튼 → Primary 4개 방법론 카드 그리드 + 전체 분석 링크, OutletCtx에 `onRunMethodology`/`loadingCategory` 추가
 - ✅ `PanelResizeHandle.tsx`: `onResizeRef` 도입 — 드래그 중 stale closure 방지
 - ✅ `use-panel-layout.ts`: `resizeLeft`/`resizeRight` 안정 콜백 추가
-- ✅ `ideas.tsx`: 인라인 resize 람다 → 안정 `panel.resizeLeft`/`panel.resizeRight` 사용
-- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
+- ✅ `token-usage-schema.ts` (신규): `token_usage_logs` 테이블 — 대화별 input/output 토큰, 모델, 모드, 도구 라운드 기록
+- ✅ `executor.ts`: `updateTokenUsage`에 메타데이터 전달 → `token_usage_logs` insert
+- ✅ 마이그레이션 `0029_token_usage_logs.sql` 프로덕션 적용 완료
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 661개 통과 / build 성공 / CI/CD 배포 완료 (1m 41s)
 
 ### 이전 변경 (세션 169)
 **아이디어 페이지 — 패널 리사이즈/토글 통합 + 12종 방법론 카드 + 배포**:
