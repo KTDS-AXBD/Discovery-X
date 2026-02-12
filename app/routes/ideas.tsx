@@ -407,6 +407,10 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
     [revalidator]
   );
 
+  const handleTitleUpdated = useCallback(() => {
+    revalidator.revalidate();
+  }, [revalidator]);
+
   return (
     <SidebarProvider>
       <div className="flex h-screen flex-col bg-[var(--dx-surface-deep,var(--axis-surface-secondary))]">
@@ -469,7 +473,7 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
 
           {/* Center: Detail / Gadget Tabs */}
           <div className="flex-1 overflow-y-auto">
-            <Outlet context={{ detailSourceId, ideaSourceItems, selectedSourceIds, onClearSource: () => setDetailSourceId(null), onStartAnalysis: handleStartAnalysis, onRunMethodology: handleRunMethodology, loadingCategory }} />
+            <Outlet context={{ detailSourceId, ideaSourceItems, selectedSourceIds, onClearSource: () => setDetailSourceId(null), onStartAnalysis: handleStartAnalysis, onRunMethodology: handleRunMethodology, loadingCategory, onTitleUpdated: handleTitleUpdated }} />
           </div>
 
           {/* Right: Chat Panel */}

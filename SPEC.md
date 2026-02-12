@@ -38,7 +38,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
   - 아이템 선택 시 자동 viewed 처리 (radarItemUserStatus.status → "viewed")
   - 파이프라인 섹션 (v6.4): Discovery 11단계 현황 (PIPELINE_COLUMNS 기반, 카테고리별 그룹핑, 실 DB 데이터) — 별도 패널, 왼쪽 맞춤
   - 통계 섹션 (v6.4): 4개 핵심 지표 (소스 수집/발굴 건수/활성 파이프라인/사업 제안) — 실 DB 데이터
-- 아이디어 워크스페이스: ideas 테이블 + 멀티소스 그룹핑 + 전용 헤더 레이아웃 + 12종 방법론 카드 + 사업 제안 모달 + 소스 상세/삭제 + 분석 시작 플로우 + NotebookLM 스타일 멀티소스 선택 + 선택 기반 분석/채팅 + 좌우 패널 리사이즈/토글 (v6.2→v6.9)
+- 아이디어 워크스페이스: ideas 테이블 + 멀티소스 그룹핑 + 전용 헤더 레이아웃 + 12종 방법론 카드 + 사업 제안 모달 + 소스 상세/삭제 + 분석 시작 플로우 + NotebookLM 스타일 멀티소스 선택 + 선택 기반 분석/채팅 + 좌우 패널 리사이즈/토글 + 제목 인라인 편집 + AI 제목 추천 + 방법론 카드 마크다운 렌더링 (v6.2→v6.11)
 
 **Out-of-scope (PRD §2.2, §7.3)**
 - 전사 공식 포털/플랫폼
@@ -307,7 +307,15 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 171)
+### 최근 변경 (세션 172)
+**아이디어 페이지 — 제목 인라인 편집 + AI 제목 추천 + 방법론 카드 마크다운 렌더링**:
+- ✅ `MethodologyCards.tsx`: `renderContent()` 제거 → ReactMarkdown + remarkGfm + rehypeHighlight (prose-sm 컴팩트)
+- ✅ `api.ideas.ts`: PATCH 핸들러 추가 — 제목 업데이트 (200자 제한)
+- ✅ `api.ideas.$id.suggest-title.ts` (신규): POST 엔드포인트 — 소스 기반 AI 제목 추천 (callClaude, max_tokens: 100)
+- ✅ `ideas.$id.tsx`: EditableTitle + SuggestTitleButton 컴포넌트 — click-to-edit, Enter/blur 저장, Escape 취소, optimistic UI
+- ✅ `ideas.tsx`: Outlet context에 `onTitleUpdated` 콜백 추가 — revalidator.revalidate()로 드로어/헤더 갱신
+
+### 이전 변경 (세션 171)
 **채팅 패널 오버플로우 수정 + 배포**:
 - ✅ `IdeaChatWrapper.tsx`: 루트 div에 `h-full min-w-0 overflow-hidden` 추가 — 부모 높이 채움 + 콘텐츠 넘침 방지
 - ✅ `ideas.tsx`: 좌/우 패널 래퍼에 `overflow-hidden` 추가 — 패널 너비 초과 콘텐츠 차단

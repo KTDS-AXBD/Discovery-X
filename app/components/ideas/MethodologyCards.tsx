@@ -1,4 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, type ComponentProps } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
 import {
   PRIMARY_METHODOLOGIES,
   SECONDARY_METHODOLOGIES,
@@ -75,50 +78,92 @@ const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
   grid: GridIcon,
 };
 
-// ── Content rendering (from IdeaGadgetTabs) ─────────────────────────
+// ── Markdown components (prose-sm, compact for cards) ────────────────
 
-function renderContent(content: string) {
-  const blocks = content.split("\n\n");
-
-  return blocks.map((block, i) => {
-    const trimmed = block.trim();
-    if (!trimmed) return null;
-
-    const lines = trimmed.split("\n");
-
-    if (lines.every((l) => /^\d+\.\s/.test(l.trim()))) {
-      return (
-        <ol
-          key={i}
-          className="list-decimal space-y-1 pl-5 text-sm leading-relaxed text-[var(--axis-text-secondary)]"
-        >
-          {lines.map((line, j) => (
-            <li key={j}>{line.replace(/^\d+\.\s*/, "")}</li>
-          ))}
-        </ol>
-      );
-    }
-
-    if (lines.every((l) => /^[-*]\s/.test(l.trim()))) {
-      return (
-        <ul
-          key={i}
-          className="list-disc space-y-1 pl-5 text-sm leading-relaxed text-[var(--axis-text-secondary)]"
-        >
-          {lines.map((line, j) => (
-            <li key={j}>{line.replace(/^[-*]\s*/, "")}</li>
-          ))}
-        </ul>
-      );
-    }
-
-    return (
-      <p key={i} className="text-sm leading-relaxed text-[var(--axis-text-secondary)]">
-        {trimmed}
-      </p>
-    );
-  });
+function MdHeading2({ children, ...props }: ComponentProps<"h2">) {
+  return (
+    <h2 className="mt-4 mb-2 border-b border-[var(--axis-border-default)] pb-1.5 text-sm font-semibold text-[var(--axis-text-primary)]" {...props}>
+      {children}
+    </h2>
+  );
 }
+
+function MdHeading3({ children, ...props }: ComponentProps<"h3">) {
+  return (
+    <h3 className="mt-3 mb-1.5 border-l-2 border-[var(--axis-text-brand)] pl-2 text-sm font-semibold text-[var(--axis-text-primary)]" {...props}>
+      {children}
+    </h3>
+  );
+}
+
+function MdHeading4({ children, ...props }: ComponentProps<"h4">) {
+  return (
+    <h4 className="mt-2 mb-1 text-sm font-medium text-[var(--axis-text-primary)]" {...props}>
+      {children}
+    </h4>
+  );
+}
+
+function MdPre({ children, ...props }: ComponentProps<"pre">) {
+  return (
+    <pre className="group relative my-2 rounded-lg border border-[var(--axis-border-default)] bg-[var(--dx-code-bg,var(--axis-surface-secondary))] p-3 text-xs" {...props}>
+      {children}
+    </pre>
+  );
+}
+
+function MdCode({ children, className, ...props }: ComponentProps<"code">) {
+  const isInline = !className;
+  if (isInline) {
+    return (
+      <code className="rounded bg-[var(--axis-surface-secondary)] px-1 py-0.5 text-xs text-[var(--axis-text-primary)]" {...props}>
+        {children}
+      </code>
+    );
+  }
+  return <code className={className} {...props}>{children}</code>;
+}
+
+function MdTable({ children, ...props }: ComponentProps<"table">) {
+  return (
+    <div className="my-2 overflow-x-auto rounded-lg border border-[var(--axis-border-default)]">
+      <table className="w-full text-xs" {...props}>{children}</table>
+    </div>
+  );
+}
+
+function MdTr({ children, ...props }: ComponentProps<"tr">) {
+  return <tr className="border-b border-[var(--axis-border-subtle)] even:bg-[var(--axis-surface-secondary)]" {...props}>{children}</tr>;
+}
+
+function MdTh({ children, ...props }: ComponentProps<"th">) {
+  return <th className="bg-[var(--axis-surface-secondary)] px-2.5 py-1.5 text-left text-xs font-semibold text-[var(--axis-text-secondary)]" {...props}>{children}</th>;
+}
+
+function MdTd({ children, ...props }: ComponentProps<"td">) {
+  return <td className="px-2.5 py-1.5 text-xs" {...props}>{children}</td>;
+}
+
+function MdBlockquote({ children, ...props }: ComponentProps<"blockquote">) {
+  return (
+    <blockquote className="my-2 border-l-3 border-[var(--axis-text-brand)] bg-[var(--axis-surface-secondary)] py-1.5 pl-3 pr-2 text-xs italic text-[var(--axis-text-secondary)]" {...props}>
+      {children}
+    </blockquote>
+  );
+}
+
+const MARKDOWN_COMPONENTS = {
+  h2: MdHeading2,
+  h3: MdHeading3,
+  h4: MdHeading4,
+  pre: MdPre,
+  code: MdCode,
+  table: MdTable,
+  tr: MdTr,
+  th: MdTh,
+  td: MdTd,
+  blockquote: MdBlockquote,
+};
 
 function MethodologyContent({ section }: { section: AnalysisSection | null | undefined }) {
   if (section?.content) {
@@ -127,7 +172,15 @@ function MethodologyContent({ section }: { section: AnalysisSection | null | und
         <h3 className="text-base font-semibold text-[var(--axis-text-primary)]">
           {section.title}
         </h3>
-        <div className="space-y-3">{renderContent(section.content)}</div>
+        <div className="prose prose-sm max-w-none text-[var(--axis-text-secondary)] prose-headings:text-[var(--axis-text-primary)] prose-strong:text-[var(--axis-text-primary)] prose-li:my-0.5 prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeHighlight]}
+            components={MARKDOWN_COMPONENTS}
+          >
+            {section.content}
+          </ReactMarkdown>
+        </div>
 
         {/* Source badges */}
         {section.sources && section.sources.length > 0 && (
