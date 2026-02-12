@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
-import { Outlet, useLoaderData, useParams, useRevalidator } from "@remix-run/react";
+import { Outlet, useLoaderData, useNavigate, useParams, useRevalidator } from "@remix-run/react";
 import { desc, eq, sql } from "drizzle-orm";
 import { getDb } from "~/db";
 import { radarItems } from "~/db/schema";
@@ -106,6 +106,7 @@ export default function IdeasLayout() {
   const params = useParams();
   const selectedIdeaId = params.id;
   const revalidator = useRevalidator();
+  const navigate = useNavigate();
 
   // Chat state
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -113,6 +114,12 @@ export default function IdeasLayout() {
   const [messagesLoaded, setMessagesLoaded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [proposalModalOpen, setProposalModalOpen] = useState(false);
+
+  // Source selection state
+  const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
+
+  // Auto-analysis message (sent automatically to ChatPanel)
+  const [autoMessage, setAutoMessage] = useState<string | null>(null);
 
   // Source items for the selected idea (or all items if no idea selected)
   const [ideaSourceItems, setIdeaSourceItems] = useState(allItems);
@@ -233,11 +240,75 @@ export default function IdeasLayout() {
     }
   }, [revalidator, selectedIdeaId]);
 
+  const handleDeleteSource = useCallback(async (radarItemId: string) => {
+    if (!selectedIdeaId) return;
+    try {
+      await fetch(`/api/ideas/${selectedIdeaId}/sources`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ radarItemId }),
+      });
+      // Clear selection if deleted item was selected
+      if (selectedSourceId === radarItemId) {
+        setSelectedSourceId(null);
+      }
+      revalidator.revalidate();
+    } catch {
+      // Silently fail — user can retry
+    }
+  }, [selectedIdeaId, selectedSourceId, revalidator]);
+
+  const handleSelectSource = useCallback((id: string) => {
+    setSelectedSourceId((prev) => (prev === id ? null : id));
+  }, []);
+
+  const handleStartAnalysis = useCallback(async () => {
+    let ideaId = selectedIdeaId;
+
+    // Create idea if none selected
+    if (!ideaId) {
+      try {
+        const res = await fetch("/api/ideas", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: "새 아이디어" }),
+        });
+        // The POST redirects, but we need the ID from the redirect URL
+        if (res.redirected) {
+          const redirectUrl = new URL(res.url);
+          ideaId = redirectUrl.pathname.split("/").pop();
+        }
+      } catch {
+        return;
+      }
+    }
+
+    if (!ideaId) return;
+
+    const analysisMsg = `추가된 소스를 분석하여 다음 6가지 카테고리로 사업 아이디어를 정리해주세요:
+1. 산업별 사업 예시
+2. 규제/법
+3. 시장 조사
+4. 고객 조사
+5. 사업성 검증
+6. 차별화
+
+각 카테고리별로 update_idea_analysis 도구를 사용하여 분석 결과를 저장해주세요.`;
+
+    // Navigate to the idea detail page if needed
+    if (!selectedIdeaId) {
+      navigate(`/ideas/${ideaId}`);
+    }
+    setAutoMessage(analysisMsg);
+  }, [selectedIdeaId, navigate]);
+
   const handleToolResult = useCallback(
-    (_toolName: string, _result: Record<string, unknown>) => {
-      // Future: extract context items from tool results
+    (toolName: string, _result: Record<string, unknown>) => {
+      if (toolName === "update_idea_analysis") {
+        revalidator.revalidate();
+      }
     },
-    []
+    [revalidator]
   );
 
   return (
@@ -254,15 +325,16 @@ export default function IdeasLayout() {
           <SourceInputPanel
             items={ideaSourceItems}
             collectedItems={allItems}
-            selectedItemId={undefined}
+            selectedItemId={selectedSourceId ?? undefined}
             onAddSources={handleAddSources}
+            onDeleteSource={selectedIdeaId ? handleDeleteSource : undefined}
+            onSelectItem={handleSelectSource}
             isAdding={isAdding}
-            ideaId={selectedIdeaId}
           />
 
           {/* Center: Detail / Gadget Tabs */}
           <div className="flex-1 overflow-y-auto">
-            <Outlet />
+            <Outlet context={{ selectedSourceId, ideaSourceItems, onClearSource: () => setSelectedSourceId(null), onStartAnalysis: handleStartAnalysis }} />
           </div>
 
           {/* Right: Chat Panel */}
@@ -271,6 +343,7 @@ export default function IdeasLayout() {
             messages={chatMessages}
             isLoadingMessages={isLoadingMessages}
             onToolResult={handleToolResult}
+            autoMessage={autoMessage}
           />
         </div>
 

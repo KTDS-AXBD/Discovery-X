@@ -237,5 +237,7 @@ ${sourceContext.keyPoints?.length ? `**핵심 포인트**:\n${sourceContext.keyP
 - 소스 내용을 바탕으로 사업 기회를 분석합니다
 - "아이디어 만들어줘" 요청 시 generate_idea_candidates 도구를 사용합니다
 - 아이디어 후보 선택 후 auto_fill_template로 템플릿을 채웁니다
+- "분석 시작" 또는 "소스 분석" 요청 시 update_idea_analysis 도구를 사용하여 6개 카테고리별 분석 결과를 저장합니다
+- 카테고리: industry_example(산업별 사업 예시), regulation(규제/법), market_research(시장 조사), customer_research(고객 조사), feasibility(사업성 검증), differentiation(차별화)
 ` : ""}${customPrompt ? `\n## 커스텀 지침\n${customPrompt}` : ""}`;
 }

@@ -1,13 +1,87 @@
-import { useRouteLoaderData } from "@remix-run/react";
+import { useOutletContext } from "@remix-run/react";
 import { SuggestionChip } from "~/components/ui/SuggestionChip";
+import { displayTitle } from "~/lib/utils/display-title";
 
-interface LoaderData {
-  allItems: Array<{ id: string }>;
+interface SourceItem {
+  id: string;
+  title: string;
+  titleKo: string | null;
+  summaryKo: string | null;
+  url: string;
+  memo: string | null;
+}
+
+interface OutletCtx {
+  selectedSourceId: string | null;
+  ideaSourceItems: SourceItem[];
+  onClearSource: () => void;
+  onStartAnalysis: () => void;
 }
 
 export default function IdeasIndex() {
-  const data = useRouteLoaderData("routes/ideas") as LoaderData | undefined;
-  const hasItems = (data?.allItems?.length ?? 0) > 0;
+  const ctx = useOutletContext<OutletCtx>();
+  const { selectedSourceId, ideaSourceItems, onClearSource, onStartAnalysis } = ctx;
+  const hasItems = ideaSourceItems.length > 0;
+
+  // Source detail view
+  if (selectedSourceId) {
+    const source = ideaSourceItems.find((s) => s.id === selectedSourceId);
+    if (source) {
+      const isText = source.url?.startsWith("text://");
+      return (
+        <div className="flex h-full flex-col items-center justify-center px-8">
+          <div className="w-full max-w-lg rounded-xl border border-[var(--axis-border-default)] bg-[var(--dx-surface-card,var(--axis-surface-default))] p-6 shadow-sm">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-3">
+              <h2 className="text-base font-semibold text-[var(--axis-text-primary)]">
+                {displayTitle(source.titleKo, source.title, source.url)}
+              </h2>
+              <button
+                type="button"
+                onClick={onClearSource}
+                className="shrink-0 rounded-md p-1 text-[var(--axis-text-tertiary)] transition-colors hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-primary)]"
+                aria-label="닫기"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Summary */}
+            {source.summaryKo && (
+              <p className="mt-3 text-sm leading-relaxed text-[var(--axis-text-secondary)]">
+                {source.summaryKo}
+              </p>
+            )}
+
+            {/* Memo (for text sources) */}
+            {isText && source.memo && (
+              <div className="mt-3 rounded-lg bg-[var(--axis-surface-secondary)] p-3">
+                <p className="text-xs font-medium text-[var(--axis-text-tertiary)]">원본 텍스트</p>
+                <p className="mt-1 text-sm text-[var(--axis-text-secondary)]">{source.memo}</p>
+              </div>
+            )}
+
+            {/* URL link */}
+            {!isText && source.url && (
+              <a
+                href={source.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-1 text-xs text-[var(--axis-text-brand)] hover:underline"
+              >
+                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                </svg>
+                원본 링크
+              </a>
+            )}
+          </div>
+        </div>
+      );
+    }
+  }
 
   if (hasItems) {
     // Sources have been added — prompt to analyze
@@ -26,6 +100,7 @@ export default function IdeasIndex() {
         </p>
         <button
           type="button"
+          onClick={onStartAnalysis}
           className="mt-4 rounded-lg bg-[var(--axis-surface-brand)] px-5 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
         >
           분석 시작

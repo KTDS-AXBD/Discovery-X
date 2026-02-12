@@ -1,5 +1,4 @@
 import { useState, useCallback, useRef, useMemo } from "react";
-import { Link } from "@remix-run/react";
 import { cn } from "~/lib/utils/cn";
 import { displayTitle } from "~/lib/utils/display-title";
 
@@ -22,8 +21,9 @@ interface SourceInputPanelProps {
   collectedItems?: RadarItem[];
   selectedItemId?: string;
   onAddSources: (inputs: string[]) => Promise<{ created: number; error?: string }>;
+  onDeleteSource?: (radarItemId: string) => Promise<void>;
+  onSelectItem?: (id: string) => void;
   isAdding?: boolean;
-  ideaId?: string;
 }
 
 export function SourceInputPanel({
@@ -31,8 +31,9 @@ export function SourceInputPanel({
   collectedItems = [],
   selectedItemId,
   onAddSources,
+  onDeleteSource,
+  onSelectItem,
   isAdding,
-  ideaId,
 }: SourceInputPanelProps) {
   const [inputValue, setInputValue] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
@@ -132,9 +133,6 @@ export function SourceInputPanel({
   const collectedTotalPages = Math.max(1, Math.ceil(availableCollected.length / COLLECTED_PAGE_SIZE));
   const paginatedCollected = availableCollected.slice(0, collectedPage * COLLECTED_PAGE_SIZE);
   const hasMoreCollected = paginatedCollected.length < availableCollected.length;
-
-  // Build link prefix
-  const linkBase = ideaId ? `/ideas/${ideaId}` : "/ideas";
 
   return (
     <div className="flex h-full w-72 shrink-0 flex-col border-r border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))]">
@@ -251,44 +249,68 @@ export function SourceInputPanel({
                 const isPdf = url.endsWith(".pdf") || url.includes("/pdf");
                 const isYoutube = url.includes("youtube.com") || url.includes("youtu.be");
                 const isText = url.startsWith("text://");
+                const isSelected = selectedItemId === item.id;
 
                 return (
-                  <Link
+                  <div
                     key={item.id}
-                    to={`${linkBase}`}
                     className={cn(
-                      "flex items-center gap-2 rounded-lg px-3 py-2.5 transition-colors",
-                      selectedItemId === item.id
+                      "group relative flex items-center gap-2 rounded-lg px-3 py-2.5 transition-colors",
+                      isSelected
                         ? "bg-[var(--dx-surface-card,var(--axis-surface-brand))]"
                         : "hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))]"
                     )}
                   >
-                    {/* Type icon */}
-                    <span className="shrink-0 text-[var(--axis-text-tertiary)]">
-                      {isText ? (
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                        </svg>
-                      ) : isPdf ? (
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                        </svg>
-                      ) : isYoutube ? (
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
-                        </svg>
-                      ) : (
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" />
-                        </svg>
-                      )}
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onSelectItem?.(item.id)}
+                      className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                    >
+                      {/* Type icon */}
+                      <span className="shrink-0 text-[var(--axis-text-tertiary)]">
+                        {isText ? (
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                          </svg>
+                        ) : isPdf ? (
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                          </svg>
+                        ) : isYoutube ? (
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+                          </svg>
+                        ) : (
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" />
+                          </svg>
+                        )}
+                      </span>
 
-                    {/* Title */}
-                    <span className="min-w-0 flex-1 text-sm font-medium text-[var(--axis-text-primary)] line-clamp-1">
-                      {displayTitle(item.titleKo, item.title, item.url)}
-                    </span>
-                  </Link>
+                      {/* Title */}
+                      <span className="min-w-0 flex-1 text-sm font-medium text-[var(--axis-text-primary)] line-clamp-1">
+                        {displayTitle(item.titleKo, item.title, item.url)}
+                      </span>
+                    </button>
+
+                    {/* Delete button */}
+                    {onDeleteSource && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteSource(item.id);
+                        }}
+                        className="shrink-0 rounded p-0.5 text-[var(--axis-text-tertiary)] opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover:opacity-100 dark:hover:bg-red-900/30"
+                        aria-label="소스 삭제"
+                        title="소스 삭제"
+                      >
+                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                 );
               })}
             </div>

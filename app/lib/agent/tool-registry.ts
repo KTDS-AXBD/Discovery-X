@@ -87,6 +87,8 @@ export const TOOL_MIN_AUTONOMY: Record<string, number> = {
   generate_idea_candidates: 2,
   select_idea_candidate: 2,
   auto_fill_template: 2,
+  // Idea analysis
+  update_idea_analysis: 2,
   // Level 3: full autonomy
   add_experiment: 3,
   complete_experiment: 3,
@@ -1284,6 +1286,31 @@ export const AGENT_TOOLS: ClaudeTool[] = [
         hypothesis: { type: "string", description: "가설 (직접 지정 시)" },
         targetSegment: { type: "string", description: "타겟 고객/시장 (직접 지정 시)" },
         valueProposition: { type: "string", description: "가치 제안 (직접 지정 시)" },
+      },
+    },
+  },
+
+  // === Idea Analysis Tools ===
+  {
+    name: "update_idea_analysis",
+    description: "아이디어의 분석 데이터를 카테고리별로 업데이트합니다. 소스 분석 후 6개 카테고리(산업별 사업 예시, 규제/법, 시장 조사, 고객 조사, 사업성 검증, 차별화)에 결과를 저장합니다.",
+    input_schema: {
+      type: "object",
+      required: ["ideaId", "category", "title", "content"],
+      properties: {
+        ideaId: { type: "string", description: "아이디어 ID" },
+        category: {
+          type: "string",
+          enum: ["industry_example", "regulation", "market_research", "customer_research", "feasibility", "differentiation"],
+          description: "분석 카테고리",
+        },
+        title: { type: "string", description: "카테고리 제목" },
+        content: { type: "string", description: "분석 결과 내용 (마크다운)" },
+        sources: {
+          type: "array",
+          items: { type: "string" },
+          description: "참조 소스 URL 목록 (선택)",
+        },
       },
     },
   },

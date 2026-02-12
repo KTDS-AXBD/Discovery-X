@@ -105,6 +105,7 @@ import {
   getTenantInfo,
   manageTenantMembers,
 } from "./tools/tenant-tools";
+import { updateIdeaAnalysis } from "./tools/idea-tools";
 
 function generateId(): string {
   return crypto.randomUUID();
@@ -292,6 +293,9 @@ async function executeTool(
       return selectIdeaCandidate(db, toolInput as Parameters<typeof selectIdeaCandidate>[1]);
     case "auto_fill_template":
       return autoFillTemplate(db, toolInput as Parameters<typeof autoFillTemplate>[1]);
+    // Idea analysis tools
+    case "update_idea_analysis":
+      return updateIdeaAnalysis(db, toolInput as unknown as Parameters<typeof updateIdeaAnalysis>[1]);
     default:
       return JSON.stringify({ error: `알 수 없는 도구: ${toolName}` });
   }

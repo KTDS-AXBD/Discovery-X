@@ -64,10 +64,6 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ params, request, context }: ActionFunctionArgs) {
-  if (request.method !== "POST") {
-    return json({ error: "Method not allowed" }, { status: 405 });
-  }
-
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
   const ctx = await getSessionContext(request, db, secret);
@@ -77,6 +73,28 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
   }
 
   const ideaId = params.id!;
+
+  // DELETE: remove a source link from the idea
+  if (request.method === "DELETE") {
+    const body = (await request.json()) as { radarItemId?: string };
+    const radarItemId = body.radarItemId;
+    if (!radarItemId) {
+      return json({ error: "radarItemId가 필요합니다." }, { status: 400 });
+    }
+
+    await db.delete(ideaSources).where(
+      and(
+        eq(ideaSources.ideaId, ideaId),
+        eq(ideaSources.radarItemId, radarItemId)
+      )
+    );
+    return json({ success: true });
+  }
+
+  if (request.method !== "POST") {
+    return json({ error: "Method not allowed" }, { status: 405 });
+  }
+
   const body = (await request.json()) as { inputs?: string[] };
   const inputs = body.inputs;
 

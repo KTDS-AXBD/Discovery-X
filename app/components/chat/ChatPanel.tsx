@@ -28,6 +28,7 @@ interface ChatPanelProps {
   initialMessages: ChatMessage[];
   isLoadingMessages?: boolean;
   onToolResult?: (toolName: string, result: Record<string, unknown>) => void;
+  autoMessage?: string | null;
 }
 
 interface BudgetWarning {
@@ -51,7 +52,7 @@ function parseSuggestions(content: string): { cleanContent: string; suggestions:
   }
 }
 
-export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, onToolResult }: ChatPanelProps) {
+export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, onToolResult, autoMessage }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -254,6 +255,15 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
       });
     }
   }, [conversationId, isLoading, onToolResult]);
+
+  // Auto-send message (e.g., from "분석 시작" button)
+  const autoMessageProcessed = useRef<string | null>(null);
+  useEffect(() => {
+    if (autoMessage && conversationId && !isLoading && autoMessage !== autoMessageProcessed.current) {
+      autoMessageProcessed.current = autoMessage;
+      sendMessageWithContent(autoMessage);
+    }
+  }, [autoMessage, conversationId, isLoading, sendMessageWithContent]);
 
   const sendMessage = useCallback(async () => {
     if (!input.trim()) return;

@@ -15,6 +15,7 @@ interface IdeaChatWrapperProps {
   messages: ChatMessage[];
   isLoadingMessages: boolean;
   onToolResult?: (toolName: string, result: Record<string, unknown>) => void;
+  autoMessage?: string | null;
 }
 
 const RESEARCH_CATEGORIES = [
@@ -30,6 +31,7 @@ export function IdeaChatWrapper({
   messages,
   isLoadingMessages,
   onToolResult,
+  autoMessage,
 }: IdeaChatWrapperProps) {
   return (
     <div className="hidden w-80 shrink-0 flex-col border-l border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))] lg:flex">
@@ -46,6 +48,7 @@ export function IdeaChatWrapper({
             initialMessages={messages}
             isLoadingMessages={isLoadingMessages}
             onToolResult={onToolResult}
+            autoMessage={autoMessage}
           />
         ) : (
           <div className="flex h-full flex-col items-center justify-center px-6">
