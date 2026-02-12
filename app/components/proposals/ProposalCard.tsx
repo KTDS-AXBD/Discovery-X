@@ -1,5 +1,4 @@
 import { Link, useFetcher } from "@remix-run/react";
-import { PROPOSAL_STATUS_COLORS, PROPOSAL_STATUS_LABELS } from "~/features/proposals/constants";
 import { cn } from "~/lib/utils/cn";
 
 export interface ProposalCardData {
@@ -41,39 +40,26 @@ export function ProposalCard({ proposal }: { proposal: ProposalCardData }) {
   return (
     <div className="group rounded-xl border border-[var(--axis-border-default)] bg-[var(--dx-surface-card,var(--axis-surface-default))] p-4 transition-shadow hover:shadow-md">
       <Link to={`/proposals/${proposal.id}`} className="block">
-        {/* Category + Time */}
-        <div className="mb-2 flex items-center justify-between">
-          {proposal.category && (
-            <span className="text-[10px] font-medium text-[var(--axis-text-brand)]">
-              {proposal.category}
-            </span>
-          )}
-          <span className="ml-auto text-[10px] text-[var(--axis-text-tertiary)]">
-            {formatRelativeTime(proposal.updatedAt)}
-          </span>
-        </div>
-
-        {/* Title */}
-        <h3 className="mb-1 text-sm font-semibold text-[var(--axis-text-primary)] line-clamp-1">
+        {/* Title (2 lines) */}
+        <h3 className="mb-1 text-sm font-semibold text-[var(--axis-text-primary)] line-clamp-2">
           {proposal.title}
         </h3>
 
-        {/* Description */}
+        {/* Description (3 lines) */}
         {proposal.description && (
-          <p className="mb-3 text-xs leading-relaxed text-[var(--axis-text-secondary)] line-clamp-2">
+          <p className="mb-3 text-xs leading-relaxed text-[var(--axis-text-secondary)] line-clamp-3">
             {proposal.description}
           </p>
         )}
 
-        {/* Status badge */}
-        <div className="mb-3">
-          <span className={cn(
-            "inline-block rounded px-1.5 py-0.5 text-[10px] font-medium",
-            PROPOSAL_STATUS_COLORS[proposal.status] || PROPOSAL_STATUS_COLORS.PROPOSAL,
-          )}>
-            {PROPOSAL_STATUS_LABELS[proposal.status] || proposal.status}
-          </span>
-        </div>
+        {/* Time badge */}
+        {proposal.updatedAt && (
+          <div className="mb-3">
+            <span className="inline-block rounded-full bg-[var(--axis-surface-secondary)] px-2 py-0.5 text-[10px] text-[var(--axis-text-tertiary)]">
+              {formatRelativeTime(proposal.updatedAt)}
+            </span>
+          </div>
+        )}
       </Link>
 
       {/* Footer: author + likes + comments */}

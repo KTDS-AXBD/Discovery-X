@@ -15,11 +15,16 @@ export function CategoryCardRow({ category, proposals }: CategoryCardRowProps) {
         <h3 className="text-sm font-semibold text-[var(--axis-text-primary)]">
           {category}
         </h3>
-        <span className="text-xs text-[var(--axis-text-tertiary)]">{proposals.length}건</span>
+        <div className="flex items-center gap-1">
+          <span className="text-xs text-[var(--axis-text-tertiary)]">{proposals.length}건</span>
+          <svg className="h-3.5 w-3.5 text-[var(--axis-text-tertiary)]" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+        </div>
       </div>
       <div className="flex gap-3 overflow-x-auto pb-2">
         {proposals.map((p) => (
-          <div key={p.id} className="w-64 shrink-0">
+          <div key={p.id} className="w-72 shrink-0">
             <ProposalCard proposal={p} />
           </div>
         ))}

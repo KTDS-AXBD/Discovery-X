@@ -47,12 +47,17 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       .where(eq(proposalLikes.userId, ctx.user.id));
     const likedSet = new Set(userLikes.map((l) => l.proposalId));
 
-    // Pipeline stage counts
-    const stageCounts = new Map<string, number>();
+    // Pipeline stage counts + items
+    const stageGroups = new Map<string, { count: number; items: { id: string; title: string }[] }>();
     for (const p of allProposals) {
-      stageCounts.set(p.status, (stageCounts.get(p.status) || 0) + 1);
+      if (!stageGroups.has(p.status)) stageGroups.set(p.status, { count: 0, items: [] });
+      const g = stageGroups.get(p.status)!;
+      g.count++;
+      g.items.push({ id: p.id, title: p.title });
     }
-    const stages = Array.from(stageCounts.entries()).map(([status, count]) => ({ status, count }));
+    const stages = Array.from(stageGroups.entries()).map(([status, val]) => ({
+      status, count: val.count, items: val.items,
+    }));
 
     // Map to card data
     const cardData: ProposalCardData[] = allProposals.map((p) => ({

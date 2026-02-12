@@ -6,8 +6,8 @@ export const PROPOSAL_STATUS_LABELS: Record<string, string> = {
   PROPOSAL: "사업제안",
   FORMALIZATION: "형상화",
   VALIDATION: "검증",
-  COMPLETED: "완료",
-  CLOSED: "종료",
+  COMPLETED: "완료(제품화/GTM)",
+  CLOSED: "종료(Hold/Drop)",
 };
 
 export const PROPOSAL_STATUS_VARIANTS: Record<string, "warning" | "success" | "destructive" | "secondary" | "default"> = {
