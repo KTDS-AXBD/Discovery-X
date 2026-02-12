@@ -8,12 +8,18 @@ import type { DB } from "~/db";
 import { ideas } from "~/features/ideas/db/schema";
 
 const VALID_CATEGORIES = [
-  "industry_example",
-  "regulation",
   "market_research",
   "customer_research",
+  "critical_thinking",
+  "bmc",
+  "swot",
+  "regulation",
   "feasibility",
   "differentiation",
+  "industry_example",
+  "value_chain",
+  "lean_canvas",
+  "pestel",
 ] as const;
 
 type AnalysisCategory = (typeof VALID_CATEGORIES)[number];

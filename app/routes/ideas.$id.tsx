@@ -1,12 +1,13 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, useOutletContext } from "@remix-run/react";
 import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
 import { radarItems } from "~/db/schema";
 import { ideas, ideaSources } from "~/features/ideas/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { IdeaGadgetTabs } from "~/components/ideas/IdeaGadgetTabs";
+import { MethodologyCards } from "~/components/ideas/MethodologyCards";
+import { ALL_METHODOLOGIES } from "~/lib/constants/methodology";
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
   try {
@@ -67,25 +68,26 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   }
 }
 
+interface OutletCtx {
+  onRunMethodology: (category: string) => void;
+  loadingCategory: string | null;
+}
+
 export default function IdeaDetail() {
   const data = useLoaderData<typeof loader>();
+  const { onRunMethodology, loadingCategory } = useOutletContext<OutletCtx>();
 
-  // Build sections from idea analysis data or from sources
-  const sections: Record<string, { title: string; content: string; sources?: string[] } | null> = {
-    industry_example: null,
-    regulation: null,
-    market_research: null,
-    customer_research: null,
-    feasibility: null,
-    differentiation: null,
-  };
+  // Build sections from idea analysis data — all methodology keys
+  const sections: Record<string, { title: string; content: string; sources?: string[] } | null> = {};
+  for (const m of ALL_METHODOLOGIES) {
+    sections[m.key] = null;
+  }
 
   if (data.type === "idea" && data.idea) {
-    // Parse analysisData if available
     const analysis = data.idea.analysisData as Record<string, { title?: string; content?: string; sources?: string[] }> | null;
     if (analysis) {
-      for (const key of Object.keys(sections)) {
-        if (analysis[key]) {
+      for (const key of Object.keys(analysis)) {
+        if (analysis[key]?.content) {
           sections[key] = {
             title: analysis[key].title || key,
             content: analysis[key].content || "",
@@ -103,7 +105,7 @@ export default function IdeaDetail() {
 
       if (keyPoints?.length || summaryText) {
         sections.industry_example = {
-          title: "산업별 사업 예시",
+          title: "산업별 사례",
           content: keyPoints?.length
             ? keyPoints.map((p: string, i: number) => `${i + 1}. ${p}`).join("\n\n")
             : summaryText,
@@ -112,14 +114,13 @@ export default function IdeaDetail() {
       }
     }
   } else if (data.type === "radarItem" && data.item) {
-    // Legacy radarItem display
     const item = data.item;
     const keyPoints = Array.isArray(item.keyPoints) ? (item.keyPoints as string[]) : null;
     const summaryText = ((item.summaryKo || item.summary || "") as string);
 
     if (keyPoints?.length || summaryText) {
       sections.industry_example = {
-        title: "산업별 사업 예시",
+        title: "산업별 사례",
         content: keyPoints?.length
           ? keyPoints.map((p: string, i: number) => `${i + 1}. ${p}`).join("\n\n")
           : summaryText,
@@ -141,8 +142,12 @@ export default function IdeaDetail() {
         </h1>
       </div>
 
-      {/* Gadget Tabs */}
-      <IdeaGadgetTabs sections={sections} />
+      {/* Methodology Cards */}
+      <MethodologyCards
+        sections={sections}
+        loadingCategory={loadingCategory}
+        onRunMethodology={onRunMethodology}
+      />
     </div>
   );
 }

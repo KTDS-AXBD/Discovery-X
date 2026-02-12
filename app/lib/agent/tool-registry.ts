@@ -1293,7 +1293,7 @@ export const AGENT_TOOLS: ClaudeTool[] = [
   // === Idea Analysis Tools ===
   {
     name: "update_idea_analysis",
-    description: "아이디어의 분석 데이터를 카테고리별로 업데이트합니다. 소스 분석 후 6개 카테고리(산업별 사업 예시, 규제/법, 시장 조사, 고객 조사, 사업성 검증, 차별화)에 결과를 저장합니다.",
+    description: "아이디어의 분석 데이터를 방법론 카테고리별로 업데이트합니다. 요청된 방법론에 맞춰 분석 결과를 저장합니다.",
     input_schema: {
       type: "object",
       required: ["ideaId", "category", "title", "content"],
@@ -1301,8 +1301,8 @@ export const AGENT_TOOLS: ClaudeTool[] = [
         ideaId: { type: "string", description: "아이디어 ID" },
         category: {
           type: "string",
-          enum: ["industry_example", "regulation", "market_research", "customer_research", "feasibility", "differentiation"],
-          description: "분석 카테고리",
+          enum: ["market_research", "customer_research", "critical_thinking", "bmc", "swot", "regulation", "feasibility", "differentiation", "industry_example", "value_chain", "lean_canvas", "pestel"],
+          description: "방법론 카테고리",
         },
         title: { type: "string", description: "카테고리 제목" },
         content: { type: "string", description: "분석 결과 내용 (마크다운)" },

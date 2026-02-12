@@ -9,6 +9,7 @@ import { ideas } from "~/features/ideas/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { SidebarProvider } from "~/lib/context/sidebar-context";
 import { usePanelLayout } from "~/lib/hooks/use-panel-layout";
+import { ALL_METHODOLOGIES, METHODOLOGY_PROMPTS } from "~/lib/constants/methodology";
 import { IdeaPageHeader } from "~/components/ideas/IdeaPageHeader";
 import { IdeaListDrawer } from "~/components/ideas/IdeaListDrawer";
 import { SourceInputPanel } from "~/components/ideas/SourceInputPanel";
@@ -125,6 +126,9 @@ export default function IdeasLayout() {
 
   // Auto-analysis message (sent automatically to ChatPanel)
   const [autoMessage, setAutoMessage] = useState<string | null>(null);
+
+  // Per-methodology loading state
+  const [loadingCategory, setLoadingCategory] = useState<string | null>(null);
 
   // Source items for the selected idea (or all items if no idea selected)
   const [ideaSourceItems, setIdeaSourceItems] = useState(allItems);
@@ -340,10 +344,64 @@ ${sourceSummaries || "소스 없음"}
     setAutoMessage(analysisMsg);
   }, [selectedIdeaId, ideaSourceItems, selectedSourceIds, navigate]);
 
+  const handleRunMethodology = useCallback(async (category: string) => {
+    let ideaId = selectedIdeaId;
+
+    // Create idea if none selected
+    if (!ideaId) {
+      try {
+        const res = await fetch("/api/ideas", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: "새 아이디어" }),
+        });
+        if (res.redirected) {
+          const redirectUrl = new URL(res.url);
+          ideaId = redirectUrl.pathname.split("/").pop();
+        }
+      } catch {
+        return;
+      }
+    }
+
+    if (!ideaId) return;
+
+    setLoadingCategory(category);
+
+    const selectedSources = ideaSourceItems.filter((s) => selectedSourceIds.includes(s.id));
+    const sourceSummaries = selectedSources
+      .map((s) => {
+        const title = s.titleKo || s.title || "제목 없음";
+        const summary = s.summaryKo || "";
+        const url = s.url && !s.url.startsWith("text://") ? s.url : "";
+        return `- **${title}**${summary ? `: ${summary}` : ""}${url ? ` (${url})` : ""}`;
+      })
+      .join("\n");
+
+    const methodologyLabel = ALL_METHODOLOGIES.find((m) => m.key === category)?.label || category;
+    const methodologyPrompt = METHODOLOGY_PROMPTS[category] || "";
+
+    const msg = `아이디어 ID: ${ideaId}
+
+## 분석할 소스
+${sourceSummaries || "소스 없음"}
+
+## 실행할 방법론: ${methodologyLabel}
+${methodologyPrompt}
+
+update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석 결과를 저장해주세요. ideaId는 "${ideaId}"입니다.`;
+
+    if (!selectedIdeaId) {
+      navigate(`/ideas/${ideaId}`);
+    }
+    setAutoMessage(msg);
+  }, [selectedIdeaId, ideaSourceItems, selectedSourceIds, navigate]);
+
   const handleToolResult = useCallback(
     (toolName: string, _result: Record<string, unknown>) => {
       if (toolName === "update_idea_analysis") {
         revalidator.revalidate();
+        setLoadingCategory(null);
       }
     },
     [revalidator]
@@ -411,7 +469,7 @@ ${sourceSummaries || "소스 없음"}
 
           {/* Center: Detail / Gadget Tabs */}
           <div className="flex-1 overflow-y-auto">
-            <Outlet context={{ detailSourceId, ideaSourceItems, selectedSourceIds, onClearSource: () => setDetailSourceId(null), onStartAnalysis: handleStartAnalysis }} />
+            <Outlet context={{ detailSourceId, ideaSourceItems, selectedSourceIds, onClearSource: () => setDetailSourceId(null), onStartAnalysis: handleStartAnalysis, onRunMethodology: handleRunMethodology, loadingCategory }} />
           </div>
 
           {/* Right: Chat Panel */}
