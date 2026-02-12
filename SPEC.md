@@ -38,7 +38,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
   - 아이템 선택 시 자동 viewed 처리 (radarItemUserStatus.status → "viewed")
   - 파이프라인 섹션 (v6.4): Discovery 11단계 현황 (PIPELINE_COLUMNS 기반, 카테고리별 그룹핑, 실 DB 데이터) — 별도 패널, 왼쪽 맞춤
   - 통계 섹션 (v6.4): 4개 핵심 지표 (소스 수집/발굴 건수/활성 파이프라인/사업 제안) — 실 DB 데이터
-- 아이디어 워크스페이스: ideas 테이블 + 멀티소스 그룹핑 + 전용 헤더 레이아웃 + 6탭 가젯 + 사업 제안 모달 + 소스 상세/삭제 + 분석 시작 플로우 + NotebookLM 스타일 멀티소스 선택 + 선택 기반 분석/채팅 (v6.2→v6.8)
+- 아이디어 워크스페이스: ideas 테이블 + 멀티소스 그룹핑 + 전용 헤더 레이아웃 + 12종 방법론 카드 + 사업 제안 모달 + 소스 상세/삭제 + 분석 시작 플로우 + NotebookLM 스타일 멀티소스 선택 + 선택 기반 분석/채팅 + 좌우 패널 리사이즈/토글 (v6.2→v6.9)
 
 **Out-of-scope (PRD §2.2, §7.3)**
 - 전사 공식 포털/플랫폼
@@ -150,7 +150,7 @@ Flow I: BD 워크스페이스 (v4.2)
 **Ideas (5 pages + 3 API)**
 - `/ideas` — 아이디어 워크스페이스 레이아웃 (전용 헤더 + 드로어 + 좌: SourceInputPanel + 중: Outlet + 우: IdeaChatWrapper)
 - `/ideas/_index` — 빈 상태 (소스 추가 제안 칩) / 소스 있으면 "분석 시작" 버튼 / 소스 클릭 시 상세 카드
-- `/ideas/:id` — 아이디어 상세 (6개 가젯 탭: 산업별 사업 예시/규제/시장 조사/고객 조사/사업성 검증/차별화)
+- `/ideas/:id` — 아이디어 상세 (12종 방법론 카드: 시장 조사/고객 조사/비판적 사고/BMC/SWOT/규제/사업성/차별화/산업별 사례/가치 사슬/린 캔버스/PESTEL + 좌우 패널 리사이즈/토글)
 - `/api/ideas` — 아이디어 CRUD API (GET 목록 + POST 생성 + DELETE 삭제)
 - `/api/ideas/:id/sources` — 아이디어-소스 연결 API (GET 목록 + POST 추가 + DELETE 삭제)
 
@@ -294,7 +294,7 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.8 Ideas Multi-Source Selection
+- **프로토타입**: v6.9 Ideas Panel Resize + Methodology Cards
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 28개 마이그레이션 (0000~0027), 로컬+프로덕션 적용 완료 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
 
@@ -307,7 +307,18 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 168)
+### 최근 변경 (세션 169)
+**아이디어 페이지 — 패널 리사이즈/토글 통합 + 12종 방법론 카드 + 배포**:
+- ✅ `ideas.tsx`: `usePanelLayout()` 훅 통합, 좌/우 패널에 동적 width 적용, `PanelResizeHandle` 배치, 패널 숨김 시 가장자리 토글 버튼, hover 시 collapse 버튼 노출, `handleRunMethodology` 핸들러 + `loadingCategory` 상태
+- ✅ `ideas.$id.tsx`: `IdeaGadgetTabs` → `MethodologyCards` 교체, 12종 방법론 키 지원, `useOutletContext`로 `onRunMethodology`/`loadingCategory` 전달
+- ✅ `MethodologyCards.tsx` (신규): 12종 방법론 카드 그리드 — 분석 결과 있으면 내용 표시, 없으면 "분석 실행" 버튼, 로딩 상태 애니메이션
+- ✅ `methodology.ts` (신규): 12종 방법론 정의 (`ALL_METHODOLOGIES`) + 방법론별 프롬프트 템플릿 (`METHODOLOGY_PROMPTS`)
+- ✅ `system-prompt.ts`: 6→12 방법론 지원, 방법론 지정 분석 지원
+- ✅ `tool-registry.ts`: `update_idea_analysis` category enum 12종으로 확장
+- ✅ `idea-tools.ts`: `VALID_CATEGORIES` 12종으로 확장
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 661개 통과 / build 성공 / CI/CD 배포 완료 (1m 39s)
+
+### 이전 변경 (세션 168)
 **아이디어 페이지 — NotebookLM 스타일 멀티소스 선택 + lint 수정 + 배포**:
 - ✅ `ideas.tsx`: `selectedSourceId` → `selectedSourceIds[]` 배열 기반 멀티셀렉트, `handleToggleSource`/`handleToggleAll` 핸들러, 소스 추가 시 자동 전체 선택, 선택된 소스만 분석 프롬프트에 포함, 패널 리사이즈/접기 기능 통합
 - ✅ `SourceInputPanel.tsx`: 각 소스에 체크박스(원형 체크/언체크 아이콘), 헤더에 "모든 소스 선택" 전체 토글 + "N개 선택" 카운터, 체크 해제 시 제목 흐리게 표시
