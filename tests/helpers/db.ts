@@ -51,6 +51,7 @@ export function createTestDb() {
   runMigrationSQL(sqlite, resolve(migrationsDir, "0026_dashboard_reaction.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0027_ideas_workspace.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0028_proposal_redesign.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0029_token_usage_logs.sql"));
 
   return drizzle(sqlite, { schema });
 }

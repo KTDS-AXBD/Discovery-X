@@ -7,6 +7,7 @@
 import { eq } from "drizzle-orm";
 import type { DB } from "~/db";
 import { messages, agentConfig, conversations, radarItems } from "~/db/schema";
+import { tokenUsageLogs } from "~/db/token-usage-schema";
 import type { ClaudeResponse, ClaudeContentBlock } from "./claude-client";
 import { callClaude, callClaudeStream, parseSSEStream, CLAUDE_MODEL } from "./claude-client";
 import { buildConversationContext } from "./context-builder";
@@ -394,7 +395,15 @@ export async function executeAgentTurn(
       });
 
       // Update token usage
-      await updateTokenUsage(db, totalInputTokens + totalOutputTokens);
+      await updateTokenUsage(db, totalInputTokens + totalOutputTokens, {
+        conversationId,
+        mode: "default",
+        model: modelId,
+        inputTokens: totalInputTokens,
+        outputTokens: totalOutputTokens,
+        toolRounds: round,
+        tenantId,
+      });
 
       return {
         assistantText,
@@ -458,7 +467,15 @@ export async function executeAgentTurn(
     content: maxRoundsMessage,
   });
 
-  await updateTokenUsage(db, totalInputTokens + totalOutputTokens);
+  await updateTokenUsage(db, totalInputTokens + totalOutputTokens, {
+    conversationId,
+    mode: "default",
+    model: modelId,
+    inputTokens: totalInputTokens,
+    outputTokens: totalOutputTokens,
+    toolRounds: MAX_TOOL_ROUNDS,
+    tenantId,
+  });
 
   return {
     assistantText: maxRoundsMessage,
@@ -467,7 +484,17 @@ export async function executeAgentTurn(
   };
 }
 
-async function updateTokenUsage(db: DB, tokensUsed: number) {
+interface TokenUsageMeta {
+  conversationId?: string | null;
+  mode?: "default" | "ideas" | "direct";
+  model?: string;
+  inputTokens?: number;
+  outputTokens?: number;
+  toolRounds?: number;
+  tenantId?: string | null;
+}
+
+async function updateTokenUsage(db: DB, tokensUsed: number, meta?: TokenUsageMeta) {
   const today = new Date().toISOString().slice(0, 10);
   const config = await db
     .select()
@@ -486,7 +513,29 @@ async function updateTokenUsage(db: DB, tokensUsed: number) {
       })
       .where(eq(agentConfig.id, "default"));
   }
+
+  // Log to token_usage_logs for historical tracking
+  if (meta) {
+    try {
+      await db.insert(tokenUsageLogs).values({
+        id: crypto.randomUUID(),
+        conversationId: meta.conversationId || null,
+        mode: meta.mode || "default",
+        model: meta.model || CLAUDE_MODEL,
+        inputTokens: meta.inputTokens || 0,
+        outputTokens: meta.outputTokens || 0,
+        totalTokens: tokensUsed,
+        toolRounds: meta.toolRounds || 0,
+        tenantId: meta.tenantId || null,
+      });
+    } catch {
+      // Non-critical: don't fail the main operation if logging fails
+    }
+  }
 }
+
+// Re-export for use by analyzer.ts
+export { updateTokenUsage };
 
 /**
  * Streaming variant: uses callClaudeStream + parseSSEStream for real-time text deltas.
@@ -647,7 +696,15 @@ export function createAgentStreamResponse(
               content: addSummaryHeader(assistantText),
             });
 
-            await updateTokenUsage(db, totalInputTokens + totalOutputTokens);
+            await updateTokenUsage(db, totalInputTokens + totalOutputTokens, {
+              conversationId,
+              mode: isIdeasMode ? "ideas" : "default",
+              model: modelId,
+              inputTokens: totalInputTokens,
+              outputTokens: totalOutputTokens,
+              toolRounds: round,
+              tenantId,
+            });
             await sendBudgetWarning(db, controller, send);
             send(controller, { type: "done", tokensUsed: { input: totalInputTokens, output: totalOutputTokens } });
             controller.close();
@@ -723,7 +780,15 @@ export function createAgentStreamResponse(
           content: streamMaxRoundsMsg,
         });
 
-        await updateTokenUsage(db, totalInputTokens + totalOutputTokens);
+        await updateTokenUsage(db, totalInputTokens + totalOutputTokens, {
+          conversationId,
+          mode: isIdeasMode ? "ideas" : "default",
+          model: modelId,
+          inputTokens: totalInputTokens,
+          outputTokens: totalOutputTokens,
+          toolRounds: MAX_TOOL_ROUNDS,
+          tenantId,
+        });
         send(controller, { type: "text_delta", content: streamMaxRoundsMsg });
         send(controller, { type: "done", tokensUsed: { input: totalInputTokens, output: totalOutputTokens } });
         controller.close();
