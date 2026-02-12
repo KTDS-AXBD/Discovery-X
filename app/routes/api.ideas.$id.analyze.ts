@@ -37,9 +37,10 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     return json({ error: "API 키가 설정되지 않았습니다" }, { status: 500 });
   }
 
-  const body = await request.json() as { sourceContext?: string; categories?: string[] };
+  const body = await request.json() as { sourceContext?: string; categories?: string[]; sourceIds?: string[] };
   const sourceContext = body.sourceContext || "";
   const categories = body.categories;
+  const sourceIds = body.sourceIds;
 
   // Return SSE stream
   const encoder = new TextEncoder();
@@ -58,6 +59,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
           sourceContext,
           tenantId: ctx.tenantId,
           categories,
+          sourceIds,
           onProgress: send,
         });
 

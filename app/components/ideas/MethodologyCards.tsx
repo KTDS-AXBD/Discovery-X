@@ -12,12 +12,15 @@ interface AnalysisSection {
   title: string;
   content: string;
   sources?: string[];
+  sourceIds?: string[] | null;
+  analyzedAt?: string | null;
 }
 
 interface MethodologyCardsProps {
   sections: Record<string, AnalysisSection | null>;
   loadingCategory: string | null;
   onRunMethodology: (category: string) => void;
+  staleSections?: Set<string>;
 }
 
 // ── Icons (inline SVG) ──────────────────────────────────────────────
@@ -165,10 +168,29 @@ const MARKDOWN_COMPONENTS = {
   blockquote: MdBlockquote,
 };
 
-function MethodologyContent({ section }: { section: AnalysisSection | null | undefined }) {
+function MethodologyContent({ section, isStale, onReanalyze }: { section: AnalysisSection | null | undefined; isStale?: boolean; onReanalyze?: () => void }) {
   if (section?.content) {
     return (
       <div className="space-y-4">
+        {isStale && (
+          <div className="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 dark:border-amber-600/40 dark:bg-amber-950/30">
+            <svg className="h-4 w-4 shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+            </svg>
+            <span className="flex-1 text-xs text-amber-700 dark:text-amber-300">
+              소스가 변경되었습니다. 현재 선택된 소스와 분석 결과가 다를 수 있습니다.
+            </span>
+            {onReanalyze && (
+              <button
+                type="button"
+                onClick={onReanalyze}
+                className="shrink-0 rounded-md bg-amber-500 px-2.5 py-1 text-xs font-medium text-white transition-colors hover:bg-amber-600"
+              >
+                다시 분석
+              </button>
+            )}
+          </div>
+        )}
         <h3 className="text-base font-semibold text-[var(--axis-text-primary)]">
           {section.title}
         </h3>
@@ -256,6 +278,7 @@ export function MethodologyCards({
   sections = {},
   loadingCategory,
   onRunMethodology,
+  staleSections,
 }: MethodologyCardsProps) {
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [addedSecondary, setAddedSecondary] = useState<string[]>([]);
@@ -296,8 +319,12 @@ export function MethodologyCards({
 
   const handleCardClick = (key: string) => {
     const hasData = sections[key]?.content;
-    if (hasData) {
+    const isStale = hasData && staleSections?.has(key);
+    if (hasData && !isStale) {
       // Toggle active
+      setActiveKey(activeKey === key ? null : key);
+    } else if (isStale) {
+      // Show stale content (user can click "다시 분석" button in banner)
       setActiveKey(activeKey === key ? null : key);
     } else if (loadingCategory !== key) {
       // Start analysis
@@ -324,6 +351,7 @@ export function MethodologyCards({
           const hasData = !!sections[card.key]?.content;
           const isLoading = loadingCategory === card.key;
           const isActive = activeKey === card.key;
+          const isStale = hasData && staleSections?.has(card.key);
           const IconComponent = card.icon ? ICON_MAP[card.icon] : null;
 
           return (
@@ -335,6 +363,7 @@ export function MethodologyCards({
               className={`
                 group relative flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-left transition-all
                 ${isLoading ? "animate-pulse cursor-wait" : "cursor-pointer"}
+                ${isStale ? "opacity-75" : ""}
                 ${hasData
                   ? isActive
                     ? "border-[var(--axis-text-brand)] bg-[var(--axis-surface-brand)]/10 ring-1 ring-[var(--axis-text-brand)]/30"
@@ -345,12 +374,19 @@ export function MethodologyCards({
                 }
               `}
             >
+              {/* Stale badge */}
+              {isStale && (
+                <span className="absolute -right-1 -top-1 flex h-3 w-3 items-center justify-center rounded-full bg-amber-400" title="소스가 변경되었습니다">
+                  <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                </span>
+              )}
+
               {/* Icon or status indicator */}
               <span className="flex h-5 w-5 shrink-0 items-center justify-center">
                 {isLoading ? (
                   <SpinnerIcon className="h-4 w-4 text-[var(--axis-text-brand)]" />
                 ) : hasData ? (
-                  <CheckIcon className="h-4 w-4 text-[var(--axis-text-brand)]" />
+                  <CheckIcon className={`h-4 w-4 ${isStale ? "text-amber-500" : "text-[var(--axis-text-brand)]"}`} />
                 ) : IconComponent ? (
                   <IconComponent className="h-4 w-4 text-[var(--axis-text-tertiary)] group-hover:text-[var(--axis-text-secondary)]" />
                 ) : (
@@ -362,7 +398,7 @@ export function MethodologyCards({
               <span className="flex flex-col">
                 <span className={`text-xs font-medium whitespace-nowrap ${
                   hasData
-                    ? "text-[var(--axis-text-brand)]"
+                    ? isStale ? "text-amber-600 dark:text-amber-400" : "text-[var(--axis-text-brand)]"
                     : "text-[var(--axis-text-primary)]"
                 }`}>
                   {ALL_METHODOLOGIES.find((m) => m.key === card.key)?.label ?? card.key}
@@ -432,7 +468,11 @@ export function MethodologyCards({
               </p>
             </div>
           ) : (
-            <MethodologyContent section={currentSection} />
+            <MethodologyContent
+              section={currentSection}
+              isStale={!!activeKey && staleSections?.has(activeKey)}
+              onReanalyze={activeKey ? () => onRunMethodology(activeKey) : undefined}
+            />
           )
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center">

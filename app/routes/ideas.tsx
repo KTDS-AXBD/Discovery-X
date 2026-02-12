@@ -340,7 +340,7 @@ export default function IdeasLayout() {
       const res = await fetch(`/api/ideas/${ideaId}/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sourceContext }),
+        body: JSON.stringify({ sourceContext, sourceIds: selectedSourceIds }),
       });
 
       if (!res.ok || !res.body) {
@@ -430,7 +430,7 @@ ${sourceSummaries || "소스 없음"}
 ## 실행할 방법론: ${methodologyLabel}
 ${methodologyPrompt}
 
-update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석 결과를 저장해주세요. ideaId는 "${ideaId}"입니다.`;
+update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석 결과를 저장해주세요. ideaId는 "${ideaId}"입니다. sourceIds는 ${JSON.stringify(selectedSourceIds)}입니다.`;
 
     if (!selectedIdeaId) {
       navigate(`/ideas/${ideaId}`);

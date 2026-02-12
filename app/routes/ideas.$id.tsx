@@ -219,20 +219,21 @@ interface OutletCtx {
   onRunMethodology: (category: string) => void;
   loadingCategory: string | null;
   onTitleUpdated: () => void;
+  selectedSourceIds: string[];
 }
 
 export default function IdeaDetail() {
   const data = useLoaderData<typeof loader>();
-  const { onRunMethodology, loadingCategory, onTitleUpdated } = useOutletContext<OutletCtx>();
+  const { onRunMethodology, loadingCategory, onTitleUpdated, selectedSourceIds } = useOutletContext<OutletCtx>();
 
   // Build sections from idea analysis data — all methodology keys
-  const sections: Record<string, { title: string; content: string; sources?: string[] } | null> = {};
+  const sections: Record<string, { title: string; content: string; sources?: string[]; sourceIds?: string[] | null; analyzedAt?: string | null } | null> = {};
   for (const m of ALL_METHODOLOGIES) {
     sections[m.key] = null;
   }
 
   if (data.type === "idea" && data.idea) {
-    const analysis = data.idea.analysisData as Record<string, { title?: string; content?: string; sources?: string[] }> | null;
+    const analysis = data.idea.analysisData as Record<string, { title?: string; content?: string; sources?: string[]; sourceIds?: string[]; analyzedAt?: string }> | null;
     if (analysis) {
       for (const key of Object.keys(analysis)) {
         if (analysis[key]?.content) {
@@ -240,6 +241,8 @@ export default function IdeaDetail() {
             title: analysis[key].title || key,
             content: analysis[key].content || "",
             sources: analysis[key].sources,
+            sourceIds: analysis[key].sourceIds || null,
+            analyzedAt: analysis[key].analyzedAt || null,
           };
         }
       }
@@ -274,6 +277,18 @@ export default function IdeaDetail() {
           : summaryText,
         sources: item.url ? [item.url] : undefined,
       };
+    }
+  }
+
+  // Detect stale sections: sourceIds changed since last analysis
+  const staleSections = new Set<string>();
+  for (const [key, section] of Object.entries(sections)) {
+    if (!section?.sourceIds) continue; // No tracking data (legacy) → not stale
+    const stored = new Set(section.sourceIds);
+    const current = new Set(selectedSourceIds);
+    if (stored.size !== current.size ||
+        [...stored].some((id) => !current.has(id))) {
+      staleSections.add(key);
     }
   }
 
@@ -323,6 +338,7 @@ export default function IdeaDetail() {
         sections={sections}
         loadingCategory={loadingCategory}
         onRunMethodology={onRunMethodology}
+        staleSections={staleSections}
       />
     </div>
   );

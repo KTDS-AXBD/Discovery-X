@@ -30,6 +30,7 @@ interface AnalyzerOptions {
   sourceContext: string;
   tenantId?: string;
   categories?: string[];
+  sourceIds?: string[];
   onProgress?: (event: AnalysisProgress) => void;
 }
 
@@ -40,6 +41,7 @@ export async function runIdeaAnalysis({
   sourceContext,
   tenantId,
   categories,
+  sourceIds,
   onProgress,
 }: AnalyzerOptions): Promise<{ completed: string[]; failed: string[] }> {
   // Determine which categories to run
@@ -103,6 +105,8 @@ export async function runIdeaAnalysis({
           title: cat.label,
           content: textContent,
           sources: [],
+          sourceIds: sourceIds || [],
+          analyzedAt: new Date().toISOString(),
         };
         await db
           .update(ideas)

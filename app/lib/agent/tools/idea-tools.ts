@@ -30,6 +30,7 @@ interface UpdateIdeaAnalysisInput {
   title: string;
   content: string;
   sources?: string[];
+  sourceIds?: string[];
   tenantId?: string;
 }
 
@@ -66,6 +67,8 @@ export async function updateIdeaAnalysis(
     title: title || category,
     content,
     sources: sources || [],
+    sourceIds: input.sourceIds || [],
+    analyzedAt: new Date().toISOString(),
   };
 
   await db
