@@ -47,6 +47,10 @@ export function SourceInputPanel({
   const [collectedPage, setCollectedPage] = useState(1);
   const feedbackTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
+  // Drag & Drop state
+  const [dragAction, setDragAction] = useState<"add" | "remove" | null>(null);
+  const [dropTargetActive, setDropTargetActive] = useState<"upper" | "lower" | null>(null);
+
   const showFeedback = useCallback((result: { created: number; error?: string }) => {
     clearTimeout(feedbackTimerRef.current);
     if (result.error) {
@@ -239,8 +243,48 @@ export function SourceInputPanel({
         </p>
       </div>
 
-      {/* Source card list */}
-      <div className="flex-1 overflow-y-auto px-2 pb-3">
+      {/* Source card list — upper drop zone (add target) */}
+      <div
+        className={cn(
+          "flex-1 overflow-y-auto px-2 pb-3 transition-colors",
+          dropTargetActive === "upper" && "bg-[var(--axis-surface-brand)]/5"
+        )}
+        onDragOver={(e) => {
+          if (dragAction === "add") {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "move";
+            setDropTargetActive("upper");
+          }
+        }}
+        onDragLeave={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+            setDropTargetActive(null);
+          }
+        }}
+        onDrop={async (e) => {
+          e.preventDefault();
+          setDropTargetActive(null);
+          try {
+            const data = JSON.parse(e.dataTransfer.getData("application/json"));
+            if (data.action === "add") {
+              const result = await onAddSources([data.url]);
+              showFeedback(result);
+            }
+          } catch { /* ignore non-JSON drops */ }
+        }}
+      >
+        {/* Drop zone hint */}
+        {dragAction === "add" && (
+          <div className={cn(
+            "mb-2 rounded-lg border-2 border-dashed px-3 py-2 text-center text-xs transition-colors",
+            dropTargetActive === "upper"
+              ? "border-[var(--axis-text-brand)] bg-[var(--axis-surface-brand)]/10 text-[var(--axis-text-brand)]"
+              : "border-[var(--axis-border-default)] text-[var(--axis-text-tertiary)]"
+          )}>
+            여기에 놓아 소스 추가
+          </div>
+        )}
+
         {/* Added sources */}
         {paginatedItems.length > 0 && (
           <div className="mb-2">
