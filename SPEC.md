@@ -38,7 +38,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
   - 아이템 선택 시 자동 viewed 처리 (radarItemUserStatus.status → "viewed")
   - 파이프라인 섹션 (v6.4): Discovery 11단계 현황 (PIPELINE_COLUMNS 기반, 카테고리별 그룹핑, 실 DB 데이터) — 별도 패널, 왼쪽 맞춤
   - 통계 섹션 (v6.4): 4개 핵심 지표 (소스 수집/발굴 건수/활성 파이프라인/사업 제안) — 실 DB 데이터
-- 아이디어 워크스페이스: ideas 테이블 + 멀티소스 그룹핑 + 전용 헤더 레이아웃 + 6탭 가젯 + 사업 제안 모달 (v6.2)
+- 아이디어 워크스페이스: ideas 테이블 + 멀티소스 그룹핑 + 전용 헤더 레이아웃 + 6탭 가젯 + 사업 제안 모달 + 소스 상세/삭제 + 분석 시작 플로우 (v6.2→v6.6)
 
 **Out-of-scope (PRD §2.2, §7.3)**
 - 전사 공식 포털/플랫폼
@@ -149,10 +149,10 @@ Flow I: BD 워크스페이스 (v4.2)
 
 **Ideas (5 pages + 3 API)**
 - `/ideas` — 아이디어 워크스페이스 레이아웃 (전용 헤더 + 드로어 + 좌: SourceInputPanel + 중: Outlet + 우: IdeaChatWrapper)
-- `/ideas/_index` — 빈 상태 (소스 추가 제안 칩 + "분석 시작" 버튼)
+- `/ideas/_index` — 빈 상태 (소스 추가 제안 칩) / 소스 있으면 "분석 시작" 버튼 / 소스 클릭 시 상세 카드
 - `/ideas/:id` — 아이디어 상세 (6개 가젯 탭: 산업별 사업 예시/규제/시장 조사/고객 조사/사업성 검증/차별화)
 - `/api/ideas` — 아이디어 CRUD API (GET 목록 + POST 생성 + DELETE 삭제)
-- `/api/ideas/:id/sources` — 아이디어-소스 연결 API (GET 목록 + POST 추가)
+- `/api/ideas/:id/sources` — 아이디어-소스 연결 API (GET 목록 + POST 추가 + DELETE 삭제)
 
 **Proposals (7개: 4 pages + 3 API)**
 - `/proposals` — 사업제안 레이아웃 (전용 사이드바 + Surface + 진행상황 패널)
@@ -293,20 +293,32 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.5 Ideas GNB + Source Metadata Fix + Seed Data
-- **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 배포 완료 (세션 164)
+- **프로토타입**: v6.6 Ideas Source Detail/Delete + Analysis Flow
+- **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 28개 마이그레이션 (0000~0027), 로컬+프로덕션 적용 완료 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
 
 ### 주요 지표
 - **라우트**: 127개 (core 46 + ideas 8 + proposals 8 + lab 9 + venture 13 + market 3 + API 31 + folders 4 + 기타 5)
 - **테이블**: 70개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges)
-- **Agent 도구**: 53개 (+5 ontology: analysis 4 + simulation 1)
+- **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
 - **테스트**: 661개 (44 test files, 로컬 + CI 모두 통과) — 온톨로지 테스트 6파일 64개 포함
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 164)
+### 최근 변경 (세션 165)
+**아이디어 페이지 — 소스 상세/삭제 + 분석 시작 플로우 구현**:
+- ✅ `api.ideas.$id.sources.ts`: DELETE 핸들러 추가 — idea_sources 조인 레코드 삭제 (radarItem 자체는 유지)
+- ✅ `SourceInputPanel.tsx`: `<Link>` → `<button>` 전환, 클릭 시 선택/해제 토글, hover 시 X 삭제 버튼 표시
+- ✅ `ideas.tsx`: selectedSourceId 상태 관리, handleDeleteSource/handleSelectSource/handleStartAnalysis 콜백, Outlet context로 자식 전달, autoMessage → ChatPanel 자동 분석 트리거
+- ✅ `ideas._index.tsx`: useOutletContext로 소스 상세 카드 표시 (제목/요약/메모/URL), "분석 시작" 버튼 onClick 연결
+- ✅ `idea-tools.ts` (신규): updateIdeaAnalysis 함수 — ideas.analysisData JSON 부분 업데이트 (6개 카테고리)
+- ✅ `executor.ts` + `tool-registry.ts` + `system-prompt.ts`: update_idea_analysis 에이전트 도구 등록 (autonomy level 2)
+- ✅ `ChatPanel.tsx` + `IdeaChatWrapper.tsx`: autoMessage prop 추가 — 자동 분석 메시지 전송 지원
+- ✅ `PipelineKanban.tsx` + `StatisticsPanel.tsx`: 대시보드 리팩토링 (기존 3컴포넌트 → 2컴포넌트 통합)
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
+
+### 이전 변경 (세션 164)
 **아이디어 페이지 — GNB 공통 메뉴 + 소스 메타데이터 수정 + 샘플 데이터 추가**:
 - ✅ `IdeaPageHeader.tsx`: GNB 4탭 (대시보드/아이디어/사업제안/실험실) 추가 — 현재 경로 하이라이트, 모바일은 제목만 표시
 - ✅ `display-title.ts`: `getUrlLabel()` 헬퍼 추가 — 의미 없는 제목(댓글 N개, 짧은 메타데이터) 대신 URL 호스트네임 폴백
