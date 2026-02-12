@@ -462,7 +462,7 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
               </div>
               <PanelResizeHandle
                 side="left"
-                onResize={(delta) => panel.setLeftWidth(panel.leftWidth + delta)}
+                onResize={panel.resizeLeft}
               />
             </>
           )}
@@ -477,7 +477,7 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
             <>
               <PanelResizeHandle
                 side="right"
-                onResize={(delta) => panel.setRightWidth(panel.rightWidth + delta)}
+                onResize={panel.resizeRight}
               />
               <div style={{ width: panel.rightWidth }} className="group/right relative shrink-0">
                 {/* Collapse button */}

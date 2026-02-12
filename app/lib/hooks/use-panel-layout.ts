@@ -99,6 +99,20 @@ export function usePanelLayout() {
     }));
   }, []);
 
+  const resizeLeft = useCallback((delta: number) => {
+    setLayout((prev) => ({
+      ...prev,
+      leftWidth: clamp(prev.leftWidth + delta, CONSTRAINTS.left.min, CONSTRAINTS.left.max),
+    }));
+  }, []);
+
+  const resizeRight = useCallback((delta: number) => {
+    setLayout((prev) => ({
+      ...prev,
+      rightWidth: clamp(prev.rightWidth + delta, CONSTRAINTS.right.min, CONSTRAINTS.right.max),
+    }));
+  }, []);
+
   return {
     ...layout,
     hydrated,
@@ -106,6 +120,8 @@ export function usePanelLayout() {
     toggleRight,
     setLeftWidth,
     setRightWidth,
+    resizeLeft,
+    resizeRight,
     constraints: CONSTRAINTS,
   };
 }

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface PanelResizeHandleProps {
   onResize: (delta: number) => void;
@@ -8,6 +8,11 @@ interface PanelResizeHandleProps {
 export function PanelResizeHandle({ onResize, side }: PanelResizeHandleProps) {
   const [isDragging, setIsDragging] = useState(false);
   const startXRef = useRef(0);
+  // Keep a ref to the latest onResize to avoid stale closure during drag
+  const onResizeRef = useRef(onResize);
+  useEffect(() => {
+    onResizeRef.current = onResize;
+  }, [onResize]);
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
@@ -20,7 +25,7 @@ export function PanelResizeHandle({ onResize, side }: PanelResizeHandleProps) {
         startXRef.current = moveEvent.clientX;
         // For the left panel, dragging right = expand (+delta)
         // For the right panel, dragging left = expand (-delta)
-        onResize(side === "left" ? delta : -delta);
+        onResizeRef.current(side === "left" ? delta : -delta);
       };
 
       const handleMouseUp = () => {
@@ -36,7 +41,7 @@ export function PanelResizeHandle({ onResize, side }: PanelResizeHandleProps) {
       document.body.style.cursor = "col-resize";
       document.body.style.userSelect = "none";
     },
-    [onResize, side]
+    [side]
   );
 
   return (
