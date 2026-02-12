@@ -7,6 +7,7 @@ interface DiscoveryItem {
   id: string;
   title: string;
   status: string;
+  createdAt: string | null;
   stageUpdatedAt: string | null;
 }
 
@@ -57,7 +58,7 @@ export function PipelineKanban({ discoveries, proposals }: PipelineKanbanProps) 
 
   function mapDiscoveries(items: DiscoveryItem[]): ColumnItem[] {
     return items.map((d) => {
-      const days = daysSince(d.stageUpdatedAt);
+      const days = daysSince(d.stageUpdatedAt) ?? daysSince(d.createdAt);
       return {
         id: d.id,
         title: d.title,

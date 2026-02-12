@@ -296,7 +296,7 @@ function StageResidencyChart({
 
     for (const d of discoveries) {
       if (!(ACTIVE_STATUSES as readonly string[]).includes(d.status)) continue;
-      const dt = toDate(d.stageUpdatedAt);
+      const dt = toDate(d.stageUpdatedAt) ?? toDate(d.createdAt);
       if (!dt) continue;
       const days = Math.floor((now - dt.getTime()) / (1000 * 60 * 60 * 24));
       if (!grouped[d.status]) grouped[d.status] = [];
