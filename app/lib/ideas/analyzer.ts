@@ -9,7 +9,7 @@ import { ideas } from "~/features/ideas/db/schema";
 import { tokenUsageLogs } from "~/db/token-usage-schema";
 import { agentConfig } from "~/db/schema";
 import { callClaude, CLAUDE_MODEL } from "~/lib/agent/claude-client";
-import { ANALYSIS_CATEGORIES, CATEGORY_MAP } from "./analysis-prompts";
+import { ANALYSIS_CATEGORIES } from "./analysis-prompts";
 
 const INTER_CATEGORY_DELAY_MS = 1500;
 
