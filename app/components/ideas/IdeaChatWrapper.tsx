@@ -1,4 +1,5 @@
 import { ChatPanel } from "~/components/chat/ChatPanel";
+import { PRIMARY_METHODOLOGIES } from "~/lib/constants/methodology";
 
 interface ChatMessage {
   id: string;
@@ -19,14 +20,6 @@ interface IdeaChatWrapperProps {
   selectedSourceCount?: number;
   totalSourceCount?: number;
 }
-
-const RESEARCH_CATEGORIES = [
-  { key: "regulation", label: "규제/법" },
-  { key: "market_research", label: "시장 조사" },
-  { key: "customer_research", label: "고객 조사" },
-  { key: "feasibility", label: "사업성 검증" },
-  { key: "differentiation", label: "차별화" },
-];
 
 export function IdeaChatWrapper({
   conversationId,
@@ -77,7 +70,7 @@ export function IdeaChatWrapper({
               <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--axis-text-tertiary)]">
                 리서치 카테고리
               </p>
-              {RESEARCH_CATEGORIES.map((cat) => (
+              {PRIMARY_METHODOLOGIES.map((cat) => (
                 <label
                   key={cat.key}
                   className="flex items-center gap-2 rounded-md px-2 py-1 text-xs text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-secondary)]"

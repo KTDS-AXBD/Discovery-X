@@ -1,6 +1,7 @@
 import { useOutletContext } from "@remix-run/react";
 import { SuggestionChip } from "~/components/ui/SuggestionChip";
 import { displayTitle } from "~/lib/utils/display-title";
+import { PRIMARY_METHODOLOGIES } from "~/lib/constants/methodology";
 
 interface SourceItem {
   id: string;
@@ -17,11 +18,13 @@ interface OutletCtx {
   selectedSourceIds: string[];
   onClearSource: () => void;
   onStartAnalysis: () => void;
+  onRunMethodology: (category: string) => void;
+  loadingCategory: string | null;
 }
 
 export default function IdeasIndex() {
   const ctx = useOutletContext<OutletCtx>();
-  const { detailSourceId, ideaSourceItems, selectedSourceIds, onClearSource, onStartAnalysis } = ctx;
+  const { detailSourceId, ideaSourceItems, selectedSourceIds, onClearSource, onStartAnalysis, onRunMethodology, loadingCategory } = ctx;
   const hasItems = ideaSourceItems.length > 0;
   const selectedCount = selectedSourceIds.length;
 
@@ -86,7 +89,7 @@ export default function IdeasIndex() {
   }
 
   if (hasItems) {
-    // Sources have been added — prompt to analyze
+    // Sources have been added — show methodology cards to start analysis
     return (
       <div className="flex h-full flex-col items-center justify-center px-8 text-center">
         <div className="rounded-full bg-[var(--axis-surface-secondary)] p-4">
@@ -95,18 +98,39 @@ export default function IdeasIndex() {
           </svg>
         </div>
         <p className="mt-4 text-sm font-medium text-[var(--axis-text-primary)]">
-          소스가 추가되었습니다.
+          분석할 방법론을 선택하세요.
         </p>
         <p className="mt-1 text-xs text-[var(--axis-text-tertiary)]">
-          AI가 소스를 분석하여 사업 아이디어를 생성합니다.
+          {selectedCount > 0 ? `${selectedCount}개 소스 선택됨` : "소스를 선택하세요"}
         </p>
+
+        {/* Primary methodology cards */}
+        <div className="mt-5 grid grid-cols-2 gap-2 w-full max-w-md">
+          {PRIMARY_METHODOLOGIES.map((m) => {
+            const isLoading = loadingCategory === m.key;
+            return (
+              <button
+                key={m.key}
+                type="button"
+                onClick={() => onRunMethodology(m.key)}
+                disabled={selectedCount === 0 || isLoading}
+                className="flex flex-col items-start gap-1 rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] px-3 py-2.5 text-left transition-all hover:border-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)] disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <span className="text-xs font-medium text-[var(--axis-text-primary)]">{m.label}</span>
+                <span className="text-[10px] text-[var(--axis-text-tertiary)]">{m.description}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Fallback: full analysis */}
         <button
           type="button"
           onClick={onStartAnalysis}
           disabled={selectedCount === 0}
-          className="mt-4 rounded-lg bg-[var(--axis-surface-brand)] px-5 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="mt-3 text-xs text-[var(--axis-text-tertiary)] underline underline-offset-2 hover:text-[var(--axis-text-secondary)] disabled:opacity-40 disabled:cursor-not-allowed disabled:no-underline"
         >
-          {selectedCount > 0 ? `${selectedCount}개 소스 분석 시작` : "소스를 선택하세요"}
+          전체 분석 (6개 카테고리)
         </button>
       </div>
     );
