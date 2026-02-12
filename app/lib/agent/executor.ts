@@ -10,8 +10,8 @@ import { messages, agentConfig, conversations, radarItems } from "~/db/schema";
 import type { ClaudeResponse, ClaudeContentBlock } from "./claude-client";
 import { callClaude, callClaudeStream, parseSSEStream, CLAUDE_MODEL } from "./claude-client";
 import { buildConversationContext } from "./context-builder";
-import { buildSystemPrompt } from "./system-prompt";
-import { getToolsForAutonomyLevel, TOOL_MIN_AUTONOMY } from "./tool-registry";
+import { buildSystemPrompt, buildIdeaSystemPrompt } from "./system-prompt";
+import { getToolsForAutonomyLevel, TOOL_MIN_AUTONOMY, IDEA_TOOLS } from "./tool-registry";
 import {
   createDiscovery,
   updateDiscovery,
@@ -497,7 +497,8 @@ export function createAgentStreamResponse(
   apiKey: string,
   conversationId: string,
   userMessage: string,
-  tenantId?: string
+  tenantId?: string,
+  mode?: "default" | "ideas"
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
 
@@ -547,10 +548,15 @@ export function createAgentStreamResponse(
           }
         } catch { /* optional */ }
 
-        const systemPrompt = buildSystemPrompt(agentCfg, sourceCtx);
+        const isIdeasMode = mode === "ideas";
+        const systemPrompt = isIdeasMode
+          ? buildIdeaSystemPrompt(sourceCtx)
+          : buildSystemPrompt(agentCfg, sourceCtx);
         const modelId = agentCfg?.modelId || CLAUDE_MODEL;
         const autonomyLevel = agentCfg?.autonomyLevel ?? 3;
-        const filteredTools = getToolsForAutonomyLevel(autonomyLevel);
+        const filteredTools = isIdeasMode
+          ? IDEA_TOOLS
+          : getToolsForAutonomyLevel(autonomyLevel);
         let totalInputTokens = 0;
         let totalOutputTokens = 0;
         const executedToolNames: string[] = [];
@@ -698,6 +704,10 @@ export function createAgentStreamResponse(
               input: toolInput,
               result: parsedResult,
             });
+          }
+          // Rate limit mitigation: wait between tool rounds in ideas mode
+          if (isIdeasMode && round < MAX_TOOL_ROUNDS - 1) {
+            await new Promise((r) => setTimeout(r, 2000));
           }
           // Continue to next round for tool_result → Claude response
         }

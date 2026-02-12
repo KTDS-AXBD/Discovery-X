@@ -1315,3 +1315,9 @@ export const AGENT_TOOLS: ClaudeTool[] = [
     },
   },
 ];
+
+/** Ideas 모드 전용 도구 (경량) — update_idea_analysis만 포함 */
+/** Ideas 모드 전용 도구 (경량) — update_idea_analysis만 포함 */
+export const IDEA_TOOLS: ClaudeTool[] = AGENT_TOOLS.filter(
+  (t) => t.name === "update_idea_analysis"
+);

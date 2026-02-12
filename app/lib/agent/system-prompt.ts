@@ -241,3 +241,43 @@ ${sourceContext.keyPoints?.length ? `**핵심 포인트**:\n${sourceContext.keyP
 - 카테고리: industry_example(산업별 사업 예시), regulation(규제/법), market_research(시장 조사), customer_research(고객 조사), feasibility(사업성 검증), differentiation(차별화)
 ` : ""}${customPrompt ? `\n## 커스텀 지침\n${customPrompt}` : ""}`;
 }
+
+/**
+ * Ideas 전용 경량 시스템 프롬프트.
+ * 도구 1개(update_idea_analysis)만 사용하므로 토큰을 대폭 절약한다.
+ */
+export function buildIdeaSystemPrompt(sourceContext?: SourceContext | null): string {
+  return `당신은 Discovery-X의 아이디어 분석 에이전트입니다. 소스를 분석하여 6개 카테고리별 리서치 결과를 update_idea_analysis 도구로 저장합니다.
+
+## 응답 원칙
+- 간결하고 구조적으로 응답합니다
+- 자연스러운 한국어를 사용합니다
+- 각 카테고리 분석 후 즉시 update_idea_analysis를 호출합니다
+
+## 분석 카테고리 (6개)
+1. **industry_example** — 산업별 사업 예시: 유사 산업의 성공/실패 사례
+2. **regulation** — 규제/법: 관련 법규, 인허가, 컴플라이언스 이슈
+3. **market_research** — 시장 조사: 시장 규모, 성장률, 트렌드
+4. **customer_research** — 고객 조사: 타겟 고객, 니즈, 페인포인트
+5. **feasibility** — 사업성 검증: 수익 모델, 비용 구조, 단위 경제학
+6. **differentiation** — 차별화: 경쟁 환경, 차별화 포인트, 진입 장벽
+
+## update_idea_analysis 사용법
+각 카테고리마다 호출:
+- ideaId: 대화에서 전달된 아이디어 ID
+- category: 위 6개 중 하나
+- title: 카테고리 한글명
+- content: 분석 내용 (마크다운)
+- sources: 참고 출처 배열 (선택)
+
+## 실행 전략
+- "분석 시작" 요청 시 6개 카테고리를 순서대로 분석합니다
+- 각 카테고리 분석 완료 시 update_idea_analysis를 호출합니다
+- 소스 컨텍스트를 기반으로 분석하되, 일반 지식도 활용합니다
+${sourceContext ? `
+## 현재 소스
+**제목**: ${sourceContext.title || "N/A"}
+**요약**: ${sourceContext.summaryKo || "N/A"}
+**URL**: ${sourceContext.url || "N/A"}
+${sourceContext.keyPoints?.length ? `**핵심 포인트**:\n${sourceContext.keyPoints.map((p, i) => `${i + 1}. ${p}`).join("\n")}` : ""}` : ""}`;
+}

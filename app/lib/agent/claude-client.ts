@@ -97,8 +97,19 @@ async function fetchWithRetry(
         throw new Error(`Claude API error ${response.status}: ${errorBody}`);
       }
 
-      // Retryable — wait with exponential backoff
-      const delay = BASE_DELAY_MS * Math.pow(2, attempt);
+      // Retryable — use retry-after header if available, otherwise exponential backoff
+      const retryAfter = response.headers.get("retry-after");
+      let delay: number;
+      if (retryAfter) {
+        // retry-after can be seconds (number) or HTTP-date
+        const parsed = Number(retryAfter);
+        delay = (Number.isNaN(parsed) ? 10 : parsed) * 1000;
+      } else if (response.status === 429) {
+        // Rate limit: use longer base delay (10s) with exponential backoff
+        delay = 10000 * Math.pow(2, attempt);
+      } else {
+        delay = BASE_DELAY_MS * Math.pow(2, attempt);
+      }
       await new Promise((r) => setTimeout(r, delay));
     } catch (error) {
       clearTimeout(timeoutId);

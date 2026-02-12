@@ -30,8 +30,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: "ANTHROPIC_API_KEY not configured" }, { status: 500 });
   }
 
-  const body = await request.json() as { conversationId: string; message: string };
-  const { conversationId, message } = body;
+  const body = await request.json() as { conversationId: string; message: string; mode?: "default" | "ideas" };
+  const { conversationId, message, mode } = body;
 
   if (!conversationId || !message?.trim()) {
     return json({ error: "conversationId and message are required" }, { status: 400 });
@@ -63,7 +63,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       .where(eq(conversations.id, conversationId));
   }
 
-  const stream = createAgentStreamResponse(db, apiKey, conversationId, message, ctx.tenantId);
+  const stream = createAgentStreamResponse(db, apiKey, conversationId, message, ctx.tenantId, mode);
 
   return new Response(stream, {
     headers: {

@@ -29,6 +29,7 @@ interface ChatPanelProps {
   isLoadingMessages?: boolean;
   onToolResult?: (toolName: string, result: Record<string, unknown>) => void;
   autoMessage?: string | null;
+  mode?: "default" | "ideas";
 }
 
 interface BudgetWarning {
@@ -52,7 +53,7 @@ function parseSuggestions(content: string): { cleanContent: string; suggestions:
   }
 }
 
-export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, onToolResult, autoMessage }: ChatPanelProps) {
+export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, onToolResult, autoMessage, mode = "default" }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -99,7 +100,7 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversationId, message: userMessage }),
+        body: JSON.stringify({ conversationId, message: userMessage, mode }),
         signal: abortControllerRef.current.signal,
       });
 
@@ -254,7 +255,7 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
         return prev;
       });
     }
-  }, [conversationId, isLoading, onToolResult]);
+  }, [conversationId, isLoading, onToolResult, mode]);
 
   // Auto-send message (e.g., from "분석 시작" button)
   const autoMessageProcessed = useRef<string | null>(null);

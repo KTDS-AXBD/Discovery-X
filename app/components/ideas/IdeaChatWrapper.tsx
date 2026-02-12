@@ -34,7 +34,7 @@ export function IdeaChatWrapper({
   autoMessage,
 }: IdeaChatWrapperProps) {
   return (
-    <div className="hidden w-80 shrink-0 flex-col border-l border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))] lg:flex">
+    <div className="flex shrink-0 flex-col border-l border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))]">
       {/* Header */}
       <div className="border-b border-[var(--axis-border-default)] px-4 py-3">
         <h2 className="text-sm font-semibold text-[var(--axis-text-primary)]">채팅</h2>
@@ -49,6 +49,7 @@ export function IdeaChatWrapper({
             isLoadingMessages={isLoadingMessages}
             onToolResult={onToolResult}
             autoMessage={autoMessage}
+            mode="ideas"
           />
         ) : (
           <div className="flex h-full flex-col items-center justify-center px-6">
