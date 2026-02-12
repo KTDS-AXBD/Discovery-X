@@ -294,7 +294,7 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.10 Token Usage Logging + Methodology Cards Complete
+- **프로토타입**: v6.11 Chat Panel Overflow Fix
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 30개 마이그레이션 (0000~0029), 로컬+프로덕션 적용 완료 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
 
@@ -307,7 +307,14 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 170)
+### 최근 변경 (세션 171)
+**채팅 패널 오버플로우 수정 + 배포**:
+- ✅ `IdeaChatWrapper.tsx`: 루트 div에 `h-full min-w-0 overflow-hidden` 추가 — 부모 높이 채움 + 콘텐츠 넘침 방지
+- ✅ `ideas.tsx`: 좌/우 패널 래퍼에 `overflow-hidden` 추가 — 패널 너비 초과 콘텐츠 차단
+- ✅ `ChatPanel.tsx`: `mode="ideas"` 시 좁은 패널 최적화 — `px-6`→`px-3`, `max-w-3xl` 제거, 입력/제안/경고 영역 동일 처리
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 661개 통과 / build 성공 / CI/CD 배포 완료 (1m 37s)
+
+### 이전 변경 (세션 170)
 **방법론 카드 마이그레이션 완료 + 토큰 사용량 로깅 + 배포**:
 - ✅ `IdeaChatWrapper.tsx`: `RESEARCH_CATEGORIES` → `PRIMARY_METHODOLOGIES` import 교체 (상수 중복 제거)
 - ✅ `IdeaGadgetTabs.tsx` 삭제: `MethodologyCards.tsx`로 완전 대체
