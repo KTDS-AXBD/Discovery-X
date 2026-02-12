@@ -38,7 +38,8 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
   - 아이템 선택 시 자동 viewed 처리 (radarItemUserStatus.status → "viewed")
   - 파이프라인 섹션 (v6.4): Discovery 11단계 현황 (PIPELINE_COLUMNS 기반, 카테고리별 그룹핑, 실 DB 데이터) — 별도 패널, 왼쪽 맞춤
   - 통계 섹션 (v6.4): 4개 핵심 지표 (소스 수집/발굴 건수/활성 파이프라인/사업 제안) — 실 DB 데이터
-- 아이디어 워크스페이스: ideas 테이블 + 멀티소스 그룹핑 + 전용 헤더 레이아웃 + 12종 방법론 카드 + 사업 제안 모달 + 소스 상세/삭제 + 분석 시작 플로우 + NotebookLM 스타일 멀티소스 선택 + 선택 기반 분석/채팅 + 좌우 패널 리사이즈/토글 + 제목 인라인 편집 + AI 제목 추천 + 방법론 카드 마크다운 렌더링 (v6.2→v6.11)
+- 아이디어 워크스페이스: ideas 테이블 + 멀티소스 그룹핑 + 전용 헤더 레이아웃 + 12종 방법론 카드 + 사업 제안 모달 + 소스 상세/삭제 + 분석 시작 플로우 + NotebookLM 스타일 멀티소스 선택 + 선택 기반 분석/채팅 + 좌우 패널 리사이즈/토글 + 제목 인라인 편집 + AI 제목 추천 + 방법론 카드 마크다운 렌더링 + SSE 전용 분석 API (chat agent 루프 우회, 카테고리별 직접 Claude 호출) + 분석 진행률 UI (v6.2→v6.12)
+- 토큰 사용량 모니터링 (관리자): token_usage_logs 테이블 + 일별 사용량 차트 (모드별 스택 바) + 최근 로그 테이블 + 관리자 API (v6.12)
 
 **Out-of-scope (PRD §2.2, §7.3)**
 - 전사 공식 포털/플랫폼
@@ -294,7 +295,7 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.11 Chat Panel Overflow Fix
+- **프로토타입**: v6.12 Token Monitoring + Direct Analysis API
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 30개 마이그레이션 (0000~0029), 로컬+프로덕션 적용 완료 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
 
@@ -307,7 +308,18 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 172)
+### 최근 변경 (세션 173)
+**토큰 사용량 모니터링 UI + Ideas 전용 분석 API SSE + 진행률 UI**:
+- ✅ `api.ideas.$id.analyze.ts` (신규): POST SSE 엔드포인트 — 카테고리별 직접 Claude 호출, chat agent 루프 우회, SSE progress 이벤트 스트리밍
+- ✅ `AnalysisProgress.tsx` (신규): 6개 카테고리 진행률 칩 (대기/진행/완료/실패) + 프로그레스 바
+- ✅ `IdeaChatWrapper.tsx`: `analysisRunning`/`categoryStates` props 추가, AnalysisProgress 컴포넌트 통합
+- ✅ `ideas.tsx`: `handleStartAnalysis` 재작성 — chat agent 메시지 → SSE 직접 API 호출, `analysisRunning`/`categoryStates` 상태 관리
+- ✅ `TokenUsageChart.tsx` (신규): CSS-only 스택 바 차트 — 모드별 색상 (기본/Ideas/전용 분석), 7일/30일 토글, 예산 점선
+- ✅ `TokenUsageTable.tsx` (신규): 최근 50건 사용 로그 테이블 — 모드 필터, 시간/모드/모델/토큰 컬럼
+- ✅ `settings.tsx`: 관리자 토큰 사용량 섹션 추가 — `useTokenUsage` 훅 + 차트/테이블 카드 통합
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
+
+### 이전 변경 (세션 172)
 **아이디어 페이지 — 제목 인라인 편집 + AI 제목 추천 + 방법론 카드 마크다운 렌더링**:
 - ✅ `MethodologyCards.tsx`: `renderContent()` 제거 → ReactMarkdown + remarkGfm + rehypeHighlight (prose-sm 컴팩트)
 - ✅ `api.ideas.ts`: PATCH 핸들러 추가 — 제목 업데이트 (200자 제한)
