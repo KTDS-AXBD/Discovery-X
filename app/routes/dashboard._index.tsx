@@ -8,15 +8,14 @@ import { json } from "@remix-run/cloudflare";
 import { useLoaderData, useFetcher } from "@remix-run/react";
 import { eq, sql, desc, and, inArray } from "drizzle-orm";
 import { getDb } from "~/db";
-import { discoveries, radarItems, radarItemUserStatus } from "~/db/schema";
+import { discoveries, radarItems, radarItemUserStatus, radarSources, industryAdapters } from "~/db/schema";
 import { proposals } from "~/features/proposals/db/schema";
 import { getSessionContext, getSessionSecret, getUserFromSession } from "~/lib/auth/session.server";
 import { tenantWhere } from "~/lib/query/tenant-scope";
 import { SourceSidebar } from "~/components/dashboard/SourceSidebar";
 import { SummaryCard } from "~/components/dashboard/SummaryCard";
-import { PeerBriefingSection } from "~/components/dashboard/PeerBriefingSection";
-import { PipelineSection } from "~/components/dashboard/PipelineSection";
-import { StatisticsSection } from "~/components/dashboard/StatisticsSection";
+import { PipelineKanban } from "~/components/dashboard/PipelineKanban";
+import { StatisticsPanel } from "~/components/dashboard/StatisticsPanel";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -34,13 +33,34 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     url: string;
   };
 
+  type DiscoveryItem = {
+    id: string;
+    title: string;
+    status: string;
+    createdAt: Date | null;
+    stageUpdatedAt: Date | null;
+    industryAdapterId: string | null;
+  };
+  type ProposalItem = {
+    id: string;
+    title: string;
+    status: string;
+    createdAt: Date | null;
+    updatedAt: Date | null;
+  };
+  type SourceStat = { sourceType: string; count: number };
+  type AdapterItem = { id: string; nameKo: string; color: string };
+
   const emptyDefaults = {
     recentCollections: { total: 0, items: [] as CollectionItem[] },
-    totalDiscoveries: { total: 0, items: [] as { id: string; title: string; status: string }[] },
-    strategyProposals: { total: 0, items: [] as { id: string; title: string; status: string }[] },
+    totalDiscoveries: { total: 0, items: [] as DiscoveryItem[] },
+    strategyProposals: { total: 0, items: [] as ProposalItem[] },
     reactions: {} as Record<string, string | null>,
     viewedItemIds: [] as string[],
     timestamp: "",
+    industryAdapterList: [] as AdapterItem[],
+    sourceStats: [] as SourceStat[],
+    serverNow: Date.now(),
   };
 
   if (!ctx) return json(emptyDefaults);
@@ -94,7 +114,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // ── 2. All discoveries (전체 발굴) ─────────────────────────
   const allDiscoveries = await db
-    .select({ id: discoveries.id, title: discoveries.title, status: discoveries.status })
+    .select({
+      id: discoveries.id,
+      title: discoveries.title,
+      status: discoveries.status,
+      createdAt: discoveries.createdAt,
+      stageUpdatedAt: discoveries.stageUpdatedAt,
+      industryAdapterId: discoveries.industryAdapterId,
+    })
     .from(discoveries)
     .where(tenantWhere(discoveries, ctx.tenantId));
 
@@ -107,7 +134,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   let strategyProposals = emptyDefaults.strategyProposals;
   try {
     const allProposals = await db
-      .select({ id: proposals.id, title: proposals.title, status: proposals.status })
+      .select({
+        id: proposals.id,
+        title: proposals.title,
+        status: proposals.status,
+        createdAt: proposals.createdAt,
+        updatedAt: proposals.updatedAt,
+      })
       .from(proposals)
       .where(eq(proposals.tenantId, ctx.tenantId));
 
@@ -117,6 +150,29 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     };
   } catch {
     // proposals table might not exist
+  }
+
+  // ── 3b. Industry adapters ─────────────────────────────────
+  let industryAdapterList = emptyDefaults.industryAdapterList;
+  try {
+    industryAdapterList = await db
+      .select({ id: industryAdapters.id, nameKo: industryAdapters.nameKo, color: industryAdapters.color })
+      .from(industryAdapters)
+      .where(tenantWhere(industryAdapters, ctx.tenantId));
+  } catch {
+    // industry_adapters table might not exist
+  }
+
+  // ── 3c. Source stats (소스 타입별 카운트) ──────────────────
+  let sourceStats = emptyDefaults.sourceStats;
+  try {
+    sourceStats = await db
+      .select({ sourceType: radarSources.sourceType, count: sql<number>`count(*)` })
+      .from(radarSources)
+      .where(tenantWhere(radarSources, ctx.tenantId))
+      .groupBy(radarSources.sourceType);
+  } catch {
+    // radar_sources table might not exist
   }
 
   // ── 4. Reactions + Viewed status (사용자별 반응 + 읽음 상태) ─
@@ -157,6 +213,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     reactions,
     viewedItemIds,
     timestamp,
+    industryAdapterList,
+    sourceStats,
+    serverNow: Date.now(),
   });
 }
 
@@ -167,6 +226,9 @@ export default function DashboardOverview() {
     strategyProposals,
     reactions,
     viewedItemIds,
+    industryAdapterList,
+    sourceStats,
+    serverNow,
   } = useLoaderData<typeof loader>();
 
   const [selectedItemId, setSelectedItemId] = useState<string | null>(
@@ -196,10 +258,6 @@ export default function DashboardOverview() {
     (item) => item.id === selectedItemId,
   ) ?? null;
 
-  const activeCount = totalDiscoveries.items.filter(
-    (d) => !["HOLD", "DROP", "HANDOFF"].includes(d.status),
-  ).length;
-
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-[280px_1fr] gap-4">
@@ -211,29 +269,27 @@ export default function DashboardOverview() {
           onSelect={handleSelect}
         />
 
-        {/* Right: Summary + PeerBriefing */}
-        <div className="space-y-4">
-          <SummaryCard
-            item={selectedItem}
-            reaction={selectedItemId ? (reactions[selectedItemId] ?? null) : null}
-          />
-
-          <PeerBriefingSection
-            ideas={totalDiscoveries.items}
-            proposals={strategyProposals.items}
-          />
-        </div>
+        {/* Right: Summary */}
+        <SummaryCard
+          item={selectedItem}
+          reaction={selectedItemId ? (reactions[selectedItemId] ?? null) : null}
+        />
       </div>
 
-      {/* Pipeline — 별도 레이어, 왼쪽 맞춤 */}
-      <PipelineSection discoveries={totalDiscoveries.items} />
+      {/* Pipeline Kanban */}
+      <PipelineKanban
+        discoveries={totalDiscoveries.items}
+        proposals={strategyProposals.items}
+      />
 
       {/* Statistics */}
-      <StatisticsSection
-        totalSources={recentCollections.total}
-        totalDiscoveries={totalDiscoveries.total}
-        activeDiscoveries={activeCount}
-        totalProposals={strategyProposals.total}
+      <StatisticsPanel
+        discoveries={totalDiscoveries.items}
+        proposals={strategyProposals.items}
+        industryAdapters={industryAdapterList}
+        sourceStats={sourceStats}
+        totalCollections={recentCollections.total}
+        serverNow={serverNow}
       />
     </div>
   );
