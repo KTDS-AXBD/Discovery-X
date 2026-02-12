@@ -16,6 +16,8 @@ interface IdeaChatWrapperProps {
   isLoadingMessages: boolean;
   onToolResult?: (toolName: string, result: Record<string, unknown>) => void;
   autoMessage?: string | null;
+  selectedSourceCount?: number;
+  totalSourceCount?: number;
 }
 
 const RESEARCH_CATEGORIES = [
@@ -32,12 +34,19 @@ export function IdeaChatWrapper({
   isLoadingMessages,
   onToolResult,
   autoMessage,
+  selectedSourceCount = 0,
+  totalSourceCount = 0,
 }: IdeaChatWrapperProps) {
   return (
     <div className="flex shrink-0 flex-col border-l border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))]">
       {/* Header */}
-      <div className="border-b border-[var(--axis-border-default)] px-4 py-3">
+      <div className="flex items-center justify-between border-b border-[var(--axis-border-default)] px-4 py-3">
         <h2 className="text-sm font-semibold text-[var(--axis-text-primary)]">채팅</h2>
+        {totalSourceCount > 0 && (
+          <span className="rounded-full bg-[var(--axis-surface-secondary)] px-2 py-0.5 text-[10px] text-[var(--axis-text-tertiary)]">
+            {selectedSourceCount}/{totalSourceCount}개 소스
+          </span>
+        )}
       </div>
 
       {/* Chat content */}

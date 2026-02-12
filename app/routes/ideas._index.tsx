@@ -12,20 +12,22 @@ interface SourceItem {
 }
 
 interface OutletCtx {
-  selectedSourceId: string | null;
+  detailSourceId: string | null;
   ideaSourceItems: SourceItem[];
+  selectedSourceIds: string[];
   onClearSource: () => void;
   onStartAnalysis: () => void;
 }
 
 export default function IdeasIndex() {
   const ctx = useOutletContext<OutletCtx>();
-  const { selectedSourceId, ideaSourceItems, onClearSource, onStartAnalysis } = ctx;
+  const { detailSourceId, ideaSourceItems, selectedSourceIds, onClearSource, onStartAnalysis } = ctx;
   const hasItems = ideaSourceItems.length > 0;
+  const selectedCount = selectedSourceIds.length;
 
   // Source detail view
-  if (selectedSourceId) {
-    const source = ideaSourceItems.find((s) => s.id === selectedSourceId);
+  if (detailSourceId) {
+    const source = ideaSourceItems.find((s) => s.id === detailSourceId);
     if (source) {
       const isText = source.url?.startsWith("text://");
       return (
@@ -101,9 +103,10 @@ export default function IdeasIndex() {
         <button
           type="button"
           onClick={onStartAnalysis}
-          className="mt-4 rounded-lg bg-[var(--axis-surface-brand)] px-5 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+          disabled={selectedCount === 0}
+          className="mt-4 rounded-lg bg-[var(--axis-surface-brand)] px-5 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          분석 시작
+          {selectedCount > 0 ? `${selectedCount}개 소스 분석 시작` : "소스를 선택하세요"}
         </button>
       </div>
     );

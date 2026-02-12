@@ -276,18 +276,35 @@ export function SourceInputPanel({
                 const isPdf = url.endsWith(".pdf") || url.includes("/pdf");
                 const isYoutube = url.includes("youtube.com") || url.includes("youtu.be");
                 const isText = url.startsWith("text://");
-                const isSelected = selectedItemId === item.id;
+                const isChecked = selectedItemIds.includes(item.id);
 
                 return (
                   <div
                     key={item.id}
                     className={cn(
-                      "group relative flex items-center gap-2 rounded-lg px-3 py-2.5 transition-colors",
-                      isSelected
-                        ? "bg-[var(--dx-surface-card,var(--axis-surface-brand))]"
-                        : "hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))]"
+                      "group relative flex items-center gap-1.5 rounded-lg px-2 py-2.5 transition-colors",
+                      "hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))]"
                     )}
                   >
+                    {/* Checkbox */}
+                    <button
+                      type="button"
+                      onClick={() => onToggleItem(item.id)}
+                      className="shrink-0 p-0.5"
+                      aria-label={isChecked ? "선택 해제" : "선택"}
+                    >
+                      {isChecked ? (
+                        <svg className="h-4 w-4 text-[var(--axis-text-brand)]" viewBox="0 0 24 24" fill="currentColor">
+                          <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clipRule="evenodd" />
+                        </svg>
+                      ) : (
+                        <svg className="h-4 w-4 text-[var(--axis-text-tertiary)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <circle cx="12" cy="12" r="9.75" />
+                        </svg>
+                      )}
+                    </button>
+
+                    {/* Clickable title area (for detail view) */}
                     <button
                       type="button"
                       onClick={() => onSelectItem?.(item.id)}
@@ -315,7 +332,10 @@ export function SourceInputPanel({
                       </span>
 
                       {/* Title */}
-                      <span className="min-w-0 flex-1 text-sm font-medium text-[var(--axis-text-primary)] line-clamp-1">
+                      <span className={cn(
+                        "min-w-0 flex-1 text-sm font-medium line-clamp-1",
+                        isChecked ? "text-[var(--axis-text-primary)]" : "text-[var(--axis-text-tertiary)]"
+                      )}>
                         {displayTitle(item.titleKo, item.title, item.url)}
                       </span>
                     </button>

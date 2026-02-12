@@ -8,12 +8,10 @@ import { radarItems } from "~/db/schema";
 import { ideas } from "~/features/ideas/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { SidebarProvider } from "~/lib/context/sidebar-context";
-import { usePanelLayout } from "~/lib/hooks/use-panel-layout";
 import { IdeaPageHeader } from "~/components/ideas/IdeaPageHeader";
 import { IdeaListDrawer } from "~/components/ideas/IdeaListDrawer";
 import { SourceInputPanel } from "~/components/ideas/SourceInputPanel";
 import { IdeaChatWrapper } from "~/components/ideas/IdeaChatWrapper";
-import { PanelResizeHandle } from "~/components/ideas/PanelResizeHandle";
 import { ProposalCreationModal } from "~/components/ideas/ProposalCreationModal";
 
 interface ChatMessageData {
@@ -116,9 +114,6 @@ export default function IdeasLayout() {
   const [messagesLoaded, setMessagesLoaded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [proposalModalOpen, setProposalModalOpen] = useState(false);
-
-  // Panel layout
-  const panel = usePanelLayout();
 
   // Source selection state (multi-select)
   const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>([]);
