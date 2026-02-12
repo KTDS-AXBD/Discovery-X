@@ -307,7 +307,17 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 166)
+### 최근 변경 (세션 167)
+**아이디어 분석 429 Rate Limit 경량 모드 + 패널 레이아웃**:
+- ✅ Ideas 전용 경량 모드 추가: `mode="ideas"` 파라미터로 도구 1개 + 35줄 프롬프트만 전송 (기존 73개 도구 + 244줄 → ~85% 토큰 절약)
+- ✅ `buildIdeaSystemPrompt()` 신규 추가 — `update_idea_analysis` 전용 경량 시스템 프롬프트
+- ✅ `IDEA_TOOLS` export 추가 — `update_idea_analysis` 도구만 필터링
+- ✅ `claude-client.ts` retry 개선: `retry-after` 헤더 파싱 + 429 base delay 1초→10초
+- ✅ Ideas 모드 tool round 간 2초 대기 (rate limit 완화)
+- ✅ Ideas 페이지 리사이즈 가능 패널 레이아웃 추가 (`PanelResizeHandle`, `use-panel-layout`)
+- ✅ typecheck 0 에러 / build 성공
+
+### 이전 변경 (세션 166)
 **실험실 — 방법론 탭 통합**:
 - ✅ `lab.tsx`: TABS 배열에 "방법론" 탭 추가 (3탭→4탭: 개요/분석/검토 큐/방법론)
 - ✅ `lab.methods.tsx` (신규): Method Pack 라이브러리를 실험실 탭으로 통합 — DB 로더, Tier 필터 (ALL/Tier-0/Tier-1/Tier-2), Lab 스타일 (모노스페이스/teal accent), 기존 MethodPackCard/MethodPackDetailDialog 컴포넌트 재사용
