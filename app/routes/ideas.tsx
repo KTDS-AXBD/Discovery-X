@@ -253,6 +253,7 @@ export default function IdeasLayout() {
           {/* Left: Source Input Panel */}
           <SourceInputPanel
             items={ideaSourceItems}
+            collectedItems={allItems}
             selectedItemId={undefined}
             onAddSources={handleAddSources}
             isAdding={isAdding}

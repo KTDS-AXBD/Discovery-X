@@ -49,9 +49,9 @@ export default function IdeasIndex() {
         URL, PDF, 텍스트를 왼쪽 소스 패널에 추가하세요.
       </p>
       <div className="mt-6 flex flex-wrap justify-center gap-2">
-        <SuggestionChip>AI 헬스케어 트렌드 분석</SuggestionChip>
-        <SuggestionChip>친환경 물류 사업 기회</SuggestionChip>
-        <SuggestionChip>시니어 케어 시장 조사</SuggestionChip>
+        <SuggestionChip>운동을 보조해주는 웨어러블 로봇</SuggestionChip>
+        <SuggestionChip>감사 통합 AI 플랫폼</SuggestionChip>
+        <SuggestionChip>스마트 글래스/VR 기반 XR 전시</SuggestionChip>
       </div>
     </div>
   );

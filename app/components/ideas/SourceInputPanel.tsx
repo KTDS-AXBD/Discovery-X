@@ -15,9 +15,11 @@ interface RadarItem {
 }
 
 const PAGE_SIZE = 10;
+const COLLECTED_PAGE_SIZE = 6;
 
 interface SourceInputPanelProps {
   items: RadarItem[];
+  collectedItems?: RadarItem[];
   selectedItemId?: string;
   onAddSources: (inputs: string[]) => Promise<{ created: number; error?: string }>;
   isAdding?: boolean;
@@ -26,6 +28,7 @@ interface SourceInputPanelProps {
 
 export function SourceInputPanel({
   items,
+  collectedItems = [],
   selectedItemId,
   onAddSources,
   isAdding,
@@ -36,6 +39,7 @@ export function SourceInputPanel({
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [show24h, setShow24h] = useState(false);
   const [page, setPage] = useState(1);
+  const [collectedPage, setCollectedPage] = useState(1);
   const feedbackTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const showFeedback = useCallback((result: { created: number; error?: string }) => {
@@ -118,6 +122,16 @@ export function SourceInputPanel({
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
   const paginatedItems = filteredItems.slice(0, page * PAGE_SIZE);
   const hasMore = paginatedItems.length < filteredItems.length;
+
+  // Collected sources — exclude already-added items
+  const addedIds = useMemo(() => new Set(items.map((i) => i.id)), [items]);
+  const availableCollected = useMemo(
+    () => collectedItems.filter((c) => !addedIds.has(c.id)),
+    [collectedItems, addedIds]
+  );
+  const collectedTotalPages = Math.max(1, Math.ceil(availableCollected.length / COLLECTED_PAGE_SIZE));
+  const paginatedCollected = availableCollected.slice(0, collectedPage * COLLECTED_PAGE_SIZE);
+  const hasMoreCollected = paginatedCollected.length < availableCollected.length;
 
   // Build link prefix
   const linkBase = ideaId ? `/ideas/${ideaId}` : "/ideas";
@@ -293,13 +307,58 @@ export function SourceInputPanel({
         )}
 
         {items.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-sm text-[var(--axis-text-tertiary)]">
-              소스를 추가하세요
+          <div className="flex flex-1 flex-col items-center justify-center px-4 py-12 text-center">
+            <div className="rounded-lg border border-dashed border-[var(--axis-border-default)] p-3">
+              <svg className="mx-auto h-8 w-8 text-[var(--axis-text-tertiary)]" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+              </svg>
+            </div>
+            <p className="mt-3 text-xs text-[var(--axis-text-secondary)]">
+              새로운 사업 발굴을 위해
+            </p>
+            <p className="text-xs text-[var(--axis-text-secondary)]">
+              다양한 소스를 모아두는 공간입니다.
             </p>
           </div>
         )}
       </div>
+
+      {/* Collected sources section (bottom) */}
+      {availableCollected.length > 0 && (
+        <div className="shrink-0 border-t border-[var(--axis-border-default)] px-2 pb-3 pt-2">
+          <p className="px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--axis-text-tertiary)]">
+            수집된 소스에서 선택하기
+          </p>
+          <div className="max-h-48 space-y-0.5 overflow-y-auto">
+            {paginatedCollected.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={async () => {
+                  const url = item.url || `text://${item.title}`;
+                  const result = await onAddSources([url]);
+                  showFeedback(result);
+                }}
+                disabled={isAdding}
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition-colors hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))] disabled:opacity-60"
+              >
+                <span className="min-w-0 flex-1 text-xs text-[var(--axis-text-secondary)] line-clamp-1">
+                  {displayTitle(item.titleKo, item.title)}
+                </span>
+              </button>
+            ))}
+          </div>
+          {hasMoreCollected && (
+            <button
+              type="button"
+              onClick={() => setCollectedPage((p) => p + 1)}
+              className="mt-1 w-full rounded-md px-3 py-1 text-xs text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-secondary)]"
+            >
+              더보기 ({collectedPage}/{collectedTotalPages})
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
