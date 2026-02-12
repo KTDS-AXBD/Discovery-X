@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-12T04:49:21.599Z",
+  "lastUpdated": "2026-02-12T05:19:57.216Z",
   "activeFeatures": [
     "routes",
     "auth",
@@ -33,7 +33,8 @@
     "archive",
     "market",
     "ontology",
-    "graph"
+    "graph",
+    "constants"
   ],
   "primaryFeature": "ontology-intelligence",
   "features": {
@@ -70,7 +71,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T11:39:12.844Z",
-        "lastUpdated": "2026-02-12T04:48:42.204Z"
+        "lastUpdated": "2026-02-12T05:18:18.668Z"
       },
       "lastFile": "D:\\01_Projects\\Discovery-X\\app\\routes\\ideas.tsx"
     },
@@ -96,7 +97,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T11:42:03.012Z",
-        "lastUpdated": "2026-02-12T01:21:21.867Z"
+        "lastUpdated": "2026-02-12T05:09:13.964Z"
       },
       "lastFile": "D:\\01_Projects\\Discovery-X\\app\\lib\\agent\\tools\\idea-tools.ts"
     },
@@ -161,9 +162,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T13:25:45.361Z",
-        "lastUpdated": "2026-02-12T04:43:42.563Z"
+        "lastUpdated": "2026-02-12T05:09:45.397Z"
       },
-      "lastFile": "D:\\01_Projects\\Discovery-X\\app\\lib\\agent\\tool-registry.ts"
+      "lastFile": "D:\\01_Projects\\Discovery-X\\app\\lib\\agent\\system-prompt.ts"
     },
     "discovery": {
       "phase": "do",
@@ -330,7 +331,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-07T08:00:28.362Z",
-        "lastUpdated": "2026-02-12T04:36:58.469Z"
+        "lastUpdated": "2026-02-12T05:18:02.257Z"
       },
       "lastFile": "D:\\01_Projects\\Discovery-X\\app\\lib\\hooks\\use-panel-layout.ts"
     },
@@ -416,9 +417,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-10T06:59:09.510Z",
-        "lastUpdated": "2026-02-12T04:49:21.599Z"
+        "lastUpdated": "2026-02-12T05:19:57.216Z"
       },
-      "lastFile": "D:\\01_Projects\\Discovery-X\\app\\components\\ideas\\SourceInputPanel.tsx"
+      "lastFile": "D:\\01_Projects\\Discovery-X\\app\\components\\ideas\\PanelResizeHandle.tsx"
     },
     "ontology-intelligence": {
       "phase": "design",
@@ -490,6 +491,19 @@
         "lastUpdated": "2026-02-12T00:05:04.786Z"
       },
       "lastFile": "D:\\01_Projects\\Discovery-X\\app\\components\\graph\\GraphViewer.tsx"
+    },
+    "constants": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-12T05:09:00.797Z",
+        "lastUpdated": "2026-02-12T05:09:00.797Z"
+      },
+      "lastFile": "D:\\01_Projects\\Discovery-X\\app\\lib\\constants\\methodology.ts"
     }
   },
   "pipeline": {
@@ -500,7 +514,7 @@
   "session": {
     "startedAt": "2026-02-04T11:05:49.371Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-12T04:49:21.599Z"
+    "lastActivity": "2026-02-12T05:19:57.216Z"
   },
   "history": [
     {
@@ -5707,6 +5721,216 @@
     },
     {
       "timestamp": "2026-02-12T04:49:21.599Z",
+      "feature": "ideas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T04:52:30.464Z",
+      "feature": "ideas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T04:52:50.225Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T04:52:57.610Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T04:53:05.391Z",
+      "feature": "ideas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T04:53:18.746Z",
+      "feature": "ideas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T04:53:27.028Z",
+      "feature": "ideas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T04:54:44.816Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T04:54:49.600Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:01:57.817Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:02:04.020Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:02:37.532Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:02:57.394Z",
+      "feature": "Discovery-X",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:09:00.797Z",
+      "feature": "constants",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:09:13.964Z",
+      "feature": "tools",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:09:21.040Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:09:45.397Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:11:35.159Z",
+      "feature": "ideas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:11:56.761Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:12:03.900Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:12:21.145Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:12:27.323Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:12:37.747Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:13:01.809Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:13:31.302Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:13:38.772Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:14:15.347Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:14:26.890Z",
+      "feature": "ideas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:14:34.530Z",
+      "feature": "ideas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:17:54.226Z",
+      "feature": "Discovery-X",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:18:02.257Z",
+      "feature": "Discovery-X",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:18:13.241Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:18:18.668Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:18:36.115Z",
+      "feature": "ideas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:19:50.389Z",
+      "feature": "ideas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-12T05:19:57.216Z",
       "feature": "ideas",
       "phase": "do",
       "action": "updated"
