@@ -149,7 +149,7 @@ Flow I: BD 워크스페이스 (v4.2)
 
 **Ideas (5 pages + 3 API)**
 - `/ideas` — 아이디어 워크스페이스 레이아웃 (전용 헤더 + 드로어 + 좌: SourceInputPanel + 중: Outlet + 우: IdeaChatWrapper)
-- `/ideas/_index` — 빈 상태 (소스 추가 제안 칩) / 소스 있으면 "분석 시작" 버튼 / 소스 클릭 시 상세 카드
+- `/ideas/_index` — 빈 상태 (소스 추가 제안 칩) / 소스 있으면 Primary 4개 방법론 카드 + 전체 분석 링크 / 소스 클릭 시 상세 카드
 - `/ideas/:id` — 아이디어 상세 (12종 방법론 카드: 시장 조사/고객 조사/비판적 사고/BMC/SWOT/규제/사업성/차별화/산업별 사례/가치 사슬/린 캔버스/PESTEL + 좌우 패널 리사이즈/토글)
 - `/api/ideas` — 아이디어 CRUD API (GET 목록 + POST 생성 + DELETE 삭제)
 - `/api/ideas/:id/sources` — 아이디어-소스 연결 API (GET 목록 + POST 추가 + DELETE 삭제)
@@ -307,7 +307,17 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 169)
+### 최근 변경 (세션 170)
+**방법론 카드 마이그레이션 완료 + 패널 리사이즈 안정화**:
+- ✅ `IdeaChatWrapper.tsx`: `RESEARCH_CATEGORIES` → `PRIMARY_METHODOLOGIES` import 교체 (상수 중복 제거)
+- ✅ `IdeaGadgetTabs.tsx` 삭제: `MethodologyCards.tsx`로 완전 대체
+- ✅ `ideas._index.tsx`: "분석 시작" 단일 버튼 → Primary 4개 방법론 카드 그리드 + 전체 분석 링크, OutletCtx에 `onRunMethodology`/`loadingCategory` 추가
+- ✅ `PanelResizeHandle.tsx`: `onResizeRef` 도입 — 드래그 중 stale closure 방지
+- ✅ `use-panel-layout.ts`: `resizeLeft`/`resizeRight` 안정 콜백 추가
+- ✅ `ideas.tsx`: 인라인 resize 람다 → 안정 `panel.resizeLeft`/`panel.resizeRight` 사용
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
+
+### 이전 변경 (세션 169)
 **아이디어 페이지 — 패널 리사이즈/토글 통합 + 12종 방법론 카드 + 배포**:
 - ✅ `ideas.tsx`: `usePanelLayout()` 훅 통합, 좌/우 패널에 동적 width 적용, `PanelResizeHandle` 배치, 패널 숨김 시 가장자리 토글 버튼, hover 시 collapse 버튼 노출, `handleRunMethodology` 핸들러 + `loadingCategory` 상태
 - ✅ `ideas.$id.tsx`: `IdeaGadgetTabs` → `MethodologyCards` 교체, 12종 방법론 키 지원, `useOutletContext`로 `onRunMethodology`/`loadingCategory` 전달
