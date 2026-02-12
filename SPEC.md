@@ -294,7 +294,7 @@ build/
 
 ### 버전
 - **프로토타입**: v6.4 Proposals Pipeline Kanban + Category Card Redesign + Sample Data 46건
-- **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
+- **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 배포 완료 (세션 163)
 - **DB**: 28개 마이그레이션 (0000~0027), 로컬+프로덕션 적용 완료 + 프로덕션 샘플 데이터 46건 삽입
 
 ### 주요 지표
@@ -306,12 +306,19 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 162)
+### 최근 변경 (세션 163)
+**실험실 그래프 인터랙티브 — 노드 드래그/줌/팬 기능 추가 + 프로덕션 배포**:
+- ✅ `GraphViewer.tsx`: 노드 드래그 (PointerEvent 기반, 드래그 중 force simulation 재가열로 연결 노드 물리 반응)
+- ✅ `GraphViewer.tsx`: 줌 (마우스 휠 커서 중심 줌 0.3x~3x + 우측 상단 +/−/1:1 컨트롤 버튼 + 줌 레벨 인디케이터)
+- ✅ `GraphViewer.tsx`: 팬 (배경 드래그, document-level 리스너로 SVG 밖 이동 추적)
+- ✅ `GraphViewer.tsx`: 시각 피드백 (드래그 중 teal glow 링, grab/grabbing 커서, 드래그/클릭 구분)
+- ✅ SPEC.md §1 Lab Intelligence v6.2 반영, §2 GraphViewer 설명 업데이트
+- ✅ typecheck 0 에러 / lint 0 에러 / 661 테스트 통과 / CI/CD 배포 완료 (1m 39s)
+
+### 이전 변경 (세션 162)
 **아이디어 소스 패널 — 디자인 목업 대비 누락 기능 보완**:
-- ✅ `SourceInputPanel.tsx`: "수집된 소스에서 선택하기" 하단 섹션 추가 — 클릭 시 아이디어에 소스 추가, 이미 추가된 소스 자동 제외
-- ✅ `SourceInputPanel.tsx`: 빈 상태 개선 — 박스 아이콘 + "새로운 사업 발굴을 위해 다양한 소스를 모아두는 공간입니다." 텍스트
-- ✅ `ideas.tsx`: `collectedItems={allItems}` prop 전달 (전체 수집 소스)
-- ✅ `ideas._index.tsx`: 제안 칩 텍스트 디자인 목업에 맞게 변경
+- ✅ `SourceInputPanel.tsx`: "수집된 소스에서 선택하기" 하단 섹션 추가
+- ✅ `SourceInputPanel.tsx`: 빈 상태 개선
 - ✅ typecheck 0 에러 / lint 0 에러
 
 ### 이전 변경 (세션 161)
@@ -343,10 +350,7 @@ build/
 
 ### 이전 변경 (세션 158)
 **실험실 페이지 리디자인 — 5탭→3탭 통합, Lab 미학 적용**:
-- ✅ `lab.tsx`: 전폭 레이아웃 + dot-grid 배경 + 모노스페이스 teal accent 탭 (3탭: 개요/분석/검토 큐)
-- ✅ `lab._index.tsx`: 기존 요약 + 그래프 탭 병합 → InstrumentPanel + GraphViewer + ExtractionLog
-- ✅ `lab.analysis.tsx`: 기존 분석 + 시뮬레이션 탭 병합 → 5모드 버튼
-- ✅ typecheck 통과 / lint 통과
+- ✅ lab.tsx 전폭 + lab._index.tsx 통합 + lab.analysis.tsx 5모드 + dx-custom-tokens.css Lab 토큰
 
 ### 이전 변경 (세션 156)
 **아이디어 페이지 소스 입력 기능 개선 및 프로덕션 테스트 완료**:
