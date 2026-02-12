@@ -19,9 +19,11 @@ const COLLECTED_PAGE_SIZE = 6;
 interface SourceInputPanelProps {
   items: RadarItem[];
   collectedItems?: RadarItem[];
-  selectedItemId?: string;
+  selectedItemIds: string[];
   onAddSources: (inputs: string[]) => Promise<{ created: number; error?: string }>;
   onDeleteSource?: (radarItemId: string) => Promise<void>;
+  onToggleItem: (id: string) => void;
+  onToggleAll: () => void;
   onSelectItem?: (id: string) => void;
   isAdding?: boolean;
 }
@@ -29,9 +31,11 @@ interface SourceInputPanelProps {
 export function SourceInputPanel({
   items,
   collectedItems = [],
-  selectedItemId,
+  selectedItemIds,
   onAddSources,
   onDeleteSource,
+  onToggleItem,
+  onToggleAll,
   onSelectItem,
   isAdding,
 }: SourceInputPanelProps) {
@@ -135,7 +139,7 @@ export function SourceInputPanel({
   const hasMoreCollected = paginatedCollected.length < availableCollected.length;
 
   return (
-    <div className="flex h-full w-72 shrink-0 flex-col border-r border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))]">
+    <div className="flex h-full shrink-0 flex-col border-r border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))]">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3">
         <h2 className="text-sm font-semibold text-[var(--axis-text-primary)]">소스</h2>
@@ -240,9 +244,32 @@ export function SourceInputPanel({
         {/* Added sources */}
         {paginatedItems.length > 0 && (
           <div className="mb-2">
-            <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--axis-text-tertiary)]">
-              추가된 소스
-            </p>
+            <div className="flex items-center justify-between px-2 pb-1">
+              <button
+                type="button"
+                onClick={onToggleAll}
+                className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-secondary)]"
+              >
+                {/* Select-all checkbox icon */}
+                {selectedItemIds.length === items.length && items.length > 0 ? (
+                  <svg className="h-3.5 w-3.5 text-[var(--axis-text-brand)]" viewBox="0 0 24 24" fill="currentColor">
+                    <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clipRule="evenodd" />
+                  </svg>
+                ) : selectedItemIds.length > 0 ? (
+                  <svg className="h-3.5 w-3.5 text-[var(--axis-text-brand)]" viewBox="0 0 24 24" fill="currentColor">
+                    <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-.53 14.03a.75.75 0 0 0 1.06 0l.72-.72H8.25a.75.75 0 0 1 0-1.5h5l-.72-.72a.75.75 0 1 1 1.06-1.06l2 2a.75.75 0 0 1 0 1.06l-2 2Z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <circle cx="12" cy="12" r="9.75" />
+                  </svg>
+                )}
+                모든 소스 선택
+              </button>
+              <span className="text-[10px] text-[var(--axis-text-tertiary)]">
+                {selectedItemIds.length}개 선택
+              </span>
+            </div>
             <div className="space-y-0.5">
               {paginatedItems.map((item) => {
                 const url = item.url?.toLowerCase() ?? "";

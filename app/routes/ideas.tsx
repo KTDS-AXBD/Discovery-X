@@ -8,10 +8,12 @@ import { radarItems } from "~/db/schema";
 import { ideas } from "~/features/ideas/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { SidebarProvider } from "~/lib/context/sidebar-context";
+import { usePanelLayout } from "~/lib/hooks/use-panel-layout";
 import { IdeaPageHeader } from "~/components/ideas/IdeaPageHeader";
 import { IdeaListDrawer } from "~/components/ideas/IdeaListDrawer";
 import { SourceInputPanel } from "~/components/ideas/SourceInputPanel";
 import { IdeaChatWrapper } from "~/components/ideas/IdeaChatWrapper";
+import { PanelResizeHandle } from "~/components/ideas/PanelResizeHandle";
 import { ProposalCreationModal } from "~/components/ideas/ProposalCreationModal";
 
 interface ChatMessageData {
@@ -115,8 +117,11 @@ export default function IdeasLayout() {
   const [isAdding, setIsAdding] = useState(false);
   const [proposalModalOpen, setProposalModalOpen] = useState(false);
 
-  // Source selection state
-  const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
+  // Panel layout
+  const panel = usePanelLayout();
+
+  // Source selection state (multi-select)
+  const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>([]);
 
   // Auto-analysis message (sent automatically to ChatPanel)
   const [autoMessage, setAutoMessage] = useState<string | null>(null);
@@ -127,6 +132,11 @@ export default function IdeasLayout() {
   const isLoadingMessages = conversationId !== null && !messagesLoaded;
 
   const currentIdea = ideaList.find((i) => i.id === selectedIdeaId);
+
+  // Auto-select all sources when ideaSourceItems changes
+  useEffect(() => {
+    setSelectedSourceIds(ideaSourceItems.map((s) => s.id));
+  }, [ideaSourceItems]);
 
   // Fetch sources for selected idea
   useEffect(() => {
@@ -177,7 +187,8 @@ export default function IdeasLayout() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         title: currentIdea?.title || "아이디어 분석",
-        sourceItemId: selectedIdeaId,
+        // Note: sourceItemId requires a radarItem ID (FK constraint).
+        // Pass undefined here; source context is provided via auto-message.
       }),
     })
       .then((r) => r.json() as Promise<{ id: string }>)
@@ -248,19 +259,28 @@ export default function IdeasLayout() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ radarItemId }),
       });
-      // Clear selection if deleted item was selected
-      if (selectedSourceId === radarItemId) {
-        setSelectedSourceId(null);
-      }
+      // Remove from selection if deleted item was selected
+      setSelectedSourceIds((prev) => prev.filter((id) => id !== radarItemId));
       revalidator.revalidate();
     } catch {
       // Silently fail — user can retry
     }
-  }, [selectedIdeaId, selectedSourceId, revalidator]);
+  }, [selectedIdeaId, revalidator]);
 
-  const handleSelectSource = useCallback((id: string) => {
-    setSelectedSourceId((prev) => (prev === id ? null : id));
+  const handleToggleSource = useCallback((id: string) => {
+    setSelectedSourceIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
   }, []);
+
+  const handleToggleAll = useCallback(() => {
+    setSelectedSourceIds((prev) =>
+      prev.length === ideaSourceItems.length ? [] : ideaSourceItems.map((s) => s.id)
+    );
+  }, [ideaSourceItems]);
+
+  // For source detail view (clicking item title)
+  const [detailSourceId, setDetailSourceId] = useState<string | null>(null);
 
   const handleStartAnalysis = useCallback(async () => {
     let ideaId = selectedIdeaId;
@@ -285,22 +305,40 @@ export default function IdeasLayout() {
 
     if (!ideaId) return;
 
-    const analysisMsg = `추가된 소스를 분석하여 다음 6가지 카테고리로 사업 아이디어를 정리해주세요:
-1. 산업별 사업 예시
-2. 규제/법
-3. 시장 조사
-4. 고객 조사
-5. 사업성 검증
-6. 차별화
+    // Build source context for the agent (only selected sources)
+    const selectedSources = ideaSourceItems.filter((s) => selectedSourceIds.includes(s.id));
+    const sourceSummaries = selectedSources
+      .map((s) => {
+        const title = s.titleKo || s.title || "제목 없음";
+        const summary = s.summaryKo || "";
+        const url = s.url && !s.url.startsWith("text://") ? s.url : "";
+        return `- **${title}**${summary ? `: ${summary}` : ""}${url ? ` (${url})` : ""}`;
+      })
+      .join("\n");
 
-각 카테고리별로 update_idea_analysis 도구를 사용하여 분석 결과를 저장해주세요.`;
+    const analysisMsg = `추가된 소스를 분석하여 다음 6가지 카테고리로 사업 아이디어를 정리해주세요.
+
+아이디어 ID: ${ideaId}
+
+## 분석할 소스
+${sourceSummaries || "소스 없음"}
+
+## 카테고리
+1. industry_example (산업별 사업 예시)
+2. regulation (규제/법)
+3. market_research (시장 조사)
+4. customer_research (고객 조사)
+5. feasibility (사업성 검증)
+6. differentiation (차별화)
+
+각 카테고리별로 update_idea_analysis 도구를 사용하여 분석 결과를 저장해주세요. ideaId는 "${ideaId}"입니다.`;
 
     // Navigate to the idea detail page if needed
     if (!selectedIdeaId) {
       navigate(`/ideas/${ideaId}`);
     }
     setAutoMessage(analysisMsg);
-  }, [selectedIdeaId, navigate]);
+  }, [selectedIdeaId, ideaSourceItems, selectedSourceIds, navigate]);
 
   const handleToolResult = useCallback(
     (toolName: string, _result: Record<string, unknown>) => {
@@ -325,16 +363,18 @@ export default function IdeasLayout() {
           <SourceInputPanel
             items={ideaSourceItems}
             collectedItems={allItems}
-            selectedItemId={selectedSourceId ?? undefined}
+            selectedItemIds={selectedSourceIds}
             onAddSources={handleAddSources}
             onDeleteSource={selectedIdeaId ? handleDeleteSource : undefined}
-            onSelectItem={handleSelectSource}
+            onToggleItem={handleToggleSource}
+            onToggleAll={handleToggleAll}
+            onSelectItem={(id) => setDetailSourceId((prev) => (prev === id ? null : id))}
             isAdding={isAdding}
           />
 
           {/* Center: Detail / Gadget Tabs */}
           <div className="flex-1 overflow-y-auto">
-            <Outlet context={{ selectedSourceId, ideaSourceItems, onClearSource: () => setSelectedSourceId(null), onStartAnalysis: handleStartAnalysis }} />
+            <Outlet context={{ detailSourceId, ideaSourceItems, selectedSourceIds, onClearSource: () => setDetailSourceId(null), onStartAnalysis: handleStartAnalysis }} />
           </div>
 
           {/* Right: Chat Panel */}
@@ -344,6 +384,8 @@ export default function IdeasLayout() {
             isLoadingMessages={isLoadingMessages}
             onToolResult={handleToolResult}
             autoMessage={autoMessage}
+            selectedSourceCount={selectedSourceIds.length}
+            totalSourceCount={ideaSourceItems.length}
           />
         </div>
 
