@@ -154,7 +154,7 @@ Flow I: BD 워크스페이스 (v4.2)
 
 **Proposals (7개: 4 pages + 3 API)**
 - `/proposals` — 사업제안 레이아웃 (전용 사이드바 + Surface + 진행상황 패널)
-- `/proposals/_index` — 첫 제안 자동 선택 (redirect) / 빈 상태 폴백
+- `/proposals/_index` — 파이프라인 칸반 뷰 (5컬럼 아이템 나열) + 분야별 대형 카드 + 지연 제안 알림
 - `/proposals/:id` — 사업제안 상세 (메타 카드 + 5개 섹션 + 팀 토론 + 진행상황 패널)
 - `/proposals/new` — 새 사업제안 작성 폼
 - `/api/proposals` — 제안 CRUD API (GET 목록 + DELETE)
@@ -291,9 +291,9 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.3 Dashboard Read/Unread + SummaryCard Design (읽음/안읽음 구분 + 섹션 배지 + 반응 버튼 + 액션 버튼)
-- **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 배포 완료 (세션 160)
-- **DB**: 28개 마이그레이션 (0000~0027), 로컬+프로덕션 적용 완료
+- **프로토타입**: v6.4 Proposals Pipeline Kanban + Category Card Redesign + Sample Data 46건
+- **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
+- **DB**: 28개 마이그레이션 (0000~0027), 로컬+프로덕션 적용 완료 + 프로덕션 샘플 데이터 46건 삽입
 
 ### 주요 지표
 - **라우트**: 127개 (core 46 + ideas 8 + proposals 8 + lab 9 + venture 13 + market 3 + API 31 + folders 4 + 기타 5)
@@ -304,7 +304,17 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 160)
+### 최근 변경 (세션 161)
+**사업 제안 페이지 — 파이프라인 칸반 + 카테고리 카드 리디자인 + 샘플 데이터 46건**:
+- ✅ `PipelineView.tsx`: 숫자 카운트 → 5컬럼 칸반 (각 컬럼에 아이콘+라벨+건수+아이템 제목 나열, 최대 10개+"외 N건")
+- ✅ `proposals._index.tsx`: loader 확장 — stages에 `items: { id, title }[]` 추가
+- ✅ `constants.ts`: COMPLETED "완료" → "완료(제품화/GTM)", CLOSED "종료" → "종료(Hold/Drop)"
+- ✅ `CategoryCardRow.tsx`: w-64 → w-72, 카테고리 헤더에 화살표 네비게이션
+- ✅ `ProposalCard.tsx`: 제목 2줄, 설명 3줄, 상태 배지 제거, 시간 배지(rounded-full) 스타일
+- ✅ 프로덕션 D1: 46건 샘플 데이터 삽입 (PROPOSAL 8, FORMALIZATION 2, COMPLETED 1, CLOSED 35)
+- ✅ typecheck 0 에러 / lint 0 에러
+
+### 이전 변경 (세션 160)
 **대시보드 읽음/안읽음 구분 + SummaryCard 디자인 정확 구현**:
 - ✅ `SourceSidebar.tsx`: `viewedItemIds: Set<string>` prop 추가 — 안읽음(font-medium text-primary) / 읽음(font-normal text-tertiary) 시각 구분
 - ✅ `SummaryCard.tsx`: SectionBadge 컴포넌트 + 마크다운 요약 파싱 (단락/소제목/불릿) + 반응 버튼(좋아요/싫어요 + optimistic UI) + "소스 수집 관리"/"아이디어 생성" 액션 버튼
