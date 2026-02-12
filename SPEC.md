@@ -31,7 +31,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 - 4탭 GNB (대시보드/아이디어/사업제안/실험실) + ContextPanel + 보관함 사이드바 레이아웃 재구성 (v5.0+)
 - 아이디어 페이지: Radar 아이템 재활용 + 메모 패널 (v5.0)
 - 사업제안: DB 6테이블 + CRUD API + 마일스톤/액션/댓글 + 진행상황 패널 (v5.0)
-- 실험실 (Lab Intelligence): 3탭 구조 (개요/분석/검토 큐) + LLM 자동 엔티티 추출 + 글로벌 엔티티 매칭 + 관계 분석 엔진 + 시뮬레이션 + 인터랙티브 그래프 (드래그/줌/팬) + 과학 Lab 미학 (v5.3 → v6.2)
+- 실험실 (Lab Intelligence): 4탭 구조 (개요/분석/검토 큐/방법론) + LLM 자동 엔티티 추출 + 글로벌 엔티티 매칭 + 관계 분석 엔진 + 시뮬레이션 + 인터랙티브 그래프 (드래그/줌/팬) + Method Pack 라이브러리 통합 + 과학 Lab 미학 (v5.3 → v6.7)
 - 대시보드 리디자인 (v6.0+):
   - 2컬럼 레이아웃: SourceSidebar (280px, 읽음/안읽음 시각 구분) + SummaryCard + PeerBriefing
   - SummaryCard: "핵심 요약" 배지 + 요약 텍스트 + "키워드" 배지 + "원본 링크" 배지 + 반응(like/dislike) + "소스 수집 관리"/"아이디어 생성" 액션 버튼
@@ -163,11 +163,12 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/api/proposals/:id/comments` — 댓글 API (GET + POST)
 - `/api/proposals/:id/actions` — 액션 아이템 토글 API (POST)
 
-**Lab (실험실) (3 pages + 5 API)**
-- `/lab` — 실험실 레이아웃 (3탭: 개요/분석/검토 큐, 전폭 dot-grid 배경, 모노스페이스 teal accent)
+**Lab (실험실) (4 pages + 5 API)**
+- `/lab` — 실험실 레이아웃 (4탭: 개요/분석/검토 큐/방법론, 전폭 dot-grid 배경, 모노스페이스 teal accent)
 - `/lab/_index` — 개요 (InstrumentPanel 5개 스탯 + GraphViewer (인터랙티브 드래그, 줌/팬) + ExtractionLog)
 - `/lab/analysis` — 분석 + 시뮬레이션 통합 (5모드: 패턴/모순/클러스터/중심성/시뮬레이션)
 - `/lab/review` — 자동 추출 검토 큐 (승인/반려/편집, LabButton 컴포넌트)
+- `/lab/methods` — Method Pack 라이브러리 (12종, Tier 필터, Lab 스타일 적용, 기존 MethodPackCard/DetailDialog 재사용)
 - `/api/lab/review` — 검토 API (POST approve/reject/edit)
 - `/api/lab/analyze` — 분석 API (POST by type)
 - `/api/lab/simulate` — 시뮬레이션 API (POST propagate/scenario/timeline)
@@ -293,12 +294,12 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.6 Ideas Source Detail/Delete + Analysis Flow
+- **프로토타입**: v6.7 Lab Methods Tab Integration
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 28개 마이그레이션 (0000~0027), 로컬+프로덕션 적용 완료 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
 
 ### 주요 지표
-- **라우트**: 127개 (core 46 + ideas 8 + proposals 8 + lab 9 + venture 13 + market 3 + API 31 + folders 4 + 기타 5)
+- **라우트**: 128개 (core 46 + ideas 8 + proposals 8 + lab 10 + venture 13 + market 3 + API 31 + folders 4 + 기타 5)
 - **테이블**: 70개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges)
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
 - **테스트**: 661개 (44 test files, 로컬 + CI 모두 통과) — 온톨로지 테스트 6파일 64개 포함
@@ -306,7 +307,13 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 165)
+### 최근 변경 (세션 166)
+**실험실 — 방법론 탭 통합**:
+- ✅ `lab.tsx`: TABS 배열에 "방법론" 탭 추가 (3탭→4탭: 개요/분석/검토 큐/방법론)
+- ✅ `lab.methods.tsx` (신규): Method Pack 라이브러리를 실험실 탭으로 통합 — DB 로더, Tier 필터 (ALL/Tier-0/Tier-1/Tier-2), Lab 스타일 (모노스페이스/teal accent), 기존 MethodPackCard/MethodPackDetailDialog 컴포넌트 재사용
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 661개 통과 / build 성공 / CI/CD 배포 완료
+
+### 이전 변경 (세션 165)
 **아이디어 페이지 — 소스 상세/삭제 + 분석 시작 플로우 구현**:
 - ✅ `api.ideas.$id.sources.ts`: DELETE 핸들러 추가 — idea_sources 조인 레코드 삭제 (radarItem 자체는 유지)
 - ✅ `SourceInputPanel.tsx`: `<Link>` → `<button>` 전환, 클릭 시 선택/해제 토글, hover 시 X 삭제 버튼 표시
