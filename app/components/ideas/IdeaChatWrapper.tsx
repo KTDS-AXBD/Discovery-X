@@ -31,7 +31,7 @@ export function IdeaChatWrapper({
   totalSourceCount = 0,
 }: IdeaChatWrapperProps) {
   return (
-    <div className="flex shrink-0 flex-col border-l border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))]">
+    <div className="flex h-full min-w-0 flex-col overflow-hidden border-l border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))]">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-[var(--axis-border-default)] px-4 py-3">
         <h2 className="text-sm font-semibold text-[var(--axis-text-primary)]">채팅</h2>

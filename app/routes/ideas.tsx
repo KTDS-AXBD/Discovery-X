@@ -435,7 +435,7 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
           {/* Left: Source Input Panel */}
           {panel.leftOpen && (
             <>
-              <div style={{ width: panel.leftWidth }} className="group/left relative shrink-0">
+              <div style={{ width: panel.leftWidth }} className="group/left relative shrink-0 overflow-hidden">
                 {/* Collapse button */}
                 <button
                   type="button"
@@ -479,7 +479,7 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
                 side="right"
                 onResize={panel.resizeRight}
               />
-              <div style={{ width: panel.rightWidth }} className="group/right relative shrink-0">
+              <div style={{ width: panel.rightWidth }} className="group/right relative shrink-0 overflow-hidden">
                 {/* Collapse button */}
                 <button
                   type="button"
