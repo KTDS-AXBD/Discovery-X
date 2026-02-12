@@ -2,6 +2,7 @@
  * /settings — Settings page with role-based sections.
  */
 
+import { useState, useEffect, useCallback } from "react";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { Form, useLoaderData, useActionData } from "@remix-run/react";
@@ -18,6 +19,8 @@ import { FormField } from "~/components/ui/FormField";
 import { Select } from "~/components/ui/Select";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { Badge } from "~/components/ui/Badge";
+import { TokenUsageChart } from "~/components/settings/TokenUsageChart";
+import { TokenUsageTable } from "~/components/settings/TokenUsageTable";
 
 const AUTONOMY_OPTIONS = [
   { value: "0", label: "Passive — 응답만" },
@@ -88,12 +91,41 @@ export async function action({ request, context }: ActionFunctionArgs) {
   return json({ success: true });
 }
 
+interface TokenUsageData {
+  dailySummary: Array<{ date: string; mode: string; total_tokens: number; request_count: number }>;
+  todayUsage: { tokensUsedToday: number; dailyTokenBudget: number; tokenResetDate: string | null };
+  recentLogs: Array<{
+    id: string; mode: string; model: string;
+    inputTokens: number; outputTokens: number; totalTokens: number;
+    toolRounds: number; createdAt: string | number | null;
+  }>;
+}
+
+function useTokenUsage(isAdmin: boolean) {
+  const [data, setData] = useState<TokenUsageData | null>(null);
+  const [range, setRange] = useState<"7d" | "30d">("7d");
+  const [modeFilter, setModeFilter] = useState("all");
+
+  const fetchData = useCallback(() => {
+    if (!isAdmin) return;
+    fetch(`/api/admin/token-usage?range=${range}&mode=${modeFilter}`)
+      .then((r) => r.json() as Promise<TokenUsageData>)
+      .then(setData)
+      .catch(() => {});
+  }, [isAdmin, range, modeFilter]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  return { data, range, setRange, modeFilter, setModeFilter };
+}
+
 export default function Settings() {
   const { user, config } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const role = user.role || UserRole.USER;
   const isAdmin = role === UserRole.ADMIN;
   const isGatekeeperOrAbove = role === UserRole.GATEKEEPER || isAdmin;
+  const tokenUsage = useTokenUsage(isAdmin);
 
   return (
     <AppShell user={user}>
@@ -226,6 +258,23 @@ export default function Settings() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Token usage monitoring (loaded client-side) */}
+            {tokenUsage.data && (
+              <>
+                <TokenUsageChart
+                  dailySummary={tokenUsage.data.dailySummary}
+                  todayUsage={tokenUsage.data.todayUsage}
+                  range={tokenUsage.range}
+                  onRangeChange={tokenUsage.setRange}
+                />
+                <TokenUsageTable
+                  logs={tokenUsage.data.recentLogs}
+                  modeFilter={tokenUsage.modeFilter}
+                  onModeChange={tokenUsage.setModeFilter}
+                />
+              </>
+            )}
 
             <Card>
               <CardHeader>
