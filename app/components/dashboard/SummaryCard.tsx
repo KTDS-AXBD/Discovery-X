@@ -187,7 +187,7 @@ export function SummaryCard({ item, reaction }: SummaryCardProps) {
             </Link>
             <Link
               to={`/ideas?sourceItemId=${item.id}`}
-              className="rounded-md bg-[var(--axis-text-primary)] px-4 py-1.5 text-sm font-medium text-[var(--axis-surface-primary)] transition-colors hover:opacity-90"
+              className="rounded-md bg-[var(--axis-text-brand,#2563EB)] px-4 py-1.5 text-sm font-medium text-white transition-colors hover:opacity-90"
             >
               아이디어 생성
             </Link>

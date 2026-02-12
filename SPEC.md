@@ -36,6 +36,8 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
   - 2컬럼 레이아웃: SourceSidebar (280px, 읽음/안읽음 시각 구분) + SummaryCard + PeerBriefing
   - SummaryCard: "핵심 요약" 배지 + 요약 텍스트 + "키워드" 배지 + "원본 링크" 배지 + 반응(like/dislike) + "소스 수집 관리"/"아이디어 생성" 액션 버튼
   - 아이템 선택 시 자동 viewed 처리 (radarItemUserStatus.status → "viewed")
+  - 파이프라인 섹션 (v6.4): Discovery 11단계 현황 (PIPELINE_COLUMNS 기반, 카테고리별 그룹핑, 실 DB 데이터) — 별도 패널, 왼쪽 맞춤
+  - 통계 섹션 (v6.4): 4개 핵심 지표 (소스 수집/발굴 건수/활성 파이프라인/사업 제안) — 실 DB 데이터
 - 아이디어 워크스페이스: ideas 테이블 + 멀티소스 그룹핑 + 전용 헤더 레이아웃 + 6탭 가젯 + 사업 제안 모달 (v6.2)
 
 **Out-of-scope (PRD §2.2, §7.3)**
@@ -304,7 +306,15 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 161)
+### 최근 변경 (세션 162)
+**아이디어 소스 패널 — 디자인 목업 대비 누락 기능 보완**:
+- ✅ `SourceInputPanel.tsx`: "수집된 소스에서 선택하기" 하단 섹션 추가 — 클릭 시 아이디어에 소스 추가, 이미 추가된 소스 자동 제외
+- ✅ `SourceInputPanel.tsx`: 빈 상태 개선 — 박스 아이콘 + "새로운 사업 발굴을 위해 다양한 소스를 모아두는 공간입니다." 텍스트
+- ✅ `ideas.tsx`: `collectedItems={allItems}` prop 전달 (전체 수집 소스)
+- ✅ `ideas._index.tsx`: 제안 칩 텍스트 디자인 목업에 맞게 변경
+- ✅ typecheck 0 에러 / lint 0 에러
+
+### 이전 변경 (세션 161)
 **사업 제안 페이지 — 파이프라인 칸반 + 카테고리 카드 리디자인 + 샘플 데이터 46건**:
 - ✅ `PipelineView.tsx`: 숫자 카운트 → 5컬럼 칸반 (각 컬럼에 아이콘+라벨+건수+아이템 제목 나열, 최대 10개+"외 N건")
 - ✅ `proposals._index.tsx`: loader 확장 — stages에 `items: { id, title }[]` 추가

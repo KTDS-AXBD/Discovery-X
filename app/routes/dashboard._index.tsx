@@ -15,6 +15,8 @@ import { tenantWhere } from "~/lib/query/tenant-scope";
 import { SourceSidebar } from "~/components/dashboard/SourceSidebar";
 import { SummaryCard } from "~/components/dashboard/SummaryCard";
 import { PeerBriefingSection } from "~/components/dashboard/PeerBriefingSection";
+import { PipelineSection } from "~/components/dashboard/PipelineSection";
+import { StatisticsSection } from "~/components/dashboard/StatisticsSection";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -194,28 +196,45 @@ export default function DashboardOverview() {
     (item) => item.id === selectedItemId,
   ) ?? null;
 
+  const activeCount = totalDiscoveries.items.filter(
+    (d) => !["HOLD", "DROP", "HANDOFF"].includes(d.status),
+  ).length;
+
   return (
-    <div className="grid grid-cols-[280px_1fr] gap-4">
-      {/* Left: Source sidebar */}
-      <SourceSidebar
-        items={recentCollections.items}
-        selectedItemId={selectedItemId}
-        viewedItemIds={localViewed}
-        onSelect={handleSelect}
-      />
-
-      {/* Right: Summary + PeerBriefing */}
-      <div className="space-y-4">
-        <SummaryCard
-          item={selectedItem}
-          reaction={selectedItemId ? (reactions[selectedItemId] ?? null) : null}
+    <div className="space-y-4">
+      <div className="grid grid-cols-[280px_1fr] gap-4">
+        {/* Left: Source sidebar */}
+        <SourceSidebar
+          items={recentCollections.items}
+          selectedItemId={selectedItemId}
+          viewedItemIds={localViewed}
+          onSelect={handleSelect}
         />
 
-        <PeerBriefingSection
-          ideas={totalDiscoveries.items}
-          proposals={strategyProposals.items}
-        />
+        {/* Right: Summary + PeerBriefing */}
+        <div className="space-y-4">
+          <SummaryCard
+            item={selectedItem}
+            reaction={selectedItemId ? (reactions[selectedItemId] ?? null) : null}
+          />
+
+          <PeerBriefingSection
+            ideas={totalDiscoveries.items}
+            proposals={strategyProposals.items}
+          />
+        </div>
       </div>
+
+      {/* Pipeline — 별도 레이어, 왼쪽 맞춤 */}
+      <PipelineSection discoveries={totalDiscoveries.items} />
+
+      {/* Statistics */}
+      <StatisticsSection
+        totalSources={recentCollections.total}
+        totalDiscoveries={totalDiscoveries.total}
+        activeDiscoveries={activeCount}
+        totalProposals={strategyProposals.total}
+      />
     </div>
   );
 }
