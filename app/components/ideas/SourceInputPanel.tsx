@@ -325,9 +325,17 @@ export function SourceInputPanel({
                 return (
                   <div
                     key={item.id}
+                    draggable={!!onDeleteSource}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData("application/json", JSON.stringify({ action: "remove", id: item.id }));
+                      e.dataTransfer.effectAllowed = "move";
+                      setDragAction("remove");
+                    }}
+                    onDragEnd={() => { setDragAction(null); setDropTargetActive(null); }}
                     className={cn(
                       "group relative flex items-center gap-1.5 rounded-lg px-2 py-2.5 transition-colors",
-                      "hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))]"
+                      "hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))]",
+                      dragAction === "remove" && "cursor-grab"
                     )}
                   >
                     {/* Checkbox */}
@@ -419,7 +427,7 @@ export function SourceInputPanel({
           </div>
         )}
 
-        {items.length === 0 && (
+        {items.length === 0 && !dragAction && (
           <div className="flex flex-1 flex-col items-center justify-center px-4 py-12 text-center">
             <div className="rounded-lg border border-dashed border-[var(--axis-border-default)] p-3">
               <svg className="mx-auto h-8 w-8 text-[var(--axis-text-tertiary)]" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -436,29 +444,81 @@ export function SourceInputPanel({
         )}
       </div>
 
-      {/* Collected sources section (bottom) */}
-      {availableCollected.length > 0 && (
-        <div className="shrink-0 border-t border-[var(--axis-border-default)] px-2 pb-3 pt-2">
+      {/* Collected sources section (bottom) — lower drop zone (remove target) */}
+      {(availableCollected.length > 0 || dragAction === "remove") && (
+        <div
+          className={cn(
+            "shrink-0 border-t border-[var(--axis-border-default)] px-2 pb-3 pt-2 transition-colors",
+            dropTargetActive === "lower" && "bg-red-50 dark:bg-red-900/10"
+          )}
+          onDragOver={(e) => {
+            if (dragAction === "remove") {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = "move";
+              setDropTargetActive("lower");
+            }
+          }}
+          onDragLeave={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+              setDropTargetActive(null);
+            }
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDropTargetActive(null);
+            try {
+              const data = JSON.parse(e.dataTransfer.getData("application/json"));
+              if (data.action === "remove" && onDeleteSource) onDeleteSource(data.id);
+            } catch { /* ignore non-JSON drops */ }
+          }}
+        >
+          {/* Drop zone hint for remove */}
+          {dragAction === "remove" && (
+            <div className={cn(
+              "mb-2 rounded-lg border-2 border-dashed px-3 py-2 text-center text-xs transition-colors",
+              dropTargetActive === "lower"
+                ? "border-red-400 bg-red-100/50 text-red-600 dark:border-red-500 dark:bg-red-900/20 dark:text-red-400"
+                : "border-[var(--axis-border-default)] text-[var(--axis-text-tertiary)]"
+            )}>
+              여기에 놓아 소스 제외
+            </div>
+          )}
+
           <p className="px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--axis-text-tertiary)]">
             수집된 소스에서 선택하기
           </p>
           <div className="max-h-48 space-y-0.5 overflow-y-auto">
             {paginatedCollected.map((item) => (
-              <button
+              <div
                 key={item.id}
-                type="button"
-                onClick={async () => {
-                  const url = item.url || `text://${item.title}`;
-                  const result = await onAddSources([url]);
-                  showFeedback(result);
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData("application/json", JSON.stringify({
+                    action: "add",
+                    id: item.id,
+                    url: item.url || `text://${item.title}`,
+                  }));
+                  e.dataTransfer.effectAllowed = "move";
+                  setDragAction("add");
                 }}
-                disabled={isAdding}
-                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition-colors hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))] disabled:opacity-60"
+                onDragEnd={() => { setDragAction(null); setDropTargetActive(null); }}
+                className="cursor-grab"
               >
-                <span className="min-w-0 flex-1 text-xs text-[var(--axis-text-secondary)] line-clamp-1">
-                  {displayTitle(item.titleKo, item.title, item.url)}
-                </span>
-              </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const url = item.url || `text://${item.title}`;
+                    const result = await onAddSources([url]);
+                    showFeedback(result);
+                  }}
+                  disabled={isAdding}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition-colors hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))] disabled:opacity-60"
+                >
+                  <span className="min-w-0 flex-1 text-xs text-[var(--axis-text-secondary)] line-clamp-1">
+                    {displayTitle(item.titleKo, item.title, item.url)}
+                  </span>
+                </button>
+              </div>
             ))}
           </div>
           {hasMoreCollected && (
