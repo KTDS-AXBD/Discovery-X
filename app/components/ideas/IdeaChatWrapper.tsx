@@ -1,5 +1,7 @@
 import { ChatPanel } from "~/components/chat/ChatPanel";
 import { PRIMARY_METHODOLOGIES } from "~/lib/constants/methodology";
+import { AnalysisProgress } from "~/components/ideas/AnalysisProgress";
+import type { CategoryState } from "~/components/ideas/AnalysisProgress";
 
 interface ChatMessage {
   id: string;
@@ -19,6 +21,8 @@ interface IdeaChatWrapperProps {
   autoMessage?: string | null;
   selectedSourceCount?: number;
   totalSourceCount?: number;
+  analysisRunning?: boolean;
+  categoryStates?: Record<string, CategoryState>;
 }
 
 export function IdeaChatWrapper({
@@ -29,7 +33,11 @@ export function IdeaChatWrapper({
   autoMessage,
   selectedSourceCount = 0,
   totalSourceCount = 0,
+  analysisRunning = false,
+  categoryStates = {},
 }: IdeaChatWrapperProps) {
+  const showProgress = analysisRunning || Object.keys(categoryStates).length > 0;
+
   return (
     <div className="flex h-full min-w-0 flex-col overflow-hidden border-l border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))]">
       {/* Header */}
@@ -41,6 +49,14 @@ export function IdeaChatWrapper({
           </span>
         )}
       </div>
+
+      {/* Analysis progress indicator */}
+      {showProgress && (
+        <AnalysisProgress
+          categoryStates={categoryStates}
+          isRunning={analysisRunning}
+        />
+      )}
 
       {/* Chat content */}
       <div className="flex-1 overflow-hidden">

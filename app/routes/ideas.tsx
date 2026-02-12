@@ -130,6 +130,10 @@ export default function IdeasLayout() {
   // Per-methodology loading state
   const [loadingCategory, setLoadingCategory] = useState<string | null>(null);
 
+  // Direct analysis state
+  const [analysisRunning, setAnalysisRunning] = useState(false);
+  const [categoryStates, setCategoryStates] = useState<Record<string, "pending" | "running" | "complete" | "failed">>({});
+
   // Source items for the selected idea (or all items if no idea selected)
   const [ideaSourceItems, setIdeaSourceItems] = useState(allItems);
 
@@ -297,7 +301,6 @@ export default function IdeasLayout() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ title: "새 아이디어" }),
         });
-        // The POST redirects, but we need the ID from the redirect URL
         if (res.redirected) {
           const redirectUrl = new URL(res.url);
           ideaId = redirectUrl.pathname.split("/").pop();
@@ -309,40 +312,78 @@ export default function IdeasLayout() {
 
     if (!ideaId) return;
 
-    // Build source context for the agent (only selected sources)
+    // Navigate to the idea detail page if needed
+    if (!selectedIdeaId) {
+      navigate(`/ideas/${ideaId}`);
+    }
+
+    // Build source context
     const selectedSources = ideaSourceItems.filter((s) => selectedSourceIds.includes(s.id));
-    const sourceSummaries = selectedSources
+    const sourceContext = selectedSources
       .map((s) => {
         const title = s.titleKo || s.title || "제목 없음";
         const summary = s.summaryKo || "";
         const url = s.url && !s.url.startsWith("text://") ? s.url : "";
         return `- **${title}**${summary ? `: ${summary}` : ""}${url ? ` (${url})` : ""}`;
       })
-      .join("\n");
+      .join("\n") || "소스 없음";
 
-    const analysisMsg = `추가된 소스를 분석하여 다음 6가지 카테고리로 사업 아이디어를 정리해주세요.
+    // Initialize category states
+    const initialStates: Record<string, "pending"> = {};
+    const cats = ["industry_example", "regulation", "market_research", "customer_research", "feasibility", "differentiation"];
+    for (const c of cats) initialStates[c] = "pending";
+    setCategoryStates(initialStates);
+    setAnalysisRunning(true);
 
-아이디어 ID: ${ideaId}
+    // Call direct analysis API with SSE
+    try {
+      const res = await fetch(`/api/ideas/${ideaId}/analyze`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sourceContext }),
+      });
 
-## 분석할 소스
-${sourceSummaries || "소스 없음"}
+      if (!res.ok || !res.body) {
+        setAnalysisRunning(false);
+        return;
+      }
 
-## 카테고리
-1. industry_example (산업별 사업 예시)
-2. regulation (규제/법)
-3. market_research (시장 조사)
-4. customer_research (고객 조사)
-5. feasibility (사업성 검증)
-6. differentiation (차별화)
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
 
-각 카테고리별로 update_idea_analysis 도구를 사용하여 분석 결과를 저장해주세요. ideaId는 "${ideaId}"입니다.`;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-    // Navigate to the idea detail page if needed
-    if (!selectedIdeaId) {
-      navigate(`/ideas/${ideaId}`);
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const event = JSON.parse(line.slice(6));
+            if (event.type === "category_start" && event.category) {
+              setCategoryStates((prev) => ({ ...prev, [event.category]: "running" }));
+            } else if (event.type === "category_complete" && event.category) {
+              setCategoryStates((prev) => ({ ...prev, [event.category]: "complete" }));
+              revalidator.revalidate();
+            } else if (event.type === "category_error" && event.category) {
+              setCategoryStates((prev) => ({ ...prev, [event.category]: "failed" }));
+            }
+          } catch {
+            // Skip malformed JSON
+          }
+        }
+      }
+    } catch {
+      // Network error
     }
-    setAutoMessage(analysisMsg);
-  }, [selectedIdeaId, ideaSourceItems, selectedSourceIds, navigate]);
+
+    setAnalysisRunning(false);
+    revalidator.revalidate();
+  }, [selectedIdeaId, ideaSourceItems, selectedSourceIds, navigate, revalidator]);
 
   const handleRunMethodology = useCallback(async (category: string) => {
     let ideaId = selectedIdeaId;
@@ -504,6 +545,8 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
                   autoMessage={autoMessage}
                   selectedSourceCount={selectedSourceIds.length}
                   totalSourceCount={ideaSourceItems.length}
+                  analysisRunning={analysisRunning}
+                  categoryStates={categoryStates}
                 />
               </div>
             </>
