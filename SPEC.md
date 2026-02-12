@@ -38,7 +38,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
   - 아이템 선택 시 자동 viewed 처리 (radarItemUserStatus.status → "viewed")
   - 파이프라인 섹션 (v6.4): Discovery 11단계 현황 (PIPELINE_COLUMNS 기반, 카테고리별 그룹핑, 실 DB 데이터) — 별도 패널, 왼쪽 맞춤
   - 통계 섹션 (v6.4): 4개 핵심 지표 (소스 수집/발굴 건수/활성 파이프라인/사업 제안) — 실 DB 데이터
-- 아이디어 워크스페이스: ideas 테이블 + 멀티소스 그룹핑 + 전용 헤더 레이아웃 + 6탭 가젯 + 사업 제안 모달 + 소스 상세/삭제 + 분석 시작 플로우 (v6.2→v6.6)
+- 아이디어 워크스페이스: ideas 테이블 + 멀티소스 그룹핑 + 전용 헤더 레이아웃 + 6탭 가젯 + 사업 제안 모달 + 소스 상세/삭제 + 분석 시작 플로우 + NotebookLM 스타일 멀티소스 선택 + 선택 기반 분석/채팅 (v6.2→v6.8)
 
 **Out-of-scope (PRD §2.2, §7.3)**
 - 전사 공식 포털/플랫폼
@@ -294,7 +294,7 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.7 Lab Methods Tab Integration
+- **프로토타입**: v6.8 Ideas Multi-Source Selection
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 28개 마이그레이션 (0000~0027), 로컬+프로덕션 적용 완료 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
 
@@ -307,7 +307,16 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 167)
+### 최근 변경 (세션 168)
+**아이디어 페이지 — NotebookLM 스타일 멀티소스 선택 + lint 수정 + 배포**:
+- ✅ `ideas.tsx`: `selectedSourceId` → `selectedSourceIds[]` 배열 기반 멀티셀렉트, `handleToggleSource`/`handleToggleAll` 핸들러, 소스 추가 시 자동 전체 선택, 선택된 소스만 분석 프롬프트에 포함, 패널 리사이즈/접기 기능 통합
+- ✅ `SourceInputPanel.tsx`: 각 소스에 체크박스(원형 체크/언체크 아이콘), 헤더에 "모든 소스 선택" 전체 토글 + "N개 선택" 카운터, 체크 해제 시 제목 흐리게 표시
+- ✅ `ideas._index.tsx`: Outlet context 타입 업데이트 (`detailSourceId` + `selectedSourceIds`), 분석 버튼에 "N개 소스 분석 시작" 표시, 0개 선택 시 비활성화
+- ✅ `IdeaChatWrapper.tsx`: 헤더에 "N/M개 소스" 뱃지 표시
+- ✅ `use-panel-layout.ts`: lint 에러 수정 — `requestAnimationFrame`으로 비동기 setState
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 661개 통과 / build 성공 / CI/CD 배포 완료 (1m 44s)
+
+### 이전 변경 (세션 167)
 **아이디어 분석 429 Rate Limit 경량 모드 + 패널 레이아웃**:
 - ✅ Ideas 전용 경량 모드 추가: `mode="ideas"` 파라미터로 도구 1개 + 35줄 프롬프트만 전송 (기존 73개 도구 + 244줄 → ~85% 토큰 절약)
 - ✅ `buildIdeaSystemPrompt()` 신규 추가 — `update_idea_analysis` 전용 경량 시스템 프롬프트
