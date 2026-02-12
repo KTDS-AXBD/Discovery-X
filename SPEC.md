@@ -293,9 +293,9 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.4 Proposals Pipeline Kanban + Category Card Redesign + Sample Data 46건
-- **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 배포 완료 (세션 163)
-- **DB**: 28개 마이그레이션 (0000~0027), 로컬+프로덕션 적용 완료 + 프로덕션 샘플 데이터 46건 삽입
+- **프로토타입**: v6.5 Ideas GNB + Source Metadata Fix + Seed Data
+- **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions ✅ 배포 완료 (세션 164)
+- **DB**: 28개 마이그레이션 (0000~0027), 로컬+프로덕션 적용 완료 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
 
 ### 주요 지표
 - **라우트**: 127개 (core 46 + ideas 8 + proposals 8 + lab 9 + venture 13 + market 3 + API 31 + folders 4 + 기타 5)
@@ -306,14 +306,19 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 163)
+### 최근 변경 (세션 164)
+**아이디어 페이지 — GNB 공통 메뉴 + 소스 메타데이터 수정 + 샘플 데이터 추가**:
+- ✅ `IdeaPageHeader.tsx`: GNB 4탭 (대시보드/아이디어/사업제안/실험실) 추가 — 현재 경로 하이라이트, 모바일은 제목만 표시
+- ✅ `display-title.ts`: `getUrlLabel()` 헬퍼 추가 — 의미 없는 제목(댓글 N개, 짧은 메타데이터) 대신 URL 호스트네임 폴백
+- ✅ `SourceInputPanel.tsx` + `SummaryCard.tsx`: `displayTitle()` 호출 시 URL 전달하여 메타데이터 대신 URL 표시
+- ✅ `api.ideas.seed.ts`: 비즈니스 관련 10개 샘플 소스 시드 API (AI 에이전트/웨어러블 로봇/XR 전시/감사 AI/RegTech)
+- ✅ 프로덕션 시드 실행 완료: 10개 소스 생성 (titleKo + summaryKo 포함)
+- ✅ typecheck 0 에러 / lint 0 에러 / CI/CD 배포 완료 (1m 44s)
+
+### 이전 변경 (세션 163)
 **실험실 그래프 인터랙티브 — 노드 드래그/줌/팬 기능 추가 + 프로덕션 배포**:
-- ✅ `GraphViewer.tsx`: 노드 드래그 (PointerEvent 기반, 드래그 중 force simulation 재가열로 연결 노드 물리 반응)
-- ✅ `GraphViewer.tsx`: 줌 (마우스 휠 커서 중심 줌 0.3x~3x + 우측 상단 +/−/1:1 컨트롤 버튼 + 줌 레벨 인디케이터)
-- ✅ `GraphViewer.tsx`: 팬 (배경 드래그, document-level 리스너로 SVG 밖 이동 추적)
-- ✅ `GraphViewer.tsx`: 시각 피드백 (드래그 중 teal glow 링, grab/grabbing 커서, 드래그/클릭 구분)
-- ✅ SPEC.md §1 Lab Intelligence v6.2 반영, §2 GraphViewer 설명 업데이트
-- ✅ typecheck 0 에러 / lint 0 에러 / 661 테스트 통과 / CI/CD 배포 완료 (1m 39s)
+- ✅ `GraphViewer.tsx`: 노드 드래그/줌/팬 + 시각 피드백
+- ✅ CI/CD 배포 완료 (1m 39s)
 
 ### 이전 변경 (세션 162)
 **아이디어 소스 패널 — 디자인 목업 대비 누락 기능 보완**:
