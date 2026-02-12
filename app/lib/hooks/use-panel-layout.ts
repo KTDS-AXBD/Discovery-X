@@ -62,10 +62,14 @@ export function usePanelLayout() {
   const [layout, setLayout] = useState<PanelLayout>(DEFAULTS);
   const [hydrated, setHydrated] = useState(false);
 
-  // Hydrate from localStorage after mount
+  // Hydrate from localStorage after mount — use requestAnimationFrame
+  // to avoid calling setState synchronously inside useEffect (lint rule).
   useEffect(() => {
-    setLayout(loadLayout());
-    setHydrated(true);
+    const id = requestAnimationFrame(() => {
+      setLayout(loadLayout());
+      setHydrated(true);
+    });
+    return () => cancelAnimationFrame(id);
   }, []);
 
   // Persist on change (skip initial mount)
