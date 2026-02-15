@@ -38,7 +38,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
   - 아이템 선택 시 자동 viewed 처리 (radarItemUserStatus.status → "viewed")
   - 파이프라인 섹션 (v6.4): Discovery 11단계 현황 (PIPELINE_COLUMNS 기반, 카테고리별 그룹핑, 실 DB 데이터) — 별도 패널, 왼쪽 맞춤
   - 통계 섹션 (v6.4): 4개 핵심 지표 (소스 수집/발굴 건수/활성 파이프라인/사업 제안) — 실 DB 데이터
-- 아이디어 워크스페이스: ideas 테이블 + 멀티소스 그룹핑 + 전용 헤더 레이아웃 + 12종 방법론 카드 + 사업 제안 모달 + 소스 상세/삭제 + 분석 시작 플로우 + NotebookLM 스타일 멀티소스 선택 + 선택 기반 분석/채팅 + 좌우 패널 리사이즈/토글 + 제목 인라인 편집 + AI 제목 추천 + 방법론 카드 마크다운 렌더링 + SSE 전용 분석 API (chat agent 루프 우회, 카테고리별 직접 Claude 호출) + 분석 진행률 UI + 소스 Drag & Drop 추가/제거 + 분석 sourceIds 추적 및 stale 감지 (v6.2→v6.13)
+- 아이디어 워크스페이스: ideas 테이블 + 멀티소스 그룹핑 + 전용 헤더 레이아웃 + 12종 방법론 카드 + 사업 제안 모달 + 소스 상세/삭제 + 분석 시작 플로우 + NotebookLM 스타일 멀티소스 선택 + 선택 기반 분석/채팅 + 좌우 패널 리사이즈/토글 + 제목 인라인 편집 + AI 제목 추천 + 방법론 카드 마크다운 렌더링 + SSE 전용 분석 API (chat agent 루프 우회, 카테고리별 직접 Claude 호출) + 분석 진행률 UI + 소스 Drag & Drop 추가/제거 + 분석 sourceIds 추적 및 stale 감지 + 아이디어→사업제안 생성 플로우 (분석 데이터 매핑, 12 카테고리→10 섹션) (v6.2→v6.14)
 - 토큰 사용량 모니터링 (관리자): token_usage_logs 테이블 + 일별 사용량 차트 (모드별 스택 바) + 최근 로그 테이블 + 관리자 API (v6.12)
 
 **Out-of-scope (PRD §2.2, §7.3)**
@@ -295,12 +295,12 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.13 Source DnD + Analysis SourceIds Tracking
+- **프로토타입**: v6.14 Idea-to-Proposal Creation Flow
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 30개 마이그레이션 (0000~0029), 로컬+프로덕션 적용 완료 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
 
 ### 주요 지표
-- **라우트**: 128개 (core 46 + ideas 8 + proposals 8 + lab 10 + venture 13 + market 3 + API 31 + folders 4 + 기타 5)
+- **라우트**: 130개 (core 46 + ideas 8 + proposals 8 + lab 10 + venture 13 + market 3 + API 33 + folders 4 + 기타 5)
 - **테이블**: 71개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges)
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
 - **테스트**: 661개 (44 test files, 로컬 + CI 모두 통과) — 온톨로지 테스트 6파일 64개 포함
@@ -308,7 +308,16 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 174)
+### 최근 변경 (세션 175)
+**아이디어→사업 제안서 생성 플로우 구현**:
+- ✅ `ProposalCreationModal.tsx`: 완전 재구현 — 모달 열릴 때 분석 데이터 fetch, 왼쪽 패널에 완료된 분석 카테고리 체크박스 리스트 (자동 선택), 오른쪽 7탭 제안서 섹션 미리보기 (ReactMarkdown), 로딩/에러/빈 상태 처리
+- ✅ `api.ideas.$id.analysis.ts` (신규): GET — 아이디어 분석 데이터 조회 API
+- ✅ `api.ideas.$id.create-proposal.ts` (신규): POST — 선택된 분석 카테고리로 사업 제안서 자동 생성, proposals + proposal_sections INSERT
+- ✅ `proposal-mapper.ts` (신규): 12개 분석 카테고리 → 10개 제안서 섹션 매핑 로직 (overview←bmc/industry_example, hypothesis←critical_thinking/swot, target_market←market_research 등)
+- ✅ `ideas.tsx`: 모달에 `ideaId` + `onProposalCreated` 콜백 전달, 생성 완료 시 `/proposals/:id` 자동 이동
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
+
+### 이전 변경 (세션 174)
 **소스 Drag & Drop + 분석 sourceIds 추적 + stale 섹션 감지**:
 - ✅ `SourceInputPanel.tsx`: 수집 소스 → 상단 드래그로 추가, 선택 소스 → 하단 드래그로 제거 (Native HTML5 DnD), 드래그 중 시각적 피드백 (점선 테두리 + 힌트 텍스트), 기존 클릭/X버튼 동작 유지
 - ✅ `MethodologyCards.tsx`: `sourceIds`/`analyzedAt`/`staleSections` props 추가 — 소스 변경 시 stale 표시 지원
