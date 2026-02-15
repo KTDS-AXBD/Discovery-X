@@ -295,7 +295,7 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.14 Idea-to-Proposal Creation Flow
+- **프로토타입**: v6.14 Idea-to-Proposal Creation Flow + Source Panel Resize
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 30개 마이그레이션 (0000~0029), 로컬+프로덕션 적용 완료 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
 
@@ -315,7 +315,10 @@ build/
 - ✅ `api.ideas.$id.create-proposal.ts` (신규): POST — 선택된 분석 카테고리로 사업 제안서 자동 생성, proposals + proposal_sections INSERT
 - ✅ `proposal-mapper.ts` (신규): 12개 분석 카테고리 → 10개 제안서 섹션 매핑 로직 (overview←bmc/industry_example, hypothesis←critical_thinking/swot, target_market←market_research 등)
 - ✅ `ideas.tsx`: 모달에 `ideaId` + `onProposalCreated` 콜백 전달, 생성 완료 시 `/proposals/:id` 자동 이동
-- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
+- ✅ `SourceInputPanel.tsx`: 수집 소스 패널 페이지네이션 → 수직 리사이즈 전환 (120~400px, localStorage 저장)
+- ✅ `vite.config.ts`: `getPlatformProxy()` → `cloudflareDevProxyVitePlugin()` 전환
+- ✅ `auth.google.tsx`: 디버그 console.log 제거
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공 / CI/CD 배포 완료
 
 ### 이전 변경 (세션 174)
 **소스 Drag & Drop + 분석 sourceIds 추적 + stale 섹션 감지**:
