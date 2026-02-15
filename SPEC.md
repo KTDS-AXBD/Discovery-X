@@ -313,6 +313,7 @@ build/
 - ✅ `CLAUDE.md`: `@axis-ds` 디자인 시스템 명시, SSR external/noExternal 실제 vite.config.ts와 일치, Vite 빌드 gotcha 추가, app/ 디렉토리 구조 개요 추가
 - ✅ `~/.claude/CLAUDE.md` (글로벌): 한국어 응답 명시, Conventional Commits 승격, 환경 섹션(Node.js 20+/pnpm/WSL2), import 정렬 규칙 추가
 - ✅ Working tree 복원: 561개 unstaged deletion → `git checkout --` 으로 전체 복원
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 661개 통과 / build 성공 / CI/CD 배포 완료 (1m 50s)
 
 ### 이전 변경 (세션 176)
 **Google 로그인 수정 + TopNav hydration mismatch 해결**:
