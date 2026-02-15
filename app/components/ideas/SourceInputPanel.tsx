@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useMemo } from "react";
+import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { cn } from "~/lib/utils/cn";
 import { displayTitle } from "~/lib/utils/display-title";
 
@@ -14,7 +14,10 @@ interface RadarItem {
 }
 
 const PAGE_SIZE = 10;
-const COLLECTED_PAGE_SIZE = 6;
+const COLLECTED_MIN_HEIGHT = 120;
+const COLLECTED_MAX_HEIGHT = 400;
+const COLLECTED_DEFAULT_HEIGHT = 200;
+const COLLECTED_HEIGHT_KEY = "dx-source-collected-height";
 
 interface SourceInputPanelProps {
   items: RadarItem[];
@@ -44,7 +47,6 @@ export function SourceInputPanel({
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [show24h, setShow24h] = useState(false);
   const [page, setPage] = useState(1);
-  const [collectedPage, setCollectedPage] = useState(1);
   const feedbackTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   // Drag & Drop state
@@ -138,9 +140,48 @@ export function SourceInputPanel({
     () => collectedItems.filter((c) => !addedIds.has(c.id)),
     [collectedItems, addedIds]
   );
-  const collectedTotalPages = Math.max(1, Math.ceil(availableCollected.length / COLLECTED_PAGE_SIZE));
-  const paginatedCollected = availableCollected.slice(0, collectedPage * COLLECTED_PAGE_SIZE);
-  const hasMoreCollected = paginatedCollected.length < availableCollected.length;
+  // Collected section vertical resize
+  const [collectedHeight, setCollectedHeight] = useState(COLLECTED_DEFAULT_HEIGHT);
+  const [isResizingCollected, setIsResizingCollected] = useState(false);
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      try {
+        const saved = localStorage.getItem(COLLECTED_HEIGHT_KEY);
+        if (saved) {
+          const h = parseInt(saved, 10);
+          if (!isNaN(h)) setCollectedHeight(Math.min(COLLECTED_MAX_HEIGHT, Math.max(COLLECTED_MIN_HEIGHT, h)));
+        }
+      } catch { /* ignore */ }
+    });
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  useEffect(() => {
+    try { localStorage.setItem(COLLECTED_HEIGHT_KEY, String(collectedHeight)); } catch { /* ignore */ }
+  }, [collectedHeight]);
+
+  const handleCollectedResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizingCollected(true);
+    let startY = e.clientY;
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const delta = startY - moveEvent.clientY;
+      startY = moveEvent.clientY;
+      setCollectedHeight((prev) => Math.min(COLLECTED_MAX_HEIGHT, Math.max(COLLECTED_MIN_HEIGHT, prev + delta)));
+    };
+    const handleMouseUp = () => {
+      setIsResizingCollected(false);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    document.body.style.cursor = "row-resize";
+    document.body.style.userSelect = "none";
+  }, []);
 
   return (
     <div className="flex h-full shrink-0 flex-col border-r border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))]">
@@ -444,93 +485,103 @@ export function SourceInputPanel({
         )}
       </div>
 
-      {/* Collected sources section (bottom) — lower drop zone (remove target) */}
+      {/* Vertical resize handle + Collected sources section (bottom) */}
       {(availableCollected.length > 0 || dragAction === "remove") && (
-        <div
-          className={cn(
-            "shrink-0 border-t border-[var(--axis-border-default)] px-2 pb-3 pt-2 transition-colors",
-            dropTargetActive === "lower" && "bg-red-50 dark:bg-red-900/10"
-          )}
-          onDragOver={(e) => {
-            if (dragAction === "remove") {
-              e.preventDefault();
-              e.dataTransfer.dropEffect = "move";
-              setDropTargetActive("lower");
-            }
-          }}
-          onDragLeave={(e) => {
-            if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-              setDropTargetActive(null);
-            }
-          }}
-          onDrop={(e) => {
-            e.preventDefault();
-            setDropTargetActive(null);
-            try {
-              const data = JSON.parse(e.dataTransfer.getData("application/json"));
-              if (data.action === "remove" && onDeleteSource) onDeleteSource(data.id);
-            } catch { /* ignore non-JSON drops */ }
-          }}
-        >
-          {/* Drop zone hint for remove */}
-          {dragAction === "remove" && (
-            <div className={cn(
-              "mb-2 rounded-lg border-2 border-dashed px-3 py-2 text-center text-xs transition-colors",
-              dropTargetActive === "lower"
-                ? "border-red-400 bg-red-100/50 text-red-600 dark:border-red-500 dark:bg-red-900/20 dark:text-red-400"
-                : "border-[var(--axis-border-default)] text-[var(--axis-text-tertiary)]"
-            )}>
-              여기에 놓아 소스 제외
-            </div>
-          )}
-
-          <p className="px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--axis-text-tertiary)]">
-            수집된 소스에서 선택하기
-          </p>
-          <div className="max-h-48 space-y-0.5 overflow-y-auto">
-            {paginatedCollected.map((item) => (
-              <div
-                key={item.id}
-                draggable
-                onDragStart={(e) => {
-                  e.dataTransfer.setData("application/json", JSON.stringify({
-                    action: "add",
-                    id: item.id,
-                    url: item.url || `text://${item.title}`,
-                  }));
-                  e.dataTransfer.effectAllowed = "move";
-                  setDragAction("add");
-                }}
-                onDragEnd={() => { setDragAction(null); setDropTargetActive(null); }}
-                className="cursor-grab"
-              >
-                <button
-                  type="button"
-                  onClick={async () => {
-                    const url = item.url || `text://${item.title}`;
-                    const result = await onAddSources([url]);
-                    showFeedback(result);
-                  }}
-                  disabled={isAdding}
-                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition-colors hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))] disabled:opacity-60"
-                >
-                  <span className="min-w-0 flex-1 text-xs text-[var(--axis-text-secondary)] line-clamp-1">
-                    {displayTitle(item.titleKo, item.title, item.url)}
-                  </span>
-                </button>
-              </div>
-            ))}
+        <>
+          {/* Resize handle */}
+          <div
+            role="separator"
+            aria-orientation="horizontal"
+            onMouseDown={handleCollectedResizeStart}
+            className={cn(
+              "relative z-10 flex h-px shrink-0 cursor-row-resize items-center justify-center transition-colors",
+              isResizingCollected
+                ? "bg-[var(--axis-text-brand)]"
+                : "bg-[var(--axis-border-default)] hover:bg-[var(--axis-text-brand)]"
+            )}
+          >
+            <div className="absolute -top-1.5 -bottom-1.5 inset-x-0" />
           </div>
-          {hasMoreCollected && (
-            <button
-              type="button"
-              onClick={() => setCollectedPage((p) => p + 1)}
-              className="mt-1 w-full rounded-md px-3 py-1 text-xs text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-secondary)]"
-            >
-              더보기 ({collectedPage}/{collectedTotalPages})
-            </button>
-          )}
-        </div>
+
+          {/* Collected sources — lower drop zone (remove target) */}
+          <div
+            className={cn(
+              "flex shrink-0 flex-col px-2 pb-3 pt-2 transition-colors",
+              dropTargetActive === "lower" && "bg-red-50 dark:bg-red-900/10"
+            )}
+            style={{ height: collectedHeight }}
+            onDragOver={(e) => {
+              if (dragAction === "remove") {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+                setDropTargetActive("lower");
+              }
+            }}
+            onDragLeave={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                setDropTargetActive(null);
+              }
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDropTargetActive(null);
+              try {
+                const data = JSON.parse(e.dataTransfer.getData("application/json"));
+                if (data.action === "remove" && onDeleteSource) onDeleteSource(data.id);
+              } catch { /* ignore non-JSON drops */ }
+            }}
+          >
+            {/* Drop zone hint for remove */}
+            {dragAction === "remove" && (
+              <div className={cn(
+                "mb-2 rounded-lg border-2 border-dashed px-3 py-2 text-center text-xs transition-colors",
+                dropTargetActive === "lower"
+                  ? "border-red-400 bg-red-100/50 text-red-600 dark:border-red-500 dark:bg-red-900/20 dark:text-red-400"
+                  : "border-[var(--axis-border-default)] text-[var(--axis-text-tertiary)]"
+              )}>
+                여기에 놓아 소스 제외
+              </div>
+            )}
+
+            <p className="shrink-0 px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--axis-text-tertiary)]">
+              수집된 소스에서 선택하기
+            </p>
+            <div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto">
+              {availableCollected.map((item) => (
+                <div
+                  key={item.id}
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData("application/json", JSON.stringify({
+                      action: "add",
+                      id: item.id,
+                      url: item.url || `text://${item.title}`,
+                    }));
+                    e.dataTransfer.effectAllowed = "move";
+                    setDragAction("add");
+                  }}
+                  onDragEnd={() => { setDragAction(null); setDropTargetActive(null); }}
+                  className="cursor-grab"
+                >
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const url = item.url || `text://${item.title}`;
+                      const result = await onAddSources([url]);
+                      showFeedback(result);
+                    }}
+                    disabled={isAdding}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition-colors hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))] disabled:opacity-60"
+                  >
+                    <span className="min-w-0 flex-1 text-xs text-[var(--axis-text-secondary)] line-clamp-1">
+                      {displayTitle(item.titleKo, item.title)}
+                    </span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
