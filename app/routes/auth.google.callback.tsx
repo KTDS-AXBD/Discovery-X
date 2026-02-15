@@ -17,6 +17,7 @@ import {
 
 // AX BD팀 화이트리스트 — 최초 로그인 시 자동으로 role: "user" 부여
 const WHITELIST_EMAILS = [
+  "sinclairseo@gmail.com", // 서민원 (admin)
   "dbdbdbdib@gmail.com",   // 윤대범
   "ghimeugene@gmail.com",  // 김기욱
   "bbusisi@gmail.com",     // 김경임
