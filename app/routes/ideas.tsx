@@ -573,6 +573,11 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
           open={proposalModalOpen}
           onOpenChange={setProposalModalOpen}
           ideaTitle={currentIdea?.title}
+          ideaId={selectedIdeaId}
+          onProposalCreated={(proposalId) => {
+            setProposalModalOpen(false);
+            navigate(`/proposals/${proposalId}`);
+          }}
         />
       </div>
     </SidebarProvider>
