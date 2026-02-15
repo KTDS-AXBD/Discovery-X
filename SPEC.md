@@ -308,7 +308,16 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 175)
+### 최근 변경 (세션 176)
+**Google 로그인 수정 + TopNav hydration mismatch 해결**:
+- ✅ `.dev.vars`: Google OAuth Client ID 오타 수정 (`vnqg` → `vngq`, `155` → `455`)
+- ✅ `auth.google.callback.tsx`: `sinclairseo@gmail.com` 화이트리스트 추가
+- ✅ `auth.google.tsx`: 디버그 console.log 제거 (세션 175 잔여)
+- ✅ `TopNav.tsx`: 테마 토글 아이콘 hydration mismatch 해결 — `mounted` 상태로 클라이언트 마운트 후에만 테마 아이콘 렌더링
+- ✅ 로컬 D1: `sinclairseo@gmail.com` role `pending` → `admin` 업데이트
+- ✅ typecheck 0 에러 / build 성공
+
+### 이전 변경 (세션 175)
 **아이디어→사업 제안서 생성 플로우 구현**:
 - ✅ `ProposalCreationModal.tsx`: 완전 재구현 — 모달 열릴 때 분석 데이터 fetch, 왼쪽 패널에 완료된 분석 카테고리 체크박스 리스트 (자동 선택), 오른쪽 7탭 제안서 섹션 미리보기 (ReactMarkdown), 로딩/에러/빈 상태 처리
 - ✅ `api.ideas.$id.analysis.ts` (신규): GET — 아이디어 분석 데이터 조회 API
@@ -317,7 +326,6 @@ build/
 - ✅ `ideas.tsx`: 모달에 `ideaId` + `onProposalCreated` 콜백 전달, 생성 완료 시 `/proposals/:id` 자동 이동
 - ✅ `SourceInputPanel.tsx`: 수집 소스 패널 페이지네이션 → 수직 리사이즈 전환 (120~400px, localStorage 저장)
 - ✅ `vite.config.ts`: `getPlatformProxy()` → `cloudflareDevProxyVitePlugin()` 전환
-- ✅ `auth.google.tsx`: 디버그 console.log 제거
 - ✅ typecheck 0 에러 / lint 0 에러 / build 성공 / CI/CD 배포 완료
 
 ### 이전 변경 (세션 174)

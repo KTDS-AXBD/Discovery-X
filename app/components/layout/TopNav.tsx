@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useSyncExternalStore } from "react";
 import { Link, useLocation, useRouteLoaderData } from "@remix-run/react";
 import { useTheme } from "@axis-ds/theme";
 import { cn } from "~/lib/utils/cn";
@@ -73,8 +73,7 @@ export function TopNav({ user }: TopNavProps) {
   const tenantList = rootData?.tenantList ?? [];
   const { toggle } = useSidebar();
   const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
 
   return (
     <nav
