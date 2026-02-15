@@ -8,6 +8,7 @@ Discovery-X — AX 신사업 내부 실험 중심 사고 시스템. 관찰→행
 - **프로덕션**: https://dx.minu.best
 - **스택**: Remix v2 (Vite) + Cloudflare Pages (Edge) + D1 (SQLite) + Drizzle ORM + React 19 + Tailwind CSS 4 + TypeScript (strict) + pnpm
 - **경로 별칭**: `~/*` → `./app/*`
+- **디자인 시스템**: `@axis-ds/ui-react` + `@axis-ds/theme` + `@axis-ds/tokens` (AX 사내 DS)
 
 ## 명령어
 
@@ -86,8 +87,9 @@ const db = getDb(context.DB);
 ### 스키마 머지
 - `app/db/index.ts`에서 `{ ...schema, ...ventureSchema, ...proposalSchema }` 패턴
 
-### SSR 외부화
-- `resend`, `mailparser` → `vite.config.ts`에서 SSR external 처리
+### SSR 외부화 (vite.config.ts)
+- `ssr.external`: `resend`, `mailparser`, `@zone-eu/mailsplit`, `libmime`
+- `ssr.noExternal`: `@axis-ds/ui-react`, `@axis-ds/theme`, `@axis-ds/tokens`, `@radix-ui/react-dialog` (이들은 반드시 번들링해야 SSR 동작)
 
 ### 인증 가드
 ```
@@ -99,6 +101,23 @@ requireAdmin()        → 403 (ADMIN만)
 
 ### 환경 변수
 - `.dev.vars` 파일에 설정 (gitignored): ANTHROPIC_API_KEY, OPENAI_API_KEY, GOOGLE_CLIENT_ID/SECRET, SESSION_SECRET, RESEND_API_KEY, CRON_SECRET
+
+### Vite 빌드
+- `chunkSizeWarningLimit: 1000` 설정됨 (기본 500보다 높음)
+- Remix v3 future flags 활성화: `v3_fetcherPersist`, `v3_relativeSplatPath`, `v3_throwAbortReason`
+
+## 디렉토리 구조
+
+```
+app/
+├── components/     # UI 컴포넌트 (charts, chat, dashboard, ideas, proposals, ui, ...)
+├── db/             # Drizzle 스키마 + DB 연결 (index.ts에서 스키마 머지)
+├── features/       # 도메인별 모듈 (venture, proposals, ideas, archive)
+│   └── {feature}/  # db/schema.ts + constants + types + ui/
+├── lib/            # 공유 유틸 (agent, auth, embeddings, notifications, ...)
+├── routes/         # Remix 라우트 (flat-file convention)
+└── styles/         # Tailwind CSS + 커스텀 토큰
+```
 
 ## 설계 원칙
 
