@@ -308,7 +308,13 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 176)
+### 최근 변경 (세션 177)
+**CLAUDE.md 품질 개선**:
+- ✅ `CLAUDE.md`: `@axis-ds` 디자인 시스템 명시, SSR external/noExternal 실제 vite.config.ts와 일치, Vite 빌드 gotcha 추가, app/ 디렉토리 구조 개요 추가
+- ✅ `~/.claude/CLAUDE.md` (글로벌): 한국어 응답 명시, Conventional Commits 승격, 환경 섹션(Node.js 20+/pnpm/WSL2), import 정렬 규칙 추가
+- ✅ Working tree 복원: 561개 unstaged deletion → `git checkout --` 으로 전체 복원
+
+### 이전 변경 (세션 176)
 **Google 로그인 수정 + TopNav hydration mismatch 해결**:
 - ✅ `.dev.vars`: Google OAuth Client ID 오타 수정 (`vnqg` → `vngq`, `155` → `455`)
 - ✅ `auth.google.callback.tsx`: `sinclairseo@gmail.com` 화이트리스트 추가
