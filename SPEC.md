@@ -65,7 +65,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 | P3 협업+통합 | 2~3주 | collab-worker, Pipeline Bridge, Cron, TokenBudget |
 | P4 고도화 | 2주 | ProfileLearner, Graph 롤백 UI, Vectorize, E2E 테스트 |
 
-현재: **Phase 2 진행 중** (Round 1 완료: ACL 완성 + Topic 서비스/API/UI + Memory flush 연동)
+현재: **Phase 2 완료** (Round 1: ACL + Topic CRUD + Memory flush / Round 2: Topic Graph Decision/Glossary + Briefing 뷰)
 
 ### 성공 기준
 - **P0**: "닫힌 Discovery"(Next/Not Now/Dead End)가 최소 1건 이상 발생
@@ -207,14 +207,24 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/profile` — Graph 기반 프로필 편집 (기본정보/전문분야/관심분야 + USER.md Projection 미리보기)
 - `/api/profile/graph` — 프로필 Graph API (GET/PUT/PATCH)
 
-**Topics (3 pages + 4 API)**
+**Topics (3 pages + 9 API)**
 - `/topics` — Topic 목록 레이아웃 (280px 사이드바 + Outlet)
 - `/topics/_index` — 빈 상태 가이드 + Topic 생성
-- `/topics/:id` — Topic 상세 (인라인 편집 + 멤버 관리 + 사용자 검색 + 아카이브)
+- `/topics/:id` — Topic 상세 (4탭: 개요/결정/용어/이력 + 인라인 편집 + 멤버 관리 + 아카이브)
 - `/api/topics` — Topic CRUD API (GET 목록 + POST 생성)
 - `/api/topics/:id` — Topic 상세 API (GET + PATCH + DELETE 아카이브)
 - `/api/topics/:id/members` — 멤버 API (GET + POST + DELETE)
 - `/api/topics/:id/members/:userId` — 멤버 역할 변경 API (PATCH)
+- `/api/topics/:id/decisions` — Decision API (GET 목록 + POST 생성)
+- `/api/topics/:id/decisions/:decisionId` — Decision 상세 API (PATCH + DELETE)
+- `/api/topics/:id/glossary` — Glossary API (GET 목록 + POST 생성)
+- `/api/topics/:id/glossary/:termId` — Glossary 상세 API (PATCH + DELETE)
+- `/api/topics/:id/events` — Graph 이벤트 이력 API (GET)
+
+**Briefing (2 pages + 1 API)**
+- `/briefing` — 브리핑 레이아웃 (인증 가드)
+- `/briefing/_index` — 일간 브리핑 뷰 (마크다운 렌더링 + 새로고침)
+- `/api/briefing` — 브리핑 API (GET 조회 + POST 갱신)
 
 **API (31개, proposals/lab API 제외)**
 - `/api/chat` — SSE 스트리밍 채팅 (1)
@@ -226,7 +236,7 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/api/similar*` — 유사 검색 2개: similar-seeds/similar-sources
 - `/api/tenant.switch` — 테넌트 전환 (1)
 
-**라우트 합계**: Core 46 + Ideas 8 + Proposals 7 + Lab 7 + Venture 13 + Agent 4 + Profile 2 + Topics 7 + API 31 + 미분류 2 = **127**
+**라우트 합계**: Core 46 + Ideas 8 + Proposals 7 + Lab 7 + Venture 13 + Agent 4 + Profile 2 + Topics 12 + Briefing 3 + API 31 + 미분류 2 = **135**
 
 ---
 
@@ -333,12 +343,12 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.14 + v3 Phase 2 Round 1 (ACL 완성 + Topic 서비스/API/UI + Memory flush)
+- **프로토타입**: v6.14 + v3 Phase 2 Round 2 (Topic Graph Decision/Glossary + BriefingBuilder + GraphStore 확장 + Briefing 뷰)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 31개 마이그레이션 (0000~0030), 로컬 적용 완료 + 프로덕션 0029까지 적용 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
 
 ### 주요 지표
-- **라우트**: 149개 (core 46 + ideas 8 + proposals 8 + lab 10 + venture 13 + market 3 + API 35 + agent 4 + profile 2 + topics 7 + folders 4 + 기타 9)
+- **라우트**: 135개 (core 46 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 2 + topics 12 + briefing 3 + API 31 + 미분류 2)
 - **테이블**: 79개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 8) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges)
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
 - **테스트**: 735개 (49 test files, 로컬 통과)
@@ -346,7 +356,29 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 182)
+### 최근 변경 (세션 183)
+**PRD v3 Phase 2 Round 2 — Topic Graph Decision/Glossary + Briefing 뷰 (Phase 2 완료)**:
+- ✅ `app/lib/graph/store.ts` (수정): GraphStore.create/update/delete에 `AuditContext` 파라미터 추가 — actorId/actorType 커스터마이즈 지원 (기본: system/system)
+- ✅ `app/lib/graph/types.ts` (수정): `AuditContext` 인터페이스 + `GraphStoreInterface` 시그니처 업데이트
+- ✅ `app/lib/services/topic-graph.service.ts` (신규): TopicGraphService — addDecision/getDecisions/updateDecision/removeDecision + addGlossaryTerm/getGlossary/updateGlossaryTerm/removeGlossaryTerm + getGraphEvents, 매 변경 후 ProjectionBuilder.syncProjection() 호출
+- ✅ `app/lib/integration/briefing-builder.ts` (신규): BriefingBuilder — Radar 신호(score≥7) + Discovery 변경 + Topic Decision 집계 → BRIEFING.md Projection 생성
+- ✅ `app/routes/api.topics.$id.decisions.ts` (신규): Decision API — GET 목록 + POST 생성
+- ✅ `app/routes/api.topics.$id.decisions.$decisionId.ts` (신규): Decision 상세 API — PATCH + DELETE
+- ✅ `app/routes/api.topics.$id.glossary.ts` (신규): Glossary API — GET 목록 + POST 생성
+- ✅ `app/routes/api.topics.$id.glossary.$termId.ts` (신규): Glossary 상세 API — PATCH + DELETE
+- ✅ `app/routes/api.topics.$id.events.ts` (신규): Graph 이벤트 이력 API — GET
+- ✅ `app/routes/api.briefing.ts` (신규): Briefing API — GET 조회 + POST 갱신
+- ✅ `app/components/topic/DecisionList.tsx` (신규): 결정 기록 CRUD — useFetcher + JSON submit
+- ✅ `app/components/topic/GlossaryList.tsx` (신규): 용어 정의 CRUD — useFetcher + JSON submit
+- ✅ `app/components/topic/GraphEventLog.tsx` (신규): 이벤트 타임라인 (액션 배지 + 시간/설명)
+- ✅ `app/routes/topics.$id.tsx` (수정): 4탭 구조 (개요/결정/용어/이력) — DecisionList/GlossaryList/GraphEventLog 통합
+- ✅ `app/routes/briefing.tsx` (신규): 브리핑 레이아웃 (인증 가드 + AppShell)
+- ✅ `app/routes/briefing._index.tsx` (신규): 일간 브리핑 뷰 (마크다운 렌더링 + useRevalidator 새로고침)
+- ✅ tmux /team 3-Worker 병렬 작업 (W1: 서비스 레이어, W2: API 라우트, W3: UI 컴포넌트)
+- ✅ Lint 수정: `react-hooks/set-state-in-effect` 3건 해결 (DecisionList/GlossaryList/briefing._index)
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
+
+### 이전 변경 (세션 182)
 **PRD v3 Phase 2 Round 1 — ACL 완성 + Topic 서비스/API/UI + Memory flush 연동**:
 - ✅ `app/lib/acl/resolver.ts` (수정): ScopeResolver — topic_members/tenant_members 실제 DB 조회 (D1Database → DB 타입 전환, stub → 완성)
 - ✅ `app/lib/acl/middleware.ts` (수정): requireScopeAccess() — FF 활성 시 getUserFromSession → extractScope → resolve → 403 흐름 완성
