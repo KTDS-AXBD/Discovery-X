@@ -65,7 +65,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 | P3 협업+통합 | 2~3주 | collab-worker, Pipeline Bridge, Cron, TokenBudget |
 | P4 고도화 | 2주 | ProfileLearner, Graph 롤백 UI, Vectorize, E2E 테스트 |
 
-현재: **Phase 3 진행 중** (Round 1 완료: PipelineBridge + SignalService + Cron 3개 + /signals UI + Feature Flag 확장)
+현재: **Phase 4 진행 중** (Round 1 완료: ProfileLearner + Graph Rollback UI + Vectorize Graph 연동)
 
 ### 성공 기준
 - **P0**: "닫힌 Discovery"(Next/Not Now/Dead End)가 최소 1건 이상 발생
@@ -347,12 +347,12 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.14 + v3 Phase 3 Round 1 (PipelineBridge + SignalService + Cron 3개 + /signals UI)
+- **프로토타입**: v6.14 + v3 Phase 4 Round 1 (ProfileLearner + Graph Rollback UI + Vectorize Graph 연동)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 31개 마이그레이션 (0000~0030), 로컬 적용 완료 + 프로덕션 0029까지 적용 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
 
 ### 주요 지표
-- **라우트**: 139개 (core 46 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 2 + topics 12 + briefing 3 + signals 2 + API 33 + 미분류 2)
+- **라우트**: 144개 (core 46 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 3 + topics 12 + briefing 3 + signals 2 + API 37 + 미분류 2)
 - **테이블**: 79개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 8) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges)
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
 - **테스트**: 735개 (49 test files, 로컬 통과)
@@ -360,20 +360,28 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 184)
+### 최근 변경 (세션 185)
+**PRD v3 Phase 4 Round 1 — ProfileLearner + Graph Rollback UI + Vectorize Graph 연동**:
+- ✅ `app/lib/agent/profile-learner.ts` (신규): ProfileLearner — TF 기반 키워드 추출 (Korean/English stopwords, 전문·경험 마커), agentMemoryV2 30일 분석 → Graph JSON-LD 자동 업데이트 (dx:Expertise/dx:Preference 노드 + Projection 동기화)
+- ✅ `app/routes/api.cron.profile-learn.ts` (신규): 주간 ProfileLearner Cron — 전 사용자 프로필 자동 학습 (CRON_SECRET 인증 + profileLearner FF 보호)
+- ✅ `app/lib/agent/index.ts` (수정): ProfileLearner export 추가
+- ✅ `app/lib/feature-flags.ts` (수정): `profileLearner` Feature Flag 추가 (8→9개)
+- ✅ `app/lib/graph/store.ts` (수정): `rollback(graphId, targetVersion, audit?)` 메서드 추가 — graph_events diff_json에서 대상 버전 상태 복원, 롤백도 새 버전 생성 (이력 보존)
+- ✅ `app/routes/profile.history.tsx` (신규): Graph 버전 이력 + 라인별 diff 뷰 + 원클릭 롤백 — EventItem (버전/액션 배지 + diff 토글) + DiffPanel (green/red 하이라이팅) + 롤백 확인 Dialog
+- ✅ `app/routes/api.graph.$id.rollback.ts` (신규): POST — Graph 롤백 API (소유권 검증 + Projection 자동 재생성)
+- ✅ `app/routes/api.graph.$id.history.ts` (신규): GET — Graph 이벤트 이력 조회 API (limit 파라미터)
+- ✅ `app/routes/profile.tsx` (수정): 헤더에 "변경 이력 보기 →" 링크 추가 (`/profile/history`)
+- ✅ `app/lib/graph/vectorize-adapter.ts` (신규): GraphVectorizeAdapter — OpenAI text-embedding-3-small (512차원) + Cloudflare Vectorize upsert/search, isAvailable() 환경 체크
+- ✅ `app/lib/graph/query.ts` (수정): GraphQueryEngine에 Vectorize 우선 시맨틱 검색 추가 (실패 시 keyword fallback), keywordSearch() 분리
+- ✅ `app/routes/api.cron.graph-vectorize.ts` (신규): Graph Vectorize 배치 인덱싱 Cron — 전체 Graph 벡터 동기화
+- ✅ tmux /team 3-Worker 병렬 작업 (W1: ProfileLearner, W2: Graph Rollback UI, W3: Vectorize)
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
+
+### 이전 변경 (세션 184)
 **PRD v3 Phase 3 Round 1 — 파이프라인 통합 코어 (PipelineBridge + Signal + Cron + /signals UI)**:
-- ✅ `app/lib/integration/pipeline-bridge.ts` (신규): PipelineBridge — PipelineToAgent (getRelevantSignals/getOpportunityStatus/getBriefingMaterial/getEntitySuggestions) + AgentToPipeline (submitIdea/annotateSignal/getExpertiseScore) 양방향 인터페이스
-- ✅ `app/lib/services/signal.service.ts` (신규): SignalService — list/create/updateStatus/getByTopic/dismiss (shared_signals CRUD)
-- ✅ `app/lib/graph/projection-sync.ts` (신규): syncIfStale (단건 hash 비교 → Projection 재생성) + syncAllStale (전체 Cron용)
-- ✅ `app/routes/api.cron.briefing.ts` (신규): 일간 브리핑 Cron — 활성 사용자별 BriefingBuilder.refreshBriefingProjection() (CRON_SECRET 인증)
-- ✅ `app/routes/api.cron.memory-compact.ts` (신규): 주간 Memory Compaction Cron — MemoryLifecycle.compact() 전 사용자 실행
-- ✅ `app/routes/api.cron.projection-sync.ts` (신규): Projection 일괄 동기화 Cron — stale Graph→Projection 갱신
-- ✅ `app/routes/signals.tsx` (신규): 시그널 레이아웃 — Topic 필터 사이드바 (280px) + 상태 필터 (pending/reviewed/actioned/dismissed) + AppShell
-- ✅ `app/routes/signals._index.tsx` (신규): 시그널 카드 목록 — score/status 배지 + Topic 태그 + 빈 상태 처리
-- ✅ `app/components/layout/TopNav.tsx` (수정): GNB 5탭 (대시보드/아이디어/사업제안/시그널/실험실) — "시그널" 탭 추가
-- ✅ `app/lib/feature-flags.ts` (수정): `pipelineBridge` + `collabWorker` Feature Flag 추가 (6→8개)
-- ✅ `app/lib/services/index.ts` (수정): SignalService export 추가
-- ✅ tmux /team 3-Worker 병렬 작업 (W1: PipelineBridge+Signal+Projection, W2: Cron+FeatureFlag, W3: Signals UI)
+- ✅ PipelineBridge + SignalService + Projection Sync + Cron 3개 + /signals UI
+- ✅ Feature Flag 6→8개 (pipelineBridge + collabWorker)
+- ✅ tmux /team 3-Worker 병렬 작업
 - ✅ typecheck 0 에러 / lint 0 에러 / build 성공
 
 ### 이전 변경 (세션 183)
