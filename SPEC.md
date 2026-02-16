@@ -65,7 +65,11 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 | P3 협업+통합 | 2~3주 | collab-worker, Pipeline Bridge, Cron, TokenBudget |
 | P4 고도화 | 2주 | ProfileLearner, Graph 롤백 UI, Vectorize, E2E 테스트 |
 
-현재: **Phase 4 완료 + 갭 분석 조치 완료** (Phase 1~3 갭 분석 10건 조치 구현, 전체 일치율 ~85% → ~93%)
+현재: **Phase 4 완료 → Phase 5 갭 해소 진행 중** (PRD v3 §4~§14 전면 재분석, 전체 일치율 ~70% → 목표 95%+)
+- Phase 5A (보안·무결성): **완료** — Agent Graph 수정 제한, @id 네이밍 강화, SOUL 역할 템플릿, JSON Schema, ACL policies 분리, 403 메시지 개선
+- Phase 5B (agent-worker DO): **완료** — AgentSessionDO 클래스, Worker 라우팅, HMAC 인증, SSE 스트리밍, alarm flush, 429 동시성, api.chat.ts DO 위임
+- Phase 5C (collab-worker + 스키마): **완료** — collab-worker Cron/fetch 핸들러, notification_queue, tenants 확장(profile_ld/rules_md), cron_logs
+- Phase 5D (품질 고도화): **진행 중** — Vectorize 2 namespace, E2E 테스트, Feature Flag 전환
 
 ### 성공 기준
 - **P0**: "닫힌 Discovery"(Next/Not Now/Dead End)가 최소 1건 이상 발생

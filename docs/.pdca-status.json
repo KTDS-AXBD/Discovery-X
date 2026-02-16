@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-16T12:02:45.757Z",
+  "lastUpdated": "2026-02-16T13:07:01.023Z",
   "activeFeatures": [
     "routes",
     "auth",
@@ -42,7 +42,9 @@
     "index.ts",
     "cost",
     "rate-limit",
-    "acl"
+    "acl",
+    "agent-worker",
+    "collab-worker"
   ],
   "primaryFeature": "ontology-intelligence",
   "features": {
@@ -79,9 +81,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T11:39:12.844Z",
-        "lastUpdated": "2026-02-16T12:00:40.622Z"
+        "lastUpdated": "2026-02-16T13:07:01.023Z"
       },
-      "lastFile": "/home/sinclair/projects/Discovery-X/app/routes/profile.tsx"
+      "lastFile": "/home/sinclair/projects/Discovery-X/app/routes/topics.tsx"
     },
     "auth": {
       "phase": "do",
@@ -118,9 +120,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T11:43:43.775Z",
-        "lastUpdated": "2026-02-12T05:33:59.541Z"
+        "lastUpdated": "2026-02-16T13:06:39.227Z"
       },
-      "lastFile": "D:\\01_Projects\\Discovery-X\\app\\components\\chat\\ChatPanel.tsx"
+      "lastFile": "/home/sinclair/projects/Discovery-X/app/components/chat/ChatPanel.tsx"
     },
     "dashboard": {
       "phase": "do",
@@ -170,9 +172,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T13:25:45.361Z",
-        "lastUpdated": "2026-02-16T12:02:45.757Z"
+        "lastUpdated": "2026-02-16T12:54:59.536Z"
       },
-      "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/agent/session-manager.ts"
+      "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/agent/agent-do.stub.ts"
     },
     "discovery": {
       "phase": "do",
@@ -209,9 +211,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T13:32:52.354Z",
-        "lastUpdated": "2026-02-16T11:59:03.474Z"
+        "lastUpdated": "2026-02-16T13:02:13.953Z"
       },
-      "lastFile": "/home/sinclair/projects/Discovery-X/app/db/schema-v2.ts"
+      "lastFile": "/home/sinclair/projects/Discovery-X/app/db/schema.ts"
     },
     "helpers": {
       "phase": "do",
@@ -222,7 +224,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T13:33:06.221Z",
-        "lastUpdated": "2026-02-16T11:59:38.077Z"
+        "lastUpdated": "2026-02-16T13:02:16.228Z"
       },
       "lastFile": "/home/sinclair/projects/Discovery-X/tests/helpers/db.ts"
     },
@@ -496,9 +498,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-12T00:01:07.598Z",
-        "lastUpdated": "2026-02-16T12:00:13.367Z"
+        "lastUpdated": "2026-02-16T13:05:50.774Z"
       },
-      "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/graph/store.ts"
+      "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/graph/vectorize-adapter.ts"
     },
     "constants": {
       "phase": "do",
@@ -613,9 +615,35 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-16T11:59:20.720Z",
-        "lastUpdated": "2026-02-16T11:59:20.720Z"
+        "lastUpdated": "2026-02-16T12:49:19.466Z"
       },
       "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/acl/middleware.ts"
+    },
+    "agent-worker": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T12:53:46.713Z",
+        "lastUpdated": "2026-02-16T12:54:38.978Z"
+      },
+      "lastFile": "/home/sinclair/projects/Discovery-X/agent-worker/src/index.ts"
+    },
+    "collab-worker": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T12:58:28.954Z",
+        "lastUpdated": "2026-02-16T13:02:02.531Z"
+      },
+      "lastFile": "/home/sinclair/projects/Discovery-X/collab-worker/src/index.ts"
     }
   },
   "pipeline": {
@@ -626,7 +654,7 @@
   "session": {
     "startedAt": "2026-02-04T11:05:49.371Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-16T12:02:45.757Z"
+    "lastActivity": "2026-02-16T13:07:01.023Z"
   },
   "history": [
     {
@@ -7280,6 +7308,228 @@
     {
       "timestamp": "2026-02-16T12:02:45.757Z",
       "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:47:34.160Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:47:42.577Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:47:51.192Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:47:59.958Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:48:15.462Z",
+      "feature": "acl",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:48:44.982Z",
+      "feature": "acl",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:48:56.655Z",
+      "feature": "acl",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:49:11.876Z",
+      "feature": "acl",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:49:15.588Z",
+      "feature": "acl",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:49:19.466Z",
+      "feature": "acl",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:51:11.356Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:51:18.297Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:51:23.651Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:51:28.924Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:53:46.713Z",
+      "feature": "agent-worker",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:54:24.818Z",
+      "feature": "agent-worker",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:54:38.978Z",
+      "feature": "agent-worker",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:54:59.537Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:55:07.955Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:55:12.753Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:55:22.710Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:55:33.865Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:55:53.788Z",
+      "feature": "chat",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:58:28.954Z",
+      "feature": "collab-worker",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:58:51.852Z",
+      "feature": "collab-worker",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T12:59:05.601Z",
+      "feature": "collab-worker",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T13:02:02.531Z",
+      "feature": "collab-worker",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T13:02:13.953Z",
+      "feature": "db",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T13:02:16.228Z",
+      "feature": "helpers",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T13:05:36.159Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T13:05:50.774Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T13:06:12.656Z",
+      "feature": "chat",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T13:06:19.457Z",
+      "feature": "chat",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T13:06:30.653Z",
+      "feature": "chat",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T13:06:39.227Z",
+      "feature": "chat",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T13:06:44.241Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T13:07:01.023Z",
+      "feature": "routes",
       "phase": "do",
       "action": "updated"
     }
