@@ -65,7 +65,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 | P3 협업+통합 | 2~3주 | collab-worker, Pipeline Bridge, Cron, TokenBudget |
 | P4 고도화 | 2주 | ProfileLearner, Graph 롤백 UI, Vectorize, E2E 테스트 |
 
-현재: **Phase 4 완료** (Round 1: ProfileLearner + Graph Rollback UI + Vectorize Graph 연동, Round 2: SignalRouter Cron + Cost Dashboard + Knowledge Base + v3 E2E 테스트)
+현재: **Phase 4 완료 + 갭 분석 완료** (Phase 1~3 PRD v3 갭 분석 수행, 전체 일치율 ~85%)
 
 ### 성공 기준
 - **P0**: "닫힌 Discovery"(Next/Not Now/Dead End)가 최소 1건 이상 발생
@@ -369,7 +369,26 @@ build/
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
 - **배포**: 세션 187 미배포 (Phase 4 Round 2 코드 완료, 배포 필요)
 
-### 최근 변경 (세션 187)
+### 최근 변경 (세션 188)
+**PRD v3 Phase 1~3 갭 분석 — tmux 3-Worker 병렬 분석 수행**:
+- ✅ Phase 1 (Graph Layer + Agent Runtime) — **일치율 82%** (15✅ 5⚠️ 2❌)
+  - Graph Store/Query/Projection/Validator: 100% 구현
+  - Agent Runtime: SoulEngine/SessionManager/SSE 정상, DO(Durable Object) 미구현 (Remix Action 대체, 프로토타입 규모 허용)
+  - ⚠️ SSE 429 동시성 제어 미구현, MemoryLifecycle LLM merge 미구현, agent_memory_v2 인덱스 부족
+- ✅ Phase 2 (ACL + Topic + Memory) — **일치율 88%** (17✅ 5⚠️ 1❌)
+  - ScopeResolver/requireScopeAccess/TopicService/BriefingBuilder: 완전 구현
+  - Topic UI 4탭/API 9개 라우트/graph_events 감사 로그: 정상
+  - ⚠️ ACL deny 시 DB 감사 로그 미기록, Agent Graph enrichment suggest 미구현, compact() step 3 부분 누락
+  - ❌ long_term LLM summary merge 미구현
+- ✅ Phase 3 (Pipeline + Collaboration) — **일치율 85%** (13✅ 5⚠️ 1❌)
+  - PipelineBridge 7개 메서드/SignalRouter/Cron 3+개/TokenBudgetManager: 완전 구현
+  - /signals UI/Feature Flag 9개/BriefingBuilder: 정상
+  - ⚠️ JSON-LD @context 파일 미생성, Topic Graph Glossary 활용 미검증
+  - ❌ collab-worker 독립 Worker 미구현 (서비스 모듈로 대체, 기능적 완전)
+- 📊 **전체 요약**: 65개 항목 중 45✅ 15⚠️ 4❌ — 핵심 비즈니스 로직 완전, 아키텍처 차이(DO/독립Worker)는 프로토타입 규모 허용
+- 📋 **식별된 조치 항목**: 즉시 3건 (ACL audit log, API audit context, 인덱스) + 중기 4건 (429 제어, 세션 flush, enrichment, JSON-LD) + 후기 3건 (DO 이관, Worker 독립화, LLM merge)
+
+### 이전 변경 (세션 187)
 **PRD v3 Phase 4 Round 2 — SignalRouter Cron + 비용 대시보드 + 팀 지식 베이스 + v3 E2E 테스트 (Phase 4 완료)**:
 - ✅ `app/routes/api.cron.signal-route.ts` (신규): SignalRouter Cron — pending 시그널 자동 라우팅 (CRON_SECRET 인증 + pipelineBridge FF 보호)
 - ✅ `app/routes/admin.costs.tsx` (신규): 비용 대시보드 UI — 일별 토큰 사용량 스택 바 차트 (CSS, 외부 의존 0) + 사용자별 예산 현황 테이블 + 요약 카드 3개 + 7일/30일 토글
