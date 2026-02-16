@@ -91,6 +91,9 @@ import {
   extractDecisionPattern,
   applyReusableRule,
 } from "./tools/asset-tools";
+import { SoulEngine } from "~/lib/agent/soul-engine";
+import { SessionManager } from "~/lib/agent/session-manager";
+import { isFeatureEnabled } from "~/lib/feature-flags";
 import {
   runShadowComparison,
   getShadowStats,
@@ -541,13 +544,21 @@ export { updateTokenUsage };
  * Streaming variant: uses callClaudeStream + parseSSEStream for real-time text deltas.
  * SSE events: text_delta, tool_start, tool_call, budget_warning, done, error
  */
+/** SoulEngine + SessionManager 통합 옵션 (Graph Layer 활성화 시 사용) */
+export interface StreamOptions {
+  env?: Record<string, string | undefined>;
+  sessionId?: string;
+  userId?: string;
+}
+
 export function createAgentStreamResponse(
   db: DB,
   apiKey: string,
   conversationId: string,
   userMessage: string,
   tenantId?: string,
-  mode?: "default" | "ideas"
+  mode?: "default" | "ideas",
+  streamOptions?: StreamOptions,
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
 
@@ -598,11 +609,32 @@ export function createAgentStreamResponse(
         } catch { /* optional */ }
 
         const isIdeasMode = mode === "ideas";
-        const systemPrompt = isIdeasMode
-          ? buildIdeaSystemPrompt(sourceCtx)
-          : buildSystemPrompt(agentCfg, sourceCtx);
-        const modelId = agentCfg?.modelId || CLAUDE_MODEL;
         const autonomyLevel = agentCfg?.autonomyLevel ?? 3;
+
+        // SoulEngine 분기: Feature Flag 활성화 + userId 전달 시 Graph Projection 기반 프롬프트
+        const useGraphProjection =
+          !isIdeasMode &&
+          !!streamOptions?.env &&
+          !!streamOptions?.userId &&
+          isFeatureEnabled(streamOptions.env, "graphLayer");
+
+        let systemPrompt: string;
+        if (isIdeasMode) {
+          systemPrompt = buildIdeaSystemPrompt(sourceCtx);
+        } else if (useGraphProjection && streamOptions?.userId) {
+          const soulEngine = new SoulEngine({
+            db,
+            userId: streamOptions.userId,
+            autonomyLevel,
+            useGraphProjection: true,
+          });
+          const result = await soulEngine.buildPrompt();
+          systemPrompt = result.systemPrompt;
+        } else {
+          systemPrompt = buildSystemPrompt(agentCfg, sourceCtx);
+        }
+
+        const modelId = agentCfg?.modelId || CLAUDE_MODEL;
         const filteredTools = isIdeasMode
           ? IDEA_TOOLS
           : getToolsForAutonomyLevel(autonomyLevel);
@@ -705,6 +737,13 @@ export function createAgentStreamResponse(
               toolRounds: round,
               tenantId,
             });
+            // SessionManager 토큰 집계
+            if (streamOptions?.sessionId) {
+              try {
+                const sm = new SessionManager(db);
+                await sm.updateTokenCount(streamOptions.sessionId, totalInputTokens, totalOutputTokens);
+              } catch { /* 세션 집계 실패는 비치명적 */ }
+            }
             await sendBudgetWarning(db, controller, send);
             send(controller, { type: "done", tokensUsed: { input: totalInputTokens, output: totalOutputTokens } });
             controller.close();
@@ -789,6 +828,13 @@ export function createAgentStreamResponse(
           toolRounds: MAX_TOOL_ROUNDS,
           tenantId,
         });
+        // SessionManager 토큰 집계 (max rounds)
+        if (streamOptions?.sessionId) {
+          try {
+            const sm = new SessionManager(db);
+            await sm.updateTokenCount(streamOptions.sessionId, totalInputTokens, totalOutputTokens);
+          } catch { /* 세션 집계 실패는 비치명적 */ }
+        }
         send(controller, { type: "text_delta", content: streamMaxRoundsMsg });
         send(controller, { type: "done", tokensUsed: { input: totalInputTokens, output: totalOutputTokens } });
         controller.close();
