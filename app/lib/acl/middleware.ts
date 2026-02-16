@@ -1,6 +1,9 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/cloudflare";
+import { getDb } from "~/db";
+import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import type { Action } from "./types";
 import { isFeatureEnabled } from "~/lib/feature-flags";
+import { ScopeResolver } from "./resolver";
 
 /**
  * Remix loader/action에서 ACL을 검사하는 미들웨어.
@@ -14,7 +17,7 @@ import { isFeatureEnabled } from "~/lib/feature-flags";
  */
 export async function requireScopeAccess(
   args: LoaderFunctionArgs | ActionFunctionArgs,
-  _action: Action,
+  action: Action,
 ): Promise<void> {
   const env = args.context.cloudflare.env as unknown as Record<string, string>;
 
@@ -23,9 +26,30 @@ export async function requireScopeAccess(
     return;
   }
 
-  // TODO Phase 2: userId 추출, ScopeResolver 호출, 403 처리
-  // const userId = await getUserIdFromSession(args);
-  // const resolver = new ScopeResolver(env.DB);
-  // const result = await resolver.resolve({ userId, scopeType, scopeId, action });
-  // if (!result.allowed) throw new Response("Forbidden", { status: 403 });
+  const db = getDb(args.context.cloudflare.env.DB);
+  const secret = getSessionSecret(env);
+  const user = await getUserFromSession(args.request, db, secret);
+
+  if (!user) {
+    throw new Response("Unauthorized", { status: 401 });
+  }
+
+  const resolver = new ScopeResolver(db);
+  const scope = resolver.extractScope(new URL(args.request.url).pathname);
+
+  // scope를 추출할 수 없는 경로는 ACL 대상 아님 — 허용
+  if (!scope) {
+    return;
+  }
+
+  const result = await resolver.resolve({
+    userId: user.id,
+    scopeType: scope.scopeType,
+    scopeId: scope.scopeId,
+    action,
+  });
+
+  if (!result.allowed) {
+    throw new Response("Forbidden", { status: 403 });
+  }
 }

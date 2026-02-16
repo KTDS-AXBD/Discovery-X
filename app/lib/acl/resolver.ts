@@ -1,12 +1,29 @@
-import type { D1Database } from "@cloudflare/workers-types";
+import { eq, and } from "drizzle-orm";
+import type { DB } from "~/db";
+import { topicMembers, tenantMembers } from "~/db";
 import type { AccessRequest, AccessResult, ScopeType, TopicRole } from "./types";
 import { PERMISSION_MATRIX } from "./types";
 
-export class ScopeResolver {
-  /** Phase 2에서 topic_members 조회에 사용 */
-  private db: D1Database;
+/** tenant_members.role → ACL TopicRole 변환 */
+function mapTenantRoleToTopicRole(role: string): TopicRole {
+  switch (role) {
+    case "owner":
+    case "admin":
+      return "owner";
+    case "gatekeeper":
+    case "member":
+      return "editor";
+    case "viewer":
+      return "viewer";
+    default:
+      return "none";
+  }
+}
 
-  constructor(db: D1Database) {
+export class ScopeResolver {
+  private db: DB;
+
+  constructor(db: DB) {
     this.db = db;
   }
 
@@ -38,7 +55,9 @@ export class ScopeResolver {
 
   /**
    * 사용자의 role을 결정한다.
-   * Phase 0: user scope는 항상 owner, topic/org은 TODO.
+   * - user scope: 자기 자신이면 owner
+   * - topic scope: topic_members 테이블에서 조회
+   * - org scope: tenant_members 테이블에서 조회
    */
   async getRole(userId: string, scopeType: ScopeType, scopeId: string): Promise<TopicRole> {
     if (scopeType === "user") {
@@ -47,14 +66,37 @@ export class ScopeResolver {
     }
 
     if (scopeType === "topic") {
-      // TODO Phase 2: topic_members 테이블에서 조회
-      // 지금은 기본 editor로 반환 (Feature Flag으로 비활성화 상태)
-      return "editor";
+      const row = await this.db
+        .select({ role: topicMembers.role })
+        .from(topicMembers)
+        .where(
+          and(
+            eq(topicMembers.topicId, scopeId),
+            eq(topicMembers.userId, userId),
+          )
+        )
+        .limit(1);
+
+      if (row.length === 0) return "none";
+      // topic_members.role은 이미 "owner" | "editor" | "viewer"
+      return (row[0].role as TopicRole) || "none";
     }
 
     if (scopeType === "org") {
-      // TODO Phase 2: teams 소속 여부 확인
-      return "viewer";
+      // tenant_members에서 userId로 role 조회 (scopeId = tenantId)
+      const row = await this.db
+        .select({ role: tenantMembers.role })
+        .from(tenantMembers)
+        .where(
+          and(
+            eq(tenantMembers.tenantId, scopeId),
+            eq(tenantMembers.userId, userId),
+          )
+        )
+        .limit(1);
+
+      if (row.length === 0) return "none";
+      return mapTenantRoleToTopicRole(row[0].role);
     }
 
     return "none";

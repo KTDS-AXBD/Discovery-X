@@ -93,6 +93,7 @@ import {
 } from "./tools/asset-tools";
 import { SoulEngine } from "~/lib/agent/soul-engine";
 import { SessionManager } from "~/lib/agent/session-manager";
+import { MemoryLifecycle } from "~/lib/agent/memory-lifecycle";
 import { isFeatureEnabled } from "~/lib/feature-flags";
 import {
   runShadowComparison,
@@ -744,6 +745,14 @@ export function createAgentStreamResponse(
                 await sm.updateTokenCount(streamOptions.sessionId, totalInputTokens, totalOutputTokens);
               } catch { /* 세션 집계 실패는 비치명적 */ }
             }
+            // Memory flush: 대화 요약을 daily_log로 저장
+            if (streamOptions?.userId && streamOptions?.env && isFeatureEnabled(streamOptions.env, "memoryLifecycle")) {
+              try {
+                const ml = new MemoryLifecycle(db);
+                const summary = assistantText.slice(0, 500);
+                await ml.addDailyLog(streamOptions.userId, summary, "conversation");
+              } catch { /* 메모리 저장 실패는 비치명적 */ }
+            }
             await sendBudgetWarning(db, controller, send);
             send(controller, { type: "done", tokensUsed: { input: totalInputTokens, output: totalOutputTokens } });
             controller.close();
@@ -834,6 +843,14 @@ export function createAgentStreamResponse(
             const sm = new SessionManager(db);
             await sm.updateTokenCount(streamOptions.sessionId, totalInputTokens, totalOutputTokens);
           } catch { /* 세션 집계 실패는 비치명적 */ }
+        }
+        // Memory flush: 대화 요약을 daily_log로 저장 (max rounds)
+        if (streamOptions?.userId && streamOptions?.env && isFeatureEnabled(streamOptions.env, "memoryLifecycle")) {
+          try {
+            const ml = new MemoryLifecycle(db);
+            const summary = streamMaxRoundsMsg.slice(0, 500);
+            await ml.addDailyLog(streamOptions.userId, summary, "conversation");
+          } catch { /* 메모리 저장 실패는 비치명적 */ }
         }
         send(controller, { type: "text_delta", content: streamMaxRoundsMsg });
         send(controller, { type: "done", tokensUsed: { input: totalInputTokens, output: totalOutputTokens } });
