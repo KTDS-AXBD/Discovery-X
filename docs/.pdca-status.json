@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-16T03:20:16.888Z",
+  "lastUpdated": "2026-02-16T04:21:44.202Z",
   "activeFeatures": [
     "routes",
     "auth",
@@ -42,7 +42,9 @@
     "proposal.service.ts",
     "radar.service.ts",
     "venture.service.ts",
-    "index.ts"
+    "index.ts",
+    ".team-tmp",
+    "cost"
   ],
   "primaryFeature": "ontology-intelligence",
   "features": {
@@ -170,9 +172,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T13:25:45.361Z",
-        "lastUpdated": "2026-02-12T05:26:40.130Z"
+        "lastUpdated": "2026-02-16T04:18:18.647Z"
       },
-      "lastFile": "D:\\01_Projects\\Discovery-X\\app\\lib\\agent\\executor.ts"
+      "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/agent/soul-engine.ts"
     },
     "discovery": {
       "phase": "do",
@@ -496,9 +498,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-12T00:01:07.598Z",
-        "lastUpdated": "2026-02-16T02:50:14.068Z"
+        "lastUpdated": "2026-02-16T04:21:44.202Z"
       },
-      "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/graph/types.ts"
+      "lastFile": "/home/sinclair/projects/Discovery-X/tests/unit/graph/store.test.ts"
     },
     "constants": {
       "phase": "do",
@@ -616,6 +618,32 @@
         "lastUpdated": "2026-02-16T03:15:14.423Z"
       },
       "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/services/index.ts"
+    },
+    ".team-tmp": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T04:16:06.042Z",
+        "lastUpdated": "2026-02-16T04:16:19.575Z"
+      },
+      "lastFile": "/home/sinclair/projects/Discovery-X/.team-tmp/team-p1-round2-launcher.sh"
+    },
+    "cost": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T04:18:15.004Z",
+        "lastUpdated": "2026-02-16T04:18:15.004Z"
+      },
+      "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/cost/token-budget.ts"
     }
   },
   "pipeline": {
@@ -626,7 +654,7 @@
   "session": {
     "startedAt": "2026-02-04T11:05:49.371Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-16T03:20:16.888Z"
+    "lastActivity": "2026-02-16T04:21:44.202Z"
   },
   "history": [
     {
@@ -6740,6 +6768,162 @@
     {
       "timestamp": "2026-02-16T03:20:16.887Z",
       "feature": "helpers",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:00:06.171Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:00:13.549Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:00:27.938Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:01:14.473Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:01:34.408Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:01:41.893Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:02:46.737Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:04:28.611Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:07:34.434Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:07:39.182Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:07:48.603Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:07:54.530Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:16:06.042Z",
+      "feature": ".team-tmp",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:16:08.068Z",
+      "feature": ".team-tmp",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:16:10.147Z",
+      "feature": ".team-tmp",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:16:19.575Z",
+      "feature": ".team-tmp",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:17:51.129Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:17:57.921Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:18:15.004Z",
+      "feature": "cost",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:18:18.647Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:18:41.059Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:19:21.186Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:19:54.870Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:20:39.519Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:21:15.106Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:21:44.202Z",
+      "feature": "graph",
       "phase": "do",
       "action": "updated"
     }
