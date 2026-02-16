@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import * as schema from "~/db/schema";
+import * as v2Schema from "~/db/schema-v2";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 
@@ -52,8 +53,9 @@ export function createTestDb() {
   runMigrationSQL(sqlite, resolve(migrationsDir, "0027_ideas_workspace.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0028_proposal_redesign.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0029_token_usage_logs.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0030_v2_graph_layer.sql"));
 
-  return drizzle(sqlite, { schema });
+  return drizzle(sqlite, { schema: { ...schema, ...v2Schema } });
 }
 
 export type TestDB = ReturnType<typeof createTestDb>;
