@@ -65,7 +65,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 | P3 협업+통합 | 2~3주 | collab-worker, Pipeline Bridge, Cron, TokenBudget |
 | P4 고도화 | 2주 | ProfileLearner, Graph 롤백 UI, Vectorize, E2E 테스트 |
 
-현재: **Phase 1 진행 중** (Round 1+2 완료: Graph Layer + Agent 모듈 + 테스트 54개)
+현재: **Phase 1 완료** (Round 1~3: Graph Layer + Agent 모듈 + SessionManager + /agent·/profile UI + 테스트 74개)
 
 ### 성공 기준
 - **P0**: "닫힌 Discovery"(Next/Not Now/Dead End)가 최소 1건 이상 발생
@@ -314,20 +314,40 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.14 + v3 Phase 1 Round 1+2 (Graph Layer + Agent 모듈)
+- **프로토타입**: v6.14 + v3 Phase 1 완료 (Graph Layer + Agent 모듈 + /agent·/profile UI)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 31개 마이그레이션 (0000~0030), 로컬 적용 완료 + 프로덕션 0029까지 적용 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
 
 ### 주요 지표
-- **라우트**: 130개 (core 46 + ideas 8 + proposals 8 + lab 10 + venture 13 + market 3 + API 33 + folders 4 + 기타 5)
+- **라우트**: 136개 (core 46 + ideas 8 + proposals 8 + lab 10 + venture 13 + market 3 + API 35 + agent 3 + profile 1 + folders 4 + 기타 5)
 - **테이블**: 79개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 8) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges)
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
-- **테스트**: 715개 (48 test files, 로컬 통과) — Graph Layer 테스트 4파일 54개 추가
+- **테스트**: 735개 (49 test files, 로컬 통과) — SessionManager 테스트 1파일 20개 추가
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 180)
+### 최근 변경 (세션 181)
+**PRD v3 Phase 1 Round 3 — SessionManager + /agent·/profile UI (Phase 1 완료)**:
+- ✅ `app/lib/agent/session-manager.ts` (신규): SessionManager — agent_sessions_v2 기반 세션 CRUD + 토큰 누적 + 활성 세션 조회
+- ✅ `app/lib/agent/executor.ts` (수정): SoulEngine 분기 (Feature Flag 'graphLayer' 보호) + SessionManager 토큰 집계 (비치명적 try-catch)
+- ✅ `app/lib/agent/index.ts` (신규): barrel export (SoulEngine/SessionManager/MemoryLifecycle)
+- ✅ `app/routes/agent.tsx` (신규): 2컬럼 레이아웃 (세션 목록 280px + Outlet), 모바일 반응형
+- ✅ `app/routes/agent._index.tsx` (신규): 빈 상태 가이드 페이지
+- ✅ `app/routes/agent.$sessionId.tsx` (신규): 세션별 대화 뷰 (ChatPanel 재사용, Projection 상태 표시)
+- ✅ `app/routes/api.agent.sessions.ts` (신규): 세션 CRUD API (POST 생성/GET 목록)
+- ✅ `app/components/agent/SessionList.tsx` (신규): 세션 목록 (상대시간/토큰/활성 dot)
+- ✅ `app/components/agent/ProjectionStatus.tsx` (신규): SOUL/USER/TOPIC/BRIEFING Projection 칩
+- ✅ `app/routes/profile.tsx` (신규): Graph 기반 프로필 편집 (기본정보/전문분야/관심분야) + USER.md Projection 미리보기
+- ✅ `app/routes/api.profile.graph.ts` (신규): 프로필 Graph API (GET/PUT/PATCH — 노드 추가/제거)
+- ✅ `app/components/profile/ProfileEditor.tsx` (신규): 전문분야 태그 추가/제거 + 레벨 선택
+- ✅ `app/components/profile/ProjectionPreview.tsx` (신규): USER.md 마크다운 렌더링 + 동기화 버튼
+- ✅ `app/components/profile/ExpertiseTag.tsx` (신규): 레벨별 색상 태그 (junior/mid/senior/expert)
+- ✅ `tests/unit/agent/session-manager.test.ts` (신규): 20개 테스트 케이스
+- ✅ tmux /team 3-Worker 병렬 작업 (W1: Service Layer, W2: Agent UI, W3: Profile UI)
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 735개 통과 / build 성공
+
+### 이전 변경 (세션 180)
 **PRD v3 Phase 1 Round 1+2 — Graph Layer 코어 + Agent 모듈 + 테스트**:
 - ✅ `app/lib/graph/store.ts` (신규): GraphStore CRUD + SHA-256 content hash + audit events (graphEvents)
 - ✅ `app/lib/graph/query.ts` (신규): GraphQueryEngine — BFS traverse, findByType, semantic search (keyword fallback)
