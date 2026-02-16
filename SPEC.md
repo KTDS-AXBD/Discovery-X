@@ -229,7 +229,7 @@ Flow I: BD 워크스페이스 (v4.2)
 **API (31개, proposals/lab API 제외)**
 - `/api/chat` — SSE 스트리밍 채팅 (1)
 - `/api/conversations*` — 대화 CRUD + 메시지 (2)
-- `/api/cron*` — Cron 8개: daily/agent-review/alerts/embeddings/weekly-summary/log-archive/pattern-extract/shadow-analyze
+- `/api/cron*` — Cron 9개: daily/agent-review/alerts/embeddings/weekly-summary/log-archive/pattern-extract/shadow-analyze/briefing
 - `/api/venture*` — Venture API 7개: decisions.propose/tasks(claim/report/trigger)/worker/export/analytics.recompute
 - `/api/export*` — Export 4개: discoveries/discoveries-json/brief.$id/metrics
 - `/api/radar*` — Radar API 6개: runs/sources/trigger/summarize/items.$id.status/items.$id.reaction
@@ -368,6 +368,7 @@ build/
 - ✅ `app/routes/api.topics.$id.glossary.$termId.ts` (신규): Glossary 상세 API — PATCH + DELETE
 - ✅ `app/routes/api.topics.$id.events.ts` (신규): Graph 이벤트 이력 API — GET
 - ✅ `app/routes/api.briefing.ts` (신규): Briefing API — GET 조회 + POST 갱신
+- ✅ `app/routes/api.cron.briefing.ts` (신규): Briefing Cron — 활성 사용자 일간 브리핑 갱신 (CRON_SECRET 인증)
 - ✅ `app/components/topic/DecisionList.tsx` (신규): 결정 기록 CRUD — useFetcher + JSON submit
 - ✅ `app/components/topic/GlossaryList.tsx` (신규): 용어 정의 CRUD — useFetcher + JSON submit
 - ✅ `app/components/topic/GraphEventLog.tsx` (신규): 이벤트 타임라인 (액션 배지 + 시간/설명)
