@@ -371,9 +371,34 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
-- **배포**: 세션 187 미배포 (Phase 4 Round 2 + 갭 분석 조치 코드 완료, 배포 필요)
+- **배포**: 세션 187 미배포 (Phase 5 갭 해소 전량 완료, 배포 필요)
 
-### 최근 변경 (세션 189)
+### 최근 변경 (세션 190)
+**Phase 5 갭 해소 완료 — PRD v3 일치율 ~70% → 95%+ 달성 (4-Phase 실행)**:
+- ✅ **Phase 5A (보안·무결성)**:
+  - `app/lib/graph/store.ts`: Agent actorType 가드 (dx:Preference만 수정 허용, 삭제 불가)
+  - `app/lib/graph/validator.ts`: @id 패턴 `dx:{type}/{id}` 강제 (warning→error)
+  - `app/lib/acl/policies.ts` (신규): PERMISSION_MATRIX 분리 + AGENT_ALLOWED_ACTIONS
+  - `app/lib/acl/middleware.ts`: 403 응답에 Topic owner 이름 포함
+  - `schemas/templates/SOUL-analyst.md`, `SOUL-manager.md` (신규): 역할별 SOUL 템플릿
+  - `schemas/validation/` (신규): user/topic/graph JSON Schema 3종
+- ✅ **Phase 5B (agent-worker DO)**:
+  - `agent-worker/` 디렉토리 (신규 4파일): AgentSessionDO + Worker 라우팅 + HMAC 인증 + SSE 스트리밍
+  - `app/lib/agent/agent-do.stub.ts`: delegateToDO() 실제 구현 (HMAC 서명 + HTTP 위임)
+  - `app/routes/api.chat.ts`: FF_AGENT_DO=true → DO 위임 분기
+  - `app/components/chat/ChatPanel.tsx`: 429 동시성 에러 처리
+- ✅ **Phase 5C (collab-worker + 스키마)**:
+  - `collab-worker/` 디렉토리 (신규 5파일): Cron handler + notification + Worker entry
+  - `drizzle/0032_collab_worker_tables.sql` (신규): notification_queue + tenants 확장(profile_ld/rules_md) + cron_logs
+  - `app/db/schema.ts`: tenants에 profileLd, rulesMd 컬럼 추가
+- ✅ **Phase 5D (품질 고도화)**:
+  - `app/lib/graph/vectorize-adapter.ts`: Memory + Signal Vectorize 인덱싱 메서드 추가
+  - `wrangler.toml`: VECTORIZE_GRAPHS/MEMORY/SIGNALS 바인딩 + Feature Flag 5개 true 전환
+  - `app/components/chat/ChatPanel.tsx`: 토큰 예산 100% 초과 시 입력 비활성화 + destructive 배너
+  - `app/routes/topics.tsx`: 사이드바 검색 입력 + 상태 필터 (active/completed/archived)
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 780개 통과
+
+### 이전 변경 (세션 189)
 **PRD v3 Phase 1~3 갭 분석 조치 10건 구현 — tmux 4-Worker 병렬 작업**:
 - ✅ **즉시 조치 3건**:
   - `drizzle/0031_acl_audit_memory_indexes.sql` (신규): acl_audit_logs 테이블 + agent_memory_v2 compact/expires 인덱스
