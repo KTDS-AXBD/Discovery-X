@@ -359,6 +359,8 @@ build/
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
+- **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
+- **배포**: ✅ 프로덕션 배포 완료 (CI/CD 1m 46s, 세션 185)
 
 ### 최근 변경 (세션 185)
 **PRD v3 Phase 4 Round 1 — ProfileLearner + Graph Rollback UI + Vectorize Graph 연동**:
