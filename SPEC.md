@@ -65,7 +65,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 | P3 협업+통합 | 2~3주 | collab-worker, Pipeline Bridge, Cron, TokenBudget |
 | P4 고도화 | 2주 | ProfileLearner, Graph 롤백 UI, Vectorize, E2E 테스트 |
 
-현재: **Phase 2 완료** (Round 1: ACL + Topic CRUD + Memory flush / Round 2: Topic Graph Decision/Glossary + Briefing 뷰)
+현재: **Phase 3 진행 중** (Round 1 완료: PipelineBridge + SignalService + Cron 3개 + /signals UI + Feature Flag 확장)
 
 ### 성공 기준
 - **P0**: "닫힌 Discovery"(Next/Not Now/Dead End)가 최소 1건 이상 발생
@@ -226,17 +226,21 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/briefing/_index` — 일간 브리핑 뷰 (마크다운 렌더링 + 새로고침)
 - `/api/briefing` — 브리핑 API (GET 조회 + POST 갱신)
 
-**API (31개, proposals/lab API 제외)**
+**Signals (2 pages)**
+- `/signals` — 시그널 레이아웃 (Topic 필터 사이드바 + 상태 필터)
+- `/signals/_index` — 시그널 카드 목록 (score/status 배지, Topic 태그, 필터링)
+
+**API (33개, proposals/lab API 제외)**
 - `/api/chat` — SSE 스트리밍 채팅 (1)
 - `/api/conversations*` — 대화 CRUD + 메시지 (2)
-- `/api/cron*` — Cron 9개: daily/agent-review/alerts/embeddings/weekly-summary/log-archive/pattern-extract/shadow-analyze/briefing
+- `/api/cron*` — Cron 11개: daily/agent-review/alerts/embeddings/weekly-summary/log-archive/pattern-extract/shadow-analyze/briefing/memory-compact/projection-sync
 - `/api/venture*` — Venture API 7개: decisions.propose/tasks(claim/report/trigger)/worker/export/analytics.recompute
 - `/api/export*` — Export 4개: discoveries/discoveries-json/brief.$id/metrics
 - `/api/radar*` — Radar API 6개: runs/sources/trigger/summarize/items.$id.status/items.$id.reaction
 - `/api/similar*` — 유사 검색 2개: similar-seeds/similar-sources
 - `/api/tenant.switch` — 테넌트 전환 (1)
 
-**라우트 합계**: Core 46 + Ideas 8 + Proposals 7 + Lab 7 + Venture 13 + Agent 4 + Profile 2 + Topics 12 + Briefing 3 + API 31 + 미분류 2 = **135**
+**라우트 합계**: Core 46 + Ideas 8 + Proposals 7 + Lab 7 + Venture 13 + Agent 4 + Profile 2 + Topics 12 + Briefing 3 + Signals 2 + API 33 + 미분류 2 = **139**
 
 ---
 
@@ -343,12 +347,12 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.14 + v3 Phase 2 Round 2 (Topic Graph Decision/Glossary + BriefingBuilder + GraphStore 확장 + Briefing 뷰)
+- **프로토타입**: v6.14 + v3 Phase 3 Round 1 (PipelineBridge + SignalService + Cron 3개 + /signals UI)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 31개 마이그레이션 (0000~0030), 로컬 적용 완료 + 프로덕션 0029까지 적용 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
 
 ### 주요 지표
-- **라우트**: 135개 (core 46 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 2 + topics 12 + briefing 3 + API 31 + 미분류 2)
+- **라우트**: 139개 (core 46 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 2 + topics 12 + briefing 3 + signals 2 + API 33 + 미분류 2)
 - **테이블**: 79개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 8) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges)
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
 - **테스트**: 735개 (49 test files, 로컬 통과)
@@ -356,27 +360,28 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 183)
+### 최근 변경 (세션 184)
+**PRD v3 Phase 3 Round 1 — 파이프라인 통합 코어 (PipelineBridge + Signal + Cron + /signals UI)**:
+- ✅ `app/lib/integration/pipeline-bridge.ts` (신규): PipelineBridge — PipelineToAgent (getRelevantSignals/getOpportunityStatus/getBriefingMaterial/getEntitySuggestions) + AgentToPipeline (submitIdea/annotateSignal/getExpertiseScore) 양방향 인터페이스
+- ✅ `app/lib/services/signal.service.ts` (신규): SignalService — list/create/updateStatus/getByTopic/dismiss (shared_signals CRUD)
+- ✅ `app/lib/graph/projection-sync.ts` (신규): syncIfStale (단건 hash 비교 → Projection 재생성) + syncAllStale (전체 Cron용)
+- ✅ `app/routes/api.cron.briefing.ts` (신규): 일간 브리핑 Cron — 활성 사용자별 BriefingBuilder.refreshBriefingProjection() (CRON_SECRET 인증)
+- ✅ `app/routes/api.cron.memory-compact.ts` (신규): 주간 Memory Compaction Cron — MemoryLifecycle.compact() 전 사용자 실행
+- ✅ `app/routes/api.cron.projection-sync.ts` (신규): Projection 일괄 동기화 Cron — stale Graph→Projection 갱신
+- ✅ `app/routes/signals.tsx` (신규): 시그널 레이아웃 — Topic 필터 사이드바 (280px) + 상태 필터 (pending/reviewed/actioned/dismissed) + AppShell
+- ✅ `app/routes/signals._index.tsx` (신규): 시그널 카드 목록 — score/status 배지 + Topic 태그 + 빈 상태 처리
+- ✅ `app/components/layout/TopNav.tsx` (수정): GNB 5탭 (대시보드/아이디어/사업제안/시그널/실험실) — "시그널" 탭 추가
+- ✅ `app/lib/feature-flags.ts` (수정): `pipelineBridge` + `collabWorker` Feature Flag 추가 (6→8개)
+- ✅ `app/lib/services/index.ts` (수정): SignalService export 추가
+- ✅ tmux /team 3-Worker 병렬 작업 (W1: PipelineBridge+Signal+Projection, W2: Cron+FeatureFlag, W3: Signals UI)
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
+
+### 이전 변경 (세션 183)
 **PRD v3 Phase 2 Round 2 — Topic Graph Decision/Glossary + Briefing 뷰 (Phase 2 완료)**:
-- ✅ `app/lib/graph/store.ts` (수정): GraphStore.create/update/delete에 `AuditContext` 파라미터 추가 — actorId/actorType 커스터마이즈 지원 (기본: system/system)
-- ✅ `app/lib/graph/types.ts` (수정): `AuditContext` 인터페이스 + `GraphStoreInterface` 시그니처 업데이트
-- ✅ `app/lib/services/topic-graph.service.ts` (신규): TopicGraphService — addDecision/getDecisions/updateDecision/removeDecision + addGlossaryTerm/getGlossary/updateGlossaryTerm/removeGlossaryTerm + getGraphEvents, 매 변경 후 ProjectionBuilder.syncProjection() 호출
-- ✅ `app/lib/integration/briefing-builder.ts` (신규): BriefingBuilder — Radar 신호(score≥7) + Discovery 변경 + Topic Decision 집계 → BRIEFING.md Projection 생성
-- ✅ `app/routes/api.topics.$id.decisions.ts` (신규): Decision API — GET 목록 + POST 생성
-- ✅ `app/routes/api.topics.$id.decisions.$decisionId.ts` (신규): Decision 상세 API — PATCH + DELETE
-- ✅ `app/routes/api.topics.$id.glossary.ts` (신규): Glossary API — GET 목록 + POST 생성
-- ✅ `app/routes/api.topics.$id.glossary.$termId.ts` (신규): Glossary 상세 API — PATCH + DELETE
-- ✅ `app/routes/api.topics.$id.events.ts` (신규): Graph 이벤트 이력 API — GET
-- ✅ `app/routes/api.briefing.ts` (신규): Briefing API — GET 조회 + POST 갱신
-- ✅ `app/routes/api.cron.briefing.ts` (신규): Briefing Cron — 활성 사용자 일간 브리핑 갱신 (CRON_SECRET 인증)
-- ✅ `app/components/topic/DecisionList.tsx` (신규): 결정 기록 CRUD — useFetcher + JSON submit
-- ✅ `app/components/topic/GlossaryList.tsx` (신규): 용어 정의 CRUD — useFetcher + JSON submit
-- ✅ `app/components/topic/GraphEventLog.tsx` (신규): 이벤트 타임라인 (액션 배지 + 시간/설명)
-- ✅ `app/routes/topics.$id.tsx` (수정): 4탭 구조 (개요/결정/용어/이력) — DecisionList/GlossaryList/GraphEventLog 통합
-- ✅ `app/routes/briefing.tsx` (신규): 브리핑 레이아웃 (인증 가드 + AppShell)
-- ✅ `app/routes/briefing._index.tsx` (신규): 일간 브리핑 뷰 (마크다운 렌더링 + useRevalidator 새로고침)
-- ✅ tmux /team 3-Worker 병렬 작업 (W1: 서비스 레이어, W2: API 라우트, W3: UI 컴포넌트)
-- ✅ Lint 수정: `react-hooks/set-state-in-effect` 3건 해결 (DecisionList/GlossaryList/briefing._index)
+- ✅ TopicGraphService + BriefingBuilder + GraphStore AuditContext 확장
+- ✅ Decision/Glossary/Events/Briefing API 6개 라우트
+- ✅ Topic 4탭 UI (개요/결정/용어/이력) + 브리핑 뷰
+- ✅ tmux /team 3-Worker 병렬 작업
 - ✅ typecheck 0 에러 / lint 0 에러 / build 성공
 
 ### 이전 변경 (세션 182)
