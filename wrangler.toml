@@ -41,3 +41,12 @@ index_name = "dx-radar-embeddings"
 # ANTHROPIC_API_KEY = "sk-ant-xxxxx" (set via: wrangler secret put ANTHROPIC_API_KEY)
 # GOOGLE_CLIENT_ID = "xxxxx.apps.googleusercontent.com" (set via: wrangler secret put GOOGLE_CLIENT_ID)
 # GOOGLE_CLIENT_SECRET = "xxxxx" (set via: wrangler secret put GOOGLE_CLIENT_SECRET)
+
+# Feature Flags (v3 Architecture Upgrade)
+[vars]
+FF_GRAPH_LAYER = "false"
+FF_AGENT_DO = "false"
+FF_TOPIC_COLLAB = "false"
+FF_ACL_SCOPE = "false"
+FF_MEMORY_LIFECYCLE = "false"
+FF_VECTORIZE_SEARCH = "false"
