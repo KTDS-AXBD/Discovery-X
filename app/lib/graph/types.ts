@@ -77,6 +77,19 @@ export interface SearchResult {
   source: ScopeFilter;
 }
 
+// === Enrichment 제안 ===
+export interface EnrichmentSuggestion {
+  nodes?: JsonLdNode[];
+  reason: string;
+}
+
+export interface PendingSuggestion {
+  id: number;
+  enrichment: EnrichmentSuggestion;
+  actorId: string;
+  createdAt: Date;
+}
+
 // === 감사 컨텍스트 ===
 export interface AuditContext {
   actorId?: string;
@@ -101,6 +114,12 @@ export interface GraphStoreInterface {
     audit?: AuditContext,
   ): Promise<GraphRecord>;
   delete(id: string, audit?: AuditContext): Promise<void>;
+  suggest(
+    graphId: string,
+    enrichment: EnrichmentSuggestion,
+    audit?: AuditContext,
+  ): Promise<void>;
+  getPendingSuggestions(graphId: string): Promise<PendingSuggestion[]>;
 }
 
 // === Query Engine 인터페이스 ===

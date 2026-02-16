@@ -48,20 +48,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const store = new GraphStore(db);
   const builder = new ProjectionBuilder(db);
   const scopeId = String(user.id);
+  const audit = { actorId: user.id, actorType: "user" as const };
 
   if (request.method === "PUT") {
     const body = (await request.json()) as { jsonld: JsonLdGraph };
     const existing = await store.getByScopeId("user", scopeId);
 
     if (existing) {
-      await store.update(existing.id, body.jsonld, "프로필 전체 업데이트");
+      await store.update(existing.id, body.jsonld, "프로필 전체 업데이트", audit);
     } else {
       await store.create({
         scopeType: "user",
         scopeId,
         jsonld: body.jsonld,
         contentHash: "",
-      });
+      }, audit);
     }
 
     await builder.syncProjection("user", scopeId);
@@ -87,7 +88,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       graph["@graph"] = graph["@graph"].filter((n) => n["@id"] !== body.node["@id"]);
     }
 
-    await store.update(existing.id, graph, `노드 ${body.action}: ${body.node["@id"]}`);
+    await store.update(existing.id, graph, `노드 ${body.action}: ${body.node["@id"]}`, audit);
     await builder.syncProjection("user", scopeId);
     return json({ ok: true });
   }

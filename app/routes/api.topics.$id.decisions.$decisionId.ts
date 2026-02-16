@@ -32,6 +32,7 @@ export async function action({
   }
 
   const store = new GraphStore(db);
+  const audit = { actorId: ctx.user.id, actorType: "user" as const };
   const graph = await store.getByScopeId("topic", topicId);
 
   if (!graph) {
@@ -70,7 +71,7 @@ export async function action({
       "@graph": updatedNodes,
     };
 
-    await store.update(graph.id, updatedJsonld, "결정 수정");
+    await store.update(graph.id, updatedJsonld, "결정 수정", audit);
 
     return json({ decision: updated });
   }
@@ -85,7 +86,7 @@ export async function action({
       "@graph": filteredNodes,
     };
 
-    await store.update(graph.id, updatedJsonld, "결정 삭제");
+    await store.update(graph.id, updatedJsonld, "결정 삭제", audit);
 
     return json({ ok: true });
   }

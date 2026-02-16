@@ -217,6 +217,15 @@ export const agentMemoryV2 = sqliteTable(
       table.userId,
       table.logDate
     ),
+    compactIdx: index("idx_agent_memory_v2_compact").on(
+      table.userId,
+      table.archivedAt,
+      table.importance
+    ),
+    expiresIdx: index("idx_agent_memory_v2_expires").on(
+      table.userId,
+      table.expiresAt
+    ),
   })
 );
 
@@ -246,3 +255,29 @@ export const agentSessionsV2 = sqliteTable(
 
 export type AgentSessionV2 = typeof agentSessionsV2.$inferSelect;
 export type NewAgentSessionV2 = typeof agentSessionsV2.$inferInsert;
+
+// ─── 9. acl_audit_logs (ACL 감사 로그) ──────────────────────────────
+export const aclAuditLogs = sqliteTable(
+  "acl_audit_logs",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: text("user_id").notNull(),
+    scopeType: text("scope_type").notNull(),
+    scopeId: text("scope_id").notNull(),
+    action: text("action").notNull(),
+    result: text("result").notNull().default("denied"),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    userIdx: index("idx_acl_audit_logs_user").on(table.userId),
+    scopeIdx: index("idx_acl_audit_logs_scope").on(
+      table.scopeType,
+      table.scopeId
+    ),
+  })
+);
+
+export type AclAuditLog = typeof aclAuditLogs.$inferSelect;
+export type NewAclAuditLog = typeof aclAuditLogs.$inferInsert;

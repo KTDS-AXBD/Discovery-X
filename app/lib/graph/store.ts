@@ -9,8 +9,11 @@ import type {
   GraphEvent as GraphEventType,
   ScopeType,
   AuditContext,
+  EnrichmentSuggestion,
+  PendingSuggestion,
 } from "./types";
 import { GraphAction, ActorType } from "~/lib/types/enums";
+import { DX_CONTEXT } from "./dx-context";
 
 // ─── 유틸리티 ────────────────────────────────────────────────────────
 
@@ -79,14 +82,21 @@ export class GraphStore implements GraphStoreInterface {
     audit?: AuditContext,
   ): Promise<GraphRecord> {
     const id = crypto.randomUUID();
-    const contentHash = await computeContentHash(record.jsonld);
     const now = new Date();
+
+    // @context가 비어있으면 기본 DX_CONTEXT로 채움
+    const jsonld: JsonLdGraph =
+      Object.keys(record.jsonld["@context"]).length === 0
+        ? { ...record.jsonld, "@context": { ...DX_CONTEXT } }
+        : record.jsonld;
+
+    const contentHash = await computeContentHash(jsonld);
 
     await this.db.insert(graphs).values({
       id,
       scopeType: record.scopeType,
       scopeId: record.scopeId,
-      jsonld: JSON.stringify(record.jsonld),
+      jsonld: JSON.stringify(jsonld),
       version: 1,
       contentHash,
       createdAt: now,
@@ -107,7 +117,7 @@ export class GraphStore implements GraphStoreInterface {
       id,
       scopeType: record.scopeType,
       scopeId: record.scopeId,
-      jsonld: record.jsonld,
+      jsonld,
       version: 1,
       contentHash,
       createdAt: now,
@@ -305,6 +315,60 @@ export class GraphStore implements GraphStoreInterface {
       contentHash,
       updatedAt: now,
     };
+  }
+
+  /**
+   * Graph enrichment 제안 — 실제 Graph를 수정하지 않고 suggest 이벤트만 기록.
+   * Agent가 중요 노드 발견 시 사용자에게 enrichment를 제안하는 데 사용.
+   */
+  async suggest(
+    graphId: string,
+    enrichment: EnrichmentSuggestion,
+    audit?: AuditContext,
+  ): Promise<void> {
+    const existing = await this.get(graphId);
+    if (!existing) {
+      throw new Error(`Graph not found: ${graphId}`);
+    }
+
+    await this.db.insert(graphEvents).values({
+      graphId,
+      actorId: audit?.actorId ?? "system",
+      actorType: audit?.actorType ?? ActorType.AGENT,
+      action: GraphAction.SUGGEST,
+      diffJson: JSON.stringify(enrichment),
+      reason: enrichment.reason,
+      prevVersion: existing.version,
+      createdAt: new Date(),
+    });
+  }
+
+  /**
+   * 특정 Graph의 미적용 suggest 이벤트 목록 조회 (최신 순, 최대 20건).
+   */
+  async getPendingSuggestions(
+    graphId: string,
+  ): Promise<PendingSuggestion[]> {
+    const rows = await this.db
+      .select()
+      .from(graphEvents)
+      .where(
+        and(
+          eq(graphEvents.graphId, graphId),
+          eq(graphEvents.action, GraphAction.SUGGEST),
+        ),
+      )
+      .orderBy(desc(graphEvents.createdAt))
+      .limit(20);
+
+    return rows.map((row) => ({
+      id: row.id,
+      enrichment: row.diffJson
+        ? (JSON.parse(row.diffJson) as EnrichmentSuggestion)
+        : { reason: "" },
+      actorId: row.actorId,
+      createdAt: row.createdAt,
+    }));
   }
 
   /** 감사 로그 조회 (최신 순) */

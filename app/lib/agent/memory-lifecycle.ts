@@ -9,6 +9,7 @@ import type { MemoryTypeValue } from "~/lib/types/enums";
 export interface CompactionResult {
   archived: number;
   deleted: number;
+  merged: number;
   totalTokensBefore: number;
   totalTokensAfter: number;
 }
@@ -40,7 +41,10 @@ export class MemoryLifecycle {
   }
 
   // ─── 주간 Cron: 전체 compaction ──────────────────────────────────
-  async compact(userId: string): Promise<CompactionResult> {
+  async compact(
+    userId: string,
+    summarizer?: (contents: string[]) => Promise<string>,
+  ): Promise<CompactionResult> {
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
@@ -74,11 +78,60 @@ export class MemoryLifecycle {
       )
       .returning({ id: agentMemoryV2.id });
 
+    // 3) 고중요도(≥0.7) 아카이브된 daily_log → LLM 요약 → long_term 승격
+    let merged = 0;
+    if (summarizer) {
+      const highImportanceLogs = await this.db
+        .select()
+        .from(agentMemoryV2)
+        .where(
+          and(
+            eq(agentMemoryV2.userId, userId),
+            eq(agentMemoryV2.memoryType, MemoryType.DAILY_LOG),
+            sql`${agentMemoryV2.importance} >= 0.7`,
+            sql`${agentMemoryV2.archivedAt} IS NOT NULL`,
+          ),
+        )
+        .orderBy(asc(agentMemoryV2.createdAt))
+        .limit(10);
+
+      if (highImportanceLogs.length >= 3) {
+        try {
+          const contents = highImportanceLogs.map((l) => l.content);
+          const summary = await summarizer(contents);
+          const tokenCount = this.estimateTokens(summary);
+
+          // long_term으로 요약 저장
+          await this.db.insert(agentMemoryV2).values({
+            userId,
+            memoryType: MemoryType.LONG_TERM,
+            content: summary,
+            category: "auto_merged",
+            importance: 0.8,
+            tokenCount,
+          });
+
+          // 원본 daily_log 삭제
+          const ids = highImportanceLogs.map((l) => l.id);
+          for (const id of ids) {
+            await this.db
+              .delete(agentMemoryV2)
+              .where(eq(agentMemoryV2.id, id));
+          }
+
+          merged = highImportanceLogs.length;
+        } catch {
+          // LLM 호출 실패 시 skip — 다음 compact에서 재시도
+        }
+      }
+    }
+
     const totalTokensAfter = await this.sumTokens(userId);
 
     return {
       archived: archiveResult.length,
       deleted: deleteResult.length,
+      merged,
       totalTokensBefore,
       totalTokensAfter,
     };

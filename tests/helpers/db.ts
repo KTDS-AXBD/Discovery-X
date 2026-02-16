@@ -54,6 +54,7 @@ export function createTestDb() {
   runMigrationSQL(sqlite, resolve(migrationsDir, "0028_proposal_redesign.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0029_token_usage_logs.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0030_v2_graph_layer.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0031_acl_audit_memory_indexes.sql"));
 
   return drizzle(sqlite, { schema: { ...schema, ...v2Schema } });
 }

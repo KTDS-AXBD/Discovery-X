@@ -73,6 +73,8 @@ export async function action({
   const store = new GraphStore(db);
   let graph = await store.getByScopeId("topic", topicId);
 
+  const audit = { actorId: ctx.user.id, actorType: "user" as const };
+
   // Graph가 없으면 새로 생성
   if (!graph) {
     graph = await store.create({
@@ -83,7 +85,7 @@ export async function action({
         "@graph": [],
       },
       contentHash: "",
-    });
+    }, audit);
   }
 
   // 새 Decision 노드 생성
@@ -105,7 +107,7 @@ export async function action({
     "@graph": [...graph.jsonld["@graph"], newNode],
   };
 
-  await store.update(graph.id, updatedJsonld, "결정 추가");
+  await store.update(graph.id, updatedJsonld, "결정 추가", audit);
 
   return json({ decision: newNode }, { status: 201 });
 }

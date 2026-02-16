@@ -50,6 +50,19 @@ export async function requireScopeAccess(
   });
 
   if (!result.allowed) {
+    // 감사 로그 기록 (non-blocking, 실패해도 403은 반환)
+    try {
+      const { aclAuditLogs } = await import("~/db/schema-v2");
+      await db.insert(aclAuditLogs).values({
+        userId: user.id,
+        scopeType: scope.scopeType,
+        scopeId: scope.scopeId,
+        action,
+        result: "denied",
+      });
+    } catch {
+      // 로깅 실패는 무시 — 보안 검사가 우선
+    }
     throw new Response("Forbidden", { status: 403 });
   }
 }

@@ -102,6 +102,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const store = new GraphStore(db);
   const builder = new ProjectionBuilder(db);
   const scopeId = String(user.id);
+  const audit = { actorId: user.id, actorType: "user" as const };
   const formData = await request.formData();
   const intent = formData.get("intent") as string;
 
@@ -113,7 +114,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       scopeId,
       jsonld: makeEmptyGraph(user.id, user.name),
       contentHash: "",
-    });
+    }, audit);
   }
 
   const jsonld = graphRecord.jsonld;
@@ -131,7 +132,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         userNode["dx:role"] = role;
       }
 
-      await store.update(graphRecord.id, jsonld, "프로필 기본 정보 업데이트");
+      await store.update(graphRecord.id, jsonld, "프로필 기본 정보 업데이트", audit);
       await builder.syncProjection("user", scopeId);
       break;
     }
@@ -149,7 +150,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         "dx:level": level,
       });
 
-      await store.update(graphRecord.id, jsonld, `전문 분야 추가: ${label}`);
+      await store.update(graphRecord.id, jsonld, `전문 분야 추가: ${label}`, audit);
       await builder.syncProjection("user", scopeId);
       break;
     }
@@ -160,7 +161,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       jsonld["@graph"] = graphNodes.filter((n) => n["@id"] !== nodeId);
 
-      await store.update(graphRecord.id, jsonld, `전문 분야 제거: ${nodeId}`);
+      await store.update(graphRecord.id, jsonld, `전문 분야 제거: ${nodeId}`, audit);
       await builder.syncProjection("user", scopeId);
       break;
     }
@@ -176,7 +177,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         "dx:label": label,
       });
 
-      await store.update(graphRecord.id, jsonld, `관심 분야 추가: ${label}`);
+      await store.update(graphRecord.id, jsonld, `관심 분야 추가: ${label}`, audit);
       await builder.syncProjection("user", scopeId);
       break;
     }
@@ -187,7 +188,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       jsonld["@graph"] = graphNodes.filter((n) => n["@id"] !== nodeId);
 
-      await store.update(graphRecord.id, jsonld, `관심 분야 제거: ${nodeId}`);
+      await store.update(graphRecord.id, jsonld, `관심 분야 제거: ${nodeId}`, audit);
       await builder.syncProjection("user", scopeId);
       break;
     }

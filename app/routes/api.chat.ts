@@ -10,6 +10,7 @@ import { conversations } from "~/db/schema";
 import { eq } from "drizzle-orm";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { createAgentStreamResponse } from "~/lib/agent/executor";
+import { tryAcquireSSESession, releaseSSESession } from "~/lib/rate-limit/sse-limiter";
 
 export async function action({ request, context }: ActionFunctionArgs) {
   if (request.method !== "POST") {
@@ -25,8 +26,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
   const user = ctx.user;
 
+  // SSE 동시성 제한 — 사용자당 최대 3개 세션
+  if (!tryAcquireSSESession(user.id)) {
+    return json(
+      { error: "동시 채팅 세션이 너무 많습니다. 다른 탭을 닫고 다시 시도하세요." },
+      { status: 429 },
+    );
+  }
+
   const apiKey = (context.cloudflare.env as unknown as Record<string, string>).ANTHROPIC_API_KEY;
   if (!apiKey) {
+    releaseSSESession(user.id);
     return json({ error: "ANTHROPIC_API_KEY not configured" }, { status: 500 });
   }
 
@@ -34,6 +44,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const { conversationId, message, mode } = body;
 
   if (!conversationId || !message?.trim()) {
+    releaseSSESession(user.id);
     return json({ error: "conversationId and message are required" }, { status: 400 });
   }
 
@@ -45,6 +56,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     .limit(1);
 
   if (!conv[0] || conv[0].userId !== user.id) {
+    releaseSSESession(user.id);
     return json({ error: "Conversation not found" }, { status: 404 });
   }
 
@@ -63,9 +75,29 @@ export async function action({ request, context }: ActionFunctionArgs) {
       .where(eq(conversations.id, conversationId));
   }
 
-  const stream = createAgentStreamResponse(db, apiKey, conversationId, message, ctx.tenantId, mode);
+  const originalStream = createAgentStreamResponse(db, apiKey, conversationId, message, ctx.tenantId, mode);
 
-  return new Response(stream, {
+  // TransformStream으로 래핑 — 종료 시 SSE 세션 해제 보장
+  const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
+  const writer = writable.getWriter();
+  const reader = originalStream.getReader();
+
+  (async () => {
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        await writer.write(value);
+      }
+    } catch {
+      // 클라이언트 연결 끊김 — 정상 케이스
+    } finally {
+      releaseSSESession(user.id);
+      await writer.close().catch(() => {});
+    }
+  })();
+
+  return new Response(readable, {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",

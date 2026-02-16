@@ -4,7 +4,7 @@
  * 세션 생성, 종료, 조회, 토큰 누적 등 CRUD + 집계 기능 제공.
  */
 
-import { eq, and, isNull, desc, sql } from "drizzle-orm";
+import { eq, and, isNull, desc, sql, lt } from "drizzle-orm";
 import type { DB } from "~/db";
 import { agentSessionsV2 } from "~/db/schema-v2";
 import type { AgentSessionV2 } from "~/db/schema-v2";
@@ -89,5 +89,22 @@ export class SessionManager {
       .orderBy(desc(sql`rowid`))
       .limit(1);
     return row ?? null;
+  }
+
+  /** 오래된 종료 세션 정리 (retentionDays 초과 + endedAt != null) */
+  async flush(retentionDays: number = 90): Promise<number> {
+    const cutoff = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000);
+
+    const deleted = await this.db
+      .delete(agentSessionsV2)
+      .where(
+        and(
+          sql`${agentSessionsV2.endedAt} IS NOT NULL`,
+          lt(agentSessionsV2.endedAt, cutoff),
+        ),
+      )
+      .returning({ id: agentSessionsV2.id });
+
+    return deleted.length;
   }
 }
