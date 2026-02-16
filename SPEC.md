@@ -65,7 +65,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 | P3 협업+통합 | 2~3주 | collab-worker, Pipeline Bridge, Cron, TokenBudget |
 | P4 고도화 | 2주 | ProfileLearner, Graph 롤백 UI, Vectorize, E2E 테스트 |
 
-현재: **Phase 1 완료** (Round 1~3: Graph Layer + Agent 모듈 + SessionManager + /agent·/profile UI + 테스트 74개)
+현재: **Phase 2 진행 중** (Round 1 완료: ACL 완성 + Topic 서비스/API/UI + Memory flush 연동)
 
 ### 성공 기준
 - **P0**: "닫힌 Discovery"(Next/Not Now/Dead End)가 최소 1건 이상 발생
@@ -197,6 +197,25 @@ Flow I: BD 워크스페이스 (v4.2)
 **Venture (13개)**
 - `/venture/*` — 스프린트 관리: _index/overview/analytics + sprints(new/_index/$sprintId 6개 서브라우트)
 
+**Agent (3개: 2 pages + 1 API)**
+- `/agent` — 에이전트 대화 레이아웃 (세션 목록 280px + Outlet)
+- `/agent/_index` — 빈 상태 가이드
+- `/agent/:sessionId` — 세션별 대화 뷰 (ChatPanel + Projection 상태)
+- `/api/agent/sessions` — 세션 CRUD API (GET 목록 + POST 생성)
+
+**Profile (1 page + 1 API)**
+- `/profile` — Graph 기반 프로필 편집 (기본정보/전문분야/관심분야 + USER.md Projection 미리보기)
+- `/api/profile/graph` — 프로필 Graph API (GET/PUT/PATCH)
+
+**Topics (3 pages + 4 API)**
+- `/topics` — Topic 목록 레이아웃 (280px 사이드바 + Outlet)
+- `/topics/_index` — 빈 상태 가이드 + Topic 생성
+- `/topics/:id` — Topic 상세 (인라인 편집 + 멤버 관리 + 사용자 검색 + 아카이브)
+- `/api/topics` — Topic CRUD API (GET 목록 + POST 생성)
+- `/api/topics/:id` — Topic 상세 API (GET + PATCH + DELETE 아카이브)
+- `/api/topics/:id/members` — 멤버 API (GET + POST + DELETE)
+- `/api/topics/:id/members/:userId` — 멤버 역할 변경 API (PATCH)
+
 **API (31개, proposals/lab API 제외)**
 - `/api/chat` — SSE 스트리밍 채팅 (1)
 - `/api/conversations*` — 대화 CRUD + 메시지 (2)
@@ -207,7 +226,7 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/api/similar*` — 유사 검색 2개: similar-seeds/similar-sources
 - `/api/tenant.switch` — 테넌트 전환 (1)
 
-**라우트 합계**: Core 46 + Ideas 8 + Proposals 7 + Lab 7 + Venture 13 + API 31 + 미분류 2 (dashboard.tsx layout) = **114**
+**라우트 합계**: Core 46 + Ideas 8 + Proposals 7 + Lab 7 + Venture 13 + Agent 4 + Profile 2 + Topics 7 + API 31 + 미분류 2 = **127**
 
 ---
 
@@ -314,62 +333,54 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.14 + v3 Phase 1 완료 (Graph Layer + Agent 모듈 + /agent·/profile UI)
+- **프로토타입**: v6.14 + v3 Phase 2 Round 1 (ACL 완성 + Topic 서비스/API/UI + Memory flush)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 31개 마이그레이션 (0000~0030), 로컬 적용 완료 + 프로덕션 0029까지 적용 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
 
 ### 주요 지표
-- **라우트**: 136개 (core 46 + ideas 8 + proposals 8 + lab 10 + venture 13 + market 3 + API 35 + agent 3 + profile 1 + folders 4 + 기타 5)
+- **라우트**: 149개 (core 46 + ideas 8 + proposals 8 + lab 10 + venture 13 + market 3 + API 35 + agent 4 + profile 2 + topics 7 + folders 4 + 기타 9)
 - **테이블**: 79개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 8) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges)
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
-- **테스트**: 735개 (49 test files, 로컬 통과) — SessionManager 테스트 1파일 20개 추가
+- **테스트**: 735개 (49 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 181)
+### 최근 변경 (세션 182)
+**PRD v3 Phase 2 Round 1 — ACL 완성 + Topic 서비스/API/UI + Memory flush 연동**:
+- ✅ `app/lib/acl/resolver.ts` (수정): ScopeResolver — topic_members/tenant_members 실제 DB 조회 (D1Database → DB 타입 전환, stub → 완성)
+- ✅ `app/lib/acl/middleware.ts` (수정): requireScopeAccess() — FF 활성 시 getUserFromSession → extractScope → resolve → 403 흐름 완성
+- ✅ `app/lib/agent/executor.ts` (수정): 대화 종료 시 MemoryLifecycle.addDailyLog() 호출 (FF `memoryLifecycle` 보호, 비치명적 try-catch)
+- ✅ `app/lib/services/topic.service.ts` (신규): TopicService — list/getById/create/update/archive + addMember/removeMember/updateMemberRole/getMembers
+- ✅ `app/routes/api.topics.ts` (신규): Topic API — GET 목록 + POST 생성 (생성자 자동 owner)
+- ✅ `app/routes/api.topics.$id.ts` (신규): Topic 상세 API — GET + PATCH + DELETE (아카이브)
+- ✅ `app/routes/api.topics.$id.members.ts` (신규): 멤버 API — GET + POST + DELETE
+- ✅ `app/routes/api.topics.$id.members.$userId.ts` (신규): 멤버 역할 변경 API — PATCH
+- ✅ `app/routes/topics.tsx` (신규): AppShell 내 2컬럼 레이아웃 (280px 사이드바 + Outlet)
+- ✅ `app/routes/topics._index.tsx` (신규): 빈 상태 가이드 + Topic 생성 모달
+- ✅ `app/routes/topics.$id.tsx` (신규): Topic 상세 (인라인 편집 + 멤버 관리 + 사용자 검색 + 아카이브)
+- ✅ `app/components/topic/TopicCard.tsx` (신규): 선택 인디케이터 + 상태 배지 + 멤버 수
+- ✅ `app/components/topic/MemberList.tsx` (신규): 역할 배지 (owner/editor/viewer) + 제거 버튼
+- ✅ `app/components/topic/TopicStatusBadge.tsx` (신규): active/completed/archived 상태 배지
+- ✅ tmux /team 3-Worker 병렬 작업 (W1: ACL+Memory, W2: Topic Service+API, W3: Topic UI)
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
+
+### 이전 변경 (세션 181)
 **PRD v3 Phase 1 Round 3 — SessionManager + /agent·/profile UI (Phase 1 완료)**:
-- ✅ `app/lib/agent/session-manager.ts` (신규): SessionManager — agent_sessions_v2 기반 세션 CRUD + 토큰 누적 + 활성 세션 조회
-- ✅ `app/lib/agent/executor.ts` (수정): SoulEngine 분기 (Feature Flag 'graphLayer' 보호) + SessionManager 토큰 집계 (비치명적 try-catch)
-- ✅ `app/lib/agent/index.ts` (신규): barrel export (SoulEngine/SessionManager/MemoryLifecycle)
-- ✅ `app/routes/agent.tsx` (신규): 2컬럼 레이아웃 (세션 목록 280px + Outlet), 모바일 반응형
-- ✅ `app/routes/agent._index.tsx` (신규): 빈 상태 가이드 페이지
-- ✅ `app/routes/agent.$sessionId.tsx` (신규): 세션별 대화 뷰 (ChatPanel 재사용, Projection 상태 표시)
-- ✅ `app/routes/api.agent.sessions.ts` (신규): 세션 CRUD API (POST 생성/GET 목록)
-- ✅ `app/components/agent/SessionList.tsx` (신규): 세션 목록 (상대시간/토큰/활성 dot)
-- ✅ `app/components/agent/ProjectionStatus.tsx` (신규): SOUL/USER/TOPIC/BRIEFING Projection 칩
-- ✅ `app/routes/profile.tsx` (신규): Graph 기반 프로필 편집 (기본정보/전문분야/관심분야) + USER.md Projection 미리보기
-- ✅ `app/routes/api.profile.graph.ts` (신규): 프로필 Graph API (GET/PUT/PATCH — 노드 추가/제거)
-- ✅ `app/components/profile/ProfileEditor.tsx` (신규): 전문분야 태그 추가/제거 + 레벨 선택
-- ✅ `app/components/profile/ProjectionPreview.tsx` (신규): USER.md 마크다운 렌더링 + 동기화 버튼
-- ✅ `app/components/profile/ExpertiseTag.tsx` (신규): 레벨별 색상 태그 (junior/mid/senior/expert)
-- ✅ `tests/unit/agent/session-manager.test.ts` (신규): 20개 테스트 케이스
-- ✅ tmux /team 3-Worker 병렬 작업 (W1: Service Layer, W2: Agent UI, W3: Profile UI)
-- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 735개 통과 / build 성공
+- ✅ SessionManager + SoulEngine→executor 통합
+- ✅ /agent 대화 UI (세션 목록 + 대화 뷰 + Projection 상태)
+- ✅ /profile 프로필 편집 UI (Graph 기반 + USER.md Projection 미리보기)
+- ✅ 테스트 20개 추가 (총 735개) / typecheck 0 에러 / build 성공
 
 ### 이전 변경 (세션 180)
 **PRD v3 Phase 1 Round 1+2 — Graph Layer 코어 + Agent 모듈 + 테스트**:
-- ✅ `app/lib/graph/store.ts` (신규): GraphStore CRUD + SHA-256 content hash + audit events (graphEvents)
-- ✅ `app/lib/graph/query.ts` (신규): GraphQueryEngine — BFS traverse, findByType, semantic search (keyword fallback)
-- ✅ `app/lib/graph/projection.ts` (신규): ProjectionBuilder — 템플릿 기반 Markdown 생성 (USER.md/TOPIC.md 등), hash-based sync
-- ✅ `app/lib/graph/validator.ts` (신규): JSON-LD 구조/context/노드 검증 (errors + warnings 분리)
-- ✅ `app/lib/graph/index.ts` (신규): barrel export
-- ✅ `app/lib/agent/soul-engine.ts` (신규): SoulEngine — Projection 기반 시스템 프롬프트 조립 (Graph Layer 비활성 시 v2 buildSystemPrompt 폴백)
-- ✅ `app/lib/agent/memory-lifecycle.ts` (신규): MemoryLifecycle — 3단계 수명 관리 (daily_log → archive → delete), compaction, 예산 강제 정리
-- ✅ `app/lib/cost/token-budget.ts` (신규): TokenBudgetManager — 메모리 토큰 + 월간 LLM 사용량 이중 예산 관리
-- ✅ `schemas/templates/SOUL.md` (신규): Agent 성격/원칙/금지사항/응답형식 템플릿
-- ✅ `tests/unit/graph/` (신규 4파일): store(13), query(14), projection(8), validator(19) = 54 test cases
-- ✅ tmux /team 3-Worker 병렬 작업 2라운드 완료 (Round 1: Graph Layer 코어, Round 2: 테스트 + SOUL + Memory/Token)
-- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 715개 통과 / build 성공
+- ✅ Graph Layer 4모듈: Store (CRUD + SHA-256 + audit), Query (BFS + semantic), Projection (USER.md/TOPIC.md), Validator
+- ✅ Agent 모듈 3개: SoulEngine, MemoryLifecycle, TokenBudgetManager
+- ✅ 테스트 54개 (graph/ 4파일) / typecheck 0 에러 / build 성공
 
 ### 이전 변경 (세션 179)
-**PRD v3 Phase 0 완료 — 잔여 작업 (Feature Flag + ACL + 서비스 레이어 + 마이그레이션)**:
-- ✅ `wrangler.toml`: 6개 Feature Flag 추가 (FF_GRAPH_LAYER, FF_AGENT_DO, FF_TOPIC_COLLAB, FF_ACL_SCOPE, FF_MEMORY_LIFECYCLE, FF_VECTORIZE_SEARCH — 모두 기본 false)
-- ✅ `app/lib/feature-flags.ts` (신규): `getFeatureFlags()`, `isFeatureEnabled()` 유틸
-- ✅ `app/lib/acl/resolver.ts` (신규): ScopeResolver stub (URL→scope 추출, role 결정)
-- ✅ `app/lib/acl/middleware.ts` (신규): `requireScopeAccess()` (FF 비활성화 시 패스)
-- ✅ `app/lib/acl/index.ts` (신규): barrel export
-- ✅ `app/lib/services/` (신규 6파일): routes→services 비즈니스 로직 분리 (discovery, idea, proposal, radar, venture + index)
+**PRD v3 Phase 0 완료 — Feature Flag + ACL stub + 서비스 레이어 + 마이그레이션**:
+- ✅ Feature Flag 6개 + ACL stub + 서비스 레이어 6파일 + v2 마이그레이션 0030
 - ✅ `drizzle/0030_v2_graph_layer.sql` (신규): v2 8테이블 마이그레이션 (IF NOT EXISTS + CHECK 제약조건)
 - ✅ `tests/helpers/db.ts`: v2Schema import + 0030 마이그레이션 참조 추가
 - ✅ 마이그레이션 정리: 잘못된 0027 auto-generated 삭제, journal/snapshot 정리
