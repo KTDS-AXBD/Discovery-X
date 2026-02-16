@@ -194,6 +194,119 @@ export class GraphStore implements GraphStoreInterface {
     await this.db.delete(graphs).where(eq(graphs.id, id));
   }
 
+  /** Graph를 특정 버전의 상태로 롤백 */
+  async rollback(
+    graphId: string,
+    targetVersion: number,
+    audit?: AuditContext,
+  ): Promise<GraphRecord> {
+    const existing = await this.get(graphId);
+    if (!existing) {
+      throw new Error(`Graph not found: ${graphId}`);
+    }
+
+    if (targetVersion < 1 || targetVersion >= existing.version) {
+      throw new Error(
+        `Invalid target version: ${targetVersion} (current: ${existing.version})`,
+      );
+    }
+
+    // targetVersion 시점의 jsonld를 복원
+    // newVersion === targetVersion 인 이벤트의 diff_json.next 가 해당 시점 상태
+    const events = await this.db
+      .select()
+      .from(graphEvents)
+      .where(
+        and(
+          eq(graphEvents.graphId, graphId),
+          eq(graphEvents.newVersion, targetVersion),
+        ),
+      )
+      .limit(1);
+
+    if (events.length === 0) {
+      throw new Error(`Event for version ${targetVersion} not found`);
+    }
+
+    const event = events[0];
+    let targetJsonld: JsonLdGraph;
+
+    if (event.action === "create") {
+      // create 이벤트에는 diffJson이 없으므로, 현재 version=1 시점의 상태를
+      // events chain에서 복원해야 하는데, create 이벤트 다음 update의 diff.prev가 v1 상태
+      // 가장 안전한 방법: newVersion=2 이벤트의 diffJson.prev 사용
+      const nextEvents = await this.db
+        .select()
+        .from(graphEvents)
+        .where(
+          and(
+            eq(graphEvents.graphId, graphId),
+            eq(graphEvents.prevVersion, 1),
+          ),
+        )
+        .limit(1);
+
+      if (nextEvents.length === 0 || !nextEvents[0].diffJson) {
+        throw new Error("Cannot restore version 1: no diff data available");
+      }
+
+      const diff = JSON.parse(nextEvents[0].diffJson) as {
+        prev: JsonLdGraph;
+        next: JsonLdGraph;
+      };
+      targetJsonld = diff.prev;
+    } else {
+      if (!event.diffJson) {
+        throw new Error(`No diff data for version ${targetVersion}`);
+      }
+      const diff = JSON.parse(event.diffJson) as {
+        prev: JsonLdGraph;
+        next: JsonLdGraph;
+      };
+      targetJsonld = diff.next;
+    }
+
+    // 새 버전으로 업데이트 + rollback 이벤트 기록
+    const contentHash = await computeContentHash(targetJsonld);
+    const newVersion = existing.version + 1;
+    const now = new Date();
+
+    await this.db
+      .update(graphs)
+      .set({
+        jsonld: JSON.stringify(targetJsonld),
+        version: newVersion,
+        contentHash,
+        updatedAt: now,
+      })
+      .where(eq(graphs.id, graphId));
+
+    const diffJson = JSON.stringify({
+      prev: existing.jsonld,
+      next: targetJsonld,
+    });
+
+    await this.db.insert(graphEvents).values({
+      graphId,
+      actorId: audit?.actorId ?? "system",
+      actorType: audit?.actorType ?? ActorType.SYSTEM,
+      action: GraphAction.ROLLBACK,
+      diffJson,
+      reason: `v${targetVersion} 상태로 롤백`,
+      prevVersion: existing.version,
+      newVersion,
+      createdAt: now,
+    });
+
+    return {
+      ...existing,
+      jsonld: targetJsonld,
+      version: newVersion,
+      contentHash,
+      updatedAt: now,
+    };
+  }
+
   /** 감사 로그 조회 (최신 순) */
   async getHistory(
     graphId: string,

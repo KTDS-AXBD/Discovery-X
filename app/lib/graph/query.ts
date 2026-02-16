@@ -9,15 +9,19 @@ import type {
   SearchResult,
   ScopeType,
 } from "./types";
+import type { GraphVectorizeAdapter } from "./vectorize-adapter";
 
 /**
  * JSON-LD Graph 탐색 엔진
  *
- * Phase 1에서는 keyword 기반 검색을 사용하며,
- * FF_VECTORIZE_SEARCH 활성화 시 Vectorize 기반으로 교체 예정.
+ * vectorizeAdapter 주입 시 Vectorize 벡터 유사도 검색 우선 사용,
+ * 미주입 또는 실패 시 keyword fallback.
  */
 export class GraphQueryEngine implements GraphQueryEngineInterface {
-  constructor(private readonly db: DB) {}
+  constructor(
+    private readonly db: DB,
+    private readonly vectorizeAdapter?: GraphVectorizeAdapter,
+  ) {}
 
   // ─── Public API ──────────────────────────────────────────────────────
 
@@ -128,12 +132,58 @@ export class GraphQueryEngine implements GraphQueryEngineInterface {
   }
 
   /**
-   * 시맨틱 검색 (Phase 1: keyword fallback)
+   * 시맨틱 검색 (Phase 4: Vectorize 연동)
    *
-   * FF_VECTORIZE_SEARCH가 false이면 단순 keyword 포함 검사.
-   * 향후 Vectorize 기반 벡터 유사도 검색으로 교체 예정.
+   * vectorizeAdapter 주입 시 벡터 유사도 검색 우선 사용.
+   * 미주입 또는 실패 시 keyword fallback.
    */
   async semanticSearch(
+    query: string,
+    scopeFilter?: ScopeFilter,
+  ): Promise<SearchResult[]> {
+    // Vectorize 모드: adapter가 있고 사용 가능하면 벡터 검색 시도
+    if (this.vectorizeAdapter?.isAvailable()) {
+      try {
+        const vectorResults = await this.vectorizeAdapter.search(query, {
+          topK: 20,
+          scopeType: scopeFilter?.scopeType,
+          scopeId: scopeFilter?.scopeId,
+        });
+
+        if (vectorResults.length > 0) {
+          const results: SearchResult[] = [];
+
+          for (const match of vectorResults) {
+            const nodeId = match.metadata?.nodeId;
+            const graphId = match.metadata?.graphId;
+            if (!nodeId || !graphId) continue;
+
+            const node = await this.get(graphId, nodeId);
+            if (!node) continue;
+
+            results.push({
+              node,
+              score: match.score,
+              source: {
+                scopeType: (match.metadata?.scopeType ?? "user") as ScopeType,
+                scopeId: match.metadata?.scopeId ?? "",
+              },
+            });
+          }
+
+          return results;
+        }
+      } catch (err) {
+        console.error("[GraphQueryEngine] Vectorize 검색 실패, keyword fallback 사용:", err);
+      }
+    }
+
+    // Keyword fallback: 기존 로직 유지
+    return this.keywordSearch(query, scopeFilter);
+  }
+
+  /** keyword 기반 검색 (Vectorize 미사용 시 fallback) */
+  private async keywordSearch(
     query: string,
     scopeFilter?: ScopeFilter,
   ): Promise<SearchResult[]> {
@@ -158,7 +208,7 @@ export class GraphQueryEngine implements GraphQueryEngineInterface {
         if (this.nodeContainsQuery(node, queryLower)) {
           results.push({
             node,
-            score: 1.0, // Phase 1: 단순 포함 = 1.0
+            score: 1.0, // keyword 포함 = 1.0
             source: {
               scopeType: row.scopeType as ScopeType,
               scopeId: row.scopeId,

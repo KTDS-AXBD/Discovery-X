@@ -8,7 +8,7 @@
 import { useState, useCallback } from "react";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, Link } from "@remix-run/react";
 import { getDb } from "~/db";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
 import { GraphStore } from "~/lib/graph/store";
@@ -267,10 +267,20 @@ export default function Profile() {
 
   return (
     <AppShell user={data.user} hideSidebar>
-      <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">프로필</h1>
-      <p className="mt-1 text-sm text-[var(--axis-text-secondary)]">
-        Graph 기반 프로필을 편집하고 USER.md Projection을 미리봅니다.
-      </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">프로필</h1>
+          <p className="mt-1 text-sm text-[var(--axis-text-secondary)]">
+            Graph 기반 프로필을 편집하고 USER.md Projection을 미리봅니다.
+          </p>
+        </div>
+        <Link
+          to="/profile/history"
+          className="text-sm text-[var(--axis-text-secondary)] hover:text-[var(--axis-text-primary)] hover:underline"
+        >
+          변경 이력 보기 →
+        </Link>
+      </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         {/* 좌측: 편집 폼 */}

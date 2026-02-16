@@ -13,6 +13,7 @@ export interface FeatureFlags {
   vectorizeSearch: boolean;
   pipelineBridge: boolean;
   collabWorker: boolean;
+  profileLearner: boolean;
 }
 
 /**
@@ -30,6 +31,7 @@ export function getFeatureFlags(env: Record<string, string | undefined>): Featur
     vectorizeSearch: env.FF_VECTORIZE_SEARCH === "true",
     pipelineBridge: env.FF_PIPELINE_BRIDGE === "true",
     collabWorker: env.FF_COLLAB_WORKER === "true",
+    profileLearner: env.FF_PROFILE_LEARNER === "true",
   };
 }
 
