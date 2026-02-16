@@ -38,6 +38,10 @@ interface BudgetWarning {
   percentUsed: number;
 }
 
+function isOverBudget(warning: BudgetWarning | null): boolean {
+  return warning !== null && warning.percentUsed >= 100;
+}
+
 // Parse <!-- SUGGESTIONS: [...] --> from end of message content
 function parseSuggestions(content: string): { cleanContent: string; suggestions: string[] } {
   const match = content.match(/<!--\s*SUGGESTIONS:\s*(\[.*?\])\s*-->\s*$/s);
@@ -105,6 +109,10 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
       });
 
       if (!response.ok) {
+        if (response.status === 429) {
+          const error = await response.json() as { error: string };
+          throw new Error(error.error || "다른 탭에서 대화가 진행 중입니다. 잠시 후 다시 시도하세요.");
+        }
         const error = await response.json() as { error: string };
         throw new Error(error.error || "Chat request failed");
       }
@@ -398,10 +406,12 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
       {budgetWarning && (
         <div className="border-t border-[var(--axis-border-warning)] px-4 py-2">
           <div className={mode === "ideas" ? "" : "mx-auto max-w-3xl"}>
-            <AlertBanner variant="warning" className="py-2">
+            <AlertBanner variant={isOverBudget(budgetWarning) ? "destructive" : "warning"} className="py-2">
               <div className="flex items-center justify-between text-xs">
                 <span>
-                  토큰 예산 {budgetWarning.percentUsed}% 사용 ({budgetWarning.tokensUsedToday.toLocaleString()} / {budgetWarning.dailyTokenBudget.toLocaleString()})
+                  {isOverBudget(budgetWarning)
+                    ? `일일 토큰 예산 초과 — 내일 자정(UTC)에 초기화됩니다 (${budgetWarning.tokensUsedToday.toLocaleString()} / ${budgetWarning.dailyTokenBudget.toLocaleString()})`
+                    : `토큰 예산 ${budgetWarning.percentUsed}% 사용 (${budgetWarning.tokensUsedToday.toLocaleString()} / ${budgetWarning.dailyTokenBudget.toLocaleString()})`}
                 </span>
                 <button
                   onClick={() => setBudgetWarning(null)}
@@ -449,14 +459,14 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
                   sendMessage();
                 }
               }}
-              placeholder="메시지를 입력하세요..."
-              disabled={isLoading}
+              placeholder={isOverBudget(budgetWarning) ? "일일 토큰 예산을 초과했습니다" : "메시지를 입력하세요..."}
+              disabled={isLoading || isOverBudget(budgetWarning)}
               className="flex-1 border-0 bg-transparent p-0 shadow-none focus:ring-0 focus-visible:ring-0"
             />
             <button
               type="button"
               onClick={sendMessage}
-              disabled={isLoading || !input.trim()}
+              disabled={isLoading || !input.trim() || isOverBudget(budgetWarning)}
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--axis-button-bg-default)] text-[var(--axis-button-text-default)] transition-all hover:bg-[var(--axis-button-bg-hover)] disabled:opacity-40 disabled:cursor-not-allowed"
               aria-label="전송"
             >

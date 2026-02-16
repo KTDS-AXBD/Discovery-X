@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dx.minu.best/schema/topic",
+  "title": "Discovery-X Topic Graph Node",
+  "description": "JSON-LD 그래프 내 토픽 노드 검증 스키마",
+  "type": "object",
+  "required": ["@id", "@type", "name"],
+  "properties": {
+    "@id": {
+      "type": "string",
+      "pattern": "^dx:topic/[a-zA-Z0-9_-]+$",
+      "description": "dx:topic/{topicId} 형식의 고유 식별자"
+    },
+    "@type": {
+      "type": "string",
+      "const": "dx:Topic"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "토픽 이름"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 2000,
+      "description": "토픽 설명"
+    },
+    "label": {
+      "type": "string",
+      "description": "토픽 분류 라벨"
+    },
+    "importance": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "중요도 (0.0 ~ 1.0)"
+    },
+    "relatedTo": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^dx:"
+      },
+      "description": "관련 노드 참조 목록"
+    },
+    "source": {
+      "type": "string",
+      "description": "토픽 출처 참조"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "노드 생성 시점"
+    }
+  },
+  "additionalProperties": true
+}

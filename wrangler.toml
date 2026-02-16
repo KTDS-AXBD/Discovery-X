@@ -34,6 +34,21 @@ index_name = "dx-evidence-embeddings"
 binding = "VECTORIZE_RADAR"
 index_name = "dx-radar-embeddings"
 
+#   wrangler vectorize create dx-graph-embeddings --dimensions=512 --metric=cosine
+[[vectorize]]
+binding = "VECTORIZE_GRAPHS"
+index_name = "dx-graph-embeddings"
+
+#   wrangler vectorize create dx-memory-embeddings --dimensions=512 --metric=cosine
+[[vectorize]]
+binding = "VECTORIZE_MEMORY"
+index_name = "dx-memory-embeddings"
+
+#   wrangler vectorize create dx-signal-embeddings --dimensions=512 --metric=cosine
+[[vectorize]]
+binding = "VECTORIZE_SIGNALS"
+index_name = "dx-signal-embeddings"
+
 # Environment variables (set via Cloudflare dashboard or wrangler secret)
 # RESEND_API_KEY = "re_xxxxx" (set via: wrangler secret put RESEND_API_KEY)
 # CRON_SECRET = "xxxxx" (set via: wrangler secret put CRON_SECRET)
@@ -43,10 +58,15 @@ index_name = "dx-radar-embeddings"
 # GOOGLE_CLIENT_SECRET = "xxxxx" (set via: wrangler secret put GOOGLE_CLIENT_SECRET)
 
 # Feature Flags (v3 Architecture Upgrade)
+# Phase 5 갭 해소 완료 후 true 전환 준비 완료
+# 프로덕션 배포 시 단계적 활성화 (graph → acl → topic → memory → agent → vectorize)
 [vars]
-FF_GRAPH_LAYER = "false"
-FF_AGENT_DO = "false"
-FF_TOPIC_COLLAB = "false"
-FF_ACL_SCOPE = "false"
-FF_MEMORY_LIFECYCLE = "false"
-FF_VECTORIZE_SEARCH = "false"
+FF_GRAPH_LAYER = "true"
+FF_AGENT_DO = "false"          # agent-worker 배포 후 활성화
+FF_TOPIC_COLLAB = "true"
+FF_ACL_SCOPE = "true"
+FF_MEMORY_LIFECYCLE = "true"
+FF_VECTORIZE_SEARCH = "false"  # Vectorize index 생성 후 활성화
+FF_PIPELINE_BRIDGE = "true"
+FF_COLLAB_WORKER = "false"     # collab-worker 배포 후 활성화
+FF_PROFILE_LEARNER = "true"

@@ -92,8 +92,8 @@ describe("validateContext", () => {
 describe("validateNodes", () => {
   it("유효한 노드 → valid:true", () => {
     const nodes: JsonLdNode[] = [
-      { "@id": "dx:user-1", "@type": "dx:User" },
-      { "@id": "dx:topic-1", "@type": "dx:Topic" },
+      { "@id": "dx:user/user-1", "@type": "dx:User" },
+      { "@id": "dx:topic/topic-1", "@type": "dx:Topic" },
     ];
     const result = validateNodes(nodes);
     expect(result.valid).toBe(true);
@@ -123,14 +123,22 @@ describe("validateNodes", () => {
     expect(result.errors.some((e) => e.includes("허용되지 않는"))).toBe(true);
   });
 
-  it("dx: prefix 없는 @id → warning (valid는 true)", () => {
+  it("dx:{type}/{id} 패턴에 맞지 않는 @id → error", () => {
     const nodes: JsonLdNode[] = [
       { "@id": "user-no-prefix", "@type": "dx:User" },
     ];
     const result = validateNodes(nodes);
-    expect(result.valid).toBe(true); // warning은 valid에 영향 없음
-    expect(result.warnings).toBeDefined();
-    expect(result.warnings!.some((w) => w.includes("dx:"))).toBe(true);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.includes("dx:{type}/{id}"))).toBe(true);
+  });
+
+  it("@type과 @id prefix 불일치 → error", () => {
+    const nodes: JsonLdNode[] = [
+      { "@id": "dx:topic/wrong-1", "@type": "dx:User" },
+    ];
+    const result = validateNodes(nodes);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.includes("dx:user/"))).toBe(true);
   });
 
   it("빈 배열 → valid:true", () => {
@@ -144,7 +152,7 @@ describe("validateGraph", () => {
     const result = validateGraph({
       "@context": { dx: "https://discovery-x.io/ns/" },
       "@graph": [
-        { "@id": "dx:u-1", "@type": "dx:User", "dx:name": "테스트" },
+        { "@id": "dx:user/u-1", "@type": "dx:User", "dx:name": "테스트" },
       ],
     });
     expect(result.valid).toBe(true);
@@ -179,15 +187,14 @@ describe("validateGraph", () => {
     expect(result.valid).toBe(true);
   });
 
-  it("warnings도 수집", () => {
+  it("@id 패턴 위반 시 에러 수집", () => {
     const result = validateGraph({
       "@context": { dx: "https://discovery-x.io/ns/" },
       "@graph": [
         { "@id": "no-prefix-id", "@type": "dx:User" },
       ],
     });
-    expect(result.valid).toBe(true);
-    expect(result.warnings).toBeDefined();
-    expect(result.warnings!.length).toBeGreaterThan(0);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.includes("dx:{type}/{id}"))).toBe(true);
   });
 });

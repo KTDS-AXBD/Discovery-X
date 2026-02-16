@@ -17,13 +17,8 @@ export interface AccessResult {
   scope: { scopeType: ScopeType; scopeId: string };
 }
 
-// === Permission Matrix ===
-export const PERMISSION_MATRIX: Record<TopicRole, Record<Action, boolean>> = {
-  owner: { read: true, write: true, delete: true, admin: true },
-  editor: { read: true, write: true, delete: false, admin: false },
-  viewer: { read: true, write: false, delete: false, admin: false },
-  none: { read: false, write: false, delete: false, admin: false },
-};
+// === Permission Matrix (policies.ts에서 정의, 호환을 위해 re-export) ===
+export { PERMISSION_MATRIX } from "./policies";
 
 // === 감사 로그 ===
 export interface AclAuditEntry {

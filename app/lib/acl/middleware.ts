@@ -1,4 +1,5 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/cloudflare";
+import { eq, and } from "drizzle-orm";
 import { getDb } from "~/db";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import type { Action } from "./types";
@@ -63,6 +64,30 @@ export async function requireScopeAccess(
     } catch {
       // 로깅 실패는 무시 — 보안 검사가 우선
     }
-    throw new Response("Forbidden", { status: 403 });
+
+    // Topic scope일 때 owner 정보를 포함한 에러 메시지 생성
+    let message = "접근 권한이 없습니다.";
+    if (scope.scopeType === "topic") {
+      try {
+        const { topicMembers, users } = await import("~/db");
+        const ownerRow = await db
+          .select({ name: users.name })
+          .from(topicMembers)
+          .innerJoin(users, eq(users.id, topicMembers.userId))
+          .where(
+            and(
+              eq(topicMembers.topicId, scope.scopeId),
+              eq(topicMembers.role, "owner"),
+            ),
+          )
+          .limit(1);
+        if (ownerRow.length > 0) {
+          message = `접근 권한이 없습니다. Topic owner: ${ownerRow[0].name}에게 문의하세요.`;
+        }
+      } catch {
+        // owner 조회 실패 시 기본 메시지 유지
+      }
+    }
+    throw new Response(message, { status: 403 });
   }
 }

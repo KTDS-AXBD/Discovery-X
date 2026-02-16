@@ -11,6 +11,7 @@ import { eq } from "drizzle-orm";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { createAgentStreamResponse } from "~/lib/agent/executor";
 import { tryAcquireSSESession, releaseSSESession } from "~/lib/rate-limit/sse-limiter";
+import { isAgentDOAvailable, delegateToDO } from "~/lib/agent/agent-do.stub";
 
 export async function action({ request, context }: ActionFunctionArgs) {
   if (request.method !== "POST") {
@@ -40,6 +41,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: "ANTHROPIC_API_KEY not configured" }, { status: 500 });
   }
 
+  const env = context.cloudflare.env as unknown as Record<string, unknown>;
   const body = await request.json() as { conversationId: string; message: string; mode?: "default" | "ideas" };
   const { conversationId, message, mode } = body;
 
@@ -58,6 +60,20 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (!conv[0] || conv[0].userId !== user.id) {
     releaseSSESession(user.id);
     return json({ error: "Conversation not found" }, { status: 404 });
+  }
+
+  // FF_AGENT_DO가 활성화되면 agent-worker DO로 위임
+  if (isAgentDOAvailable(env)) {
+    releaseSSESession(user.id); // DO가 자체 동시성 제어하므로 SSE limiter 해제
+    const doResponse = await delegateToDO(
+      { conversationId, message, mode, userId: user.id, tenantId: ctx.tenantId },
+      env,
+    );
+    // DO가 429를 반환하면 그대로 전달
+    return new Response(doResponse.body, {
+      status: doResponse.status,
+      headers: doResponse.headers,
+    });
   }
 
   // Update conversation title if first message

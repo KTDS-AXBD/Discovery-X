@@ -12,6 +12,20 @@ const ALLOWED_NODE_TYPES = new Set([
   "dx:Preference",
 ]);
 
+// @id 네이밍 규칙: dx:{type}/{uuid} 패턴 (type은 소문자)
+const VALID_ID_PATTERN = /^dx:(user|topic|decision|signal|glossary|expertise|preference)\/[a-zA-Z0-9_-]+$/;
+
+// @type → @id prefix 매핑
+const TYPE_TO_ID_PREFIX: Record<string, string> = {
+  "dx:User": "dx:user/",
+  "dx:Topic": "dx:topic/",
+  "dx:Decision": "dx:decision/",
+  "dx:Signal": "dx:signal/",
+  "dx:Glossary": "dx:glossary/",
+  "dx:Expertise": "dx:expertise/",
+  "dx:Preference": "dx:preference/",
+};
+
 export interface ValidationResult {
   valid: boolean;
   errors: string[];
@@ -80,9 +94,21 @@ export function validateNodes(nodes: JsonLdNode[]): ValidationResult {
       );
     }
 
-    // @id prefix 경고 (선택적 — valid에 영향 없음)
-    if (node["@id"] && !node["@id"].startsWith("dx:")) {
-      warnings.push(`${prefix}: @id "${node["@id"]}"는 dx: prefix를 따르는 것이 권장됩니다`);
+    // @id 네이밍 규칙 검증 (dx:{type}/{id} 패턴 강제)
+    if (node["@id"]) {
+      if (!VALID_ID_PATTERN.test(node["@id"])) {
+        errors.push(
+          `${prefix}: @id "${node["@id"]}"는 dx:{type}/{id} 패턴을 따라야 합니다 (예: dx:user/abc-123)`,
+        );
+      } else if (node["@type"] && TYPE_TO_ID_PREFIX[node["@type"]]) {
+        // @type과 @id prefix가 일치하는지 확인
+        const expectedPrefix = TYPE_TO_ID_PREFIX[node["@type"]];
+        if (!node["@id"].startsWith(expectedPrefix)) {
+          errors.push(
+            `${prefix}: @type "${node["@type"]}"에 대한 @id는 "${expectedPrefix}"로 시작해야 합니다 (현재: "${node["@id"]}")`,
+          );
+        }
+      }
     }
   }
 

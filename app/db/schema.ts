@@ -135,6 +135,8 @@ export const tenants = sqliteTable(
     plan: text("plan").notNull().default("free"),
     status: text("status").notNull().default("active"),
     ownerUserId: text("owner_user_id").notNull().references(() => users.id),
+    profileLd: text("profile_ld"),
+    rulesMd: text("rules_md"),
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),

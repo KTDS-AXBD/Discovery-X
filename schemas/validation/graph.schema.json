@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dx.minu.best/schema/graph",
+  "title": "Discovery-X JSON-LD Graph",
+  "description": "Discovery-X 지식 그래프 최상위 구조 검증 스키마",
+  "type": "object",
+  "required": ["@context", "@graph"],
+  "properties": {
+    "@context": {
+      "type": "object",
+      "required": ["dx"],
+      "properties": {
+        "dx": {
+          "type": "string",
+          "const": "https://dx.minu.best/schema/",
+          "description": "Discovery-X 네임스페이스 URI"
+        },
+        "xsd": {
+          "type": "string",
+          "description": "XML Schema Datatypes 네임스페이스"
+        },
+        "rdfs": {
+          "type": "string",
+          "description": "RDF Schema 네임스페이스"
+        }
+      },
+      "additionalProperties": true,
+      "description": "JSON-LD @context — dx 네임스페이스 필수"
+    },
+    "@graph": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["@id", "@type"],
+        "properties": {
+          "@id": {
+            "type": "string",
+            "pattern": "^dx:(user|topic|decision|signal|glossary|expertise|preference)/[a-zA-Z0-9_-]+$",
+            "description": "dx:{type}/{id} 형식의 노드 식별자"
+          },
+          "@type": {
+            "type": "string",
+            "enum": [
+              "dx:User",
+              "dx:Topic",
+              "dx:Decision",
+              "dx:Signal",
+              "dx:Glossary",
+              "dx:Expertise",
+              "dx:Preference"
+            ],
+            "description": "노드 타입 (허용 목록)"
+          }
+        },
+        "additionalProperties": true
+      },
+      "description": "그래프 노드 배열"
+    }
+  },
+  "additionalProperties": false
+}

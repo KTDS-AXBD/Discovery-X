@@ -137,6 +137,24 @@ export class GraphStore implements GraphStoreInterface {
       throw new Error(`Graph not found: ${id}`);
     }
 
+    // Agent는 learned_pref (dx:Preference) 노드만 수정 가능
+    if (audit?.actorType === ActorType.AGENT) {
+      const changedNodes = jsonld["@graph"].filter((node) => {
+        const prev = existing.jsonld["@graph"].find(
+          (n) => n["@id"] === node["@id"],
+        );
+        return !prev || JSON.stringify(prev) !== JSON.stringify(node);
+      });
+      const nonPrefNodes = changedNodes.filter(
+        (n) => n["@type"] !== "dx:Preference",
+      );
+      if (nonPrefNodes.length > 0) {
+        throw new Error(
+          "Agent는 dx:Preference 노드만 수정할 수 있습니다. 다른 노드 변경은 suggest()를 사용하세요.",
+        );
+      }
+    }
+
     const contentHash = await computeContentHash(jsonld);
     const newVersion = existing.version + 1;
     const now = new Date();
@@ -181,8 +199,15 @@ export class GraphStore implements GraphStoreInterface {
   /**
    * Graph 삭제 — 감사 이벤트 기록 후 Graph만 삭제.
    * D1 FK는 기본 PRAGMA foreign_keys=OFF이므로 이벤트 로그는 보존된다.
+   * Agent는 삭제 불가 — suggest()로 삭제 제안만 가능.
    */
   async delete(id: string, audit?: AuditContext): Promise<void> {
+    if (audit?.actorType === ActorType.AGENT) {
+      throw new Error(
+        "Agent는 Graph를 삭제할 수 없습니다. suggest()로 삭제 제안을 남겨주세요.",
+      );
+    }
+
     const existing = await this.get(id);
     if (!existing) {
       throw new Error(`Graph not found: ${id}`);

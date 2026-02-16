@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dx.minu.best/schema/user",
+  "title": "Discovery-X User Graph Node",
+  "description": "JSON-LD 그래프 내 사용자 노드 검증 스키마",
+  "type": "object",
+  "required": ["@id", "@type", "name"],
+  "properties": {
+    "@id": {
+      "type": "string",
+      "pattern": "^dx:user/[a-zA-Z0-9_-]+$",
+      "description": "dx:user/{userId} 형식의 고유 식별자"
+    },
+    "@type": {
+      "type": "string",
+      "const": "dx:User"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "사용자 표시 이름"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "사용자 소개/역할 설명"
+    },
+    "category": {
+      "type": "string",
+      "description": "사용자 역할 카테고리 (예: analyst, manager)"
+    },
+    "relatedTo": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^dx:"
+      },
+      "description": "관련 노드 참조 목록"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "노드 생성 시점"
+    }
+  },
+  "additionalProperties": true
+}

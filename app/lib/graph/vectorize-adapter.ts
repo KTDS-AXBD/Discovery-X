@@ -39,6 +39,8 @@ export interface VectorizeIndex {
 export interface VectorizeGraphEnv {
   OPENAI_API_KEY: string;
   VECTORIZE_GRAPHS?: VectorizeIndex;
+  VECTORIZE_MEMORY?: VectorizeIndex;
+  VECTORIZE_SIGNALS?: VectorizeIndex;
 }
 
 export interface VectorizeSearchResult {
@@ -166,6 +168,110 @@ export class GraphVectorizeAdapter {
     if (options?.scopeId) filter.scopeId = options.scopeId;
 
     const result = await this.env.VECTORIZE_GRAPHS.query(embedding, {
+      topK: options?.topK ?? 10,
+      filter: Object.keys(filter).length > 0 ? filter : undefined,
+      returnMetadata: true,
+    });
+
+    return result.matches;
+  }
+
+  // ─── Agent Memory 인덱싱 ──────────────────────────────────────────
+
+  /**
+   * Agent Memory를 Vectorize에 인덱싱
+   * namespace: VECTORIZE_MEMORY
+   */
+  async indexMemory(
+    memoryId: number,
+    userId: string,
+    memoryType: string,
+    content: string,
+    category?: string | null,
+  ): Promise<void> {
+    if (!this.env.VECTORIZE_MEMORY) return;
+
+    const embedding = await this.generateEmbedding(content);
+
+    await this.env.VECTORIZE_MEMORY.upsert([
+      {
+        id: `mem:${memoryId}`,
+        values: embedding,
+        metadata: {
+          userId,
+          memoryType,
+          category: category ?? "uncategorized",
+        },
+      },
+    ]);
+  }
+
+  /**
+   * Agent Memory 시맨틱 검색
+   */
+  async searchMemory(
+    query: string,
+    userId: string,
+    options?: { topK?: number; memoryType?: string },
+  ): Promise<VectorizeSearchResult[]> {
+    if (!this.env.VECTORIZE_MEMORY) return [];
+
+    const embedding = await this.generateEmbedding(query);
+    const filter: Record<string, string> = { userId };
+    if (options?.memoryType) filter.memoryType = options.memoryType;
+
+    const result = await this.env.VECTORIZE_MEMORY.query(embedding, {
+      topK: options?.topK ?? 5,
+      filter,
+      returnMetadata: true,
+    });
+
+    return result.matches;
+  }
+
+  // ─── Signal 인덱싱 ──────────────────────────────────────────────
+
+  /**
+   * Shared Signal을 Vectorize에 인덱싱
+   * namespace: VECTORIZE_SIGNALS
+   */
+  async indexSignal(
+    signalId: number,
+    teamId: string,
+    topicId: string | null,
+    contentSummary: string,
+  ): Promise<void> {
+    if (!this.env.VECTORIZE_SIGNALS) return;
+
+    const embedding = await this.generateEmbedding(contentSummary);
+
+    await this.env.VECTORIZE_SIGNALS.upsert([
+      {
+        id: `sig:${signalId}`,
+        values: embedding,
+        metadata: {
+          teamId,
+          topicId: topicId ?? "",
+        },
+      },
+    ]);
+  }
+
+  /**
+   * Signal 시맨틱 검색 — 유사 시그널 찾기
+   */
+  async searchSignals(
+    query: string,
+    options?: { topK?: number; teamId?: string; topicId?: string },
+  ): Promise<VectorizeSearchResult[]> {
+    if (!this.env.VECTORIZE_SIGNALS) return [];
+
+    const embedding = await this.generateEmbedding(query);
+    const filter: Record<string, string> = {};
+    if (options?.teamId) filter.teamId = options.teamId;
+    if (options?.topicId) filter.topicId = options.topicId;
+
+    const result = await this.env.VECTORIZE_SIGNALS.query(embedding, {
       topK: options?.topK ?? 10,
       filter: Object.keys(filter).length > 0 ? filter : undefined,
       returnMetadata: true,
