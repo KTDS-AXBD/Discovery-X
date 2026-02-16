@@ -65,7 +65,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 | P3 협업+통합 | 2~3주 | collab-worker, Pipeline Bridge, Cron, TokenBudget |
 | P4 고도화 | 2주 | ProfileLearner, Graph 롤백 UI, Vectorize, E2E 테스트 |
 
-현재: **Phase 0 진행 중**
+현재: **Phase 0 완료** → Phase 1 준비
 
 ### 성공 기준
 - **P0**: "닫힌 Discovery"(Next/Not Now/Dead End)가 최소 1건 이상 발생
@@ -315,27 +315,36 @@ build/
 ### 버전
 - **프로토타입**: v6.14 Idea-to-Proposal Creation Flow + Source Panel Resize
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 30개 마이그레이션 (0000~0029), 로컬+프로덕션 적용 완료 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
+- **DB**: 31개 마이그레이션 (0000~0030), 로컬 적용 완료 + 프로덕션 0029까지 적용 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
 
 ### 주요 지표
 - **라우트**: 130개 (core 46 + ideas 8 + proposals 8 + lab 10 + venture 13 + market 3 + API 33 + folders 4 + 기타 5)
-- **테이블**: 71개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges)
+- **테이블**: 79개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 8) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges)
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
 - **테스트**: 661개 (44 test files, 로컬 + CI 모두 통과) — 온톨로지 테스트 6파일 64개 포함
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 178)
+### 최근 변경 (세션 179)
+**PRD v3 Phase 0 완료 — 잔여 작업 (Feature Flag + ACL + 서비스 레이어 + 마이그레이션)**:
+- ✅ `wrangler.toml`: 6개 Feature Flag 추가 (FF_GRAPH_LAYER, FF_AGENT_DO, FF_TOPIC_COLLAB, FF_ACL_SCOPE, FF_MEMORY_LIFECYCLE, FF_VECTORIZE_SEARCH — 모두 기본 false)
+- ✅ `app/lib/feature-flags.ts` (신규): `getFeatureFlags()`, `isFeatureEnabled()` 유틸
+- ✅ `app/lib/acl/resolver.ts` (신규): ScopeResolver stub (URL→scope 추출, role 결정)
+- ✅ `app/lib/acl/middleware.ts` (신규): `requireScopeAccess()` (FF 비활성화 시 패스)
+- ✅ `app/lib/acl/index.ts` (신규): barrel export
+- ✅ `app/lib/services/` (신규 6파일): routes→services 비즈니스 로직 분리 (discovery, idea, proposal, radar, venture + index)
+- ✅ `drizzle/0030_v2_graph_layer.sql` (신규): v2 8테이블 마이그레이션 (IF NOT EXISTS + CHECK 제약조건)
+- ✅ `tests/helpers/db.ts`: v2Schema import + 0030 마이그레이션 참조 추가
+- ✅ 마이그레이션 정리: 잘못된 0027 auto-generated 삭제, journal/snapshot 정리
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 661개 통과 / build 성공 / D1 로컬 마이그레이션 적용 완료
+
+### 이전 변경 (세션 178)
 **PRD v3 Phase 0 — 구조 정비 시작**:
 - ✅ `docs/Discovery-X_PRD_v3_Final.md`: PRD v3 최종본 프로젝트 등록
-- ✅ `SPEC.md`: v3 아키텍처 업그레이드 scope 추가
-- ✅ `app/db/schema-v2.ts` (신규): Graph Layer 스키마 (graphs, graph_events, projections, topics, topic_members, shared_signals, agent_memory_v2, agent_sessions_v2, token_usage_v2)
-- ✅ `app/lib/graph/types.ts` (신규): JSON-LD 타입 정의 + Graph 인터페이스
-- ✅ `app/lib/acl/types.ts` (신규): Scope Resolution 타입 + Permission Matrix
-- ✅ `app/lib/types/enums.ts` (신규): 통합 enum 상수 + CHECK 제약 타입 가드
+- ✅ `app/db/schema-v2.ts` (신규): Graph Layer 스키마 8테이블
+- ✅ `app/lib/graph/types.ts`, `app/lib/acl/types.ts`, `app/lib/types/enums.ts` (신규): 타입/인터페이스 정의
 - ✅ `schemas/contexts/discovery-x.jsonld` (신규): JSON-LD @context 정의
-- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
 
 ### 이전 변경 (세션 177)
 **CLAUDE.md 품질 개선**:
@@ -555,258 +564,22 @@ build/
 - ✅ StatisticsSection: `dx-panel` 카드 래퍼 + 바 차트 블루(`--axis-chart-bar`) + 산업 컬러 도트 + 도넛 블루 그라데이션
 - ✅ typecheck 0 에러 / lint 0 에러 (변경 파일) / build 성공
 
-### 이전 변경 (세션 150)
-**루트 리다이렉트 + Pretendard 폰트 + 색상 가독성 개선**:
-- ✅ `/` → `/dashboard` 리다이렉트 (기존 채팅 UI 제거, loader 단순화)
-- ✅ Pretendard Variable 폰트 CDN 적용 (한국어 타이포그래피 최적화)
-- ✅ `--axis-text-on-brand` / `--axis-border-brand` 토큰 정의 (Light + Dark)
-- ✅ CSS Cascade Layer 우선순위 수정 (unlayered로 @axis-ds/tokens 오버라이드)
-- ✅ SPEC.md §2 디자인 시스템 섹션 추가 (타이포그래피/색상/라우팅 정책)
-- ✅ CI/CD 2회 배포 완료 + 브라우저 검증 (리다이렉트/폰트/토큰 정상)
+### 이전 변경 아카이브 (세션 125~150)
+<details>
+<summary>세션 125~150 변경 내역 (클릭하여 펼치기)</summary>
 
-### 이전 변경 (세션 149)
-**온톨로지 테스트 48개 통과 + 대시보드 통계 + 배포 완료**:
-- ✅ 온톨로지 테스트 5파일 48개 전체 통과 확인 (unit 3 + integration 2)
-  - matcher.test.ts (11): normalizeLabel, matchGlobalEntity, matchGlobalEntitiesBatch
-  - extractor.test.ts (6): VALID_RELATION_TYPES 검증, 배치 필터링, 테넌트 격리
-  - analyzer.test.ts (14): detectPatterns, detectContradictions, detectClusters, analyzeCentrality
-  - analysis-tools.test.ts (8): Agent 도구 레이어 JSON 직렬화 검증
-  - review-pipeline.test.ts (8): 노드/엣지 review, cross-Discovery 매칭, 거절노드 제외, 풀파이프라인
-- ✅ FK 에러 수정: analysis-tools/review-pipeline 테스트에 ontologyTypes 시드 추가 (이전 세션 반영 확인)
-- ✅ WSL better-sqlite3 네이티브 바이너리 리빌드 (node-gyp rebuild)
-- ✅ 대시보드 통계 섹션 추가: StatisticsSection 컴포넌트 (월별 활동 + 소스 분류)
-- ✅ StatusOverview 선택 항목 하이라이트 색상 수정
-- ✅ CI/CD 전체 통과 (1m 32s): Lint ✓ / Typecheck ✓ / Tests ✓ / Build ✓ / Deploy ✓
-- ✅ 프로덕션 배포 완료 (https://dx.minu.best)
+- **세션 150**: 루트 리다이렉트 (`/` → `/dashboard`) + Pretendard Variable 폰트 + CSS Cascade Layer 수정
+- **세션 149**: 온톨로지 테스트 48개 통과 + 대시보드 통계 + 프로덕션 배포
+- **세션 147~148**: CI 통합 테스트 수정 + 재배포
+- **세션 145~146**: CLAUDE.md 리팩토링 (60% 감소) + SDD-primary 워크플로우 + CI 테스트 수정
+- **세션 143~144**: 온톨로지 인텔리전스 Phase 1+2 (자동 추출/매칭/분석) + 대시보드 UI 정합
+- **세션 141~142**: 아이디어 3-Panel 재설계 + PDCA Iterate proposals 갭 해결
+- **세션 138~140**: 대시보드 와이어프레임 재설계 + 시장탐색 + UI 정합 (3-Worker 병렬)
+- **세션 134~137**: F20/F21/F22 병렬 구현 + PDCA Analyze + Report (평균 94.5%)
+- **세션 128~132**: Figma 기반 레이아웃 재구성 + 사업제안 6테이블 + CI/CD + PDCA 문서
+- **세션 125~127**: AX BD팀 PoC PDCA 완료 (92% Plan, 597 tests) + 프로덕션 배포
 
-### 이전 변경 (세션 148)
-**이전 세션 중단 배포 완료**:
-- ✅ 세션 147에서 중단된 `/deploy` 재개: `git push origin master` → CI/CD 전체 통과 (1m 33s)
-- ✅ CI/CD: Lint ✓ / Typecheck ✓ / Tests ✓ / Build ✓ / Deploy ✓
-- ✅ 프로덕션 배포 완료 (https://dx.minu.best)
-
-### 이전 변경 (세션 147)
-**CI 통합 테스트 수정 + 재배포 완료**:
-- ✅ `analysis-tools.test.ts` + `review-pipeline.test.ts` onConflictDoNothing 수정 (세션 146에서 누락된 통합 테스트 2개)
-- ✅ CI/CD 전체 통과: Lint ✓ / Typecheck ✓ / Tests ✓ / Build ✓ / Deploy ✓
-- ✅ 프로덕션 배포 완료 (https://dx.minu.best)
-
-### 이전 변경 (세션 146)
-**CI 테스트 수정 + node_modules 복구**:
-- ✅ `extractor.test.ts` FOREIGN KEY constraint 에러 수정: `seedBase()`에 `tenants`/`tenantMembers` 시드 누락
-- ✅ "다른 테넌트" 테스트에서 `tenant-A` 레코드 추가
-- ✅ analyzer/matcher/extractor 3개 온톨로지 테스트 seed 패턴 통일
-- ✅ 로컬 node_modules 손상 복구 + 클린 인스톨
-- ✅ 로컬 테스트 645개 전체 통과 (43 test files)
-
-### 이전 변경 (세션 145)
-**CLAUDE.md 리팩토링 + SDD-primary 워크플로우 통합**:
-- ✅ CLAUDE.md 슬림화: 379줄 → 151줄 (60% 감소) — 코드 추론 가능 정보 제거, @import 도입
-- ✅ 검증 워크플로우 섹션 추가 (typecheck + lint 필수 실행 지시)
-- ✅ 컨텍스트 압축 보존 규칙 추가
-- ✅ SDD-primary / bkit PDCA-supplementary 워크플로우 우선순위 확립
-  - SPEC.md §5 = Single Source of Truth
-  - bkit: analyze/iterate/report만 보조 사용, plan/design/do/status 비활성
-  - bkit SessionStart hook AskUserQuestion 오버라이드
-  - bkit Feature Usage Report 비활성화
-- ✅ settings.json 권한 정리: npm→pnpm, git diff/log/add, wrangler 추가
-- ✅ 온톨로지 테스트 seed 수정 (onConflictDoNothing 추가)
-
-### 이전 변경 (세션 144)
-**대시보드 와이어프레임 정합 + Ideas/Proposals UI 디테일 수정**:
-- ✅ 대시보드: "특집 현황" 제거 → "요약/정리" 기사 뷰 (선택된 소스의 제목/본문/키워드/원본링크)
-- ✅ 대시보드: 소스 목록 summary 제거 → 제목만 1줄 + 클릭 선택 (첫 항목 자동 선택)
-- ✅ 대시보드: 레이아웃 50/50 → 35/65 (`grid-cols-[1fr_2fr]`)
-- ✅ 대시보드: "데이터 분류"+"통계" 제거 → "피어브리핑" 4탭(아이디어/사업제안/컨설팅/검증) + 2열 그리드
-- ✅ 신규 컴포넌트: PeerBriefingSection.tsx (탭 UI + 2-column 아이템 리스트)
-- ✅ Ideas: 소스 카드 → 타입 아이콘(PDF/YouTube/링크) + 1줄 제목 + 빨간 점(새 항목)
-- ✅ Ideas: 입력 안내문 2줄로 변경 (URL/PDF/YouTube/텍스트 지원 안내)
-- ✅ Ideas: 채팅 하단 바 → "Claude Sonnet 4.5" pill + 첨부/설정 아이콘 (UI only)
-- ✅ Proposals: 액션 아이템 담당자 항상 표시 ("미지정" 포함)
-- ✅ 온톨로지 테스트 5개 추가 (unit 3 + integration 2)
-- ✅ 2 Worker 병렬 작업 (StatusOverview + PeerBriefing 동시 구현)
-- ✅ typecheck 0 errors, lint 0 errors, 597 tests 통과, 프로덕션 배포 완료
-
-### 이전 변경 (세션 143)
-**온톨로지 인텔리전스 Phase 1 + Phase 2 구현**:
-- ✅ Phase 1 — 자동 엔티티 추출 파이프라인:
-  - DB 스키마 확장: evidence에 `ontologyExtractedAt`, contextNodes에 `globalEntityId`/`confidence`/`autoGenerated`/`reviewed`, contextEdges에 동일 3컬럼
-  - LLM 추출 엔진 (`app/lib/ontology/extractor.ts`): Claude Haiku로 Evidence 텍스트에서 엔티티/관계 자동 추출 (confidence ≥0.8 자동생성, 0.5~0.8 검토큐)
-  - 글로벌 엔티티 매칭 (`app/lib/ontology/matcher.ts`): normalizeLabel() 기반 Cross-Discovery 엔티티 연결
-  - Cron 엔드포인트 (`api.cron.ontology-extract`): 테넌트별 배치 처리
-  - 검토 UI (`ontology.review.tsx`): 자동 추출 노드/엣지 승인/반려/편집
-  - Agent 통합: extractEntities에 globalEntityId 자동 매칭 추가
-  - 마이그레이션 0025 생성 + 프로덕션 적용 완료
-- ✅ Phase 2 — 관계 분석 엔진 (tmux /team 3 Worker 병렬):
-  - 분석 알고리즘 4종 (`app/lib/ontology/analyzer.ts`): 패턴 탐지(2/3-hop), 모순 감지(supports+contradicts), 클러스터 분석(Union-Find), 중심성 분석(degree)
-  - API + Cron: `api.ontology.analyze` + `api.cron.ontology-analyze`
-  - Agent 도구 4개: analyzePatterns, analyzeContradictions, analyzeClusters, analyzeCentrality
-  - UI 4개 라우트: ontology layout(4탭) + 요약 대시보드 + 글로벌 그래프 + 분석 결과
-  - InsightPanel 컴포넌트: 분석 결과 카드 시각화
-- ✅ PDCA 문서: plan + design 완료, Phase 3 (미래 예측 시뮬레이션) → 세션 152에서 완료
-- ✅ typecheck 0 errors, lint 0 errors, 프로덕션 배포 + DB 마이그레이션 완료
-
-### 이전 변경 (세션 142)
-**아이디어 3-Panel 재설계 + 사업제안 사이드바 개선**:
-- ✅ 아이디어 페이지 3-Panel 레이아웃 재설계: 소스 패널(좌) + 가젯 탭(중) + AI 채팅(우)
-- ✅ 신규 컴포넌트 3개: SourceInputPanel, IdeaGadgetTabs (8탭), IdeaChatWrapper
-- ✅ ideas.tsx 레이아웃 재작성: AppShell(hideSidebar) + 3-Panel 상태관리
-- ✅ ideas.$id.tsx 중앙 패널: 제목바 + 8개 가젯 탭 뷰로 변경
-- ✅ 사업제안 사이드바: 카드별 진행률 progress bar 추가 (액션 아이템 완료율)
-- ✅ proposals._index.tsx: 첫 제안 자동 선택 (loader redirect)
-- ✅ 프로덕션 배포 + 브라우저 검증 완료
-- ✅ typecheck 0 errors, lint 0 errors, build 성공
-
-### 이전 변경 (세션 141)
-**PDCA Iterate — proposals MEDIUM 갭 해결 + 편집 라우트 추가**:
-- ✅ Drizzle `relations()` 6개 정의 추가 (proposalsRelations~proposalMembersRelations)
-- ✅ `proposal_sections` (proposal_id, type) 유니크 인덱스 + 마이그레이션 0024
-- ✅ 편집 라우트 `proposals.$id_.edit.tsx` 신규 생성 (DRAFT 상태 소유자만 편집 가능)
-- ✅ ProposalDetail 태블릿/모바일 진행상황 요약 카드 추가 (`lg:hidden`)
-- ✅ tenantUsers 쿼리 테넌트 격리 — `tenantMembers` JOIN으로 필터링
-- ✅ PDCA 분석 v3.0 업데이트: 59.3% → 72.4% (CRITICAL/HIGH/MEDIUM 전부 해결)
-- ✅ typecheck 0 errors, lint 0 errors
-
-### 이전 변경 (세션 140)
-**와이어프레임-구현 정합성 개선 — 대시보드/아이디어/사업제안 3개 페이지 UI 정렬**:
-- ✅ 대시보드: 탭 네비게이션 제거, 우측 사이드바 제거 → 단일 페이지 레이아웃
-- ✅ 대시보드: StatusOverview 3-column Card → 2-column 텍스트 ("최근 수집 소스" + "특집 현황")
-- ✅ 대시보드: "데이터 분류" 테이블 신규 추가 (카테고리별 건수/비율)
-- ✅ 대시보드: 통계 3-column → 2-column (DailyActivityChart 제거), StageDuration 건수/퍼센트 표시로 변경
-- ✅ 아이디어: FilterBar 제거, 사이드바 제목만 표시 (심플 리스트)
-- ✅ 아이디어: 블랙 헤더바 + 메타 정보행 제거, text-2xl 타이틀 + "새 아이디어 생성" 버튼
-- ✅ 아이디어: Card 기반 → 문서 스타일 섹션 (section/h2/ol), AI 푸터 "GPT 4o-mini Floating"
-- ✅ 사업제안: 예산 Won 포맷 (W500,000,000), 메타 카드 SVG 아이콘 (팀/달력/예산)
-- ✅ 사업제안: 댓글 상대시간 표시 ("N시간 전"), textarea 멀티행 입력
-- ✅ 사업제안: 커스텀 체크박스 (브랜드 컬러 + SVG 체크마크)
-- ✅ 사업제안 API: milestones/members CRUD 엔드포인트 추가 (세션 139 미커밋분)
-- ✅ 3개 워커 병렬 작업 (Dashboard/Ideas/Proposals 파일 충돌 없이 동시 실행)
-- ✅ pnpm build 성공 (398 modules, 3.42s)
-
-### 이전 변경 (세션 139)
-**사업제안 상세 UI 개선 + PDCA 문서 아카이브**:
-- ✅ ProposalDetail: 팀 멤버 이름 표시 (proposalMembers JOIN users)
-- ✅ ProgressPanel: 액션 아이템 담당자 이름 표시 (proposalActions JOIN users)
-- ✅ ProgressPanel: 마일스톤 기간 표시 (startDate~endDate)
-- ✅ ProgressPanel: 레이아웃 재구성 (마일스톤 → 액션 아이템 → 통계 순서)
-- ✅ ProposalListSidebar: 수정일 표시 (updatedAt)
-- ✅ proposals.$id.tsx loader: 멤버/담당자 데이터 JOIN 쿼리 추가
-- ✅ ax-bd-poc PDCA 문서 아카이브 (6개 문서 → docs/archive/2026-02/ax-bd-poc/)
-- ✅ 와이어프레임 이미지 3개 추가 (대시보드/아이디어/사업제안)
-
-### 이전 변경 (세션 138)
-**대시보드 와이어프레임 기반 재설계 + 시장탐색 페이지 추가**:
-- ✅ 대시보드 인덱스 페이지 전면 재설계: Pipeline 칸반 → 요약형 대시보드
-- ✅ 현황 섹션: 3-column 카드 (최근 수집 / 전체 발굴 / 전략 건의) + 수집 소스 수
-- ✅ 통계 섹션: 일별 활동 차트 + 단계별 평균 체류 시간 테이블 + 산업 분포 도넛 차트
-- ✅ 신규 컴포넌트 4개: StatusOverview, StageDurationTable, DailyActivityChart, IndustryDonut
-- ✅ 대시보드 탭 라벨 변경: "파이프라인" → "현황"
-- ✅ Loader: 7개 데이터 소스 통합 (radar items, discoveries, proposals, radar sources, daily activity, stage duration, industry distribution)
-- ✅ 시장탐색 `/market` 라우트 신규 생성 (와이어프레임 기반)
-- ✅ 레이아웃: MarketSidebar (검색/필터 + 아이템 리스트) + MarketAnalysisTabs (5탭: 시장 현황/고객·수요/시장가 데이터/경쟁 분석/규제)
-- ✅ 신규 라우트 3개: market.tsx (레이아웃) + market.$id.tsx (상세) + market._index.tsx (빈 상태)
-- ✅ 신규 컴포넌트 2개: MarketSidebar, MarketAnalysisTabs
-- ✅ TopNav에 "시장 탐색" 탭 추가 (대시보드 ↔ 아이디어 사이)
-- ✅ tmux Agent Teams 2×2명 병렬 작업 (대시보드 + 시장탐색)
-- ✅ ESLint 0 errors, TypeScript 0 errors, Build 성공, CI/CD 배포 2회 완료
-
-### 이전 변경 (세션 137)
-**PDCA Analyze + Report 완료 — 3개 피처 PDCA 사이클 완결 + 프로덕션 배포**:
-- ✅ tmux Agent Teams Gap Analysis: proposals 99%, f20-ideas 93%, f22-archive 94%
-- ✅ PDCA Completion Report 3건 생성 (proposals, f20, f22)
-- ✅ f22 Critical gap (test helper 미등록) → FALSE POSITIVE 확인 (이미 등록됨)
-- ✅ 전체 4개 피처 PDCA 완료: ax-bd-poc(92%) + proposals(99%) + f20(93%) + f22(94%) — 평균 94.5%
-- ✅ CI/CD 배포 완료 (1m 30s) — Cloudflare 일시 오류 1회 후 재실행 성공
-
-### 이전 변경 (세션 134~136)
-**F20/F21/F22 병렬 구현 + 프로덕션 배포 + PDCA 문서화 완료**:
-- ✅ Proposals 보안: PUT API 추가 + DELETE/Actions/Comments 전 라우트 tenant/owner 인가 검증
-- ✅ Proposals 최적화: Promise.all 병렬 쿼리 + 배치 insert + 상수 추출 (constants.ts)
-- ✅ Proposals 컴포넌트: ProgressPanel/TeamDiscussion 개선
-- ✅ F20 아이디어 고도화: 메모 저장 API + FilterBar (점수/상태/검색) + SimilarSources + DB 스키마 memo 컬럼
-- ✅ F21 대시보드 차트: StatusDonut (11→5그룹) + WeeklyBar (8주) + ExperimentGantt 데이터 통합
-- ✅ F22 보관함 폴더: archive feature 모듈 + 폴더 CRUD API 4개 + 드래그드롭 + SidebarPanel 연동 + 마이그레이션
-- ✅ F20/F21/F22 Design 문서 추가
-- ✅ ESLint 0 errors, TypeScript 0 errors
-- ✅ CI/CD 배포 완료 (Lint → Typecheck → Test → Build → Deploy, 1m 22s)
-- ✅ DB 마이그레이션 프로덕션 적용 확인 (0022 + 0023)
-- ✅ MemoPanel React 19 lint 수정 (setState-in-effect → render-time adjustment + derived state)
-- ✅ PDCA 분석 문서: proposals/F20/F22 analysis + report
-
-### 이전 변경 (세션 132)
-**proposals PDCA Plan + Design 문서 작성 완료**:
-- ✅ `/pdca plan proposals` — Plan 문서 작성 (280줄): 10 FRs, 6 테이블, 15 Known Issues, 파일 인벤토리
-- ✅ `/pdca design proposals` — Design 문서 작성 (677줄): 데이터 모델, API, UI, 보안/성능 분석, 23개 갭
-- ✅ Design 핵심 발견: 4개 Critical 보안 갭 (테넌트 격리 불완전), Promise.all 미사용 성능 이슈
-
-### 이전 변경 (세션 131)
-**layout-proposals PDCA 완료 (Gap Analysis + Completion Report)**:
-- ✅ tmux Agent Teams 3명 병렬 Gap Analysis 실행 (Layout Shell / Pages & Routes / API & DB)
-- ✅ Match Rate 93% (57/61) — PDCA completion 기준 충족
-- ✅ Gap Analysis 문서: `docs/03-analysis/layout-proposals.analysis.md`
-- ✅ Completion Report: `docs/04-report/layout-proposals.report.md`
-- ✅ 4건 FAIL 식별: 대시보드 Surface 미완성(2, F21), SidebarPanel mode 미사용(1), API POST 위치(1)
-- ✅ proposals DB 마이그레이션 0021 로컬 적용 + drizzle journal 동기화 (0012~0021)
-- ✅ 검증: ESLint 0 errors, TypeScript 0 errors, 597/597 테스트 통과
-
-### 이전 변경 (세션 130)
-**CI/CD 파이프라인 정상화 완료**:
-- ✅ GitHub Secrets 설정: `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` 추가
-- ✅ GitHub Actions 전체 파이프라인 통과: Install → Lint → Typecheck → Test → Build → Deploy (1m 25s)
-- ✅ 로컬 직접 배포 확인: `.dev.vars` 토큰 기반 `wrangler pages deploy` 성공
-- ✅ 프로덕션 정상: https://dx.minu.best (HTTP 302 → 로그인 리다이렉트)
-- ✅ 검증: ESLint 0 errors, TypeScript 0 errors, 597/597 테스트 통과
-
-### 이전 변경 (세션 129)
-**CI/CD 파이프라인 설정 완료**:
-- ✅ `/deploy` 스킬 CI/CD-first 전환: `git push` → GitHub Actions 자동 배포 (수동 `pnpm deploy` 제거)
-- ✅ GitHub Actions 강화: Lint → Typecheck → Test → Build → Deploy 게이팅
-- ✅ 배포 결과 알림: Job Summary + Discord 웹훅 (선택, `DISCORD_WEBHOOK_URL` secret)
-- ✅ `environment: production` 설정 (GitHub Deployments 이력 추적)
-- ✅ 검증: ESLint 0 errors, TypeScript 0 errors, 597/597 테스트 통과
-
-### 이전 변경 (세션 128)
-**Figma 기반 레이아웃 대폭 재구성 + 사업제안 신규 기능**:
-- ✅ GNB 3탭 전환: 4탭(현황판/시장탐색/아이디어/수집관리) → 3탭(대시보드/아이디어/사업제안) + 테마토글/설정/유저
-- ✅ AppShell 확장: contextPanel/sidebarContent/sidebarMode prop 추가 (하위 호환 유지)
-- ✅ ContextPanel 신규: 우측 280px 패널 셸 (lg+ only, CSS 변수 기반)
-- ✅ ArchiveFolderList 신규: 보관함 폴더 1depth (중요/리서치/완료 + 폴더 추가)
-- ✅ Dashboard 리뉴얼: CollectionStatusPanel 우측 패널 (도넛 차트 placeholder + 소스별 통계)
-- ✅ 아이디어 페이지 (2 라우트): ideas.tsx (목록 + 레이아웃) + ideas.$id.tsx (상세, Radar 아이템 재활용)
-- ✅ MemoPanel: 아이디어 메모 우측 패널
-- ✅ 사업제안 DB 스키마: 6 테이블 (proposals/sections/milestones/actions/comments/members)
-- ✅ 사업제안 라우트 (4 페이지): proposals.tsx/proposals._index/proposals.$id/proposals.new
-- ✅ 사업제안 API (3 라우트): api.proposals + api.proposals.$id.comments + api.proposals.$id.actions
-- ✅ 사업제안 컴포넌트 (6개): ProgressPanel/ProposalListSidebar/ProposalDetail/ProposalForm/TeamDiscussion/ProposalListSidebar
-- ✅ SidebarPanel 보관함 모드 + proposals 사이드바 모드 지원
-- ✅ typecheck + lint + build 모두 통과 (19 신규 + 6 수정 파일)
-
-### 이전 변경 (세션 127)
-**AX BD팀 PoC — 프로덕션 배포 완료**:
-- ✅ 전체 커밋: 50 files changed (feat: AX BD PoC Core Table Extension)
-- ✅ 타입 체크: keyPoints JSON 배열 타입 수정 후 통과
-- ✅ 빌드: client + SSR 성공
-- ✅ DB 마이그레이션: `0020_bd_poc_refactoring.sql` 프로덕션 D1 적용 (16 commands)
-- ✅ Vectorize 인덱스: `dx-radar-embeddings` 신규 생성 (1536차원 cosine)
-- ✅ 프로덕션 배포: https://dx.minu.best 배포 완료
-
-### 이전 변경 (세션 126)
-**AX BD팀 PoC — PDCA 완료 (Plan → Design → Do → Check → Act → Report)**:
-- ✅ 테스트 전체 PASS: 597개 (기존 561 + 신규 36)
-- ✅ Gap 분석: 92% vs Plan, 35% vs Design (의도적 아키텍처 차이)
-- ✅ 완료 보고서: `docs/04-report/ax-bd-poc.report.md`
-- ✅ Design 문서 현행화: v0.2 (Feature Module) → v1.0 (Core Table Extension)
-- ✅ FR 준수율: 91% (11/12, FR-12 out of scope)
-
-### 이전 변경 (세션 125)
-**AX BD팀 PoC — PDCA Act-1 코드 갭 해결 + 테스트 계획 수립**:
-- ✅ executor.ts — sourceContext end-to-end 와이어링 (conversation → radarItem → buildSystemPrompt)
-- ✅ _index.tsx — 3-Pane 레이아웃 통합 (SourcePanel + ChatPanel + SummaryPanel)
-- ✅ discoveries.$id.tsx — IDEA_CARD 템플릿 뷰 섹션 추가
-- ✅ discoveries_.$id.edit.tsx — targetSegment/valueProposition 폼 필드 추가
-- ✅ wrangler.toml — VECTORIZE_RADAR 바인딩 추가
-- ✅ api.cron.embeddings.ts — CronEnv VECTORIZE_RADAR 타입 추가
-- ✅ ax-bd-poc.design.md — tags → radarTags 네이밍 수정
+</details>
 - ✅ **테스트 플랜 작성**: `docs/01-plan/features/ax-bd-poc-tests.plan.md` (38건, 8 파일)
 
 ### 이전 변경 (세션 124)
