@@ -40,6 +40,12 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
   - 통계 섹션 (v6.4): 4개 핵심 지표 (소스 수집/발굴 건수/활성 파이프라인/사업 제안) — 실 DB 데이터
 - 아이디어 워크스페이스: ideas 테이블 + 멀티소스 그룹핑 + 전용 헤더 레이아웃 + 12종 방법론 카드 + 사업 제안 모달 + 소스 상세/삭제 + 분석 시작 플로우 + NotebookLM 스타일 멀티소스 선택 + 선택 기반 분석/채팅 + 좌우 패널 리사이즈/토글 + 제목 인라인 편집 + AI 제목 추천 + 방법론 카드 마크다운 렌더링 + SSE 전용 분석 API (chat agent 루프 우회, 카테고리별 직접 Claude 호출) + 분석 진행률 UI + 소스 Drag & Drop 추가/제거 + 분석 sourceIds 추적 및 stale 감지 + 아이디어→사업제안 생성 플로우 (분석 데이터 매핑, 12 카테고리→10 섹션) (v6.2→v6.14)
 - 토큰 사용량 모니터링 (관리자): token_usage_logs 테이블 + 일별 사용량 차트 (모드별 스택 바) + 최근 로그 테이블 + 관리자 API (v6.12)
+- Architecture Upgrade (v3 PRD): Graph-First + Topic-Scoped + Durable Agent 기반
+  - Graph Layer: JSON-LD 정본 + GraphQueryEngine + Projection (v3 P0-P1)
+  - Durable Agent Runtime: AgentSession DO + SSE + Memory Lifecycle (v3 P1)
+  - Topic 협업: Team→Topic 세분화 + Scope-based ACL (v3 P2)
+  - 파이프라인 통합: Radar/Venture/Lab 양방향 연동 + Cron (v3 P3)
+  - Vectorize 시맨틱 검색 + ProfileLearner + Graph 롤백 (v3 P4)
 
 **Out-of-scope (PRD §2.2, §7.3)**
 - 전사 공식 포털/플랫폼
@@ -48,6 +54,18 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 - 고급 예측/추천 모델
 - 제품 수준 KPI 대시보드
 - 자동 의사결정 (LLM이 Next/Drop 판단)
+
+### v3 Architecture Upgrade 로드맵
+
+| Phase | 기간 | 핵심 산출물 |
+|-------|------|------------|
+| P0 구조 정비 | 1주 | 서비스 분리, DB 스키마, @context, ACL stub, Feature Flag |
+| P1 Graph+Agent | 2~3주 | Graph CRUD/Query/Projection, Agent DO, SSE, SOUL, 대화/프로파일 UI |
+| P2 ACL+Topic+Memory | 2주 | ScopeResolver, Topics UI, Memory Lifecycle, 브리핑 |
+| P3 협업+통합 | 2~3주 | collab-worker, Pipeline Bridge, Cron, TokenBudget |
+| P4 고도화 | 2주 | ProfileLearner, Graph 롤백 UI, Vectorize, E2E 테스트 |
+
+현재: **Phase 0 진행 중**
 
 ### 성공 기준
 - **P0**: "닫힌 Discovery"(Next/Not Now/Dead End)가 최소 1건 이상 발생
@@ -308,7 +326,18 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 177)
+### 최근 변경 (세션 178)
+**PRD v3 Phase 0 — 구조 정비 시작**:
+- ✅ `docs/Discovery-X_PRD_v3_Final.md`: PRD v3 최종본 프로젝트 등록
+- ✅ `SPEC.md`: v3 아키텍처 업그레이드 scope 추가
+- ✅ `app/db/schema-v2.ts` (신규): Graph Layer 스키마 (graphs, graph_events, projections, topics, topic_members, shared_signals, agent_memory_v2, agent_sessions_v2, token_usage_v2)
+- ✅ `app/lib/graph/types.ts` (신규): JSON-LD 타입 정의 + Graph 인터페이스
+- ✅ `app/lib/acl/types.ts` (신규): Scope Resolution 타입 + Permission Matrix
+- ✅ `app/lib/types/enums.ts` (신규): 통합 enum 상수 + CHECK 제약 타입 가드
+- ✅ `schemas/contexts/discovery-x.jsonld` (신규): JSON-LD @context 정의
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
+
+### 이전 변경 (세션 177)
 **CLAUDE.md 품질 개선**:
 - ✅ `CLAUDE.md`: `@axis-ds` 디자인 시스템 명시, SSR external/noExternal 실제 vite.config.ts와 일치, Vite 빌드 gotcha 추가, app/ 디렉토리 구조 개요 추가
 - ✅ `~/.claude/CLAUDE.md` (글로벌): 한국어 응답 명시, Conventional Commits 승격, 환경 섹션(Node.js 20+/pnpm/WSL2), import 정렬 규칙 추가
