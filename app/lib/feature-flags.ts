@@ -11,6 +11,8 @@ export interface FeatureFlags {
   aclScope: boolean;
   memoryLifecycle: boolean;
   vectorizeSearch: boolean;
+  pipelineBridge: boolean;
+  collabWorker: boolean;
 }
 
 /**
@@ -26,6 +28,8 @@ export function getFeatureFlags(env: Record<string, string | undefined>): Featur
     aclScope: env.FF_ACL_SCOPE === "true",
     memoryLifecycle: env.FF_MEMORY_LIFECYCLE === "true",
     vectorizeSearch: env.FF_VECTORIZE_SEARCH === "true",
+    pipelineBridge: env.FF_PIPELINE_BRIDGE === "true",
+    collabWorker: env.FF_COLLAB_WORKER === "true",
   };
 }
 
