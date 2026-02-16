@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-16T02:50:24.171Z",
+  "lastUpdated": "2026-02-16T03:20:16.888Z",
   "activeFeatures": [
     "routes",
     "auth",
@@ -36,7 +36,13 @@
     "graph",
     "constants",
     "settings",
-    "acl"
+    "acl",
+    "discovery.service.ts",
+    "idea.service.ts",
+    "proposal.service.ts",
+    "radar.service.ts",
+    "venture.service.ts",
+    "index.ts"
   ],
   "primaryFeature": "ontology-intelligence",
   "features": {
@@ -216,9 +222,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T13:33:06.221Z",
-        "lastUpdated": "2026-02-12T05:25:52.325Z"
+        "lastUpdated": "2026-02-16T03:20:16.887Z"
       },
-      "lastFile": "D:\\01_Projects\\Discovery-X\\tests\\helpers\\db.ts"
+      "lastFile": "/home/sinclair/projects/Discovery-X/tests/helpers/db.ts"
     },
     "context": {
       "phase": "do",
@@ -333,9 +339,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-07T08:00:28.362Z",
-        "lastUpdated": "2026-02-16T02:50:24.171Z"
+        "lastUpdated": "2026-02-16T03:20:15.371Z"
       },
-      "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/types/enums.ts"
+      "lastFile": "/home/sinclair/projects/Discovery-X/drizzle.config.ts"
     },
     "schemas": {
       "phase": "do",
@@ -529,9 +535,87 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-16T02:50:17.868Z",
-        "lastUpdated": "2026-02-16T02:50:17.868Z"
+        "lastUpdated": "2026-02-16T03:11:36.628Z"
       },
-      "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/acl/types.ts"
+      "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/acl/resolver.ts"
+    },
+    "discovery.service.ts": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T03:13:33.985Z",
+        "lastUpdated": "2026-02-16T03:14:07.496Z"
+      },
+      "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/services/discovery.service.ts"
+    },
+    "idea.service.ts": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T03:13:56.225Z",
+        "lastUpdated": "2026-02-16T03:13:56.225Z"
+      },
+      "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/services/idea.service.ts"
+    },
+    "proposal.service.ts": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T03:14:28.851Z",
+        "lastUpdated": "2026-02-16T03:14:57.416Z"
+      },
+      "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/services/proposal.service.ts"
+    },
+    "radar.service.ts": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T03:14:44.353Z",
+        "lastUpdated": "2026-02-16T03:14:44.353Z"
+      },
+      "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/services/radar.service.ts"
+    },
+    "venture.service.ts": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T03:15:10.792Z",
+        "lastUpdated": "2026-02-16T03:15:10.792Z"
+      },
+      "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/services/venture.service.ts"
+    },
+    "index.ts": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T03:15:14.423Z",
+        "lastUpdated": "2026-02-16T03:15:14.423Z"
+      },
+      "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/services/index.ts"
     }
   },
   "pipeline": {
@@ -542,7 +626,7 @@
   "session": {
     "startedAt": "2026-02-04T11:05:49.371Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-16T02:50:24.171Z"
+    "lastActivity": "2026-02-16T03:20:16.888Z"
   },
   "history": [
     {
@@ -6542,6 +6626,120 @@
     {
       "timestamp": "2026-02-16T02:50:24.171Z",
       "feature": "Discovery-X",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T03:10:50.943Z",
+      "feature": "Discovery-X",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T03:10:54.886Z",
+      "feature": "Discovery-X",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T03:11:05.178Z",
+      "feature": "acl",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T03:11:14.007Z",
+      "feature": "acl",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T03:11:21.996Z",
+      "feature": "acl",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T03:11:25.913Z",
+      "feature": "acl",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T03:11:36.628Z",
+      "feature": "acl",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T03:13:06.106Z",
+      "feature": "helpers",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T03:13:11.223Z",
+      "feature": "helpers",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T03:13:33.985Z",
+      "feature": "discovery.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T03:13:56.225Z",
+      "feature": "idea.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T03:14:07.496Z",
+      "feature": "discovery.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T03:14:28.851Z",
+      "feature": "proposal.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T03:14:44.353Z",
+      "feature": "radar.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T03:14:57.416Z",
+      "feature": "proposal.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T03:15:10.792Z",
+      "feature": "venture.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T03:15:14.423Z",
+      "feature": "index.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T03:20:15.371Z",
+      "feature": "Discovery-X",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T03:20:16.887Z",
+      "feature": "helpers",
       "phase": "do",
       "action": "updated"
     }
