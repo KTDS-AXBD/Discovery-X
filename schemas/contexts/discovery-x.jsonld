@@ -1,0 +1,20 @@
+{
+  "@context": {
+    "dx": "https://discovery-x.app/ns/",
+    "schema": "https://schema.org/",
+
+    "dx:User": { "@id": "dx:User" },
+    "dx:Topic": { "@id": "dx:Topic" },
+    "dx:Decision": { "@id": "dx:Decision" },
+    "dx:Signal": { "@id": "dx:Signal" },
+    "dx:Glossary": { "@id": "dx:Glossary" },
+    "dx:Expertise": { "@id": "dx:Expertise" },
+    "dx:Preference": { "@id": "dx:Preference" },
+
+    "dx:expertise": { "@type": "@id" },
+    "dx:relatedTo": { "@type": "@id" },
+    "dx:decidedBy": { "@type": "@id" },
+    "dx:importance": { "@type": "schema:Float" },
+    "dx:confidence": { "@type": "schema:Float" }
+  }
+}

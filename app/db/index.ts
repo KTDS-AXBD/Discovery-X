@@ -5,8 +5,9 @@ import * as proposalSchema from "~/features/proposals/db/schema";
 import * as archiveSchema from "~/features/archive/db/schema";
 import * as ideasSchema from "~/features/ideas/db/schema";
 import * as tokenUsageSchema from "./token-usage-schema";
+import * as v2Schema from "./schema-v2";
 
-const allSchema = { ...schema, ...ventureSchema, ...proposalSchema, ...archiveSchema, ...ideasSchema, ...tokenUsageSchema };
+const allSchema = { ...schema, ...ventureSchema, ...proposalSchema, ...archiveSchema, ...ideasSchema, ...tokenUsageSchema, ...v2Schema };
 
 export function getDb(d1: D1Database) {
   return drizzle(d1, { schema: allSchema });
@@ -20,3 +21,4 @@ export * from "~/features/proposals/db/schema";
 export * from "~/features/archive/db/schema";
 export * from "~/features/ideas/db/schema";
 export * from "./token-usage-schema";
+export * from "./schema-v2";
