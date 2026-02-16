@@ -35,19 +35,22 @@ binding = "VECTORIZE_RADAR"
 index_name = "dx-radar-embeddings"
 
 #   wrangler vectorize create dx-graph-embeddings --dimensions=512 --metric=cosine
-[[vectorize]]
-binding = "VECTORIZE_GRAPHS"
-index_name = "dx-graph-embeddings"
+# TODO: 인덱스 생성 후 주석 해제 + FF_VECTORIZE_SEARCH=true 전환
+# [[vectorize]]
+# binding = "VECTORIZE_GRAPHS"
+# index_name = "dx-graph-embeddings"
 
 #   wrangler vectorize create dx-memory-embeddings --dimensions=512 --metric=cosine
-[[vectorize]]
-binding = "VECTORIZE_MEMORY"
-index_name = "dx-memory-embeddings"
+# TODO: 인덱스 생성 후 주석 해제 + FF_VECTORIZE_SEARCH=true 전환
+# [[vectorize]]
+# binding = "VECTORIZE_MEMORY"
+# index_name = "dx-memory-embeddings"
 
 #   wrangler vectorize create dx-signal-embeddings --dimensions=512 --metric=cosine
-[[vectorize]]
-binding = "VECTORIZE_SIGNALS"
-index_name = "dx-signal-embeddings"
+# TODO: 인덱스 생성 후 주석 해제 + FF_VECTORIZE_SEARCH=true 전환
+# [[vectorize]]
+# binding = "VECTORIZE_SIGNALS"
+# index_name = "dx-signal-embeddings"
 
 # Environment variables (set via Cloudflare dashboard or wrangler secret)
 # RESEND_API_KEY = "re_xxxxx" (set via: wrangler secret put RESEND_API_KEY)
