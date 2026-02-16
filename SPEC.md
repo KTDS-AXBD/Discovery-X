@@ -360,20 +360,37 @@ build/
 ### 버전
 - **프로토타입**: v6.14 + v3 Phase 4 완료 + 갭 분석 조치 10건 구현 (ACL audit + 인덱스 + 429 제어 + enrichment + JSON-LD + LLM merge + DO/Worker 스텁)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 32개 마이그레이션 (0000~0031), 로컬 적용 완료 + 프로덕션 0029까지 적용 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
+- **DB**: 33개 마이그레이션 (0000~0032), 로컬 + 프로덕션 모두 적용 완료 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
 
 ### 주요 지표
 - **라우트**: 150개 (core 47 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 3 + topics 12 + briefing 3 + signals 2 + knowledge 5 + API 37 + 미분류 2)
 - **테이블**: 80개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 9) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges), v2 신규: acl_audit_logs
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
-- **테스트**: 779개 (54 test files, 로컬 통과)
+- **테스트**: 780개 (54 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
-- **배포**: 세션 187 미배포 (Phase 5 갭 해소 전량 완료, 배포 필요)
+- **배포**: ✅ 세션 191 프로덕션 배포 완료 + DB 마이그레이션 0030~0032 프로덕션 적용
 
-### 최근 변경 (세션 190)
+### 최근 변경 (세션 192)
+**프로덕션 배포 + DB 마이그레이션 적용**:
+- ✅ **CI/CD 배포**: `git push origin master` → GitHub Actions (Lint/Type check/Test/Build/Deploy) 완료
+- ✅ **배포 에러 해결**: Vectorize 미생성 인덱스(dx-graph/memory/signal-embeddings) 바인딩 → 주석 처리 후 재배포 성공
+- ✅ **DB 마이그레이션**: 프로덕션 D1에 0030~0032 적용 (v2 Graph Layer + ACL audit + collab worker)
+- ✅ 세션 189~191에서 구현한 갭 분석 조치 10건 + Phase 5 확장 + 코드 품질 개선 모두 프로덕션 반영
+- 📌 **Vectorize 인덱스**: 3개 미생성 (graph/memory/signals) — 생성 시 wrangler.toml 주석 해제 + FF_VECTORIZE_SEARCH=true 전환 필요
+
+### 이전 변경 (세션 191)
+**전체 코드 품질 점검 + 일괄 수정 — tmux 4-Worker 병렬 작업**:
+- ✅ 품질 점검: typecheck 0에러 / lint 0에러 / 테스트 780개 통과 / build 성공
+- ✅ **W1 데드코드 정리**: 미사용 export 27개 삭제 + `collab-worker.stub.ts` 삭제 + `cn()` 유틸 통합 (`utils.ts` → `utils/cn.ts`) + 미사용 의존성 제거 (`date-fns`, `tiny-invariant`)
+- ✅ **W2 에러 처리 A**: API 라우트 try-catch 추가 (folders 4개 + proposals 6개 + conversations 1개 + ideas.memo 1개)
+- ✅ **W3 에러 처리 B**: API 라우트 try-catch 추가 (topics 9개 + radar 4개)
+- ✅ **W4 에러 처리 C + 보안 수정**: API 라우트 try-catch 추가 (export/tenant/admin/agent/briefing/profile) + `dashboard.review.tsx` sql.raw→inArray 보안 수정 + 혼용 인증 패턴 정리 (dashboard._index.tsx, market.tsx)
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공 / 테스트 통과
+
+### 이전 변경 (세션 190)
 **Phase 5 갭 해소 완료 — PRD v3 일치율 ~70% → 95%+ 달성 (4-Phase 실행)**:
 - ✅ **Phase 5A (보안·무결성)**:
   - `app/lib/graph/store.ts`: Agent actorType 가드 (dx:Preference만 수정 허용, 삭제 불가)
