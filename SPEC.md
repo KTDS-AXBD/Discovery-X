@@ -65,7 +65,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 | P3 협업+통합 | 2~3주 | collab-worker, Pipeline Bridge, Cron, TokenBudget |
 | P4 고도화 | 2주 | ProfileLearner, Graph 롤백 UI, Vectorize, E2E 테스트 |
 
-현재: **Phase 0 완료** → Phase 1 준비
+현재: **Phase 1 진행 중** (Round 1+2 완료: Graph Layer + Agent 모듈 + 테스트 54개)
 
 ### 성공 기준
 - **P0**: "닫힌 Discovery"(Next/Not Now/Dead End)가 최소 1건 이상 발생
@@ -250,6 +250,7 @@ root.tsx
 | Users & Auth | 4 | users, sessions, tenants, tenant_members |
 | Discovery Core | 6 | discoveries, experiments, evidence, event_logs, stages, signal_metadata |
 | Ontology/Graph | 5 | ontology_types, context_nodes, context_edges, context_snapshots, evidence_duplicate_candidates |
+| v3 Graph Layer | 8 | graphs, graph_events, projections, topics, topic_members, shared_signals, agent_memory_v2, agent_sessions_v2 |
 | Methods & Gates | 4 | method_packs, method_runs, gate_packages, assumptions |
 | Venture Sprint | 16 | vd_sprints, vd_sprint_scopes, vd_signals, vd_problems, vd_themes, vd_opportunities, vd_evidences, vd_assumptions, vd_premortems, vd_artifacts, vd_decisions, vd_votes, vd_scores, vd_work_events, vd_analytics_snapshots, vd_task_queue |
 | Ideas | 2 | ideas, idea_sources |
@@ -313,7 +314,7 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.14 Idea-to-Proposal Creation Flow + Source Panel Resize
+- **프로토타입**: v6.14 + v3 Phase 1 Round 1+2 (Graph Layer + Agent 모듈)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 31개 마이그레이션 (0000~0030), 로컬 적용 완료 + 프로덕션 0029까지 적용 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
 
@@ -321,12 +322,27 @@ build/
 - **라우트**: 130개 (core 46 + ideas 8 + proposals 8 + lab 10 + venture 13 + market 3 + API 33 + folders 4 + 기타 5)
 - **테이블**: 79개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 8) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges)
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
-- **테스트**: 661개 (44 test files, 로컬 + CI 모두 통과) — 온톨로지 테스트 6파일 64개 포함
+- **테스트**: 715개 (48 test files, 로컬 통과) — Graph Layer 테스트 4파일 54개 추가
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 
-### 최근 변경 (세션 179)
+### 최근 변경 (세션 180)
+**PRD v3 Phase 1 Round 1+2 — Graph Layer 코어 + Agent 모듈 + 테스트**:
+- ✅ `app/lib/graph/store.ts` (신규): GraphStore CRUD + SHA-256 content hash + audit events (graphEvents)
+- ✅ `app/lib/graph/query.ts` (신규): GraphQueryEngine — BFS traverse, findByType, semantic search (keyword fallback)
+- ✅ `app/lib/graph/projection.ts` (신규): ProjectionBuilder — 템플릿 기반 Markdown 생성 (USER.md/TOPIC.md 등), hash-based sync
+- ✅ `app/lib/graph/validator.ts` (신규): JSON-LD 구조/context/노드 검증 (errors + warnings 분리)
+- ✅ `app/lib/graph/index.ts` (신규): barrel export
+- ✅ `app/lib/agent/soul-engine.ts` (신규): SoulEngine — Projection 기반 시스템 프롬프트 조립 (Graph Layer 비활성 시 v2 buildSystemPrompt 폴백)
+- ✅ `app/lib/agent/memory-lifecycle.ts` (신규): MemoryLifecycle — 3단계 수명 관리 (daily_log → archive → delete), compaction, 예산 강제 정리
+- ✅ `app/lib/cost/token-budget.ts` (신규): TokenBudgetManager — 메모리 토큰 + 월간 LLM 사용량 이중 예산 관리
+- ✅ `schemas/templates/SOUL.md` (신규): Agent 성격/원칙/금지사항/응답형식 템플릿
+- ✅ `tests/unit/graph/` (신규 4파일): store(13), query(14), projection(8), validator(19) = 54 test cases
+- ✅ tmux /team 3-Worker 병렬 작업 2라운드 완료 (Round 1: Graph Layer 코어, Round 2: 테스트 + SOUL + Memory/Token)
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 715개 통과 / build 성공
+
+### 이전 변경 (세션 179)
 **PRD v3 Phase 0 완료 — 잔여 작업 (Feature Flag + ACL + 서비스 레이어 + 마이그레이션)**:
 - ✅ `wrangler.toml`: 6개 Feature Flag 추가 (FF_GRAPH_LAYER, FF_AGENT_DO, FF_TOPIC_COLLAB, FF_ACL_SCOPE, FF_MEMORY_LIFECYCLE, FF_VECTORIZE_SEARCH — 모두 기본 false)
 - ✅ `app/lib/feature-flags.ts` (신규): `getFeatureFlags()`, `isFeatureEnabled()` 유틸
