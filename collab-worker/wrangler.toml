@@ -1,0 +1,27 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "collab-worker"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+main = "src/index.ts"
+
+# Cron 스케줄
+[triggers]
+crons = [
+  "0 0 * * *",   # 일간: 브리핑 + memory compact + projection sync (매일 0:00 UTC = 9:00 KST)
+  "0 1 * * 1",   # 주간: signal route + weekly summary (매주 월요일 1:00 UTC = 10:00 KST)
+]
+
+# D1 데이터베이스 바인딩
+[[d1_databases]]
+binding = "DB"
+database_name = "discovery-x-db"
+database_id = "1bab6138-6b2f-45eb-8285-55ba7b543957"
+
+[vars]
+FF_PIPELINE_BRIDGE = "true"
+FF_MEMORY_LIFECYCLE = "true"
+
+# Secrets (set via CLI):
+# wrangler secret put ANTHROPIC_API_KEY
+# wrangler secret put OPENAI_API_KEY
+# wrangler secret put CRON_SECRET
