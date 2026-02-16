@@ -45,7 +45,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
   - Durable Agent Runtime: AgentSession DO + SSE + Memory Lifecycle (v3 P1)
   - Topic 협업: Team→Topic 세분화 + Scope-based ACL (v3 P2)
   - 파이프라인 통합: Radar/Venture/Lab 양방향 연동 + Cron (v3 P3)
-  - Vectorize 시맨틱 검색 + ProfileLearner + Graph 롤백 (v3 P4)
+  - Vectorize 시맨틱 검색 + ProfileLearner + Graph 롤백 + SignalRouter Cron + 비용 대시보드 + 팀 지식 베이스 + v3 E2E 테스트 (v3 P4)
 
 **Out-of-scope (PRD §2.2, §7.3)**
 - 전사 공식 포털/플랫폼
@@ -65,7 +65,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 | P3 협업+통합 | 2~3주 | collab-worker, Pipeline Bridge, Cron, TokenBudget |
 | P4 고도화 | 2주 | ProfileLearner, Graph 롤백 UI, Vectorize, E2E 테스트 |
 
-현재: **Phase 4 진행 중** (Round 1 완료: ProfileLearner + Graph Rollback UI + Vectorize Graph 연동)
+현재: **Phase 4 완료** (Round 1: ProfileLearner + Graph Rollback UI + Vectorize Graph 연동, Round 2: SignalRouter Cron + Cost Dashboard + Knowledge Base + v3 E2E 테스트)
 
 ### 성공 기준
 - **P0**: "닫힌 Discovery"(Next/Not Now/Dead End)가 최소 1건 이상 발생
@@ -159,7 +159,7 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/metrics` — 지표 대시보드 (1)
 - `/docs` — 도움말 (1)
 - `/login`, `/logout`, `/auth/google*` — 인증 (4): login/logout/auth.google/auth.google.callback
-- `/admin*` — 관리자 (2): users/seed
+- `/admin*` — 관리자 (3): users/seed/costs
 - `/onboarding` — 온보딩 (1)
 - `/pending` — 승인 대기 (1)
 - `/evidence/duplicates` — 근거 중복 관리 (1)
@@ -230,17 +230,24 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/signals` — 시그널 레이아웃 (Topic 필터 사이드바 + 상태 필터)
 - `/signals/_index` — 시그널 카드 목록 (score/status 배지, Topic 태그, 필터링)
 
-**API (33개, proposals/lab API 제외)**
+**Knowledge (3 pages + 2 API)**
+- `/knowledge` — 팀 지식 베이스 레이아웃
+- `/knowledge/_index` — Graph 카드 그리드 (scope별 필터 + 검색 + 통계)
+- `/knowledge/:graphId` — Graph 상세 (노드 타입별 그룹 + 관계 목록 + Projection 미리보기)
+- `/api/knowledge` — 지식 베이스 API (GET 목록, scope/search 필터)
+- `/api/knowledge/:graphId` — 지식 베이스 상세 API (GET 노드/엣지)
+
+**API (37개, proposals/lab API 제외)**
 - `/api/chat` — SSE 스트리밍 채팅 (1)
 - `/api/conversations*` — 대화 CRUD + 메시지 (2)
-- `/api/cron*` — Cron 11개: daily/agent-review/alerts/embeddings/weekly-summary/log-archive/pattern-extract/shadow-analyze/briefing/memory-compact/projection-sync
+- `/api/cron*` — Cron 12개: daily/agent-review/alerts/embeddings/weekly-summary/log-archive/pattern-extract/shadow-analyze/briefing/memory-compact/projection-sync/signal-route
 - `/api/venture*` — Venture API 7개: decisions.propose/tasks(claim/report/trigger)/worker/export/analytics.recompute
 - `/api/export*` — Export 4개: discoveries/discoveries-json/brief.$id/metrics
 - `/api/radar*` — Radar API 6개: runs/sources/trigger/summarize/items.$id.status/items.$id.reaction
 - `/api/similar*` — 유사 검색 2개: similar-seeds/similar-sources
 - `/api/tenant.switch` — 테넌트 전환 (1)
 
-**라우트 합계**: Core 46 + Ideas 8 + Proposals 7 + Lab 7 + Venture 13 + Agent 4 + Profile 2 + Topics 12 + Briefing 3 + Signals 2 + API 33 + 미분류 2 = **139**
+**라우트 합계**: Core 47 + Ideas 8 + Proposals 7 + Lab 7 + Venture 13 + Agent 4 + Profile 3 + Topics 12 + Briefing 3 + Signals 2 + Knowledge 5 + API 37 + 미분류 2 = **150**
 
 ---
 
@@ -347,22 +354,35 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.14 + v3 Phase 3 Round 2 + Phase 4 Round 1 (SignalRouter + TokenBudget 강화 + ProfileLearner + Graph Rollback UI + Vectorize)
+- **프로토타입**: v6.14 + v3 Phase 4 완료 (SignalRouter Cron + Cost Dashboard + Knowledge Base + v3 E2E 테스트)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 31개 마이그레이션 (0000~0030), 로컬 적용 완료 + 프로덕션 0029까지 적용 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
 
 ### 주요 지표
-- **라우트**: 146개 (core 46 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 3 + topics 12 + briefing 3 + signals 2 + API 39 + 미분류 2)
+- **라우트**: 150개 (core 47 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 3 + topics 12 + briefing 3 + signals 2 + knowledge 5 + API 37 + 미분류 2)
 - **테이블**: 79개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 8) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges)
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
-- **테스트**: 750개 (51 test files, 로컬 통과)
+- **테스트**: 779개 (54 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
-- **배포**: ✅ 프로덕션 배포 완료 (CI/CD 1m 46s, 세션 185)
+- **배포**: 세션 187 미배포 (Phase 4 Round 2 코드 완료, 배포 필요)
 
-### 최근 변경 (세션 186)
+### 최근 변경 (세션 187)
+**PRD v3 Phase 4 Round 2 — SignalRouter Cron + 비용 대시보드 + 팀 지식 베이스 + v3 E2E 테스트 (Phase 4 완료)**:
+- ✅ `app/routes/api.cron.signal-route.ts` (신규): SignalRouter Cron — pending 시그널 자동 라우팅 (CRON_SECRET 인증 + pipelineBridge FF 보호)
+- ✅ `app/routes/admin.costs.tsx` (신규): 비용 대시보드 UI — 일별 토큰 사용량 스택 바 차트 (CSS, 외부 의존 0) + 사용자별 예산 현황 테이블 + 요약 카드 3개 + 7일/30일 토글
+- ✅ `app/routes/api.knowledge.ts` (신규): 팀 지식 베이스 API — Graph 통합 목록 (scope/search 필터 + 노드 수 + 통계)
+- ✅ `app/routes/api.knowledge.$graphId.ts` (신규): 지식 베이스 상세 API — JSON-LD 파싱 → 노드/엣지 + Projection
+- ✅ `app/routes/knowledge.tsx` + `knowledge._index.tsx` + `knowledge.$graphId.tsx` (신규 3개): 팀 지식 베이스 UI — scope별 카드 그리드 (user=blue/topic=green/org=purple) + 그래프 상세 (노드 타입별 그룹 + 관계 + Projection 미리보기)
+- ✅ `tests/unit/agent/profile-learner.test.ts` (신규): ProfileLearner 단위 테스트 9개 — TF 키워드 추출/불용어/전문 마커/learnAll/중복 방지
+- ✅ `tests/integration/pipeline-bridge.test.ts` (신규): PipelineBridge 통합 테스트 12개 — 시그널/기회/전문성/브리핑/엔티티
+- ✅ `tests/integration/briefing-builder.test.ts` (신규): BriefingBuilder 통합 테스트 8개 — 마크다운 생성/Projection 갱신
+- ✅ tmux /team 3-Worker 병렬 작업 (W1: Cron+Tests, W2: Cost Dashboard, W3: Knowledge Base)
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공 / 테스트 779개 통과
+
+### 이전 변경 (세션 186)
 **PRD v3 Phase 3 Round 2 — SignalRouter + TokenBudget 강화 + Cron/Admin 라우트**:
 - ✅ `app/lib/integration/signal-router.ts` (신규): SignalRouter — pending 시그널을 topic member expertise score 기반 자동 라우팅, routePendingSignals() + getRoutingStats(), PipelineBridge.getExpertiseScore() 활용, 라우팅 후 status='reviewed' + BriefingBuilder 자동 갱신 + graphEvents 감사 로그
 - ✅ `app/lib/cost/token-budget.ts` (대폭 수정): TokenBudgetManager 강화 — conversations JOIN 기반 월간 사용량 (tenantId→conversations 전환), 상수 export (USER_MEMORY_BUDGET 100K / MONTHLY_LLM_BUDGET 2M), enforceMemoryBudget() + isLLMCallAllowed() + isOverBudget() + UTC 기반 월 리셋
@@ -777,7 +797,7 @@ build/
 - **배포**: Cloudflare Pages (master push → GitHub Actions CI/CD 자동 배포) — Secrets 설정 완료 ✅
 - **운영 실험**: 🚀 2026-01-31 시작 (30-60일, 최대 5명, Discovery 5-10건 목표)
 - **DB 마이그레이션**: ✅ 28개 (0000~0027) 로컬+프로덕션 적용 완료
-- **Cron 설정**: daily (09:00) + agent-review (10:00) + alerts (09:30) + embeddings (15분) + ontology-extract + ontology-analyze (cron-job.org)
+- **Cron 설정**: daily (09:00) + agent-review (10:00) + alerts (09:30) + embeddings (15분) + ontology-extract + ontology-analyze + signal-route (cron-job.org)
 - **Radar Worker**: 프로덕션 운영 중 (Cron 매일 9:00 KST, 10소스)
 - **이메일**: Resend (`noreply@ideaonaction.ai`), cron-job.org 자동 발송
 
