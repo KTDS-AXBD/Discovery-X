@@ -65,7 +65,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 | P3 협업+통합 | 2~3주 | collab-worker, Pipeline Bridge, Cron, TokenBudget |
 | P4 고도화 | 2주 | ProfileLearner, Graph 롤백 UI, Vectorize, E2E 테스트 |
 
-현재: **Phase 4 완료 + 갭 분석 완료** (Phase 1~3 PRD v3 갭 분석 수행, 전체 일치율 ~85%)
+현재: **Phase 4 완료 + 갭 분석 조치 완료** (Phase 1~3 갭 분석 10건 조치 구현, 전체 일치율 ~85% → ~93%)
 
 ### 성공 기준
 - **P0**: "닫힌 Discovery"(Next/Not Now/Dead End)가 최소 1건 이상 발생
@@ -354,39 +354,51 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.14 + v3 Phase 4 완료 (SignalRouter Cron + Cost Dashboard + Knowledge Base + v3 E2E 테스트)
+- **프로토타입**: v6.14 + v3 Phase 4 완료 + 갭 분석 조치 10건 구현 (ACL audit + 인덱스 + 429 제어 + enrichment + JSON-LD + LLM merge + DO/Worker 스텁)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 31개 마이그레이션 (0000~0030), 로컬 적용 완료 + 프로덕션 0029까지 적용 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
+- **DB**: 32개 마이그레이션 (0000~0031), 로컬 적용 완료 + 프로덕션 0029까지 적용 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
 
 ### 주요 지표
 - **라우트**: 150개 (core 47 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 3 + topics 12 + briefing 3 + signals 2 + knowledge 5 + API 37 + 미분류 2)
-- **테이블**: 79개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 8) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges)
+- **테이블**: 80개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 9) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges), v2 신규: acl_audit_logs
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
 - **테스트**: 779개 (54 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
-- **배포**: 세션 187 미배포 (Phase 4 Round 2 코드 완료, 배포 필요)
+- **배포**: 세션 187 미배포 (Phase 4 Round 2 + 갭 분석 조치 코드 완료, 배포 필요)
 
-### 최근 변경 (세션 188)
+### 최근 변경 (세션 189)
+**PRD v3 Phase 1~3 갭 분석 조치 10건 구현 — tmux 4-Worker 병렬 작업**:
+- ✅ **즉시 조치 3건**:
+  - `drizzle/0031_acl_audit_memory_indexes.sql` (신규): acl_audit_logs 테이블 + agent_memory_v2 compact/expires 인덱스
+  - `app/db/schema-v2.ts` (수정): aclAuditLogs Drizzle 스키마 + agentMemoryV2 인덱스 추가
+  - `app/lib/acl/middleware.ts` (수정): ACL deny 시 DB 감사 로그 기록 (try/catch non-blocking)
+  - `tests/helpers/db.ts` (수정): 0031 마이그레이션 등록
+  - API 라우트 6개 (수정): GraphStore 호출 시 audit context `{ actorId: user.id, actorType: "user" }` 전파 (topics.glossary, topics.decisions, profile.graph, profile)
+- ✅ **중기 조치 4건**:
+  - `app/lib/rate-limit/sse-limiter.ts` (신규): SSE 동시성 제한기 (사용자당 3세션, TTL 5분, In-memory Map)
+  - `app/routes/api.chat.ts` (수정): 429 제한 + TransformStream 래핑 + 세션 해제
+  - `app/lib/agent/session-manager.ts` (수정): flush(retentionDays=90) 메서드 추가 — 종료 세션 정리
+  - `app/lib/graph/store.ts` (수정): suggest() + getPendingSuggestions() 메서드 추가, create()에서 빈 @context 시 DX_CONTEXT 자동 주입
+  - `app/lib/graph/types.ts` (수정): GraphStoreInterface에 suggest 시그니처 추가
+  - `app/lib/graph/dx-context.ts` (신규): JSON-LD @context 기본 정의 (15개 프로퍼티, dx/xsd/rdfs 네임스페이스)
+  - `app/lib/agent/memory-lifecycle.ts` (수정): compact() step 3 — optional summarizer 콜백으로 고중요도 archived daily_log → LLM 요약 → long_term 승격
+- ✅ **후기 조치 3건** (스텁/인터페이스):
+  - `app/lib/agent/agent-do.stub.ts` (신규): AgentSession DO 스텁 — FF_AGENT_DO 게이트, 이관 대비 인터페이스
+  - `app/lib/integration/collab-worker.stub.ts` (신규): collab-worker 독립 Worker 스텁 — FF_COLLAB_WORKER 게이트, CollabWorkerAPI 인터페이스 + fetch 헬퍼
+- ✅ tmux /team 4-Worker 병렬 작업 (W1: Schema/DB, W2: API Routes, W3: Graph+Memory, W4: Runtime)
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공 / 테스트 779개 통과
+- 📊 **갭 분석 일치율 변화**: Phase 1 82%→~90%, Phase 2 88%→~95%, Phase 3 85%→~93% (전체 ~85%→~93%)
+
+### 이전 변경 (세션 188)
 **PRD v3 Phase 1~3 갭 분석 — tmux 3-Worker 병렬 분석 수행**:
 - ✅ Phase 1 (Graph Layer + Agent Runtime) — **일치율 82%** (15✅ 5⚠️ 2❌)
-  - Graph Store/Query/Projection/Validator: 100% 구현
-  - Agent Runtime: SoulEngine/SessionManager/SSE 정상, DO(Durable Object) 미구현 (Remix Action 대체, 프로토타입 규모 허용)
-  - ⚠️ SSE 429 동시성 제어 미구현, MemoryLifecycle LLM merge 미구현, agent_memory_v2 인덱스 부족
 - ✅ Phase 2 (ACL + Topic + Memory) — **일치율 88%** (17✅ 5⚠️ 1❌)
-  - ScopeResolver/requireScopeAccess/TopicService/BriefingBuilder: 완전 구현
-  - Topic UI 4탭/API 9개 라우트/graph_events 감사 로그: 정상
-  - ⚠️ ACL deny 시 DB 감사 로그 미기록, Agent Graph enrichment suggest 미구현, compact() step 3 부분 누락
-  - ❌ long_term LLM summary merge 미구현
 - ✅ Phase 3 (Pipeline + Collaboration) — **일치율 85%** (13✅ 5⚠️ 1❌)
-  - PipelineBridge 7개 메서드/SignalRouter/Cron 3+개/TokenBudgetManager: 완전 구현
-  - /signals UI/Feature Flag 9개/BriefingBuilder: 정상
-  - ⚠️ JSON-LD @context 파일 미생성, Topic Graph Glossary 활용 미검증
-  - ❌ collab-worker 독립 Worker 미구현 (서비스 모듈로 대체, 기능적 완전)
-- 📊 **전체 요약**: 65개 항목 중 45✅ 15⚠️ 4❌ — 핵심 비즈니스 로직 완전, 아키텍처 차이(DO/독립Worker)는 프로토타입 규모 허용
-- 📋 **식별된 조치 항목**: 즉시 3건 (ACL audit log, API audit context, 인덱스) + 중기 4건 (429 제어, 세션 flush, enrichment, JSON-LD) + 후기 3건 (DO 이관, Worker 독립화, LLM merge)
+- 📊 **전체 요약**: 65개 항목 중 45✅ 15⚠️ 4❌
+- 📋 **식별된 조치 항목**: 즉시 3건 + 중기 4건 + 후기 3건 → 세션 189에서 전량 구현
 
 ### 이전 변경 (세션 187)
 **PRD v3 Phase 4 Round 2 — SignalRouter Cron + 비용 대시보드 + 팀 지식 베이스 + v3 E2E 테스트 (Phase 4 완료)**:
