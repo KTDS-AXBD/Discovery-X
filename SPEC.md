@@ -347,22 +347,33 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.14 + v3 Phase 4 Round 1 (ProfileLearner + Graph Rollback UI + Vectorize Graph 연동)
+- **프로토타입**: v6.14 + v3 Phase 3 Round 2 + Phase 4 Round 1 (SignalRouter + TokenBudget 강화 + ProfileLearner + Graph Rollback UI + Vectorize)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 31개 마이그레이션 (0000~0030), 로컬 적용 완료 + 프로덕션 0029까지 적용 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
 
 ### 주요 지표
-- **라우트**: 144개 (core 46 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 3 + topics 12 + briefing 3 + signals 2 + API 37 + 미분류 2)
+- **라우트**: 146개 (core 46 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 3 + topics 12 + briefing 3 + signals 2 + API 39 + 미분류 2)
 - **테이블**: 79개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 8) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges)
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
-- **테스트**: 735개 (49 test files, 로컬 통과)
+- **테스트**: 750개 (51 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
 - **배포**: ✅ 프로덕션 배포 완료 (CI/CD 1m 46s, 세션 185)
 
-### 최근 변경 (세션 185)
+### 최근 변경 (세션 186)
+**PRD v3 Phase 3 Round 2 — SignalRouter + TokenBudget 강화 + Cron/Admin 라우트**:
+- ✅ `app/lib/integration/signal-router.ts` (신규): SignalRouter — pending 시그널을 topic member expertise score 기반 자동 라우팅, routePendingSignals() + getRoutingStats(), PipelineBridge.getExpertiseScore() 활용, 라우팅 후 status='reviewed' + BriefingBuilder 자동 갱신 + graphEvents 감사 로그
+- ✅ `app/lib/cost/token-budget.ts` (대폭 수정): TokenBudgetManager 강화 — conversations JOIN 기반 월간 사용량 (tenantId→conversations 전환), 상수 export (USER_MEMORY_BUDGET 100K / MONTHLY_LLM_BUDGET 2M), enforceMemoryBudget() + isLLMCallAllowed() + isOverBudget() + UTC 기반 월 리셋
+- ✅ `app/routes/api.collab.worker.ts` (신규): Cron — CRON_SECRET 인증 + collabWorker FF 게이트 + SignalRouter.routePendingSignals(), Admin GET — getRoutingStats()
+- ✅ `app/routes/api.admin.token-budget.ts` (신규): Admin GET — 전체 사용자 토큰 예산 현황 (초과 사용자 상단 정렬), Admin POST — 특정 사용자 메모리 예산 강제 정리
+- ✅ `app/routes/api.cron.memory-compact.ts` (수정): TokenBudgetManager.enforceMemoryBudget() 연동 — compact 후 토큰 예산 초과 시 importance 낮은 순 정리
+- ✅ `tests/integration/signal-router.test.ts` (신규): 6개 테스트 — 라우팅/스킵/배치/통계
+- ✅ `tests/integration/token-budget.test.ts` (신규): 9개 테스트 — 메모리 합계/아카이브 제외/월간 JOIN/사용자 격리/예산 체크/상수
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공 / 테스트 750개 통과
+
+### 이전 변경 (세션 185)
 **PRD v3 Phase 4 Round 1 — ProfileLearner + Graph Rollback UI + Vectorize Graph 연동**:
 - ✅ `app/lib/agent/profile-learner.ts` (신규): ProfileLearner — TF 기반 키워드 추출 (Korean/English stopwords, 전문·경험 마커), agentMemoryV2 30일 분석 → Graph JSON-LD 자동 업데이트 (dx:Expertise/dx:Preference 노드 + Projection 동기화)
 - ✅ `app/routes/api.cron.profile-learn.ts` (신규): 주간 ProfileLearner Cron — 전 사용자 프로필 자동 학습 (CRON_SECRET 인증 + profileLearner FF 보호)
