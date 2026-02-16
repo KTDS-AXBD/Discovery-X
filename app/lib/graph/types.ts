@@ -77,6 +77,12 @@ export interface SearchResult {
   source: ScopeFilter;
 }
 
+// === 감사 컨텍스트 ===
+export interface AuditContext {
+  actorId?: string;
+  actorType?: ActorType;
+}
+
 // === Graph Store 인터페이스 ===
 export interface GraphStoreInterface {
   get(id: string): Promise<GraphRecord | null>;
@@ -86,13 +92,15 @@ export interface GraphStoreInterface {
   ): Promise<GraphRecord | null>;
   create(
     record: Omit<GraphRecord, "id" | "version" | "createdAt" | "updatedAt">,
+    audit?: AuditContext,
   ): Promise<GraphRecord>;
   update(
     id: string,
     jsonld: JsonLdGraph,
     reason?: string,
+    audit?: AuditContext,
   ): Promise<GraphRecord>;
-  delete(id: string): Promise<void>;
+  delete(id: string, audit?: AuditContext): Promise<void>;
 }
 
 // === Query Engine 인터페이스 ===

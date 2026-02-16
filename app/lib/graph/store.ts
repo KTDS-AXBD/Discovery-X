@@ -8,6 +8,7 @@ import type {
   JsonLdGraph,
   GraphEvent as GraphEventType,
   ScopeType,
+  AuditContext,
 } from "./types";
 import { GraphAction, ActorType } from "~/lib/types/enums";
 
@@ -75,6 +76,7 @@ export class GraphStore implements GraphStoreInterface {
   /** 새 Graph 생성 + create 이벤트 기록 */
   async create(
     record: Omit<GraphRecord, "id" | "version" | "createdAt" | "updatedAt">,
+    audit?: AuditContext,
   ): Promise<GraphRecord> {
     const id = crypto.randomUUID();
     const contentHash = await computeContentHash(record.jsonld);
@@ -94,8 +96,8 @@ export class GraphStore implements GraphStoreInterface {
     // 감사 이벤트 기록
     await this.db.insert(graphEvents).values({
       graphId: id,
-      actorId: "system",
-      actorType: ActorType.SYSTEM,
+      actorId: audit?.actorId ?? "system",
+      actorType: audit?.actorType ?? ActorType.SYSTEM,
       action: GraphAction.CREATE,
       newVersion: 1,
       createdAt: now,
@@ -118,6 +120,7 @@ export class GraphStore implements GraphStoreInterface {
     id: string,
     jsonld: JsonLdGraph,
     reason?: string,
+    audit?: AuditContext,
   ): Promise<GraphRecord> {
     const existing = await this.get(id);
     if (!existing) {
@@ -146,8 +149,8 @@ export class GraphStore implements GraphStoreInterface {
 
     await this.db.insert(graphEvents).values({
       graphId: id,
-      actorId: "system",
-      actorType: ActorType.SYSTEM,
+      actorId: audit?.actorId ?? "system",
+      actorType: audit?.actorType ?? ActorType.SYSTEM,
       action: GraphAction.UPDATE,
       diffJson,
       reason,
@@ -169,7 +172,7 @@ export class GraphStore implements GraphStoreInterface {
    * Graph 삭제 — 감사 이벤트 기록 후 Graph만 삭제.
    * D1 FK는 기본 PRAGMA foreign_keys=OFF이므로 이벤트 로그는 보존된다.
    */
-  async delete(id: string): Promise<void> {
+  async delete(id: string, audit?: AuditContext): Promise<void> {
     const existing = await this.get(id);
     if (!existing) {
       throw new Error(`Graph not found: ${id}`);
@@ -180,8 +183,8 @@ export class GraphStore implements GraphStoreInterface {
     // 감사 이벤트 기록 (삭제 이력 보존)
     await this.db.insert(graphEvents).values({
       graphId: id,
-      actorId: "system",
-      actorType: ActorType.SYSTEM,
+      actorId: audit?.actorId ?? "system",
+      actorType: audit?.actorType ?? ActorType.SYSTEM,
       action: GraphAction.DELETE,
       prevVersion: existing.version,
       createdAt: now,

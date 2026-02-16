@@ -10,6 +10,18 @@ import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
 import { Button } from "~/components/ui/Button";
 import { TopicStatusBadge } from "~/components/topic/TopicStatusBadge";
 import { TopicMemberList } from "~/components/topic/MemberList";
+import { DecisionList } from "~/components/topic/DecisionList";
+import { GlossaryList } from "~/components/topic/GlossaryList";
+import { GraphEventLog } from "~/components/topic/GraphEventLog";
+
+type TabKey = "overview" | "decisions" | "glossary" | "events";
+
+const tabLabels: Record<TabKey, string> = {
+  overview: "개요",
+  decisions: "결정",
+  glossary: "용어",
+  events: "이력",
+};
 
 // ─── Loader ────────────────────────────────────────────────────────────────
 
@@ -199,6 +211,7 @@ export default function TopicDetail() {
   const [editName, setEditName] = useState(topic.name);
   const [editDesc, setEditDesc] = useState(topic.description || "");
 
+  const [activeTab, setActiveTab] = useState<TabKey>("overview");
   const [showAddMember, setShowAddMember] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const searchFetcher = useFetcher<{ users?: { id: string; name: string; email: string }[] }>();
@@ -318,78 +331,109 @@ export default function TopicDetail() {
           )}
         </div>
 
-        {/* 멤버 섹션 */}
-        <section>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-[var(--axis-text-primary)]">
-              멤버
-              <span className="ml-1.5 text-xs font-normal text-[var(--axis-text-tertiary)]">
-                ({members.length})
-              </span>
-            </h2>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowAddMember(!showAddMember)}
+        {/* 탭 네비게이션 */}
+        <div className="mb-6 flex gap-1 border-b border-[var(--axis-border-default)]">
+          {(["overview", "decisions", "glossary", "events"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-3 py-2 text-sm font-medium transition-colors ${
+                activeTab === tab
+                  ? "border-b-2 border-[var(--axis-text-brand)] text-[var(--axis-text-brand)]"
+                  : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-secondary)]"
+              }`}
             >
-              {showAddMember ? "닫기" : "+ 멤버 추가"}
-            </Button>
-          </div>
+              {tabLabels[tab]}
+            </button>
+          ))}
+        </div>
 
-          {/* 멤버 추가 검색 */}
-          {showAddMember && (
-            <div className="mb-4 rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] p-4">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => handleSearchUsers(e.target.value)}
-                className="w-full rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-3 py-2 text-sm text-[var(--axis-text-primary)] outline-none placeholder:text-[var(--axis-text-tertiary)] focus:border-[var(--axis-text-brand)]"
-                placeholder="이메일로 검색 (2글자 이상)"
-              />
-              {searchResults.length > 0 && (
-                <ul className="mt-2 divide-y divide-[var(--axis-surface-tertiary)]">
-                  {searchResults
-                    .filter((u) => !existingMemberIds.has(u.id))
-                    .map((u) => (
-                      <li
-                        key={u.id}
-                        className="flex items-center justify-between py-2"
-                      >
-                        <div>
-                          <span className="text-sm font-medium text-[var(--axis-text-primary)]">
-                            {u.name}
-                          </span>
-                          <span className="ml-2 text-xs text-[var(--axis-text-tertiary)]">
-                            {u.email}
-                          </span>
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleAddMember(u.id)}
-                        >
-                          추가
-                        </Button>
-                      </li>
-                    ))}
-                </ul>
-              )}
-              {searchQuery.length >= 2 &&
-                searchResults.filter((u) => !existingMemberIds.has(u.id))
-                  .length === 0 && (
-                  <p className="mt-2 text-xs text-[var(--axis-text-tertiary)]">
-                    검색 결과가 없습니다
-                  </p>
-                )}
+        {/* 탭 컨텐츠 */}
+        {activeTab === "overview" && (
+          <section>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-[var(--axis-text-primary)]">
+                멤버
+                <span className="ml-1.5 text-xs font-normal text-[var(--axis-text-tertiary)]">
+                  ({members.length})
+                </span>
+              </h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAddMember(!showAddMember)}
+              >
+                {showAddMember ? "닫기" : "+ 멤버 추가"}
+              </Button>
             </div>
-          )}
 
-          <TopicMemberList
-            members={members}
-            currentUserId={user.id}
-            onRemove={handleRemoveMember}
-          />
-        </section>
+            {/* 멤버 추가 검색 */}
+            {showAddMember && (
+              <div className="mb-4 rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] p-4">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => handleSearchUsers(e.target.value)}
+                  className="w-full rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-3 py-2 text-sm text-[var(--axis-text-primary)] outline-none placeholder:text-[var(--axis-text-tertiary)] focus:border-[var(--axis-text-brand)]"
+                  placeholder="이메일로 검색 (2글자 이상)"
+                />
+                {searchResults.length > 0 && (
+                  <ul className="mt-2 divide-y divide-[var(--axis-surface-tertiary)]">
+                    {searchResults
+                      .filter((u) => !existingMemberIds.has(u.id))
+                      .map((u) => (
+                        <li
+                          key={u.id}
+                          className="flex items-center justify-between py-2"
+                        >
+                          <div>
+                            <span className="text-sm font-medium text-[var(--axis-text-primary)]">
+                              {u.name}
+                            </span>
+                            <span className="ml-2 text-xs text-[var(--axis-text-tertiary)]">
+                              {u.email}
+                            </span>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleAddMember(u.id)}
+                          >
+                            추가
+                          </Button>
+                        </li>
+                      ))}
+                  </ul>
+                )}
+                {searchQuery.length >= 2 &&
+                  searchResults.filter((u) => !existingMemberIds.has(u.id))
+                    .length === 0 && (
+                    <p className="mt-2 text-xs text-[var(--axis-text-tertiary)]">
+                      검색 결과가 없습니다
+                    </p>
+                  )}
+              </div>
+            )}
+
+            <TopicMemberList
+              members={members}
+              currentUserId={user.id}
+              onRemove={handleRemoveMember}
+            />
+          </section>
+        )}
+
+        {activeTab === "decisions" && (
+          <DecisionList topicId={topic.id} />
+        )}
+
+        {activeTab === "glossary" && (
+          <GlossaryList topicId={topic.id} />
+        )}
+
+        {activeTab === "events" && (
+          <GraphEventLog topicId={topic.id} />
+        )}
       </div>
     </div>
   );
