@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-15T05:20:28.428Z",
+  "lastUpdated": "2026-02-16T05:56:59.866Z",
   "activeFeatures": [
     "routes",
     "auth",
@@ -35,7 +35,11 @@
     "ontology",
     "graph",
     "constants",
-    "settings"
+    "settings",
+    ".team-tmp",
+    "integration",
+    "signal.service.ts",
+    "index.ts"
   ],
   "primaryFeature": "ontology-intelligence",
   "features": {
@@ -72,9 +76,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T11:39:12.844Z",
-        "lastUpdated": "2026-02-15T05:17:29.496Z"
+        "lastUpdated": "2026-02-16T05:56:59.865Z"
       },
-      "lastFile": "D:\\01_Projects\\Discovery-X\\app\\routes\\auth.google.tsx"
+      "lastFile": "/home/sinclair/projects/Discovery-X/app/routes/signals._index.tsx"
     },
     "auth": {
       "phase": "do",
@@ -137,9 +141,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T12:27:47.205Z",
-        "lastUpdated": "2026-02-15T05:20:28.428Z"
+        "lastUpdated": "2026-02-16T05:54:47.031Z"
       },
-      "lastFile": "D:\\01_Projects\\Discovery-X\\app\\components\\layout\\TopNav.tsx"
+      "lastFile": "/home/sinclair/projects/Discovery-X/app/components/layout/TopNav.tsx"
     },
     "ui": {
       "phase": "do",
@@ -332,9 +336,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-07T08:00:28.362Z",
-        "lastUpdated": "2026-02-15T01:37:37.634Z"
+        "lastUpdated": "2026-02-16T05:55:10.677Z"
       },
-      "lastFile": "D:\\01_Projects\\Discovery-X\\vite.config.ts"
+      "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/feature-flags.ts"
     },
     "schemas": {
       "phase": "do",
@@ -489,9 +493,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-12T00:01:07.598Z",
-        "lastUpdated": "2026-02-12T00:05:04.786Z"
+        "lastUpdated": "2026-02-16T05:56:21.035Z"
       },
-      "lastFile": "D:\\01_Projects\\Discovery-X\\app\\components\\graph\\GraphViewer.tsx"
+      "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/graph/projection-sync.ts"
     },
     "constants": {
       "phase": "do",
@@ -518,6 +522,58 @@
         "lastUpdated": "2026-02-12T06:02:41.193Z"
       },
       "lastFile": "D:\\01_Projects\\Discovery-X\\app\\components\\settings\\TokenUsageChart.tsx"
+    },
+    ".team-tmp": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T05:53:09.245Z",
+        "lastUpdated": "2026-02-16T05:53:24.831Z"
+      },
+      "lastFile": "/home/sinclair/projects/Discovery-X/.team-tmp/team-p3r1-launcher.sh"
+    },
+    "integration": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T05:55:24.355Z",
+        "lastUpdated": "2026-02-16T05:55:24.355Z"
+      },
+      "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/integration/pipeline-bridge.ts"
+    },
+    "signal.service.ts": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T05:55:48.800Z",
+        "lastUpdated": "2026-02-16T05:55:48.800Z"
+      },
+      "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/services/signal.service.ts"
+    },
+    "index.ts": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T05:56:39.035Z",
+        "lastUpdated": "2026-02-16T05:56:39.035Z"
+      },
+      "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/services/index.ts"
     }
   },
   "pipeline": {
@@ -528,7 +584,7 @@
   "session": {
     "startedAt": "2026-02-04T11:05:49.371Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-15T05:20:28.428Z"
+    "lastActivity": "2026-02-16T05:56:59.866Z"
   },
   "history": [
     {
@@ -6504,6 +6560,96 @@
     {
       "timestamp": "2026-02-15T05:20:28.428Z",
       "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T05:53:09.245Z",
+      "feature": ".team-tmp",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T05:53:24.831Z",
+      "feature": ".team-tmp",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T05:54:40.344Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T05:54:46.314Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T05:54:47.031Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T05:54:53.985Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T05:55:06.173Z",
+      "feature": "Discovery-X",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T05:55:10.677Z",
+      "feature": "Discovery-X",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T05:55:24.355Z",
+      "feature": "integration",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T05:55:24.628Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T05:55:48.800Z",
+      "feature": "signal.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T05:56:21.035Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T05:56:39.035Z",
+      "feature": "index.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T05:56:54.480Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T05:56:59.865Z",
+      "feature": "routes",
       "phase": "do",
       "action": "updated"
     }
