@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-16T11:16:19.567Z",
+  "lastUpdated": "2026-02-16T11:28:23.924Z",
   "activeFeatures": [
     "routes",
     "auth",
@@ -77,9 +77,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T11:39:12.844Z",
-        "lastUpdated": "2026-02-16T11:16:19.567Z"
+        "lastUpdated": "2026-02-16T11:25:49.327Z"
       },
-      "lastFile": "/home/sinclair/projects/Discovery-X/app/routes/api.cron.signal-route.ts"
+      "lastFile": "/home/sinclair/projects/Discovery-X/app/routes/knowledge.$graphId.tsx"
     },
     "auth": {
       "phase": "do",
@@ -168,9 +168,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T13:25:45.361Z",
-        "lastUpdated": "2026-02-12T05:26:40.130Z"
+        "lastUpdated": "2026-02-16T11:28:23.924Z"
       },
-      "lastFile": "D:\\01_Projects\\Discovery-X\\app\\lib\\agent\\executor.ts"
+      "lastFile": "/home/sinclair/projects/Discovery-X/tests/unit/agent/profile-learner.test.ts"
     },
     "discovery": {
       "phase": "do",
@@ -546,9 +546,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-16T05:55:24.355Z",
-        "lastUpdated": "2026-02-16T11:11:30.586Z"
+        "lastUpdated": "2026-02-16T11:18:33.263Z"
       },
-      "lastFile": "/home/sinclair/projects/Discovery-X/tests/integration/token-budget.test.ts"
+      "lastFile": "/home/sinclair/projects/Discovery-X/tests/integration/pipeline-bridge.test.ts"
     },
     "signal.service.ts": {
       "phase": "do",
@@ -598,7 +598,7 @@
   "session": {
     "startedAt": "2026-02-04T11:05:49.371Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-16T11:16:19.567Z"
+    "lastActivity": "2026-02-16T11:28:23.924Z"
   },
   "history": [
     {
@@ -6844,6 +6844,120 @@
     {
       "timestamp": "2026-02-16T11:16:19.567Z",
       "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T11:17:11.723Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T11:17:27.093Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T11:18:01.157Z",
+      "feature": "integration",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T11:18:11.484Z",
+      "feature": "integration",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T11:18:16.315Z",
+      "feature": "integration",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T11:18:22.236Z",
+      "feature": "integration",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T11:18:26.368Z",
+      "feature": "integration",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T11:18:31.375Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T11:18:33.263Z",
+      "feature": "integration",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T11:19:01.464Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T11:19:15.939Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T11:19:22.525Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T11:20:21.728Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T11:21:24.439Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T11:23:19.679Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T11:23:27.779Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T11:25:49.327Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T11:28:17.785Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T11:28:23.924Z",
+      "feature": "agent",
       "phase": "do",
       "action": "updated"
     }
