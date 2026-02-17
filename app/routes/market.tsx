@@ -4,15 +4,13 @@ import { Outlet, useLoaderData, useParams, useNavigate } from "@remix-run/react"
 import { desc, sql } from "drizzle-orm";
 import { getDb } from "~/db";
 import { radarItems } from "~/db/schema";
-import { getSessionContext, getSessionSecret, getUserFromSession } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { MarketSidebar } from "~/components/market/MarketSidebar";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
-  if (!user) return redirect("/login");
   const ctx = await getSessionContext(request, db, secret);
   if (!ctx) return redirect("/login");
 
@@ -30,7 +28,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .orderBy(desc(sql`rowid`))
     .limit(100);
 
-  return json({ user, items });
+  return json({ user: ctx.user, items });
 }
 
 export default function MarketLayout() {
