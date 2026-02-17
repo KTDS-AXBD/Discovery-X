@@ -16,7 +16,7 @@ export default {
   /**
    * HTTP handler — for manual triggers via /run?secret=xxx.
    */
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
     if (url.pathname === "/run") {
