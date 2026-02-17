@@ -9,27 +9,33 @@ interface RadarEnv {
 }
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const env = context.cloudflare.env as unknown as RadarEnv;
-  const url = new URL(request.url);
+  try {
+    const env = context.cloudflare.env as unknown as RadarEnv;
+    const url = new URL(request.url);
 
-  // Auth: either session user or cron secret
-  const secret = url.searchParams.get("secret");
-  const isCronAuth = env.CRON_SECRET && secret === env.CRON_SECRET;
+    // Auth: either session user or cron secret
+    const secret = url.searchParams.get("secret");
+    const isCronAuth = env.CRON_SECRET && secret === env.CRON_SECRET;
 
-  if (!isCronAuth) {
-    const db = getDb(env.DB);
-    const sessionSecret = getSessionSecret(context.cloudflare.env);
-    const user = await getUserFromSession(request, db, sessionSecret);
-    if (!user) {
-      return new Response("Unauthorized", { status: 401 });
+    if (!isCronAuth) {
+      const db = getDb(env.DB);
+      const sessionSecret = getSessionSecret(context.cloudflare.env);
+      const user = await getUserFromSession(request, db, sessionSecret);
+      if (!user) {
+        return new Response("Unauthorized", { status: 401 });
+      }
     }
-  }
 
-  // The actual radar pipeline runs in radar-worker.
-  // This endpoint is for manual triggers from the UI — it calls the worker.
-  // For now, return info about what a trigger would do.
-  return json({
-    message: "Radar trigger endpoint. The radar-worker handles the actual pipeline.",
-    note: "Configure radar-worker to run via Cron Trigger or call its /run endpoint.",
-  });
+    // The actual radar pipeline runs in radar-worker.
+    // This endpoint is for manual triggers from the UI — it calls the worker.
+    // For now, return info about what a trigger would do.
+    return json({
+      message: "Radar trigger endpoint. The radar-worker handles the actual pipeline.",
+      note: "Configure radar-worker to run via Cron Trigger or call its /run endpoint.",
+    });
+  } catch (error) {
+    if (error instanceof Response) throw error;
+    console.error("[api.radar.trigger] error:", error);
+    return json({ error: "Internal server error" }, { status: 500 });
+  }
 }
