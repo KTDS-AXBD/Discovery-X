@@ -9,7 +9,7 @@ import { AlertBanner } from "~/components/ui/AlertBanner";
 import { Card } from "~/components/ui/Card";
 import { Badge } from "~/components/ui/Badge";
 import { cn } from "~/lib/utils/cn";
-import { sql } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { formatDate, daysUntilDue } from "~/lib/format-date";
 import { ACTIVE_STATUSES, STATUS_CONFIG } from "~/lib/constants/status";
@@ -20,12 +20,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const ctx = await getSessionContext(request, db, secret);
   if (!ctx) return redirect("/login");
 
-  const statusList = ACTIVE_STATUSES.map((s) => `'${s}'`).join(",");
   const openDiscoveries = await db
     .select()
     .from(discoveries)
     .where(
-      sql`${discoveries.status} IN (${sql.raw(statusList)}) AND ${discoveries.tenantId} = ${ctx.tenantId}`
+      and(
+        inArray(discoveries.status, [...ACTIVE_STATUSES]),
+        eq(discoveries.tenantId, ctx.tenantId),
+      )
     );
 
   const discoveryList = await Promise.all(

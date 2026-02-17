@@ -10,7 +10,7 @@ import { eq, sql, desc, and, inArray } from "drizzle-orm";
 import { getDb } from "~/db";
 import { discoveries, radarItems, radarItemUserStatus, radarSources, industryAdapters } from "~/db/schema";
 import { proposals } from "~/features/proposals/db/schema";
-import { getSessionContext, getSessionSecret, getUserFromSession } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { tenantWhere } from "~/lib/query/tenant-scope";
 import { SourceSidebar } from "~/components/dashboard/SourceSidebar";
 import { SummaryCard } from "~/components/dashboard/SummaryCard";
@@ -21,7 +21,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
   const ctx = await getSessionContext(request, db, secret);
-  const user = await getUserFromSession(request, db, secret);
 
   type CollectionItem = {
     id: string;
@@ -178,7 +177,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // ── 4. Reactions + Viewed status (사용자별 반응 + 읽음 상태) ─
   const reactions: Record<string, string | null> = {};
   const viewedItemIds: string[] = [];
-  if (user && recentCollections.items.length > 0) {
+  if (ctx?.user && recentCollections.items.length > 0) {
     try {
       const itemIds = recentCollections.items.map((i) => i.id);
       const statuses = await db
@@ -190,7 +189,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         .from(radarItemUserStatus)
         .where(
           and(
-            eq(radarItemUserStatus.userId, user.id),
+            eq(radarItemUserStatus.userId, ctx.user.id),
             inArray(radarItemUserStatus.itemId, itemIds),
           ),
         );

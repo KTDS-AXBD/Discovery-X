@@ -7,66 +7,78 @@ import { users } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
-  const db = getDb(context.cloudflare.env.DB);
-  const secret = getSessionSecret(context.cloudflare.env);
-  const ctx = await getSessionContext(request, db, secret);
+  try {
+    const db = getDb(context.cloudflare.env.DB);
+    const secret = getSessionSecret(context.cloudflare.env);
+    const ctx = await getSessionContext(request, db, secret);
 
-  if (!ctx) {
-    return json({ error: "Unauthorized" }, { status: 401 });
+    if (!ctx) {
+      return json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const proposal = await db.select({ tenantId: proposals.tenantId })
+      .from(proposals).where(eq(proposals.id, params.id!)).get();
+    if (!proposal || proposal.tenantId !== ctx.tenantId) {
+      return json({ error: "Not found" }, { status: 404 });
+    }
+
+    const comments = await db
+      .select({
+        id: proposalComments.id,
+        authorId: proposalComments.authorId,
+        content: proposalComments.content,
+        createdAt: proposalComments.createdAt,
+        authorName: users.name,
+      })
+      .from(proposalComments)
+      .leftJoin(users, eq(proposalComments.authorId, users.id))
+      .where(eq(proposalComments.proposalId, params.id!));
+
+    return json({ comments });
+  } catch (error) {
+    if (error instanceof Response) throw error;
+    console.error("[api.proposals.$id.comments] loader error:", error);
+    return json({ error: "Internal server error" }, { status: 500 });
   }
-
-  const proposal = await db.select({ tenantId: proposals.tenantId })
-    .from(proposals).where(eq(proposals.id, params.id!)).get();
-  if (!proposal || proposal.tenantId !== ctx.tenantId) {
-    return json({ error: "Not found" }, { status: 404 });
-  }
-
-  const comments = await db
-    .select({
-      id: proposalComments.id,
-      authorId: proposalComments.authorId,
-      content: proposalComments.content,
-      createdAt: proposalComments.createdAt,
-      authorName: users.name,
-    })
-    .from(proposalComments)
-    .leftJoin(users, eq(proposalComments.authorId, users.id))
-    .where(eq(proposalComments.proposalId, params.id!));
-
-  return json({ comments });
 }
 
 export async function action({ params, request, context }: ActionFunctionArgs) {
-  const db = getDb(context.cloudflare.env.DB);
-  const secret = getSessionSecret(context.cloudflare.env);
-  const ctx = await getSessionContext(request, db, secret);
+  try {
+    const db = getDb(context.cloudflare.env.DB);
+    const secret = getSessionSecret(context.cloudflare.env);
+    const ctx = await getSessionContext(request, db, secret);
 
-  if (!ctx) {
-    return json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const proposal = await db.select({ tenantId: proposals.tenantId })
-    .from(proposals).where(eq(proposals.id, params.id!)).get();
-  if (!proposal || proposal.tenantId !== ctx.tenantId) {
-    return json({ error: "Not found" }, { status: 404 });
-  }
-
-  if (request.method === "POST") {
-    const formData = await request.formData();
-    const content = String(formData.get("content") || "").trim();
-
-    if (!content) {
-      return json({ error: "Content is required" }, { status: 400 });
+    if (!ctx) {
+      return json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await db.insert(proposalComments).values({
-      proposalId: params.id!,
-      authorId: ctx.user.id,
-      content,
-    });
+    const proposal = await db.select({ tenantId: proposals.tenantId })
+      .from(proposals).where(eq(proposals.id, params.id!)).get();
+    if (!proposal || proposal.tenantId !== ctx.tenantId) {
+      return json({ error: "Not found" }, { status: 404 });
+    }
 
-    return json({ success: true });
+    if (request.method === "POST") {
+      const formData = await request.formData();
+      const content = String(formData.get("content") || "").trim();
+
+      if (!content) {
+        return json({ error: "Content is required" }, { status: 400 });
+      }
+
+      await db.insert(proposalComments).values({
+        proposalId: params.id!,
+        authorId: ctx.user.id,
+        content,
+      });
+
+      return json({ success: true });
+    }
+
+    return json({ error: "Method not allowed" }, { status: 405 });
+  } catch (error) {
+    if (error instanceof Response) throw error;
+    console.error("[api.proposals.$id.comments] action error:", error);
+    return json({ error: "Internal server error" }, { status: 500 });
   }
-
-  return json({ error: "Method not allowed" }, { status: 405 });
 }
