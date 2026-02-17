@@ -371,7 +371,7 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
-- **배포**: 세션 195 미배포 (PRD v3 전면 재감사 조치 완료, 0033~0035 마이그레이션 + 배포 필요)
+- **배포**: 세션 195 프로덕션 배포 완료 (D1 마이그레이션 0033~0035 적용, GitHub Actions CI/CD 통과)
 
 ### 최근 변경 (세션 195)
 **PRD v3 전면 재감사 + 조치 — tmux 3-Worker 병렬 (3 Round)**:
