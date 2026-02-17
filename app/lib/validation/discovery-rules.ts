@@ -317,7 +317,7 @@ export const CreateDiscoverySchema = z.object({
   ]),
 });
 
-export const PromoteToIdeaCardSchema = z.object({
+export const PromoteToOpenSchema = z.object({
   ownerId: z.string().min(1, "Owner를 지정해야 합니다"),
   firstExperiment: z.object({
     hypothesis: z
@@ -336,10 +336,7 @@ export const PromoteToIdeaCardSchema = z.object({
   }),
 });
 
-// Keep legacy name for backward compatibility
-export const PromoteToOpenSchema = PromoteToIdeaCardSchema;
-
-export const HoldDecisionSchema = z.object({
+export const NotNowDecisionSchema = z.object({
   decisionRationale: z
     .string()
     .min(1, "결정 근거는 필수입니다")
@@ -359,10 +356,7 @@ export const HoldDecisionSchema = z.object({
   }),
 });
 
-// Keep legacy name
-export const NotNowDecisionSchema = HoldDecisionSchema;
-
-export const DropDecisionSchema = z.object({
+export const DeadEndDecisionSchema = z.object({
   decisionRationale: z
     .string()
     .min(1, "결정 근거는 필수입니다")
@@ -377,18 +371,12 @@ export const DropDecisionSchema = z.object({
     .max(200, "증거 기반 사유는 200자 이내여야 합니다"),
 });
 
-// Keep legacy name
-export const DeadEndDecisionSchema = DropDecisionSchema;
-
-export const GateDecisionSchema = z.object({
+export const NextDecisionSchema = z.object({
   decisionRationale: z
     .string()
     .min(1, "결정 근거는 필수입니다")
     .max(400, "결정 근거는 400자 이내여야 합니다"),
 });
-
-// Keep legacy name
-export const NextDecisionSchema = GateDecisionSchema;
 
 export const ExtensionRequestedSchema = z.object({
   extensionRationale: z

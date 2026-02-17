@@ -12,67 +12,79 @@ import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { TopicService } from "~/lib/services/topic.service";
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
-  const env = context.cloudflare.env;
-  const db = getDb(env.DB);
-  const secret = getSessionSecret(env);
-  const ctx = await getSessionContext(request, db, secret);
+  try {
+    const env = context.cloudflare.env;
+    const db = getDb(env.DB);
+    const secret = getSessionSecret(env);
+    const ctx = await getSessionContext(request, db, secret);
 
-  if (!ctx) {
-    return json({ error: "Unauthorized" }, { status: 401 });
+    if (!ctx) {
+      return json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const topicId = params.id;
+    if (!topicId) {
+      return json({ error: "id 파라미터가 필요합니다" }, { status: 400 });
+    }
+
+    const service = new TopicService(db);
+    const members = await service.getMembers(topicId);
+
+    return json({ data: members });
+  } catch (error) {
+    if (error instanceof Response) throw error;
+    console.error("[api.topics.$id.members] loader error:", error);
+    return json({ error: "Internal server error" }, { status: 500 });
   }
-
-  const topicId = params.id;
-  if (!topicId) {
-    return json({ error: "id 파라미터가 필요합니다" }, { status: 400 });
-  }
-
-  const service = new TopicService(db);
-  const members = await service.getMembers(topicId);
-
-  return json({ data: members });
 }
 
 export async function action({ request, params, context }: ActionFunctionArgs) {
-  const env = context.cloudflare.env;
-  const db = getDb(env.DB);
-  const secret = getSessionSecret(env);
-  const ctx = await getSessionContext(request, db, secret);
+  try {
+    const env = context.cloudflare.env;
+    const db = getDb(env.DB);
+    const secret = getSessionSecret(env);
+    const ctx = await getSessionContext(request, db, secret);
 
-  if (!ctx) {
-    return json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const topicId = params.id;
-  if (!topicId) {
-    return json({ error: "id 파라미터가 필요합니다" }, { status: 400 });
-  }
-
-  const service = new TopicService(db);
-
-  if (request.method === "POST") {
-    const body = (await request.json()) as {
-      userId?: string;
-      role?: "owner" | "editor" | "viewer";
-    };
-
-    if (!body.userId) {
-      return json({ error: "userId는 필수입니다" }, { status: 400 });
+    if (!ctx) {
+      return json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await service.addMember(topicId, body.userId, body.role);
-    return json({ success: true }, { status: 201 });
-  }
-
-  if (request.method === "DELETE") {
-    const body = (await request.json()) as { userId?: string };
-
-    if (!body.userId) {
-      return json({ error: "userId는 필수입니다" }, { status: 400 });
+    const topicId = params.id;
+    if (!topicId) {
+      return json({ error: "id 파라미터가 필요합니다" }, { status: 400 });
     }
 
-    await service.removeMember(topicId, body.userId);
-    return json({ success: true });
-  }
+    const service = new TopicService(db);
 
-  return json({ error: "Method not allowed" }, { status: 405 });
+    if (request.method === "POST") {
+      const body = (await request.json()) as {
+        userId?: string;
+        role?: "owner" | "editor" | "viewer";
+      };
+
+      if (!body.userId) {
+        return json({ error: "userId는 필수입니다" }, { status: 400 });
+      }
+
+      await service.addMember(topicId, body.userId, body.role);
+      return json({ success: true }, { status: 201 });
+    }
+
+    if (request.method === "DELETE") {
+      const body = (await request.json()) as { userId?: string };
+
+      if (!body.userId) {
+        return json({ error: "userId는 필수입니다" }, { status: 400 });
+      }
+
+      await service.removeMember(topicId, body.userId);
+      return json({ success: true });
+    }
+
+    return json({ error: "Method not allowed" }, { status: 405 });
+  } catch (error) {
+    if (error instanceof Response) throw error;
+    console.error("[api.topics.$id.members] action error:", error);
+    return json({ error: "Internal server error" }, { status: 500 });
+  }
 }

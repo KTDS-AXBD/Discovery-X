@@ -422,14 +422,6 @@ export async function decideGate(
   });
 }
 
-// Legacy aliases
-export async function decideNext(
-  db: DB,
-  input: { discoveryId: string; decisionRationale: string }
-): Promise<string> {
-  return decideGate(db, { ...input, gateType: "GATE1" });
-}
-
 export async function decideHold(
   db: DB,
   input: {
@@ -493,9 +485,6 @@ export async function decideHold(
   return JSON.stringify({ success: true, status: "HOLD", revisitDate: input.revisitDate });
 }
 
-// Legacy alias
-export const decideNotNow = decideHold;
-
 export async function decideDrop(
   db: DB,
   input: {
@@ -552,9 +541,6 @@ export async function decideDrop(
 
   return JSON.stringify({ success: true, status: "DROP", failurePatterns: input.deadEndFailurePattern });
 }
-
-// Legacy alias
-export const decideDeadEnd = decideDrop;
 
 export async function requestExtension(
   db: DB,

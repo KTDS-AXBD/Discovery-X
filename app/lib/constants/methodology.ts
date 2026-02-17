@@ -24,7 +24,6 @@ export const SECONDARY_METHODOLOGIES = [
 ] as const;
 
 export const ALL_METHODOLOGIES = [...PRIMARY_METHODOLOGIES, ...SECONDARY_METHODOLOGIES];
-export const VALID_CATEGORY_KEYS = ALL_METHODOLOGIES.map((m) => m.key);
 
 /** Methodology-specific analysis prompt instructions */
 export const METHODOLOGY_PROMPTS: Record<string, string> = {

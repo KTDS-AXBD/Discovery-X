@@ -55,8 +55,3 @@ export function releaseSSESession(userId: string): void {
   }
 }
 
-/** 현재 활성 세션 수 (디버그/모니터링용) */
-export function getActiveSessionCount(userId: string): number {
-  cleanup(userId);
-  return activeSessions.get(userId)?.length ?? 0;
-}

@@ -48,14 +48,6 @@ export function formatTime(iso: string | Date | null | undefined): string {
   return `${h}:${m}`;
 }
 
-/** ISO 문자열 → "2월 9일" 형식 (시간 제외) */
-export function formatMonthDay(iso: string | Date | null | undefined): string {
-  if (!iso) return "-";
-  const d = typeof iso === "string" ? new Date(iso) : iso;
-  if (isNaN(d.getTime())) return "-";
-  return `${d.getMonth() + 1}월 ${d.getDate()}일`;
-}
-
 /**
  * 기한 초과 여부 판정 (서버에서 호출)
  * 클라이언트에서 new Date() 직접 호출 시 hydration 불일치 발생 가능

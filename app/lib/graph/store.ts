@@ -31,7 +31,7 @@ export async function computeContentHash(jsonld: JsonLdGraph): Promise<string> {
 /**
  * DB row → GraphRecord 변환 (jsonld 파싱, Date 변환)
  */
-export function toGraphRecord(row: Graph): GraphRecord {
+function toGraphRecord(row: Graph): GraphRecord {
   return {
     id: row.id,
     scopeType: row.scopeType as ScopeType,

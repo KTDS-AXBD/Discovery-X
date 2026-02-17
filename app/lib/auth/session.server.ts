@@ -190,19 +190,6 @@ export async function requireTenantMember(
   return ctx;
 }
 
-// Require tenant admin (owner or admin role)
-export async function requireTenantAdmin(
-  request: Request,
-  db: DB,
-  secret: string
-): Promise<SessionContext> {
-  const ctx = await requireTenantMember(request, db, secret);
-  if (!["owner", "admin"].includes(ctx.tenantRole)) {
-    throw json({ error: "조직 관리자 권한이 필요합니다" }, { status: 403 });
-  }
-  return ctx;
-}
-
 // Get session secret from environment (required)
 export function getSessionSecret(env: { SESSION_SECRET?: string }): string {
   if (!env.SESSION_SECRET) {

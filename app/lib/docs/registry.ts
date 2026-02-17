@@ -88,6 +88,3 @@ export function getDocBySlug(slug: string): DocEntry | undefined {
   return docs.find((d) => d.slug === slug);
 }
 
-export function getDocsByCategory(category: DocCategory): DocEntry[] {
-  return docs.filter((d) => d.category === category);
-}

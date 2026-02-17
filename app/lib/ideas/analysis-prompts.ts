@@ -145,6 +145,3 @@ export const CATEGORY_MAP = new Map(
   ANALYSIS_CATEGORIES.map((c) => [c.category, c])
 );
 
-export const VALID_ANALYSIS_CATEGORIES = ANALYSIS_CATEGORIES.map(
-  (c) => c.category
-);

@@ -55,32 +55,3 @@ export const MemoryType = {
 export type MemoryTypeValue =
   (typeof MemoryType)[keyof typeof MemoryType];
 
-export const SignalStatus = {
-  PENDING: "pending",
-  REVIEWED: "reviewed",
-  ACTIONED: "actioned",
-  DISMISSED: "dismissed",
-} as const;
-export type SignalStatusValue =
-  (typeof SignalStatus)[keyof typeof SignalStatus];
-
-// === 타입 가드 ===
-export function isScopeType(value: string): value is ScopeTypeValue {
-  return Object.values(ScopeType).includes(value as ScopeTypeValue);
-}
-
-export function isActorType(value: string): value is ActorTypeValue {
-  return Object.values(ActorType).includes(value as ActorTypeValue);
-}
-
-export function isGraphAction(value: string): value is GraphActionValue {
-  return Object.values(GraphAction).includes(value as GraphActionValue);
-}
-
-export function isTopicStatus(value: string): value is TopicStatusValue {
-  return Object.values(TopicStatus).includes(value as TopicStatusValue);
-}
-
-export function isMemoryType(value: string): value is MemoryTypeValue {
-  return Object.values(MemoryType).includes(value as MemoryTypeValue);
-}

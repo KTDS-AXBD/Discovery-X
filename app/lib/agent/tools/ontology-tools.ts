@@ -393,33 +393,3 @@ export async function analyzeCentralityTool(
   return JSON.stringify(results);
 }
 
-/**
- * simulate_scenario — 엔티티 변화 시 영향 시뮬레이션
- */
-export async function simulateScenario(
-  db: DB,
-  input: {
-    tenantId: string;
-    sourceNodeId: string;
-    magnitude?: number;
-    question: string;
-    apiKey?: string;
-  },
-): Promise<string> {
-  // Import dynamically to avoid circular deps
-  const { propagateInfluence, generateScenario } = await import("~/lib/ontology/simulator");
-
-  const propagation = await propagateInfluence(db, input.tenantId, input.sourceNodeId, input.magnitude ?? 1.0);
-
-  if (propagation.affectedNodes.length === 0) {
-    return JSON.stringify({ error: "해당 엔티티와 연결된 노드가 없습니다." });
-  }
-
-  if (!input.apiKey) {
-    // Without API key, return propagation only
-    return JSON.stringify({ propagation });
-  }
-
-  const scenario = await generateScenario(input.apiKey, propagation, input.question);
-  return JSON.stringify({ propagation, scenario });
-}

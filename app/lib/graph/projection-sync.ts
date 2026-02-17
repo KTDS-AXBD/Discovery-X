@@ -5,25 +5,6 @@ import { ProjectionBuilder } from "./projection";
 import type { ScopeType } from "./types";
 
 // ============================================================================
-// 단건 동기화
-// ============================================================================
-
-/**
- * 특정 scope의 Graph contentHash와 Projection sourceHash를 비교하여
- * 불일치(stale) 시 Projection을 재생성한다.
- *
- * @returns true면 갱신됨, false면 이미 최신 또는 Graph 없음
- */
-export async function syncIfStale(
-  db: DB,
-  scopeType: string,
-  scopeId: string,
-): Promise<boolean> {
-  const builder = new ProjectionBuilder(db);
-  return builder.syncProjection(scopeType as ScopeType, scopeId);
-}
-
-// ============================================================================
 // 전체 scope 순회 동기화 (Cron용)
 // ============================================================================
 

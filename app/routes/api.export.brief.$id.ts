@@ -5,138 +5,147 @@ import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server"
 import { eq } from "drizzle-orm";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
-  const db = getDb(context.cloudflare.env.DB);
-  const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
+  try {
+    const db = getDb(context.cloudflare.env.DB);
+    const secret = getSessionSecret(context.cloudflare.env);
+    const user = await getUserFromSession(request, db, secret);
 
-  if (!user) {
-    return new Response("Unauthorized", { status: 401 });
-  }
-
-  const discoveryId = params.id;
-  if (!discoveryId) {
-    return new Response("Missing discovery ID", { status: 400 });
-  }
-
-  const discovery = await db.query.discoveries.findFirst({
-    where: eq(discoveries.id, discoveryId),
-  });
-
-  if (!discovery) {
-    return new Response("Discovery not found", { status: 404 });
-  }
-
-  const owner = discovery.ownerId
-    ? await db.query.users.findFirst({
-        where: eq(users.id, discovery.ownerId),
-      })
-    : null;
-
-  const experimentList = await db
-    .select()
-    .from(experiments)
-    .where(eq(experiments.discoveryId, discoveryId));
-
-  const evidenceList = await db
-    .select()
-    .from(evidence)
-    .where(eq(evidence.discoveryId, discoveryId));
-
-  const fmtDate = (d: Date | null | undefined): string =>
-    d ? new Date(d).toISOString().split("T")[0] : "-";
-
-  // Build markdown
-  const lines: string[] = [];
-
-  lines.push(`# Discovery Brief: ${discovery.title}`);
-  lines.push("");
-  lines.push(
-    `**상태**: ${discovery.status} | **Owner**: ${owner?.name || "-"} | **생성일**: ${fmtDate(discovery.createdAt)} | **마감일**: ${fmtDate(discovery.dueDate)}`
-  );
-  lines.push("");
-
-  // Seed
-  lines.push("## Seed");
-  lines.push(discovery.seedSummary);
-  lines.push("");
-  lines.push(`**출처**: ${discovery.sourceType}`);
-  if (discovery.seedLinks && discovery.seedLinks.length > 0) {
-    for (const link of discovery.seedLinks) {
-      lines.push(`- ${link}`);
+    if (!user) {
+      return new Response("Unauthorized", { status: 401 });
     }
-  }
-  lines.push("");
 
-  // Experiments
-  lines.push("## Experiments");
-  lines.push("");
-  if (experimentList.length === 0) {
-    lines.push("_실험 없음_");
+    const discoveryId = params.id;
+    if (!discoveryId) {
+      return new Response("Missing discovery ID", { status: 400 });
+    }
+
+    const discovery = await db.query.discoveries.findFirst({
+      where: eq(discoveries.id, discoveryId),
+    });
+
+    if (!discovery) {
+      return new Response("Discovery not found", { status: 404 });
+    }
+
+    const owner = discovery.ownerId
+      ? await db.query.users.findFirst({
+          where: eq(users.id, discovery.ownerId),
+        })
+      : null;
+
+    const experimentList = await db
+      .select()
+      .from(experiments)
+      .where(eq(experiments.discoveryId, discoveryId));
+
+    const evidenceList = await db
+      .select()
+      .from(evidence)
+      .where(eq(evidence.discoveryId, discoveryId));
+
+    const fmtDate = (d: Date | null | undefined): string =>
+      d ? new Date(d).toISOString().split("T")[0] : "-";
+
+    // Build markdown
+    const lines: string[] = [];
+
+    lines.push(`# Discovery Brief: ${discovery.title}`);
     lines.push("");
-  } else {
-    experimentList.forEach((exp, idx) => {
-      lines.push(`### 실험 ${idx + 1}: ${exp.hypothesis}`);
-      lines.push(`- **행동**: ${exp.minimalAction}`);
-      lines.push(`- **마감**: ${fmtDate(exp.deadline)}`);
-      lines.push(`- **예상 근거**: ${exp.expectedEvidence}`);
-      lines.push(`- **결과**: ${exp.resultSummary || "미완료"}`);
+    lines.push(
+      `**상태**: ${discovery.status} | **Owner**: ${owner?.name || "-"} | **생성일**: ${fmtDate(discovery.createdAt)} | **마감일**: ${fmtDate(discovery.dueDate)}`
+    );
+    lines.push("");
+
+    // Seed
+    lines.push("## Seed");
+    lines.push(discovery.seedSummary);
+    lines.push("");
+    lines.push(`**출처**: ${discovery.sourceType}`);
+    if (discovery.seedLinks && discovery.seedLinks.length > 0) {
+      for (const link of discovery.seedLinks) {
+        lines.push(`- ${link}`);
+      }
+    }
+    lines.push("");
+
+    // Experiments
+    lines.push("## Experiments");
+    lines.push("");
+    if (experimentList.length === 0) {
+      lines.push("_실험 없음_");
       lines.push("");
+    } else {
+      experimentList.forEach((exp, idx) => {
+        lines.push(`### 실험 ${idx + 1}: ${exp.hypothesis}`);
+        lines.push(`- **행동**: ${exp.minimalAction}`);
+        lines.push(`- **마감**: ${fmtDate(exp.deadline)}`);
+        lines.push(`- **예상 근거**: ${exp.expectedEvidence}`);
+        lines.push(`- **결과**: ${exp.resultSummary || "미완료"}`);
+        lines.push("");
+      });
+    }
+
+    // Evidence
+    lines.push("## Evidence");
+    if (evidenceList.length === 0) {
+      lines.push("_근거 없음_");
+    } else {
+      lines.push("| 유형 | 강도 | 내용 |");
+      lines.push("|------|------|------|");
+      for (const ev of evidenceList) {
+        const content = ev.content.replace(/\|/g, "\\|").replace(/\n/g, " ");
+        lines.push(`| ${ev.type} | ${ev.strength} | ${content} |`);
+      }
+    }
+    lines.push("");
+
+    // Decision
+    lines.push("## Decision");
+    lines.push(`**결정**: ${discovery.decisionState || "미결정"}`);
+    lines.push(`**근거**: ${discovery.decisionRationale || "-"}`);
+    lines.push("");
+
+    if (discovery.status === "HOLD") {
+      lines.push(
+        `- **트리거 유형**: ${discovery.notNowTriggerType || "-"}`
+      );
+      lines.push(
+        `- **트리거 조건**: ${discovery.notNowTriggerCondition || "-"}`
+      );
+      lines.push(`- **재검토 날짜**: ${fmtDate(discovery.revisitDate)}`);
+      lines.push("");
+    }
+
+    if (discovery.status === "DROP") {
+      lines.push(
+        `- **실패 패턴**: ${discovery.deadEndFailurePattern?.join(", ") || "-"}`
+      );
+      lines.push(
+        `- **근거 이유**: ${discovery.deadEndEvidenceReason || "-"}`
+      );
+      lines.push("");
+    }
+
+    lines.push("---");
+    lines.push(
+      `*Generated by Discovery-X on ${new Date().toISOString().split("T")[0]}*`
+    );
+
+    const markdown = lines.join("\n");
+    const today = new Date().toISOString().split("T")[0];
+
+    return new Response(markdown, {
+      headers: {
+        "Content-Type": "text/markdown; charset=utf-8",
+        "Content-Disposition": `attachment; filename="brief_${discoveryId}_${today}.md"`,
+      },
+    });
+  } catch (error) {
+    if (error instanceof Response) throw error;
+    console.error("[api.export.brief.$id] error:", error);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
     });
   }
-
-  // Evidence
-  lines.push("## Evidence");
-  if (evidenceList.length === 0) {
-    lines.push("_근거 없음_");
-  } else {
-    lines.push("| 유형 | 강도 | 내용 |");
-    lines.push("|------|------|------|");
-    for (const ev of evidenceList) {
-      const content = ev.content.replace(/\|/g, "\\|").replace(/\n/g, " ");
-      lines.push(`| ${ev.type} | ${ev.strength} | ${content} |`);
-    }
-  }
-  lines.push("");
-
-  // Decision
-  lines.push("## Decision");
-  lines.push(`**결정**: ${discovery.decisionState || "미결정"}`);
-  lines.push(`**근거**: ${discovery.decisionRationale || "-"}`);
-  lines.push("");
-
-  if (discovery.status === "HOLD") {
-    lines.push(
-      `- **트리거 유형**: ${discovery.notNowTriggerType || "-"}`
-    );
-    lines.push(
-      `- **트리거 조건**: ${discovery.notNowTriggerCondition || "-"}`
-    );
-    lines.push(`- **재검토 날짜**: ${fmtDate(discovery.revisitDate)}`);
-    lines.push("");
-  }
-
-  if (discovery.status === "DROP") {
-    lines.push(
-      `- **실패 패턴**: ${discovery.deadEndFailurePattern?.join(", ") || "-"}`
-    );
-    lines.push(
-      `- **근거 이유**: ${discovery.deadEndEvidenceReason || "-"}`
-    );
-    lines.push("");
-  }
-
-  lines.push("---");
-  lines.push(
-    `*Generated by Discovery-X on ${new Date().toISOString().split("T")[0]}*`
-  );
-
-  const markdown = lines.join("\n");
-  const today = new Date().toISOString().split("T")[0];
-
-  return new Response(markdown, {
-    headers: {
-      "Content-Type": "text/markdown; charset=utf-8",
-      "Content-Disposition": `attachment; filename="brief_${discoveryId}_${today}.md"`,
-    },
-  });
 }

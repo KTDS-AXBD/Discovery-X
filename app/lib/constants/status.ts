@@ -31,23 +31,6 @@ export const STATUS_CONFIG: Record<string, {
 };
 
 /**
- * 11단계 파이프라인 컬럼 정의 (대시보드용)
- */
-export const PIPELINE_COLUMNS = [
-  { status: "DISCOVERY", label: "발견", category: "ideation" },
-  { status: "IDEA_CARD", label: "아이디어", category: "ideation" },
-  { status: "HYPOTHESIS", label: "가설", category: "validation" },
-  { status: "EXPERIMENT", label: "실험", category: "validation" },
-  { status: "EVIDENCE_REVIEW", label: "근거 검토", category: "validation" },
-  { status: "GATE1", label: "Gate 1", category: "execution" },
-  { status: "SPRINT", label: "스프린트", category: "execution" },
-  { status: "GATE2", label: "Gate 2", category: "execution" },
-  { status: "HANDOFF", label: "핸드오프", category: "execution" },
-  { status: "HOLD", label: "보류", category: "terminal" },
-  { status: "DROP", label: "중단", category: "terminal" },
-] as const;
-
-/**
  * 허용된 상태 전환 맵 (from → to[])
  */
 export const ALLOWED_TRANSITIONS: Record<string, string[]> = {

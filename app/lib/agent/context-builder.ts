@@ -5,7 +5,7 @@
 
 import { desc, eq, sql } from "drizzle-orm";
 import type { DB } from "~/db";
-import { messages, discoveries, experiments, evidence } from "~/db/schema";
+import { messages } from "~/db/schema";
 import type { ClaudeMessage, ClaudeContentBlock } from "./claude-client";
 
 interface ContextConfig {
@@ -172,35 +172,3 @@ export async function buildConversationContext(
   return claudeMessages;
 }
 
-export async function getDiscoverySummary(
-  db: DB,
-  discoveryId: string
-): Promise<string> {
-  const discovery = await db
-    .select()
-    .from(discoveries)
-    .where(eq(discoveries.id, discoveryId))
-    .limit(1);
-
-  if (!discovery[0]) return "Discovery를 찾을 수 없습니다.";
-
-  const d = discovery[0];
-  const exps = await db
-    .select()
-    .from(experiments)
-    .where(eq(experiments.discoveryId, discoveryId));
-  const evs = await db
-    .select()
-    .from(evidence)
-    .where(eq(evidence.discoveryId, discoveryId));
-
-  return [
-    `[${d.status}] ${d.title}`,
-    `요약: ${d.seedSummary}`,
-    `Owner: ${d.ownerId || "미지정"} | Reviewer: ${d.reviewerId || "미지정"}`,
-    d.dueDate ? `기한: ${new Date(d.dueDate).toLocaleDateString("ko-KR")}` : "",
-    `실험 ${exps.length}개 | 근거 ${evs.length}개`,
-    exps.map((e, i) => `  실험${i + 1}: ${e.hypothesis}${e.completedAt ? " ✅" : ""}`).join("\n"),
-    evs.map((e) => `  [${e.type}/${e.strength}] ${e.content}`).join("\n"),
-  ].filter(Boolean).join("\n");
-}
