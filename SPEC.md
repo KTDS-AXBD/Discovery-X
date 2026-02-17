@@ -373,7 +373,16 @@ build/
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
 - **배포**: 세션 195 프로덕션 배포 완료 (D1 마이그레이션 0033~0035 적용, GitHub Actions CI/CD 통과)
 
-### 최근 변경 (세션 195)
+### 최근 변경 (세션 196)
+**미사용 import 정리 + /team 스킬 개선**:
+- ✅ `/team` 스킬 tmux pane 타겟팅 버그 수정 (`.0` → window-level send-keys)
+- ✅ `/team` 스킬 환경 자동 감지 추가 (WSL_DIRECT / GIT_BASH 분기)
+- ✅ `/team` 스킬 하드코딩 경로 → `$PWD` 기반 동적 경로로 전환
+- ✅ tsc `--noUnusedLocals --noUnusedParameters` 17건 → 0건 해결 (tmux 2-Worker 병렬)
+- ✅ 테스트 파일 10개에서 미사용 import/변수 제거
+- ✅ typecheck 0 에러 / lint 0 에러
+
+### 이전 변경 (세션 195)
 **PRD v3 전면 재감사 + 조치 — tmux 3-Worker 병렬 (3 Round)**:
 
 **Round 1: 감사 실행 (101항목 분석)**
