@@ -10,20 +10,35 @@ user-invocable: true
 `$ARGUMENTS`로 전달된 작업을 분석하여, tmux split pane에서 병렬 `claude -p` 인스턴스를 실행한다.
 각 worker의 작업 과정을 실시간으로 확인할 수 있다.
 
-## CRITICAL: WSL 환경 규칙
+## 환경 규칙
 
-이 프로젝트는 **Windows + WSL** 환경이다. Claude Code의 Bash는 **Git Bash (Windows)**에서 실행되므로:
+이 프로젝트는 **Windows + WSL** 환경이다. Claude Code 실행 위치에 따라 명령이 달라진다.
 
-1. **tmux 명령은 반드시 `wsl -e` 접두사**로 실행한다:
-   - `wsl -e tmux new-session ...` (O)
-   - `tmux new-session ...` (X — "command not found")
-2. **임시 파일은 프로젝트 내 `.team-tmp/`** 디렉토리에 저장한다:
-   - `.team-tmp/` (O — Git Bash와 WSL 모두 접근 가능)
-   - `/tmp/` (X — Git Bash와 WSL의 /tmp/가 다른 위치)
-3. **모든 스크립트 내 경로는 WSL 형식** (`/mnt/d/...`)을 사용한다
-4. **launcher 스크립트 실행**: `wsl -e bash -c "bash /mnt/d/.../launcher.sh"` 형식 사용
-   - `wsl bash /mnt/d/...` (X — Git Bash가 경로를 맹글링함)
-5. **claude 경로**: WSL 내에서는 `/home/sinclair/.local/bin/claude` 사용
+### 환경 자동 감지 (Step 0에서 수행)
+
+Step 시작 전, 아래 명령으로 환경을 판별한다:
+```bash
+if grep -qi microsoft /proc/version 2>/dev/null; then
+  echo "WSL_DIRECT"   # WSL 내부에서 직접 실행 — tmux 바로 호출
+else
+  echo "GIT_BASH"     # Git Bash — wsl -e 접두사 필요
+fi
+```
+
+### WSL 직접 실행 (WSL_DIRECT)
+- tmux 명령을 **직접** 호출: `tmux new-session ...`
+- 경로: `$PWD` 기반 (예: `/home/sinclair/projects/Discovery-X`)
+- claude 경로: `/home/sinclair/.local/bin/claude`
+
+### Git Bash 실행 (GIT_BASH)
+- tmux 명령에 **`wsl -e` 접두사** 필수: `wsl -e tmux new-session ...`
+- launcher 실행: `wsl -e bash -c "bash /mnt/d/.../launcher.sh"`
+  - `wsl bash /mnt/d/...` (X — Git Bash가 경로를 맹글링함)
+- 스크립트 내 경로는 **WSL 형식** (`/mnt/d/...`) 사용
+
+### 공통 규칙
+1. **임시 파일은 프로젝트 내 `.team-tmp/`** 디렉토리에 저장
+2. **claude 경로**: WSL 내에서는 `/home/sinclair/.local/bin/claude` 사용
 
 ## Arguments
 
@@ -62,11 +77,12 @@ user-invocable: true
 먼저 임시 디렉토리를 생성하고, 프롬프트를 **임시 파일**에 저장한다:
 
 ```bash
-mkdir -p /d/01_Projects/Discovery-X/.team-tmp
+TEAM_DIR="$PWD/.team-tmp"
+mkdir -p "$TEAM_DIR"
 ```
 
 ```bash
-cat > /d/01_Projects/Discovery-X/.team-tmp/team-{팀이름}-worker-{N}.txt << 'PROMPT'
+cat > "$TEAM_DIR/team-{팀이름}-worker-{N}.txt" << 'PROMPT'
 [worker 프롬프트 내용]
 PROMPT
 ```
@@ -78,76 +94,85 @@ PROMPT
 > 백그라운드 프로세스로 대체하는 것도 금지한다 — 반드시 tmux pane으로 실행한다.
 
 **3a. worker runner 스크립트**를 생성한다 (worker 수만큼 반복).
-스크립트 내의 모든 경로는 **WSL 형식** (`/mnt/d/...`)을 사용한다:
+`PROJECT_DIR`은 `$PWD`로 결정한다 (WSL 내부: `/home/.../Discovery-X`):
 
 ```bash
-TEAM_DIR="/d/01_Projects/Discovery-X/.team-tmp"
-WSL_TEAM_DIR="/mnt/d/01_Projects/Discovery-X/.team-tmp"
+PROJECT_DIR="$PWD"
+TEAM_DIR="$PWD/.team-tmp"
 
-cat > $TEAM_DIR/team-{팀이름}-run-{N}.sh << 'RUNNER'
+cat > "$TEAM_DIR/team-{팀이름}-run-{N}.sh" << RUNNER
 #!/usr/bin/env bash
-export PATH="/home/sinclair/.local/bin:$PATH"
-cd /mnt/d/01_Projects/Discovery-X
-prompt=$(cat /mnt/d/01_Projects/Discovery-X/.team-tmp/team-{팀이름}-worker-{N}.txt)
-claude -p "$prompt" \
-  --allowedTools 'Read,Edit,Write,Glob,Grep,Bash' \
-  --max-turns 20 \
-  --verbose 2>&1 | tee /mnt/d/01_Projects/Discovery-X/.team-tmp/team-{팀이름}-worker-{N}.log
-echo '=== WORKER-{N} DONE ===' >> /mnt/d/01_Projects/Discovery-X/.team-tmp/team-{팀이름}-worker-{N}.log
+export PATH="/home/sinclair/.local/bin:\$PATH"
+cd $PROJECT_DIR
+prompt=\$(cat "$TEAM_DIR/team-{팀이름}-worker-{N}.txt")
+claude -p "\$prompt" \\
+  --allowedTools 'Read,Edit,Write,Glob,Grep,Bash' \\
+  --max-turns 20 \\
+  --verbose 2>&1 | tee "$TEAM_DIR/team-{팀이름}-worker-{N}.log"
+echo '=== WORKER-{N} DONE ===' >> "$TEAM_DIR/team-{팀이름}-worker-{N}.log"
 RUNNER
-chmod +x $TEAM_DIR/team-{팀이름}-run-{N}.sh
+chmod +x "$TEAM_DIR/team-{팀이름}-run-{N}.sh"
 ```
 
-> **주의**: runner 스크립트의 heredoc은 `'RUNNER'` (따옴표 있음)으로, 변수 확장 없이 그대로 저장된다.
+> **주의**: heredoc에서 `$PROJECT_DIR`과 `$TEAM_DIR`은 **생성 시점에 확장**시킨다 (경로를 하드코딩).
+> `\$PATH`, `\$prompt` 등 runner 실행 시점 변수는 이스케이프한다.
 
 **3b. launcher 스크립트를 생성**한다. worker 수(N)에 맞게 아래 템플릿을 사용:
 
 ```bash
-cat > $TEAM_DIR/team-{팀이름}-launcher.sh << 'LAUNCHER'
+cat > "$TEAM_DIR/team-{팀이름}-launcher.sh" << LAUNCHER
 #!/usr/bin/env bash
 set -e
 TEAM="{팀이름}"
-PROJECT_DIR="/mnt/d/01_Projects/Discovery-X"
-TEAM_DIR="/mnt/d/01_Projects/Discovery-X/.team-tmp"
+PROJECT_DIR="$PROJECT_DIR"
+TEAM_DIR="$TEAM_DIR"
 
 # 1) tmux 세션 생성 (detached)
-tmux kill-session -t "$TEAM" 2>/dev/null || true
-tmux new-session -d -s "$TEAM" -n workers -c "$PROJECT_DIR"
+tmux kill-session -t "\$TEAM" 2>/dev/null || true
+tmux new-session -d -s "\$TEAM" -n workers -c "\$PROJECT_DIR"
 
-# 2) Worker 1 — 기본 pane에서 실행
-tmux send-keys -t "$TEAM:workers" "bash $TEAM_DIR/team-${TEAM}-run-1.sh" Enter
+# 2) Worker 1 — 기본 pane (활성 pane)에 send-keys
+tmux send-keys -t "\$TEAM:workers" "bash \$TEAM_DIR/team-\${TEAM}-run-1.sh" Enter
 
-# 3) Worker 2 — 수직 분할
-tmux split-window -t "$TEAM:workers" -h -c "$PROJECT_DIR"
-tmux send-keys -t "$TEAM:workers" "bash $TEAM_DIR/team-${TEAM}-run-2.sh" Enter
+# 3) Worker 2 — 수직 분할 후 새 pane이 자동으로 활성화됨
+tmux split-window -t "\$TEAM:workers" -h -c "\$PROJECT_DIR"
+tmux send-keys -t "\$TEAM:workers" "bash \$TEAM_DIR/team-\${TEAM}-run-2.sh" Enter
 
-# 4) Worker 3 (필요 시) — Worker 1 아래 수평 분할
-# tmux split-window -t "$TEAM:workers.0" -v -c "$PROJECT_DIR"
-# tmux send-keys -t "$TEAM:workers" "bash $TEAM_DIR/team-${TEAM}-run-3.sh" Enter
+# 4) Worker 3 (필요 시) — 추가 수평 분할
+# tmux split-window -t "\$TEAM:workers" -v -c "\$PROJECT_DIR"
+# tmux send-keys -t "\$TEAM:workers" "bash \$TEAM_DIR/team-\${TEAM}-run-3.sh" Enter
 
-# 5) Worker 4 (필요 시) — Worker 2 아래 수평 분할
-# tmux split-window -t "$TEAM:workers.1" -v -c "$PROJECT_DIR"
-# tmux send-keys -t "$TEAM:workers" "bash $TEAM_DIR/team-${TEAM}-run-4.sh" Enter
+# 5) Worker 4 (필요 시) — 추가 수평 분할
+# tmux split-window -t "\$TEAM:workers" -v -c "\$PROJECT_DIR"
+# tmux send-keys -t "\$TEAM:workers" "bash \$TEAM_DIR/team-\${TEAM}-run-4.sh" Enter
 
 # 6) 레이아웃 균등 배치
-tmux select-layout -t "$TEAM:workers" tiled
+tmux select-layout -t "\$TEAM:workers" tiled
 
-echo "tmux session '$TEAM' created with split panes"
-tmux list-panes -t "$TEAM:workers"
+echo "tmux session '\$TEAM' created with split panes"
+tmux list-panes -t "\$TEAM:workers" -F "pane=#{pane_index} pid=#{pane_pid} size=#{pane_width}x#{pane_height}"
 LAUNCHER
-chmod +x $TEAM_DIR/team-{팀이름}-launcher.sh
+chmod +x "$TEAM_DIR/team-{팀이름}-launcher.sh"
 ```
 
 > **worker 수에 따라 주석(#)을 해제**하여 3명, 4명 구성을 만든다.
+> **pane 타겟팅**: `split-window` 후 새 pane이 자동으로 활성화되므로, `send-keys -t "$TEAM:workers"`는 항상 방금 생성된 pane에 전달된다. `.0`, `.1` 같은 하드코딩된 pane 인덱스를 사용하지 않는다.
 
-**3c. launcher를 WSL을 통해 실행**한다:
+**3c. launcher를 실행**한다:
+
+WSL 직접 실행 환경 (WSL_DIRECT):
 ```bash
-wsl -e bash -c "bash /mnt/d/01_Projects/Discovery-X/.team-tmp/team-{팀이름}-launcher.sh"
+bash "$TEAM_DIR/team-{팀이름}-launcher.sh"
+```
+
+Git Bash 환경 (GIT_BASH):
+```bash
+wsl -e bash -c "bash $WSL_TEAM_DIR/team-{팀이름}-launcher.sh"
 ```
 
 **3d. pane 생성을 검증**한다:
 ```bash
-wsl -e tmux list-panes -t {팀이름}:workers
+tmux list-panes -t {팀이름}:workers -F "pane=#{pane_index} pid=#{pane_pid} size=#{pane_width}x#{pane_height}"
 ```
 - pane 수가 worker 수와 일치하는지 확인한다
 - 불일치하면 launcher 스크립트를 다시 실행한다
@@ -174,14 +199,25 @@ pane 이동: Ctrl+b 방향키 | 확대: Ctrl+b z | detach: Ctrl+b d
 Worker들의 완료를 대기한다. 로그 파일 기반으로 진행 상황을 확인:
 
 ```bash
-wsl -e bash -c 'TEAM_DIR="/mnt/d/01_Projects/Discovery-X/.team-tmp"; for i in 1 2; do if grep -q "WORKER-${i} DONE" "$TEAM_DIR/team-{팀이름}-worker-${i}.log" 2>/dev/null; then echo "Worker ${i}: DONE"; else echo "Worker ${i}: RUNNING"; fi; done'
+TEAM_DIR="$PWD/.team-tmp"
+for i in 1 2; do
+  if grep -q "WORKER-${i} DONE" "$TEAM_DIR/team-{팀이름}-worker-${i}.log" 2>/dev/null; then
+    echo "Worker ${i}: DONE"
+  else
+    echo "Worker ${i}: RUNNING"
+  fi
+done
 ```
 
-tmux pane 내용을 직접 확인하려면:
+tmux pane 내용을 직접 확인하려면 (pane 인덱스는 `tmux list-panes`로 확인):
 ```bash
-wsl -e tmux capture-pane -t {팀이름}:workers.1 -p
-wsl -e tmux capture-pane -t {팀이름}:workers.2 -p
+tmux list-panes -t {팀이름}:workers -F "#{pane_index}"
+# 출력된 인덱스로 capture-pane 실행
+tmux capture-pane -t {팀이름}:workers.{첫번째인덱스} -p
+tmux capture-pane -t {팀이름}:workers.{두번째인덱스} -p
 ```
+
+> **주의**: pane 인덱스는 tmux `base-index` 설정에 따라 0 또는 1부터 시작한다. 하드코딩하지 말고 `list-panes`로 확인한다.
 
 **모니터링 규칙:**
 - 30초 간격으로 로그 파일의 DONE 마커를 확인한다
@@ -211,20 +247,23 @@ pnpm test
 
 ### 6. 정리 및 결과 출력
 
-1. tmux 세션 종료:
+1. 로그 파일에서 결과 수집 (정리 전에 수행):
 ```bash
-wsl -e tmux kill-session -t {팀이름} 2>/dev/null
+# pane 인덱스를 동적으로 가져와서 캡처
+for idx in $(tmux list-panes -t {팀이름}:workers -F "#{pane_index}"); do
+  echo "=== Pane $idx ==="
+  tmux capture-pane -t {팀이름}:workers.$idx -p
+done
 ```
 
-2. 로그 파일에서 결과 수집 (tmux pane 캡처):
+2. tmux 세션 종료:
 ```bash
-wsl -e tmux capture-pane -t {팀이름}:workers.1 -p
-wsl -e tmux capture-pane -t {팀이름}:workers.2 -p
+tmux kill-session -t {팀이름} 2>/dev/null
 ```
 
 3. 임시 파일 정리:
 ```bash
-rm -rf /d/01_Projects/Discovery-X/.team-tmp
+rm -rf "$PWD/.team-tmp"
 ```
 
 4. 결과 요약 출력
@@ -264,7 +303,7 @@ rm -rf /d/01_Projects/Discovery-X/.team-tmp
 - worker끼리 **같은 파일을 동시 수정하지 않도록** 태스크를 분할한다
 - `--allowedTools` 미지정 시 승인 프롬프트가 떠서 pane이 멈춤 — 반드시 지정
 - `--max-turns`로 무한 루프 방지 (기본 20, 복잡한 작업은 30까지)
-- worker 프롬프트는 `/tmp/` 임시 파일 + **runner 스크립트**로 전달 (send-keys 내 `$(cat ...)` 확장 금지)
+- worker 프롬프트는 `.team-tmp/` 임시 파일 + **runner 스크립트**로 전달 (send-keys 내 `$(cat ...)` 확장 금지)
 - runner 스크립트에서 `claude` PATH를 명시적으로 설정하여 tmux pane 환경 차이를 해소
 - git 작업(commit, push)은 worker에게 시키지 않는다 — 리더만 수행
 - tmux pane 최대 4개 권장 (그 이상은 가시성 저하)
