@@ -373,7 +373,15 @@ build/
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
 - **배포**: ✅ 세션 191 프로덕션 배포 완료 + DB 마이그레이션 0030~0032 프로덕션 적용
 
-### 최근 변경 (세션 192)
+### 최근 변경 (세션 193)
+**미사용 코드 정리 — dead code 제거 + API 라우트 리팩토링**:
+- ✅ **파일 삭제**: `similar-items.ts`, `collab-worker.stub.ts`, `utils.ts` (미사용 모듈 제거)
+- ✅ **미사용 export 제거**: `getDiscoverySummary()`, `SignalStatus`, `getActiveSessionCount()`, `toGraphRecord()` export 등
+- ✅ **API 라우트 정리**: export/folders/topics/tenant 라우트 인라인 헬퍼 정리 + 중복 코드 제거
+- ✅ **기타**: Dialog.tsx Radix import 정리, 미사용 devDependencies 제거
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 780개 통과
+
+### 이전 변경 (세션 192)
 **프로덕션 배포 + DB 마이그레이션 적용**:
 - ✅ **CI/CD 배포**: `git push origin master` → GitHub Actions (Lint/Type check/Test/Build/Deploy) 완료
 - ✅ **배포 에러 해결**: Vectorize 미생성 인덱스(dx-graph/memory/signal-embeddings) 바인딩 → 주석 처리 후 재배포 성공
