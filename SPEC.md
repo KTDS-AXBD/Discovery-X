@@ -371,9 +371,17 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
-- **배포**: ✅ 세션 191 프로덕션 배포 완료 + DB 마이그레이션 0030~0032 프로덕션 적용
+- **배포**: 세션 194 미배포 (에러 처리 일괄 추가 완료, 배포 필요)
 
-### 최근 변경 (세션 193)
+### 최근 변경 (세션 194)
+**전체 코드 품질 점검 + 에러 처리 일괄 추가 — tmux 3-Worker 병렬 (Round 2)**:
+- ✅ **W1**: proposals 7개 + ideas.memo try-catch 추가 (loader/action 전체)
+- ✅ **W2**: topics 나머지 5개 + radar 4개 + admin/agent/briefing/profile 5개 try-catch 추가
+- ✅ **W3**: `dashboard.review.tsx` sql.raw→inArray 보안 수정 + dashboard._index/market 인증 패턴 통일
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 780개 통과
+- 📊 **결과**: API 라우트 try-catch 미적용 44→0개, sql.raw 1→0건, 인증 혼용 2→0건
+
+### 이전 변경 (세션 193)
 **미사용 코드 정리 — dead code 제거 + API 라우트 리팩토링**:
 - ✅ **파일 삭제**: `similar-items.ts`, `collab-worker.stub.ts`, `utils.ts` (미사용 모듈 제거)
 - ✅ **미사용 export 제거**: `getDiscoverySummary()`, `SignalStatus`, `getActiveSessionCount()`, `toGraphRecord()` export 등
