@@ -12,7 +12,6 @@ import {
   discoveries,
   experiments,
   evidence,
-  methodPacks,
   methodRuns,
   assumptions,
 } from "~/db/schema";

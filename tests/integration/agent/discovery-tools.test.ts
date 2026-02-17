@@ -8,7 +8,6 @@ import {
   experiments,
   evidence,
   eventLogs,
-  stages,
 } from "~/db/schema";
 import {
   createDiscovery,
@@ -397,15 +396,13 @@ describe("Agent discovery-tools", () => {
       const disc = makeDiscovery({ id: "disc-1", status: "EXPERIMENT" });
       db.insert(discoveries).values(disc).run();
 
-      const result = JSON.parse(
-        await addExperiment(asDB(db), {
-          discoveryId: "disc-1",
-          hypothesis: "H",
-          minimalAction: "A",
-          deadline: "2026-03-01",
-          expectedEvidence: "E",
-        })
-      );
+      await addExperiment(asDB(db), {
+        discoveryId: "disc-1",
+        hypothesis: "H",
+        minimalAction: "A",
+        deadline: "2026-03-01",
+        expectedEvidence: "E",
+      });
 
       const logs = db
         .select()

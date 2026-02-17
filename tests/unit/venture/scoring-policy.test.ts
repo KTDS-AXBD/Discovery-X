@@ -13,8 +13,6 @@ import {
   calculateEffortScore,
   calculateNextRoi,
   rankOpportunities,
-  HUMAN_EFFORT_WEIGHTS,
-  AGENT_EFFORT_WEIGHTS,
 } from "~/features/venture/domain/scoring-policy";
 import type {
   VdScore,

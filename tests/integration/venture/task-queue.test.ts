@@ -284,7 +284,7 @@ describe("task-queue.repository", () => {
         priority: 10, // 높은 priority
         dedupeKey: "task2",
       });
-      const task3 = await enqueueTask(db, testSprintId, {
+      await enqueueTask(db, testSprintId, {
         taskType: "COLLECT_SIGNALS",
         priority: 10, // 같은 priority, 나중에 생성
         dedupeKey: "task3",

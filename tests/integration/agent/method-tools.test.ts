@@ -7,7 +7,6 @@ import {
   makeExperiment,
   makeEvidence,
   makeMethodRun,
-  makeAssumption,
   resetFixtureCounter,
 } from "../../helpers/fixtures";
 import {

@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import {
   classifyError,
   getEffectiveMaxRetries,
-  type ErrorClassification,
 } from "~/features/venture/utils/error-classifier";
 
 describe("error-classifier", () => {

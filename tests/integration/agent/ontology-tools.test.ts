@@ -15,7 +15,6 @@ import {
   evidence,
   contextNodes,
   contextEdges,
-  ontologyTypes,
   evidenceDuplicateCandidates,
 } from "~/db/schema";
 import {

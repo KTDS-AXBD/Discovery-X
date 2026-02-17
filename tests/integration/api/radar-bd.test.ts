@@ -15,10 +15,6 @@ import {
   radarItemUserStatus,
 } from "~/db/schema";
 
-function asDB(db: TestDB) {
-  return db as unknown as Parameters<typeof import("drizzle-orm").eq>[0];
-}
-
 // ── 테스트 헬퍼: Radar 소스/아이템 생성 ──
 
 let itemCounter = 0;

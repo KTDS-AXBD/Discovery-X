@@ -1,8 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { eq } from "drizzle-orm";
 import { createTestDb, type TestDB } from "../../helpers/db";
 import {
-  makeUser,
   makeDiscovery,
   makeEvidence,
   resetFixtureCounter,

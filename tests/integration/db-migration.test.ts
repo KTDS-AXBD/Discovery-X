@@ -8,7 +8,6 @@ import {
   ontologyTypes,
   discoveries,
   evidence,
-  experiments,
   discoveryKpis,
   kpiMeasurements,
   discoveryLinks,
