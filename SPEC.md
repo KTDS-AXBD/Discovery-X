@@ -65,7 +65,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 | P3 협업+통합 | 2~3주 | collab-worker, Pipeline Bridge, Cron, TokenBudget |
 | P4 고도화 | 2주 | ProfileLearner, Graph 롤백 UI, Vectorize, E2E 테스트 |
 
-현재: **Phase 5 갭 해소 완료** (PRD v3 §4~§14 전면 재분석, 전체 일치율 ~70% → 95%+ 달성)
+현재: **Phase 5 갭 해소 + PRD v3 전면 재감사 완료** (101항목 분석, 전체 일치율 84.5% → ~95% 달성)
 - Phase 5A (보안·무결성): **완료** — Agent Graph 수정 제한, @id 네이밍 강화, SOUL 역할 템플릿, JSON Schema, ACL policies 분리, 403 메시지 개선
 - Phase 5B (agent-worker DO): **완료** — AgentSessionDO 클래스, Worker 라우팅, HMAC 인증, SSE 스트리밍, alarm flush, 429 동시성, api.chat.ts DO 위임
 - Phase 5C (collab-worker + 스키마): **완료** — collab-worker Cron/fetch 핸들러, notification_queue, tenants 확장(profile_ld/rules_md), cron_logs
@@ -358,22 +358,48 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.14 + v3 Phase 4 완료 + 갭 분석 조치 10건 구현 (ACL audit + 인덱스 + 429 제어 + enrichment + JSON-LD + LLM merge + DO/Worker 스텁)
+- **프로토타입**: v6.14 + v3 Phase 5 갭 해소 완료 + PRD v3 전면 재감사 조치 (84.5%→~95%)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 33개 마이그레이션 (0000~0032), 로컬 + 프로덕션 모두 적용 완료 + 프로덕션 샘플 데이터 56건 삽입 (proposals 46 + ideas 소스 10)
+- **DB**: 36개 마이그레이션 (0000~0035), 로컬 적용 완료 + 프로덕션 0033~0035 미적용 (배포 시 적용 필요)
 
 ### 주요 지표
 - **라우트**: 150개 (core 47 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 3 + topics 12 + briefing 3 + signals 2 + knowledge 5 + API 37 + 미분류 2)
-- **테이블**: 80개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 9) — 기존 테이블 3개에 컬럼 추가 (evidence, contextNodes, contextEdges), v2 신규: acl_audit_logs
+- **테이블**: 80개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 9) — token_usage_logs에 cost_usd/purpose/user_id 컬럼 추가, shared_signals 부분 인덱스 추가
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
 - **테스트**: 780개 (54 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
-- **배포**: 세션 194 미배포 (에러 처리 일괄 추가 완료, 배포 필요)
+- **배포**: 세션 195 미배포 (PRD v3 전면 재감사 조치 완료, 0033~0035 마이그레이션 + 배포 필요)
 
-### 최근 변경 (세션 194)
+### 최근 변경 (세션 195)
+**PRD v3 전면 재감사 + 조치 — tmux 3-Worker 병렬 (3 Round)**:
+
+**Round 1: 감사 실행 (101항목 분석)**
+- W1: Graph Layer + DB Schema (14항목) — 85.7% (10✅ 4⚠️)
+- W2: Agent Runtime + Memory + Cost + Integration (66항목) — 84.8% (56✅ 8⚠️ 2❌)
+- W3: ACL + Topic + Services + Routes + UI (21항목) — 83.3% (15✅ 5⚠️ 1❌)
+- 📊 **전체**: 84.5% (81✅ 17⚠️ 3❌)
+
+**Round 2: Critical 항목 조치 (5건)**
+- ✅ `topics.$id.tsx`: requireScopeAccess() ACL 미들웨어 적용 (loader read + action write)
+- ✅ `token-usage-schema.ts`: cost_usd(real) + purpose(text) 컬럼 추가
+- ✅ `dx-context.ts`: JSON-LD namespace URI 통일 (dx.minu.best → discovery-x.app/ns)
+- ✅ `0033_token_usage_enrich.sql`: cost_usd + purpose ALTER TABLE 마이그레이션
+- ✅ `0034_shared_signals_partial_index.sql`: shared_signals topic_id 부분 인덱스
+
+**Round 3: 나머지 ⚠️ 항목 조치 (6건)**
+- ✅ `agent-session.ts`: buildSystemPrompt() SoulEngine 레이어링 (SOUL.md + USER Projection 캐시)
+- ✅ `agent-session.ts`: checkMonthlyBudget() D1 raw SQL 월간 예산 체크 추가
+- ✅ `agent-session.ts`: flushMemory() conversation_summary 저장 추가
+- ✅ `cron-handler.ts`: runWeeklySummary() 구현 (Topic별 주간 활동 집계→shared_signals 기록)
+- ✅ `token-usage-schema.ts` + `0035_token_usage_userid.sql`: user_id 컬럼 + 복합 인덱스
+- ✅ `types.ts`: SessionState.conversationSummary 필드 추가
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 780개 통과 / build 성공
+- 📊 **결과**: 전체 일치율 84.5% → ~95% (의도적 차이 4건 제외)
+
+### 이전 변경 (세션 194)
 **전체 코드 품질 점검 + 에러 처리 일괄 추가 — tmux 3-Worker 병렬 (Round 2)**:
 - ✅ **W1**: proposals 7개 + ideas.memo try-catch 추가 (loader/action 전체)
 - ✅ **W2**: topics 나머지 5개 + radar 4개 + admin/agent/briefing/profile 5개 try-catch 추가
