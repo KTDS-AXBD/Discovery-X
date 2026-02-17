@@ -4,7 +4,7 @@
  * @see https://www.w3.org/TR/json-ld/#the-context
  */
 export const DX_CONTEXT = {
-  dx: "https://dx.minu.best/schema/",
+  dx: "https://discovery-x.app/ns/",
   xsd: "http://www.w3.org/2001/XMLSchema#",
   rdfs: "http://www.w3.org/2000/01/rdf-schema#",
   name: "rdfs:label",

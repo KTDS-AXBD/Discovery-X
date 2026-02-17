@@ -56,6 +56,9 @@ export function createTestDb() {
   runMigrationSQL(sqlite, resolve(migrationsDir, "0030_v2_graph_layer.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0031_acl_audit_memory_indexes.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0032_collab_worker_tables.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0033_token_usage_enrich.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0034_shared_signals_partial_index.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0035_token_usage_userid.sql"));
 
   return drizzle(sqlite, { schema: { ...schema, ...v2Schema } });
 }

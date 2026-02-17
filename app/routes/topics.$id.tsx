@@ -6,6 +6,7 @@ import { eq, and, like } from "drizzle-orm";
 
 import { getDb, users } from "~/db";
 import { topics, topicMembers } from "~/db/schema-v2";
+import { requireScopeAccess } from "~/lib/acl/middleware";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
 import { Button } from "~/components/ui/Button";
 import { TopicStatusBadge } from "~/components/topic/TopicStatusBadge";
@@ -37,6 +38,9 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     if (e instanceof Response) throw e;
     return redirect("/login");
   }
+
+  // ACL 스코프 검사 (FF_ACL_SCOPE 비활성 시 자동 패스)
+  await requireScopeAccess({ request, params, context }, "read");
 
   const topicId = params.id!;
 
@@ -76,6 +80,9 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     if (e instanceof Response) throw e;
     return redirect("/login");
   }
+
+  // ACL 스코프 검사 (FF_ACL_SCOPE 비활성 시 자동 패스)
+  await requireScopeAccess({ request, params, context }, "write");
 
   const topicId = params.id!;
   const formData = await request.formData();
