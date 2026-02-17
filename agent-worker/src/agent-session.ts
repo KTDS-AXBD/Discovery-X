@@ -9,6 +9,30 @@ import type { Env, SessionState, ChatRequest, SSEEventType } from "./types";
 const FLUSH_TIMEOUT_MS = 30 * 60 * 1000; // 30분
 const MAX_FLUSH_RETRIES = 3;
 
+const DEFAULT_SOUL_PROMPT = `# Discovery-X Agent — SOUL
+
+## 성격
+분석적이고 직설적인 BD(사업개발) 어시스턴트.
+불확실한 정보는 솔직히 인정하고, 가정과 사실을 구분한다.
+
+## 원칙
+- **데이터 기반**: 주장에는 근거를 제시한다
+- **비판적 사고**: 확증 편향을 경계하고 반론을 고려한다
+- **한국어 기본**: 자연스러운 한국어로 응답한다
+- **행동 지향**: 분석에 그치지 않고 다음 행동을 제안한다
+- **간결성**: 불필요한 서론/반복을 피하고 핵심만 전달한다
+
+## 금지 사항
+- 자동 의사결정 (Next/Hold/Drop 판단은 사용자 몫)
+- 확신 없는 예측이나 추천
+- 개인정보 유추
+- 외부 시스템 접근 가정
+
+## 응답 형식
+- 마크다운(볼드, 리스트, 코드블록) 적극 활용
+- 작업 완료 후 다음 단계 1-2개 제안
+- 500자 이상 응답은 요약 헤더 포함`;
+
 export class AgentSessionDO implements DurableObject {
   private isProcessing = false;
   private tokenCount = 0;
@@ -16,6 +40,8 @@ export class AgentSessionDO implements DurableObject {
   private userId = "";
   private tenantId = "";
   private projectionCache: string | null = null;
+  private soulCache: string | null = null;
+  private conversationSummary: string | null = null;
 
   constructor(
     private state: DurableObjectState,
@@ -30,6 +56,8 @@ export class AgentSessionDO implements DurableObject {
         this.tokenCount = stored.tokenCount;
         this.lastActivityAt = stored.lastActivityAt;
         this.projectionCache = stored.projectionCache ?? null;
+        this.soulCache = stored.soulCache ?? null;
+        this.conversationSummary = stored.conversationSummary ?? null;
       }
     });
   }
@@ -64,6 +92,8 @@ export class AgentSessionDO implements DurableObject {
       // 인메모리 상태도 리셋
       this.tokenCount = 0;
       this.projectionCache = null;
+      this.soulCache = null;
+      this.conversationSummary = null;
     }
   }
 
@@ -100,6 +130,15 @@ export class AgentSessionDO implements DurableObject {
         return Response.json(
           { error: "conversationId와 message가 필요합니다." },
           { status: 400 },
+        );
+      }
+
+      // 월간 토큰 예산 체크
+      const budgetOk = await this.checkMonthlyBudget();
+      if (!budgetOk) {
+        return Response.json(
+          { error: "월간 토큰 예산을 초과했습니다. 다음 달에 다시 시도하세요." },
+          { status: 429 },
         );
       }
 
@@ -222,6 +261,10 @@ export class AgentSessionDO implements DurableObject {
           // 토큰 카운트 갱신
           self.tokenCount += totalTokens;
 
+          // 대화 요약 누적 (사용자 메시지 앞부분만 기록)
+          self.conversationSummary = (self.conversationSummary ?? "")
+            + `\n[${new Date().toISOString()}] user: ${message.slice(0, 100)}`;
+
           sendEvent("done", JSON.stringify({
             conversationId,
             mode: mode ?? "default",
@@ -239,22 +282,47 @@ export class AgentSessionDO implements DurableObject {
     });
   }
 
-  /** 시스템 프롬프트 조립 (Projection 캐시 활용) */
+  /** 월간 토큰 예산 상수 (200만 토큰) */
+  private static readonly MONTHLY_LLM_BUDGET = 2_000_000;
+
+  /** 월간 토큰 사용량을 D1에서 조회하여 예산 초과 여부 확인 */
+  private async checkMonthlyBudget(): Promise<boolean> {
+    try {
+      const now = new Date();
+      const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+      const monthStartEpoch = Math.floor(monthStart.getTime() / 1000);
+
+      const stmt = this.env.DB.prepare(`
+        SELECT coalesce(sum(tul.input_tokens + tul.output_tokens), 0) as total
+        FROM token_usage_logs tul
+        INNER JOIN conversations c ON c.id = tul.conversation_id
+        WHERE c.user_id = ? AND tul.created_at >= ?
+      `);
+      const result = await stmt.bind(this.userId, monthStartEpoch).first<{ total: number }>();
+      return (result?.total ?? 0) < AgentSessionDO.MONTHLY_LLM_BUDGET;
+    } catch {
+      // 예산 체크 실패 시 허용 (fail-open)
+      return true;
+    }
+  }
+
+  /** 시스템 프롬프트 조립 — SoulEngine 레이어링 (SOUL → USER Projection) */
   private buildSystemPrompt(): string {
-    const parts: string[] = [];
+    const sections: string[] = [];
 
-    // 기본 SOUL
-    parts.push(
-      "당신은 Discovery-X의 BD 어시스턴트입니다. " +
-      "데이터 기반으로 분석하고, 행동 지향적 조언을 제공합니다.",
-    );
-
-    // Projection 캐시가 있으면 포함
-    if (this.projectionCache) {
-      parts.push(`\n## 사용자 프로파일\n${this.projectionCache}`);
+    // 1. Base SOUL (soulCache가 있으면 사용, 없으면 기본 템플릿)
+    if (this.soulCache) {
+      sections.push(this.soulCache);
+    } else {
+      sections.push(DEFAULT_SOUL_PROMPT);
     }
 
-    return parts.join("\n");
+    // 2. USER.md Projection (사용자 프로필)
+    if (this.projectionCache) {
+      sections.push(`## 사용자 프로파일\n${this.projectionCache}`);
+    }
+
+    return sections.join("\n\n---\n\n");
   }
 
   /** 메모리 flush — DO 정리 전 대화 요약을 DB에 저장 */
@@ -262,11 +330,16 @@ export class AgentSessionDO implements DurableObject {
     let retries = 0;
     while (retries < MAX_FLUSH_RETRIES) {
       try {
-        // D1에 세션 통계 기록
+        // D1에 세션 통계 + 대화 요약 기록
         const stmt = this.env.DB.prepare(
-          "UPDATE agent_sessions_v2 SET token_count = ?, updated_at = ? WHERE user_id = ? AND status = 'active'",
+          "UPDATE agent_sessions_v2 SET token_count = ?, conversation_summary = ?, updated_at = ? WHERE user_id = ? AND status = 'active'",
         );
-        await stmt.bind(this.tokenCount, Math.floor(Date.now() / 1000), this.userId).run();
+        await stmt.bind(
+          this.tokenCount,
+          this.conversationSummary ?? null,
+          Math.floor(Date.now() / 1000),
+          this.userId,
+        ).run();
         return;
       } catch {
         retries++;
@@ -287,6 +360,8 @@ export class AgentSessionDO implements DurableObject {
       tokenCount: this.tokenCount,
       lastActivityAt: this.lastActivityAt,
       projectionCache: this.projectionCache ?? undefined,
+      soulCache: this.soulCache ?? undefined,
+      conversationSummary: this.conversationSummary ?? undefined,
     };
     await this.state.storage.put("session", state);
   }

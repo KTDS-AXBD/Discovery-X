@@ -25,6 +25,7 @@ export async function handleCron(
   // 주간 작업 (매주 월요일 1:00 UTC)
   if (cron === "0 1 * * 1") {
     results.push(await runJob("signal-route", () => runSignalRoute(env)));
+    results.push(await runJob("weekly-summary", () => runWeeklySummary(env)));
   }
 
   return results;
@@ -103,6 +104,53 @@ async function runProjectionSync(env: Env): Promise<Record<string, unknown>> {
 }
 
 // ─── 주간 작업 ─────────────────────────────────────────────────────
+
+/** 주간 요약 — Topic별 주간 활동 집계 */
+async function runWeeklySummary(env: Env): Promise<Record<string, unknown>> {
+  // 7일간 Topic별 활동 통계 집계
+  const stmt = env.DB.prepare(`
+    SELECT
+      t.id,
+      t.name,
+      COUNT(DISTINCT ge.id) as graph_events,
+      COUNT(DISTINCT ss.id) as new_signals,
+      COUNT(DISTINCT tm.user_id) as active_members
+    FROM topics t
+    LEFT JOIN graph_events ge ON ge.scope_type = 'topic' AND ge.scope_id = t.id
+      AND ge.created_at > unixepoch() - 604800
+    LEFT JOIN shared_signals ss ON ss.topic_id = t.id
+      AND ss.created_at > unixepoch() - 604800
+    LEFT JOIN topic_members tm ON tm.topic_id = t.id
+    WHERE t.status = 'active'
+    GROUP BY t.id
+    HAVING graph_events > 0 OR new_signals > 0
+  `);
+
+  const { results } = await stmt.all();
+
+  // 각 Topic에 대한 요약을 shared_signals로 기록 (type = 'weekly_summary')
+  let summariesCreated = 0;
+  if (results && results.length > 0) {
+    for (const topic of results) {
+      const summary = `주간 요약: 그래프 이벤트 ${topic.graph_events}건, 새 시그널 ${topic.new_signals}건, 활동 멤버 ${topic.active_members}명`;
+      const insertStmt = env.DB.prepare(`
+        INSERT INTO shared_signals (topic_id, sender_id, signal_type, content, status, created_at, updated_at)
+        VALUES (?, 'system', 'weekly_summary', ?, 'reviewed', unixepoch(), unixepoch())
+      `);
+      try {
+        await insertStmt.bind(topic.id as string, summary).run();
+        summariesCreated++;
+      } catch {
+        // 개별 실패는 무시하고 계속
+      }
+    }
+  }
+
+  return {
+    activeTopics: results?.length ?? 0,
+    summariesCreated,
+  };
+}
 
 /** 시그널 라우팅 — pending 시그널을 적합한 Topic 멤버에게 할당 */
 async function runSignalRoute(env: Env): Promise<Record<string, unknown>> {

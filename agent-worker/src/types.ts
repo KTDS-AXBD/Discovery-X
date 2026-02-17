@@ -15,6 +15,7 @@ export interface SessionState {
   lastActivityAt: number;
   projectionCache?: string;  // USER.md 캐시
   soulCache?: string;        // SOUL.md 캐시
+  conversationSummary?: string;  // 대화 요약 (flush 시 저장)
 }
 
 /** Chat 요청 페이로드 */
