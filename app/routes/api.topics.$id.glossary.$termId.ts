@@ -16,76 +16,82 @@ export async function action({
   params,
   context,
 }: ActionFunctionArgs) {
-  const env = context.cloudflare.env;
-  const db = getDb(env.DB);
-  const secret = getSessionSecret(env);
-  const ctx = await getSessionContext(request, db, secret);
+  try {
+    const env = context.cloudflare.env;
+    const db = getDb(env.DB);
+    const secret = getSessionSecret(env);
+    const ctx = await getSessionContext(request, db, secret);
 
-  if (!ctx) {
-    return json({ error: "Unauthorized" }, { status: 401 });
-  }
+    if (!ctx) {
+      return json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  const topicId = params.id;
-  const termId = params.termId;
-  if (!topicId || !termId) {
-    return json({ error: "id, termId 파라미터가 필요합니다" }, { status: 400 });
-  }
+    const topicId = params.id;
+    const termId = params.termId;
+    if (!topicId || !termId) {
+      return json({ error: "id, termId 파라미터가 필요합니다" }, { status: 400 });
+    }
 
-  const store = new GraphStore(db);
-  const audit = { actorId: ctx.user.id, actorType: "user" as const };
-  const graph = await store.getByScopeId("topic", topicId);
+    const store = new GraphStore(db);
+    const audit = { actorId: ctx.user.id, actorType: "user" as const };
+    const graph = await store.getByScopeId("topic", topicId);
 
-  if (!graph) {
-    return json({ error: "Topic Graph를 찾을 수 없습니다" }, { status: 404 });
-  }
+    if (!graph) {
+      return json({ error: "Topic Graph를 찾을 수 없습니다" }, { status: 404 });
+    }
 
-  const nodes = graph.jsonld["@graph"];
-  const targetIdx = nodes.findIndex(
-    (n) => n["@id"] === termId && n["@type"] === "dx:Glossary",
-  );
-
-  if (targetIdx === -1) {
-    return json({ error: "용어를 찾을 수 없습니다" }, { status: 404 });
-  }
-
-  if (request.method === "PATCH") {
-    const body = (await request.json()) as {
-      term?: string;
-      definition?: string;
-    };
-
-    const updated = { ...nodes[targetIdx] };
-    if (body.term !== undefined) updated["dx:term"] = body.term;
-    if (body.definition !== undefined) updated["dx:definition"] = body.definition;
-    updated["dx:updatedAt"] = new Date().toISOString();
-
-    const updatedNodes = [...nodes];
-    updatedNodes[targetIdx] = updated;
-
-    const updatedJsonld: JsonLdGraph = {
-      ...graph.jsonld,
-      "@graph": updatedNodes,
-    };
-
-    await store.update(graph.id, updatedJsonld, "용어 수정", audit);
-
-    return json({ term: updated });
-  }
-
-  if (request.method === "DELETE") {
-    const filteredNodes = nodes.filter(
-      (n) => !(n["@id"] === termId && n["@type"] === "dx:Glossary"),
+    const nodes = graph.jsonld["@graph"];
+    const targetIdx = nodes.findIndex(
+      (n) => n["@id"] === termId && n["@type"] === "dx:Glossary",
     );
 
-    const updatedJsonld: JsonLdGraph = {
-      ...graph.jsonld,
-      "@graph": filteredNodes,
-    };
+    if (targetIdx === -1) {
+      return json({ error: "용어를 찾을 수 없습니다" }, { status: 404 });
+    }
 
-    await store.update(graph.id, updatedJsonld, "용어 삭제", audit);
+    if (request.method === "PATCH") {
+      const body = (await request.json()) as {
+        term?: string;
+        definition?: string;
+      };
 
-    return json({ ok: true });
+      const updated = { ...nodes[targetIdx] };
+      if (body.term !== undefined) updated["dx:term"] = body.term;
+      if (body.definition !== undefined) updated["dx:definition"] = body.definition;
+      updated["dx:updatedAt"] = new Date().toISOString();
+
+      const updatedNodes = [...nodes];
+      updatedNodes[targetIdx] = updated;
+
+      const updatedJsonld: JsonLdGraph = {
+        ...graph.jsonld,
+        "@graph": updatedNodes,
+      };
+
+      await store.update(graph.id, updatedJsonld, "용어 수정", audit);
+
+      return json({ term: updated });
+    }
+
+    if (request.method === "DELETE") {
+      const filteredNodes = nodes.filter(
+        (n) => !(n["@id"] === termId && n["@type"] === "dx:Glossary"),
+      );
+
+      const updatedJsonld: JsonLdGraph = {
+        ...graph.jsonld,
+        "@graph": filteredNodes,
+      };
+
+      await store.update(graph.id, updatedJsonld, "용어 삭제", audit);
+
+      return json({ ok: true });
+    }
+
+    return json({ error: "Method not allowed" }, { status: 405 });
+  } catch (error) {
+    if (error instanceof Response) throw error;
+    console.error("[api.topics.$id.glossary.$termId] error:", error);
+    return json({ error: "Internal server error" }, { status: 500 });
   }
-
-  return json({ error: "Method not allowed" }, { status: 405 });
 }

@@ -16,80 +16,86 @@ export async function action({
   params,
   context,
 }: ActionFunctionArgs) {
-  const env = context.cloudflare.env;
-  const db = getDb(env.DB);
-  const secret = getSessionSecret(env);
-  const ctx = await getSessionContext(request, db, secret);
+  try {
+    const env = context.cloudflare.env;
+    const db = getDb(env.DB);
+    const secret = getSessionSecret(env);
+    const ctx = await getSessionContext(request, db, secret);
 
-  if (!ctx) {
-    return json({ error: "Unauthorized" }, { status: 401 });
-  }
+    if (!ctx) {
+      return json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  const topicId = params.id;
-  const decisionId = params.decisionId;
-  if (!topicId || !decisionId) {
-    return json({ error: "id, decisionId 파라미터가 필요합니다" }, { status: 400 });
-  }
+    const topicId = params.id;
+    const decisionId = params.decisionId;
+    if (!topicId || !decisionId) {
+      return json({ error: "id, decisionId 파라미터가 필요합니다" }, { status: 400 });
+    }
 
-  const store = new GraphStore(db);
-  const audit = { actorId: ctx.user.id, actorType: "user" as const };
-  const graph = await store.getByScopeId("topic", topicId);
+    const store = new GraphStore(db);
+    const audit = { actorId: ctx.user.id, actorType: "user" as const };
+    const graph = await store.getByScopeId("topic", topicId);
 
-  if (!graph) {
-    return json({ error: "Topic Graph를 찾을 수 없습니다" }, { status: 404 });
-  }
+    if (!graph) {
+      return json({ error: "Topic Graph를 찾을 수 없습니다" }, { status: 404 });
+    }
 
-  const nodes = graph.jsonld["@graph"];
-  const targetIdx = nodes.findIndex(
-    (n) => n["@id"] === decisionId && n["@type"] === "dx:Decision",
-  );
-
-  if (targetIdx === -1) {
-    return json({ error: "Decision을 찾을 수 없습니다" }, { status: 404 });
-  }
-
-  if (request.method === "PATCH") {
-    const body = (await request.json()) as {
-      summary?: string;
-      date?: string;
-      context?: string;
-      decidedBy?: string;
-    };
-
-    const updated = { ...nodes[targetIdx] };
-    if (body.summary !== undefined) updated["dx:summary"] = body.summary;
-    if (body.date !== undefined) updated["dx:date"] = body.date;
-    if (body.context !== undefined) updated["dx:context"] = body.context;
-    if (body.decidedBy !== undefined) updated["dx:decidedBy"] = body.decidedBy;
-    updated["dx:updatedAt"] = new Date().toISOString();
-
-    const updatedNodes = [...nodes];
-    updatedNodes[targetIdx] = updated;
-
-    const updatedJsonld: JsonLdGraph = {
-      ...graph.jsonld,
-      "@graph": updatedNodes,
-    };
-
-    await store.update(graph.id, updatedJsonld, "결정 수정", audit);
-
-    return json({ decision: updated });
-  }
-
-  if (request.method === "DELETE") {
-    const filteredNodes = nodes.filter(
-      (n) => !(n["@id"] === decisionId && n["@type"] === "dx:Decision"),
+    const nodes = graph.jsonld["@graph"];
+    const targetIdx = nodes.findIndex(
+      (n) => n["@id"] === decisionId && n["@type"] === "dx:Decision",
     );
 
-    const updatedJsonld: JsonLdGraph = {
-      ...graph.jsonld,
-      "@graph": filteredNodes,
-    };
+    if (targetIdx === -1) {
+      return json({ error: "Decision을 찾을 수 없습니다" }, { status: 404 });
+    }
 
-    await store.update(graph.id, updatedJsonld, "결정 삭제", audit);
+    if (request.method === "PATCH") {
+      const body = (await request.json()) as {
+        summary?: string;
+        date?: string;
+        context?: string;
+        decidedBy?: string;
+      };
 
-    return json({ ok: true });
+      const updated = { ...nodes[targetIdx] };
+      if (body.summary !== undefined) updated["dx:summary"] = body.summary;
+      if (body.date !== undefined) updated["dx:date"] = body.date;
+      if (body.context !== undefined) updated["dx:context"] = body.context;
+      if (body.decidedBy !== undefined) updated["dx:decidedBy"] = body.decidedBy;
+      updated["dx:updatedAt"] = new Date().toISOString();
+
+      const updatedNodes = [...nodes];
+      updatedNodes[targetIdx] = updated;
+
+      const updatedJsonld: JsonLdGraph = {
+        ...graph.jsonld,
+        "@graph": updatedNodes,
+      };
+
+      await store.update(graph.id, updatedJsonld, "결정 수정", audit);
+
+      return json({ decision: updated });
+    }
+
+    if (request.method === "DELETE") {
+      const filteredNodes = nodes.filter(
+        (n) => !(n["@id"] === decisionId && n["@type"] === "dx:Decision"),
+      );
+
+      const updatedJsonld: JsonLdGraph = {
+        ...graph.jsonld,
+        "@graph": filteredNodes,
+      };
+
+      await store.update(graph.id, updatedJsonld, "결정 삭제", audit);
+
+      return json({ ok: true });
+    }
+
+    return json({ error: "Method not allowed" }, { status: 405 });
+  } catch (error) {
+    if (error instanceof Response) throw error;
+    console.error("[api.topics.$id.decisions.$decisionId] error:", error);
+    return json({ error: "Internal server error" }, { status: 500 });
   }
-
-  return json({ error: "Method not allowed" }, { status: 405 });
 }
