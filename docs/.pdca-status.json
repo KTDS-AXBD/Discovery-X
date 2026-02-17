@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-17T05:40:10.864Z",
+  "lastUpdated": "2026-02-17T05:48:09.151Z",
   "activeFeatures": [
     "routes",
     "auth",
@@ -46,7 +46,11 @@
     "agent-worker",
     "collab-worker",
     "docs",
-    "validation"
+    "validation",
+    "radar-worker",
+    "venture-worker",
+    "actions",
+    "venture"
   ],
   "primaryFeature": "ontology-intelligence",
   "features": {
@@ -174,9 +178,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T13:25:45.361Z",
-        "lastUpdated": "2026-02-16T12:54:59.536Z"
+        "lastUpdated": "2026-02-17T05:47:59.815Z"
       },
-      "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/agent/agent-do.stub.ts"
+      "lastFile": "/home/sinclair/projects/Discovery-X/tests/integration/agent/query-tools.test.ts"
     },
     "discovery": {
       "phase": "do",
@@ -416,9 +420,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-10T02:46:22.772Z",
-        "lastUpdated": "2026-02-10T02:46:22.772Z"
+        "lastUpdated": "2026-02-17T05:48:01.412Z"
       },
-      "lastFile": "D:\\01_Projects\\Discovery-X\\tests\\integration\\api\\radar-bd.test.ts"
+      "lastFile": "/home/sinclair/projects/Discovery-X/tests/integration/api/radar-bd.test.ts"
     },
     "ideas": {
       "phase": "do",
@@ -487,9 +491,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-11T00:04:41.521Z",
-        "lastUpdated": "2026-02-11T23:25:09.210Z"
+        "lastUpdated": "2026-02-17T05:48:05.759Z"
       },
-      "lastFile": "D:\\01_Projects\\Discovery-X\\app\\components\\ontology\\SimulationView.tsx"
+      "lastFile": "/home/sinclair/projects/Discovery-X/tests/unit/ontology/extractor.test.ts"
     },
     "graph": {
       "phase": "do",
@@ -552,9 +556,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-16T05:55:24.355Z",
-        "lastUpdated": "2026-02-16T11:59:34.957Z"
+        "lastUpdated": "2026-02-17T05:48:02.556Z"
       },
-      "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/integration/collab-worker.stub.ts"
+      "lastFile": "/home/sinclair/projects/Discovery-X/tests/integration/db-migration.test.ts"
     },
     "signal.service.ts": {
       "phase": "do",
@@ -672,6 +676,58 @@
         "lastUpdated": "2026-02-16T13:22:17.403Z"
       },
       "lastFile": "/home/sinclair/projects/Discovery-X/app/lib/validation/discovery-rules.ts"
+    },
+    "radar-worker": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-17T05:46:42.142Z",
+        "lastUpdated": "2026-02-17T05:46:42.142Z"
+      },
+      "lastFile": "/home/sinclair/projects/Discovery-X/radar-worker/src/index.ts"
+    },
+    "venture-worker": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-17T05:46:43.361Z",
+        "lastUpdated": "2026-02-17T05:46:43.361Z"
+      },
+      "lastFile": "/home/sinclair/projects/Discovery-X/venture-worker/src/index.ts"
+    },
+    "actions": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-17T05:47:30.481Z",
+        "lastUpdated": "2026-02-17T05:47:30.481Z"
+      },
+      "lastFile": "/home/sinclair/projects/Discovery-X/tests/integration/actions/request-extension.test.ts"
+    },
+    "venture": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-17T05:48:03.845Z",
+        "lastUpdated": "2026-02-17T05:48:09.151Z"
+      },
+      "lastFile": "/home/sinclair/projects/Discovery-X/tests/unit/venture/scoring-policy.test.ts"
     }
   },
   "pipeline": {
@@ -682,7 +738,7 @@
   "session": {
     "startedAt": "2026-02-04T11:05:49.371Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-17T05:40:10.864Z"
+    "lastActivity": "2026-02-17T05:48:09.151Z"
   },
   "history": [
     {
@@ -8164,6 +8220,84 @@
     {
       "timestamp": "2026-02-17T05:40:10.864Z",
       "feature": "agent-worker",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T05:46:42.142Z",
+      "feature": "radar-worker",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T05:46:43.361Z",
+      "feature": "venture-worker",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T05:47:30.481Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T05:47:55.210Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T05:47:56.853Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T05:47:58.479Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T05:47:59.815Z",
+      "feature": "agent",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T05:48:01.412Z",
+      "feature": "api",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T05:48:02.557Z",
+      "feature": "integration",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T05:48:03.845Z",
+      "feature": "venture",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T05:48:05.759Z",
+      "feature": "ontology",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T05:48:07.142Z",
+      "feature": "venture",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T05:48:09.151Z",
+      "feature": "venture",
       "phase": "do",
       "action": "updated"
     }
