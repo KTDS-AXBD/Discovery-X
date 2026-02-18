@@ -19,7 +19,7 @@ export interface JsonLdGraph {
 }
 
 // === Matrix JSON-LD 노드 타입 ===
-export type MatrixNodeType = "mx:Industry" | "mx:Function" | "mx:Cell" | "mx:Score";
+export type MatrixNodeType = "mx:Industry" | "mx:Function" | "mx:Cell" | "mx:Score" | "mx:TimeHorizon";
 
 // === Graph 엔티티 ===
 export interface GraphRecord {
@@ -60,7 +60,8 @@ export type ProjectionType =
   | "USER.md"
   | "TOPIC.md"
   | "BRIEFING.md"
-  | "SOUL.md";
+  | "SOUL.md"
+  | "MATRIX.md";
 
 export interface Projection {
   id: string;
@@ -152,4 +153,24 @@ export interface GraphQueryEngineInterface {
 
   /** Matrix Cell과 연결된 Topic 노드 조회 (linkedTopic 관계 탐색) */
   findLinkedTopics(cellNodeId: string): Promise<JsonLdNode[]>;
+
+  /** 특정 Cell에 연결된 Signal 노드 조회 (linkedTopic → topic graph → Signal) */
+  getSignalsByCell(teamId: string, cellNodeId: string): Promise<JsonLdNode[]>;
+
+  /** 팀 전체 Matrix Heatmap 데이터 조회 */
+  getHeatmapData(teamId: string, horizonFilter?: string): Promise<{
+    industries: JsonLdNode[];
+    functions: JsonLdNode[];
+    cells: JsonLdNode[];
+    scores: JsonLdNode[];
+  }>;
+
+  /** Matrix Cell 필터 조회 */
+  getMatrixCells(teamId: string, filters?: {
+    status?: string;
+    timeHorizon?: string;
+    pipelineStage?: string;
+    industryId?: string;
+    functionId?: string;
+  }): Promise<JsonLdNode[]>;
 }

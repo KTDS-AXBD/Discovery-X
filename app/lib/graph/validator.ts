@@ -14,10 +14,11 @@ const ALLOWED_NODE_TYPES = new Set([
   "mx:Function",
   "mx:Cell",
   "mx:Score",
+  "mx:TimeHorizon",
 ]);
 
-// @id 네이밍 규칙: dx:{type}/{uuid} 패턴 (type은 소문자)
-const VALID_ID_PATTERN = /^(dx|mx):(user|topic|decision|signal|glossary|expertise|preference|industry|function|cell|score)\/[a-zA-Z0-9_.-]+$/;
+// @id 네이밍 규칙: {ns}:{type}/{segments...} 패턴 (type은 소문자, 슬래시 구분 허용)
+const VALID_ID_PATTERN = /^(dx|mx):(user|topic|decision|signal|glossary|expertise|preference|industry|function|cell|score|horizon)\/[a-zA-Z0-9_.\-/]+$/;
 
 // @type → @id prefix 매핑
 const TYPE_TO_ID_PREFIX: Record<string, string> = {
@@ -32,6 +33,7 @@ const TYPE_TO_ID_PREFIX: Record<string, string> = {
   "mx:Function": "mx:function/",
   "mx:Cell": "mx:cell/",
   "mx:Score": "mx:score/",
+  "mx:TimeHorizon": "mx:horizon/",
 };
 
 export interface ValidationResult {

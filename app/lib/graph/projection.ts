@@ -129,6 +129,67 @@ export class ProjectionBuilder {
     };
   }
 
+  // ─── MATRIX.md Projection 동기화 (org scope 전용) ─────────────────
+
+  /** Matrix Graph에서 MATRIX.md Projection 생성 (org scope 전용) */
+  async syncMatrixProjection(teamId: string): Promise<boolean> {
+    // 1. Graph 조회
+    const graph = await this.db
+      .select()
+      .from(graphs)
+      .where(and(eq(graphs.scopeType, "org"), eq(graphs.scopeId, teamId)))
+      .get();
+
+    if (!graph) return false;
+
+    const jsonld: JsonLdGraph = JSON.parse(graph.jsonld);
+    const projType: ProjectionType = "MATRIX.md";
+
+    // 2. 기존 Projection 조회
+    const existing = await this.db
+      .select()
+      .from(projections)
+      .where(
+        and(
+          eq(projections.scopeType, "org"),
+          eq(projections.scopeId, teamId),
+          eq(projections.projType, projType),
+        ),
+      )
+      .get();
+
+    // 3. hash 비교 — 같으면 스킵
+    if (existing && existing.sourceHash === graph.contentHash) {
+      return false;
+    }
+
+    // 4. Markdown 생성
+    const content = this.buildMatrixProjection(jsonld);
+
+    // 5. upsert
+    await this.db
+      .insert(projections)
+      .values({
+        id: crypto.randomUUID(),
+        scopeType: "org",
+        scopeId: teamId,
+        projType,
+        content,
+        sourceHash: graph.contentHash,
+        graphVersion: graph.version,
+      })
+      .onConflictDoUpdate({
+        target: [projections.scopeType, projections.scopeId, projections.projType],
+        set: {
+          content,
+          sourceHash: graph.contentHash,
+          graphVersion: graph.version,
+        },
+      });
+
+    return true;
+  }
+
   // ─── scope → projType 매핑 ──────────────────────────────────────
   private resolveProjType(scopeType: ScopeType): ProjectionType {
     switch (scopeType) {
@@ -157,6 +218,8 @@ export class ProjectionBuilder {
         return this.buildSoulProjection(graph, scopeType);
       case "BRIEFING.md":
         return this.buildBriefingProjection(graph);
+      case "MATRIX.md":
+        return this.buildMatrixProjection(graph);
     }
   }
 
@@ -337,6 +400,110 @@ export class ProjectionBuilder {
         lines.push(`- 결정: ${str(d, "dx:summary", str(d, "@id"))}`);
       }
     }
+
+    return lines.join("\n");
+  }
+
+  // ─── MATRIX.md 템플릿 ────────────────────────────────────────────
+  /** MATRIX.md Projection 빌드 — Graph에서 Matrix 요약 Markdown 생성 */
+  private buildMatrixProjection(graph: JsonLdGraph): string {
+    const grouped = groupNodesByType(graph["@graph"]);
+    const industriesArr = grouped.get("mx:Industry") ?? [];
+    const functionsArr = grouped.get("mx:Function") ?? [];
+    const cells = grouped.get("mx:Cell") ?? [];
+    const scores = grouped.get("mx:Score") ?? [];
+
+    const lines: string[] = [];
+    lines.push("## 산업×기능 매트릭스 현황");
+    lines.push("");
+
+    // 상위 기회 (Composite Score 기준, 상위 10개)
+    lines.push("### 상위 기회 (Composite Score 기준)");
+    const cellsWithScore = cells
+      .filter(
+        (c) =>
+          typeof c["compositeScore"] === "number" ||
+          typeof c["mx:compositeScore"] === "number",
+      )
+      .map((c) => ({
+        node: c,
+        score: (
+          typeof c["compositeScore"] === "number"
+            ? c["compositeScore"]
+            : c["mx:compositeScore"]
+        ) as number,
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10);
+
+    if (cellsWithScore.length === 0) {
+      lines.push("- (스코어가 등록된 셀 없음)");
+    } else {
+      for (const { node, score } of cellsWithScore) {
+        const name = str(node, "name", node["@id"]);
+        lines.push(`- ${name}: ${score.toFixed(1)}`);
+      }
+    }
+    lines.push("");
+
+    // Time Horizon 분포
+    lines.push("### Time Horizon 분포");
+    const horizonCount = { short: 0, mid: 0, long: 0 };
+    for (const c of cells) {
+      const h = (c["timeHorizon"] ?? c["mx:timeHorizon"]) as string;
+      if (h === "short") horizonCount.short++;
+      else if (h === "mid") horizonCount.mid++;
+      else if (h === "long") horizonCount.long++;
+    }
+    lines.push(`- 단기(0~3개월): ${horizonCount.short}건`);
+    lines.push(`- 중기(1~2년): ${horizonCount.mid}건`);
+    lines.push(`- 장기(3년 이내): ${horizonCount.long}건`);
+    lines.push("");
+
+    // 파이프라인 분포
+    lines.push("### 파이프라인 분포");
+    const stageCount = new Map<string, number>();
+    for (const c of cells) {
+      const stage =
+        ((c["pipelineStage"] ?? c["mx:pipelineStage"]) as string) || "unknown";
+      stageCount.set(stage, (stageCount.get(stage) ?? 0) + 1);
+    }
+    const stageOrder = [
+      "activity",
+      "signal",
+      "scorecard",
+      "brief",
+      "validation",
+      "pilot_ready",
+    ];
+    const stageLabels: Record<string, string> = {
+      activity: "S0 (Activity)",
+      signal: "S1 (Signal)",
+      scorecard: "S2 (Scorecard)",
+      brief: "S2 (Brief)",
+      validation: "S3 (Validation)",
+      pilot_ready: "S4 (Pilot-ready)",
+    };
+    let hasStage = false;
+    for (const stage of stageOrder) {
+      const count = stageCount.get(stage) ?? 0;
+      if (count > 0) {
+        const label = stageLabels[stage] ?? stage;
+        lines.push(`- ${label}: ${count}건`);
+        hasStage = true;
+      }
+    }
+    if (!hasStage) {
+      lines.push("- (파이프라인 데이터 없음)");
+    }
+    lines.push("");
+
+    // 매트릭스 규모
+    lines.push("### 매트릭스 규모");
+    lines.push(`- 산업: ${industriesArr.length}개`);
+    lines.push(`- 기능: ${functionsArr.length}개`);
+    lines.push(`- 활성 셀: ${cells.length}개`);
+    lines.push(`- 스코어: ${scores.length}건`);
 
     return lines.join("\n");
   }

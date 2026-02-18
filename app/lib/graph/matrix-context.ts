@@ -13,6 +13,7 @@ export const MATRIX_CONTEXT = {
   Function: "mx:Function",
   Cell: "mx:Cell",
   Score: "mx:Score",
+  TimeHorizon: "mx:TimeHorizon",
   // 프로퍼티
   name: "rdfs:label",
   nameEn: "mx:nameEn",
@@ -30,5 +31,9 @@ export const MATRIX_CONTEXT = {
   priority: { "@id": "mx:priority", "@type": "xsd:integer" },
   relatedTo: { "@id": "dx:relatedTo", "@type": "@id" },
   linkedTopic: { "@id": "mx:linkedTopic", "@type": "@id" },
+  // TimeHorizon 프로퍼티 (단기/중기/장기)
+  horizon: "mx:horizon",
+  label: "mx:label",
+  rangeMonths: { "@id": "mx:rangeMonths", "@type": "xsd:integer" },
   createdAt: { "@id": "dx:createdAt", "@type": "xsd:dateTime" },
 } as const;

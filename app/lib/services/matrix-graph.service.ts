@@ -64,6 +64,7 @@ export class MatrixGraphService {
       relatedTo: [
         `mx:industry/${cell.industryId}`,
         `mx:function/${cell.functionId}`,
+        `mx:horizon/${cell.timeHorizon}`,
       ],
       createdAt: cell.createdAt.toISOString(),
     };
@@ -191,6 +192,28 @@ export class MatrixGraphService {
     // Function 노드
     for (const fn of functionRows) {
       nodes.push(this.functionToJsonLdNode(fn));
+    }
+
+    // TimeHorizon 노드 (고정 3개)
+    const horizons: Array<{
+      id: string;
+      name: string;
+      nameEn: string;
+      rangeMonths: number;
+    }> = [
+      { id: "short", name: "단기", nameEn: "Short-term", rangeMonths: 3 },
+      { id: "mid", name: "중기", nameEn: "Mid-term", rangeMonths: 24 },
+      { id: "long", name: "장기", nameEn: "Long-term", rangeMonths: 36 },
+    ];
+
+    for (const h of horizons) {
+      nodes.push({
+        "@id": `mx:horizon/${h.id}`,
+        "@type": "mx:TimeHorizon",
+        name: h.name,
+        nameEn: h.nameEn,
+        rangeMonths: h.rangeMonths,
+      });
     }
 
     // Cell 노드 + Score 노드

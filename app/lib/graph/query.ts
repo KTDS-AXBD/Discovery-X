@@ -213,6 +213,139 @@ export class GraphQueryEngine implements GraphQueryEngineInterface {
     return this.traverse(cellNodeId, "mx:linkedTopic", 1);
   }
 
+  /** Matrix Cell 필터 조회 — org scope Graph에서 mx:Cell 타입 노드를 필터링 */
+  async getMatrixCells(
+    teamId: string,
+    filters?: {
+      status?: string;
+      timeHorizon?: string;
+      pipelineStage?: string;
+      industryId?: string;
+      functionId?: string;
+    },
+  ): Promise<JsonLdNode[]> {
+    // org scope에서 mx:Cell 타입 노드를 모두 가져온다
+    let cells = await this.findByType("org", teamId, "mx:Cell");
+
+    // 필터 적용
+    if (filters) {
+      if (filters.status) {
+        cells = cells.filter(
+          (n) =>
+            n["status"] === filters.status ||
+            n["mx:status"] === filters.status,
+        );
+      }
+      if (filters.timeHorizon) {
+        cells = cells.filter(
+          (n) =>
+            n["timeHorizon"] === filters.timeHorizon ||
+            n["mx:timeHorizon"] === filters.timeHorizon,
+        );
+      }
+      if (filters.pipelineStage) {
+        cells = cells.filter(
+          (n) =>
+            n["pipelineStage"] === filters.pipelineStage ||
+            n["mx:pipelineStage"] === filters.pipelineStage,
+        );
+      }
+      if (filters.industryId) {
+        cells = cells.filter((n) =>
+          this.matchesIdRef(
+            n["industryId"] ?? n["mx:industryId"],
+            filters.industryId!,
+          ),
+        );
+      }
+      if (filters.functionId) {
+        cells = cells.filter((n) =>
+          this.matchesIdRef(
+            n["functionId"] ?? n["mx:functionId"],
+            filters.functionId!,
+          ),
+        );
+      }
+    }
+
+    return cells;
+  }
+
+  /** Cell에 연결된 Signal 노드 조회 — Cell의 linkedTopic을 통해 topic graph에서 Signal 탐색 */
+  async getSignalsByCell(
+    teamId: string,
+    cellNodeId: string,
+  ): Promise<JsonLdNode[]> {
+    // Cell 노드에서 linkedTopic 참조를 추출
+    const orgGraph = await this.loadGraphByScope("org", teamId);
+    const orgNodes = await this.parseJsonLd(orgGraph);
+    const cellNode = orgNodes.find((n) => n["@id"] === cellNodeId);
+
+    if (!cellNode) return [];
+
+    // linkedTopic 값에서 topic @id 목록 추출
+    const topicRefs = this.extractIds(cellNode["linkedTopic"]);
+    if (topicRefs.length === 0) return [];
+
+    // 전체 Graph에서 dx:Signal 노드 중 해당 topic과 관련된 것을 수집
+    const nodeMap = await this.buildGlobalNodeMap();
+    const signals: JsonLdNode[] = [];
+
+    for (const [, node] of nodeMap) {
+      if (node["@type"] !== "dx:Signal") continue;
+
+      // Signal의 relatedTo가 topic 중 하나를 참조하는지 확인
+      const relatedIds = this.extractIds(
+        node["relatedTo"] ?? node["dx:relatedTo"],
+      );
+      const hasRelatedTopic = relatedIds.some((id) =>
+        topicRefs.includes(id),
+      );
+
+      // 또는 Signal의 topicId가 일치하는지
+      const topicId = node["topicId"] ?? node["dx:topicId"];
+      const hasMatchingTopic =
+        typeof topicId === "string" &&
+        topicRefs.some((ref) => ref.includes(topicId));
+
+      if (hasRelatedTopic || hasMatchingTopic) {
+        signals.push(node);
+      }
+    }
+
+    return signals;
+  }
+
+  /** 팀 전체 Matrix Heatmap 데이터 조회 — Industry/Function/Cell/Score 노드를 구조화하여 반환 */
+  async getHeatmapData(
+    teamId: string,
+    horizonFilter?: string,
+  ): Promise<{
+    industries: JsonLdNode[];
+    functions: JsonLdNode[];
+    cells: JsonLdNode[];
+    scores: JsonLdNode[];
+  }> {
+    const raw = await this.loadGraphByScope("org", teamId);
+    const nodes = await this.parseJsonLd(raw);
+
+    const industries = nodes.filter((n) => n["@type"] === "mx:Industry");
+    const functions = nodes.filter((n) => n["@type"] === "mx:Function");
+    let cells = nodes.filter((n) => n["@type"] === "mx:Cell");
+    const scores = nodes.filter((n) => n["@type"] === "mx:Score");
+
+    // horizonFilter 적용
+    if (horizonFilter) {
+      cells = cells.filter(
+        (n) =>
+          n["timeHorizon"] === horizonFilter ||
+          n["mx:timeHorizon"] === horizonFilter,
+      );
+    }
+
+    return { industries, functions, cells, scores };
+  }
+
   /** keyword 기반 검색 (Vectorize 미사용 시 fallback) */
   private async keywordSearch(
     query: string,
