@@ -65,7 +65,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 | P3 협업+통합 | 2~3주 | collab-worker, Pipeline Bridge, Cron, TokenBudget |
 | P4 고도화 | 2주 | ProfileLearner, Graph 롤백 UI, Vectorize, E2E 테스트 |
 
-현재: **Phase 5 갭 해소 + PRD v3 전면 재감사 완료** (101항목 분석, 전체 일치율 84.5% → ~95% 달성) + **Framework Matrix P3 완료** (시그널 보정/BriefingBuilder/Cron/Executive Dashboard/Operational Dashboard/Agent SOUL 매트릭스 맥락 — 5/5 항목 완료) → **P4 고도화 진입 예정**
+현재: **P4 고도화 Round 2 진행** (Vectorize 프로덕션 활성화 + 통합 테스트 85개 추가 + 프로덕션 배포) — Phase 5 갭 해소 + PRD v3 재감사 + Framework Matrix P3 완료 기반
 - Phase 5A (보안·무결성): **완료** — Agent Graph 수정 제한, @id 네이밍 강화, SOUL 역할 템플릿, JSON Schema, ACL policies 분리, 403 메시지 개선
 - Phase 5B (agent-worker DO): **완료** — AgentSessionDO 클래스, Worker 라우팅, HMAC 인증, SSE 스트리밍, alarm flush, 429 동시성, api.chat.ts DO 위임
 - Phase 5C (collab-worker + 스키마): **완료** — collab-worker Cron/fetch 핸들러, notification_queue, tenants 확장(profile_ld/rules_md), cron_logs
@@ -358,29 +358,42 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.14 + v3 Phase 5 갭 해소 완료 + PRD v3 전면 재감사 조치 (84.5%→~95%) + Framework Matrix P3 완료
+- **프로토타입**: v6.15 + P4 고도화 Round 2 (Vectorize 활성화 + 통합 테스트 85개)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 39개 마이그레이션 (0000~0038), 로컬 + 프로덕션 모두 적용 완료
+- **DB**: 40개 마이그레이션 (0000~0039), 로컬 + 프로덕션 모두 적용 완료
 
 ### 주요 지표
 - **라우트**: 165개 (core 47 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 3 + topics 12 + briefing 3 + signals 2 + knowledge 5 + API 38 + matrix 12 + 미분류 2 + dashboard 2) — dashboard.exec + dashboard.ops 2개 추가
 - **테이블**: 87개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 9 + matrix 7) — Framework Matrix 7개 테이블 추가 (industries, functions, matrix_cells, individual_scores, consensus_scores, cell_topic_map, scoring_config)
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
-- **테스트**: 810개 (56 test files, 로컬 통과) — scoring-batch 테스트 15개 추가
+- **테스트**: 895개 (61 test files, 로컬 통과) — P4 통합 테스트 85개 추가 (Vectorize 23 + GraphStore 17 + Projection 11 + TopicService 15 + MatrixService 19)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
-- **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
-- **배포**: 세션 208 프로덕션 배포 완료 (Framework Matrix P3 + 인덱스 + Dashboard + SOUL 맥락, CI/CD 1m57s) + DB 마이그레이션 0036~0038 프로덕션 적용 완료
+- **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, **vectorizeSearch=true(프로덕션)**, pipelineBridge, collabWorker, profileLearner)
+- **배포**: 세션 209 프로덕션 배포 완료 (Vectorize 활성화 + 테스트 85개, CI/CD 1m54s) + DB 마이그레이션 0039 프로덕션 적용 완료
+- **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
-### 최근 변경 (세션 207)
+### 최근 변경 (세션 209)
+**P4 고도화 Round 2 — Vectorize 프로덕션 활성화 + 통합 테스트 85개 + 프로덕션 배포** (tmux 3-Worker 병렬):
+- ✅ `wrangler.toml` (수정): Vectorize 3개 바인딩 활성화 (VECTORIZE_GRAPHS/MEMORY/SIGNALS) + `FF_VECTORIZE_SEARCH=true`
+- ✅ `drizzle/0039_consensus_enrich.sql` (신규): consensus_scores 테이블 signal_count/confirmed_at 컬럼 추가 (세션 201 스키마 누락 수정)
+- ✅ `tests/helpers/db.ts` (수정): 0037_framework_seed + 0039_consensus_enrich 마이그레이션 추가
+- ✅ `tests/unit/graph/vectorize-adapter.test.ts` (신규): GraphVectorizeAdapter 23개 테스트
+- ✅ `tests/integration/graph/store-integration.test.ts` (신규): GraphStore CRUD + rollback 17개 테스트
+- ✅ `tests/integration/graph/projection-integration.test.ts` (신규): ProjectionManager sync 11개 테스트
+- ✅ `tests/integration/topic-service.test.ts` (신규): TopicService CRUD + 멤버 관리 15개 테스트
+- ✅ `tests/integration/matrix-service.test.ts` (신규): MatrixService + ScoringService 19개 테스트
+- ✅ Vectorize 인덱스 3개 프로덕션 생성: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine)
+- ✅ DB 마이그레이션 0039 프로덕션 적용 완료
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공 / 테스트 895/895 PASS
+- ✅ 프로덕션 배포 완료 (GitHub Actions CI/CD 1m54s)
+
+### 이전 변경 (세션 207)
 **Framework Matrix P3 완료 — Executive/Operational Dashboard + Agent SOUL 매트릭스 맥락** (tmux 3-Worker 병렬):
 - ✅ `app/routes/dashboard.exec.tsx` (신규): Executive Dashboard — Top 10 기회 랭킹, 파이프라인 S0~S4 분포, Time Horizon 비율, 주간 스코어 변동 (2×2 그리드)
 - ✅ `app/routes/dashboard.ops.tsx` (신규): Operational Dashboard — Stage별 실행 현황, 리스크 Cell 모니터(score<2.5/watching), 팀원별 담당 Cell 분배 (3-패널)
-- ✅ `app/lib/agent/soul-engine.ts` (수정): `teamId` 옵션 추가 + MATRIX.md Projection 로드(`getProjection("team", teamId, "MATRIX.md")`) + 매트릭스 맥락 템플릿(MATRIX_CONTEXT_TEMPLATE) 주입 + `projectionsSummary`에 MATRIX.md 항목
-- ✅ `app/features/matrix/db/schema.ts` (수정): `idx_cells_horizon`(team+timeHorizon), `idx_cells_priority`(team+priority) 인덱스 추가
-- ✅ `drizzle/0038_matrix_indexes.sql` (신규): horizon/priority 인덱스 DDL
-- ✅ `tests/helpers/db.ts` (수정): 0038 마이그레이션 SQL 추가
+- ✅ `app/lib/agent/soul-engine.ts` (수정): `teamId` 옵션 추가 + MATRIX.md Projection 로드 + 매트릭스 맥락 주입
 - ✅ typecheck 0 에러 / lint 0 에러 / build 성공
 - 📊 **P3 완료 상태**: 시그널 보정(206) + BriefingBuilder(206) + Cron(206) + Exec Dashboard(207) + Ops Dashboard(207) + SOUL 맥락(207) = **5/5 완료**
 
