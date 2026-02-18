@@ -373,7 +373,18 @@ build/
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
 - **배포**: 세션 197 프로덕션 배포 완료 (docs/ 재구조 + registry.ts 경로 수정, GitHub Actions CI/CD 통과)
 
-### 최근 변경 (세션 204)
+### 최근 변경 (세션 205)
+**Framework Matrix P6.2 Graph @context iterate — H갭 6건 해결** (tmux 3-Worker 병렬):
+- 📊 **갭 개선**: 설계 대비 일치율 **~62% → ~90%** (H갭 6건 전수 해결)
+- ✅ `app/lib/graph/matrix-context.ts` (수정): `mx:TimeHorizon` 엔티티 + `horizon`/`label`/`rangeMonths` 프로퍼티 추가
+- ✅ `app/lib/graph/validator.ts` (수정): ALLOWED_NODE_TYPES에 `mx:TimeHorizon`, 계층형 @id 패턴(`cell/{a}/{b}`) 지원
+- ✅ `app/lib/graph/types.ts` (수정): `MatrixNodeType`에 `mx:TimeHorizon`, `ProjectionType`에 `MATRIX.md`, `GraphQueryEngineInterface`에 3메서드 추가
+- ✅ `app/lib/graph/query.ts` (수정): `getMatrixCells(filters)` + `getSignalsByCell(2-hop)` + `getHeatmapData(horizonFilter)` 구현
+- ✅ `app/lib/graph/projection.ts` (수정): `syncMatrixProjection` + `buildMatrixProjection` (Top10/Horizon/Pipeline/규모)
+- ✅ `app/lib/services/matrix-graph.service.ts` (수정): TimeHorizon 노드 3개 생성(short/mid/long) + Cell relatedTo에 horizon 참조
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공 / 테스트 356/356 PASS
+
+### 이전 변경 (세션 204)
 **Framework Matrix P6.3 Matrix UI + P6.4 Stage-Gate 통합** (tmux 2-Worker 병렬 + 리더 직접 완료):
 - ✅ `app/routes/lab.tsx` (수정): Lab 4탭 GNB에 "매트릭스" 탭 추가 (`/lab/matrix`)
 - ✅ `app/routes/lab.matrix.tsx` (신규): Matrix 레이아웃 라우트 (인증 가드 + Outlet)
