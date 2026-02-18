@@ -374,12 +374,12 @@ build/
 - **배포**: 세션 197 프로덕션 배포 완료 (docs/ 재구조 + registry.ts 경로 수정, GitHub Actions CI/CD 통과)
 
 ### 최근 변경 (세션 199)
-**lint 에러 수정 완료 확인 + /team 스킬 가시성 수정**:
-- ✅ `/team` 스킬 tmux split pane 가시성 문제 해결 (4가지 root cause 진단 및 수정)
-  - `new-window -d` → `new-window` (즉시 포커스 이동, Claude Code TUI 키스트로크 가로채기 우회)
-  - leader window 인덱스 저장 + `tmux select-window`로 자동 복귀
-  - E2E 테스트 2회 (echo 테스트 + claude -p 실제 worker 테스트) 모두 통과
-- ✅ Framework Matrix API 라우트 9개 + 서비스 2개 커밋 (이전 세션 미커밋 파일)
+**Framework Matrix P6.1 서비스 레이어 + API 라우트 구현** (tmux 2-Worker 병렬):
+- ✅ `app/lib/services/matrix.service.ts` (신규): MatrixService — Industry/Function/Cell CRUD + Cell-Topic N:M 연결 + Heatmap 데이터 (LEFT JOIN consensusScores, period 기반)
+- ✅ `app/lib/services/scoring.service.ts` (신규): ScoringService — 개별 스코어 UPSERT (C-Level/Execution 자동 계산) + 합의 스코어 (가중 평균 + 시그널 보정 + 표준편차) + 설정 관리
+- ✅ API 라우트 9개 신규: industries(GET/POST), functions(GET/POST), cells(GET/POST), $cellId(GET/PATCH), $cellId.topics(GET/POST), heatmap(GET), $cellId.scores(GET/POST), $cellId.consensus(POST calculate/confirm), config(GET/PATCH)
+- ✅ `app/lib/acl/policies.ts` (수정): MATRIX_POLICIES 6개 정책 추가 (view/cell.edit/score.edit/master.edit/config.edit/cell.delete)
+- ✅ `/team` 스킬 tmux split pane 가시성 문제 해결 (별도 세션→현재 세션 window 방식, leader window 자동 복귀)
 - ✅ typecheck 0 에러 / lint 0 에러 / build 성공
 
 ### 이전 변경 (세션 198)
