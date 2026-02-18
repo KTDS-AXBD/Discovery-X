@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-프로젝트 사양은 @SPEC.md, 요구사항은 @docs/Discovery-X_Prototype_PRD_v0.1.md, 기획서는 @docs/Discovery-X_v1.4.md 참조.
+프로젝트 사양은 @SPEC.md, 요구사항은 @docs/specs/Discovery-X_Prototype_PRD_v0.1.md, 기획서는 @docs/specs/Discovery-X_v1.4.md 참조.
 
 ## 프로젝트 개요
 
