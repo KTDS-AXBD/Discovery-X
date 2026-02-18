@@ -371,7 +371,7 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
-- **배포**: 세션 195 프로덕션 배포 완료 (D1 마이그레이션 0033~0035 적용, GitHub Actions CI/CD 통과)
+- **배포**: 세션 197 프로덕션 배포 완료 (docs/ 재구조 + registry.ts 경로 수정, GitHub Actions CI/CD 통과)
 
 ### 최근 변경 (세션 197)
 **docs/ 폴더 SDD 카테고리 정리**:
@@ -382,6 +382,8 @@ build/
 - ✅ `docs/04-report/` — 03-analysis에서 report 파일 2개 올바른 위치로 이동
 - ✅ `03-analysis/proposals.report.md` 삭제 (archive에 최종본 존재)
 - ✅ CLAUDE.md 경로 참조 업데이트 (docs/ → docs/specs/)
+- ✅ `app/lib/docs/registry.ts` — `?raw` import 경로를 `docs/specs/`, `docs/guides/`로 수정 (빌드 실패 원인)
+- ✅ 프로덕션 배포 완료 (CI/CD 통과, 1m48s)
 
 ### 이전 변경 (세션 196)
 **미사용 import 정리 + /team 스킬 개선**:
