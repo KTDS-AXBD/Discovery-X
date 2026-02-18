@@ -2,6 +2,7 @@ import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import * as schema from "~/db/schema";
 import * as v2Schema from "~/db/schema-v2";
+import * as matrixSchema from "~/features/matrix/db/schema";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 
@@ -59,8 +60,9 @@ export function createTestDb() {
   runMigrationSQL(sqlite, resolve(migrationsDir, "0033_token_usage_enrich.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0034_shared_signals_partial_index.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0035_token_usage_userid.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0036_framework_matrix.sql"));
 
-  return drizzle(sqlite, { schema: { ...schema, ...v2Schema } });
+  return drizzle(sqlite, { schema: { ...schema, ...v2Schema, ...matrixSchema } });
 }
 
 export type TestDB = ReturnType<typeof createTestDb>;

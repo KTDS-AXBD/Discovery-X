@@ -28,6 +28,7 @@ export const ProjectionType = {
   TOPIC_MD: "TOPIC.md",
   BRIEFING_MD: "BRIEFING.md",
   SOUL_MD: "SOUL.md",
+  MATRIX_MD: "MATRIX.md",
 } as const;
 export type ProjectionTypeValue =
   (typeof ProjectionType)[keyof typeof ProjectionType];
@@ -54,4 +55,9 @@ export const MemoryType = {
 } as const;
 export type MemoryTypeValue =
   (typeof MemoryType)[keyof typeof MemoryType];
+
+// ─── Framework Matrix Enums ─────────────────────────────────────────
+export const MatrixProjectionType = {
+  MATRIX_MD: "MATRIX.md",
+} as const;
 
