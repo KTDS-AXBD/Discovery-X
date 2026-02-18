@@ -373,7 +373,31 @@ build/
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
 - **배포**: 세션 197 프로덕션 배포 완료 (docs/ 재구조 + registry.ts 경로 수정, GitHub Actions CI/CD 통과)
 
-### 최근 변경 (세션 201)
+### 최근 변경 (세션 203)
+**Framework Matrix P6.2 Graph @context 갭 분석** (tmux 2-Worker 병렬):
+- 📊 **갭 분석 결과**: 설계(ArchMapping_v1.md §3) 대비 전체 일치율 **~62%** (51항목: ✅22, ⚠️14, ❌15)
+  - W1 (Context+Types+Validator): 30항목, ~61%
+  - W2 (Service+Query+Tests): 21항목, ~64%
+- 🔍 **High 갭 6건 식별**:
+  - TimeHorizon 엔티티 미구현 (Graph에서 시간축 표현 불가)
+  - @id 계층형 패턴 미지원 (`cell/{a}/{b}` 형태 validator 거부)
+  - `getSignalsByCell()` 미구현 (Cell↔Signal Graph 연결 조회 불가)
+  - `getHeatmapData()` 미구현 (Heatmap UI 핵심 데이터 소스 없음)
+  - `getMatrixCells()` 필터 미구현 (전체 Cell 필터 조회 없음)
+  - MATRIX.md Projection 전체 미구현 (Agent bootstrap Matrix 맥락 주입 불가)
+- ✅ **의도적 분기 확인**: `mx:` 네임스페이스 분리(긍정), 타입명 단축(합리), `xsd:float` 사용(표준)
+- 📝 미구현 항목 대부분 ArchMapping 로드맵 P2~P3 Phase 해당 → 현 시점 의도된 미구현
+
+### 이전 변경 (세션 202)
+**/team 스킬 tmux split-pane 방식 전환**:
+- ✅ `.claude/skills/team/SKILL.md` (수정): 별도 window(`new-window`) → 리더 pane에서 `split-window` 방식으로 전환
+  - launcher: `split-window -h -t $LEADER_PANE -P -F '#{pane_id}'`로 같은 window에 worker 배치
+  - 포커스 복원: `select-window` → `select-pane`
+  - 정리: `kill-window` → `kill-pane` (worker만 개별 종료)
+  - 모니터링: window:pane_index → pane ID 직접 참조
+- ✅ 테스트 완료: pane 생성(4→6), leader 포커스 유지, cleanup 후 원상복구(6→4) 확인
+
+### 이전 변경 (세션 201)
 **Framework Matrix P6.0/P6.1 갭 분석 + 자동 수정** (tmux 2-Worker 병렬 × 2회):
 - 📊 **갭 분석 결과**: P6.0 스키마 84.2% (117/139), P6.1 서비스 ~72% — 총 5건 Critical/High 항목 식별
 - ✅ `app/features/matrix/db/schema.ts` (수정): consensusScores에 `signalCount` (시그널 보정 계산 수 추적) + `confirmedAt` (합의 확정 시점 기록) 컬럼 추가
