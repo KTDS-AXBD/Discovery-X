@@ -2,13 +2,13 @@
  * Document registry — imports docs/*.md at build time via Vite ?raw.
  */
 
-import prdRaw from "../../../docs/Discovery-X_Prototype_PRD_v0.1.md?raw";
-import v14Raw from "../../../docs/Discovery-X_v1.4.md?raw";
-import kickoffRaw from "../../../docs/KICKOFF_TEMPLATE.md?raw";
-import runbookRaw from "../../../docs/OPERATIONAL_RUNBOOK.md?raw";
-import qaRaw from "../../../docs/qa-checklist.md?raw";
-import cheatSheetRaw from "../../../docs/USER_CHEAT_SHEET.md?raw";
-import userGuideRaw from "../../../docs/user-guide.md?raw";
+import prdRaw from "../../../docs/specs/Discovery-X_Prototype_PRD_v0.1.md?raw";
+import v14Raw from "../../../docs/specs/Discovery-X_v1.4.md?raw";
+import kickoffRaw from "../../../docs/guides/KICKOFF_TEMPLATE.md?raw";
+import runbookRaw from "../../../docs/guides/OPERATIONAL_RUNBOOK.md?raw";
+import qaRaw from "../../../docs/guides/qa-checklist.md?raw";
+import cheatSheetRaw from "../../../docs/guides/USER_CHEAT_SHEET.md?raw";
+import userGuideRaw from "../../../docs/guides/user-guide.md?raw";
 
 export type DocCategory = "planning" | "operations" | "guides";
 
