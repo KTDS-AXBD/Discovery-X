@@ -65,7 +65,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 | P3 협업+통합 | 2~3주 | collab-worker, Pipeline Bridge, Cron, TokenBudget |
 | P4 고도화 | 2주 | ProfileLearner, Graph 롤백 UI, Vectorize, E2E 테스트 |
 
-현재: **Phase 5 갭 해소 + PRD v3 전면 재감사 완료** (101항목 분석, 전체 일치율 84.5% → ~95% 달성)
+현재: **Phase 5 갭 해소 + PRD v3 전면 재감사 완료** (101항목 분석, 전체 일치율 84.5% → ~95% 달성) + **Framework Matrix P3 착수** (시그널 보정/BriefingBuilder/Cron 완료, Executive Dashboard/Agent SOUL 미착수)
 - Phase 5A (보안·무결성): **완료** — Agent Graph 수정 제한, @id 네이밍 강화, SOUL 역할 템플릿, JSON Schema, ACL policies 분리, 403 메시지 개선
 - Phase 5B (agent-worker DO): **완료** — AgentSessionDO 클래스, Worker 라우팅, HMAC 인증, SSE 스트리밍, alarm flush, 429 동시성, api.chat.ts DO 위임
 - Phase 5C (collab-worker + 스키마): **완료** — collab-worker Cron/fetch 핸들러, notification_queue, tenants 확장(profile_ld/rules_md), cron_logs
@@ -363,17 +363,26 @@ build/
 - **DB**: 38개 마이그레이션 (0000~0037), 로컬 적용 완료 + 프로덕션 0033~0037 미적용 (배포 시 적용 필요)
 
 ### 주요 지표
-- **라우트**: 162개 (core 47 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 3 + topics 12 + briefing 3 + signals 2 + knowledge 5 + API 37 + matrix 12 + 미분류 2) — Matrix UI 라우트 3개 추가 (lab.matrix.tsx, lab.matrix._index.tsx, lab.matrix.$cellId.tsx)
+- **라우트**: 163개 (core 47 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 3 + topics 12 + briefing 3 + signals 2 + knowledge 5 + API 38 + matrix 12 + 미분류 2) — api.cron.matrix-scoring 1개 추가
 - **테이블**: 87개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 9 + matrix 7) — Framework Matrix 7개 테이블 추가 (industries, functions, matrix_cells, individual_scores, consensus_scores, cell_topic_map, scoring_config)
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
-- **테스트**: 795개 (55 test files, 로컬 통과) — Matrix Query 테스트 15개 추가
+- **테스트**: 810개 (56 test files, 로컬 통과) — scoring-batch 테스트 15개 추가
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
 - **배포**: 세션 197 프로덕션 배포 완료 (docs/ 재구조 + registry.ts 경로 수정, GitHub Actions CI/CD 통과)
 
-### 최근 변경 (세션 205)
+### 최근 변경 (세션 206)
+**Framework Matrix P3 시그널 보정 + BriefingBuilder + Cron** (tmux 3-Worker 병렬):
+- ✅ `app/lib/services/scoring.service.ts` (수정): `recalculateAll(teamId, period)` 배치 재계산 + `getScoreChanges(teamId, since)` 변동 조회 + `getTopCells(teamId, limit)` 상위 Cell — 3개 메서드 추가
+- ✅ `app/features/matrix/types.ts` (수정): `RecalculateResult`, `ScoreChange`, `TopCell` 인터페이스 추가
+- ✅ `app/lib/integration/briefing-builder.ts` (수정): Matrix 섹션 확장 — 스코어 변동/신규 시그널/Stage 진행/Top 5 기회 (private 메서드 4개 + buildBriefing 확장)
+- ✅ `app/routes/api.cron.matrix-scoring.ts` (신규): 매일 06:30 시그널 보정 일괄 재계산 Cron 엔드포인트 (tenant별 non-fatal)
+- ✅ `tests/unit/services/scoring-batch.test.ts` (신규): 15개 테스트 (recalculateAll/getScoreChanges/getTopCells/Cron 인증)
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공 / 테스트 810/810 PASS
+
+### 이전 변경 (세션 205)
 **Framework Matrix P6.2 Graph @context iterate — H갭 6건 해결** (tmux 3-Worker 병렬):
 - 📊 **갭 개선**: 설계 대비 일치율 **~62% → ~90%** (H갭 6건 전수 해결)
 - ✅ `app/lib/graph/matrix-context.ts` (수정): `mx:TimeHorizon` 엔티티 + `horizon`/`label`/`rangeMonths` 프로퍼티 추가
