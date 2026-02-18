@@ -360,11 +360,11 @@ build/
 ### 버전
 - **프로토타입**: v6.14 + v3 Phase 5 갭 해소 완료 + PRD v3 전면 재감사 조치 (84.5%→~95%)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 36개 마이그레이션 (0000~0035), 로컬 적용 완료 + 프로덕션 0033~0035 미적용 (배포 시 적용 필요)
+- **DB**: 38개 마이그레이션 (0000~0037), 로컬 적용 완료 + 프로덕션 0033~0037 미적용 (배포 시 적용 필요)
 
 ### 주요 지표
 - **라우트**: 150개 (core 47 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 3 + topics 12 + briefing 3 + signals 2 + knowledge 5 + API 37 + 미분류 2)
-- **테이블**: 80개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 9) — token_usage_logs에 cost_usd/purpose/user_id 컬럼 추가, shared_signals 부분 인덱스 추가
+- **테이블**: 87개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 9 + matrix 7) — Framework Matrix 7개 테이블 추가 (industries, functions, matrix_cells, individual_scores, consensus_scores, cell_topic_map, scoring_config)
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
 - **테스트**: 780개 (54 test files, 로컬 통과)
 - **테스트 통과율**: 100%
@@ -373,7 +373,20 @@ build/
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
 - **배포**: 세션 197 프로덕션 배포 완료 (docs/ 재구조 + registry.ts 경로 수정, GitHub Actions CI/CD 통과)
 
-### 최근 변경 (세션 197)
+### 최근 변경 (세션 198)
+**Framework Matrix P6.0 스키마 구조 셋업**:
+- ✅ Framework Porting PRD 분석 (DiscoveryX_Framework_PRD_Final.docx 785단락 + 3개 참조 문서)
+- ✅ Backend/Frontend/Docs 코드베이스 현황 분석 (3-Worker 병렬)
+- ✅ Phase 6 작업 계획 수립 (P6.0~P6.4, 40+ work items, 9-11주)
+- ✅ `app/features/matrix/db/schema.ts` — 7개 Drizzle 테이블 + 6개 enum 상수
+- ✅ `app/features/matrix/types.ts` — 12개 인터페이스 + Stage-Gate 매핑 + 유틸리티
+- ✅ `app/lib/types/enums.ts` — MATRIX_MD 추가
+- ✅ `drizzle/0036_framework_matrix.sql` — DDL 마이그레이션 (7 테이블 + 인덱스)
+- ✅ `drizzle/0037_framework_seed.sql` — 시드 데이터 (8산업, 9기능, 9설정)
+- ✅ `app/db/index.ts` + `tests/helpers/db.ts` — matrixSchema 통합
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 780개 통과 / build 성공
+
+### 이전 변경 (세션 197)
 **docs/ 폴더 SDD 카테고리 정리**:
 - ✅ `docs/specs/` — PRD/사양 문서 6개 이동 + Framework 포팅 문서 3개 신규 추가
 - ✅ `docs/guides/` — 사용자/운영 가이드 5개 이동
