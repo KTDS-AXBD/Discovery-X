@@ -358,15 +358,15 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.15 + P4 고도화 Round 2 (Vectorize 활성화 + 통합 테스트 85개)
+- **프로토타입**: v6.15 + P4 고도화 Round 2 (Vectorize 활성화 + Cron 동기화 + 통합 테스트 115개)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 40개 마이그레이션 (0000~0039), 로컬 + 프로덕션 모두 적용 완료
 
 ### 주요 지표
-- **라우트**: 165개 (core 47 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 3 + topics 12 + briefing 3 + signals 2 + knowledge 5 + API 38 + matrix 12 + 미분류 2 + dashboard 2) — dashboard.exec + dashboard.ops 2개 추가
+- **라우트**: 167개 (core 47 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 3 + topics 12 + briefing 3 + signals 2 + knowledge 5 + API 40 + matrix 12 + 미분류 2 + dashboard 2) — Vectorize Cron 2개 추가 (memory-vectorize, signal-vectorize)
 - **테이블**: 87개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 9 + matrix 7) — Framework Matrix 7개 테이블 추가 (industries, functions, matrix_cells, individual_scores, consensus_scores, cell_topic_map, scoring_config)
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
-- **테스트**: 895개 (61 test files, 로컬 통과) — P4 통합 테스트 85개 추가 (Vectorize 23 + GraphStore 17 + Projection 11 + TopicService 15 + MatrixService 19)
+- **테스트**: 925개 (62 test files, 로컬 통과) — P4 통합 테스트 115개 추가 (Vectorize 23 + GraphStore 17 + Projection 11 + TopicService 15 + MatrixService 19 + VectorizeSync 30)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
@@ -385,9 +385,12 @@ build/
 - ✅ `tests/integration/topic-service.test.ts` (신규): TopicService CRUD + 멤버 관리 15개 테스트
 - ✅ `tests/integration/matrix-service.test.ts` (신규): MatrixService + ScoringService 19개 테스트
 - ✅ Vectorize 인덱스 3개 프로덕션 생성: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine)
+- ✅ `app/routes/api.cron.memory-vectorize.ts` (신규): Agent Memory → Vectorize 동기화 Cron (CRON_SECRET 인증 + FF 체크)
+- ✅ `app/routes/api.cron.signal-vectorize.ts` (신규): Shared Signal → Vectorize 동기화 Cron
+- ✅ `tests/integration/vectorize-sync.test.ts` (신규): Vectorize Cron 동기화 30개 테스트 (인증/FF/인덱싱/에러처리/E2E)
 - ✅ DB 마이그레이션 0039 프로덕션 적용 완료
-- ✅ typecheck 0 에러 / lint 0 에러 / build 성공 / 테스트 895/895 PASS
-- ✅ 프로덕션 배포 완료 (GitHub Actions CI/CD 1m54s)
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공 / 테스트 925/925 PASS
+- ✅ 프로덕션 배포 완료 (GitHub Actions CI/CD)
 
 ### 이전 변경 (세션 207)
 **Framework Matrix P3 완료 — Executive/Operational Dashboard + Agent SOUL 매트릭스 맥락** (tmux 3-Worker 병렬):
