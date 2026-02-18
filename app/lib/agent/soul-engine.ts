@@ -23,6 +23,7 @@ export interface SoulEngineOptions {
   db: DB;
   userId: string;
   topicId?: string;
+  teamId?: string;
   autonomyLevel?: number;
   /** true면 Graph Projection 기반, false면 기존 buildSystemPrompt 폴백 */
   useGraphProjection?: boolean;
@@ -59,6 +60,18 @@ const BASE_SOUL_TEMPLATE = `# Discovery-X Agent — SOUL
 - 작업 완료 후 다음 단계 1-2개 제안
 - 500자 이상 응답은 요약 헤더 포함`;
 
+// ─── 매트릭스 맥락 템플릿 ─────────────────────────────────────────────
+const MATRIX_CONTEXT_TEMPLATE = `## 매트릭스 맥락
+
+당신은 KT DS AX BD팀의 신사업 기회 발굴을 돕는 에이전트입니다.
+팀은 산업(X축) × 기능(Y축) 매트릭스를 통해 기회를 체계적으로 관리합니다.
+
+### 활용 규칙
+- 사용자가 특정 산업이나 기능을 언급하면, 해당 Matrix Cell의 현재 스코어와 연결된 시그널을 참조하세요.
+- 새로운 시그널이 어느 Cell에 해당하는지 제안할 수 있습니다. (suggestCellForSignal)
+- C-Level 관점과 실무자 관점의 균형을 유지하여 조언하세요.
+- Time Horizon을 고려하여 단기 실행과 장기 전략을 구분하세요.`;
+
 // ─── 섹션 구분자 ──────────────────────────────────────────────────────
 const SECTION_SEPARATOR = "\n\n---\n\n";
 
@@ -67,6 +80,7 @@ export class SoulEngine {
   private readonly db: DB;
   private readonly userId: string;
   private readonly topicId?: string;
+  private readonly teamId?: string;
   private readonly autonomyLevel: number;
   private readonly useGraphProjection: boolean;
 
@@ -74,6 +88,7 @@ export class SoulEngine {
     this.db = options.db;
     this.userId = options.userId;
     this.topicId = options.topicId;
+    this.teamId = options.teamId;
     this.autonomyLevel = options.autonomyLevel ?? 3;
     this.useGraphProjection = options.useGraphProjection ?? false;
   }
@@ -123,7 +138,13 @@ export class SoulEngine {
       sections.push(briefingMd);
     }
 
-    // 5. Autonomy Level 섹션
+    // 5. MATRIX.md (매트릭스 맥락)
+    const matrixMd = loaded.get("MATRIX.md");
+    if (matrixMd) {
+      sections.push(`${MATRIX_CONTEXT_TEMPLATE}\n\n${matrixMd}`);
+    }
+
+    // 6. Autonomy Level 섹션
     const autonomySection = this.buildAutonomySection();
     sections.push(autonomySection);
 
@@ -137,6 +158,7 @@ export class SoulEngine {
         { type: "USER.md", available: loaded.has("USER.md") },
         { type: "TOPIC.md", available: loaded.has("TOPIC.md") },
         { type: "BRIEFING.md", available: loaded.has("BRIEFING.md") },
+        { type: "MATRIX.md", available: loaded.has("MATRIX.md") },
       ],
     };
   }
@@ -176,6 +198,14 @@ export class SoulEngine {
       const topicProj = await builder.getProjection("topic", this.topicId, "TOPIC.md");
       if (topicProj?.content) {
         result.set("TOPIC.md", topicProj.content);
+      }
+    }
+
+    // MATRIX.md: team scope (teamId가 있을 때만)
+    if (this.teamId) {
+      const matrixProj = await builder.getProjection("team", this.teamId, "MATRIX.md");
+      if (matrixProj?.content) {
+        result.set("MATRIX.md", matrixProj.content);
       }
     }
 

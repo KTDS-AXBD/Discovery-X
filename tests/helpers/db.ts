@@ -61,6 +61,7 @@ export function createTestDb() {
   runMigrationSQL(sqlite, resolve(migrationsDir, "0034_shared_signals_partial_index.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0035_token_usage_userid.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0036_framework_matrix.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0038_matrix_indexes.sql"));
 
   return drizzle(sqlite, { schema: { ...schema, ...v2Schema, ...matrixSchema } });
 }

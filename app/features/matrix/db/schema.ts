@@ -213,6 +213,8 @@ export const matrixCells = sqliteTable(
       table.teamId,
       table.pipelineStage
     ),
+    horizonIdx: index("idx_cells_horizon").on(table.teamId, table.timeHorizon),
+    priorityIdx: index("idx_cells_priority").on(table.teamId, table.priority),
   })
 );
 
