@@ -129,7 +129,7 @@ describe("validateNodes", () => {
     ];
     const result = validateNodes(nodes);
     expect(result.valid).toBe(false);
-    expect(result.errors.some((e) => e.includes("dx:{type}/{id}"))).toBe(true);
+    expect(result.errors.some((e) => e.includes("{ns}:{type}/{id}"))).toBe(true);
   });
 
   it("@type과 @id prefix 불일치 → error", () => {
@@ -195,6 +195,6 @@ describe("validateGraph", () => {
       ],
     });
     expect(result.valid).toBe(false);
-    expect(result.errors.some((e) => e.includes("dx:{type}/{id}"))).toBe(true);
+    expect(result.errors.some((e) => e.includes("{ns}:{type}/{id}"))).toBe(true);
   });
 });

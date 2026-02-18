@@ -182,6 +182,37 @@ export class GraphQueryEngine implements GraphQueryEngineInterface {
     return this.keywordSearch(query, scopeFilter);
   }
 
+  // ─── Matrix 전용 API ─────────────────────────────────────────────────
+
+  /** Matrix Cell 노드를 industryId로 필터링 */
+  async findCellsByIndustry(
+    teamId: string,
+    industryId: string,
+  ): Promise<JsonLdNode[]> {
+    const nodes = await this.findByType("org", teamId, "mx:Cell");
+    return nodes.filter((n) => {
+      const ref = n["mx:industryId"];
+      return this.matchesIdRef(ref, industryId);
+    });
+  }
+
+  /** Matrix Cell 노드를 functionId로 필터링 */
+  async findCellsByFunction(
+    teamId: string,
+    functionId: string,
+  ): Promise<JsonLdNode[]> {
+    const nodes = await this.findByType("org", teamId, "mx:Cell");
+    return nodes.filter((n) => {
+      const ref = n["mx:functionId"];
+      return this.matchesIdRef(ref, functionId);
+    });
+  }
+
+  /** Matrix Cell과 연결된 Topic 노드 조회 (linkedTopic 관계 탐색) */
+  async findLinkedTopics(cellNodeId: string): Promise<JsonLdNode[]> {
+    return this.traverse(cellNodeId, "mx:linkedTopic", 1);
+  }
+
   /** keyword 기반 검색 (Vectorize 미사용 시 fallback) */
   private async keywordSearch(
     query: string,
@@ -296,6 +327,12 @@ export class GraphQueryEngine implements GraphQueryEngineInterface {
     }
 
     return [];
+  }
+
+  /** JSON-LD 참조 값이 대상 @id를 포함하는지 확인 */
+  private matchesIdRef(ref: unknown, targetId: string): boolean {
+    const ids = this.extractIds(ref);
+    return ids.includes(targetId);
   }
 
   /** 노드의 모든 문자열 값에서 query 포함 여부를 재귀 검사 */

@@ -137,6 +137,7 @@ export class ProjectionBuilder {
       case "topic":
         return "TOPIC.md";
       case "org":
+      case "team":
         return "SOUL.md";
     }
   }

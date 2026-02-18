@@ -1,5 +1,5 @@
 // === Scope 관련 ===
-export type ScopeType = "user" | "topic" | "org";
+export type ScopeType = "user" | "topic" | "org" | "team";
 
 export interface ScopeFilter {
   scopeType: ScopeType;
@@ -17,6 +17,9 @@ export interface JsonLdGraph {
   "@context": Record<string, unknown>;
   "@graph": JsonLdNode[];
 }
+
+// === Matrix JSON-LD 노드 타입 ===
+export type MatrixNodeType = "mx:Industry" | "mx:Function" | "mx:Cell" | "mx:Score";
 
 // === Graph 엔티티 ===
 export interface GraphRecord {
@@ -140,4 +143,13 @@ export interface GraphQueryEngineInterface {
     query: string,
     scopeFilter?: ScopeFilter,
   ): Promise<SearchResult[]>;
+
+  /** Matrix Cell 노드를 industryId로 필터링 */
+  findCellsByIndustry(teamId: string, industryId: string): Promise<JsonLdNode[]>;
+
+  /** Matrix Cell 노드를 functionId로 필터링 */
+  findCellsByFunction(teamId: string, functionId: string): Promise<JsonLdNode[]>;
+
+  /** Matrix Cell과 연결된 Topic 노드 조회 (linkedTopic 관계 탐색) */
+  findLinkedTopics(cellNodeId: string): Promise<JsonLdNode[]>;
 }

@@ -8,3 +8,4 @@ export { SignalService } from "./signal.service";
 export { VentureService } from "./venture.service";
 export { MatrixService } from "./matrix.service";
 export { ScoringService } from "./scoring.service";
+export { MatrixGraphService } from "./matrix-graph.service";

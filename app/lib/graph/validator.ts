@@ -10,10 +10,14 @@ const ALLOWED_NODE_TYPES = new Set([
   "dx:Glossary",
   "dx:Expertise",
   "dx:Preference",
+  "mx:Industry",
+  "mx:Function",
+  "mx:Cell",
+  "mx:Score",
 ]);
 
 // @id 네이밍 규칙: dx:{type}/{uuid} 패턴 (type은 소문자)
-const VALID_ID_PATTERN = /^dx:(user|topic|decision|signal|glossary|expertise|preference)\/[a-zA-Z0-9_-]+$/;
+const VALID_ID_PATTERN = /^(dx|mx):(user|topic|decision|signal|glossary|expertise|preference|industry|function|cell|score)\/[a-zA-Z0-9_.-]+$/;
 
 // @type → @id prefix 매핑
 const TYPE_TO_ID_PREFIX: Record<string, string> = {
@@ -24,6 +28,10 @@ const TYPE_TO_ID_PREFIX: Record<string, string> = {
   "dx:Glossary": "dx:glossary/",
   "dx:Expertise": "dx:expertise/",
   "dx:Preference": "dx:preference/",
+  "mx:Industry": "mx:industry/",
+  "mx:Function": "mx:function/",
+  "mx:Cell": "mx:cell/",
+  "mx:Score": "mx:score/",
 };
 
 export interface ValidationResult {
@@ -98,7 +106,7 @@ export function validateNodes(nodes: JsonLdNode[]): ValidationResult {
     if (node["@id"]) {
       if (!VALID_ID_PATTERN.test(node["@id"])) {
         errors.push(
-          `${prefix}: @id "${node["@id"]}"는 dx:{type}/{id} 패턴을 따라야 합니다 (예: dx:user/abc-123)`,
+          `${prefix}: @id "${node["@id"]}"는 {ns}:{type}/{id} 패턴을 따라야 합니다 (예: dx:user/abc-123, mx:cell/auto_ai)`,
         );
       } else if (node["@type"] && TYPE_TO_ID_PREFIX[node["@type"]]) {
         // @type과 @id prefix가 일치하는지 확인
