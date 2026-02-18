@@ -1,5 +1,5 @@
 // ScoringService — 개별/합의 스코어 관리 + 시그널 보정
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, gte, inArray } from "drizzle-orm";
 import type { DB } from "~/db";
 import {
   individualScores,
@@ -8,12 +8,19 @@ import {
   cellTopicMap,
   matrixCells,
   industries,
+  functions,
   type IndividualScore,
   type ConsensusScore,
   type ScoringConfig,
 } from "~/features/matrix/db/schema";
 import { sharedSignals } from "~/db/schema-v2";
-import type { IndividualScoreInput, ScoringWeights } from "~/features/matrix/types";
+import type {
+  IndividualScoreInput,
+  ScoringWeights,
+  RecalculateResult,
+  ScoreChange,
+  TopCell,
+} from "~/features/matrix/types";
 
 // ============================================================================
 // 기본 설정값
@@ -537,5 +544,139 @@ export class ScoringService {
     const variance =
       values.reduce((s, v) => s + (v - mean) ** 2, 0) / values.length;
     return Math.sqrt(variance);
+  }
+
+  // --------------------------------------------------------------------------
+  // 7. 배치 재계산
+  // --------------------------------------------------------------------------
+
+  /** 팀 내 활성 Cell 전체를 대상으로 합의 스코어 재계산 */
+  async recalculateAll(
+    teamId: string,
+    period: string,
+  ): Promise<RecalculateResult> {
+    const result: RecalculateResult = { processed: 0, updated: 0, errors: [] };
+
+    // 활성/모니터링 Cell 조회
+    const cells = await this.db
+      .select({ id: matrixCells.id })
+      .from(matrixCells)
+      .where(
+        and(
+          eq(matrixCells.teamId, teamId),
+          inArray(matrixCells.status, ["active", "watching"]),
+        ),
+      );
+
+    for (const cell of cells) {
+      // 개별 스코어가 있는 Cell만 처리
+      const scores = await this.db
+        .select({ id: individualScores.id })
+        .from(individualScores)
+        .where(
+          and(
+            eq(individualScores.cellId, cell.id),
+            eq(individualScores.scorePeriod, period),
+          ),
+        )
+        .limit(1);
+
+      if (scores.length === 0) continue;
+
+      result.processed++;
+      try {
+        await this.calculateConsensus(cell.id, period);
+        result.updated++;
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : "알 수 없는 오류";
+        result.errors.push(`${cell.id}: ${message}`);
+      }
+    }
+
+    return result;
+  }
+
+  // --------------------------------------------------------------------------
+  // 8. 스코어 변경 이력
+  // --------------------------------------------------------------------------
+
+  /** 지정 시각 이후 업데이트된 합의 스코어 변경 목록 */
+  async getScoreChanges(
+    teamId: string,
+    since: Date,
+  ): Promise<ScoreChange[]> {
+    const rows = await this.db
+      .select({
+        cellId: consensusScores.cellId,
+        industryName: industries.name,
+        functionName: functions.name,
+        compositeScore: consensusScores.compositeScore,
+        prevComposite: consensusScores.prevComposite,
+      })
+      .from(consensusScores)
+      .innerJoin(matrixCells, eq(consensusScores.cellId, matrixCells.id))
+      .innerJoin(industries, eq(matrixCells.industryId, industries.id))
+      .innerJoin(functions, eq(matrixCells.functionId, functions.id))
+      .where(
+        and(
+          eq(matrixCells.teamId, teamId),
+          gte(consensusScores.updatedAt, since),
+        ),
+      )
+      .orderBy(desc(consensusScores.updatedAt));
+
+    return rows.map((r) => ({
+      cellId: r.cellId,
+      industryName: r.industryName,
+      functionName: r.functionName,
+      compositeScore: r.compositeScore,
+      prevComposite: r.prevComposite,
+      delta: r.compositeScore - (r.prevComposite ?? r.compositeScore),
+    }));
+  }
+
+  // --------------------------------------------------------------------------
+  // 9. 상위 Cell 조회
+  // --------------------------------------------------------------------------
+
+  /** 팀 내 compositeScore 상위 N개 Cell (최신 period 기준) */
+  async getTopCells(
+    teamId: string,
+    limit: number,
+  ): Promise<TopCell[]> {
+    // 최신 period 먼저 조회
+    const [latestRow] = await this.db
+      .select({ period: consensusScores.scorePeriod })
+      .from(consensusScores)
+      .innerJoin(matrixCells, eq(consensusScores.cellId, matrixCells.id))
+      .where(eq(matrixCells.teamId, teamId))
+      .orderBy(desc(consensusScores.scorePeriod))
+      .limit(1);
+
+    if (!latestRow) return [];
+
+    const rows = await this.db
+      .select({
+        cellId: consensusScores.cellId,
+        industryName: industries.name,
+        functionName: functions.name,
+        compositeScore: consensusScores.compositeScore,
+        pipelineStage: matrixCells.pipelineStage,
+      })
+      .from(consensusScores)
+      .innerJoin(matrixCells, eq(consensusScores.cellId, matrixCells.id))
+      .innerJoin(industries, eq(matrixCells.industryId, industries.id))
+      .innerJoin(functions, eq(matrixCells.functionId, functions.id))
+      .where(
+        and(
+          eq(matrixCells.teamId, teamId),
+          eq(consensusScores.scorePeriod, latestRow.period),
+        ),
+      )
+      .orderBy(desc(consensusScores.compositeScore))
+      .limit(limit);
+
+    return rows;
   }
 }

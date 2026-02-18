@@ -155,3 +155,28 @@ export function getScoreColor(level: ScoreLevel): string {
       return "var(--dx-score-none, #94a3b8)";
   }
 }
+
+// ─── 배치 재계산 타입 ───
+
+export interface RecalculateResult {
+  processed: number;
+  updated: number;
+  errors: string[];
+}
+
+export interface ScoreChange {
+  cellId: string;
+  industryName: string;
+  functionName: string;
+  compositeScore: number;
+  prevComposite: number | null;
+  delta: number;
+}
+
+export interface TopCell {
+  cellId: string;
+  industryName: string;
+  functionName: string;
+  compositeScore: number;
+  pipelineStage: string;
+}
