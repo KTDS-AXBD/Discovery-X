@@ -366,14 +366,26 @@ build/
 - **라우트**: 159개 (core 47 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 3 + topics 12 + briefing 3 + signals 2 + knowledge 5 + API 37 + matrix 9 + 미분류 2)
 - **테이블**: 87개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 9 + matrix 7) — Framework Matrix 7개 테이블 추가 (industries, functions, matrix_cells, individual_scores, consensus_scores, cell_topic_map, scoring_config)
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
-- **테스트**: 780개 (54 test files, 로컬 통과)
+- **테스트**: 795개 (55 test files, 로컬 통과) — Matrix Query 테스트 15개 추가
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
 - **배포**: 세션 197 프로덕션 배포 완료 (docs/ 재구조 + registry.ts 경로 수정, GitHub Actions CI/CD 통과)
 
-### 최근 변경 (세션 199)
+### 최근 변경 (세션 200)
+**Framework Matrix P6.2 Graph @context 연동** (tmux 2-Worker 병렬):
+- ✅ `app/lib/graph/matrix-context.ts` (신규): `mx:` 네임스페이스 JSON-LD @context 정의 — Industry/Function/Cell/Score 어휘 + 타입 매핑 + 수치/날짜 XSD 타입
+- ✅ `app/lib/services/matrix-graph.service.ts` (신규): MatrixGraphService — Cell/Industry/Function → JSON-LD 변환 (`cellToJsonLdNode`, `industryToJsonLdNode`, `functionToJsonLdNode`) + `buildTeamMatrixGraph` (팀 전체 그래프 빌드) + `syncCellToGraph` (단일 Cell upsert) + GraphStore 연동
+- ✅ `app/lib/graph/types.ts` (수정): ScopeType에 `"team"` 추가, `MatrixNodeType` 타입 정의, `GraphQueryEngineInterface`에 Matrix 메서드 3개 추가
+- ✅ `app/lib/graph/validator.ts` (수정): `mx:Industry/Function/Cell/Score` 노드 4종 허용 + ID 패턴 `mx:` prefix 지원 + TYPE_TO_ID_PREFIX Matrix 매핑 추가
+- ✅ `app/lib/graph/query.ts` (수정): `findCellsByIndustry()`, `findCellsByFunction()`, `findLinkedTopics()` 3개 Matrix 전용 메서드 + `matchesIdRef()` 헬퍼 추가
+- ✅ `app/lib/graph/projection.ts` (수정): `"team"` → `SOUL.md` 매핑 추가
+- ✅ `app/routes/knowledge._index.tsx` + `knowledge.$graphId.tsx` (수정): team scope UI 설정 추가 (amber 컬러, 팀 아이콘)
+- ✅ `tests/unit/graph/matrix-query.test.ts` (신규): 15개 테스트 — findCellsByIndustry(3) + findCellsByFunction(2) + findLinkedTopics(2) + findByType(3) + semanticSearch(2) + validateGraph(3)
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공 / 795 tests pass
+
+### 이전 변경 (세션 199)
 **Framework Matrix P6.1 서비스 레이어 + API 라우트 구현** (tmux 2-Worker 병렬):
 - ✅ `app/lib/services/matrix.service.ts` (신규): MatrixService — Industry/Function/Cell CRUD + Cell-Topic N:M 연결 + Heatmap 데이터 (LEFT JOIN consensusScores, period 기반)
 - ✅ `app/lib/services/scoring.service.ts` (신규): ScoringService — 개별 스코어 UPSERT (C-Level/Execution 자동 계산) + 합의 스코어 (가중 평균 + 시그널 보정 + 표준편차) + 설정 관리
