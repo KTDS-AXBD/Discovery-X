@@ -21,3 +21,21 @@ export const AGENT_ALLOWED_ACTIONS: ReadonlySet<Action> = new Set([
   "read",
   "write",
 ]);
+
+/**
+ * Matrix ACL 정책 — ArchMapping 5.1
+ * 역할별 매트릭스 기능 접근 권한
+ */
+export interface MatrixPolicy {
+  minRole: TopicRole;
+  selfOnly?: boolean;
+}
+
+export const MATRIX_POLICIES: Record<string, MatrixPolicy> = {
+  "matrix.view": { minRole: "viewer" },
+  "matrix.cell.edit": { minRole: "editor" },
+  "matrix.score.edit": { minRole: "editor", selfOnly: true },
+  "matrix.master.edit": { minRole: "owner" },
+  "matrix.config.edit": { minRole: "owner" },
+  "matrix.cell.delete": { minRole: "owner" },
+};
