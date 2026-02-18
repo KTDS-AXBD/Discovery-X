@@ -373,7 +373,17 @@ build/
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
 - **배포**: 세션 197 프로덕션 배포 완료 (docs/ 재구조 + registry.ts 경로 수정, GitHub Actions CI/CD 통과)
 
-### 최근 변경 (세션 200)
+### 최근 변경 (세션 201)
+**Framework Matrix P6.0/P6.1 갭 분석 + 자동 수정** (tmux 2-Worker 병렬 × 2회):
+- 📊 **갭 분석 결과**: P6.0 스키마 84.2% (117/139), P6.1 서비스 ~72% — 총 5건 Critical/High 항목 식별
+- ✅ `app/features/matrix/db/schema.ts` (수정): consensusScores에 `signalCount` (시그널 보정 계산 수 추적) + `confirmedAt` (합의 확정 시점 기록) 컬럼 추가
+- ✅ `app/lib/services/scoring.service.ts` (수정): calculateConsensus() — 산업 `strategic_weight` 곱셈(Step 3) + CLAMP(1.0, 5.0)(Step 5) 적용
+- ✅ `app/lib/services/scoring.service.ts` (수정): confirmConsensus() — `min_voters_for_confirm` 최소 인원 체크 + `confirmedAt` 타임스탬프 기록
+- ✅ `app/lib/services/scoring.service.ts` (수정): calculateConsensus() UPSERT — confirmed 상태 보호 (`confirmed` → `revised`로만 변경, `draft` 덮어쓰기 방지)
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
+- 📊 **예상 일치율**: P6.0 84.2%→~93%, P6.1 ~72%→~88%
+
+### 이전 변경 (세션 200)
 **Framework Matrix P6.2 Graph @context 연동** (tmux 2-Worker 병렬):
 - ✅ `app/lib/graph/matrix-context.ts` (신규): `mx:` 네임스페이스 JSON-LD @context 정의 — Industry/Function/Cell/Score 어휘 + 타입 매핑 + 수치/날짜 XSD 타입
 - ✅ `app/lib/services/matrix-graph.service.ts` (신규): MatrixGraphService — Cell/Industry/Function → JSON-LD 변환 (`cellToJsonLdNode`, `industryToJsonLdNode`, `functionToJsonLdNode`) + `buildTeamMatrixGraph` (팀 전체 그래프 빌드) + `syncCellToGraph` (단일 Cell upsert) + GraphStore 연동
