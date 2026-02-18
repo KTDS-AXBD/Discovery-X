@@ -363,7 +363,7 @@ build/
 - **DB**: 38개 마이그레이션 (0000~0037), 로컬 적용 완료 + 프로덕션 0033~0037 미적용 (배포 시 적용 필요)
 
 ### 주요 지표
-- **라우트**: 159개 (core 47 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 3 + topics 12 + briefing 3 + signals 2 + knowledge 5 + API 37 + matrix 9 + 미분류 2)
+- **라우트**: 162개 (core 47 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 3 + topics 12 + briefing 3 + signals 2 + knowledge 5 + API 37 + matrix 12 + 미분류 2) — Matrix UI 라우트 3개 추가 (lab.matrix.tsx, lab.matrix._index.tsx, lab.matrix.$cellId.tsx)
 - **테이블**: 87개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 9 + matrix 7) — Framework Matrix 7개 테이블 추가 (industries, functions, matrix_cells, individual_scores, consensus_scores, cell_topic_map, scoring_config)
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
 - **테스트**: 795개 (55 test files, 로컬 통과) — Matrix Query 테스트 15개 추가
@@ -373,7 +373,22 @@ build/
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
 - **배포**: 세션 197 프로덕션 배포 완료 (docs/ 재구조 + registry.ts 경로 수정, GitHub Actions CI/CD 통과)
 
-### 최근 변경 (세션 203)
+### 최근 변경 (세션 204)
+**Framework Matrix P6.3 Matrix UI + P6.4 Stage-Gate 통합** (tmux 2-Worker 병렬 + 리더 직접 완료):
+- ✅ `app/routes/lab.tsx` (수정): Lab 4탭 GNB에 "매트릭스" 탭 추가 (`/lab/matrix`)
+- ✅ `app/routes/lab.matrix.tsx` (신규): Matrix 레이아웃 라우트 (인증 가드 + Outlet)
+- ✅ `app/routes/lab.matrix._index.tsx` (신규): Heatmap 인덱스 페이지 (기간 선택 + 빈 상태 처리 + 셀 클릭 네비게이션)
+- ✅ `app/routes/lab.matrix.$cellId.tsx` (신규): Cell 상세 페이지 (병렬 loader 4종 + action 3 intent: submitScore/calculateConsensus/updatePipelineStage)
+- ✅ `app/components/matrix/HeatmapGrid.tsx` (신규): 산업×기능 교차 히트맵 그리드 (스코어 색상 + Stage Gate 라벨 + 델타 지표, 기능 카테고리 구분 행)
+- ✅ `app/components/matrix/HeatmapLegend.tsx` (신규): 범례 3종 (스코어 레벨/Stage-Gate/변동)
+- ✅ `app/components/matrix/CellDetailPanel.tsx` (신규): Cell 상세 패널 (종합 스코어 + C-Level/Execution 바 + 메타 정보 + 연결 토픽 + 태그)
+- ✅ `app/components/matrix/ScoreInputForm.tsx` (신규): 10항목 스코어 입력 폼 (레인지 슬라이더 + 실시간 C-Level/Execution/Composite 평균 계산)
+- ✅ `app/components/matrix/ScoreTrendChart.tsx` (신규): SVG 라인 차트 (종합/C-Level/Execution 3선, 외부 라이브러리 없음)
+- ✅ `app/components/matrix/PipelineStageSelector.tsx` (신규): S0→S4 파이프라인 진행 바 (전진 전용 + 인라인 확인 다이얼로그)
+- ✅ `app/components/matrix/index.ts` (신규): 배럴 export 6개 컴포넌트
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
+
+### 이전 변경 (세션 203)
 **Framework Matrix P6.2 Graph @context 갭 분석** (tmux 2-Worker 병렬):
 - 📊 **갭 분석 결과**: 설계(ArchMapping_v1.md §3) 대비 전체 일치율 **~62%** (51항목: ✅22, ⚠️14, ❌15)
   - W1 (Context+Types+Validator): 30항목, ~61%
