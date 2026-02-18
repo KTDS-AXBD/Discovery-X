@@ -360,7 +360,7 @@ build/
 ### 버전
 - **프로토타입**: v6.14 + v3 Phase 5 갭 해소 완료 + PRD v3 전면 재감사 조치 (84.5%→~95%) + Framework Matrix P3 완료
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 39개 마이그레이션 (0000~0038), 로컬 적용 완료 + 프로덕션 0033~0038 미적용 (배포 시 적용 필요)
+- **DB**: 39개 마이그레이션 (0000~0038), 로컬 + 프로덕션 모두 적용 완료
 
 ### 주요 지표
 - **라우트**: 165개 (core 47 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 3 + topics 12 + briefing 3 + signals 2 + knowledge 5 + API 38 + matrix 12 + 미분류 2 + dashboard 2) — dashboard.exec + dashboard.ops 2개 추가
@@ -371,7 +371,7 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
-- **배포**: 세션 197 프로덕션 배포 완료 (docs/ 재구조 + registry.ts 경로 수정, GitHub Actions CI/CD 통과)
+- **배포**: 세션 208 프로덕션 배포 완료 (Framework Matrix P3 + 인덱스 + Dashboard + SOUL 맥락, CI/CD 1m57s) + DB 마이그레이션 0036~0038 프로덕션 적용 완료
 
 ### 최근 변경 (세션 207)
 **Framework Matrix P3 완료 — Executive/Operational Dashboard + Agent SOUL 매트릭스 맥락** (tmux 3-Worker 병렬):
