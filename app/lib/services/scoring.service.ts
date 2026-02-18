@@ -6,6 +6,8 @@ import {
   consensusScores,
   scoringConfig,
   cellTopicMap,
+  matrixCells,
+  industries,
   type IndividualScore,
   type ConsensusScore,
   type ScoringConfig,
@@ -189,10 +191,35 @@ export class ScoringService {
 
     // 가중치
     const weights = await this.getWeightsForCell(cellId);
-    const composite =
+
+    // raw composite
+    const rawComposite =
       clevelScore * weights.weightClevel +
       executionScore * weights.weightExecution +
       signalAdj * weights.weightSignal;
+
+    // Step 3: 산업 가중치
+    let indWeight = 1.0;
+    if (weights.applyIndustryWeight) {
+      const [cell] = await this.db
+        .select({ industryId: matrixCells.industryId })
+        .from(matrixCells)
+        .where(eq(matrixCells.id, cellId))
+        .limit(1);
+      if (cell) {
+        const [ind] = await this.db
+          .select({ strategicWeight: industries.strategicWeight })
+          .from(industries)
+          .where(eq(industries.id, cell.industryId))
+          .limit(1);
+        if (ind) {
+          indWeight = ind.strategicWeight;
+        }
+      }
+    }
+
+    // Step 5: CLAMP(1.0, 5.0)
+    const composite = Math.max(1.0, Math.min(5.0, rawComposite * indWeight));
 
     // 표준편차 (composite 기준 각 참여자의 개별 composite)
     const individualComposites = scores.map((s) => {
@@ -223,6 +250,9 @@ export class ScoringService {
       .limit(1);
 
     if (existing.length > 0) {
+      // confirmed → draft 방지: confirmed 상태면 revised로 변경
+      const newStatus = existing[0].status === "confirmed" ? "revised" : "draft";
+
       await this.db
         .update(consensusScores)
         .set({
@@ -233,7 +263,7 @@ export class ScoringService {
           participantCount: scores.length,
           deviation,
           prevComposite,
-          status: "draft",
+          status: newStatus,
           updatedAt: new Date(),
         })
         .where(eq(consensusScores.id, existing[0].id));
@@ -345,11 +375,20 @@ export class ScoringService {
 
     if (existing.length === 0) return null;
 
+    // 최소 투표자 수 체크
+    const weights = await this.getWeightsForCell(cellId);
+    if (existing[0].participantCount < weights.minVotersForConfirm) {
+      throw new Error(
+        `최소 ${weights.minVotersForConfirm}명의 참여자가 필요합니다 (현재: ${existing[0].participantCount}명)`,
+      );
+    }
+
     await this.db
       .update(consensusScores)
       .set({
         status: "confirmed",
         confirmedBy,
+        confirmedAt: new Date(),
         rationale: rationale ?? null,
         updatedAt: new Date(),
       })

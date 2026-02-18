@@ -46,6 +46,10 @@ const SCOPE_BADGE: Record<ScopeType, { label: string; cls: string }> = {
     label: "조직",
     cls: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
   },
+  team: {
+    label: "팀",
+    cls: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
+  },
 };
 
 // 노드 타입 한글 매핑

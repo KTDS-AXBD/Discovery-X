@@ -301,6 +301,7 @@ export const consensusScores = sqliteTable(
 
     // === 시그널 보정 (-2.0 ~ +2.0) ===
     signalAdjustment: real("signal_adjustment").notNull().default(0.0),
+    signalCount: integer("signal_count").notNull().default(0),
 
     // === 최종 종합 스코어 (0.0 ~ 5.0) ===
     compositeScore: real("composite_score").notNull(),
@@ -309,6 +310,7 @@ export const consensusScores = sqliteTable(
     // CHECK (status IN ('draft', 'confirmed', 'revised'))
     status: text("status").notNull().default("draft"),
     confirmedBy: text("confirmed_by"),
+    confirmedAt: integer("confirmed_at", { mode: "timestamp" }),
     rationale: text("rationale"),
     participantCount: integer("participant_count").notNull().default(0),
     deviation: real("deviation"),
