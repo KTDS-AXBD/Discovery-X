@@ -38,7 +38,8 @@ fi
 
 ### 공통 규칙
 1. **임시 파일은 프로젝트 내 `.team-tmp/`** 디렉토리에 저장
-2. **claude 경로**: WSL 내에서는 `/home/sinclair/.local/bin/claude` 사용
+2. **claude 호출**: runner 스크립트에서 반드시 `command claude`로 호출 (`.bashrc` alias 우회 필수)
+3. **`CLAUDE_CONFIG_DIR` 전파**: 현재 세션의 `CLAUDE_CONFIG_DIR` 값을 runner 스크립트에 export (인증 컨텍스트 유지)
 
 ## Arguments
 
@@ -99,13 +100,15 @@ PROMPT
 ```bash
 PROJECT_DIR="$PWD"
 TEAM_DIR="$PWD/.team-tmp"
+CLAUDE_CFG="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 
 cat > "$TEAM_DIR/team-{팀이름}-run-{N}.sh" << RUNNER
 #!/usr/bin/env bash
 export PATH="/home/sinclair/.local/bin:\$PATH"
+export CLAUDE_CONFIG_DIR="$CLAUDE_CFG"
 cd $PROJECT_DIR
 prompt=\$(cat "$TEAM_DIR/team-{팀이름}-worker-{N}.txt")
-claude -p "\$prompt" \\
+command claude -p "\$prompt" \\
   --allowedTools 'Read,Edit,Write,Glob,Grep,Bash' \\
   --max-turns 20 \\
   --verbose 2>&1 | tee "$TEAM_DIR/team-{팀이름}-worker-{N}.log"
@@ -114,49 +117,59 @@ RUNNER
 chmod +x "$TEAM_DIR/team-{팀이름}-run-{N}.sh"
 ```
 
-> **주의**: heredoc에서 `$PROJECT_DIR`과 `$TEAM_DIR`은 **생성 시점에 확장**시킨다 (경로를 하드코딩).
+> **주의**: heredoc에서 `$PROJECT_DIR`, `$TEAM_DIR`, `$CLAUDE_CFG`는 **생성 시점에 확장**시킨다 (경로를 하드코딩).
 > `\$PATH`, `\$prompt` 등 runner 실행 시점 변수는 이스케이프한다.
+> **`command claude`**: `.bashrc`의 `alias claude=...`를 우회하여 실제 바이너리를 호출한다.
+> **`CLAUDE_CONFIG_DIR`**: 리더 세션의 인증 컨텍스트(personal/work)를 worker에 전파한다.
 
 **3b. launcher 스크립트를 생성**한다. worker 수(N)에 맞게 아래 템플릿을 사용:
 
+> **핵심 변경**: 별도 세션(`new-session -d`)이 아닌, **현재 세션에 새 window**(`new-window`)를 생성한다.
+> 이렇게 해야 사용자가 `Ctrl+b n`으로 worker pane을 바로 볼 수 있다.
+
 ```bash
+CURRENT_SESSION=$(tmux display-message -p '#S')
+
 cat > "$TEAM_DIR/team-{팀이름}-launcher.sh" << LAUNCHER
 #!/usr/bin/env bash
 set -e
 TEAM="{팀이름}"
+SESSION="$CURRENT_SESSION"
 PROJECT_DIR="$PROJECT_DIR"
 TEAM_DIR="$TEAM_DIR"
+TARGET="\$SESSION:\$TEAM"
 
-# 1) tmux 세션 생성 (detached)
-tmux kill-session -t "\$TEAM" 2>/dev/null || true
-tmux new-session -d -s "\$TEAM" -n workers -c "\$PROJECT_DIR"
+# 1) 현재 세션에 새 window 생성 (-d: 포커스 이동 안 함)
+tmux kill-window -t "\$TARGET" 2>/dev/null || true
+tmux new-window -d -t "\$SESSION" -n "\$TEAM" -c "\$PROJECT_DIR"
 
-# 2) Worker 1 — 기본 pane (활성 pane)에 send-keys
-tmux send-keys -t "\$TEAM:workers" "bash \$TEAM_DIR/team-\${TEAM}-run-1.sh" Enter
+# 2) Worker 1 — 새 window의 기본 pane에 send-keys
+tmux send-keys -t "\$TARGET" "bash \$TEAM_DIR/team-\${TEAM}-run-1.sh" Enter
 
 # 3) Worker 2 — 수직 분할 후 새 pane이 자동으로 활성화됨
-tmux split-window -t "\$TEAM:workers" -h -c "\$PROJECT_DIR"
-tmux send-keys -t "\$TEAM:workers" "bash \$TEAM_DIR/team-\${TEAM}-run-2.sh" Enter
+tmux split-window -t "\$TARGET" -h -c "\$PROJECT_DIR"
+tmux send-keys -t "\$TARGET" "bash \$TEAM_DIR/team-\${TEAM}-run-2.sh" Enter
 
 # 4) Worker 3 (필요 시) — 추가 수평 분할
-# tmux split-window -t "\$TEAM:workers" -v -c "\$PROJECT_DIR"
-# tmux send-keys -t "\$TEAM:workers" "bash \$TEAM_DIR/team-\${TEAM}-run-3.sh" Enter
+# tmux split-window -t "\$TARGET" -v -c "\$PROJECT_DIR"
+# tmux send-keys -t "\$TARGET" "bash \$TEAM_DIR/team-\${TEAM}-run-3.sh" Enter
 
 # 5) Worker 4 (필요 시) — 추가 수평 분할
-# tmux split-window -t "\$TEAM:workers" -v -c "\$PROJECT_DIR"
-# tmux send-keys -t "\$TEAM:workers" "bash \$TEAM_DIR/team-\${TEAM}-run-4.sh" Enter
+# tmux split-window -t "\$TARGET" -v -c "\$PROJECT_DIR"
+# tmux send-keys -t "\$TARGET" "bash \$TEAM_DIR/team-\${TEAM}-run-4.sh" Enter
 
 # 6) 레이아웃 균등 배치
-tmux select-layout -t "\$TEAM:workers" tiled
+tmux select-layout -t "\$TARGET" tiled
 
-echo "tmux session '\$TEAM' created with split panes"
-tmux list-panes -t "\$TEAM:workers" -F "pane=#{pane_index} pid=#{pane_pid} size=#{pane_width}x#{pane_height}"
+echo "tmux window '\$TEAM' created in session '\$SESSION' with split panes"
+tmux list-panes -t "\$TARGET" -F "pane=#{pane_index} pid=#{pane_pid} size=#{pane_width}x#{pane_height}"
 LAUNCHER
 chmod +x "$TEAM_DIR/team-{팀이름}-launcher.sh"
 ```
 
 > **worker 수에 따라 주석(#)을 해제**하여 3명, 4명 구성을 만든다.
-> **pane 타겟팅**: `split-window` 후 새 pane이 자동으로 활성화되므로, `send-keys -t "$TEAM:workers"`는 항상 방금 생성된 pane에 전달된다. `.0`, `.1` 같은 하드코딩된 pane 인덱스를 사용하지 않는다.
+> **pane 타겟팅**: `split-window` 후 새 pane이 자동으로 활성화되므로, `send-keys -t "$TARGET"`는 항상 방금 생성된 pane에 전달된다. `.0`, `.1` 같은 하드코딩된 pane 인덱스를 사용하지 않는다.
+> **`-d` 플래그**: `new-window -d`로 생성하면 현재 window(Claude Code)에 포커스가 유지된다. 사용자가 원할 때 `Ctrl+b n`으로 전환한다.
 
 **3c. launcher를 실행**한다:
 
@@ -172,15 +185,17 @@ wsl -e bash -c "bash $WSL_TEAM_DIR/team-{팀이름}-launcher.sh"
 
 **3d. pane 생성을 검증**한다:
 ```bash
-tmux list-panes -t {팀이름}:workers -F "pane=#{pane_index} pid=#{pane_pid} size=#{pane_width}x#{pane_height}"
+CURRENT_SESSION=$(tmux display-message -p '#S')
+tmux list-panes -t "$CURRENT_SESSION:{팀이름}" -F "pane=#{pane_index} pid=#{pane_pid} size=#{pane_width}x#{pane_height}"
 ```
 - pane 수가 worker 수와 일치하는지 확인한다
 - 불일치하면 launcher 스크립트를 다시 실행한다
 
 사용자에게 안내한다:
 ```
-tmux 세션 확인: tmux attach -t {팀이름}
-pane 이동: Ctrl+b 방향키 | 확대: Ctrl+b z | detach: Ctrl+b d
+Worker 확인: Ctrl+b n (다음 window로 전환)
+Claude Code 복귀: Ctrl+b p (이전 window로 복귀)
+pane 이동: Ctrl+b 방향키 | 확대: Ctrl+b z
 ```
 
 **pane 레이아웃 (4명일 때)**:
@@ -211,10 +226,11 @@ done
 
 tmux pane 내용을 직접 확인하려면 (pane 인덱스는 `tmux list-panes`로 확인):
 ```bash
-tmux list-panes -t {팀이름}:workers -F "#{pane_index}"
+CURRENT_SESSION=$(tmux display-message -p '#S')
+tmux list-panes -t "$CURRENT_SESSION:{팀이름}" -F "#{pane_index}"
 # 출력된 인덱스로 capture-pane 실행
-tmux capture-pane -t {팀이름}:workers.{첫번째인덱스} -p
-tmux capture-pane -t {팀이름}:workers.{두번째인덱스} -p
+tmux capture-pane -t "$CURRENT_SESSION:{팀이름}.{첫번째인덱스}" -p
+tmux capture-pane -t "$CURRENT_SESSION:{팀이름}.{두번째인덱스}" -p
 ```
 
 > **주의**: pane 인덱스는 tmux `base-index` 설정에 따라 0 또는 1부터 시작한다. 하드코딩하지 말고 `list-panes`로 확인한다.
@@ -249,16 +265,18 @@ pnpm test
 
 1. 로그 파일에서 결과 수집 (정리 전에 수행):
 ```bash
+CURRENT_SESSION=$(tmux display-message -p '#S')
 # pane 인덱스를 동적으로 가져와서 캡처
-for idx in $(tmux list-panes -t {팀이름}:workers -F "#{pane_index}"); do
+for idx in $(tmux list-panes -t "$CURRENT_SESSION:{팀이름}" -F "#{pane_index}"); do
   echo "=== Pane $idx ==="
-  tmux capture-pane -t {팀이름}:workers.$idx -p
+  tmux capture-pane -t "$CURRENT_SESSION:{팀이름}.$idx" -p
 done
 ```
 
-2. tmux 세션 종료:
+2. tmux window 종료:
 ```bash
-tmux kill-session -t {팀이름} 2>/dev/null
+CURRENT_SESSION=$(tmux display-message -p '#S')
+tmux kill-window -t "$CURRENT_SESSION:{팀이름}" 2>/dev/null
 ```
 
 3. 임시 파일 정리:
@@ -299,12 +317,22 @@ rm -rf "$PWD/.team-tmp"
 - **반드시 tmux split pane에서 실행**: Step 3의 launcher 스크립트를 통해 tmux 세션/pane을 생성해야 한다
 - pane 생성 후 `tmux list-panes`로 검증해야 한다 — 실패하면 재시도
 
+### CRITICAL — claude alias 충돌 방지
+- `.bashrc`에 `alias claude=...`가 정의되어 있으면, tmux pane의 interactive shell에서 `claude -p`가 alias로 가로채진다
+- **반드시 `command claude`로 호출**하여 alias를 우회한다 (runner 스크립트 템플릿 참고)
+- `CLAUDE_CONFIG_DIR`을 runner 스크립트에 export하여 리더 세션의 인증 컨텍스트를 worker에 전파한다
+
+### CRITICAL — nested tmux 접속
+- Claude Code가 tmux 세션 내부에서 실행 중이면 (`$TMUX` 변수가 설정됨), `tmux attach`는 실패한다
+- 대신 `tmux switch-client -t {팀이름}`으로 세션을 전환한다
+- 원래 세션으로 돌아올 때도 `tmux switch-client -t {원래세션}` 사용
+
 ### 일반 규칙
 - worker끼리 **같은 파일을 동시 수정하지 않도록** 태스크를 분할한다
 - `--allowedTools` 미지정 시 승인 프롬프트가 떠서 pane이 멈춤 — 반드시 지정
 - `--max-turns`로 무한 루프 방지 (기본 20, 복잡한 작업은 30까지)
 - worker 프롬프트는 `.team-tmp/` 임시 파일 + **runner 스크립트**로 전달 (send-keys 내 `$(cat ...)` 확장 금지)
-- runner 스크립트에서 `claude` PATH를 명시적으로 설정하여 tmux pane 환경 차이를 해소
+- runner 스크립트에서 `command claude`로 호출 + PATH를 명시적으로 설정하여 alias 충돌과 tmux pane 환경 차이를 해소
 - git 작업(commit, push)은 worker에게 시키지 않는다 — 리더만 수행
 - tmux pane 최대 4개 권장 (그 이상은 가시성 저하)
 - `$ARGUMENTS`가 비어있으면 사용자에게 작업 설명을 요청한다
