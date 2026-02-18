@@ -125,23 +125,29 @@ chmod +x "$TEAM_DIR/team-{팀이름}-run-{N}.sh"
 **3b. launcher 스크립트를 생성**한다. worker 수(N)에 맞게 아래 템플릿을 사용:
 
 > **핵심 변경**: 별도 세션(`new-session -d`)이 아닌, **현재 세션에 새 window**(`new-window`)를 생성한다.
-> 이렇게 해야 사용자가 `Ctrl+b n`으로 worker pane을 바로 볼 수 있다.
+> `-d` 플래그를 쓰지 않으므로, worker window가 **즉시 화면에 표시**된다.
+> worker 완료 후 리더가 `tmux select-window`로 Claude Code window를 복원한다.
 
 ```bash
 CURRENT_SESSION=$(tmux display-message -p '#S')
+CURRENT_WINDOW=$(tmux display-message -p '#I')
 
 cat > "$TEAM_DIR/team-{팀이름}-launcher.sh" << LAUNCHER
 #!/usr/bin/env bash
 set -e
 TEAM="{팀이름}"
 SESSION="$CURRENT_SESSION"
+LEADER_WINDOW="$CURRENT_WINDOW"
 PROJECT_DIR="$PROJECT_DIR"
 TEAM_DIR="$TEAM_DIR"
 TARGET="\$SESSION:\$TEAM"
 
-# 1) 현재 세션에 새 window 생성 (-d: 포커스 이동 안 함)
+# 0) 리더 window 인덱스를 파일로 저장 (리더가 나중에 복원할 때 사용)
+echo "\$LEADER_WINDOW" > "\$TEAM_DIR/team-\${TEAM}-leader-window.txt"
+
+# 1) 현재 세션에 새 window 생성 (-d 없음: 즉시 포커스 이동)
 tmux kill-window -t "\$TARGET" 2>/dev/null || true
-tmux new-window -d -t "\$SESSION" -n "\$TEAM" -c "\$PROJECT_DIR"
+tmux new-window -t "\$SESSION" -n "\$TEAM" -c "\$PROJECT_DIR"
 
 # 2) Worker 1 — 새 window의 기본 pane에 send-keys
 tmux send-keys -t "\$TARGET" "bash \$TEAM_DIR/team-\${TEAM}-run-1.sh" Enter
@@ -161,7 +167,7 @@ tmux send-keys -t "\$TARGET" "bash \$TEAM_DIR/team-\${TEAM}-run-2.sh" Enter
 # 6) 레이아웃 균등 배치
 tmux select-layout -t "\$TARGET" tiled
 
-echo "tmux window '\$TEAM' created in session '\$SESSION' with split panes"
+echo "tmux window '\$TEAM' created in session '\$SESSION' (leader window: \$LEADER_WINDOW)"
 tmux list-panes -t "\$TARGET" -F "pane=#{pane_index} pid=#{pane_pid} size=#{pane_width}x#{pane_height}"
 LAUNCHER
 chmod +x "$TEAM_DIR/team-{팀이름}-launcher.sh"
@@ -169,7 +175,7 @@ chmod +x "$TEAM_DIR/team-{팀이름}-launcher.sh"
 
 > **worker 수에 따라 주석(#)을 해제**하여 3명, 4명 구성을 만든다.
 > **pane 타겟팅**: `split-window` 후 새 pane이 자동으로 활성화되므로, `send-keys -t "$TARGET"`는 항상 방금 생성된 pane에 전달된다. `.0`, `.1` 같은 하드코딩된 pane 인덱스를 사용하지 않는다.
-> **`-d` 플래그**: `new-window -d`로 생성하면 현재 window(Claude Code)에 포커스가 유지된다. 사용자가 원할 때 `Ctrl+b n`으로 전환한다.
+> **`-d` 없음**: `new-window`에 `-d` 플래그를 쓰지 않으므로 worker window가 **즉시 화면에 표시**된다. Claude Code는 백그라운드에서 계속 실행되며, 리더가 모니터링 완료 후 `tmux select-window`로 복원한다.
 
 **3c. launcher를 실행**한다:
 
@@ -193,9 +199,9 @@ tmux list-panes -t "$CURRENT_SESSION:{팀이름}" -F "pane=#{pane_index} pid=#{p
 
 사용자에게 안내한다:
 ```
-Worker 확인: Ctrl+b n (다음 window로 전환)
-Claude Code 복귀: Ctrl+b p (이전 window로 복귀)
+지금 보이는 화면이 Worker pane입니다.
 pane 이동: Ctrl+b 방향키 | 확대: Ctrl+b z
+Claude Code 복귀: 작업 완료 후 리더가 자동으로 window를 복원합니다.
 ```
 
 **pane 레이아웃 (4명일 때)**:
@@ -236,6 +242,13 @@ tmux capture-pane -t "$CURRENT_SESSION:{팀이름}.{두번째인덱스}" -p
 > **주의**: pane 인덱스는 tmux `base-index` 설정에 따라 0 또는 1부터 시작한다. 하드코딩하지 말고 `list-panes`로 확인한다.
 
 **모니터링 규칙:**
+- launcher 실행 후, 사용자 화면은 worker window에 있다
+- 리더는 즉시 Claude Code window로 포커스를 복원한다:
+```bash
+CURRENT_SESSION=$(tmux display-message -p '#S')
+LEADER_WINDOW=$(cat "$PWD/.team-tmp/team-{팀이름}-leader-window.txt")
+tmux select-window -t "$CURRENT_SESSION:$LEADER_WINDOW"
+```
 - 30초 간격으로 로그 파일의 DONE 마커를 확인한다
 - 모든 worker 로그에 `DONE` 마커가 확인되면 Step 6으로 이동
 - 5분 이상 응답 없는 worker는 사용자에게 보고한다
@@ -322,10 +335,12 @@ rm -rf "$PWD/.team-tmp"
 - **반드시 `command claude`로 호출**하여 alias를 우회한다 (runner 스크립트 템플릿 참고)
 - `CLAUDE_CONFIG_DIR`을 runner 스크립트에 export하여 리더 세션의 인증 컨텍스트를 worker에 전파한다
 
-### CRITICAL — nested tmux 접속
-- Claude Code가 tmux 세션 내부에서 실행 중이면 (`$TMUX` 변수가 설정됨), `tmux attach`는 실패한다
-- 대신 `tmux switch-client -t {팀이름}`으로 세션을 전환한다
-- 원래 세션으로 돌아올 때도 `tmux switch-client -t {원래세션}` 사용
+### CRITICAL — 현재 세션 window + 즉시 포커스 이동
+- 별도 tmux 세션(`new-session -d`)으로 생성하면 사용자 화면에 보이지 않는다
+- **반드시 현재 세션에 `new-window` (`-d` 없이)**로 생성하여 worker window가 즉시 화면에 표시되게 한다
+- `-d` 플래그를 쓰면 Claude Code TUI가 키 입력을 가로채서 `Ctrl+b n`이 tmux에 도달하지 않음
+- launcher 실행 직후 리더가 `tmux select-window`로 Claude Code window 복원
+- 정리 시 `tmux kill-window` 사용 (`kill-session` 아님)
 
 ### 일반 규칙
 - worker끼리 **같은 파일을 동시 수정하지 않도록** 태스크를 분할한다
