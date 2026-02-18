@@ -373,7 +373,17 @@ build/
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
 - **배포**: 세션 195 프로덕션 배포 완료 (D1 마이그레이션 0033~0035 적용, GitHub Actions CI/CD 통과)
 
-### 최근 변경 (세션 196)
+### 최근 변경 (세션 197)
+**docs/ 폴더 SDD 카테고리 정리**:
+- ✅ `docs/specs/` — PRD/사양 문서 6개 이동 + Framework 포팅 문서 3개 신규 추가
+- ✅ `docs/guides/` — 사용자/운영 가이드 5개 이동
+- ✅ `docs/assets/` — Office 파일 4개 이동 (Framework PRD docx 포함)
+- ✅ `docs/archive/wireframes-v5/` — v5 wireframe PNG 3개 아카이브
+- ✅ `docs/04-report/` — 03-analysis에서 report 파일 2개 올바른 위치로 이동
+- ✅ `03-analysis/proposals.report.md` 삭제 (archive에 최종본 존재)
+- ✅ CLAUDE.md 경로 참조 업데이트 (docs/ → docs/specs/)
+
+### 이전 변경 (세션 196)
 **미사용 import 정리 + /team 스킬 개선**:
 - ✅ `/team` 스킬 tmux pane 타겟팅 버그 수정 (`.0` → window-level send-keys)
 - ✅ `/team` 스킬 환경 자동 감지 추가 (WSL_DIRECT / GIT_BASH 분기)
