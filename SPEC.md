@@ -363,7 +363,7 @@ build/
 - **DB**: 38개 마이그레이션 (0000~0037), 로컬 적용 완료 + 프로덕션 0033~0037 미적용 (배포 시 적용 필요)
 
 ### 주요 지표
-- **라우트**: 150개 (core 47 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 3 + topics 12 + briefing 3 + signals 2 + knowledge 5 + API 37 + 미분류 2)
+- **라우트**: 159개 (core 47 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 3 + topics 12 + briefing 3 + signals 2 + knowledge 5 + API 37 + matrix 9 + 미분류 2)
 - **테이블**: 87개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 9 + matrix 7) — Framework Matrix 7개 테이블 추가 (industries, functions, matrix_cells, individual_scores, consensus_scores, cell_topic_map, scoring_config)
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
 - **테스트**: 780개 (54 test files, 로컬 통과)
@@ -373,7 +373,16 @@ build/
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, collabWorker, profileLearner)
 - **배포**: 세션 197 프로덕션 배포 완료 (docs/ 재구조 + registry.ts 경로 수정, GitHub Actions CI/CD 통과)
 
-### 최근 변경 (세션 198)
+### 최근 변경 (세션 199)
+**lint 에러 수정 완료 확인 + /team 스킬 가시성 수정**:
+- ✅ `/team` 스킬 tmux split pane 가시성 문제 해결 (4가지 root cause 진단 및 수정)
+  - `new-window -d` → `new-window` (즉시 포커스 이동, Claude Code TUI 키스트로크 가로채기 우회)
+  - leader window 인덱스 저장 + `tmux select-window`로 자동 복귀
+  - E2E 테스트 2회 (echo 테스트 + claude -p 실제 worker 테스트) 모두 통과
+- ✅ Framework Matrix API 라우트 9개 + 서비스 2개 커밋 (이전 세션 미커밋 파일)
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
+
+### 이전 변경 (세션 198)
 **Framework Matrix P6.0 스키마 구조 셋업**:
 - ✅ Framework Porting PRD 분석 (DiscoveryX_Framework_PRD_Final.docx 785단락 + 3개 참조 문서)
 - ✅ Backend/Frontend/Docs 코드베이스 현황 분석 (3-Worker 병렬)
