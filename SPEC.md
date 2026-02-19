@@ -381,11 +381,24 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, **collabWorker=true(세션 210 활성화)**, profileLearner) — 8/9 true, agentDO만 false (별도 worker 배포 필요)
-- **배포**: 세션 212 프로덕션 배포 완료 (CI/CD 1m57s, 세션 210~212 일괄 배포) — 세션 213~214 미배포
-- **Cron 등록**: cron-job.org 19/19 전체 등록 완료 (세션 212)
+- **배포**: 세션 215 프로덕션 배포 완료 (CI/CD 2m13s, 세션 213~215 일괄 배포)
+- **Cron 등록**: cron-job.org 19/19 전체 등록 완료 (세션 212) — 세션 215에서 19개 전수 검증 완료
+- **OpenAI API 키**: 세션 215에서 갱신 완료 (Cloudflare Pages secret + .dev.vars)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
-### 최근 변경 (세션 214)
+### 최근 변경 (세션 215)
+**Cron 19개 전수 모니터링 + 이슈 3건 수정 + 프로덕션 배포**:
+- ✅ 프로덕션 Cron 엔드포인트 19/19 전수 검증 (Query Param 10 + Bearer 9)
+- ✅ `app/routes/api.cron.agent-review.ts` (수정): Cloudflare 30초 타임아웃 대응
+  - MAX_REVIEWS_PER_RUN=1 (전체 tenant 후보에서 기한 임박 순 1건만 처리)
+  - Promise.race 25초 타임아웃으로 Cloudflare 제한 내 완료 보장
+  - batchSize/totalEligible 응답 필드 추가 (관측성 향상)
+- ✅ `app/routes/api.cron.weekly-summary.ts` (수정): Resend rate limit (2 req/s) 회피
+  - 이메일 전송 간 600ms 딜레이 추가 (for-of → index 기반 루프)
+- ✅ OpenAI API 키 갱신: Cloudflare Pages secret + .dev.vars 업데이트 → embeddings Cron 정상화
+- ✅ CI/CD 배포 완료 (2m13s, 세션 213~215 일괄 배포)
+
+### 이전 변경 (세션 214)
 **P2 통합 시맨틱 검색 페이지** (tmux 2-Worker 병렬):
 - ✅ `app/routes/api.search.ts` (신규): 통합 검색 API — 4개 엔티티(Discovery/Idea/Source/Proposal) 병렬 검색
   - 시맨틱 모드: Vectorize(Discovery/Source) → FTS5 → LIKE 3단 fallback
