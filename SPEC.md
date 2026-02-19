@@ -381,12 +381,17 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, **collabWorker=true(세션 210 활성화)**, profileLearner) — 8/9 true, agentDO만 false (별도 worker 배포 필요)
-- **배포**: 세션 215 프로덕션 배포 완료 (CI/CD 2m13s, 세션 213~215 일괄 배포)
+- **배포**: 세션 216 프로덕션 배포 확인 완료 (CI/CD 재실행 1m55s, 세션 213~215 일괄 배포)
 - **Cron 등록**: cron-job.org 19/19 전체 등록 완료 (세션 212) — 세션 215에서 19개 전수 검증 완료
 - **OpenAI API 키**: 세션 215에서 갱신 완료 (Cloudflare Pages secret + .dev.vars)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
-### 최근 변경 (세션 215)
+### 최근 변경 (세션 216)
+**통합 시맨틱 검색 페이지 배포 완료** — 세션 214에서 Cloudflare 내부 오류로 실패한 배포를 재실행하여 성공:
+- ✅ GitHub Actions CI/CD 재실행: lint/typecheck/tests(969)/build/deploy 전 단계 PASS (1m55s)
+- ✅ https://dx.minu.best/search 프로덕션 접근 가능 확인
+
+### 이전 변경 (세션 215)
 **Cron 19개 전수 모니터링 + 이슈 3건 수정 + 프로덕션 배포**:
 - ✅ 프로덕션 Cron 엔드포인트 19/19 전수 검증 (Query Param 10 + Bearer 9)
 - ✅ `app/routes/api.cron.agent-review.ts` (수정): Cloudflare 30초 타임아웃 대응
