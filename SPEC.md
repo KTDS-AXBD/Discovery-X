@@ -368,25 +368,46 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.17 + P2 통합 시맨틱 검색 페이지 (/search + /api/search + TopNav 검색 아이콘 + 테스트 969개)
+- **프로토타입**: v6.18 + Gate 비판적 검증 4종 + 로그인/로그아웃/승인 개선
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 40개 마이그레이션 (0000~0039), 로컬 + 프로덕션 모두 적용 완료
 
 ### 주요 지표
-- **라우트**: 174개 (+2: /search, /api/search)
-- **테이블**: 87개 (변경 없음, event_logs 기존 테이블 활용)
-- **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
-- **테스트**: 969개 (67 test files, 로컬 통과) — 세션 214 추가: search API 10개
+- **라우트**: 174개 (변경 없음)
+- **테이블**: 87개 (변경 없음)
+- **Agent 도구**: 54개 (변경 없음)
+- **테스트**: 969개 + critical-checks 테스트 추가 (미계수)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
-- **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, **collabWorker=true(세션 210 활성화)**, profileLearner) — 8/9 true, agentDO만 false (별도 worker 배포 필요)
-- **배포**: 세션 216 프로덕션 배포 확인 완료 (CI/CD 재실행 1m55s, 세션 213~215 일괄 배포)
-- **Cron 등록**: cron-job.org 19/19 전체 등록 완료 (세션 212) — 세션 215에서 19개 전수 검증 완료
-- **OpenAI API 키**: 세션 215에서 갱신 완료 (Cloudflare Pages secret + .dev.vars)
+- **Feature Flag**: 9개 — 8/9 true, agentDO만 false
+- **배포**: 미배포 (세션 217 변경분)
+- **Cron 등록**: cron-job.org 19/19 전체 등록 완료
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
-### 최근 변경 (세션 216)
+### 최근 변경 (세션 217)
+**Gate 비판적 검증 4종 + 로그인/로그아웃/승인 프로세스 개선** (tmux 3-Worker 병렬):
+
+**1. Gate 비판적 검증 (Critical Check) — 기획서 §7.3**
+- ✅ `app/lib/validation/discovery-rules.ts` (수정): `validateCriticalChecks()` 추가 — 4종 검증 (Evidence Check, Time Stress Test, Cross-Context Test, Ontology Consistency) 시스템 수준 강제
+- ✅ `app/components/methods/GatePackageEditor.tsx` (수정): Critical Check UI 패널 추가
+- ✅ `app/components/ui/StatusBadge.tsx` (수정): description 프로퍼티 지원
+- ✅ `app/lib/constants/status.ts` (수정): DISCOVERY/IDEA_CARD 상태에 description 추가
+- ✅ `app/lib/notifications/alert-engine.ts` (수정): Critical Check 관련 알림 추가
+- ✅ `app/routes/discoveries.$id.tsx`, `discoveries._index.tsx`, `discoveries_.$id.gate.tsx` (수정): Gate 검증 연동
+- ✅ `tests/unit/validation/critical-checks.test.ts` (신규): Critical Check 테스트
+
+**2. 로그인/로그아웃/승인 프로세스 개선**
+- ✅ `app/components/layout/TopNav.tsx` (수정): UserDropdown 컴포넌트 추가 — 이니셜 아바타 + 이름 클릭 → 드롭다운 메뉴 (이메일, 설정, 사용자 관리(admin만), 로그아웃)
+- ✅ `app/routes/pending.tsx` (수정): 로그아웃 버그 수정 (Link GET → Form POST) + 관리자 연락처 안내 + 승인 상태 확인 버튼
+- ✅ `app/routes/login.tsx` (수정): 신규 방문자 가입 안내 문구 추가
+- ✅ `app/routes/admin.users.tsx` (수정): 승인 시 tenant 멤버십 자동 추가 (중복 체크 포함)
+- ✅ `app/routes/auth.google.callback.tsx` (수정): 화이트리스트 신규 가입 시 기본 tenant 자동 추가
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
+
+**참고**: 화이트리스트 외 Gmail 계정이 Google OAuth 자체에서 차단되는 경우 → GCP Console OAuth consent screen이 "Testing" 모드일 수 있음 → "In production" 전환 또는 테스트 사용자 추가 필요
+
+### 이전 변경 (세션 216)
 **통합 시맨틱 검색 페이지 배포 완료** — 세션 214에서 Cloudflare 내부 오류로 실패한 배포를 재실행하여 성공:
 - ✅ GitHub Actions CI/CD 재실행: lint/typecheck/tests(969)/build/deploy 전 단계 PASS (1m55s)
 - ✅ https://dx.minu.best/search 프로덕션 접근 가능 확인
