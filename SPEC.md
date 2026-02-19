@@ -65,7 +65,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 | P3 협업+통합 | 2~3주 | collab-worker, Pipeline Bridge, Cron, TokenBudget |
 | P4 고도화 | 2주 | ProfileLearner, Graph 롤백 UI, Vectorize, E2E 테스트 |
 
-현재: **P4 고도화 Round 2 진행** (Vectorize 프로덕션 활성화 + 통합 테스트 85개 추가 + 프로덕션 배포) — Phase 5 갭 해소 + PRD v3 재감사 + Framework Matrix P3 완료 기반
+현재: **P4 고도화 Round 2 완료** (Vectorize 프로덕션 활성화 + Memory/Signal Cron + 통합 테스트 115개 + 프로덕션 배포 2회) — Phase 5 갭 해소 + PRD v3 재감사 + Framework Matrix P3 완료 기반
 - Phase 5A (보안·무결성): **완료** — Agent Graph 수정 제한, @id 네이밍 강화, SOUL 역할 템플릿, JSON Schema, ACL policies 분리, 403 메시지 개선
 - Phase 5B (agent-worker DO): **완료** — AgentSessionDO 클래스, Worker 라우팅, HMAC 인증, SSE 스트리밍, alarm flush, 429 동시성, api.chat.ts DO 위임
 - Phase 5C (collab-worker + 스키마): **완료** — collab-worker Cron/fetch 핸들러, notification_queue, tenants 확장(profile_ld/rules_md), cron_logs
@@ -371,7 +371,7 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, **vectorizeSearch=true(프로덕션)**, pipelineBridge, collabWorker, profileLearner)
-- **배포**: 세션 209 프로덕션 배포 완료 (Vectorize 활성화 + 테스트 85개, CI/CD 1m54s) + DB 마이그레이션 0039 프로덕션 적용 완료
+- **배포**: 세션 209 프로덕션 배포 2회 완료 — Round 1 (Vectorize 활성화 + 테스트 85개) + Round 2 (Memory/Signal Cron + 테스트 30개) + DB 마이그레이션 0039 적용
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
 ### 최근 변경 (세션 209)
