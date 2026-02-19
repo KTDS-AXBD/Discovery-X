@@ -64,7 +64,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     let tokens;
     try {
       tokens = await google.validateAuthorizationCode(code, codeVerifier);
-    } catch {
+    } catch (tokenError) {
+      console.error("[auth.google.callback] Token exchange failed:", {
+        error: tokenError instanceof Error ? tokenError.message : tokenError,
+        redirectUri,
+        codeLength: code.length,
+        verifierLength: codeVerifier.length,
+      });
       return redirect("/login?error=token_exchange_failed");
     }
 
