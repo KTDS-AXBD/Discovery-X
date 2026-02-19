@@ -109,13 +109,34 @@ interface SimilarSeed {
   deadEndFailurePattern: string[] | null;
   notNowTriggerType: string | null;
   notNowTriggerCondition: string | null;
+  score?: number;
 }
 
-function SimilarSeedsPanel({ seeds }: { seeds: SimilarSeed[] }) {
+interface SimilarSeedsResponse {
+  results: SimilarSeed[];
+  source?: "vectorize" | "fts5";
+}
+
+const TRIGGER_TYPE_LABELS: Record<string, string> = {
+  Technology_Maturity: "기술 성숙",
+  Policy_Regulation: "정책/규제",
+  Customer_Behavior: "고객 행동",
+  Internal_Capability: "내부 역량",
+};
+
+function SimilarSeedsPanel({ seeds, source }: { seeds: SimilarSeed[]; source?: "vectorize" | "fts5" }) {
   if (seeds.length === 0) return null;
 
   return (
     <AlertBanner variant="warning" title={`유사한 Discovery가 ${seeds.length}건 있습니다`}>
+      <div className="mt-1 flex items-center gap-2">
+        {source === "vectorize" && (
+          <Badge variant="purple" className="text-xs">AI 시맨틱</Badge>
+        )}
+        {source === "fts5" && (
+          <Badge variant="subtle" className="text-xs">텍스트 매칭</Badge>
+        )}
+      </div>
       <div className="mt-3 space-y-3">
         {seeds.map((seed) => (
           <Card key={seed.id} className="p-3">
@@ -126,7 +147,14 @@ function SimilarSeedsPanel({ seeds }: { seeds: SimilarSeed[] }) {
               >
                 {seed.title}
               </Link>
-              <StatusBadge status={seed.status} />
+              <div className="flex items-center gap-2">
+                {seed.score != null && (
+                  <span className="text-xs text-[var(--axis-text-tertiary)]">
+                    {Math.round(seed.score * 100)}%
+                  </span>
+                )}
+                <StatusBadge status={seed.status} />
+              </div>
             </div>
             <p className="mt-1 text-xs text-[var(--axis-text-secondary)] line-clamp-2">{seed.seedSummary}</p>
             {seed.deadEndFailurePattern && seed.deadEndFailurePattern.length > 0 && (
@@ -136,9 +164,14 @@ function SimilarSeedsPanel({ seeds }: { seeds: SimilarSeed[] }) {
                 ))}
               </div>
             )}
+            {seed.status === "DROP" && (
+              <p className="mt-1 text-xs text-[var(--axis-text-error)]">
+                실패 사례 — 동일 패턴에 주의하세요
+              </p>
+            )}
             {seed.status === "HOLD" && seed.notNowTriggerCondition && (
               <p className="mt-1 text-xs text-[var(--axis-text-tertiary)]">
-                트리거: {seed.notNowTriggerCondition}
+                트리거: {seed.notNowTriggerType ? `${TRIGGER_TYPE_LABELS[seed.notNowTriggerType] ?? seed.notNowTriggerType} — ` : ""}{seed.notNowTriggerCondition}
               </p>
             )}
           </Card>
@@ -151,20 +184,24 @@ function SimilarSeedsPanel({ seeds }: { seeds: SimilarSeed[] }) {
 export default function NewDiscovery() {
   const { user } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
+  const [title, setTitle] = useState("");
   const [seedSummary, setSeedSummary] = useState("");
   const [similarSeeds, setSimilarSeeds] = useState<SimilarSeed[]>([]);
+  const [searchSource, setSearchSource] = useState<"vectorize" | "fts5" | undefined>();
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const fetchSimilarSeeds = useCallback(async (query: string) => {
     if (query.length < 5) {
       setSimilarSeeds([]);
+      setSearchSource(undefined);
       return;
     }
     try {
       const res = await fetch(`/api/similar-seeds?q=${encodeURIComponent(query)}&limit=5`);
       if (res.ok) {
-        const data = await res.json() as { results: SimilarSeed[] };
+        const data = await res.json() as SimilarSeedsResponse;
         setSimilarSeeds(data.results);
+        setSearchSource(data.source);
       }
     } catch {
       // Silently fail
@@ -173,13 +210,14 @@ export default function NewDiscovery() {
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    const query = seedSummary.length >= 5 ? seedSummary : title;
     debounceRef.current = setTimeout(() => {
-      fetchSimilarSeeds(seedSummary);
+      fetchSimilarSeeds(query);
     }, 300);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [seedSummary, fetchSimilarSeeds]);
+  }, [title, seedSummary, fetchSimilarSeeds]);
 
   return (
     <AppShell user={user}>
@@ -206,6 +244,8 @@ export default function NewDiscovery() {
                   required
                   maxLength={80}
                   placeholder="80자 이내"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                 />
               </FormField>
 
@@ -220,7 +260,7 @@ export default function NewDiscovery() {
                   onChange={(e) => setSeedSummary(e.target.value)}
                   placeholder="400자 이내"
                 />
-                <SimilarSeedsPanel seeds={similarSeeds} />
+                <SimilarSeedsPanel seeds={similarSeeds} source={searchSource} />
               </FormField>
 
               <FormField label="출처 유형" htmlFor="sourceType" required>

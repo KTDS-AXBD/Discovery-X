@@ -1,6 +1,7 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { Link, useLoaderData, useSearchParams } from "@remix-run/react";
+import { useEffect, useState } from "react";
 import { getDb } from "~/db";
 import { discoveries, users } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
@@ -10,6 +11,7 @@ import { PageHeader } from "~/components/layout/PageHeader";
 import { StatusBadge } from "~/components/ui/StatusBadge";
 import { Badge } from "~/components/ui/Badge";
 import { Button } from "~/components/ui/Button";
+import { SearchInput } from "~/components/ui/SearchInput";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "~/components/ui/Table";
 import { STATUS_CONFIG } from "~/lib/constants/status";
 import { cn } from "~/lib/utils/cn";
@@ -81,10 +83,88 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 
+interface SemanticResult {
+  id: string;
+  title: string;
+  seedSummary: string | null;
+  status: string;
+  score?: number;
+  deadEndFailurePattern?: unknown;
+  notNowTriggerType?: string | null;
+  notNowTriggerCondition?: string | null;
+}
+
+interface SemanticResponse {
+  results: SemanticResult[];
+  source?: "vectorize" | "fts5";
+}
+
+type SearchMode = "text" | "semantic";
+
 export default function DiscoveriesIndex() {
   const { user, discoveries } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
   const currentFilter = searchParams.get("status");
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchMode, setSearchMode] = useState<SearchMode>("text");
+  const [semanticResults, setSemanticResults] = useState<SemanticResult[]>([]);
+  const [semanticSource, setSemanticSource] = useState<
+    "vectorize" | "fts5" | null
+  >(null);
+  const [isSearching, setIsSearching] = useState(false);
+
+  // 시맨틱 검색 디바운스 (300ms)
+  useEffect(() => {
+    if (searchMode !== "semantic" || searchQuery.length < 2) {
+      setSemanticResults([]);
+      setSemanticSource(null);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `/api/similar-seeds?q=${encodeURIComponent(searchQuery)}&limit=10`,
+          { signal: controller.signal },
+        );
+        const data = (await res.json()) as SemanticResponse;
+        setSemanticResults(data.results ?? []);
+        setSemanticSource(data.source ?? null);
+      } catch (err: unknown) {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        setSemanticResults([]);
+        setSemanticSource(null);
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsSearching(false);
+        }
+      }
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [searchQuery, searchMode]);
+
+  const isSemanticView = searchMode === "semantic" && searchQuery.length >= 2;
+
+  // 텍스트 모드: 클라이언트 사이드 필터링
+  const filteredDiscoveries =
+    searchMode === "text" && searchQuery.length >= 2
+      ? discoveries.filter((d) => {
+          const q = searchQuery.toLowerCase();
+          return (
+            d.title.toLowerCase().includes(q) ||
+            (d.seedSummary &&
+              String(d.seedSummary).toLowerCase().includes(q))
+          );
+        })
+      : discoveries;
 
   return (
     <AppShell user={user}>
@@ -138,106 +218,295 @@ export default function DiscoveriesIndex() {
         </Link>
       </div>
 
-      {/* Mobile Cards */}
-      <div className="mt-8 space-y-3 sm:hidden">
-        {discoveries.length === 0 ? (
-          <p className="py-12 text-center text-sm text-[var(--axis-text-tertiary)]">
-            표시할 Discovery가 없습니다.
-          </p>
-        ) : (
-          discoveries.map((discovery) => (
-            <Link
-              key={discovery.id}
-              to={`/discoveries/${discovery.id}`}
-              className={cn(
-                "block rounded-[var(--dx-card-radius)] bg-[var(--dx-surface-card,var(--axis-surface-default))] p-5 border border-[var(--dx-border-subtle,var(--dx-card-border-subtle))] transition-colors hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))]",
-                (discovery.isInboxOverdue || discovery.isOpenOverdue) && "ring-2 ring-[var(--axis-border-error)]"
-              )}
-            >
-              <div className="flex items-start justify-between">
-                <h3 className="text-sm font-medium text-[var(--axis-text-primary)]">
-                  {discovery.title}
-                </h3>
-                <span className="ml-2 shrink-0">
-                  <StatusBadge status={discovery.status} />
-                </span>
-              </div>
-              <div className="mt-2 flex items-center gap-3 text-xs text-[var(--axis-text-tertiary)]">
-                <span>{discovery.ownerName || "미지정"}</span>
-                <span>{formatDate(discovery.createdAt)}</span>
-                {discovery.isInboxOverdue && <Badge variant="destructive">7일 초과</Badge>}
-                {discovery.isOpenOverdue && <Badge variant="destructive">OVERDUE</Badge>}
-              </div>
-            </Link>
-          ))
-        )}
+      {/* 검색 */}
+      <div className="mt-4 flex items-center gap-3">
+        <SearchInput
+          placeholder={
+            searchMode === "semantic"
+              ? "AI 시맨틱 검색..."
+              : "제목, 요약으로 검색..."
+          }
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="max-w-sm flex-1"
+        />
+        <div className="flex items-center gap-1 text-xs">
+          <button
+            type="button"
+            onClick={() => setSearchMode("text")}
+            className={cn(
+              "rounded px-2 py-1 transition-colors",
+              searchMode === "text"
+                ? "bg-[var(--dx-surface-card-hover,var(--axis-surface-tertiary))] text-[var(--axis-text-primary)] font-medium"
+                : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]",
+            )}
+          >
+            텍스트
+          </button>
+          <button
+            type="button"
+            onClick={() => setSearchMode("semantic")}
+            className={cn(
+              "rounded px-2 py-1 transition-colors",
+              searchMode === "semantic"
+                ? "bg-[var(--dx-surface-card-hover,var(--axis-surface-tertiary))] text-[var(--axis-text-primary)] font-medium"
+                : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]",
+            )}
+          >
+            시맨틱 (AI)
+          </button>
+          {searchMode === "semantic" && (
+            <Badge variant="purple" className="ml-1">
+              AI
+            </Badge>
+          )}
+        </div>
       </div>
 
-      {/* Desktop Table */}
-      <div className="mt-8 hidden sm:block">
-        <Table>
-          <TableHeader>
-            <tr>
-              <TableHead className="pl-6">제목</TableHead>
-              <TableHead>상태</TableHead>
-              <TableHead>Owner</TableHead>
-              <TableHead>생성일</TableHead>
-              <TableHead className="text-right pr-6">
-                <span className="sr-only">액션</span>
-              </TableHead>
-            </tr>
-          </TableHeader>
-          <TableBody>
-            {discoveries.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="py-12 text-center text-sm text-[var(--axis-text-tertiary)]">
-                  표시할 Discovery가 없습니다.
-                </td>
-              </tr>
+      {/* 시맨틱 검색 결과 헤더 */}
+      {isSemanticView &&
+        !isSearching &&
+        semanticResults.length > 0 &&
+        semanticSource && (
+          <div className="mt-4 flex items-center gap-2">
+            <Badge
+              variant={
+                semanticSource === "vectorize" ? "purple" : "subtle"
+              }
+            >
+              {semanticSource === "vectorize" ? "Vectorize" : "FTS"}
+            </Badge>
+            <span className="text-xs text-[var(--axis-text-tertiary)]">
+              {semanticResults.length}건 검색됨
+            </span>
+          </div>
+        )}
+
+      {/* 로딩 */}
+      {isSemanticView && isSearching && (
+        <p className="mt-8 py-12 text-center text-sm text-[var(--axis-text-tertiary)]">
+          검색 중...
+        </p>
+      )}
+
+      {/* 시맨틱 검색 결과 */}
+      {isSemanticView && !isSearching && (
+        <>
+          {/* Mobile Cards — Semantic */}
+          <div className="mt-4 space-y-3 sm:hidden">
+            {semanticResults.length === 0 ? (
+              <p className="py-12 text-center text-sm text-[var(--axis-text-tertiary)]">
+                검색 결과가 없습니다.
+              </p>
             ) : (
-              discoveries.map((discovery) => (
-                <TableRow
-                  key={discovery.id}
-                  className={cn(
-                    "transition-colors hover:bg-[var(--axis-surface-secondary)]",
-                    (discovery.isInboxOverdue || discovery.isOpenOverdue) && "bg-[var(--axis-surface-error)]"
-                  )}
+              semanticResults.map((result) => (
+                <Link
+                  key={String(result.id)}
+                  to={`/discoveries/${result.id}`}
+                  className="block rounded-[var(--dx-card-radius)] bg-[var(--dx-surface-card,var(--axis-surface-default))] p-5 border border-[var(--dx-border-subtle,var(--dx-card-border-subtle))] transition-colors hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))]"
                 >
-                  <TableCell className="pl-6 font-medium text-[var(--axis-text-primary)]">
-                    <Link
-                      to={`/discoveries/${discovery.id}`}
-                      className="hover:text-[var(--axis-text-brand)]"
-                    >
-                      {discovery.title}
-                    </Link>
-                    {discovery.isInboxOverdue && (
-                      <Badge variant="destructive" className="ml-2">7일 초과</Badge>
-                    )}
-                    {discovery.isOpenOverdue && (
-                      <Badge variant="destructive" className="ml-2">OVERDUE</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={discovery.status} />
-                  </TableCell>
-                  <TableCell>{discovery.ownerName || "—"}</TableCell>
-                  <TableCell>
-                    {formatDate(discovery.createdAt)}
-                  </TableCell>
-                  <TableCell className="text-right pr-6">
-                    <Link
-                      to={`/discoveries/${discovery.id}`}
-                      className="text-[var(--axis-text-brand)] hover:underline"
-                    >
-                      보기
-                    </Link>
-                  </TableCell>
-                </TableRow>
+                  <div className="flex items-start justify-between">
+                    <h3 className="text-sm font-medium text-[var(--axis-text-primary)]">
+                      {result.title}
+                    </h3>
+                    <span className="ml-2 shrink-0">
+                      <StatusBadge status={result.status} />
+                    </span>
+                  </div>
+                  {result.score != null && (
+                    <div className="mt-2 text-xs text-[var(--axis-text-brand)]">
+                      {Math.round(result.score * 100)}% 유사
+                    </div>
+                  )}
+                </Link>
               ))
             )}
-          </TableBody>
-        </Table>
-      </div>
+          </div>
+
+          {/* Desktop Table — Semantic */}
+          <div className="mt-4 hidden sm:block">
+            <Table>
+              <TableHeader>
+                <tr>
+                  <TableHead className="pl-6">제목</TableHead>
+                  <TableHead>상태</TableHead>
+                  <TableHead>유사도</TableHead>
+                  <TableHead className="text-right pr-6">
+                    <span className="sr-only">액션</span>
+                  </TableHead>
+                </tr>
+              </TableHeader>
+              <TableBody>
+                {semanticResults.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="py-12 text-center text-sm text-[var(--axis-text-tertiary)]"
+                    >
+                      검색 결과가 없습니다.
+                    </td>
+                  </tr>
+                ) : (
+                  semanticResults.map((result) => (
+                    <TableRow key={String(result.id)}>
+                      <TableCell className="pl-6 font-medium text-[var(--axis-text-primary)]">
+                        <Link
+                          to={`/discoveries/${result.id}`}
+                          className="hover:text-[var(--axis-text-brand)]"
+                        >
+                          {result.title}
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge status={result.status} />
+                      </TableCell>
+                      <TableCell>
+                        {result.score != null ? (
+                          <span className="text-xs text-[var(--axis-text-brand)]">
+                            {Math.round(result.score * 100)}%
+                          </span>
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right pr-6">
+                        <Link
+                          to={`/discoveries/${result.id}`}
+                          className="text-[var(--axis-text-brand)] hover:underline"
+                        >
+                          보기
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </>
+      )}
+
+      {/* 일반 목록 (텍스트 모드 또는 검색 미사용) */}
+      {!isSemanticView && (
+        <>
+          {/* Mobile Cards */}
+          <div className="mt-8 space-y-3 sm:hidden">
+            {filteredDiscoveries.length === 0 ? (
+              <p className="py-12 text-center text-sm text-[var(--axis-text-tertiary)]">
+                {searchQuery.length >= 2
+                  ? "검색 결과가 없습니다."
+                  : "표시할 Discovery가 없습니다."}
+              </p>
+            ) : (
+              filteredDiscoveries.map((discovery) => (
+                <Link
+                  key={discovery.id}
+                  to={`/discoveries/${discovery.id}`}
+                  className={cn(
+                    "block rounded-[var(--dx-card-radius)] bg-[var(--dx-surface-card,var(--axis-surface-default))] p-5 border border-[var(--dx-border-subtle,var(--dx-card-border-subtle))] transition-colors hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))]",
+                    (discovery.isInboxOverdue || discovery.isOpenOverdue) &&
+                      "ring-2 ring-[var(--axis-border-error)]",
+                  )}
+                >
+                  <div className="flex items-start justify-between">
+                    <h3 className="text-sm font-medium text-[var(--axis-text-primary)]">
+                      {discovery.title}
+                    </h3>
+                    <span className="ml-2 shrink-0">
+                      <StatusBadge status={discovery.status} />
+                    </span>
+                  </div>
+                  <div className="mt-2 flex items-center gap-3 text-xs text-[var(--axis-text-tertiary)]">
+                    <span>{discovery.ownerName || "미지정"}</span>
+                    <span>{formatDate(discovery.createdAt)}</span>
+                    {discovery.isInboxOverdue && (
+                      <Badge variant="destructive">7일 초과</Badge>
+                    )}
+                    {discovery.isOpenOverdue && (
+                      <Badge variant="destructive">OVERDUE</Badge>
+                    )}
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
+
+          {/* Desktop Table */}
+          <div className="mt-8 hidden sm:block">
+            <Table>
+              <TableHeader>
+                <tr>
+                  <TableHead className="pl-6">제목</TableHead>
+                  <TableHead>상태</TableHead>
+                  <TableHead>Owner</TableHead>
+                  <TableHead>생성일</TableHead>
+                  <TableHead className="text-right pr-6">
+                    <span className="sr-only">액션</span>
+                  </TableHead>
+                </tr>
+              </TableHeader>
+              <TableBody>
+                {filteredDiscoveries.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="py-12 text-center text-sm text-[var(--axis-text-tertiary)]"
+                    >
+                      {searchQuery.length >= 2
+                        ? "검색 결과가 없습니다."
+                        : "표시할 Discovery가 없습니다."}
+                    </td>
+                  </tr>
+                ) : (
+                  filteredDiscoveries.map((discovery) => (
+                    <TableRow
+                      key={discovery.id}
+                      className={cn(
+                        "transition-colors hover:bg-[var(--axis-surface-secondary)]",
+                        (discovery.isInboxOverdue ||
+                          discovery.isOpenOverdue) &&
+                          "bg-[var(--axis-surface-error)]",
+                      )}
+                    >
+                      <TableCell className="pl-6 font-medium text-[var(--axis-text-primary)]">
+                        <Link
+                          to={`/discoveries/${discovery.id}`}
+                          className="hover:text-[var(--axis-text-brand)]"
+                        >
+                          {discovery.title}
+                        </Link>
+                        {discovery.isInboxOverdue && (
+                          <Badge variant="destructive" className="ml-2">
+                            7일 초과
+                          </Badge>
+                        )}
+                        {discovery.isOpenOverdue && (
+                          <Badge variant="destructive" className="ml-2">
+                            OVERDUE
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge status={discovery.status} />
+                      </TableCell>
+                      <TableCell>{discovery.ownerName || "—"}</TableCell>
+                      <TableCell>{formatDate(discovery.createdAt)}</TableCell>
+                      <TableCell className="text-right pr-6">
+                        <Link
+                          to={`/discoveries/${discovery.id}`}
+                          className="text-[var(--axis-text-brand)] hover:underline"
+                        >
+                          보기
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </>
+      )}
     </AppShell>
   );
 }
