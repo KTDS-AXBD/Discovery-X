@@ -16,6 +16,9 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 - DROP: Failure Pattern 태깅 강제
 - Weekly Review 뷰 (활성 Discovery 경과일 순)
 - Recall Queue 뷰 (Revisit 도래 HOLD 목록)
+- Monthly Failure Replay 뷰 (Dead End 큐레이션 + HOLD 재검토 + Failure Pattern 분포)
+- Recall 이벤트 추적 서비스 + API (5종 이벤트: HOLD/DROP/RECALL_TRIGGERED/REVIEWED/PATTERN_REUSED)
+- 운영 지표 대시보드 (v1.4 §10 성공 기준 추적: 28일 종결율, 실험 완료율, Recall 이벤트)
 - 최소 지표 집계/Export
 - Method Pack 12종 라이브러리 + 추천 + 실행 + Gate 패키지 자동 초안 (R1)
 - `/venture/*` sub-app 라우팅 (v4)
@@ -65,7 +68,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 | P3 협업+통합 | 2~3주 | collab-worker, Pipeline Bridge, Cron, TokenBudget |
 | P4 고도화 | 2주 | ProfileLearner, Graph 롤백 UI, Vectorize, E2E 테스트 |
 
-현재: **운영 품질 강화 완료** (Health Check + 모니터링 + E2E + collabWorker FF 활성화 + 테스트 951개) — v3 Architecture P0~P4 전체 완료, 백로그 분석 완료
+현재: **P1 운영 기능 완료** (Failure Replay + Recall 추적 + 운영 지표 대시보드 + 테스트 959개) — v3 Architecture P0~P4 전체 완료, v1.4 운영 미팅/지표 기능 구현
 - Phase 5A (보안·무결성): **완료** — Agent Graph 수정 제한, @id 네이밍 강화, SOUL 역할 템플릿, JSON Schema, ACL policies 분리, 403 메시지 개선
 - Phase 5B (agent-worker DO): **완료** — AgentSessionDO 클래스, Worker 라우팅, HMAC 인증, SSE 스트리밍, alarm flush, 429 동시성, api.chat.ts DO 위임
 - Phase 5C (collab-worker + 스키마): **완료** — collab-worker Cron/fetch 핸들러, notification_queue, tenants 확장(profile_ld/rules_md), cron_logs
@@ -109,6 +112,11 @@ Flow E: Recall (재호출)
 
 Flow F: Weekly Decision Review (30분)
   → 활성 항목을 Age 순 정렬 → Owner 1줄 요약 + 상태 제안
+
+Flow F-2: Monthly Failure Replay (30분)
+  → Dead End 3건 큐레이션 + Revisit 도래 HOLD 재검토
+  → Failure Pattern 정제 (태그/요약/근거 링크)
+  → Not Now 재결정 (Next/Dead End/Not Now 갱신)
 
 Flow G: 방법론 실행 (R1)
   → Method Pack 추천 → 실행 시작 → structured output 저장
@@ -358,23 +366,32 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.15 + 운영 품질 강화 (Health Check + 모니터링 + E2E + FF 활성화 + 테스트 951개)
+- **프로토타입**: v6.16 + P1 운영 기능 (Failure Replay + Recall 추적 + 운영 지표 대시보드 + 테스트 959개)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 40개 마이그레이션 (0000~0039), 로컬 + 프로덕션 모두 적용 완료
 
 ### 주요 지표
-- **라우트**: 169개 (core 47 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 3 + topics 12 + briefing 3 + signals 2 + knowledge 5 + API 41 + matrix 12 + admin 4 + dashboard 2) — Health Check API + 모니터링 대시보드 추가
-- **테이블**: 87개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 9 + matrix 7) — Framework Matrix 7개 테이블 추가 (industries, functions, matrix_cells, individual_scores, consensus_scores, cell_topic_map, scoring_config)
+- **라우트**: 172개 (+3: dashboard.failure-replay, dashboard.ops-metrics, api.recall-events)
+- **테이블**: 87개 (변경 없음, event_logs 기존 테이블 활용)
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
-- **테스트**: 951개 (65 test files, 로컬 통과) — 세션 210 추가: Health 6 + Monitoring 6 + Cron Routes 14 + E2E 7 specs
+- **테스트**: 959개 (66 test files, 로컬 통과) — 세션 211 추가: recall-tracking 8개
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, **collabWorker=true(세션 210 활성화)**, profileLearner) — 8/9 true, agentDO만 false (별도 worker 배포 필요)
-- **배포**: 세션 209 프로덕션 배포 완료 — 세션 210은 로컬 변경만 (배포 미수행)
+- **배포**: 세션 209 프로덕션 배포 완료 — 세션 210~211은 로컬 변경만 (배포 미수행)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
-### 최근 변경 (세션 210)
+### 최근 변경 (세션 211)
+**P1 운영 기능 — Monthly Failure Replay + Recall 이벤트 추적 + 운영 지표 대시보드** (tmux 3-Worker 병렬):
+- ✅ `app/routes/dashboard.failure-replay.tsx` (신규): Monthly Failure Replay 뷰 — Dead End 큐레이션 (최근 30일) + HOLD 재검토 (Revisit Date 도래) + Failure Pattern 분포 카드 + 요약 통계 3종
+- ✅ `app/lib/services/recall-tracking.service.ts` (신규): RecallTrackingService — 5종 이벤트 기록 (HOLD_DECIDED/DROP_DECIDED/RECALL_TRIGGERED/RECALL_REVIEWED/FAILURE_PATTERN_REUSED) + tenant 스코핑 통계 조회 (월별 breakdown 포함)
+- ✅ `app/routes/api.recall-events.ts` (신규): Recall Events API — GET 통계 (날짜 필터) + POST 이벤트 기록 (eventType 기반 분기, 입력 검증)
+- ✅ `app/routes/dashboard.ops-metrics.tsx` (신규): v1.4 §10 운영 지표 대시보드 — P0 성공 기준 배너 + 4개 핵심 MetricCard (28일 종결율/실험 완료율/Recall 이벤트/평균 결정 소요일) + Failure Pattern Top 5 + 주간 종결 트렌드 + Owner 성과 테이블
+- ✅ `tests/unit/services/recall-tracking.test.ts` (신규): 8개 테스트 (5종 이벤트 기록 + 통계 집계 3종)
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공 / 테스트 959/959 PASS
+
+### 이전 변경 (세션 210)
 **운영 품질 강화 — Health Check + 모니터링 + E2E + FF 활성화 + 백로그 분석** (tmux 3-Worker 병렬):
 - ✅ `wrangler.toml` (수정): FF_COLLAB_WORKER=true 전환 (collabWorker 프로덕션 활성화)
 - ✅ `app/routes/api.health.ts` (신규): Health Check API — DB/Vectorize/FF 상태 확인 (인증 불요, 외부 모니터링 연동용)
