@@ -257,6 +257,8 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/api/export*` — Export 4개: discoveries/discoveries-json/brief.$id/metrics
 - `/api/radar*` — Radar API 6개: runs/sources/trigger/summarize/items.$id.status/items.$id.reaction
 - `/api/similar*` — 유사 검색 2개: similar-seeds/similar-sources
+- `/api/search` — 통합 검색 API (4개 엔티티 병렬, Vectorize/FTS5/LIKE fallback)
+- `/search` — 통합 검색 페이지 (텍스트/시맨틱 모드, 카테고리 탭)
 - `/api/tenant.switch` — 테넌트 전환 (1)
 
 **라우트 합계**: Core 47 + Ideas 8 + Proposals 7 + Lab 7 + Venture 13 + Agent 4 + Profile 3 + Topics 12 + Briefing 3 + Signals 2 + Knowledge 5 + API 37 + 미분류 2 = **150**
@@ -366,24 +368,39 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.17 + P2 Vectorize 시맨틱 검색 UI (Discovery 목록 검색 + 유사 패널 고도화 + 테스트 959개)
+- **프로토타입**: v6.17 + P2 통합 시맨틱 검색 페이지 (/search + /api/search + TopNav 검색 아이콘 + 테스트 969개)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 40개 마이그레이션 (0000~0039), 로컬 + 프로덕션 모두 적용 완료
 
 ### 주요 지표
-- **라우트**: 172개 (변경 없음, 기존 라우트 UI 강화)
+- **라우트**: 174개 (+2: /search, /api/search)
 - **테이블**: 87개 (변경 없음, event_logs 기존 테이블 활용)
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
-- **테스트**: 959개 (66 test files, 로컬 통과) — 세션 211 추가: recall-tracking 8개
+- **테스트**: 969개 (67 test files, 로컬 통과) — 세션 214 추가: search API 10개
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, **collabWorker=true(세션 210 활성화)**, profileLearner) — 8/9 true, agentDO만 false (별도 worker 배포 필요)
-- **배포**: 세션 212 프로덕션 배포 완료 (CI/CD 1m57s, 세션 210~212 일괄 배포) — 세션 213 미배포
+- **배포**: 세션 212 프로덕션 배포 완료 (CI/CD 1m57s, 세션 210~212 일괄 배포) — 세션 213~214 미배포
 - **Cron 등록**: cron-job.org 19/19 전체 등록 완료 (세션 212)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
-### 최근 변경 (세션 213)
+### 최근 변경 (세션 214)
+**P2 통합 시맨틱 검색 페이지** (tmux 2-Worker 병렬):
+- ✅ `app/routes/api.search.ts` (신규): 통합 검색 API — 4개 엔티티(Discovery/Idea/Source/Proposal) 병렬 검색
+  - 시맨틱 모드: Vectorize(Discovery/Source) → FTS5 → LIKE 3단 fallback
+  - 텍스트 모드: FTS5(Discovery) + LIKE(나머지) 병렬 검색
+  - type/mode/limit 파라미터 + tenant 스코핑 + 부분 실패 허용 (개별 try-catch)
+  - type=all일 때 ceil(limit/4) 균등 분배
+- ✅ `app/routes/search.tsx` (신규): /search 통합 검색 전용 페이지
+  - 중앙 검색바 + 텍스트/시맨틱(AI) 모드 토글 + 300ms 디바운스 + AbortController
+  - 5개 카테고리 탭 (전체/Discovery/아이디어/소스/사업제안) + 결과 수 표시
+  - 반응형 결과 카드 (모바일 카드 + 데스크톱 행) + 유사도 점수/소스 배지
+- ✅ `app/components/layout/TopNav.tsx` (수정): 우측에 검색 돋보기 아이콘 추가 (→ /search 링크)
+- ✅ `tests/unit/api/search.test.ts` (신규): 통합 검색 API 10개 테스트 (인증/파라미터 검증/응답 구조/fallback)
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공 / 테스트 969/969 PASS
+
+### 이전 변경 (세션 213)
 **P2 Vectorize 시맨틱 검색 UI** (tmux 2-Worker 병렬):
 - ✅ `app/routes/discoveries._index.tsx` (수정): Discovery 목록 검색 기능 추가
   - SearchInput + 텍스트/시맨틱(AI) 모드 토글
