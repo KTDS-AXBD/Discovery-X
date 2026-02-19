@@ -376,7 +376,7 @@ build/
 - **라우트**: 174개 (변경 없음)
 - **테이블**: 87개 (변경 없음)
 - **Agent 도구**: 54개 (변경 없음)
-- **테스트**: 969개 + critical-checks 테스트 추가 (미계수)
+- **테스트**: 984개 (68 test files, 로컬 통과) — 세션 217 추가: critical-checks 15개
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
@@ -386,16 +386,24 @@ build/
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
 ### 최근 변경 (세션 217)
-**Gate 비판적 검증 4종 + 로그인/로그아웃/승인 프로세스 개선** (tmux 3-Worker 병렬):
+**운영 품질 강화 4건 + 로그인/승인 프로세스 개선** (tmux 2-Worker 병렬):
 
-**1. Gate 비판적 검증 (Critical Check) — 기획서 §7.3**
-- ✅ `app/lib/validation/discovery-rules.ts` (수정): `validateCriticalChecks()` 추가 — 4종 검증 (Evidence Check, Time Stress Test, Cross-Context Test, Ontology Consistency) 시스템 수준 강제
-- ✅ `app/components/methods/GatePackageEditor.tsx` (수정): Critical Check UI 패널 추가
-- ✅ `app/components/ui/StatusBadge.tsx` (수정): description 프로퍼티 지원
-- ✅ `app/lib/constants/status.ts` (수정): DISCOVERY/IDEA_CARD 상태에 description 추가
-- ✅ `app/lib/notifications/alert-engine.ts` (수정): Critical Check 관련 알림 추가
-- ✅ `app/routes/discoveries.$id.tsx`, `discoveries._index.tsx`, `discoveries_.$id.gate.tsx` (수정): Gate 검증 연동
-- ✅ `tests/unit/validation/critical-checks.test.ts` (신규): Critical Check 테스트
+**1. Gate 비판적 검증 4종 (Critical Check) — 기획서 §7.3**
+- ✅ `app/lib/validation/discovery-rules.ts` (수정): `validateCriticalChecks()` + `CriticalCheckResult` 인터페이스 추가 — Evidence Check, Time Stress Test, Cross-Context Test, Ontology Consistency 시스템 수준 강제
+- ✅ `app/routes/discoveries_.$id.gate.tsx` (수정): Gate 초안 시 검증 호출 + scorecard.criticalChecks 저장
+- ✅ `app/components/methods/GatePackageEditor.tsx` (수정): Critical Check 결과 UI 패널 (pass/fail 아이콘 + 상세 메시지)
+- ✅ `tests/unit/validation/critical-checks.test.ts` (신규): 15개 테스트 (4종 × pass/fail + 경계 케이스)
+
+**2. Inbox UI 분리 — 기획서 §6 Seed Inbox**
+- ✅ `app/lib/constants/status.ts` (수정): STATUS_CONFIG에 `description` 필드 추가 (DISCOVERY="임시", IDEA_CARD="검증 진행")
+- ✅ `app/components/ui/StatusBadge.tsx` (수정): DISCOVERY 상태 → 점선 border(`border-dashed`) + "(임시)" 접미사
+- ✅ `app/routes/discoveries._index.tsx` (수정): "Inbox (임시)" 탭 레이블 + 7일 초과 경고 강화 + 승격 안내 텍스트
+
+**3. Inbox TTL 자동 리마인드 — 기획서 §6**
+- ✅ `app/lib/notifications/alert-engine.ts` (수정): INBOX_TTL 알림 규칙 추가 (DISCOVERY 상태 7일 초과 스캔, 중복 방지)
+
+**4. Owner 인수인계 기록 강제 — 기획서 §6.1**
+- ✅ `app/routes/discoveries.$id.tsx` (수정): changeOwner에 handoverNote textarea 필수화 (10자 이상) + eventLogs metadata 기록
 
 **2. 로그인/로그아웃/승인 프로세스 개선**
 - ✅ `app/components/layout/TopNav.tsx` (수정): UserDropdown 컴포넌트 추가 — 이니셜 아바타 + 이름 클릭 → 드롭다운 메뉴 (이메일, 설정, 사용자 관리(admin만), 로그아웃)
