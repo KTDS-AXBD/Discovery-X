@@ -75,6 +75,9 @@ export default function Login() {
           <p className="text-center text-xs text-[var(--axis-text-tertiary)]">
             Google 계정으로 로그인합니다
           </p>
+          <p className="text-center text-xs text-[var(--axis-text-tertiary)]">
+            처음 방문하시나요? Google 로그인 후 관리자 승인을 거쳐 이용하실 수 있습니다.
+          </p>
         </CardContent>
       </Card>
       <p className="mt-6 text-xs text-[var(--axis-text-tertiary)]">

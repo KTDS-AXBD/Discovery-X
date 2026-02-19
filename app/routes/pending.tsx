@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { redirect } from "@remix-run/cloudflare";
-import { Link, useLoaderData } from "@remix-run/react";
+import { Form, Link, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { UserRole } from "~/db/schema";
 import {
@@ -60,12 +60,29 @@ export default function Pending() {
             관리자 승인 후 Discovery-X를 이용하실 수 있습니다.
           </p>
 
-          <div className="pt-2">
-            <Link to="/logout">
-              <Button variant="secondary" className="w-full">
-                로그아웃
+          <div className="rounded-lg bg-[var(--axis-surface-secondary)] p-4 text-left">
+            <p className="text-xs font-medium text-[var(--axis-text-secondary)]">
+              승인 문의
+            </p>
+            <p className="mt-1 text-sm text-[var(--axis-text-primary)]">
+              sinclairseo@gmail.com
+              <span className="ml-1 text-xs text-[var(--axis-text-tertiary)]">
+                (서비스 관리자)
+              </span>
+            </p>
+          </div>
+
+          <div className="space-y-2 pt-2">
+            <Link to="/pending" reloadDocument>
+              <Button variant="outline" className="w-full">
+                승인 상태 확인
               </Button>
             </Link>
+            <Form method="post" action="/logout">
+              <Button type="submit" variant="secondary" className="w-full">
+                로그아웃
+              </Button>
+            </Form>
           </div>
         </CardContent>
       </Card>

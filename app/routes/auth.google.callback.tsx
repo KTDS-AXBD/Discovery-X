@@ -1,8 +1,8 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { redirect } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { users, tenantMembers, UserRole } from "~/db/schema";
-import { eq } from "drizzle-orm";
+import { users, tenants, tenantMembers, UserRole } from "~/db/schema";
+import { eq, and } from "drizzle-orm";
 import {
   createGoogleClient,
   getRedirectUri,
@@ -118,6 +118,31 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         user = await db.query.users.findFirst({
           where: eq(users.id, userId),
         });
+
+        // 화이트리스트 사용자는 기본 tenant에 자동 추가
+        if (isWhitelisted && user) {
+          const defaultTenant = await db.query.tenants.findFirst({
+            where: eq(tenants.status, "active"),
+          });
+
+          if (defaultTenant) {
+            const existingMember = await db.query.tenantMembers.findFirst({
+              where: and(
+                eq(tenantMembers.tenantId, defaultTenant.id),
+                eq(tenantMembers.userId, user.id)
+              ),
+            });
+
+            if (!existingMember) {
+              await db.insert(tenantMembers).values({
+                id: `tm-${crypto.randomUUID().slice(0, 8)}`,
+                tenantId: defaultTenant.id,
+                userId: user.id,
+                role: user.email === "sinclairseo@gmail.com" ? "admin" : "member",
+              });
+            }
+          }
+        }
       }
     } else {
       // Update avatar/name on each login

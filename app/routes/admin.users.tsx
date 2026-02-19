@@ -2,9 +2,14 @@ import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/cloudfla
 import { json } from "@remix-run/cloudflare";
 import { Form, useLoaderData, useActionData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { users, UserRole } from "~/db/schema";
-import { eq } from "drizzle-orm";
-import { requireAdmin, getSessionSecret } from "~/lib/auth/session.server";
+import { users, tenantMembers, UserRole } from "~/db/schema";
+import { eq, and } from "drizzle-orm";
+import {
+  requireAdmin,
+  getSessionSecret,
+  createSessionStorage,
+  isSecureCookie,
+} from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Button } from "~/components/ui/Button";
@@ -52,6 +57,31 @@ export async function action({ request, context }: ActionFunctionArgs) {
     .update(users)
     .set({ role: newRole })
     .where(eq(users.id, userId));
+
+  // 승인 시 tenant 멤버십 자동 추가
+  if (intent !== "reject" && newRole !== "pending") {
+    const sessionStorage = createSessionStorage(secret, isSecureCookie(request));
+    const session = await sessionStorage.getSession(request.headers.get("Cookie"));
+    const tenantId = session.get("tenantId");
+
+    if (tenantId) {
+      const existingMember = await db.query.tenantMembers.findFirst({
+        where: and(
+          eq(tenantMembers.tenantId, tenantId),
+          eq(tenantMembers.userId, userId)
+        ),
+      });
+
+      if (!existingMember) {
+        await db.insert(tenantMembers).values({
+          id: `tm-${crypto.randomUUID().slice(0, 8)}`,
+          tenantId,
+          userId,
+          role: "member",
+        });
+      }
+    }
+  }
 
   return json({ success: true });
 }
