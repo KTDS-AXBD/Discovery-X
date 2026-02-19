@@ -65,13 +65,19 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     try {
       tokens = await google.validateAuthorizationCode(code, codeVerifier);
     } catch (tokenError) {
+      const errMsg = tokenError instanceof Error ? tokenError.message : String(tokenError);
+      const errCode = (tokenError as { code?: string }).code || "unknown";
+      const errDesc = (tokenError as { description?: string }).description || "";
       console.error("[auth.google.callback] Token exchange failed:", {
-        error: tokenError instanceof Error ? tokenError.message : tokenError,
+        error: errMsg,
+        code: errCode,
+        description: errDesc,
         redirectUri,
         codeLength: code.length,
         verifierLength: codeVerifier.length,
       });
-      return redirect("/login?error=token_exchange_failed");
+      const detail = encodeURIComponent(`${errCode}:${errDesc || errMsg}`);
+      return redirect(`/login?error=token_exchange_failed&detail=${detail}`);
     }
 
     // Fetch user info from Google

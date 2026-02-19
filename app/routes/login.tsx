@@ -7,7 +7,8 @@ import { AlertBanner } from "~/components/ui/AlertBanner";
 export async function loader({ request, context: _context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const error = url.searchParams.get("error");
-  return json({ error });
+  const detail = url.searchParams.get("detail");
+  return json({ error, detail });
 }
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -20,7 +21,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 export default function Login() {
-  const { error } = useLoaderData<typeof loader>();
+  const { error, detail } = useLoaderData<typeof loader>();
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--dx-surface-deep,var(--axis-surface-secondary))]" style={{ background: "linear-gradient(135deg, var(--dx-surface-deep, var(--axis-surface-secondary)) 0%, var(--dx-surface-panel, var(--axis-surface-default)) 50%, var(--dx-surface-deep, var(--axis-surface-secondary)) 100%)" }}>
@@ -42,6 +43,9 @@ export default function Login() {
           {error && (
             <AlertBanner variant="destructive">
               {ERROR_MESSAGES[error] || "로그인 중 오류가 발생했습니다."}
+              {detail && (
+                <span className="mt-1 block text-xs opacity-70">{detail}</span>
+              )}
             </AlertBanner>
           )}
 
