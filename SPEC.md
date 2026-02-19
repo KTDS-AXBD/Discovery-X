@@ -379,10 +379,20 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, **collabWorker=true(세션 210 활성화)**, profileLearner) — 8/9 true, agentDO만 false (별도 worker 배포 필요)
-- **배포**: 세션 209 프로덕션 배포 완료 — 세션 210~211은 로컬 변경만 (배포 미수행)
+- **배포**: 세션 209 프로덕션 배포 완료 — 세션 210~212은 로컬 변경만 (배포 미수행)
+- **Cron 등록**: cron-job.org 19/19 전체 등록 완료 (세션 212)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
-### 최근 변경 (세션 211)
+### 최근 변경 (세션 212)
+**Cron 일괄 등록 + 프로덕션 E2E 검증** (Playwright + cron-job.org REST API):
+- ✅ cron-job.org REST API로 19개 Cron 엔드포인트 일괄 등록 완료 (2 PATCH + 15 PUT, 17/17 OK)
+  - Phase 1: `daily`(7211996), `agent-review`(7213910) 시크릿 수정 (이전 시크릿 → CRON_SECRET)
+  - Phase 2: Query Param 엔드포인트 7건 신규 등록 (lab-extract~signal-route)
+  - Phase 3: Bearer 엔드포인트 8건 신규 등록 (memory-vectorize~briefing)
+- ✅ 프로덕션 E2E 검증 5/5 PASS (Health + Memory/Signal/Graph Vectorize + Daily)
+- ✅ `docs/ops/cron-registration-guide.md` 업데이트: "미등록 12개" 섹션 제거 → 19개 단일 테이블 + Job ID 기록
+
+### 이전 변경 (세션 211)
 **P1 운영 기능 — Monthly Failure Replay + Recall 이벤트 추적 + 운영 지표 대시보드** (tmux 3-Worker 병렬):
 - ✅ `app/routes/dashboard.failure-replay.tsx` (신규): Monthly Failure Replay 뷰 — Dead End 큐레이션 (최근 30일) + HOLD 재검토 (Revisit Date 도래) + Failure Pattern 분포 카드 + 요약 통계 3종
 - ✅ `app/lib/services/recall-tracking.service.ts` (신규): RecallTrackingService — 5종 이벤트 기록 (HOLD_DECIDED/DROP_DECIDED/RECALL_TRIGGERED/RECALL_REVIEWED/FAILURE_PATTERN_REUSED) + tenant 스코핑 통계 조회 (월별 breakdown 포함)
