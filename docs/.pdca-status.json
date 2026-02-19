@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-19T00:25:35.392Z",
+  "lastUpdated": "2026-02-19T01:03:37.518Z",
   "activeFeatures": [
     "routes",
     "auth",
@@ -58,7 +58,9 @@
     "scoring-batch.test.ts",
     "admin",
     "e2e",
-    "scripts"
+    "scripts",
+    "recall-tracking.service.ts",
+    "recall-tracking.test.ts"
   ],
   "primaryFeature": "ontology-intelligence",
   "features": {
@@ -95,9 +97,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T11:39:12.844Z",
-        "lastUpdated": "2026-02-19T00:25:29.135Z"
+        "lastUpdated": "2026-02-19T00:55:34.045Z"
       },
-      "lastFile": "/home/sinclair/.claude-work/Discovery-X/app/routes/admin.monitoring.tsx"
+      "lastFile": "/home/sinclair/.claude-work/Discovery-X/app/routes/api.recall-events.ts"
     },
     "auth": {
       "phase": "do",
@@ -840,6 +842,32 @@
         "lastUpdated": "2026-02-19T00:18:37.879Z"
       },
       "lastFile": "/home/sinclair/.claude-work/Discovery-X/scripts/verify-vectorize-production.sh"
+    },
+    "recall-tracking.service.ts": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-19T00:54:55.605Z",
+        "lastUpdated": "2026-02-19T01:00:30.334Z"
+      },
+      "lastFile": "/home/sinclair/.claude-work/Discovery-X/app/lib/services/recall-tracking.service.ts"
+    },
+    "recall-tracking.test.ts": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-19T00:56:56.787Z",
+        "lastUpdated": "2026-02-19T01:03:37.518Z"
+      },
+      "lastFile": "/home/sinclair/.claude-work/Discovery-X/tests/unit/services/recall-tracking.test.ts"
     }
   },
   "pipeline": {
@@ -850,7 +878,7 @@
   "session": {
     "startedAt": "2026-02-04T11:05:49.371Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-19T00:25:35.392Z"
+    "lastActivity": "2026-02-19T01:03:37.518Z"
   },
   "history": [
     {
@@ -9316,6 +9344,72 @@
     {
       "timestamp": "2026-02-19T00:25:35.392Z",
       "feature": "integration",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-19T00:54:34.846Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-19T00:54:55.605Z",
+      "feature": "recall-tracking.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-19T00:55:27.176Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-19T00:55:34.045Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-19T00:56:56.787Z",
+      "feature": "recall-tracking.test.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-19T00:57:12.187Z",
+      "feature": "recall-tracking.test.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-19T00:57:17.599Z",
+      "feature": "recall-tracking.test.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-19T00:57:26.506Z",
+      "feature": "recall-tracking.test.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-19T00:58:47.981Z",
+      "feature": "recall-tracking.test.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-19T01:00:30.334Z",
+      "feature": "recall-tracking.service.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-19T01:03:37.518Z",
+      "feature": "recall-tracking.test.ts",
       "phase": "do",
       "action": "updated"
     }
