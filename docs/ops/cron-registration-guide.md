@@ -2,7 +2,7 @@
 
 > 프로덕션 URL: **https://dx.minu.best**
 > 외부 Cron 서비스: **cron-job.org**
-> 최종 업데이트: 2026-02-19
+> 최종 업데이트: 2026-02-19 (19개 전체 등록 완료)
 
 ---
 
@@ -18,36 +18,31 @@
 
 ---
 
-## 전체 Cron 엔드포인트 목록 (19개)
+## 전체 Cron 엔드포인트 목록 (19개) — 전체 등록 완료
 
-### 등록 완료 (7개)
+> 2026-02-19 cron-job.org REST API로 일괄 등록 완료 (17 OK / 0 FAIL)
 
-| # | 엔드포인트 | HTTP | 인증 | Feature Flag | 환경 변수/바인딩 | 권장 스케줄 |
-|---|----------|------|------|-------------|----------------|-----------|
-| 1 | `/api/cron/daily` | GET | Query Param | — | DB, RESEND_API_KEY | 매일 09:00 KST |
-| 2 | `/api/cron/agent-review` | POST | Query Param | — (autonomyLevel ≥ 2) | DB, ANTHROPIC_API_KEY | 매일 10:00 KST |
-| 3 | `/api/cron/alerts` | GET | Query Param | — | DB | 매일 09:30 KST |
-| 4 | `/api/cron/embeddings` | GET | Query Param | — | DB, OPENAI_API_KEY, VECTORIZE_DISCOVERIES, VECTORIZE_EVIDENCE | 매 30분 |
-| 5 | `/api/cron/lab-extract` | GET | Query Param | — | DB, ANTHROPIC_API_KEY | 매일 11:00 KST |
-| 6 | `/api/cron/lab-analyze` | GET | Query Param | — | DB | 매일 12:00 KST |
-| 7 | `/api/cron/signal-route` | GET | Bearer | `pipelineBridge` | DB | 매 15분 |
-
-### 미등록 — 등록 필요 (12개)
-
-| # | 엔드포인트 | HTTP | 인증 | Feature Flag | 환경 변수/바인딩 | 권장 스케줄 |
-|---|----------|------|------|-------------|----------------|-----------|
-| 8 | `/api/cron/memory-vectorize` | GET | Bearer | `vectorizeSearch` | DB, OPENAI_API_KEY, VECTORIZE_MEMORY | 매 30분 |
-| 9 | `/api/cron/signal-vectorize` | GET | Bearer | `vectorizeSearch` | DB, OPENAI_API_KEY, VECTORIZE_SIGNALS | 매 30분 |
-| 10 | `/api/cron/graph-vectorize` | GET | Bearer | `vectorizeSearch` | DB, OPENAI_API_KEY, VECTORIZE_GRAPHS | 매 30분 |
-| 11 | `/api/cron/memory-compact` | POST | Bearer | — | DB | 매주 일요일 03:00 KST |
-| 12 | `/api/cron/projection-sync` | POST | Bearer | — | DB | 매주 일요일 04:00 KST |
-| 13 | `/api/cron/profile-learn` | GET | Bearer | `profileLearner` | DB | 매주 일요일 05:00 KST |
-| 14 | `/api/cron/matrix-scoring` | POST | Bearer | — | DB | 매일 06:30 KST |
-| 15 | `/api/cron/pattern-extract` | GET | Query Param | — | DB | 매일 04:00 KST |
-| 16 | `/api/cron/shadow-analyze` | GET | Query Param | — | DB | 매일 05:00 KST |
-| 17 | `/api/cron/briefing` | POST | Bearer | — | DB | 매일 07:00 KST |
-| 18 | `/api/cron/weekly-summary` | GET | Query Param | — | DB, RESEND_API_KEY | 매주 월요일 09:00 KST |
-| 19 | `/api/cron/log-archive` | GET | Query Param | — | DB | 매주 일요일 03:00 KST |
+| # | 엔드포인트 | HTTP | 인증 | Feature Flag | 권장 스케줄 | cron-job.org ID |
+|---|----------|------|------|-------------|-----------|----------------|
+| 1 | `/api/cron/daily` | GET | Query Param | — | 매일 09:00 KST | 7211996 |
+| 2 | `/api/cron/agent-review` | POST | Query Param | — (autonomyLevel ≥ 2) | 매일 10:00 KST | 7213910 |
+| 3 | `/api/cron/alerts` | GET | Query Param | — | 매일 09:30 KST | (기존) |
+| 4 | `/api/cron/embeddings` | GET | Query Param | — | 매 30분 | (기존) |
+| 5 | `/api/cron/lab-extract` | GET | Query Param | — | 매일 11:00 KST | 7288782 |
+| 6 | `/api/cron/lab-analyze` | GET | Query Param | — | 매일 12:00 KST | 7288783 |
+| 7 | `/api/cron/pattern-extract` | GET | Query Param | — | 매일 04:00 KST | 7288784 |
+| 8 | `/api/cron/shadow-analyze` | GET | Query Param | — | 매일 05:00 KST | 7288785 |
+| 9 | `/api/cron/weekly-summary` | GET | Query Param | — | 매주 월요일 09:00 KST | 7288786 |
+| 10 | `/api/cron/log-archive` | GET | Query Param | — | 매주 일요일 03:00 KST | 7288788 |
+| 11 | `/api/cron/signal-route` | GET | Bearer | `pipelineBridge` | 매 15분 | 7288789 |
+| 12 | `/api/cron/memory-vectorize` | GET | Bearer | `vectorizeSearch` | 매 30분 | 7288790 |
+| 13 | `/api/cron/signal-vectorize` | GET | Bearer | `vectorizeSearch` | 매 30분 | 7288792 |
+| 14 | `/api/cron/graph-vectorize` | GET | Bearer | `vectorizeSearch` | 매 30분 | 7288794 |
+| 15 | `/api/cron/memory-compact` | POST | Bearer | — | 매주 일요일 03:00 KST | 7288796 |
+| 16 | `/api/cron/projection-sync` | POST | Bearer | — | 매주 일요일 04:00 KST | 7288798 |
+| 17 | `/api/cron/profile-learn` | GET | Bearer | `profileLearner` | 매주 일요일 05:00 KST | 7288799 |
+| 18 | `/api/cron/matrix-scoring` | POST | Bearer | — | 매일 06:30 KST | 7288800 |
+| 19 | `/api/cron/briefing` | POST | Bearer | — | 매일 07:00 KST | 7288801 |
 
 ---
 
