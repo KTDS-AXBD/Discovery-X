@@ -5,6 +5,7 @@
  */
 
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
+import type { InferSelectModel } from "drizzle-orm";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { discoveries, agentConfig, conversations, tenants } from "~/db/schema";
@@ -49,21 +50,22 @@ export async function action({ request, context }: ActionFunctionArgs) {
     .where(eq(tenants.status, "active"));
 
   const now = new Date();
-  let totalReviewed = 0;
-  let totalToolCalls = 0;
-  const totalTokensUsed = { input: 0, output: 0 };
-  const reviewErrors: string[] = [];
+
+  // Cloudflare 30초 타임아웃 대응: 전체 tenant에서 리뷰 대상을 모은 뒤 1건만 처리
+  const MAX_REVIEWS_PER_RUN = 1;
+  const REVIEW_TIMEOUT_MS = 25_000;
+
+  // 모든 tenant의 리뷰 대상을 수집
+  type Discovery = InferSelectModel<typeof discoveries>;
+  const allCandidates: { tenantId: string; discovery: Discovery }[] = [];
 
   for (const tenant of activeTenants) {
-    const tenantId = tenant.id;
-
-    // Find active discoveries past 50% of their time-box for this tenant
     const openDiscoveries = await db
       .select()
       .from(discoveries)
       .where(and(
         inArray(discoveries.status, [...ACTIVE_STATUSES]),
-        eq(discoveries.tenantId, tenantId)
+        eq(discoveries.tenantId, tenant.id)
       ));
 
     const needsReview = openDiscoveries.filter((d) => {
@@ -75,11 +77,30 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return total > 0 && elapsed / total >= 0.5;
     });
 
-    if (needsReview.length === 0) {
-      continue;
+    for (const d of needsReview) {
+      allCandidates.push({ tenantId: tenant.id, discovery: d });
     }
+  }
 
-    // Create a system conversation for agent review
+  if (allCandidates.length === 0) {
+    return json({ message: "No discoveries need review", reviewed: 0, totalEligible: 0 });
+  }
+
+  // 기한 임박 순 정렬 후 최대 1건만 처리
+  allCandidates.sort((a, b) => {
+    const aDue = a.discovery.dueDate ? new Date(a.discovery.dueDate).getTime() : Infinity;
+    const bDue = b.discovery.dueDate ? new Date(b.discovery.dueDate).getTime() : Infinity;
+    return aDue - bDue;
+  });
+  const batch = allCandidates.slice(0, MAX_REVIEWS_PER_RUN);
+  const totalEligible = allCandidates.length;
+
+  let totalReviewed = 0;
+  let totalToolCalls = 0;
+  const totalTokensUsed = { input: 0, output: 0 };
+  const reviewErrors: string[] = [];
+
+  for (const { tenantId, discovery } of batch) {
     const conversationId = crypto.randomUUID();
     await db.insert(conversations).values({
       id: conversationId,
@@ -89,34 +110,37 @@ export async function action({ request, context }: ActionFunctionArgs) {
     });
 
     const reviewPrompt = [
-      `오늘 자율 리뷰를 시작합니다. 리뷰 대상 Discovery ${needsReview.length}건:`,
-      ...needsReview.map((d) =>
-        `- [${d.id.slice(0, 8)}] ${d.title} (기한: ${d.dueDate ? formatDate(d.dueDate) : "없음"})`
-      ),
+      `오늘 자율 리뷰를 시작합니다. 리뷰 대상 Discovery 1건:`,
+      `- [${discovery.id.slice(0, 8)}] ${discovery.title} (기한: ${discovery.dueDate ? formatDate(discovery.dueDate) : "없음"})`,
       "",
-      "각 Discovery의 상세를 확인하고, 실험/근거를 분석하여 적절한 행동을 취해주세요.",
+      "이 Discovery의 상세를 확인하고, 실험/근거를 분석하여 적절한 행동을 취해주세요.",
       "필요시 상태 전환(NEXT/NOT_NOW/DEAD_END)을 자율적으로 수행하세요.",
     ].join("\n");
 
     try {
-      const result = await executeAgentTurn(db, apiKey, conversationId, reviewPrompt);
-      totalReviewed += needsReview.length;
+      // 25초 타임아웃으로 Cloudflare 30초 제한 내 완료 보장
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Review timeout (25s)")), REVIEW_TIMEOUT_MS)
+      );
+      const result = await Promise.race([
+        executeAgentTurn(db, apiKey, conversationId, reviewPrompt),
+        timeoutPromise,
+      ]);
+      totalReviewed += 1;
       totalToolCalls += result.toolCalls.length;
       totalTokensUsed.input += result.tokensUsed.input;
       totalTokensUsed.output += result.tokensUsed.output;
     } catch (error) {
-      reviewErrors.push(`tenant ${tenantId}: ${error instanceof Error ? error.message : "Unknown error"}`);
+      reviewErrors.push(`tenant ${tenantId}, discovery ${discovery.id.slice(0, 8)}: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
-  } // end tenant loop
-
-  if (totalReviewed === 0 && reviewErrors.length === 0) {
-    return json({ message: "No discoveries need review", reviewed: 0 });
   }
 
   if (reviewErrors.length > 0) {
     return json({
       message: "Agent review completed with errors",
       reviewed: totalReviewed,
+      batchSize: batch.length,
+      totalEligible,
       toolCalls: totalToolCalls,
       tokensUsed: totalTokensUsed,
       errors: reviewErrors,
@@ -126,6 +150,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
   return json({
     message: "Agent review completed",
     reviewed: totalReviewed,
+    batchSize: batch.length,
+    totalEligible,
     toolCalls: totalToolCalls,
     tokensUsed: totalTokensUsed,
   });

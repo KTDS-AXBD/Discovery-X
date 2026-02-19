@@ -97,10 +97,15 @@ export async function runWeeklySummary(env: CronEnv): Promise<{ sent: number; er
       .filter((u) => tenantUserIds.has(u.id) && !u.email.endsWith("@system"))
       .map((u) => u.email);
 
-    for (const email of recipients) {
+    for (let i = 0; i < recipients.length; i++) {
+      const email = recipients[i];
       const result = await emailClient.send({ to: email, subject, html });
       if (result.success) sent++;
       else if (result.error) errors.push(`weeklySummary→${email}: ${result.error}`);
+      // Resend rate limit (2 req/s) 회피를 위한 delay
+      if (i < recipients.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 600));
+      }
     }
   } // end tenant loop
 
