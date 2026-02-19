@@ -65,7 +65,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 | P3 협업+통합 | 2~3주 | collab-worker, Pipeline Bridge, Cron, TokenBudget |
 | P4 고도화 | 2주 | ProfileLearner, Graph 롤백 UI, Vectorize, E2E 테스트 |
 
-현재: **P4 고도화 Round 2 완료** (Vectorize 프로덕션 활성화 + Memory/Signal Cron + 통합 테스트 115개 + 프로덕션 배포 2회) — Phase 5 갭 해소 + PRD v3 재감사 + Framework Matrix P3 완료 기반
+현재: **운영 품질 강화 완료** (Health Check + 모니터링 + E2E + collabWorker FF 활성화 + 테스트 951개) — v3 Architecture P0~P4 전체 완료, 백로그 분석 완료
 - Phase 5A (보안·무결성): **완료** — Agent Graph 수정 제한, @id 네이밍 강화, SOUL 역할 템플릿, JSON Schema, ACL policies 분리, 403 메시지 개선
 - Phase 5B (agent-worker DO): **완료** — AgentSessionDO 클래스, Worker 라우팅, HMAC 인증, SSE 스트리밍, alarm flush, 429 동시성, api.chat.ts DO 위임
 - Phase 5C (collab-worker + 스키마): **완료** — collab-worker Cron/fetch 핸들러, notification_queue, tenants 확장(profile_ld/rules_md), cron_logs
@@ -358,23 +358,37 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.15 + P4 고도화 Round 2 (Vectorize 활성화 + Cron 동기화 + 통합 테스트 115개)
+- **프로토타입**: v6.15 + 운영 품질 강화 (Health Check + 모니터링 + E2E + FF 활성화 + 테스트 951개)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 40개 마이그레이션 (0000~0039), 로컬 + 프로덕션 모두 적용 완료
 
 ### 주요 지표
-- **라우트**: 167개 (core 47 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 3 + topics 12 + briefing 3 + signals 2 + knowledge 5 + API 40 + matrix 12 + 미분류 2 + dashboard 2) — Vectorize Cron 2개 추가 (memory-vectorize, signal-vectorize)
+- **라우트**: 169개 (core 47 + ideas 8 + proposals 7 + lab 7 + venture 13 + agent 4 + profile 3 + topics 12 + briefing 3 + signals 2 + knowledge 5 + API 41 + matrix 12 + admin 4 + dashboard 2) — Health Check API + 모니터링 대시보드 추가
 - **테이블**: 87개 (core 44 + ideas 2 + venture 16 + proposals 6 + archive 2 + token_usage_logs 1 + v2 9 + matrix 7) — Framework Matrix 7개 테이블 추가 (industries, functions, matrix_cells, individual_scores, consensus_scores, cell_topic_map, scoring_config)
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
-- **테스트**: 925개 (62 test files, 로컬 통과) — P4 통합 테스트 115개 추가 (Vectorize 23 + GraphStore 17 + Projection 11 + TopicService 15 + MatrixService 19 + VectorizeSync 30)
+- **테스트**: 951개 (65 test files, 로컬 통과) — 세션 210 추가: Health 6 + Monitoring 6 + Cron Routes 14 + E2E 7 specs
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
-- **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, **vectorizeSearch=true(프로덕션)**, pipelineBridge, collabWorker, profileLearner)
-- **배포**: 세션 209 프로덕션 배포 2회 완료 — Round 1 (Vectorize 활성화 + 테스트 85개) + Round 2 (Memory/Signal Cron + 테스트 30개) + DB 마이그레이션 0039 적용
+- **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, **collabWorker=true(세션 210 활성화)**, profileLearner) — 8/9 true, agentDO만 false (별도 worker 배포 필요)
+- **배포**: 세션 209 프로덕션 배포 완료 — 세션 210은 로컬 변경만 (배포 미수행)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
-### 최근 변경 (세션 209)
+### 최근 변경 (세션 210)
+**운영 품질 강화 — Health Check + 모니터링 + E2E + FF 활성화 + 백로그 분석** (tmux 3-Worker 병렬):
+- ✅ `wrangler.toml` (수정): FF_COLLAB_WORKER=true 전환 (collabWorker 프로덕션 활성화)
+- ✅ `app/routes/api.health.ts` (신규): Health Check API — DB/Vectorize/FF 상태 확인 (인증 불요, 외부 모니터링 연동용)
+- ✅ `app/routes/admin.monitoring.tsx` (신규): 관리자 모니터링 대시보드 — Cron 로그 + FF 상태 + 시스템 지표 4종
+- ✅ `tests/e2e/` 7개 (신규): helpers + navigation + dashboard + ideas-workspace + proposals + lab + health-check E2E 스펙
+- ✅ `tests/integration/cron-vectorize-routes.test.ts` (신규): memory/signal/graph vectorize Cron 라우트 통합 테스트 14개
+- ✅ `tests/unit/api/health.test.ts` (신규): Health API 6개 테스트
+- ✅ `tests/unit/admin/monitoring.test.ts` (신규): 모니터링 대시보드 6개 테스트
+- ✅ `docs/backlog-session-210.md` (신규): PRD v3 갭 8건 + v1.4 미충족 8건 + 품질 개선 항목 정리
+- ✅ `docs/ops/cron-registration-guide.md` (신규): 19개 Cron 엔드포인트 등록 가이드 (인증 패턴/스케줄/환경변수)
+- ✅ `scripts/verify-vectorize-production.sh` (신규): Vectorize 프로덕션 E2E 검증 스크립트
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공 / 테스트 951/951 PASS
+
+### 이전 변경 (세션 209)
 **P4 고도화 Round 2 — Vectorize 프로덕션 활성화 + 통합 테스트 85개 + 프로덕션 배포** (tmux 3-Worker 병렬):
 - ✅ `wrangler.toml` (수정): Vectorize 3개 바인딩 활성화 (VECTORIZE_GRAPHS/MEMORY/SIGNALS) + `FF_VECTORIZE_SEARCH=true`
 - ✅ `drizzle/0039_consensus_enrich.sql` (신규): consensus_scores 테이블 signal_count/confirmed_at 컬럼 추가 (세션 201 스키마 누락 수정)
