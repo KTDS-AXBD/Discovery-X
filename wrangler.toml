@@ -68,5 +68,5 @@ FF_ACL_SCOPE = "true"
 FF_MEMORY_LIFECYCLE = "true"
 FF_VECTORIZE_SEARCH = "true"
 FF_PIPELINE_BRIDGE = "true"
-FF_COLLAB_WORKER = "false"     # collab-worker 배포 후 활성화
+FF_COLLAB_WORKER = "true"      # collab-worker 프로덕션 활성화
 FF_PROFILE_LEARNER = "true"
