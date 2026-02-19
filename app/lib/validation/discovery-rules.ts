@@ -1,8 +1,19 @@
 import { z } from "zod";
 import type { DB } from "~/db";
 import { eq, count } from "drizzle-orm";
-import { experiments, evidence } from "~/db/schema";
+import { experiments, evidence, assumptions } from "~/db/schema";
 import { ALLOWED_TRANSITIONS } from "~/lib/constants/status";
+
+// ============================================================================
+// Critical Check (비판적 검증 4종) — v1.4 기획서 §7.3
+// ============================================================================
+
+export interface CriticalCheckResult {
+  name: 'evidence_check' | 'time_stress_test' | 'cross_context_test' | 'ontology_consistency';
+  passed: boolean;
+  message: string;
+  details?: Record<string, unknown>;
+}
 
 // ============================================================================
 // Validation Error
@@ -172,6 +183,149 @@ export class DiscoveryValidationRules {
     }
 
     return { valid: true };
+  }
+
+  /**
+   * Rule 5b: Gate 비판적 검증 4종 — Gate 통과 전 시스템 수준 강제 검증
+   * v1.4 기획서 §7.3
+   */
+  static async validateCriticalChecks(
+    db: DB,
+    discoveryId: string
+  ): Promise<{ passed: boolean; checks: CriticalCheckResult[] }> {
+    const checks: CriticalCheckResult[] = [];
+
+    // 1. Evidence Check: 모든 증거에 type + strength + reliabilityLabel 완비 여부
+    const allEvidence = await db
+      .select()
+      .from(evidence)
+      .where(eq(evidence.discoveryId, discoveryId));
+
+    if (allEvidence.length === 0) {
+      checks.push({
+        name: "evidence_check",
+        passed: false,
+        message: "등록된 근거가 없습니다.",
+        details: { evidenceCount: 0 },
+      });
+    } else {
+      const missing = allEvidence.filter(
+        (e) => !e.type || !e.strength || !e.reliabilityLabel
+      );
+      checks.push({
+        name: "evidence_check",
+        passed: missing.length === 0,
+        message:
+          missing.length === 0
+            ? `전체 ${allEvidence.length}개 근거에 태그가 완비되었습니다.`
+            : `${missing.length}개 근거에 태그 누락 (type/strength/reliabilityLabel)`,
+        details: {
+          total: allEvidence.length,
+          missingCount: missing.length,
+          missingIds: missing.map((e) => e.id),
+        },
+      });
+    }
+
+    // 2. Time Stress Test: publishedOrObservedDate 기록 여부 + 3개월 경과 경고
+    if (allEvidence.length === 0) {
+      checks.push({
+        name: "time_stress_test",
+        passed: false,
+        message: "등록된 근거가 없어 시간 스트레스 테스트를 수행할 수 없습니다.",
+      });
+    } else {
+      const noDate = allEvidence.filter((e) => !e.publishedOrObservedDate);
+      if (noDate.length > 0) {
+        checks.push({
+          name: "time_stress_test",
+          passed: false,
+          message: `${noDate.length}개 근거에 발행/관측일(publishedOrObservedDate)이 누락되었습니다.`,
+          details: { missingCount: noDate.length, missingIds: noDate.map((e) => e.id) },
+        });
+      } else {
+        const threeMonthsAgo = new Date();
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+        const threeMonthsAgoStr = threeMonthsAgo.toISOString().slice(0, 10);
+
+        const stale = allEvidence.filter(
+          (e) => e.publishedOrObservedDate && e.publishedOrObservedDate < threeMonthsAgoStr
+        );
+        const allStale = stale.length === allEvidence.length;
+
+        checks.push({
+          name: "time_stress_test",
+          passed: true,
+          message: allStale
+            ? `모든 근거(${allEvidence.length}개)가 3개월 이상 경과했습니다. 최신 근거 추가를 권장합니다.`
+            : `전체 ${allEvidence.length}개 근거에 날짜가 기록되었습니다.${stale.length > 0 ? ` (${stale.length}개 3개월 경과)` : ""}`,
+          details: { staleCount: stale.length, allStale },
+        });
+      }
+    }
+
+    // 3. Cross-Context Test: 가정(assumptions) 중 validated 비율 ≥ 50%
+    const allAssumptions = await db
+      .select()
+      .from(assumptions)
+      .where(eq(assumptions.discoveryId, discoveryId));
+
+    if (allAssumptions.length === 0) {
+      checks.push({
+        name: "cross_context_test",
+        passed: false,
+        message: "등록된 가정(assumptions)이 없습니다. 최소 1개 가정을 등록하세요.",
+        details: { assumptionCount: 0, validatedCount: 0 },
+      });
+    } else {
+      const validated = allAssumptions.filter((a) => a.status === "VALIDATED");
+      const ratio = validated.length / allAssumptions.length;
+      checks.push({
+        name: "cross_context_test",
+        passed: ratio >= 0.5,
+        message:
+          ratio >= 0.5
+            ? `가정 검증률 ${Math.round(ratio * 100)}% (${validated.length}/${allAssumptions.length}) — 통과`
+            : `가정 검증률 ${Math.round(ratio * 100)}% (${validated.length}/${allAssumptions.length}) — 50% 미달`,
+        details: {
+          assumptionCount: allAssumptions.length,
+          validatedCount: validated.length,
+          ratio: Math.round(ratio * 100),
+        },
+      });
+    }
+
+    // 4. Ontology Consistency: 완료된 실험 1개 이상 + 근거 1개 이상
+    const allExperiments = await db
+      .select()
+      .from(experiments)
+      .where(eq(experiments.discoveryId, discoveryId));
+
+    const completedExperiments = allExperiments.filter((e) => e.completedAt);
+    const hasCompletedExperiment = completedExperiments.length >= 1;
+    const hasEvidence = allEvidence.length >= 1;
+
+    checks.push({
+      name: "ontology_consistency",
+      passed: hasCompletedExperiment && hasEvidence,
+      message: !hasCompletedExperiment && !hasEvidence
+        ? "완료된 실험과 근거가 모두 없습니다."
+        : !hasCompletedExperiment
+          ? `완료된 실험이 없습니다. (실험 ${allExperiments.length}개 중 완료 0개)`
+          : !hasEvidence
+            ? "등록된 근거가 없습니다."
+            : `실험 ${completedExperiments.length}개 완료, 근거 ${allEvidence.length}개 — 온톨로지 경로 완결`,
+      details: {
+        experimentCount: allExperiments.length,
+        completedExperimentCount: completedExperiments.length,
+        evidenceCount: allEvidence.length,
+      },
+    });
+
+    return {
+      passed: checks.every((c) => c.passed),
+      checks,
+    };
   }
 
   /**

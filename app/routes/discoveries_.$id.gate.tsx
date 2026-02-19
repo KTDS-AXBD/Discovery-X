@@ -27,6 +27,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { GatePackageEditor } from "~/components/methods/GatePackageEditor";
 import { formatDate } from "~/lib/format-date";
+import { DiscoveryValidationRules } from "~/lib/validation/discovery-rules";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -164,6 +165,9 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     }
     readinessScore = Math.min(readinessScore, 100);
 
+    // 비판적 검증 4종 수행 (v1.4 §7.3)
+    const criticalChecksResult = await DiscoveryValidationRules.validateCriticalChecks(db, id);
+
     const scorecard = {
       evidenceCount: allEvidence.length,
       strongEvidenceCount: strongEvidence.length,
@@ -175,6 +179,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
       validatedAssumptionCount: validatedAssumptions.length,
       openAssumptionCount: allAssumptions.filter((a) => a.status === "OPEN").length,
       readinessScore,
+      criticalChecks: criticalChecksResult,
     };
 
     const evidenceSummary = allEvidence.map((e) => ({

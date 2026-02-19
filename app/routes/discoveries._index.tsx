@@ -202,7 +202,7 @@ export default function DiscoveriesIndex() {
                 : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]"
             )}
           >
-            {label}
+            {status === "DISCOVERY" ? "Inbox (임시)" : label}
           </Link>
         ))}
         <Link
@@ -420,12 +420,17 @@ export default function DiscoveriesIndex() {
                     <span>{discovery.ownerName || "미지정"}</span>
                     <span>{formatDate(discovery.createdAt)}</span>
                     {discovery.isInboxOverdue && (
-                      <Badge variant="destructive">7일 초과</Badge>
+                      <Badge variant="destructive">⚠ 7일 초과 — 승격 또는 DROP 필요</Badge>
                     )}
                     {discovery.isOpenOverdue && (
                       <Badge variant="destructive">OVERDUE</Badge>
                     )}
                   </div>
+                  {discovery.status === DiscoveryStatus.DISCOVERY && !discovery.isInboxOverdue && (
+                    <p className="mt-1 text-xs text-[var(--axis-text-tertiary)]">
+                      실험을 등록하여 승격하세요
+                    </p>
+                  )}
                 </Link>
               ))
             )}
@@ -477,13 +482,18 @@ export default function DiscoveriesIndex() {
                         </Link>
                         {discovery.isInboxOverdue && (
                           <Badge variant="destructive" className="ml-2">
-                            7일 초과
+                            ⚠ 7일 초과 — 승격 또는 DROP 필요
                           </Badge>
                         )}
                         {discovery.isOpenOverdue && (
                           <Badge variant="destructive" className="ml-2">
                             OVERDUE
                           </Badge>
+                        )}
+                        {discovery.status === DiscoveryStatus.DISCOVERY && !discovery.isInboxOverdue && (
+                          <span className="ml-2 text-xs text-[var(--axis-text-tertiary)]">
+                            실험을 등록하여 승격하세요
+                          </span>
                         )}
                       </TableCell>
                       <TableCell>

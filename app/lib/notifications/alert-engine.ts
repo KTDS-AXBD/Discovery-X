@@ -209,6 +209,40 @@ export async function scanAndFireAlerts(db: DB, tenantId?: string): Promise<Fire
     }
   }
 
+  // 5. Inbox TTL — DISCOVERY 상태 7일 초과 미처리
+  const inboxTtlRule = ruleByType.get("inbox_ttl");
+  if (inboxTtlRule) {
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const inboxWhere = tenantId
+      ? sql`${discoveries.status} = ${DiscoveryStatus.DISCOVERY} AND ${discoveries.tenantId} = ${tenantId}`
+      : sql`${discoveries.status} = ${DiscoveryStatus.DISCOVERY}`;
+    const inboxDiscoveries = await db
+      .select()
+      .from(discoveries)
+      .where(inboxWhere);
+
+    for (const d of inboxDiscoveries) {
+      if (!d.createdAt || d.createdAt > sevenDaysAgo) continue;
+
+      const key = `${inboxTtlRule.id}:${d.id}:`;
+      if (todayAlertKeys.has(key)) continue;
+
+      const daysInInbox = Math.floor(
+        (now.getTime() - d.createdAt.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      const alert = await createAlert(db, {
+        ruleId: inboxTtlRule.id,
+        discoveryId: d.id,
+        kpiId: null,
+        severity: AlertSeverity.WARNING,
+        message: `Inbox 항목 '${d.title}'이 ${daysInInbox}일째 미처리입니다. 실험을 등록하여 승격하거나 DROP 결정을 내려주세요.`,
+      });
+      fired.push(alert);
+    }
+  }
+
   return fired;
 }
 
@@ -424,6 +458,13 @@ export const DEFAULT_ALERT_RULES = [
     alertType: AlertType.GATE_APPROVAL,
     name: "Gate 승인 대기 SLA 초과",
     condition: { description: "Gate 승인 요청 slaDeadline 경과" },
+    severity: AlertSeverity.WARNING,
+  },
+  {
+    id: "RULE-INBOX-TTL",
+    alertType: "inbox_ttl" as string,
+    name: "Inbox TTL 초과",
+    condition: { description: "DISCOVERY 상태 7일 초과 미처리" },
     severity: AlertSeverity.WARNING,
   },
 ];

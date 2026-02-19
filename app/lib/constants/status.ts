@@ -12,10 +12,11 @@ export const STATUS_CONFIG: Record<string, {
   variant: BadgeProps["variant"];
   category: keyof typeof STAGE_CATEGORIES;
   order: number;
+  description?: string;
 }> = {
   // Ideation
-  DISCOVERY: { label: "발견", variant: "secondary", category: "ideation", order: 1 },
-  IDEA_CARD: { label: "아이디어", variant: "info", category: "ideation", order: 2 },
+  DISCOVERY: { label: "발견", variant: "secondary", category: "ideation", order: 1, description: "실험 등록 전 임시 상태" },
+  IDEA_CARD: { label: "아이디어", variant: "info", category: "ideation", order: 2, description: "실험 등록됨 — 검증 진행 중" },
   // Validation
   HYPOTHESIS: { label: "가설", variant: "purple", category: "validation", order: 3 },
   EXPERIMENT: { label: "실험", variant: "warning", category: "validation", order: 4 },

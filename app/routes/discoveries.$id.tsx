@@ -221,6 +221,10 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     if (!newOwnerId) {
       return json({ error: "Owner를 선택해주세요" }, { status: 400 });
     }
+    const handoverNote = formData.get("handoverNote");
+    if (!handoverNote || String(handoverNote).trim().length < 10) {
+      return json({ error: "인수인계 메모는 필수입니다. 진행 상황과 다음 결정 사항을 작성해주세요." }, { status: 400 });
+    }
     await db
       .update(discoveries)
       .set({ ownerId: String(newOwnerId), updatedAt: new Date() })
@@ -231,7 +235,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
       actorId: user.id,
       discoveryId: id,
       eventType: "CHANGE_OWNER",
-      metadata: { previousOwnerId: discovery.ownerId, newOwnerId: String(newOwnerId) },
+      metadata: { previousOwnerId: discovery.ownerId, newOwnerId: String(newOwnerId), handoverNote: String(handoverNote) },
     });
 
     return redirect(`/discoveries/${id}`);
@@ -496,7 +500,7 @@ export default function DiscoveryDetail() {
               </AlertBanner>
             )}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <Form method="post">
+              <Form method="post" className="sm:col-span-3">
                 <input type="hidden" name="intent" value="changeOwner" />
                 <label className="block text-sm font-medium text-[var(--axis-text-secondary)]">Owner</label>
                 <div className="mt-1 flex space-x-2">
@@ -507,6 +511,19 @@ export default function DiscoveryDetail() {
                     ))}
                   </Select>
                   <Button type="submit" size="sm">변경</Button>
+                </div>
+                <div className="mt-2">
+                  <label className="block text-sm font-medium text-[var(--axis-text-secondary)]">
+                    인수인계 메모 (필수)
+                  </label>
+                  <textarea
+                    name="handoverNote"
+                    required
+                    minLength={10}
+                    placeholder="지금까지 진행한 내용과 다음에 해야 할 결정을 간단히 작성해주세요."
+                    className="mt-1 w-full rounded-md border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] px-3 py-2 text-sm text-[var(--axis-text-primary)] placeholder:text-[var(--axis-text-tertiary)] focus:border-[var(--axis-border-focus)] focus:outline-none focus:ring-1 focus:ring-[var(--axis-border-focus)]"
+                    rows={3}
+                  />
                 </div>
               </Form>
               <Form method="post">

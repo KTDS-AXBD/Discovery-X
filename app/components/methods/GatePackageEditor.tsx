@@ -2,6 +2,13 @@ import { Card, CardContent } from "~/components/ui/Card";
 import { Badge } from "~/components/ui/Badge";
 import { formatDate } from "~/lib/format-date";
 
+interface CriticalCheckItem {
+  name: string;
+  passed: boolean;
+  message: string;
+  details?: Record<string, unknown>;
+}
+
 interface GatePackageData {
   id: string;
   gateType: string;
@@ -21,6 +28,10 @@ interface GatePackageData {
     validatedAssumptionCount: number;
     openAssumptionCount: number;
     readinessScore: number;
+    criticalChecks?: {
+      passed: boolean;
+      checks: CriticalCheckItem[];
+    };
   } | null;
   methodRunSummary: Array<{
     runId: string;
@@ -126,6 +137,34 @@ export function GatePackageEditor({ gatePackage }: GatePackageEditorProps) {
                 label="방법론 실행"
                 value={`${scorecard.methodRunCount}`}
               />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 비판적 검증 4종 (v1.4 §7.3) */}
+      {scorecard?.criticalChecks && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <h4 className="text-sm font-medium text-[var(--axis-text-primary)]">
+                비판적 검증 4종
+              </h4>
+              <Badge variant={scorecard.criticalChecks.passed ? "success" : "destructive"}>
+                {scorecard.criticalChecks.passed ? "전체 통과" : "미통과"}
+              </Badge>
+            </div>
+            {!scorecard.criticalChecks.passed && (
+              <div className="mb-3 rounded-md border border-[var(--axis-badge-destructive-text,#EF4444)] bg-[var(--axis-surface-secondary)] p-2">
+                <p className="text-xs font-medium" style={{ color: "var(--axis-badge-destructive-text, #EF4444)" }}>
+                  비판적 검증을 통과하지 못해 승인을 요청할 수 없습니다. 아래 항목을 보완하세요.
+                </p>
+              </div>
+            )}
+            <div className="space-y-2">
+              {scorecard.criticalChecks.checks.map((check) => (
+                <CriticalCheckCard key={check.name} check={check} />
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -281,6 +320,38 @@ function ScoreItem({ label, value }: { label: string; value: string }) {
     <div className="text-center">
       <p className="text-lg font-bold text-[var(--axis-text-primary)]">{value}</p>
       <p className="text-[10px] text-[var(--axis-text-tertiary)]">{label}</p>
+    </div>
+  );
+}
+
+const CRITICAL_CHECK_LABELS: Record<string, string> = {
+  evidence_check: "Evidence Check",
+  time_stress_test: "Time Stress Test",
+  cross_context_test: "Cross-Context Test",
+  ontology_consistency: "Ontology Consistency",
+};
+
+function CriticalCheckCard({ check }: { check: CriticalCheckItem }) {
+  return (
+    <div
+      className="flex items-start gap-2 rounded border p-2"
+      style={{
+        borderColor: check.passed
+          ? "var(--axis-badge-success-text, #22C55E)"
+          : "var(--axis-badge-destructive-text, #EF4444)",
+      }}
+    >
+      <span className="mt-0.5 text-sm">
+        {check.passed ? "\u2705" : "\u274C"}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-medium text-[var(--axis-text-primary)]">
+          {CRITICAL_CHECK_LABELS[check.name] || check.name}
+        </p>
+        <p className="text-[11px] text-[var(--axis-text-secondary)]">
+          {check.message}
+        </p>
+      </div>
     </div>
   );
 }
