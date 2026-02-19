@@ -48,7 +48,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
   - Durable Agent Runtime: AgentSession DO + SSE + Memory Lifecycle (v3 P1)
   - Topic 협업: Team→Topic 세분화 + Scope-based ACL (v3 P2)
   - 파이프라인 통합: Radar/Venture/Lab 양방향 연동 + Cron (v3 P3)
-  - Vectorize 시맨틱 검색 + ProfileLearner + Graph 롤백 + SignalRouter Cron + 비용 대시보드 + 팀 지식 베이스 + v3 E2E 테스트 (v3 P4)
+  - Vectorize 시맨틱 검색 + 검색 UI (Discovery 목록 텍스트/시맨틱 모드, 유사 패널 고도화) + ProfileLearner + Graph 롤백 + SignalRouter Cron + 비용 대시보드 + 팀 지식 베이스 + v3 E2E 테스트 (v3 P4)
 
 **Out-of-scope (PRD §2.2, §7.3)**
 - 전사 공식 포털/플랫폼
@@ -366,12 +366,12 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.16 + P1 운영 기능 (Failure Replay + Recall 추적 + 운영 지표 대시보드 + 테스트 959개)
+- **프로토타입**: v6.17 + P2 Vectorize 시맨틱 검색 UI (Discovery 목록 검색 + 유사 패널 고도화 + 테스트 959개)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 40개 마이그레이션 (0000~0039), 로컬 + 프로덕션 모두 적용 완료
 
 ### 주요 지표
-- **라우트**: 172개 (+3: dashboard.failure-replay, dashboard.ops-metrics, api.recall-events)
+- **라우트**: 172개 (변경 없음, 기존 라우트 UI 강화)
 - **테이블**: 87개 (변경 없음, event_logs 기존 테이블 활용)
 - **Agent 도구**: 54개 (+5 ontology: analysis 4 + simulation 1, +1 idea: update_idea_analysis)
 - **테스트**: 959개 (66 test files, 로컬 통과) — 세션 211 추가: recall-tracking 8개
@@ -379,11 +379,26 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **Feature Flag**: 9개 (graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, vectorizeSearch, pipelineBridge, **collabWorker=true(세션 210 활성화)**, profileLearner) — 8/9 true, agentDO만 false (별도 worker 배포 필요)
-- **배포**: 세션 212 프로덕션 배포 완료 (CI/CD 1m57s, 세션 210~212 일괄 배포)
+- **배포**: 세션 212 프로덕션 배포 완료 (CI/CD 1m57s, 세션 210~212 일괄 배포) — 세션 213 미배포
 - **Cron 등록**: cron-job.org 19/19 전체 등록 완료 (세션 212)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
-### 최근 변경 (세션 212)
+### 최근 변경 (세션 213)
+**P2 Vectorize 시맨틱 검색 UI** (tmux 2-Worker 병렬):
+- ✅ `app/routes/discoveries._index.tsx` (수정): Discovery 목록 검색 기능 추가
+  - SearchInput + 텍스트/시맨틱(AI) 모드 토글
+  - 텍스트 모드: 클라이언트 사이드 title+seedSummary 필터링
+  - 시맨틱 모드: /api/similar-seeds 호출 → Vectorize(보라색)/FTS(회색) 소스 배지 + 유사도 % 표시
+  - 300ms 디바운스 + AbortController로 안정적 fetch
+- ✅ `app/routes/discoveries.new.tsx` (수정): SimilarSeedsPanel 고도화
+  - title 입력에도 유사 검색 연동 (seedSummary 우선, 5자 미만 시 title로 폴백)
+  - SimilarSeedsResponse 타입 + score 필드 추가
+  - 소스 배지: "AI 시맨틱" (variant=purple) / "텍스트 매칭" (variant=subtle)
+  - 유사도 점수 표시, HOLD triggerType 한국어 레이블 (TRIGGER_TYPE_LABELS 맵)
+  - DROP 경고 텍스트 ("실패 사례 — 동일 패턴에 주의하세요")
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공 / 테스트 959/959 PASS
+
+### 이전 변경 (세션 212)
 **Cron 일괄 등록 + 프로덕션 E2E 검증** (Playwright + cron-job.org REST API):
 - ✅ cron-job.org REST API로 19개 Cron 엔드포인트 일괄 등록 완료 (2 PATCH + 15 PUT, 17/17 OK)
   - Phase 1: `daily`(7211996), `agent-review`(7213910) 시크릿 수정 (이전 시크릿 → CRON_SECRET)
