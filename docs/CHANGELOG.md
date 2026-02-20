@@ -3,6 +3,28 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 228 (2026-02-20)
+**리팩토링 Phase 2+3 — Cron 통합 + 모듈 아카이브, 119파일 삭제, -50,836 LOC**:
+
+**1. Phase 2: Cron 통합 (19→13)** (Worker 1):
+- vectorize 3→1 통합 (`api.cron.vectorize.ts`, type=graph|memory|signal)
+- lab 2→1 통합 (`api.cron.lab.ts`, mode=extract|analyze)
+- profile-learn, shadow-analyze, briefing cron 삭제
+- 테스트 갱신: cron-routes-bearer.test.ts (briefing 섹션 제거), cron-routes-query-param.test.ts (lab 통합 반영 + URL 헬퍼 수정)
+
+**2. Phase 3: 모듈 아카이브** (Worker 2+3, 병렬):
+- **Venture**: 52파일 삭제 (features/venture 전체 + routes + components + tests + VentureService)
+- **Knowledge**: 5 라우트 삭제 (knowledge.tsx + api.knowledge.ts 등)
+- **Briefing**: 3 라우트 삭제 (briefing.tsx + api.briefing.ts)
+- **ValueUp**: 4파일 삭제 (components/valueup + routes)
+- **Topics**: 유지 결정 (Lab/Signals에서 활성 참조)
+- db/index.ts: ventureSchema import 제거 (7→6 스키마 머지)
+
+**변경 통계**: 119 files changed, 264 insertions(+), 50,836 deletions(-)
+**지표**: 라우트 189→153, 테스트 1334→1111 (82 files), Cron 19→13, 빌드 ✅, lint 0
+
+---
+
 ### 세션 227 (2026-02-20)
 **리팩토링 분석 + Phase 1 Dead Code 정리 — 23파일 삭제, -4,371 LOC**:
 

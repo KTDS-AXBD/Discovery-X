@@ -1,10 +1,8 @@
 /**
- * Cron Vectorize 라우트 통합 테스트
+ * Cron Vectorize 통합 라우트 테스트
  *
- * 라우트 loader를 직접 import하여 호출하는 방식으로,
+ * api.cron.vectorize?type=graph|memory|signal 통합 엔드포인트의
  * 인증, Feature Flag, 바인딩 유무, 정상 동기화를 검증한다.
- *
- * 핵심 mock: getDb()를 모킹하여 D1 대신 better-sqlite3 기반 TestDB를 사용.
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -22,9 +20,7 @@ vi.mock("~/db", async (importOriginal) => {
   };
 });
 
-import { loader as memoryLoader } from "~/routes/api.cron.memory-vectorize";
-import { loader as signalLoader } from "~/routes/api.cron.signal-vectorize";
-import { loader as graphLoader } from "~/routes/api.cron.graph-vectorize";
+import { loader } from "~/routes/api.cron.vectorize";
 
 // ─── Mock 헬퍼 ──────────────────────────────────────────────────────────
 
@@ -74,17 +70,17 @@ function makeCronRequest(path: string, secret = "test-secret"): Request {
 
 // ─── Memory Vectorize 라우트 테스트 ──────────────────────────────────────
 
-describe("api.cron.memory-vectorize 라우트", () => {
+describe("api.cron.vectorize?type=memory", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     testDb = createTestDb();
   });
 
   it("인증 실패 → 401", async () => {
-    const request = makeCronRequest("memory-vectorize", "wrong-secret");
+    const request = makeCronRequest("vectorize?type=memory", "wrong-secret");
     const context = makeCronContext();
 
-    const response = await memoryLoader({
+    const response = await loader({
       request,
       context: context as never,
       params: {},
@@ -94,10 +90,10 @@ describe("api.cron.memory-vectorize 라우트", () => {
   });
 
   it("FF_VECTORIZE_SEARCH 비활성 → skipped: true", async () => {
-    const request = makeCronRequest("memory-vectorize");
+    const request = makeCronRequest("vectorize?type=memory");
     const context = makeCronContext({ FF_VECTORIZE_SEARCH: "false" });
 
-    const response = await memoryLoader({
+    const response = await loader({
       request,
       context: context as never,
       params: {},
@@ -109,11 +105,11 @@ describe("api.cron.memory-vectorize 라우트", () => {
   });
 
   it("VECTORIZE_MEMORY 없음 → skipped: true", async () => {
-    const request = makeCronRequest("memory-vectorize");
+    const request = makeCronRequest("vectorize?type=memory");
     // VECTORIZE_MEMORY 바인딩을 제공하지 않음
     const context = makeCronContext();
 
-    const response = await memoryLoader({
+    const response = await loader({
       request,
       context: context as never,
       params: {},
@@ -148,10 +144,10 @@ describe("api.cron.memory-vectorize 라우트", () => {
       ])
       .run();
 
-    const request = makeCronRequest("memory-vectorize");
+    const request = makeCronRequest("vectorize?type=memory");
     const context = makeCronContext({ VECTORIZE_MEMORY: memoryIndex });
 
-    const response = await memoryLoader({
+    const response = await loader({
       request,
       context: context as never,
       params: {},
@@ -190,10 +186,10 @@ describe("api.cron.memory-vectorize 라우트", () => {
       ])
       .run();
 
-    const request = makeCronRequest("memory-vectorize");
+    const request = makeCronRequest("vectorize?type=memory");
     const context = makeCronContext({ VECTORIZE_MEMORY: memoryIndex });
 
-    const response = await memoryLoader({
+    const response = await loader({
       request,
       context: context as never,
       params: {},
@@ -211,17 +207,17 @@ describe("api.cron.memory-vectorize 라우트", () => {
 
 // ─── Signal Vectorize 라우트 테스트 ──────────────────────────────────────
 
-describe("api.cron.signal-vectorize 라우트", () => {
+describe("api.cron.vectorize?type=signal", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     testDb = createTestDb();
   });
 
   it("인증 실패 → 401", async () => {
-    const request = makeCronRequest("signal-vectorize", "bad-token");
+    const request = makeCronRequest("vectorize?type=signal", "bad-token");
     const context = makeCronContext();
 
-    const response = await signalLoader({
+    const response = await loader({
       request,
       context: context as never,
       params: {},
@@ -231,10 +227,10 @@ describe("api.cron.signal-vectorize 라우트", () => {
   });
 
   it("FF 비활성 → skipped: true", async () => {
-    const request = makeCronRequest("signal-vectorize");
+    const request = makeCronRequest("vectorize?type=signal");
     const context = makeCronContext({ FF_VECTORIZE_SEARCH: "false" });
 
-    const response = await signalLoader({
+    const response = await loader({
       request,
       context: context as never,
       params: {},
@@ -270,10 +266,10 @@ describe("api.cron.signal-vectorize 라우트", () => {
       ])
       .run();
 
-    const request = makeCronRequest("signal-vectorize");
+    const request = makeCronRequest("vectorize?type=signal");
     const context = makeCronContext({ VECTORIZE_SIGNALS: signalsIndex });
 
-    const response = await signalLoader({
+    const response = await loader({
       request,
       context: context as never,
       params: {},
@@ -290,10 +286,10 @@ describe("api.cron.signal-vectorize 라우트", () => {
   });
 
   it("VECTORIZE_SIGNALS 없으면 skipped", async () => {
-    const request = makeCronRequest("signal-vectorize");
+    const request = makeCronRequest("vectorize?type=signal");
     const context = makeCronContext();
 
-    const response = await signalLoader({
+    const response = await loader({
       request,
       context: context as never,
       params: {},
@@ -307,17 +303,17 @@ describe("api.cron.signal-vectorize 라우트", () => {
 
 // ─── Graph Vectorize 라우트 테스트 ───────────────────────────────────────
 
-describe("api.cron.graph-vectorize 라우트", () => {
+describe("api.cron.vectorize?type=graph", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     testDb = createTestDb();
   });
 
   it("인증 실패 → 401", async () => {
-    const request = makeCronRequest("graph-vectorize", "invalid");
+    const request = makeCronRequest("vectorize?type=graph", "invalid");
     const context = makeCronContext();
 
-    const response = await graphLoader({
+    const response = await loader({
       request,
       context: context as never,
       params: {},
@@ -331,7 +327,6 @@ describe("api.cron.graph-vectorize 라우트", () => {
 
     const graphsIndex = mockVectorizeIndex();
 
-    // graphs 테이블에 JSON-LD 데이터 삽입 (scope_type: user/topic/org만 허용)
     const jsonld = JSON.stringify({
       "@context": { "@vocab": "https://schema.org/" },
       "@graph": [
@@ -352,10 +347,10 @@ describe("api.cron.graph-vectorize 라우트", () => {
       })
       .run();
 
-    const request = makeCronRequest("graph-vectorize");
+    const request = makeCronRequest("vectorize?type=graph");
     const context = makeCronContext({ VECTORIZE_GRAPHS: graphsIndex });
 
-    const response = await graphLoader({
+    const response = await loader({
       request,
       context: context as never,
       params: {},
@@ -386,10 +381,10 @@ describe("api.cron.graph-vectorize 라우트", () => {
       })
       .run();
 
-    const request = makeCronRequest("graph-vectorize");
+    const request = makeCronRequest("vectorize?type=graph");
     const context = makeCronContext({ VECTORIZE_GRAPHS: graphsIndex });
 
-    const response = await graphLoader({
+    const response = await loader({
       request,
       context: context as never,
       params: {},
@@ -402,10 +397,10 @@ describe("api.cron.graph-vectorize 라우트", () => {
   });
 
   it("VECTORIZE_GRAPHS 없으면 skipped", async () => {
-    const request = makeCronRequest("graph-vectorize");
+    const request = makeCronRequest("vectorize?type=graph");
     const context = makeCronContext();
 
-    const response = await graphLoader({
+    const response = await loader({
       request,
       context: context as never,
       params: {},
@@ -414,6 +409,43 @@ describe("api.cron.graph-vectorize 라우트", () => {
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body).toMatchObject({ skipped: true });
+  });
+});
+
+// ─── type 파라미터 검증 테스트 ───────────────────────────────────────────
+
+describe("api.cron.vectorize — type 파라미터 검증", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    testDb = createTestDb();
+  });
+
+  it("type 없음 → 400", async () => {
+    const request = makeCronRequest("vectorize");
+    const context = makeCronContext();
+
+    const response = await loader({
+      request,
+      context: context as never,
+      params: {},
+    });
+
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body).toMatchObject({ error: expect.stringContaining("Invalid type") });
+  });
+
+  it("잘못된 type → 400", async () => {
+    const request = makeCronRequest("vectorize?type=invalid");
+    const context = makeCronContext();
+
+    const response = await loader({
+      request,
+      context: context as never,
+      params: {},
+    });
+
+    expect(response.status).toBe(400);
   });
 });
 

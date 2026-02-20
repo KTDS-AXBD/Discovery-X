@@ -157,7 +157,7 @@ Flow I: BD 워크스페이스 (v4.2)
 **라우팅 정책**
 - `/` → `/dashboard` 리다이렉트 (인증 시), 미인증 시 `/login` 리다이렉트
 
-### 페이지 맵 (202개 라우트)
+### 페이지 맵 (153개 라우트)
 
 **Core (46개)**
 - `/` — `/dashboard` 리다이렉트 (1)
@@ -175,7 +175,7 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/onboarding` — 온보딩 (1)
 - `/pending` — 승인 대기 (1)
 - `/evidence/duplicates` — 근거 중복 관리 (1)
-- `/valueup*` — Value-up 시나리오 (2): valueup/valueup.$id
+- ~~`/valueup*`~~ — *(아카이브됨, 세션 228)*
 - `/radar` — Radar 소스 관리 (1)
 - `/admin/monitoring` — 시스템 모니터링 대시보드 (1)
 - `/dashboard/exec` — 경영진 대시보드 (1)
@@ -216,11 +216,9 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/api/lab/review` — 검토 API (POST approve/reject/edit)
 - `/api/lab/analyze` — 분석 API (POST by type)
 - `/api/lab/simulate` — 시뮬레이션 API (POST propagate/scenario/timeline)
-- `/api/cron/lab-extract` — LLM 엔티티 자동 추출 Cron
-- `/api/cron/lab-analyze` — 관계 분석 자동 실행 Cron
+- `/api/cron/lab` — LLM 엔티티 추출 + 관계 분석 통합 Cron (mode=extract|analyze)
 
-**Venture (13개)**
-- `/venture/*` — 스프린트 관리: _index/overview/analytics + sprints(new/_index/$sprintId 6개 서브라우트)
+**Venture** *(아카이브됨, 세션 228 — 52파일 삭제)*
 
 **Agent (3개: 2 pages + 1 API)**
 - `/agent` — 에이전트 대화 레이아웃 (세션 목록 280px + Outlet)
@@ -246,10 +244,7 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/api/topics/:id/glossary/:termId` — Glossary 상세 API (PATCH + DELETE)
 - `/api/topics/:id/events` — Graph 이벤트 이력 API (GET)
 
-**Briefing (2 pages + 1 API)**
-- `/briefing` — 브리핑 레이아웃 (인증 가드)
-- `/briefing/_index` — 일간 브리핑 뷰 (마크다운 렌더링 + 새로고침)
-- `/api/briefing` — 브리핑 API (GET 조회 + POST 갱신)
+**Briefing** *(아카이브됨, 세션 228)*
 
 **Market (3개: 2 pages + 1 layout)**
 - `/market` — 시장 분석 레이아웃
@@ -274,18 +269,13 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/signals` — 시그널 레이아웃 (Topic 필터 사이드바 + 상태 필터)
 - `/signals/_index` — 시그널 카드 목록 (score/status 배지, Topic 태그, 필터링)
 
-**Knowledge (3 pages + 2 API)**
-- `/knowledge` — 팀 지식 베이스 레이아웃
-- `/knowledge/_index` — Graph 카드 그리드 (scope별 필터 + 검색 + 통계)
-- `/knowledge/:graphId` — Graph 상세 (노드 타입별 그룹 + 관계 목록 + Projection 미리보기)
-- `/api/knowledge` — 지식 베이스 API (GET 목록, scope/search 필터)
-- `/api/knowledge/:graphId` — 지식 베이스 상세 API (GET 노드/엣지)
+**Knowledge** *(아카이브됨, 세션 228)*
 
 **API (37개, proposals/lab API 제외)**
 - `/api/chat` — SSE 스트리밍 채팅 (1)
 - `/api/conversations*` — 대화 CRUD + 메시지 (2)
-- `/api/cron*` — Cron 12개: daily/agent-review/alerts/embeddings/weekly-summary/log-archive/pattern-extract/shadow-analyze/briefing/memory-compact/projection-sync/signal-route
-- `/api/venture*` — Venture API 7개: decisions.propose/tasks(claim/report/trigger)/worker/export/analytics.recompute
+- `/api/cron*` — Cron 13개: daily/agent-review/alerts/embeddings/weekly-summary/log-archive/pattern-extract/memory-compact/projection-sync/signal-route/matrix-scoring/vectorize/lab
+- ~~`/api/venture*`~~ — *(아카이브됨, 세션 228)*
 - `/api/export*` — Export 4개: discoveries/discoveries-json/brief.$id/metrics
 - `/api/radar*` — Radar API 6개: runs/sources/trigger/summarize/items.$id.status/items.$id.reaction
 - `/api/similar*` — 유사 검색 2개: similar-seeds/similar-sources
@@ -295,11 +285,9 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/api/admin/token-budget` — 토큰 예산 관리
 - `/api/admin/token-usage` — 토큰 사용량 조회
 - `/api/collab/worker` — 협업 Worker
-- `/api/cron/graph-vectorize` — Graph 벡터화
 - `/api/cron/matrix-scoring` — Matrix 스코어링
-- `/api/cron/memory-vectorize` — Memory 벡터화
-- `/api/cron/profile-learn` — 프로필 학습
-- `/api/cron/signal-vectorize` — Signal 벡터화
+- `/api/cron/vectorize` — 통합 벡터화 (type=graph|memory|signal)
+- `/api/cron/lab` — Lab 통합 (mode=extract|analyze)
 - `/api/folders` — 폴더 목록/생성 API
 - `/api/folders/:id` — 폴더 상세/수정/삭제 API
 - `/api/folders/:id/items` — 폴더 아이템 관리 API
@@ -312,7 +300,7 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/api/proposals/categories` — 카테고리 API
 - `/api/recall-events` — 재호출 이벤트 API
 
-**라우트 합계**: Core 53 + Ideas 15 + Proposals 7 + Lab 7 + Venture 13 + Agent 4 + Profile 3 + Topics 12 + Briefing 3 + Signals 2 + Knowledge 5 + Market 3 + Matrix 12 + API 62 + 미분류 2 = **202**
+**라우트 합계**: Core 51 + Ideas 15 + Proposals 7 + Lab 6 + Agent 4 + Profile 3 + Topics 12 + Signals 2 + Matrix 12 + API 41 = **153** (Venture/Knowledge/Briefing/ValueUp 아카이브, Cron 통합 반영)
 
 ---
 
@@ -429,17 +417,17 @@ build/
 - **DB**: 41개 마이그레이션 (0000~0040), 로컬 적용 완료
 
 ### 주요 지표
-- **라우트**: 189개 (Phase 1 리팩토링: Market 3 + Dashboard 10 + Evidence 1 삭제)
+- **라우트**: 153개 (Phase 2-3 리팩토링: Cron 통합 19→13, Venture/Knowledge/Briefing/ValueUp 아카이브)
 - **테이블**: 92개 (+5: Archive 2, Token 1, Matrix 7, Worker 2, FTS 1, Proposals +2, Graph +1 — 기존 중복 제거 후)
 - **Agent 도구**: 54개 (변경 없음)
-- **테스트**: 1334개 (90 test files, 로컬 통과)
+- **테스트**: 1111개 (82 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **부하 테스트**: Artillery v2.0.30 — 4개 시나리오 (health, api-crud, chat-stream, spike)
 - **Feature Flag**: 9개 — 8/9 true, agentDO만 false
 - **배포**: 세션 226 배포 완료 (CI/CD 2m17s)
-- **Cron 등록**: cron-job.org 19/19 전체 등록 완료
+- **Cron 등록**: cron-job.org 13개 (vectorize 3→1 통합, lab 2→1 통합, profile-learn/shadow-analyze/briefing 삭제)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
 ### 세션 변경 이력

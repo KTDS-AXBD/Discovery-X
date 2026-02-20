@@ -5,7 +5,6 @@ export { RadarService } from "./radar.service";
 export { TopicService } from "./topic.service";
 export { TopicGraphService } from "./topic-graph.service";
 export { SignalService } from "./signal.service";
-export { VentureService } from "./venture.service";
 export { MatrixService } from "./matrix.service";
 export { ScoringService } from "./scoring.service";
 export { MatrixGraphService } from "./matrix-graph.service";

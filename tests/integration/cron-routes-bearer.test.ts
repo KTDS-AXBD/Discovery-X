@@ -35,21 +35,9 @@ vi.mock("~/lib/cost/token-budget", () => ({
   },
 }));
 
-vi.mock("~/lib/agent/profile-learner", () => ({
-  ProfileLearner: class {
-    learnAll = vi.fn().mockResolvedValue({ learned: 0, errors: [] });
-  },
-}));
-
 vi.mock("~/lib/graph/projection", () => ({
   ProjectionBuilder: class {
     syncProjection = vi.fn().mockResolvedValue(true);
-  },
-}));
-
-vi.mock("~/lib/integration/briefing-builder", () => ({
-  BriefingBuilder: class {
-    refreshBriefingProjection = vi.fn().mockResolvedValue(undefined);
   },
 }));
 
@@ -62,9 +50,7 @@ vi.mock("~/lib/services/scoring.service", () => ({
 // ─── Loader/Action imports (mock 설정 후 import) ────────────────────────
 import { loader as signalRouteLoader } from "~/routes/api.cron.signal-route";
 import { action as memoryCompactAction } from "~/routes/api.cron.memory-compact";
-import { loader as profileLearnLoader } from "~/routes/api.cron.profile-learn";
 import { action as projectionSyncAction } from "~/routes/api.cron.projection-sync";
-import { action as briefingAction } from "~/routes/api.cron.briefing";
 import { action as matrixScoringAction } from "~/routes/api.cron.matrix-scoring";
 
 // ─── 헬퍼 ──────────────────────────────────────────────────────────────
@@ -228,57 +214,7 @@ describe("api.cron.memory-compact", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 3. api.cron.profile-learn — Bearer + Feature Flag (profileLearner)
-// ═══════════════════════════════════════════════════════════════════════════
-describe("api.cron.profile-learn", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    testDb = createTestDb();
-  });
-
-  it("인증 실패 → 401", async () => {
-    const r = await profileLearnLoader({
-      request: makeBearerRequest("profile-learn", "wrong"),
-      context: ctx(),
-      params: {},
-    });
-    expect(r.status).toBe(401);
-  });
-
-  it("CRON_SECRET 미설정 → 500", async () => {
-    const r = await profileLearnLoader({
-      request: makeBearerRequest("profile-learn"),
-      context: ctxNoSecret(),
-      params: {},
-    });
-    expect(r.status).toBe(500);
-    const body = (await r.json()) as Record<string, unknown>;
-    expect(body).toMatchObject({ error: "CRON_SECRET not configured" });
-  });
-
-  it("Feature Flag 비활성 → skipped", async () => {
-    const r = await profileLearnLoader({
-      request: makeBearerRequest("profile-learn", "test-secret"),
-      context: ctx({ FF_PROFILE_LEARNER: "false" }),
-      params: {},
-    });
-    expect(r.status).toBe(200);
-    const body = (await r.json()) as Record<string, unknown>;
-    expect(body).toMatchObject({ skipped: true });
-  });
-
-  it("정상 호출 → 200", async () => {
-    const r = await profileLearnLoader({
-      request: makeBearerRequest("profile-learn", "test-secret"),
-      context: ctx({ FF_PROFILE_LEARNER: "true" }),
-      params: {},
-    });
-    expect(r.status).toBe(200);
-  });
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// 4. api.cron.projection-sync — Bearer + POST only
+// 3. api.cron.projection-sync — Bearer + POST only
 // ═══════════════════════════════════════════════════════════════════════════
 describe("api.cron.projection-sync", () => {
   beforeEach(() => {
@@ -313,48 +249,6 @@ describe("api.cron.projection-sync", () => {
     expect(r.status).toBe(200);
     const body = (await r.json()) as Record<string, unknown>;
     expect(body).toMatchObject({ synced: 0, skipped: 0, errors: 0 });
-  });
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// 5. api.cron.briefing — Bearer + POST only
-// ═══════════════════════════════════════════════════════════════════════════
-describe("api.cron.briefing", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    testDb = createTestDb();
-  });
-
-  it("POST 이외 메서드 → 405", async () => {
-    const r = await briefingAction({
-      request: makeBearerRequest("briefing", "test-secret"),
-      context: ctx(),
-      params: {},
-    });
-    expect(r.status).toBe(405);
-  });
-
-  it("인증 실패 → 401", async () => {
-    const r = await briefingAction({
-      request: makePostBearerRequest("briefing", "wrong"),
-      context: ctx(),
-      params: {},
-    });
-    expect(r.status).toBe(401);
-  });
-
-  it("정상 호출 → 200, 응답 구조 검증", async () => {
-    const r = await briefingAction({
-      request: makePostBearerRequest("briefing", "test-secret"),
-      context: ctx(),
-      params: {},
-    });
-    expect(r.status).toBe(200);
-    const body = (await r.json()) as Record<string, unknown>;
-    expect(body).toHaveProperty("success");
-    expect(body).toHaveProperty("failed");
-    expect(body).toHaveProperty("total");
-    expect(body.failed).toBe(0);
   });
 });
 

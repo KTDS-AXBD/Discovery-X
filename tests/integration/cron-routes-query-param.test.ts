@@ -62,10 +62,8 @@ vi.mock("~/lib/agent/executor", () => ({
 }));
 
 // ─── Loader/Action imports (mock 설정 후 import) ────────────────────────
-import { loader as labExtractLoader } from "~/routes/api.cron.lab-extract";
-import { loader as labAnalyzeLoader } from "~/routes/api.cron.lab-analyze";
+import { loader as labLoader } from "~/routes/api.cron.lab";
 import { loader as patternExtractLoader } from "~/routes/api.cron.pattern-extract";
-import { loader as shadowAnalyzeLoader } from "~/routes/api.cron.shadow-analyze";
 import { loader as embeddingsLoader } from "~/routes/api.cron.embeddings";
 import { loader as logArchiveLoader } from "~/routes/api.cron.log-archive";
 import { loader as dailyLoader } from "~/routes/api.cron.daily";
@@ -77,16 +75,18 @@ import { loader as weeklySummaryLoader } from "~/routes/api.cron.weekly-summary"
 
 /** Query Param 인증 GET 요청 생성 */
 function makeQPRequest(path: string, secret?: string): Request {
+  const separator = path.includes("?") ? "&" : "?";
   const url = secret
-    ? `http://localhost/api/cron/${path}?secret=${secret}`
+    ? `http://localhost/api/cron/${path}${separator}secret=${secret}`
     : `http://localhost/api/cron/${path}`;
   return new Request(url);
 }
 
 /** Query Param 인증 POST 요청 생성 (action 엔드포인트용) */
 function makePostQPRequest(path: string, secret?: string): Request {
+  const separator = path.includes("?") ? "&" : "?";
   const url = secret
-    ? `http://localhost/api/cron/${path}?secret=${secret}`
+    ? `http://localhost/api/cron/${path}${separator}secret=${secret}`
     : `http://localhost/api/cron/${path}`;
   return new Request(url, { method: "POST" });
 }
@@ -119,26 +119,35 @@ function seedTenant() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 1. api.cron.lab-extract — ANTHROPIC_API_KEY 필요
+// 1. api.cron.lab?mode=extract — ANTHROPIC_API_KEY 필요
 // ═══════════════════════════════════════════════════════════════════════════
-describe("api.cron.lab-extract", () => {
+describe("api.cron.lab (mode=extract)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     testDb = createTestDb();
   });
 
   it("인증 실패 → 401", async () => {
-    const r = await labExtractLoader({
-      request: makeQPRequest("lab-extract", "wrong"),
+    const r = await labLoader({
+      request: makeQPRequest("lab?mode=extract", "wrong"),
       context: ctx(),
       params: {},
     });
     expect(r.status).toBe(401);
   });
 
+  it("mode 누락 → 400", async () => {
+    const r = await labLoader({
+      request: makeQPRequest("lab", "test-secret"),
+      context: ctx(),
+      params: {},
+    });
+    expect(r.status).toBe(400);
+  });
+
   it("ANTHROPIC_API_KEY 누락 → 500", async () => {
-    const r = await labExtractLoader({
-      request: makeQPRequest("lab-extract", "test-secret"),
+    const r = await labLoader({
+      request: makeQPRequest("lab?mode=extract", "test-secret"),
       context: ctx(),
       params: {},
     });
@@ -149,8 +158,8 @@ describe("api.cron.lab-extract", () => {
 
   it("정상 호출 → 200, success: true", async () => {
     seedTenant();
-    const r = await labExtractLoader({
-      request: makeQPRequest("lab-extract", "test-secret"),
+    const r = await labLoader({
+      request: makeQPRequest("lab?mode=extract", "test-secret"),
       context: ctx({ ANTHROPIC_API_KEY: "sk-test" }),
       params: {},
     });
@@ -162,17 +171,17 @@ describe("api.cron.lab-extract", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 2. api.cron.lab-analyze — DB만 필요
+// 2. api.cron.lab?mode=analyze — DB만 필요
 // ═══════════════════════════════════════════════════════════════════════════
-describe("api.cron.lab-analyze", () => {
+describe("api.cron.lab (mode=analyze)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     testDb = createTestDb();
   });
 
   it("인증 실패 → 401", async () => {
-    const r = await labAnalyzeLoader({
-      request: makeQPRequest("lab-analyze", "wrong"),
+    const r = await labLoader({
+      request: makeQPRequest("lab?mode=analyze", "wrong"),
       context: ctx(),
       params: {},
     });
@@ -180,8 +189,8 @@ describe("api.cron.lab-analyze", () => {
   });
 
   it("정상 호출 → 200, 배열 반환", async () => {
-    const r = await labAnalyzeLoader({
-      request: makeQPRequest("lab-analyze", "test-secret"),
+    const r = await labLoader({
+      request: makeQPRequest("lab?mode=analyze", "test-secret"),
       context: ctx(),
       params: {},
     });
@@ -191,8 +200,8 @@ describe("api.cron.lab-analyze", () => {
   });
 
   it("정상 호출 → 테넌트별 분석 구조 포함", async () => {
-    const r = await labAnalyzeLoader({
-      request: makeQPRequest("lab-analyze", "test-secret"),
+    const r = await labLoader({
+      request: makeQPRequest("lab?mode=analyze", "test-secret"),
       context: ctx(),
       params: {},
     });
@@ -246,49 +255,7 @@ describe("api.cron.pattern-extract", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 4. api.cron.shadow-analyze — DB만 필요 (weak auth)
-// ═══════════════════════════════════════════════════════════════════════════
-describe("api.cron.shadow-analyze", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    testDb = createTestDb();
-  });
-
-  it("인증 실패 → 401", async () => {
-    const r = await shadowAnalyzeLoader({
-      request: makeQPRequest("shadow-analyze", "wrong"),
-      context: ctx(),
-      params: {},
-    });
-    expect(r.status).toBe(401);
-  });
-
-  it("active 테넌트 없으면 pendingCount: 0", async () => {
-    const r = await shadowAnalyzeLoader({
-      request: makeQPRequest("shadow-analyze", "test-secret"),
-      context: ctx(),
-      params: {},
-    });
-    expect(r.status).toBe(200);
-    const body = (await r.json()) as Record<string, unknown>;
-    expect(body).toMatchObject({ job: "shadow-analyze", pendingCount: 0, analyzed: 0 });
-  });
-
-  it("정상 호출 → results 구조 포함", async () => {
-    seedTenant();
-    const r = await shadowAnalyzeLoader({
-      request: makeQPRequest("shadow-analyze", "test-secret"),
-      context: ctx(),
-      params: {},
-    });
-    expect(r.status).toBe(200);
-    const body = (await r.json()) as Record<string, unknown>;
-    expect(body.results).toMatchObject({ match: 0, partial: 0, mismatch: 0 });
-  });
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// 5. api.cron.embeddings — OPENAI_API_KEY 필요
+// 4. api.cron.embeddings — OPENAI_API_KEY 필요
 // ═══════════════════════════════════════════════════════════════════════════
 describe("api.cron.embeddings", () => {
   beforeEach(() => {
