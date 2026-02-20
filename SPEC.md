@@ -442,7 +442,15 @@ build/
 - **Cron 등록**: cron-job.org 19/19 전체 등록 완료
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
-### 최근 변경 (세션 224)
+### 최근 변경 (세션 225)
+**CLAUDE.md 품질 감사 및 개선**:
+- ✅ CLAUDE.md 품질 평가: 87/100 (B) → 92/100 (A)
+- ✅ 스키마 머지 패턴 최신화: 3개 → 7개 전체 반영 (outdated 수정)
+- ✅ features 디렉토리 목록: `matrix` 추가
+- ✅ 누락 명령어 추가: `test:watch`, `test:coverage`, `db:studio`
+- ✅ Claude Code 설정 커밋: hooks (typecheck+lint 자동, .dev.vars 차단), agents 2개, db-migrate 스킬, MCP 설정
+
+### 이전 변경 (세션 224)
 **전체 프로젝트 갭 분석 + 버그/문서/기능 수정** (tmux 3-Worker 병렬):
 
 **1. 갭 분석 실행** (tmux 4-Worker 병렬 분석):
