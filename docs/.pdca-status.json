@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-20T00:57:11.825Z",
+  "lastUpdated": "2026-02-20T01:17:32.991Z",
   "activeFeatures": [
     "routes",
     "auth",
@@ -71,7 +71,9 @@
     "topic.test.ts",
     "matrix.test.ts",
     "matrix-graph.test.ts",
-    "topic-graph.test.ts"
+    "topic-graph.test.ts",
+    "topic",
+    "graph-store-suggestions.test.ts"
   ],
   "primaryFeature": "ontology-intelligence",
   "features": {
@@ -108,9 +110,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T11:39:12.844Z",
-        "lastUpdated": "2026-02-20T00:45:35.158Z"
+        "lastUpdated": "2026-02-20T01:15:10.290Z"
       },
-      "lastFile": "/home/sinclair/.claude-work/Discovery-X/app/routes/auth.google.callback.tsx"
+      "lastFile": "/home/sinclair/.claude-work/Discovery-X/app/routes/topics.$id.tsx"
     },
     "auth": {
       "phase": "do",
@@ -251,7 +253,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T13:33:06.221Z",
-        "lastUpdated": "2026-02-18T22:55:50.557Z"
+        "lastUpdated": "2026-02-20T01:15:15.569Z"
       },
       "lastFile": "/home/sinclair/.claude-work/Discovery-X/tests/helpers/db.ts"
     },
@@ -368,7 +370,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-07T08:00:28.362Z",
-        "lastUpdated": "2026-02-18T07:12:49.418Z"
+        "lastUpdated": "2026-02-20T01:13:13.018Z"
       },
       "lastFile": "/home/sinclair/.claude-work/Discovery-X/app/lib/types/enums.ts"
     },
@@ -525,9 +527,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-12T00:01:07.598Z",
-        "lastUpdated": "2026-02-18T22:52:32.965Z"
+        "lastUpdated": "2026-02-20T01:13:54.582Z"
       },
-      "lastFile": "/home/sinclair/.claude-work/Discovery-X/tests/integration/graph/projection-integration.test.ts"
+      "lastFile": "/home/sinclair/.claude-work/Discovery-X/app/lib/graph/store.ts"
     },
     "constants": {
       "phase": "do",
@@ -1022,6 +1024,32 @@
         "lastUpdated": "2026-02-20T00:57:11.825Z"
       },
       "lastFile": "/home/sinclair/.claude-work/Discovery-X/tests/unit/services/topic-graph.test.ts"
+    },
+    "topic": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-20T01:14:53.741Z",
+        "lastUpdated": "2026-02-20T01:17:32.991Z"
+      },
+      "lastFile": "/home/sinclair/.claude-work/Discovery-X/app/components/topic/SuggestionList.tsx"
+    },
+    "graph-store-suggestions.test.ts": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-20T01:16:03.724Z",
+        "lastUpdated": "2026-02-20T01:16:03.724Z"
+      },
+      "lastFile": "/home/sinclair/.claude-work/Discovery-X/tests/unit/services/graph-store-suggestions.test.ts"
     }
   },
   "pipeline": {
@@ -1032,7 +1060,7 @@
   "session": {
     "startedAt": "2026-02-04T11:05:49.371Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-20T00:57:11.825Z"
+    "lastActivity": "2026-02-20T01:17:32.991Z"
   },
   "history": [
     {
@@ -10068,6 +10096,102 @@
     {
       "timestamp": "2026-02-20T00:57:11.825Z",
       "feature": "topic-graph.test.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T01:13:13.018Z",
+      "feature": "Discovery-X",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T01:13:17.041Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T01:13:23.937Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T01:13:54.582Z",
+      "feature": "graph",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T01:14:03.629Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T01:14:14.850Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T01:14:53.741Z",
+      "feature": "topic",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T01:15:00.529Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T01:15:05.936Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T01:15:10.290Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T01:15:15.569Z",
+      "feature": "helpers",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T01:15:23.623Z",
+      "feature": "topic",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T01:16:03.724Z",
+      "feature": "graph-store-suggestions.test.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T01:17:13.295Z",
+      "feature": "topic",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T01:17:25.250Z",
+      "feature": "topic",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T01:17:32.991Z",
+      "feature": "topic",
       "phase": "do",
       "action": "updated"
     }
