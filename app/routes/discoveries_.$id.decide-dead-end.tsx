@@ -17,6 +17,7 @@ import { DiscoveryStatus } from "~/db/schema";
 import { DiscoveryValidationRules, DeadEndDecisionSchema } from "~/lib/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
 import { FAILURE_PATTERNS } from "~/lib/constants/failure-patterns";
+import { ACTIVE_STATUSES } from "~/lib/constants/status";
 import { createEmailClient } from "~/lib/notifications/email";
 import { buildApprovalRequestEmail } from "~/lib/notifications/templates";
 
@@ -44,11 +45,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  // Can only decide from OPEN or EXTENSION_REQUESTED status
-  if (
-    discovery.status !== DiscoveryStatus.IDEA_CARD &&
-    discovery.status !== DiscoveryStatus.IDEA_CARD
-  ) {
+  // 활성 상태에서만 DROP 결정 가능
+  if (!ACTIVE_STATUSES.includes(discovery.status as typeof ACTIVE_STATUSES[number])) {
     return redirect(`/discoveries/${id}`);
   }
 
@@ -79,12 +77,10 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  if (
-    discovery.status !== DiscoveryStatus.IDEA_CARD &&
-    discovery.status !== DiscoveryStatus.IDEA_CARD
-  ) {
+  // 활성 상태에서만 DROP 결정 가능
+  if (!ACTIVE_STATUSES.includes(discovery.status as typeof ACTIVE_STATUSES[number])) {
     return json(
-      { error: "OPEN 또는 EXTENSION_REQUESTED 상태의 Discovery만 결정할 수 있습니다" },
+      { error: "활성 상태의 Discovery만 결정할 수 있습니다" },
       { status: 400 }
     );
   }
