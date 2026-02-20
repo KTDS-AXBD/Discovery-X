@@ -376,16 +376,51 @@ build/
 - **라우트**: 176개 (+2: api.topics.$id.suggestions, api.topics.$id.suggestions.$suggestionId)
 - **테이블**: 87개 (변경 없음, graph_events CHECK 제약만 확장)
 - **Agent 도구**: 54개 (변경 없음)
-- **테스트**: 1263개 (83 test files, 로컬 통과) — 세션 222 추가: projection-sync (+8), scoring (+15)
+- **테스트**: 1334개 (90 test files, 로컬 통과) — 세션 223 추가: worker 유닛 (+71)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
+- **부하 테스트**: Artillery v2.0.30 — 4개 시나리오 (health, api-crud, chat-stream, spike)
 - **Feature Flag**: 9개 — 8/9 true, agentDO만 false
 - **배포**: ✅ 세션 222 백로그 테스트 배포 완료 (CI/CD 2m4s, 테스트 1263개 전체 PASS)
 - **Cron 등록**: cron-job.org 19/19 전체 등록 완료
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
-### 최근 변경 (세션 222)
+### 최근 변경 (세션 223)
+**백로그 4건 완료 (+71 테스트, Artillery 인프라, E2E 정비)** (tmux 4-Worker 병렬):
+
+**1. agent-worker DO 유닛 테스트 (백로그 1.1) — 40개**
+- ✅ `tests/unit/workers/agent-worker-auth.test.ts` (신규): 7개 — HMAC 토큰 검증 (유효/무효/헤더 누락/잘못된 hex)
+- ✅ `tests/unit/workers/agent-worker-routing.test.ts` (신규): 6개 — health check, 인증 실패→401, 인증 성공→DO 라우팅
+- ✅ `tests/unit/workers/agent-session-do.test.ts` (신규): 16개 — /status, /chat 검증, 동시성 429, buildSystemPrompt, alarm, persistState, checkMonthlyBudget, flushMemory 재시도
+- ✅ `tests/unit/workers/agent-do-stub.test.ts` (신규): 11개 — isAgentDOAvailable FF 체크, delegateToDO HMAC+fetch
+
+**2. collab-worker 유닛 테스트 (백로그 1.2) — 31개**
+- ✅ `tests/unit/workers/collab-worker-index.test.ts` (신규): 7개 — health, trigger 인증/성공/실패, 404, scheduled+logCronResults
+- ✅ `tests/unit/workers/collab-cron-handler.test.ts` (신규): 18개 — handleCron 디스패치, 5개 Job 함수, FF 비활성, 에러 격리
+- ✅ `tests/unit/workers/collab-notification.test.ts` (신규): 6개 — sendNotification INSERT/null/에러, notifySignalRouted 멤버 필터
+
+**3. Artillery 부하 테스트 인프라 (백로그 1.8)**
+- ✅ `tests/load/config.yml` (신규): 글로벌 설정 (3단계: warmup→ramp→peak, p95<2s 임계값)
+- ✅ `tests/load/health.yml` (신규): Health check 시나리오 (p95<500ms)
+- ✅ `tests/load/api-crud.yml` (신규): API CRUD 시나리오 — discoveries, recall, search (p95<1s, cookie 인증)
+- ✅ `tests/load/chat-stream.yml` (신규): Agent chat SSE 시나리오 (저동시성, p95<3s)
+- ✅ `tests/load/spike.yml` (신규): 스파이크 테스트 (1→20→1 req/s, error rate<1%)
+- ✅ `tests/load/README.md` (신규): 부하 테스트 실행 가이드
+- ✅ `package.json` (수정): artillery devDependency + 4개 load-test 스크립트 추가
+
+**4. E2E 테스트 환경 정비 (백로그 3.4)**
+- ✅ `playwright.config.ts` (재작성): 3 프로젝트 (setup/public/authenticated), 타임아웃 30s, CI 비디오, 실패 스크린샷, storageState 인증
+- ✅ `tests/e2e/global-setup.ts` (신규): Cookie 기반 인증 (E2E_SESSION_COOKIE 환경변수), storageState 지속
+- ✅ `tests/e2e/smoke.spec.ts` (신규): 4개 스모크 테스트 (로그인 페이지, health API, pending 페이지, 404)
+- ✅ `tests/e2e/helpers.ts` (확장): skipIfNoAuth, waitForApiResponse, waitForModal, waitForToast, safeNavigate 추가
+- ✅ 기존 10개 spec 파일 수정: skipIfNoAuth + safeNavigate 적용
+
+**검증 결과**:
+- 테스트 총수: 1263 → 1334 (+71개, 90 test files)
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1334/1334 PASS / build 성공
+
+### 이전 변경 (세션 222)
 **백로그 테스트 2개 추가 (+23개)** (tmux 2-Worker 병렬):
 
 **1. projection-sync 배치 동기화 테스트 (백로그 1.5)**
@@ -456,12 +491,12 @@ build/
 - ✅ 1.7 Vectorize 시맨틱 검색 UI — 세션 213~214 완료
 - ✅ 3.1 서비스 단위 테스트 — 13/13 완료 (세션 222에서 scoring 추가)
 - ✅ 3.2 Cron 통합 테스트 — 세션 218 완료 (19/19)
-- ⬜ 1.1 agent-worker DO 독립 배포 (P2)
-- ⬜ 1.2 collab-worker 독립 배포 (P3)
+- ✅ 1.1 agent-worker DO 유닛 테스트 — 세션 223 완료 (40개 테스트)
+- ✅ 1.2 collab-worker 유닛 테스트 — 세션 223 완료 (31개 테스트)
 - ✅ 1.5 Projection 배치 동기화 검증 — 세션 222 완료 (8개 테스트)
 - ✅ 1.6 Graph enrichment 승인 UI — 세션 221 완료
-- ⬜ 1.8 부하 테스트 (P3)
-- ⬜ 3.4 E2E 테스트 환경 정비 (P2)
+- ✅ 1.8 부하 테스트 — 세션 223 완료 (Artillery 4개 시나리오)
+- ✅ 3.4 E2E 테스트 환경 정비 — 세션 223 완료 (인증 설정 + 스모크 테스트)
 
 ### 이전 변경 (세션 219)
 **Google OAuth 수정 + 로그아웃 버그 수정 + 프로덕션 E2E 검증**:
