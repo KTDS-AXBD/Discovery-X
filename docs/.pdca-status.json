@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-19T05:42:12.912Z",
+  "lastUpdated": "2026-02-20T00:15:52.780Z",
   "activeFeatures": [
     "routes",
     "auth",
@@ -61,7 +61,13 @@
     "scripts",
     "recall-tracking.service.ts",
     "recall-tracking.test.ts",
-    "methods"
+    "methods",
+    "proposal.test.ts",
+    "radar.test.ts",
+    "discovery.test.ts",
+    "signal.test.ts",
+    "idea.test.ts",
+    "venture.test.ts"
   ],
   "primaryFeature": "ontology-intelligence",
   "features": {
@@ -98,9 +104,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-04T11:39:12.844Z",
-        "lastUpdated": "2026-02-19T05:42:12.912Z"
+        "lastUpdated": "2026-02-19T05:53:01.244Z"
       },
-      "lastFile": "/home/sinclair/.claude-work/Discovery-X/app/routes/auth.google.callback.tsx"
+      "lastFile": "/home/sinclair/.claude-work/Discovery-X/app/routes/login.tsx"
     },
     "auth": {
       "phase": "do",
@@ -567,9 +573,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-16T05:55:24.355Z",
-        "lastUpdated": "2026-02-19T00:25:35.392Z"
+        "lastUpdated": "2026-02-20T00:15:52.779Z"
       },
-      "lastFile": "/home/sinclair/.claude-work/Discovery-X/tests/integration/cron-vectorize-routes.test.ts"
+      "lastFile": "/home/sinclair/.claude-work/Discovery-X/tests/integration/cron-routes-bearer.test.ts"
     },
     "signal.service.ts": {
       "phase": "do",
@@ -882,6 +888,84 @@
         "lastUpdated": "2026-02-19T04:42:21.125Z"
       },
       "lastFile": "/home/sinclair/.claude-work/Discovery-X/app/components/methods/GatePackageEditor.tsx"
+    },
+    "proposal.test.ts": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-19T23:58:13.651Z",
+        "lastUpdated": "2026-02-19T23:58:13.651Z"
+      },
+      "lastFile": "/home/sinclair/.claude-work/Discovery-X/tests/unit/services/proposal.test.ts"
+    },
+    "radar.test.ts": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-19T23:58:43.983Z",
+        "lastUpdated": "2026-02-19T23:58:43.983Z"
+      },
+      "lastFile": "/home/sinclair/.claude-work/Discovery-X/tests/unit/services/radar.test.ts"
+    },
+    "discovery.test.ts": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-19T23:59:11.210Z",
+        "lastUpdated": "2026-02-20T00:01:26.399Z"
+      },
+      "lastFile": "/home/sinclair/.claude-work/Discovery-X/tests/unit/services/discovery.test.ts"
+    },
+    "signal.test.ts": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-19T23:59:12.279Z",
+        "lastUpdated": "2026-02-19T23:59:12.279Z"
+      },
+      "lastFile": "/home/sinclair/.claude-work/Discovery-X/tests/unit/services/signal.test.ts"
+    },
+    "idea.test.ts": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-19T23:59:56.221Z",
+        "lastUpdated": "2026-02-19T23:59:56.221Z"
+      },
+      "lastFile": "/home/sinclair/.claude-work/Discovery-X/tests/unit/services/idea.test.ts"
+    },
+    "venture.test.ts": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-20T00:00:31.603Z",
+        "lastUpdated": "2026-02-20T00:00:31.603Z"
+      },
+      "lastFile": "/home/sinclair/.claude-work/Discovery-X/tests/unit/services/venture.test.ts"
     }
   },
   "pipeline": {
@@ -892,7 +976,7 @@
   "session": {
     "startedAt": "2026-02-04T11:05:49.371Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-19T05:42:12.912Z"
+    "lastActivity": "2026-02-20T00:15:52.780Z"
   },
   "history": [
     {
@@ -9748,6 +9832,144 @@
     {
       "timestamp": "2026-02-19T05:42:12.912Z",
       "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-19T05:52:23.852Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-19T05:52:38.297Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-19T05:52:49.962Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-19T05:53:01.244Z",
+      "feature": "routes",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-19T23:58:13.651Z",
+      "feature": "proposal.test.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-19T23:58:43.983Z",
+      "feature": "radar.test.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-19T23:59:11.210Z",
+      "feature": "discovery.test.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-19T23:59:12.279Z",
+      "feature": "signal.test.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-19T23:59:56.221Z",
+      "feature": "idea.test.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T00:00:31.603Z",
+      "feature": "venture.test.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T00:01:03.886Z",
+      "feature": "discovery.test.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T00:01:26.399Z",
+      "feature": "discovery.test.ts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T00:07:26.047Z",
+      "feature": "integration",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T00:08:24.407Z",
+      "feature": "integration",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T00:09:05.479Z",
+      "feature": "integration",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T00:09:09.538Z",
+      "feature": "integration",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T00:11:23.939Z",
+      "feature": "integration",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T00:11:58.753Z",
+      "feature": "integration",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T00:12:06.575Z",
+      "feature": "integration",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T00:12:12.838Z",
+      "feature": "integration",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T00:12:29.971Z",
+      "feature": "integration",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T00:15:51.567Z",
+      "feature": "integration",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T00:15:52.779Z",
+      "feature": "integration",
       "phase": "do",
       "action": "updated"
     }
