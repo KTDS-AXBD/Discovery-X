@@ -381,7 +381,7 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **Feature Flag**: 9개 — 8/9 true, agentDO만 false
-- **배포**: ✅ 세션 221 Graph Enrichment 승인 UI 배포 완료 + D1 마이그레이션 적용 + Playwright 프로덕션 검증 (CI/CD 2m13s)
+- **배포**: ✅ 세션 222 백로그 테스트 배포 완료 (CI/CD 2m4s, 테스트 1263개 전체 PASS)
 - **Cron 등록**: cron-job.org 19/19 전체 등록 완료
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
