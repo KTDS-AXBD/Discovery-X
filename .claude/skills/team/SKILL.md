@@ -124,66 +124,62 @@ chmod +x "$TEAM_DIR/team-{팀이름}-run-{N}.sh"
 
 **3b. launcher 스크립트를 생성**한다. worker 수(N)에 맞게 아래 템플릿을 사용:
 
-> **핵심**: 별도 window를 생성하지 않고, **리더 pane에서 split**하여 같은 window에 worker pane을 배치한다.
-> worker pane이 리더와 같은 화면에 보이므로 window 전환 없이 실시간 확인이 가능하다.
-> `split-window -P -F '#{pane_id}'`로 새 pane의 ID를 캡처하여 정확히 타겟팅한다.
+> **핵심**: **team 전용 window**를 생성(`new-window -d`)하여 worker pane을 배치한다.
+> 리더 window의 기존 pane 레이아웃을 건드리지 않으므로 레이아웃 충돌이 없다.
+> `Ctrl+b n/p`로 리더 window ↔ team window 간 즉시 전환 가능.
+> `even-vertical` 레이아웃으로 각 worker가 **전체 너비 × 균등 높이**를 확보한다.
 
 ```bash
 CURRENT_SESSION=$(tmux display-message -p '#S')
-LEADER_PANE=$(tmux display-message -p '#{pane_id}')
 
 cat > "$TEAM_DIR/team-{팀이름}-launcher.sh" << LAUNCHER
 #!/usr/bin/env bash
 set -e
 TEAM="{팀이름}"
 SESSION="$CURRENT_SESSION"
-LEADER_PANE="$LEADER_PANE"
 PROJECT_DIR="$PROJECT_DIR"
 TEAM_DIR="$TEAM_DIR"
+TEAM_WINDOW="team-\${TEAM}"
 
-# 0) 리더 pane ID를 파일로 저장
-echo "\$LEADER_PANE" > "\$TEAM_DIR/team-\${TEAM}-leader-pane.txt"
+# 0) 기존 team window 정리 (재실행 시)
+tmux kill-window -t "\$TEAM_WINDOW" 2>/dev/null || true
+rm -f "\$TEAM_DIR/team-\${TEAM}-worker-panes.txt"
 
-# 1) 기존 worker pane 정리 (재실행 시)
-if [ -f "\$TEAM_DIR/team-\${TEAM}-worker-panes.txt" ]; then
-  while read -r pane_id; do
-    tmux kill-pane -t "\$pane_id" 2>/dev/null || true
-  done < "\$TEAM_DIR/team-\${TEAM}-worker-panes.txt"
-  rm -f "\$TEAM_DIR/team-\${TEAM}-worker-panes.txt"
-fi
-
-# 2) Worker 1 — 리더 pane에서 수직 분할 (오른쪽에 생성)
-W1=\$(tmux split-window -h -t "\$LEADER_PANE" -c "\$PROJECT_DIR" -P -F '#{pane_id}')
+# 1) Team 전용 window 생성 + Worker 1 (window의 첫 pane)
+W1=\$(tmux new-window -d -n "\$TEAM_WINDOW" -c "\$PROJECT_DIR" -P -F '#{pane_id}')
 echo "\$W1" > "\$TEAM_DIR/team-\${TEAM}-worker-panes.txt"
 tmux send-keys -t "\$W1" "bash \$TEAM_DIR/team-\${TEAM}-run-1.sh" Enter
 
-# 3) Worker 2 — W1에서 수평 분할 (아래에 생성)
-W2=\$(tmux split-window -v -t "\$W1" -c "\$PROJECT_DIR" -P -F '#{pane_id}')
+# 2) Worker 2 — W1 아래에 수평 분할
+W2=\$(tmux split-window -v -d -t "\$W1" -c "\$PROJECT_DIR" -P -F '#{pane_id}')
 echo "\$W2" >> "\$TEAM_DIR/team-\${TEAM}-worker-panes.txt"
 tmux send-keys -t "\$W2" "bash \$TEAM_DIR/team-\${TEAM}-run-2.sh" Enter
 
-# 4) Worker 3 (필요 시) — W2에서 수평 분할 (아래에 생성)
-# W3=\$(tmux split-window -v -t "\$W2" -c "\$PROJECT_DIR" -P -F '#{pane_id}')
+# 3) Worker 3 (필요 시)
+# W3=\$(tmux split-window -v -d -t "\$W2" -c "\$PROJECT_DIR" -P -F '#{pane_id}')
 # echo "\$W3" >> "\$TEAM_DIR/team-\${TEAM}-worker-panes.txt"
 # tmux send-keys -t "\$W3" "bash \$TEAM_DIR/team-\${TEAM}-run-3.sh" Enter
 
-# 5) Worker 4 (필요 시) — W3에서 수평 분할 (아래에 생성)
-# W4=\$(tmux split-window -v -t "\$W3" -c "\$PROJECT_DIR" -P -F '#{pane_id}')
+# 4) Worker 4 (필요 시)
+# W4=\$(tmux split-window -v -d -t "\$W3" -c "\$PROJECT_DIR" -P -F '#{pane_id}')
 # echo "\$W4" >> "\$TEAM_DIR/team-\${TEAM}-worker-panes.txt"
 # tmux send-keys -t "\$W4" "bash \$TEAM_DIR/team-\${TEAM}-run-4.sh" Enter
 
-# 6) 리더 pane으로 포커스 복원
-tmux select-pane -t "\$LEADER_PANE"
+# 5) 균등 레이아웃 적용 (각 worker 전체 너비 × 균등 높이)
+tmux select-layout -t "\$TEAM_WINDOW" even-vertical
 
-echo "Workers split from leader pane \$LEADER_PANE in session '\$SESSION'"
-tmux list-panes -F "pane=#{pane_id} pid=#{pane_pid} size=#{pane_width}x#{pane_height}"
+# 6) Team window 이름 저장
+echo "\$TEAM_WINDOW" > "\$TEAM_DIR/team-\${TEAM}-window.txt"
+
+echo "Team window '\$TEAM_WINDOW' created in session '\$SESSION'"
+tmux list-panes -t "\$TEAM_WINDOW" -F "pane=#{pane_id} pid=#{pane_pid} size=#{pane_width}x#{pane_height}"
 LAUNCHER
 chmod +x "$TEAM_DIR/team-{팀이름}-launcher.sh"
 ```
 
 > **worker 수에 따라 주석(#)을 해제**하여 3명, 4명 구성을 만든다.
-> **pane 타겟팅**: `split-window -P -F '#{pane_id}'`로 새 pane ID를 캡처하므로, pane 인덱스 하드코딩이 불필요하다. 각 worker에 `send-keys -t "$W{N}"`으로 정확히 전달한다.
-> **같은 window**: 별도 window를 생성하지 않으므로 리더와 worker가 한 화면에 공존한다. launcher 완료 시 `select-pane`으로 리더 pane에 포커스를 복원한다.
+> **team 전용 window**: `new-window -d`로 생성하므로 리더의 기존 레이아웃에 영향 없다. `-d` 플래그로 리더 window에 포커스가 유지된다.
+> **균등 레이아웃**: `even-vertical`로 각 worker가 전체 너비를 사용하여 Claude 출력이 잘 보인다.
 
 **3c. launcher를 실행**한다:
 
@@ -197,9 +193,12 @@ Git Bash 환경 (GIT_BASH):
 wsl -e bash -c "bash $WSL_TEAM_DIR/team-{팀이름}-launcher.sh"
 ```
 
-**3d. worker pane 생성을 검증**한다:
+**3d. team window 및 worker pane 생성을 검증**한다:
 ```bash
 TEAM_DIR="$PWD/.team-tmp"
+TEAM_WINDOW=$(cat "$TEAM_DIR/team-{팀이름}-window.txt" 2>/dev/null)
+echo "Team window: $TEAM_WINDOW"
+tmux list-panes -t "$TEAM_WINDOW" -F "pane=#{pane_id} pid=#{pane_pid} size=#{pane_width}x#{pane_height}" 2>/dev/null || echo "MISSING: team window not found"
 i=1
 while read -r pane_id; do
   if tmux display-message -t "$pane_id" -p "#{pane_id}" 2>/dev/null; then
@@ -210,32 +209,37 @@ while read -r pane_id; do
   i=$((i+1))
 done < "$TEAM_DIR/team-{팀이름}-worker-panes.txt"
 ```
-- worker pane ID 수가 worker 수와 일치하는지 확인한다
+- team window가 존재하고 worker pane 수가 일치하는지 확인한다
 - 불일치하면 launcher 스크립트를 다시 실행한다
 
 사용자에게 안내한다:
 ```
-리더 pane 옆에 Worker pane이 생성되었습니다.
-pane 이동: Ctrl+b 방향키 | 확대: Ctrl+b z | 리더 pane 포커스 유지
-Worker 완료 후 리더가 worker pane을 자동으로 정리합니다.
+Team window '{팀이름}'이 생성되었습니다.
+Worker 확인: Ctrl+b n (다음 window) | Ctrl+b p (이전 window)
+Worker 완료 후 team window가 자동으로 정리됩니다.
 ```
 
-**pane 레이아웃 (2명)**:
+**team window 레이아웃 (2명, even-vertical)**:
 ```
-+------------------+------------------+
-|                  |  Worker 1        |
-|  Leader (Claude) +------------------+
-|                  |  Worker 2        |
-+------------------+------------------+
++------------------------------------+
+|  Worker 1 (전체 너비)               |
++------------------------------------+
+|  Worker 2 (전체 너비)               |
++------------------------------------+
 ```
+> 리더 window와 별도 — Ctrl+b n/p로 전환
 
-**pane 레이아웃 (4명)**:
+**team window 레이아웃 (4명, even-vertical)**:
 ```
-+------------------+--------+---------+
-|                  | W1     | W3      |
-|  Leader (Claude) +--------+---------+
-|                  | W2     | W4      |
-+------------------+--------+---------+
++------------------------------------+
+|  Worker 1 (전체 너비)               |
++------------------------------------+
+|  Worker 2 (전체 너비)               |
++------------------------------------+
+|  Worker 3 (전체 너비)               |
++------------------------------------+
+|  Worker 4 (전체 너비)               |
++------------------------------------+
 ```
 
 ### 4. 모니터링
@@ -265,8 +269,8 @@ done < "$TEAM_DIR/team-{팀이름}-worker-panes.txt"
 ```
 
 **모니터링 규칙:**
-- launcher 실행 후, 리더 pane에 포커스가 자동 복원되어 있다 (launcher가 `select-pane` 수행)
-- window 전환 없이 같은 화면에서 worker 진행 상황을 볼 수 있다
+- launcher 실행 후, 리더 pane에 포커스가 유지된다 (`new-window -d` 사용)
+- worker 진행 상황은 `Ctrl+b n`으로 team window 전환 후 확인, 또는 위 로그 체크 명령으로 확인
 - 30초 간격으로 로그 파일의 DONE 마커를 확인한다
 - 모든 worker 로그에 `DONE` 마커가 확인되면 Step 6으로 이동
 - 5분 이상 응답 없는 worker는 사용자에게 보고한다
@@ -305,12 +309,11 @@ while read -r pane_id; do
 done < "$TEAM_DIR/team-{팀이름}-worker-panes.txt"
 ```
 
-2. worker pane 종료:
+2. team window 종료:
 ```bash
 TEAM_DIR="$PWD/.team-tmp"
-while read -r pane_id; do
-  tmux kill-pane -t "$pane_id" 2>/dev/null || true
-done < "$TEAM_DIR/team-{팀이름}-worker-panes.txt"
+TEAM_WINDOW=$(cat "$TEAM_DIR/team-{팀이름}-window.txt" 2>/dev/null)
+tmux kill-window -t "$TEAM_WINDOW" 2>/dev/null || true
 ```
 
 3. 임시 파일 정리:
@@ -356,13 +359,13 @@ rm -rf "$PWD/.team-tmp"
 - **반드시 `command claude`로 호출**하여 alias를 우회한다 (runner 스크립트 템플릿 참고)
 - `CLAUDE_CONFIG_DIR`을 runner 스크립트에 export하여 리더 세션의 인증 컨텍스트를 worker에 전파한다
 
-### CRITICAL — 리더 pane에서 split (같은 window 유지)
-- 별도 tmux window나 세션을 생성하지 않는다 — 리더와 worker가 **같은 window**에 공존한다
-- **반드시 `split-window -h -t $LEADER_PANE`**으로 리더 pane에서 분할하여 worker pane을 생성한다
-- `split-window -P -F '#{pane_id}'`로 새 pane ID를 캡처하여 정확히 타겟팅한다
-- launcher 완료 후 `tmux select-pane -t $LEADER_PANE`으로 리더 pane에 포커스 복원
-- 정리 시 `tmux kill-pane -t $PANE_ID`로 worker pane만 개별 종료 (window나 session을 kill하지 않는다)
-- worker pane ID는 `$TEAM_DIR/team-{팀이름}-worker-panes.txt`에 저장하여 모니터링/정리에 사용
+### CRITICAL — team 전용 window 사용 (리더 레이아웃 보존)
+- **`tmux new-window -d`로 team 전용 window를 생성**한다 — 리더 window의 기존 pane 레이아웃에 영향 없음
+- `-d` 플래그로 리더 window에 포커스가 유지된다 (team window로 자동 전환 안 됨)
+- `even-vertical` 레이아웃으로 각 worker가 **전체 너비 × 균등 높이**를 확보 → Claude 출력이 잘 보임
+- 정리 시 `tmux kill-window -t $TEAM_WINDOW`로 team window 전체 종료 (리더 window/session 영향 없음)
+- worker pane ID는 `$TEAM_DIR/team-{팀이름}-worker-panes.txt`에, window 이름은 `team-{팀이름}-window.txt`에 저장
+- 사용자는 `Ctrl+b n/p`로 리더 window ↔ team window 간 전환
 
 ### 일반 규칙
 - worker끼리 **같은 파일을 동시 수정하지 않도록** 태스크를 분할한다
