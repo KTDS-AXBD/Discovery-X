@@ -19,6 +19,8 @@ export const GraphAction = {
   DELETE: "delete",
   ROLLBACK: "rollback",
   SUGGEST: "suggest",
+  APPROVE: "approve",
+  REJECT: "reject",
 } as const;
 export type GraphActionValue =
   (typeof GraphAction)[keyof typeof GraphAction];

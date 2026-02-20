@@ -64,6 +64,7 @@ export function createTestDb() {
   runMigrationSQL(sqlite, resolve(migrationsDir, "0037_framework_seed.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0038_matrix_indexes.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0039_consensus_enrich.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0040_graph_approve_reject.sql"));
 
   return drizzle(sqlite, { schema: { ...schema, ...v2Schema, ...matrixSchema } });
 }

@@ -40,7 +40,9 @@ export type GraphAction =
   | "update"
   | "delete"
   | "rollback"
-  | "suggest";
+  | "suggest"
+  | "approve"
+  | "reject";
 
 export interface GraphEvent {
   id: number;
@@ -124,6 +126,17 @@ export interface GraphStoreInterface {
     audit?: AuditContext,
   ): Promise<void>;
   getPendingSuggestions(graphId: string): Promise<PendingSuggestion[]>;
+  approveSuggestion(
+    graphId: string,
+    suggestionId: number,
+    audit?: AuditContext,
+  ): Promise<GraphRecord>;
+  rejectSuggestion(
+    graphId: string,
+    suggestionId: number,
+    reason?: string,
+    audit?: AuditContext,
+  ): Promise<void>;
 }
 
 // === Query Engine 인터페이스 ===

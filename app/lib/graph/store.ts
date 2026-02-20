@@ -369,12 +369,14 @@ export class GraphStore implements GraphStoreInterface {
   }
 
   /**
-   * 특정 Graph의 미적용 suggest 이벤트 목록 조회 (최신 순, 최대 20건).
+   * 특정 Graph의 미처리 suggest 이벤트 목록 조회 (최신 순, 최대 20건).
+   * approve/reject 이벤트에 연결된 suggestion은 제외.
    */
   async getPendingSuggestions(
     graphId: string,
   ): Promise<PendingSuggestion[]> {
-    const rows = await this.db
+    // 1. suggest 이벤트 조회
+    const suggestRows = await this.db
       .select()
       .from(graphEvents)
       .where(
@@ -384,9 +386,41 @@ export class GraphStore implements GraphStoreInterface {
         ),
       )
       .orderBy(desc(graphEvents.createdAt))
-      .limit(20);
+      .limit(50);
 
-    return rows.map((row) => ({
+    if (suggestRows.length === 0) return [];
+
+    // 2. approve/reject 이벤트에서 처리된 suggestionEventId 수집
+    const processedRows = await this.db
+      .select()
+      .from(graphEvents)
+      .where(
+        and(
+          eq(graphEvents.graphId, graphId),
+        ),
+      );
+
+    const processedIds = new Set<number>();
+    for (const row of processedRows) {
+      if (
+        (row.action === GraphAction.APPROVE || row.action === GraphAction.REJECT) &&
+        row.diffJson
+      ) {
+        try {
+          const diff = JSON.parse(row.diffJson) as { suggestionEventId?: number };
+          if (diff.suggestionEventId != null) {
+            processedIds.add(diff.suggestionEventId);
+          }
+        } catch {
+          // 파싱 실패 무시
+        }
+      }
+    }
+
+    // 3. 처리 완료된 suggestion 제외
+    const pending = suggestRows.filter((row) => !processedIds.has(row.id));
+
+    return pending.slice(0, 20).map((row) => ({
       id: row.id,
       enrichment: row.diffJson
         ? (JSON.parse(row.diffJson) as EnrichmentSuggestion)
@@ -394,6 +428,160 @@ export class GraphStore implements GraphStoreInterface {
       actorId: row.actorId,
       createdAt: row.createdAt,
     }));
+  }
+
+  /**
+   * Suggestion 승인 — 제안된 노드를 Graph에 머지하고 approve 이벤트 기록.
+   */
+  async approveSuggestion(
+    graphId: string,
+    suggestionId: number,
+    audit?: AuditContext,
+  ): Promise<GraphRecord> {
+    // 1. suggestion 이벤트 조회
+    const suggestRows = await this.db
+      .select()
+      .from(graphEvents)
+      .where(
+        and(
+          eq(graphEvents.id, suggestionId),
+          eq(graphEvents.graphId, graphId),
+          eq(graphEvents.action, GraphAction.SUGGEST),
+        ),
+      )
+      .limit(1);
+
+    if (suggestRows.length === 0) {
+      throw new Error(`Suggestion not found: ${suggestionId}`);
+    }
+
+    // 이미 처리된 suggestion인지 확인
+    const existingProcess = await this.db
+      .select()
+      .from(graphEvents)
+      .where(eq(graphEvents.graphId, graphId));
+
+    for (const row of existingProcess) {
+      if (
+        (row.action === GraphAction.APPROVE || row.action === GraphAction.REJECT) &&
+        row.diffJson
+      ) {
+        try {
+          const diff = JSON.parse(row.diffJson) as { suggestionEventId?: number };
+          if (diff.suggestionEventId === suggestionId) {
+            throw new Error(`Suggestion already processed: ${suggestionId}`);
+          }
+        } catch (e) {
+          if (e instanceof Error && e.message.startsWith("Suggestion already")) throw e;
+        }
+      }
+    }
+
+    const suggestion = suggestRows[0];
+    const enrichment: EnrichmentSuggestion = suggestion.diffJson
+      ? (JSON.parse(suggestion.diffJson) as EnrichmentSuggestion)
+      : { reason: "" };
+
+    // 2. Graph 조회
+    const existing = await this.get(graphId);
+    if (!existing) {
+      throw new Error(`Graph not found: ${graphId}`);
+    }
+
+    // 3. 제안 노드를 기존 @graph에 머지 (@id 기반 중복 방지)
+    const existingIds = new Set(existing.jsonld["@graph"].map((n) => n["@id"]));
+    const newNodes = (enrichment.nodes ?? []).filter(
+      (n) => !existingIds.has(n["@id"]),
+    );
+
+    const mergedJsonld: JsonLdGraph = {
+      ...existing.jsonld,
+      "@graph": [...existing.jsonld["@graph"], ...newNodes],
+    };
+
+    // 4. Graph 업데이트 (update 이벤트 자동 기록)
+    const updated = await this.update(
+      graphId,
+      mergedJsonld,
+      `제안 승인 (event #${suggestionId})`,
+      audit,
+    );
+
+    // 5. approve 이벤트 별도 기록
+    await this.db.insert(graphEvents).values({
+      graphId,
+      actorId: audit?.actorId ?? "system",
+      actorType: audit?.actorType ?? ActorType.USER,
+      action: GraphAction.APPROVE,
+      diffJson: JSON.stringify({ suggestionEventId: suggestionId }),
+      reason: `제안 승인: ${enrichment.reason}`,
+      createdAt: new Date(),
+    });
+
+    return updated;
+  }
+
+  /**
+   * Suggestion 거절 — Graph를 변경하지 않고 reject 이벤트만 기록.
+   */
+  async rejectSuggestion(
+    graphId: string,
+    suggestionId: number,
+    reason?: string,
+    audit?: AuditContext,
+  ): Promise<void> {
+    // 1. suggestion 이벤트 존재 확인
+    const suggestRows = await this.db
+      .select()
+      .from(graphEvents)
+      .where(
+        and(
+          eq(graphEvents.id, suggestionId),
+          eq(graphEvents.graphId, graphId),
+          eq(graphEvents.action, GraphAction.SUGGEST),
+        ),
+      )
+      .limit(1);
+
+    if (suggestRows.length === 0) {
+      throw new Error(`Suggestion not found: ${suggestionId}`);
+    }
+
+    // 이미 처리된 suggestion인지 확인
+    const existingProcess = await this.db
+      .select()
+      .from(graphEvents)
+      .where(eq(graphEvents.graphId, graphId));
+
+    for (const row of existingProcess) {
+      if (
+        (row.action === GraphAction.APPROVE || row.action === GraphAction.REJECT) &&
+        row.diffJson
+      ) {
+        try {
+          const diff = JSON.parse(row.diffJson) as { suggestionEventId?: number };
+          if (diff.suggestionEventId === suggestionId) {
+            throw new Error(`Suggestion already processed: ${suggestionId}`);
+          }
+        } catch (e) {
+          if (e instanceof Error && e.message.startsWith("Suggestion already")) throw e;
+        }
+      }
+    }
+
+    // 2. reject 이벤트만 기록 (graph 변경 없음)
+    await this.db.insert(graphEvents).values({
+      graphId,
+      actorId: audit?.actorId ?? "system",
+      actorType: audit?.actorType ?? ActorType.USER,
+      action: GraphAction.REJECT,
+      diffJson: JSON.stringify({
+        suggestionEventId: suggestionId,
+        rejectReason: reason ?? null,
+      }),
+      reason: reason ?? "거절됨",
+      createdAt: new Date(),
+    });
   }
 
   /** 감사 로그 조회 (최신 순) */

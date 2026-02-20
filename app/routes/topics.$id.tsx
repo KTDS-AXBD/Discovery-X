@@ -14,13 +14,15 @@ import { TopicMemberList } from "~/components/topic/MemberList";
 import { DecisionList } from "~/components/topic/DecisionList";
 import { GlossaryList } from "~/components/topic/GlossaryList";
 import { GraphEventLog } from "~/components/topic/GraphEventLog";
+import { SuggestionList } from "~/components/topic/SuggestionList";
 
-type TabKey = "overview" | "decisions" | "glossary" | "events";
+type TabKey = "overview" | "decisions" | "glossary" | "suggestions" | "events";
 
 const tabLabels: Record<TabKey, string> = {
   overview: "개요",
   decisions: "결정",
   glossary: "용어",
+  suggestions: "제안",
   events: "이력",
 };
 
@@ -340,7 +342,7 @@ export default function TopicDetail() {
 
         {/* 탭 네비게이션 */}
         <div className="mb-6 flex gap-1 border-b border-[var(--axis-border-default)]">
-          {(["overview", "decisions", "glossary", "events"] as const).map((tab) => (
+          {(["overview", "decisions", "glossary", "suggestions", "events"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -436,6 +438,10 @@ export default function TopicDetail() {
 
         {activeTab === "glossary" && (
           <GlossaryList topicId={topic.id} />
+        )}
+
+        {activeTab === "suggestions" && (
+          <SuggestionList topicId={topic.id} />
         )}
 
         {activeTab === "events" && (
