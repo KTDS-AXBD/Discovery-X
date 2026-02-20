@@ -368,15 +368,15 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.18 + Gate 비판적 검증 4종 + 로그인/로그아웃/승인 개선 + OAuth 수정
+- **프로토타입**: v6.18 + Gate 비판적 검증 4종 + 로그인/로그아웃/승인 개선 + OAuth 수정 + Graph Enrichment 승인 UI
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 40개 마이그레이션 (0000~0039), 로컬 + 프로덕션 모두 적용 완료
+- **DB**: 41개 마이그레이션 (0000~0040), 로컬 적용 완료
 
 ### 주요 지표
-- **라우트**: 174개 (변경 없음)
-- **테이블**: 87개 (변경 없음)
+- **라우트**: 176개 (+2: api.topics.$id.suggestions, api.topics.$id.suggestions.$suggestionId)
+- **테이블**: 87개 (변경 없음, graph_events CHECK 제약만 확장)
 - **Agent 도구**: 54개 (변경 없음)
-- **테스트**: 1231개 (80 test files, 로컬 통과) — 세션 220 추가: 서비스 단위 4파일 (+94개)
+- **테스트**: 1240개 (81 test files, 로컬 통과) — 세션 221 추가: graph-store-suggestions (+9개)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
@@ -385,7 +385,31 @@ build/
 - **Cron 등록**: cron-job.org 19/19 전체 등록 완료
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
-### 최근 변경 (세션 220)
+### 최근 변경 (세션 221)
+**Graph Enrichment 승인/거절 UI 구현** (백로그 1.6):
+
+**1. DB 마이그레이션 (0040)**
+- ✅ `drizzle/0040_graph_approve_reject.sql` (신규): graph_events CHECK 제약에 'approve'/'reject' 추가 (테이블 재생성 방식)
+
+**2. GraphStore 확장**
+- ✅ `app/lib/graph/store.ts` (수정): approveSuggestion (노드 머지, @id 중복 방지), rejectSuggestion (이벤트만 기록), getPendingSuggestions (처리된 제안 필터링)
+- ✅ `app/lib/graph/types.ts` (수정): GraphAction 타입 + GraphStoreInterface에 approveSuggestion/rejectSuggestion 추가
+- ✅ `app/lib/types/enums.ts` (수정): GraphAction.APPROVE/REJECT enum 추가
+
+**3. API 라우트 (2개 신규)**
+- ✅ `app/routes/api.topics.$id.suggestions.ts` (신규): GET — 미처리 제안 목록
+- ✅ `app/routes/api.topics.$id.suggestions.$suggestionId.ts` (신규): POST — 승인/거절 (action: approve|reject)
+
+**4. UI**
+- ✅ `app/components/topic/SuggestionList.tsx` (신규): agent 제안 카드 (노드 미리보기, 승인/거절 버튼, 거절 사유 입력)
+- ✅ `app/routes/topics.$id.tsx` (수정): "제안" 탭 추가 (events 앞 배치)
+- ✅ `app/components/topic/GraphEventLog.tsx` (수정): approve/reject 뱃지 스타일 추가
+
+**5. 테스트**
+- ✅ `tests/unit/services/graph-store-suggestions.test.ts` (신규): 9개 — approveSuggestion(노드 머지, 중복 방지, 미존재/이미처리 에러), rejectSuggestion(이벤트 기록, graph 미변경, 에러), getPendingSuggestions(필터링)
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1240/1240 PASS / build 성공
+
+### 이전 변경 (세션 220)
 **서비스 단위 테스트 4개 서비스 일괄 추가 (+94개)** (tmux 3-Worker 병렬):
 
 **서비스 레이어 단위 테스트 (4파일, 94개)**
@@ -415,7 +439,7 @@ build/
 - ⬜ 1.1 agent-worker DO 독립 배포 (P2)
 - ⬜ 1.2 collab-worker 독립 배포 (P3)
 - ⬜ 1.5 Projection 배치 동기화 검증 (P3)
-- ⬜ 1.6 Graph enrichment 승인 UI (P2)
+- ✅ 1.6 Graph enrichment 승인 UI — 세션 221 완료
 - ⬜ 1.8 부하 테스트 (P3)
 - ⬜ 3.4 E2E 테스트 환경 정비 (P2)
 
