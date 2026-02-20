@@ -376,16 +376,36 @@ build/
 - **라우트**: 174개 (변경 없음)
 - **테이블**: 87개 (변경 없음)
 - **Agent 도구**: 54개 (변경 없음)
-- **테스트**: 984개 (68 test files, 로컬 통과) — 세션 217 추가: critical-checks 15개
+- **테스트**: 1137개 (76 test files, 로컬 통과) — 세션 218 추가: 서비스 단위 6파일 + Cron 통합 2파일 (+153개)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **Feature Flag**: 9개 — 8/9 true, agentDO만 false
-- **배포**: 미배포 (세션 217 변경분)
+- **배포**: 미배포 (세션 217~218 변경분)
 - **Cron 등록**: cron-job.org 19/19 전체 등록 완료
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
-### 최근 변경 (세션 217)
+### 최근 변경 (세션 218)
+**테스트 커버리지 일괄 강화 — 서비스 단위 6개 + Cron 통합 2개 (+153개)** (tmux 3-Worker 병렬):
+
+**서비스 레이어 단위 테스트 (6파일, 102개)**
+- ✅ `tests/unit/services/discovery.test.ts` (신규): 28개 — list(tenant scope/OVERDUE/상태 필터), getById, getDetail(병렬 조회), create(eventLog), transition(유효/무효), changeOwner(상태 제한), getAllowedTransitions, getActivityLogs
+- ✅ `tests/unit/services/idea.test.ts` (신규): 13개 — list, getById, create, updateTitle, delete, getSources(JOIN), addSource, removeSource
+- ✅ `tests/unit/services/venture.test.ts` (신규): 17개 — Sprint CRUD + 상태 변경 (repository 위임 검증)
+- ✅ `tests/unit/services/proposal.test.ts` (신규): 19개 — CRUD, delete(권한 3케이스), update(상태 전환/CLOSED closeType/섹션/카테고리 upsert)
+- ✅ `tests/unit/services/radar.test.ts` (신규): 13개 — 소스 CRUD(sourceType 유효성), 아이템 필터(sourceId/status/limit)
+- ✅ `tests/unit/services/signal.test.ts` (신규): 12개 — 시그널 CRUD(returning 검증), 필터(teamId/topicId/status/limit), dismiss
+
+**Cron 통합 테스트 (2파일, 51개)**
+- ✅ `tests/integration/cron-routes-query-param.test.ts` (신규): 30개 — 10 QP 인증 엔드포인트 (lab-extract, lab-analyze, pattern-extract, shadow-analyze, signal-route, embeddings, log-archive, memory-compact, profile-learn, projection-sync)
+- ✅ `tests/integration/cron-routes-bearer.test.ts` (신규): 21개 — 6 Bearer 인증 엔드포인트 (daily, alerts, agent-review, weekly-summary, briefing, matrix-scoring)
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1137/1137 PASS
+
+**커버리지 개선**:
+- 서비스 단위 테스트: 2/13 (15%) → 8/13 (62%)
+- Cron 통합 테스트: 3/19 (16%) → 19/19 (100%)
+
+### 이전 변경 (세션 217)
 **운영 품질 강화 4건 + 로그인/승인 프로세스 개선** (tmux 2-Worker 병렬):
 
 **1. Gate 비판적 검증 4종 (Critical Check) — 기획서 §7.3**
