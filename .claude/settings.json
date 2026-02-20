@@ -13,5 +13,29 @@
       "Bash(ls *)",
       "Bash(wrangler *)"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pnpm typecheck 2>&1 | tail -20; pnpm lint 2>&1 | tail -20"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -qE '\\.dev\\.vars|\\.env'; then echo 'BLOCKED: 민감 파일(.dev.vars/.env) 편집이 차단되었습니다'; exit 2; fi"
+          }
+        ]
+      }
+    ]
   }
 }
