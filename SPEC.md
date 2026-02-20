@@ -376,7 +376,7 @@ build/
 - **라우트**: 174개 (변경 없음)
 - **테이블**: 87개 (변경 없음)
 - **Agent 도구**: 54개 (변경 없음)
-- **테스트**: 1137개 (76 test files, 로컬 통과) — 세션 218 추가: 서비스 단위 6파일 + Cron 통합 2파일 (+153개)
+- **테스트**: 1231개 (80 test files, 로컬 통과) — 세션 220 추가: 서비스 단위 4파일 (+94개)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
@@ -385,7 +385,41 @@ build/
 - **Cron 등록**: cron-job.org 19/19 전체 등록 완료
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
-### 최근 변경 (세션 219)
+### 최근 변경 (세션 220)
+**서비스 단위 테스트 4개 서비스 일괄 추가 (+94개)** (tmux 3-Worker 병렬):
+
+**서비스 레이어 단위 테스트 (4파일, 94개)**
+- ✅ `tests/unit/services/topic.test.ts` (신규): 22개 — list(teamId/status/limit 필터), getById(members 포함), create(owner 자동 추가), update, archive, addMember/removeMember/updateMemberRole, getMembers(JOIN)
+- ✅ `tests/unit/services/topic-graph.test.ts` (신규): 20개 — Decision CRUD(add/get/update/remove), Glossary CRUD(add/get/update/remove), getGraphEvents(limit), getOrCreateTopicGraph 자동 생성
+- ✅ `tests/unit/services/matrix.test.ts` (신규): 30개 — Industry CRUD(3), Function CRUD(3), Cell CRUD(4+필터5), Cell-Topic 연결(5), getHeatmapData(4, consensusScores LEFT JOIN/delta 계산)
+- ✅ `tests/unit/services/matrix-graph.test.ts` (신규): 22개 — cellToJsonLdNode/industryToJsonLdNode/functionToJsonLdNode(순수 함수 10), buildTeamMatrixGraph(6), getMatrixGraph(2), syncCellToGraph(4)
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1231/1231 PASS
+
+**커버리지 개선**:
+- 서비스 단위 테스트: 8/13 (62%) → 12/13 (92%)
+
+**백로그 검증 결과** (세션 210 백로그 대비):
+- ✅ 2.1 Monthly Failure Replay — 세션 211 완료
+- ✅ 2.2 Inbox UI 분리 — 세션 217 완료
+- ✅ 2.3 Inbox TTL 리마인드 — 세션 217 완료
+- ✅ 2.4 비판적 검증 4종 — 세션 217 완료
+- ✅ 2.5 재호출 이벤트 추적 — 세션 211 완료
+- ✅ 2.6 운영 지표 대시보드 — 세션 211 완료
+- ✅ 2.7 온보딩 치트시트 — 이미 존재 (docs/guides/USER_CHEAT_SHEET.md)
+- ✅ 2.8 Owner 인수인계 기록 — 세션 217 완료
+- ✅ 1.3 Pipeline Bridge 쓰기 — 이미 구현 (submitIdea/annotateSignal)
+- ✅ 1.4 Memory compact LLM — 이미 구현 (summarizer 콜백)
+- ✅ 1.7 Vectorize 시맨틱 검색 UI — 세션 213~214 완료
+- ✅ 3.1 서비스 단위 테스트 — 12/13 완료 (이번 세션)
+- ✅ 3.2 Cron 통합 테스트 — 세션 218 완료 (19/19)
+- ⬜ 1.1 agent-worker DO 독립 배포 (P2)
+- ⬜ 1.2 collab-worker 독립 배포 (P3)
+- ⬜ 1.5 Projection 배치 동기화 검증 (P3)
+- ⬜ 1.6 Graph enrichment 승인 UI (P2)
+- ⬜ 1.8 부하 테스트 (P3)
+- ⬜ 3.4 E2E 테스트 환경 정비 (P2)
+
+### 이전 변경 (세션 219)
 **Google OAuth 수정 + 로그아웃 버그 수정 + 프로덕션 E2E 검증**:
 
 **1. Google OAuth 토큰 교환 수정 (핵심)**
