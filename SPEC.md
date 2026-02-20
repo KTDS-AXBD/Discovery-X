@@ -157,7 +157,7 @@ Flow I: BD 워크스페이스 (v4.2)
 **라우팅 정책**
 - `/` → `/dashboard` 리다이렉트 (인증 시), 미인증 시 `/login` 리다이렉트
 
-### 페이지 맵 (100개 라우트)
+### 페이지 맵 (202개 라우트)
 
 **Core (46개)**
 - `/` — `/dashboard` 리다이렉트 (1)
@@ -177,6 +177,12 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/evidence/duplicates` — 근거 중복 관리 (1)
 - `/valueup*` — Value-up 시나리오 (2): valueup/valueup.$id
 - `/radar` — Radar 소스 관리 (1)
+- `/admin/monitoring` — 시스템 모니터링 대시보드 (1)
+- `/dashboard/exec` — 경영진 대시보드 (1)
+- `/dashboard/failure-replay` — Monthly Failure Replay (1)
+- `/dashboard/ops` — 운영 대시보드 (1)
+- `/dashboard/ops-metrics` — v1.4 §10 운영 지표 (1)
+- `/api/health` — 시스템 헬스체크 API (1)
 
 **Ideas (5 pages + 3 API)**
 - `/ideas` — 아이디어 워크스페이스 레이아웃 (전용 헤더 + 드로어 + 좌: SourceInputPanel + 중: Outlet + 우: IdeaChatWrapper)
@@ -184,6 +190,13 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/ideas/:id` — 아이디어 상세 (12종 방법론 카드: 시장 조사/고객 조사/비판적 사고/BMC/SWOT/규제/사업성/차별화/산업별 사례/가치 사슬/린 캔버스/PESTEL + 좌우 패널 리사이즈/토글)
 - `/api/ideas` — 아이디어 CRUD API (GET 목록 + POST 생성 + DELETE 삭제)
 - `/api/ideas/:id/sources` — 아이디어-소스 연결 API (GET 목록 + POST 추가 + DELETE 삭제)
+- `/api/ideas/:id/analysis` — 분석 결과 조회
+- `/api/ideas/:id/analyze` — SSE 분석 실행
+- `/api/ideas/:id/create-proposal` — 아이디어→사업제안 변환
+- `/api/ideas/:id/suggest-title` — AI 제목 추천
+- `/api/ideas/memo` — 메모 API
+- `/api/ideas/seed` — Seed 연동 API
+- `/api/ideas/sources` — 소스 벌크 API
 
 **Proposals (7개: 4 pages + 3 API)**
 - `/proposals` — 사업제안 레이아웃 (전용 사이드바 + Surface + 진행상황 패널)
@@ -238,6 +251,25 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/briefing/_index` — 일간 브리핑 뷰 (마크다운 렌더링 + 새로고침)
 - `/api/briefing` — 브리핑 API (GET 조회 + POST 갱신)
 
+**Market (3개: 2 pages + 1 layout)**
+- `/market` — 시장 분석 레이아웃
+- `/market/_index` — 시장 분석 목록
+- `/market/:id` — 시장 분석 상세
+
+**Matrix (12개: 3 pages + 9 API)**
+- `/lab/matrix` — Matrix 레이아웃
+- `/lab/matrix/_index` — Heatmap 인덱스
+- `/lab/matrix/:cellId` — Cell 상세
+- `/api/matrix/industries` — 산업 목록 API
+- `/api/matrix/functions` — 기능 목록 API
+- `/api/matrix/cells` — 전체 Cell API
+- `/api/matrix/:cellId` — Cell CRUD API
+- `/api/matrix/:cellId/scores` — 스코어 API
+- `/api/matrix/:cellId/consensus` — 합의 API
+- `/api/matrix/:cellId/topics` — Cell-Topic 연결 API
+- `/api/matrix/heatmap` — 히트맵 API
+- `/api/matrix/config` — 설정 API
+
 **Signals (2 pages)**
 - `/signals` — 시그널 레이아웃 (Topic 필터 사이드바 + 상태 필터)
 - `/signals/_index` — 시그널 카드 목록 (score/status 배지, Topic 태그, 필터링)
@@ -260,8 +292,27 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/api/search` — 통합 검색 API (4개 엔티티 병렬, Vectorize/FTS5/LIKE fallback)
 - `/search` — 통합 검색 페이지 (텍스트/시맨틱 모드, 카테고리 탭)
 - `/api/tenant.switch` — 테넌트 전환 (1)
+- `/api/admin/token-budget` — 토큰 예산 관리
+- `/api/admin/token-usage` — 토큰 사용량 조회
+- `/api/collab/worker` — 협업 Worker
+- `/api/cron/graph-vectorize` — Graph 벡터화
+- `/api/cron/matrix-scoring` — Matrix 스코어링
+- `/api/cron/memory-vectorize` — Memory 벡터화
+- `/api/cron/profile-learn` — 프로필 학습
+- `/api/cron/signal-vectorize` — Signal 벡터화
+- `/api/folders` — 폴더 목록/생성 API
+- `/api/folders/:id` — 폴더 상세/수정/삭제 API
+- `/api/folders/:id/items` — 폴더 아이템 관리 API
+- `/api/folders/reorder` — 폴더 정렬 API
+- `/api/graph/:id/history` — Graph 이력
+- `/api/graph/:id/rollback` — Graph 롤백
+- `/api/proposals/:id/likes` — 좋아요 API
+- `/api/proposals/:id/members` — 멤버 API
+- `/api/proposals/:id/milestones` — 마일스톤 API
+- `/api/proposals/categories` — 카테고리 API
+- `/api/recall-events` — 재호출 이벤트 API
 
-**라우트 합계**: Core 47 + Ideas 8 + Proposals 7 + Lab 7 + Venture 13 + Agent 4 + Profile 3 + Topics 12 + Briefing 3 + Signals 2 + Knowledge 5 + API 37 + 미분류 2 = **150**
+**라우트 합계**: Core 53 + Ideas 15 + Proposals 7 + Lab 7 + Venture 13 + Agent 4 + Profile 3 + Topics 12 + Briefing 3 + Signals 2 + Knowledge 5 + Market 3 + Matrix 12 + API 62 + 미분류 2 = **202**
 
 ---
 
@@ -297,14 +348,14 @@ root.tsx
 └─ Outlet (하위 라우트)
 ```
 
-### 데이터 모델 (66개 테이블)
+### 데이터 모델 (92개 테이블)
 
 | 카테고리 | 테이블 수 | 테이블 |
 |---------|---------|--------|
 | Users & Auth | 4 | users, sessions, tenants, tenant_members |
 | Discovery Core | 6 | discoveries, experiments, evidence, event_logs, stages, signal_metadata |
 | Ontology/Graph | 5 | ontology_types, context_nodes, context_edges, context_snapshots, evidence_duplicate_candidates |
-| v3 Graph Layer | 8 | graphs, graph_events, projections, topics, topic_members, shared_signals, agent_memory_v2, agent_sessions_v2 |
+| v3 Graph Layer | 9 | graphs, graph_events, projections, topics, topic_members, shared_signals, agent_memory_v2, agent_sessions_v2, acl_audit_logs |
 | Methods & Gates | 4 | method_packs, method_runs, gate_packages, assumptions |
 | Venture Sprint | 16 | vd_sprints, vd_sprint_scopes, vd_signals, vd_problems, vd_themes, vd_opportunities, vd_evidences, vd_assumptions, vd_premortems, vd_artifacts, vd_decisions, vd_votes, vd_scores, vd_work_events, vd_analytics_snapshots, vd_task_queue |
 | Ideas | 2 | ideas, idea_sources |
@@ -316,8 +367,13 @@ root.tsx
 | Decision Logs | 3 | decision_logs, extracted_patterns, reusable_rules |
 | Shadow Mode | 2 | shadow_runs, shadow_configs |
 | Value-up Engine | 4 | valueup_assessments, valueup_scores, valueup_scenarios, valueup_checklists |
-| Proposals | 6 | proposals, proposal_sections, proposal_milestones, proposal_actions, proposal_comments, proposal_members |
-| **합계** | **68** | |
+| Proposals | 8 | proposals, proposal_sections, proposal_milestones, proposal_actions, proposal_comments, proposal_members, proposal_likes, proposal_categories |
+| Archive | 2 | archive_folders, archive_folder_items |
+| Token Usage | 1 | token_usage_logs |
+| Matrix | 7 | industries, functions, matrix_cells, individual_scores, consensus_scores, cell_topic_map, scoring_config |
+| Worker/Infra | 2 | notification_queue, cron_logs |
+| FTS | 1 | discoveries_fts |
+| **합계** | **92** | |
 
 ### Agent 시스템 (52개 도구)
 
@@ -373,20 +429,49 @@ build/
 - **DB**: 41개 마이그레이션 (0000~0040), 로컬 적용 완료
 
 ### 주요 지표
-- **라우트**: 176개 (+2: api.topics.$id.suggestions, api.topics.$id.suggestions.$suggestionId)
-- **테이블**: 87개 (변경 없음, graph_events CHECK 제약만 확장)
+- **라우트**: 202개 (+26: Market 3 + Matrix 12 + Core 6 + Ideas 7 + API 20 — 중복 제거 후)
+- **테이블**: 92개 (+5: Archive 2, Token 1, Matrix 7, Worker 2, FTS 1, Proposals +2, Graph +1 — 기존 중복 제거 후)
 - **Agent 도구**: 54개 (변경 없음)
-- **테스트**: 1334개 (90 test files, 로컬 통과) — 세션 223 추가: worker 유닛 (+71)
+- **테스트**: 1334개 (90 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **부하 테스트**: Artillery v2.0.30 — 4개 시나리오 (health, api-crud, chat-stream, spike)
 - **Feature Flag**: 9개 — 8/9 true, agentDO만 false
-- **배포**: ✅ 세션 223 백로그 4건 배포 완료 (CI/CD 2m20s, 테스트 1334개 전체 PASS)
+- **배포**: 세션 223 배포 완료 (CI/CD 2m20s)
 - **Cron 등록**: cron-job.org 19/19 전체 등록 완료
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
-### 최근 변경 (세션 223)
+### 최근 변경 (세션 224)
+**전체 프로젝트 갭 분석 + 버그/문서/기능 수정** (tmux 3-Worker 병렬):
+
+**1. 갭 분석 실행** (tmux 4-Worker 병렬 분석):
+- 라우트: 99.3% (147/148 SPEC 문서화, 55개 미문서화 발견)
+- DB 스키마: 100% (76/76 구현, 16개 미문서화 발견)
+- PRD 규칙: 78.6% (8 완전 구현, 6 부분 구현, 0 미구현)
+- 품질: 100% (테스트 1334개, lint 0, typecheck 0, build OK)
+
+**2. 버그 수정 — decide-not-now/decide-dead-end 중복 조건**
+- ✅ `app/routes/discoveries_.$id.decide-not-now.tsx` (수정): `IDEA_CARD !== IDEA_CARD` 중복 → `ACTIVE_STATUSES.includes()` 로 교체
+- ✅ `app/routes/discoveries_.$id.decide-dead-end.tsx` (수정): 동일 패턴 수정
+- 효과: 모든 활성 상태(DISCOVERY~GATE2)에서 HOLD/DROP 결정 가능
+
+**3. SPEC.md 문서 갭 수정**
+- ✅ §2 페이지 맵: 100개 → 202개 라우트 (Market 3, Matrix 12, Core +6, Ideas +7, API +20)
+- ✅ §3 데이터 모델: 66개 → 92개 테이블 (Archive, Token, Matrix, Worker, FTS 등)
+- ✅ §5 주요 지표: 176/87 → 202/92 동기화
+
+**4. Inbox TTL 자동 만료 (PRD §6)**
+- ✅ `app/routes/api.cron.daily.ts` (수정): DISCOVERY 상태 14일 초과 시 자동 DROP 전환
+- inbox_timeout failure pattern 태깅 + INBOX_EXPIRED eventLog 기록
+
+**5. Owner 변경 범위 확장 (PRD §6.1)**
+- ✅ `app/routes/discoveries.$id.tsx` (수정): DISCOVERY/IDEA_CARD → 모든 활성 상태(DISCOVERY~GATE2)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1334/1334 PASS / build 성공
+
+### 이전 변경 (세션 223)
 **백로그 4건 완료 (+71 테스트, Artillery 인프라, E2E 정비)** (tmux 4-Worker 병렬):
 
 **1. agent-worker DO 유닛 테스트 (백로그 1.1) — 40개**
