@@ -88,10 +88,10 @@ cat > "$TEAM_DIR/team-{팀이름}-worker-{N}.txt" << 'PROMPT'
 PROMPT
 ```
 
-### 3. Launcher 스크립트 생성 및 실행 (tmux 세션 + pane + worker 스폰)
+### 3. Launcher 스크립트 생성 및 실행 (tmux window + pane + worker 스폰)
 
 > **CRITICAL**: 이 단계는 반드시 **단일 launcher 스크립트**로 실행해야 한다.
-> tmux 세션 생성, pane 분할, worker 실행을 개별 Bash 호출로 분리하면 안 된다.
+> tmux window 생성, pane 분할, worker 실행을 개별 Bash 호출로 분리하면 안 된다.
 > 백그라운드 프로세스로 대체하는 것도 금지한다 — 반드시 tmux pane으로 실행한다.
 
 **3a. worker runner 스크립트**를 생성한다 (worker 수만큼 반복).
@@ -351,7 +351,7 @@ rm -rf "$PWD/.team-tmp"
 
 ### CRITICAL — tmux pane 필수 사용
 - **절대 금지**: `claude -p`를 백그라운드 프로세스(`&`, `nohup`)로 실행하고 로그 파일만 polling하는 방식
-- **반드시 tmux split pane에서 실행**: Step 3의 launcher 스크립트를 통해 tmux 세션/pane을 생성해야 한다
+- **반드시 tmux pane에서 실행**: Step 3의 launcher 스크립트를 통해 tmux window/pane을 생성해야 한다
 - pane 생성 후 `tmux list-panes`로 검증해야 한다 — 실패하면 재시도
 
 ### CRITICAL — claude alias 충돌 방지
