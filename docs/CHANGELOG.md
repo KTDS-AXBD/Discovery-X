@@ -3,6 +3,31 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 227 (2026-02-20)
+**리팩토링 분석 + Phase 1 Dead Code 정리 — 23파일 삭제, -4,371 LOC**:
+
+**1. 코드베이스 분석** (tmux 3-Worker 병렬):
+- 전체 484 TS 파일, 86,699 LOC, 203 라우트 분석
+- GNB 5탭(대시보드/아이디어/사업제안/시그널/실험실) — Venture/Market/Knowledge 등 미등록 확인
+- Service layer 사용률 9.4% (19/203 routes), 55.7% Drizzle 직접 사용
+- Agent 모듈 9,757줄, 14 도구 모두 활성
+- ACL 1 route만 사용, Cron 트리거 주석 처리됨 (cron-job.org 외부 등록)
+
+**2. 리팩토링 6-Phase 계획 수립** (`docs/refactoring-plan.md`):
+- Phase 1: Dead Code 정리 | Phase 2: Cron 통합 (19→7~8)
+- Phase 3: 모듈 방향 결정 | Phase 4: Service Layer 강화
+- Phase 5: Agent Executor 모듈화 | Phase 6: 도메인 경계 정리
+
+**3. Phase 1 실행** (tmux 2-Worker 병렬):
+- ✅ Market 모듈 삭제: 3 routes + 2 components (GNB 미등록, 외부 참조 0)
+- ✅ Dashboard 서브라우트 10개 삭제: alerts, assets, audit-log, exec, failure-replay, health, metrics, ops-metrics, ops, shadow
+- ✅ 전용 컴포넌트 8개 삭제: AlertList, AuditLogList, HealthMetrics, MetricCard, IndustrySelector, ShadowRunCard, ShadowStatsBar
+- ✅ evidence.duplicates 삭제
+- 결과: 484 → 461 TS files, 202 → 189 routes, 86,699 → 82,328 LOC
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1334/1334 PASS
+
 ### 세션 226 (2026-02-20)
 **3-Tier 정보 아키텍처 도입 — SPEC.md 65% 축소 + Auto Memory 연계**:
 - ✅ SPEC.md 세션 히스토리(992줄) → `docs/CHANGELOG.md`로 분리 (1518줄 → 538줄)

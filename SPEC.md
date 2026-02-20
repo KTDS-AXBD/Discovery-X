@@ -429,7 +429,7 @@ build/
 - **DB**: 41개 마이그레이션 (0000~0040), 로컬 적용 완료
 
 ### 주요 지표
-- **라우트**: 202개 (+26: Market 3 + Matrix 12 + Core 6 + Ideas 7 + API 20 — 중복 제거 후)
+- **라우트**: 189개 (Phase 1 리팩토링: Market 3 + Dashboard 10 + Evidence 1 삭제)
 - **테이블**: 92개 (+5: Archive 2, Token 1, Matrix 7, Worker 2, FTS 1, Proposals +2, Graph +1 — 기존 중복 제거 후)
 - **Agent 도구**: 54개 (변경 없음)
 - **테스트**: 1334개 (90 test files, 로컬 통과)
