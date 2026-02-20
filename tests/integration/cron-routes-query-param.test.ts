@@ -412,6 +412,7 @@ describe("api.cron.daily", () => {
     const body = (await r.json()) as Record<string, unknown>;
     expect(body.sent).toBe(0);
     expect(body.autoClosed).toBe(0);
+    expect(body.inboxExpired).toBe(0);
     expect(body.gateExpired).toBe(0);
   });
 });

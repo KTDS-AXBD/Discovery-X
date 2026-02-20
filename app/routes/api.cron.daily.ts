@@ -1,7 +1,7 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { discoveries, users, tenants, tenantMembers } from "~/db/schema";
-import { eq, inArray, and } from "drizzle-orm";
+import { eq, inArray, and, lt } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { ACTIVE_STATUSES } from "~/lib/constants/status";
 import { DiscoveryValidationRules, ValidationError } from "~/lib/validation/discovery-rules";
@@ -30,14 +30,14 @@ interface CronEnv {
   CRON_SECRET?: string;
 }
 
-async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; errors: string[]; autoClosed: number; gateExpired: number; gateHeld: number }> {
+async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; errors: string[]; autoClosed: number; inboxExpired: number; gateExpired: number; gateHeld: number }> {
   const db = getDb(env.DB);
   const errors: string[] = [];
   let sent = 0;
 
   const apiKey = env.RESEND_API_KEY;
   if (!apiKey) {
-    return { sent: 0, errors: ["RESEND_API_KEY not configured"], autoClosed: 0, gateExpired: 0, gateHeld: 0 };
+    return { sent: 0, errors: ["RESEND_API_KEY not configured"], autoClosed: 0, inboxExpired: 0, gateExpired: 0, gateHeld: 0 };
   }
 
   const emailClient = createEmailClient(apiKey);
@@ -54,6 +54,7 @@ async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; erro
   let gateExpired = 0;
   let gateHeld = 0;
   let totalAutoClosed = 0;
+  let totalInboxExpired = 0;
 
   for (const tenant of activeTenants) {
     const tenantId = tenant.id;
@@ -247,9 +248,55 @@ async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; erro
         else if (result.error) errors.push(`stalledStage→${email}: ${result.error}`);
       }
     }
+
+    // 6. Inbox TTL 만료 처리 — DISCOVERY 상태 14일 초과 시 자동 DROP
+    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    const expiredInboxItems = await db
+      .select()
+      .from(discoveries)
+      .where(
+        and(
+          eq(discoveries.status, DiscoveryStatus.DISCOVERY),
+          lt(discoveries.createdAt, fourteenDaysAgo),
+          eq(discoveries.tenantId, tenantId)
+        )
+      );
+
+    for (const d of expiredInboxItems) {
+      try {
+        DiscoveryValidationRules.validateTransition(d.status, DiscoveryStatus.DROP);
+      } catch (e) {
+        if (e instanceof ValidationError) continue;
+        throw e;
+      }
+
+      await db
+        .update(discoveries)
+        .set({
+          status: DiscoveryStatus.DROP,
+          deadEndFailurePattern: ["inbox_timeout"],
+          deadEndEvidenceReason: `Inbox 자동 만료: 14일 초과 미처리`,
+          decidedAt: now,
+          updatedAt: now,
+        })
+        .where(eq(discoveries.id, d.id));
+
+      await db.insert(eventLogs).values({
+        id: crypto.randomUUID(),
+        actorId: "system-radar",
+        discoveryId: d.id,
+        eventType: "INBOX_EXPIRED",
+        metadata: {
+          daysInInbox: Math.floor((now.getTime() - new Date(d.createdAt).getTime()) / (1000 * 60 * 60 * 24)),
+          previousStatus: d.status,
+        },
+      });
+
+      totalInboxExpired++;
+    }
   } // end tenant loop
 
-  // 6. Process expired gate approvals (auto-reject + HOLD) — runs globally
+  // 7. Process expired gate approvals (auto-reject + HOLD) — runs globally
   try {
     const gateResult = await processExpiredGateApprovals(db);
     gateExpired = gateResult.expiredCount;
@@ -298,7 +345,7 @@ async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; erro
     errors.push(`gateTimeout: ${e instanceof Error ? e.message : "Unknown error"}`);
   }
 
-  return { sent, errors, autoClosed: totalAutoClosed, gateExpired, gateHeld };
+  return { sent, errors, autoClosed: totalAutoClosed, inboxExpired: totalInboxExpired, gateExpired, gateHeld };
 }
 
 // HTTP endpoint for manual trigger

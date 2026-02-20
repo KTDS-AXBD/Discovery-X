@@ -14,6 +14,7 @@ import { AlertBanner } from "~/components/ui/AlertBanner";
 import { cn } from "~/lib/utils/cn";
 import { eq, desc, inArray } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
+import { ACTIVE_STATUSES } from "~/lib/constants/status";
 import { KpiCard } from "~/components/dashboard/KpiCard";
 import { RelatedDiscoveries } from "~/components/discovery/RelatedDiscoveries";
 import { ExperimentGantt } from "~/components/charts/ExperimentGantt";
@@ -214,8 +215,8 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   const intent = formData.get("intent");
 
   if (intent === "changeOwner") {
-    if (discovery.status !== DiscoveryStatus.DISCOVERY && discovery.status !== DiscoveryStatus.IDEA_CARD) {
-      return json({ error: "INBOX/OPEN 상태에서만 Owner를 변경할 수 있습니다" }, { status: 400 });
+    if (!(ACTIVE_STATUSES as readonly string[]).includes(discovery.status)) {
+      return json({ error: "활성 상태(DISCOVERY~GATE2)에서만 Owner를 변경할 수 있습니다" }, { status: 400 });
     }
     const newOwnerId = formData.get("ownerId");
     if (!newOwnerId) {
