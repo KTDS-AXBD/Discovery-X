@@ -21,9 +21,12 @@ pnpm test             # 전체 테스트 (Vitest)
 pnpm test:unit        # 유닛 테스트만
 pnpm test:integration # 통합 테스트만
 pnpm test:e2e         # Playwright E2E
+pnpm test:watch       # 테스트 watch 모드
+pnpm test:coverage    # 커버리지 포함 테스트
 pnpm db:generate      # Drizzle 마이그레이션 생성
 pnpm db:migrate       # D1 로컬 마이그레이션 적용
 pnpm db:migrate:prod  # D1 원격 마이그레이션 적용
+pnpm db:studio        # Drizzle Studio (DB GUI)
 pnpm run deploy       # 빌드 + Cloudflare Pages 배포 (pnpm deploy 아님, run 필수)
 ```
 
@@ -85,7 +88,7 @@ const db = getDb(context.DB);
 - `ALLOWED_TRANSITIONS` (app/lib/constants/status.ts) 정의된 전환만 허용
 
 ### 스키마 머지
-- `app/db/index.ts`에서 `{ ...schema, ...ventureSchema, ...proposalSchema }` 패턴
+- `app/db/index.ts`에서 7개 스키마 머지: `schema`, `ventureSchema`, `proposalSchema`, `archiveSchema`, `ideasSchema`, `tokenUsageSchema`, `v2Schema`, `matrixSchema`
 
 ### SSR 외부화 (vite.config.ts)
 - `ssr.external`: `resend`, `mailparser`, `@zone-eu/mailsplit`, `libmime`
@@ -112,7 +115,7 @@ requireAdmin()        → 403 (ADMIN만)
 app/
 ├── components/     # UI 컴포넌트 (charts, chat, dashboard, ideas, proposals, ui, ...)
 ├── db/             # Drizzle 스키마 + DB 연결 (index.ts에서 스키마 머지)
-├── features/       # 도메인별 모듈 (venture, proposals, ideas, archive)
+├── features/       # 도메인별 모듈 (venture, proposals, ideas, archive, matrix)
 │   └── {feature}/  # db/schema.ts + constants + types + ui/
 ├── lib/            # 공유 유틸 (agent, auth, embeddings, notifications, ...)
 ├── routes/         # Remix 라우트 (flat-file convention)
