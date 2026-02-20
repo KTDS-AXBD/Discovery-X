@@ -4,7 +4,6 @@ import { getDb } from "~/db";
 import { users, tenants, tenantMembers, UserRole } from "~/db/schema";
 import { eq, and } from "drizzle-orm";
 import {
-  createGoogleClient,
   getRedirectUri,
   getGoogleCredentials,
 } from "~/lib/auth/google.server";
@@ -56,32 +55,44 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       return redirect("/login?error=invalid_state");
     }
 
-    // Exchange code for tokens
+    // Exchange code for tokens (POST body 방식 — Google 권장)
     const { clientId, clientSecret } = getGoogleCredentials(context.cloudflare.env);
     const redirectUri = getRedirectUri(request);
-    const google = createGoogleClient(clientId, clientSecret, redirectUri);
 
-    let tokens;
+    let accessToken: string;
     try {
-      tokens = await google.validateAuthorizationCode(code, codeVerifier);
+      const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          code,
+          client_id: clientId,
+          client_secret: clientSecret,
+          redirect_uri: redirectUri,
+          code_verifier: codeVerifier,
+          grant_type: "authorization_code",
+        }),
+      });
+
+      if (!tokenResponse.ok) {
+        const errBody = await tokenResponse.text();
+        console.error("[auth.google.callback] Token exchange failed:", {
+          status: tokenResponse.status,
+          body: errBody,
+          redirectUri,
+        });
+        const detail = encodeURIComponent(errBody.slice(0, 200));
+        return redirect(`/login?error=token_exchange_failed&detail=${detail}`);
+      }
+
+      const tokenData = (await tokenResponse.json()) as { access_token: string };
+      accessToken = tokenData.access_token;
     } catch (tokenError) {
       const errMsg = tokenError instanceof Error ? tokenError.message : String(tokenError);
-      const errCode = (tokenError as { code?: string }).code || "unknown";
-      const errDesc = (tokenError as { description?: string }).description || "";
-      console.error("[auth.google.callback] Token exchange failed:", {
-        error: errMsg,
-        code: errCode,
-        description: errDesc,
-        redirectUri,
-        codeLength: code.length,
-        verifierLength: codeVerifier.length,
-      });
-      const detail = encodeURIComponent(`${errCode}:${errDesc || errMsg}`);
+      console.error("[auth.google.callback] Token exchange error:", errMsg);
+      const detail = encodeURIComponent(errMsg.slice(0, 200));
       return redirect(`/login?error=token_exchange_failed&detail=${detail}`);
     }
-
-    // Fetch user info from Google
-    const accessToken = tokens.accessToken();
     const response = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
