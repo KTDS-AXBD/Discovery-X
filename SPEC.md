@@ -376,7 +376,7 @@ build/
 - **라우트**: 176개 (+2: api.topics.$id.suggestions, api.topics.$id.suggestions.$suggestionId)
 - **테이블**: 87개 (변경 없음, graph_events CHECK 제약만 확장)
 - **Agent 도구**: 54개 (변경 없음)
-- **테스트**: 1240개 (81 test files, 로컬 통과) — 세션 221 추가: graph-store-suggestions (+9개)
+- **테스트**: 1263개 (83 test files, 로컬 통과) — 세션 222 추가: projection-sync (+8), scoring (+15)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
@@ -385,7 +385,21 @@ build/
 - **Cron 등록**: cron-job.org 19/19 전체 등록 완료
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
-### 최근 변경 (세션 221)
+### 최근 변경 (세션 222)
+**백로그 테스트 2개 추가 (+23개)** (tmux 2-Worker 병렬):
+
+**1. projection-sync 배치 동기화 테스트 (백로그 1.5)**
+- ✅ `tests/unit/graph/projection-sync.test.ts` (신규): 8개 — syncAllStale (Graph 0/1/N개, 최신/stale/신규 혼합, scopeType 다양, malformed JSON-LD 에러 처리, 대량 10개 배치, 멱등성 검증)
+
+**2. ScoringService 실 DB 단위 테스트**
+- ✅ `tests/unit/services/scoring.test.ts` (신규): 15개 — submitScore(INSERT/UPSERT/note null/반환값), getScoresByCell/getMyScores(cellId/period 필터, userId 기반), calculateConsensus(2인 평균/CLAMP 1-5/UPDATE draft/revised 변경), confirmConsensus(최소 투표자 미달 에러/정상 확정), getConfig/updateConfig(DEFAULT_WEIGHTS 폴백/설정 반영)
+
+**커버리지 개선**:
+- 서비스 단위 테스트: 12/13 (92%) → 13/13 (100%)
+- 테스트 총수: 1240 → 1263 (+23개, 83 test files)
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1263/1263 PASS
+
+### 이전 변경 (세션 221)
 **Graph Enrichment 승인/거절 UI 구현** (백로그 1.6):
 
 **1. DB 마이그레이션 (0040)**
@@ -440,11 +454,11 @@ build/
 - ✅ 1.3 Pipeline Bridge 쓰기 — 이미 구현 (submitIdea/annotateSignal)
 - ✅ 1.4 Memory compact LLM — 이미 구현 (summarizer 콜백)
 - ✅ 1.7 Vectorize 시맨틱 검색 UI — 세션 213~214 완료
-- ✅ 3.1 서비스 단위 테스트 — 12/13 완료 (이번 세션)
+- ✅ 3.1 서비스 단위 테스트 — 13/13 완료 (세션 222에서 scoring 추가)
 - ✅ 3.2 Cron 통합 테스트 — 세션 218 완료 (19/19)
 - ⬜ 1.1 agent-worker DO 독립 배포 (P2)
 - ⬜ 1.2 collab-worker 독립 배포 (P3)
-- ⬜ 1.5 Projection 배치 동기화 검증 (P3)
+- ✅ 1.5 Projection 배치 동기화 검증 — 세션 222 완료 (8개 테스트)
 - ✅ 1.6 Graph enrichment 승인 UI — 세션 221 완료
 - ⬜ 1.8 부하 테스트 (P3)
 - ⬜ 3.4 E2E 테스트 환경 정비 (P2)
