@@ -381,7 +381,7 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **Feature Flag**: 9개 — 8/9 true, agentDO만 false
-- **배포**: ✅ 세션 219 OAuth/로그아웃 수정 배포 완료 (CI/CD 4회)
+- **배포**: ✅ 세션 221 Graph Enrichment 승인 UI 배포 완료 + D1 마이그레이션 적용 + Playwright 프로덕션 검증 (CI/CD 2m13s)
 - **Cron 등록**: cron-job.org 19/19 전체 등록 완료
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
@@ -408,6 +408,12 @@ build/
 **5. 테스트**
 - ✅ `tests/unit/services/graph-store-suggestions.test.ts` (신규): 9개 — approveSuggestion(노드 머지, 중복 방지, 미존재/이미처리 에러), rejectSuggestion(이벤트 기록, graph 미변경, 에러), getPendingSuggestions(필터링)
 - ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1240/1240 PASS / build 성공
+
+**6. 배포 + 검증**
+- ✅ CI/CD 배포 완료 (GitHub Actions, 2m13s)
+- ✅ D1 프로덕션 마이그레이션 적용 (`0040_graph_approve_reject.sql`, 7 commands, 6.76ms)
+- ✅ Playwright 프로덕션 검증: /login, Google OAuth, /dashboard, /lab (27N/19E), /settings, /topics 전체 정상
+- ⚠️ "제안" 탭 직접 UI 검증 불가 (Topic 0건 — Topic 생성 시 자동 노출)
 
 ### 이전 변경 (세션 220)
 **서비스 단위 테스트 4개 서비스 일괄 추가 (+94개)** (tmux 3-Worker 병렬):
