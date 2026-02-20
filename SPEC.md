@@ -368,7 +368,7 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.18 + Gate 비판적 검증 4종 + 로그인/로그아웃/승인 개선
+- **프로토타입**: v6.18 + Gate 비판적 검증 4종 + 로그인/로그아웃/승인 개선 + OAuth 수정
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 40개 마이그레이션 (0000~0039), 로컬 + 프로덕션 모두 적용 완료
 
@@ -381,11 +381,39 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **Feature Flag**: 9개 — 8/9 true, agentDO만 false
-- **배포**: 미배포 (세션 217~218 변경분)
+- **배포**: ✅ 세션 219 OAuth/로그아웃 수정 배포 완료 (CI/CD 4회)
 - **Cron 등록**: cron-job.org 19/19 전체 등록 완료
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
-### 최근 변경 (세션 218)
+### 최근 변경 (세션 219)
+**Google OAuth 수정 + 로그아웃 버그 수정 + 프로덕션 E2E 검증**:
+
+**1. Google OAuth 토큰 교환 수정 (핵심)**
+- ✅ `app/routes/auth.google.callback.tsx` (수정): arctic 라이브러리 Basic Auth → 직접 POST body 방식으로 변경
+  - 원인: arctic v3.7.0이 `Authorization: Basic` 헤더로 credentials 전송 → Google이 `invalid_client:Unauthorized` 거부
+  - 수정: `fetch("https://oauth2.googleapis.com/token")` 직접 호출, `client_id`/`client_secret`을 POST body에 포함 (Google 권장 방식)
+  - 에러 상세 로깅 추가: 토큰 교환 실패 시 status/body/redirectUri 콘솔 출력 + login 페이지에 detail 파라미터 표시
+
+**2. 로그아웃 버튼 버그 수정**
+- ✅ `app/components/layout/TopNav.tsx` (수정): 로그아웃 `<button>`에서 `onClick={close}` 제거
+  - 원인: dropdown 닫기가 `<Form>` DOM을 먼저 제거 → "Form submission canceled because the form is not connected"
+  - 수정: Form 제출이 자연스럽게 /login으로 이동하므로 dropdown 닫기 불필요
+
+**3. 로그인 페이지 에러 상세 표시**
+- ✅ `app/routes/login.tsx` (수정): `detail` 쿼리 파라미터 표시 (OAuth 디버깅용)
+
+**4. 프로덕션 E2E 검증 (Playwright)**
+- ✅ `ktds.axbd@gmail.com` 계정 로그인: Google OAuth → 대시보드 진입 성공
+- ✅ 로그아웃: 드롭다운 → 로그아웃 클릭 → `/login` 리다이렉트 성공
+- ✅ 화이트리스트 자동 테넌트 추가 동작 확인 (대시보드 데이터 정상 표시)
+
+**CI/CD 배포 4회**:
+- `f14537a` fix: OAuth 토큰 교환 실패 시 상세 에러 로깅 추가
+- `55fec0e` fix: OAuth 토큰 교환 에러 상세 정보를 로그인 페이지에 표시
+- `12bfe66` fix: Google OAuth 토큰 교환을 POST body 방식으로 변경
+- `c6a8101` fix: 로그아웃 버튼 클릭 시 드롭다운 닫힘으로 Form 제출 취소되는 버그 수정
+
+### 이전 변경 (세션 218)
 **테스트 커버리지 일괄 강화 — 서비스 단위 6개 + Cron 통합 2개 (+153개)** (tmux 3-Worker 병렬):
 
 **서비스 레이어 단위 테스트 (6파일, 102개)**
