@@ -1,0 +1,53 @@
+# Agent 채팅 SSE 부하 테스트
+# 목표: 첫 응답 < 1000ms
+# 주의: DO 싱글턴 제약으로 동시성 낮게 설정
+# 환경변수: LOAD_TEST_TARGET, LOAD_TEST_COOKIE
+config:
+  target: "{{ $processEnvironment.LOAD_TEST_TARGET }}"
+  phases:
+    # 채팅은 동시성 제약이 있으므로 낮은 부하로 테스트
+    - duration: 30
+      arrivalRate: 1
+      name: "Warm-up"
+    - duration: 60
+      arrivalRate: 2
+      name: "Sustained"
+    - duration: 30
+      arrivalRate: 1
+      name: "Cool-down"
+  defaults:
+    headers:
+      Accept: "text/event-stream"
+      Content-Type: "application/json"
+      Cookie: "{{ $processEnvironment.LOAD_TEST_COOKIE }}"
+  ensure:
+    thresholds:
+      # SSE 특성상 첫 바이트 수신 시간 기준
+      - http.response_time.p95: 3000
+      - http.response_time.p99: 5000
+
+scenarios:
+  # SSE 스트리밍 채팅 — Artillery는 HTTP 레벨에서 측정
+  - name: "Agent 채팅 요청"
+    flow:
+      - post:
+          url: "/api/chat"
+          json:
+            conversationId: "load-test-{{ $randomNumber(1000, 9999) }}"
+            message: "테스트 메시지입니다"
+          expect:
+            - statusCode: 200
+      # 채팅 간 간격 — 실제 사용 패턴 반영
+      - think: 5
+
+  # 짧은 질문 패턴
+  - name: "짧은 질문 채팅"
+    flow:
+      - post:
+          url: "/api/chat"
+          json:
+            conversationId: "load-test-short-{{ $randomNumber(1000, 9999) }}"
+            message: "요약해줘"
+          expect:
+            - statusCode: 200
+      - think: 3

@@ -1,0 +1,29 @@
+# 헬스체크 부하 테스트 — 인증 불요, 가장 기본적인 엔드포인트
+# 목표: p95 < 500ms
+config:
+  target: "{{ $processEnvironment.LOAD_TEST_TARGET }}"
+  phases:
+    - duration: 30
+      arrivalRate: 5
+      name: "Warm-up"
+    - duration: 60
+      arrivalRate: 10
+      name: "Sustained"
+    - duration: 30
+      arrivalRate: 20
+      name: "Peak"
+  defaults:
+    headers:
+      Accept: "application/json"
+  ensure:
+    thresholds:
+      - http.response_time.p95: 500
+      - http.response_time.p99: 1000
+
+scenarios:
+  - name: "헬스체크 반복 호출"
+    flow:
+      - get:
+          url: "/api/health"
+          expect:
+            - statusCode: 200

@@ -19,7 +19,11 @@
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "load-test": "artillery run tests/load/health.yml",
+    "load-test:api": "artillery run tests/load/api-crud.yml",
+    "load-test:chat": "artillery run tests/load/chat-stream.yml",
+    "load-test:spike": "artillery run tests/load/spike.yml"
   },
   "dependencies": {
     "@axis-ds/theme": "1.1.1",
@@ -56,6 +60,7 @@
     "@types/react": "^19.0.6",
     "@types/react-dom": "^19.0.2",
     "@vitest/coverage-v8": "^4.0.18",
+    "artillery": "^2.0.30",
     "better-sqlite3": "^12.6.2",
     "drizzle-kit": "^0.30.2",
     "eslint": "^9.39.2",

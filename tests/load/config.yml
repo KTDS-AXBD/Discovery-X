@@ -1,0 +1,23 @@
+# Discovery-X 부하 테스트 글로벌 설정
+# 환경변수 LOAD_TEST_TARGET으로 타겟 URL 지정
+# 예: LOAD_TEST_TARGET=http://localhost:5173
+
+config:
+  target: "{{ $processEnvironment.LOAD_TEST_TARGET }}"
+  phases:
+    - duration: 30
+      arrivalRate: 2
+      name: "Warm-up"
+    - duration: 60
+      arrivalRate: 5
+      name: "Ramp-up"
+    - duration: 30
+      arrivalRate: 10
+      name: "Peak"
+  defaults:
+    headers:
+      Accept: "application/json"
+  ensure:
+    thresholds:
+      - http.response_time.p95: 2000
+      - http.response_time.p99: 5000

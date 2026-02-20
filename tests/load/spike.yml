@@ -1,0 +1,60 @@
+# Spike 테스트 — 갑작스런 부하 시나리오
+# 목표: 에러율 < 1%, p99 < 5s
+# 환경변수: LOAD_TEST_TARGET, LOAD_TEST_COOKIE
+config:
+  target: "{{ $processEnvironment.LOAD_TEST_TARGET }}"
+  phases:
+    # Ramp-up: 1 → 20 req/s (60초)
+    - duration: 60
+      arrivalRate: 1
+      rampTo: 20
+      name: "Spike ramp-up"
+    # 피크 유지: 20 req/s (30초)
+    - duration: 30
+      arrivalRate: 20
+      name: "Spike sustained"
+    # Cool-down: 20 → 1 req/s (30초)
+    - duration: 30
+      arrivalRate: 20
+      rampTo: 1
+      name: "Spike cool-down"
+  defaults:
+    headers:
+      Accept: "application/json"
+      Cookie: "{{ $processEnvironment.LOAD_TEST_COOKIE }}"
+  ensure:
+    thresholds:
+      - http.response_time.p95: 3000
+      - http.response_time.p99: 5000
+
+scenarios:
+  # 헬스체크 (인증 불요) — 기본 인프라 내구성 측정
+  - name: "헬스체크 (spike)"
+    weight: 5
+    flow:
+      - get:
+          url: "/api/health"
+          expect:
+            - statusCode: 200
+
+  # Discovery 목록 (인증 필요) — 인증 + DB 조합 부하
+  - name: "Discovery 목록 (spike)"
+    weight: 3
+    flow:
+      - get:
+          url: "/api/discoveries"
+          expect:
+            - statusCode:
+              - 200
+              - 302  # 인증 만료 시 리다이렉트 허용
+
+  # 시맨틱 검색 (인증 필요) — 연산 부하가 높은 엔드포인트
+  - name: "시맨틱 검색 (spike)"
+    weight: 2
+    flow:
+      - get:
+          url: "/api/similar-seeds?query=스파이크+테스트"
+          expect:
+            - statusCode:
+              - 200
+              - 302
