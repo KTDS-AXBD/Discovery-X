@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { safeNavigate } from "./helpers";
 
 test.describe("사업제안 페이지", () => {
   test("사업제안 목록 접근 시 리다이렉트 또는 로드", async ({ page }) => {
@@ -8,20 +9,24 @@ test.describe("사업제안 페이지", () => {
     expect(url).toMatch(/\/(proposals|login)/);
   });
 
-  test.skip("사업제안 목록 페이지 로드 확인", async ({ page }) => {
-    // requires auth
-    await page.goto("/proposals");
-    await page.waitForLoadState("networkidle");
+  test("사업제안 목록 페이지 로드 확인", async ({ page }) => {
+    test.skip(
+      !process.env.E2E_SESSION_COOKIE,
+      "E2E_SESSION_COOKIE 미설정 — 인증 필요 테스트 스킵",
+    );
+    await safeNavigate(page, "/proposals");
 
     // PipelineView 또는 CategoryCardRow 렌더링
     const heading = page.getByText(/사업제안|Proposal/i);
     await expect(heading.first()).toBeVisible();
   });
 
-  test.skip("새 사업제안 생성 페이지 접근", async ({ page }) => {
-    // requires auth
-    await page.goto("/proposals/new");
-    await page.waitForLoadState("networkidle");
+  test("새 사업제안 생성 페이지 접근", async ({ page }) => {
+    test.skip(
+      !process.env.E2E_SESSION_COOKIE,
+      "E2E_SESSION_COOKIE 미설정 — 인증 필요 테스트 스킵",
+    );
+    await safeNavigate(page, "/proposals/new");
 
     expect(page.url()).toContain("/proposals/new");
     // 사업제안 작성 폼 요소 확인
@@ -29,13 +34,18 @@ test.describe("사업제안 페이지", () => {
     await expect(titleInput).toBeVisible();
   });
 
-  test.skip("사업제안 상세 페이지 네비게이션", async ({ page }) => {
-    // requires auth
-    await page.goto("/proposals");
-    await page.waitForLoadState("networkidle");
+  test("사업제안 상세 페이지 네비게이션", async ({ page }) => {
+    test.skip(
+      !process.env.E2E_SESSION_COOKIE,
+      "E2E_SESSION_COOKIE 미설정 — 인증 필요 테스트 스킵",
+    );
+    await safeNavigate(page, "/proposals");
 
     // 목록에서 첫 번째 사업제안 클릭
-    const firstProposal = page.getByRole("link").filter({ hasText: /.+/ }).first();
+    const firstProposal = page
+      .getByRole("link")
+      .filter({ hasText: /.+/ })
+      .first();
     if (await firstProposal.isVisible()) {
       await firstProposal.click();
       await page.waitForLoadState("networkidle");
@@ -43,12 +53,17 @@ test.describe("사업제안 페이지", () => {
     }
   });
 
-  test.skip("사업제안 상세 — 마일스톤/댓글 섹션 존재", async ({ page }) => {
-    // requires auth — 사업제안 상세 페이지에 마일스톤/댓글 탭 포함
-    await page.goto("/proposals");
-    await page.waitForLoadState("networkidle");
+  test("사업제안 상세 — 마일스톤/댓글 섹션 존재", async ({ page }) => {
+    test.skip(
+      !process.env.E2E_SESSION_COOKIE,
+      "E2E_SESSION_COOKIE 미설정 — 인증 필요 테스트 스킵",
+    );
+    await safeNavigate(page, "/proposals");
 
-    const firstProposal = page.getByRole("link").filter({ hasText: /.+/ }).first();
+    const firstProposal = page
+      .getByRole("link")
+      .filter({ hasText: /.+/ })
+      .first();
     if (await firstProposal.isVisible()) {
       await firstProposal.click();
       await page.waitForLoadState("networkidle");

@@ -1,11 +1,12 @@
 import { test, expect } from "@playwright/test";
+import { skipIfNoAuth, safeNavigate } from "./helpers";
 
 test.describe("DEAD_END Flow", () => {
+  skipIfNoAuth(test);
+
   test("creates discovery, completes experiment, decides DEAD_END", async ({ page }) => {
-    // 1. Login
-    await page.goto("/");
-    await page.getByRole("button", { name: /로그인|Login/i }).first().click();
-    await expect(page).toHaveURL(/discoveries/);
+    // 1. 대시보드 접근 (storageState로 인증 처리됨)
+    await safeNavigate(page, "/dashboard");
 
     // 2. Create Discovery
     await page.getByRole("link", { name: /새 Discovery|새로 만들기|New/i }).click();
