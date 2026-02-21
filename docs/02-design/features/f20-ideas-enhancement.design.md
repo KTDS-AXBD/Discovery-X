@@ -6,8 +6,9 @@
 > **Version**: v5.1
 > **Author**: Claude
 > **Date**: 2026-02-10
-> **Status**: Draft
+> **Status**: Partially Implemented — v6.2에서 아키텍처 재설계 (3-Panel 레이아웃)
 > **Planning Doc**: [f20-ideas-enhancement.plan.md](../../01-plan/features/f20-ideas-enhancement.plan.md)
+> **Gap Analysis**: 2026-02-21, Match Rate 60% (18/30)
 
 ---
 
@@ -823,8 +824,97 @@ Phase 3 (유사 소스) — Phase 1, 2 완료 후
 
 ---
 
+## 7. Implementation Reality (현행화, 2026-02-21)
+
+> **Gap Analysis 결과**: 18/30 (60%). 설계 시점(v5.1)과 구현 시점(v6.2~v6.18) 사이에 아이디어 페이지의 아키텍처가 근본적으로 재설계되었다.
+
+### 7.1 아키텍처 변경 요약
+
+설계 시점의 아키텍처는 `AppShell + contextPanel(MemoPanel) + FilterBar + IdeaList` 패턴이었으나, v6.2에서 **3-Panel 레이아웃**으로 전면 재설계되었다.
+
+| 영역 | 설계 (v5.1) | 구현 (v6.2~) |
+|------|-------------|-------------|
+| 레이아웃 | AppShell + contextPanel | 3-Panel: SourceInputPanel \| Outlet \| IdeaChatWrapper |
+| 목록 표시 | FilterBar + IdeaList (inline) | IdeaListDrawer (slide-over drawer) |
+| 상세 보기 | ideas.$id.tsx (IdeaDetail + SimilarSources) | ideas.$id.tsx (EditableTitle + MethodologyCards) |
+| 데이터 모델 | radarItems 테이블만 사용 | **ideas 테이블 + ideaSources 테이블** 추가 |
+| 소스 관리 | 없음 | SourceInputPanel (URL/텍스트 추가, 멀티 선택, 삭제) |
+| AI 분석 | 없음 | 6개 방법론 분석 (SSE streaming) + IdeaChatWrapper |
+| 제안서 연결 | 없음 | ProposalCreationModal (아이디어 → 전략 건의) |
+| 메모 | MemoPanel (contextPanel) + api.ideas.memo.ts | radarItems.memo 컬럼은 존재하나 MemoPanel 미사용 |
+| 필터/검색 | FilterBar + URL params 서버사이드 필터 | 미구현 |
+| 유사 소스 | SimilarSources (Vectorize/fallback) | 미구현 |
+
+### 7.2 현행 컴포넌트 구조 (실제)
+
+```
+ideas.tsx (Layout Route — 3-Panel)
+├── IdeaPageHeader (제목 + 사용자 + 건의서 버튼)
+├── IdeaListDrawer (좌측 slide-over, ideas 테이블 기반)
+├── 3-Panel flex layout
+│   ├── [Left] SourceInputPanel (소스 목록 + URL/텍스트 추가)
+│   │   └── PanelResizeHandle
+│   ├── [Center] <Outlet />
+│   │   ├── ideas._index.tsx (빈 상태 / 소스 선택 / 방법론 카드)
+│   │   └── ideas.$id.tsx (EditableTitle + SuggestTitleButton + MethodologyCards)
+│   └── [Right] IdeaChatWrapper (AI Agent 채팅)
+│       └── PanelResizeHandle
+└── ProposalCreationModal
+```
+
+### 7.3 구현된 항목
+
+| 설계 항목 | 상태 | 구현 내용 |
+|----------|------|----------|
+| radarItems.memo 컬럼 | ✅ 구현 | DB 스키마에 존재, loader에서 조회 |
+| 마이그레이션 SQL | ✅ 구현 | `drizzle/0022_ideas_memo.sql` 적용 |
+| tests/helpers/db.ts 업데이트 | ✅ 구현 | 마이그레이션 파일 경로 추가 |
+
+### 7.4 미구현 / 대체된 항목
+
+| 설계 항목 | 상태 | 비고 |
+|----------|------|------|
+| MemoPanel DB 연동 (useFetcher + debounce) | ❌ Dead | `MemoPanel.tsx` 파일 존재하나 어디서도 import하지 않음 |
+| api.ideas.memo.ts | ❌ 미구현 | 전용 메모 API 엔드포인트 미생성 |
+| FilterBar (스코어/상태/검색) | ❌ Dead | `FilterBar.tsx` 파일 존재하나 어디서도 import하지 않음 |
+| ideas.tsx loader URL params 필터링 | ❌ 미구현 | 서버사이드 동적 WHERE 조건 미적용 |
+| SimilarSources (Vectorize/fallback) | ❌ Dead | `SimilarSources.tsx` 파일 존재하나 어디서도 import하지 않음 |
+| similar-items.ts 유틸 함수 | ❌ 미구현 | Vectorize 유사 검색 유틸 미추출 |
+| ideas.$id.tsx 유사 소스 loader | ❌ 미구현 | loader에 유사 소스 로직 없음 |
+
+### 7.5 설계 범위 밖 신규 구현
+
+| 기능 | 파일 | 설명 |
+|------|------|------|
+| ideas 테이블 | `features/ideas/db/schema.ts` | 아이디어 독립 엔터티 (title, status, analysisData) |
+| ideaSources 테이블 | `features/ideas/db/schema.ts` | 아이디어-소스 N:M 연결 |
+| SourceInputPanel | `components/ideas/SourceInputPanel.tsx` | URL/텍스트 소스 추가 + 멀티 선택 |
+| IdeaChatWrapper | `components/ideas/IdeaChatWrapper.tsx` | AI Agent 기반 분석 채팅 |
+| MethodologyCards | `components/ideas/MethodologyCards.tsx` | 6개 방법론 분석 결과 카드 |
+| PanelResizeHandle | `components/ideas/PanelResizeHandle.tsx` | 3-Panel 드래그 리사이즈 |
+| ProposalCreationModal | `components/ideas/ProposalCreationModal.tsx` | 아이디어 → 건의서 전환 |
+| IdeaListDrawer | `components/ideas/IdeaListDrawer.tsx` | 아이디어 목록 drawer |
+| IdeaPageHeader | `components/ideas/IdeaPageHeader.tsx` | 페이지 헤더 + 네비게이션 |
+| AnalysisProgress | `components/ideas/AnalysisProgress.tsx` | SSE 분석 진행 상태 |
+| EditableTitle + SuggestTitleButton | `routes/ideas.$id.tsx` (inline) | 제목 편집 + AI 추천 |
+| `/api/ideas` (POST, PATCH) | API 라우트 | 아이디어 CRUD |
+| `/api/ideas/:id/sources` (POST, DELETE) | API 라우트 | 소스 연결 관리 |
+| `/api/ideas/:id/analyze` (POST, SSE) | API 라우트 | 6개 방법론 AI 분석 |
+| `/api/ideas/:id/suggest-title` (POST) | API 라우트 | AI 제목 추천 |
+
+### 7.6 Dead 컴포넌트 정리 권장
+
+아래 파일은 설계 시점에 생성되었으나 현행 아키텍처에서 사용하지 않는다. 정리 대상:
+
+- `app/components/ideas/FilterBar.tsx` — 미사용
+- `app/components/ideas/SimilarSources.tsx` — 미사용
+- `app/components/ideas/MemoPanel.tsx` — 미사용
+
+---
+
 ## Version History
 
 | Version | Date | Changes | Author |
 |---------|------|---------|--------|
 | 0.1 | 2026-02-10 | Initial draft — 메모 저장 + 필터/검색 + 유사 추천 상세 설계 | Claude |
+| 0.2 | 2026-02-21 | 현행화 — Gap Analysis 결과 반영, §7 Implementation Reality 추가. 아키텍처 재설계(3-Panel) 문서화, Dead 컴포넌트 식별 | Claude |

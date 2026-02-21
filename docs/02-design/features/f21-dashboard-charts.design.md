@@ -6,8 +6,9 @@
 > **Version**: v5.1
 > **Author**: Claude
 > **Date**: 2026-02-10
-> **Status**: Draft
+> **Status**: Superseded — 대시보드 구조 재설계로 설계 무효 (dashboard.metrics.tsx 미존재)
 > **Planning Doc**: [f21-dashboard-charts.plan.md](../../01-plan/features/f21-dashboard-charts.plan.md)
+> **Gap Analysis**: 2026-02-21, Match Rate 35% (7/20)
 
 ---
 
