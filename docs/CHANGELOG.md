@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 232 (2026-02-21)
+**서비스 레이어 강화 Phase 4A+4B — /team 병렬 작업으로 Discovery + Proposal 서비스 전환**:
+- ✅ DiscoveryService 5개 메서드 추가: promote, submitForApproval, addExperiment, addEvidence, completeExperiment
+- ✅ ProposalService 6→20개 메서드 확장: CRUD + comments/likes/actions/members/milestones/categories
+- ✅ 라우트 17개 inline DB 쿼리 → `new XxxService(db)` 패턴 전환 (Discovery 7 + Proposal 10)
+- ✅ submitForApproval(): 3개 결정 라우트(not-now/dead-end/next) 공통 PENDING 패턴을 1개 메서드로 통합
+- ✅ 버그 수정: api.proposals.categories.ts 검색 시 tenantId 필터 누락 해결
+- ✅ /team 병렬 실행: Worker 2명 (tmux in-window split), 파일 충돌 없이 완료
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1111/1111 PASS
+
 ### 세션 231 (2026-02-21)
 **/team 스킬 v7 in-window split 완성**:
 - ✅ v4~v6 실패 원인 분석 (monitor pane → select-window → break-pane)
