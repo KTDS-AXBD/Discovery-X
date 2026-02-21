@@ -93,34 +93,30 @@ PROMPT
 ### 3. Worker 생성 (tmux in-window split)
 
 > **CRITICAL**: worker는 리더와 **같은 window** 내에서 실행된다.
-> 리더 오른쪽 이웃 pane의 **가로 넓이를 50% 분할(`-h -b`)**하여 worker 전용 컬럼을 생성한다.
-> 이웃 pane의 **프로세스는 유지**되고 **넓이만 50%로 줄어든다** (높이 변경 없음).
+> 리더 pane 자체를 **가로 분할(`-h`)**하여 오른쪽에 worker 전용 컬럼을 생성한다.
+> 리더는 넓이가 줄어들지만, **worker 종료 시 자동 복원**된다.
 > Worker 컬럼 내에서 worker 수만큼 **세로 분할(`-v`)**하여 각 worker에게 할당한다.
-> **리더 pane의 크기/위치/프로세스는 절대 변경하지 않는다.**
+> **리더 외 다른 pane의 크기/위치/프로세스는 절대 변경하지 않는다.**
+> 복수 리더가 각각 `/team`을 실행해도 **서로의 영역에 간섭하지 않는다**.
 > **break-pane, swap-pane, select-window 사용 금지** — 윈도우 상태 불안정의 원인.
 
-**3a. pane 구조 감지**:
+**3a. pane 구조 감지 및 최소 넓이 확인**:
 
 ```bash
 LEADER_PANE=$(tmux display-message -p '#{pane_id}')
-LEADER_LEFT=$(tmux display-message -p '#{pane_left}')
+LEADER_WIDTH=$(tmux display-message -p '#{pane_width}')
 
-# 같은 window에서 leader가 아니고 높이 > 10인 pane 찾기
-OTHER_INFO=$(tmux list-panes -F "#{pane_id} #{pane_left} #{pane_height}" | while IFS=' ' read -r id left height; do
-  if [ "$id" != "$LEADER_PANE" ] && [ "$height" -gt 10 ]; then
-    echo "$id $left"
-    break
-  fi
-done)
-OTHER_PANE=$(echo "$OTHER_INFO" | awk '{print $1}')
-OTHER_LEFT=$(echo "$OTHER_INFO" | awk '{print $2}')
+echo "=== Current Pane Layout ==="
+tmux list-panes -F "pane=#{pane_id} left=#{pane_left} top=#{pane_top} size=#{pane_width}x#{pane_height}"
+echo "Leader: $LEADER_PANE (width=$LEADER_WIDTH)"
 
-echo "Leader: $LEADER_PANE (left=$LEADER_LEFT)"
-echo "Other: $OTHER_PANE (left=$OTHER_LEFT)"
+# 최소 넓이 확인 (분할 후 leader/worker 각각 최소 40 컬럼 유지)
+if [ "$LEADER_WIDTH" -lt 80 ]; then
+  echo "ERROR: Leader pane too narrow ($LEADER_WIDTH cols). Minimum 80 required for split."
+  echo "Tip: Expand the terminal or close unused panes."
+  exit 1
+fi
 ```
-
-**위치 판별**: Other pane이 리더 **오른쪽**에 있으면(`OTHER_LEFT > LEADER_LEFT`) 바로 분할.
-Other pane이 리더 **왼쪽**이면, 리더 자신을 분할해야 하므로 아래 3c-alt 절차를 따른다.
 
 **3b. worker runner 스크립트**를 생성한다 (worker 수만큼 반복).
 `PROJECT_DIR`은 `$PWD`로 결정한다 (WSL 내부: `/home/.../Discovery-X`):
@@ -150,10 +146,12 @@ chmod +x "$TEAM_DIR/team-{팀이름}-run-{N}.sh"
 > **`command claude`**: `.bashrc`의 `alias claude=...`를 우회하여 실제 바이너리를 호출한다.
 > **`CLAUDE_CONFIG_DIR`**: 리더 세션의 인증 컨텍스트(personal/work)를 worker에 전파한다.
 
-**3c. launcher 스크립트를 생성**한다 — **Other pane이 리더 오른쪽인 경우** (일반적):
+**3c. launcher 스크립트를 생성**한다:
 
-> **핵심**: Other pane을 `split-window -v -b` (before = 위에)로 분할하여 worker pane을 생성한다.
-> 리더 pane은 건드리지 않는다. Other CC 프로세스는 유지되고 높이만 줄어든다.
+> **핵심**: 리더 pane을 `split-window -h` (horizontal)로 분할하여 **오른쪽에 worker 컬럼**을 생성한다.
+> Worker 컬럼은 리더의 현재 넓이의 **50%**를 차지한다.
+> 각 worker는 worker 컬럼을 **세로 분할(`-v`)**하여 생성한다.
+> **리더 외 다른 pane에는 일절 개입하지 않는다** — 복수 리더도 안전.
 > **shell init delay**: pane 생성 후 **2초 대기** 필수 (1초로는 부족).
 
 ```bash
@@ -162,8 +160,9 @@ cat > "$TEAM_DIR/team-{팀이름}-launcher.sh" << LAUNCHER
 set -e
 TEAM="{팀이름}"
 TEAM_DIR="$TEAM_DIR"
-OTHER_PANE="$OTHER_PANE"
+LEADER_PANE="$LEADER_PANE"
 PROJECT_DIR="$PROJECT_DIR"
+WORKER_COUNT={N}
 
 # 0) 기존 worker pane 정리 (재실행 시)
 if [ -f "\$TEAM_DIR/team-\${TEAM}-worker-panes.txt" ]; then
@@ -173,58 +172,64 @@ if [ -f "\$TEAM_DIR/team-\${TEAM}-worker-panes.txt" ]; then
   rm -f "\$TEAM_DIR/team-\${TEAM}-worker-panes.txt"
 fi
 
-# 1) Worker 1: OTHER_PANE 위에 생성 (-b = before/above, -l 66% = 상위 66% 차지)
-W1=\$(tmux split-window -v -d -b -t "\$OTHER_PANE" -l 66% -c "\$PROJECT_DIR" -P -F '#{pane_id}')
-echo "\$W1" > "\$TEAM_DIR/team-\${TEAM}-worker-panes.txt"
+# 1) Worker 컬럼 생성 — 리더 pane을 가로 분할, 오른쪽 50%를 worker에 할당
+WORKER_COL=\$(tmux split-window -h -d -t "\$LEADER_PANE" -l 50% -c "\$PROJECT_DIR" -P -F '#{pane_id}')
+echo "\$WORKER_COL" > "\$TEAM_DIR/team-\${TEAM}-worker-panes.txt"
 sleep 2
-tmux send-keys -t "\$W1" "bash \$TEAM_DIR/team-\${TEAM}-run-1.sh" Enter
 
-# 2) Worker 2: W1을 분할 (W1의 하반부)
-W2=\$(tmux split-window -v -d -t "\$W1" -c "\$PROJECT_DIR" -P -F '#{pane_id}')
-echo "\$W2" >> "\$TEAM_DIR/team-\${TEAM}-worker-panes.txt"
-sleep 2
-tmux send-keys -t "\$W2" "bash \$TEAM_DIR/team-\${TEAM}-run-2.sh" Enter
+# 2) Worker 컬럼을 worker 수에 따라 세로 분할 + 실행
+if [ "\$WORKER_COUNT" -eq 1 ]; then
+  tmux send-keys -t "\$WORKER_COL" "bash \$TEAM_DIR/team-\${TEAM}-run-1.sh" Enter
 
-# 3) Worker 3 (필요 시 — 주석 해제)
-# W3=\$(tmux split-window -v -d -t "\$W2" -c "\$PROJECT_DIR" -P -F '#{pane_id}')
-# echo "\$W3" >> "\$TEAM_DIR/team-\${TEAM}-worker-panes.txt"
-# sleep 2
-# tmux send-keys -t "\$W3" "bash \$TEAM_DIR/team-\${TEAM}-run-3.sh" Enter
+elif [ "\$WORKER_COUNT" -eq 2 ]; then
+  W2=\$(tmux split-window -v -d -t "\$WORKER_COL" -l 50% -c "\$PROJECT_DIR" -P -F '#{pane_id}')
+  echo "\$W2" >> "\$TEAM_DIR/team-\${TEAM}-worker-panes.txt"
+  sleep 2
+  tmux send-keys -t "\$WORKER_COL" "bash \$TEAM_DIR/team-\${TEAM}-run-1.sh" Enter
+  tmux send-keys -t "\$W2" "bash \$TEAM_DIR/team-\${TEAM}-run-2.sh" Enter
 
-echo "Workers created: W1=\$W1 W2=\$W2 (above \$OTHER_PANE)"
+elif [ "\$WORKER_COUNT" -eq 3 ]; then
+  W2=\$(tmux split-window -v -d -t "\$WORKER_COL" -l 67% -c "\$PROJECT_DIR" -P -F '#{pane_id}')
+  echo "\$W2" >> "\$TEAM_DIR/team-\${TEAM}-worker-panes.txt"
+  sleep 2
+  W3=\$(tmux split-window -v -d -t "\$W2" -l 50% -c "\$PROJECT_DIR" -P -F '#{pane_id}')
+  echo "\$W3" >> "\$TEAM_DIR/team-\${TEAM}-worker-panes.txt"
+  sleep 2
+  tmux send-keys -t "\$WORKER_COL" "bash \$TEAM_DIR/team-\${TEAM}-run-1.sh" Enter
+  tmux send-keys -t "\$W2" "bash \$TEAM_DIR/team-\${TEAM}-run-2.sh" Enter
+  tmux send-keys -t "\$W3" "bash \$TEAM_DIR/team-\${TEAM}-run-3.sh" Enter
+fi
+
+echo "Workers created: WORKER_COUNT=\$WORKER_COUNT (right of leader \$LEADER_PANE)"
 tmux list-panes -F "pane=#{pane_id} left=#{pane_left} top=#{pane_top} size=#{pane_width}x#{pane_height}"
 LAUNCHER
 chmod +x "$TEAM_DIR/team-{팀이름}-launcher.sh"
 ```
 
-> **레이아웃 결과 (2 workers 기준)**:
+> **레이아웃 결과 — 리더 1개, 2 workers**:
 > ```
-> ┌────────────┬────────────┐
-> │ Leader     │ W1 (상)    │  ← worker 1 (~14줄)
-> │ (변경 없음) ├────────────┤
-> │ 104w×44h   │ W2 (하)    │  ← worker 2 (~14줄)
-> │            ├────────────┤
-> │            │ Other CC   │  ← 기존 세션 (압축, ~14줄)
-> ├────────────┴────────────┤
-> │ Status (watch)  5줄      │
+> ┌──────────┬──────┬──────────────────┐
+> │ Leader   │ W1   │ Other CC         │
+> │ (넓이    ├──────┤ (변경 없음)       │
+> │  50%↓)   │ W2   │                  │
+> ├──────────┴──────┴──────────────────┤
+> │ Status bar                          │
+> └─────────────────────────────────────┘
+> ```
+>
+> **레이아웃 결과 — 복수 리더가 각각 /team 실행**:
+> ```
+> ┌──────┬─────┬──────┬─────┐
+> │ L1   │L1-W1│ L2   │L2-W1│  ← 각 리더가 자기 영역만 분할
+> │(50%↓)├─────┤(50%↓)├─────┤
+> │      │L1-W2│      │L2-W2│
+> ├──────┴─────┴──────┴─────┤
+> │ Status bar               │
 > └──────────────────────────┘
 > ```
-
-**3c-alt. Other pane이 리더 왼쪽인 경우** (예외적):
-
-리더 자체를 `split-window -h`로 분할해야 한다. 이 경우 리더 pane 너비가 줄어드는 것을 감수한다:
-
-```bash
-# 리더 오른쪽에 worker 영역 생성
-W_AREA=$(tmux split-window -h -d -t "$LEADER_PANE" -c "$PROJECT_DIR" -P -F '#{pane_id}')
-sleep 2
-# W_AREA를 분할하여 W1, W2 생성
-W2=$(tmux split-window -v -d -t "$W_AREA" -c "$PROJECT_DIR" -P -F '#{pane_id}')
-# W_AREA가 W1이 됨
-W1="$W_AREA"
-```
-
-> 이 경우 리더 pane 너비가 ~52w로 줄어든다. 작업 완료 후 worker pane을 kill하면 자동 복원.
+>
+> Worker pane kill 시 해당 리더 pane이 원래 넓이로 **자동 복원**.
+> 다른 리더의 worker에는 영향 없음 (팀 이름으로 파일 격리).
 
 **3d. launcher를 실행**한다:
 
@@ -304,37 +309,43 @@ pnpm test
 
 검증 실패 시 직접 수정하거나, 해당 영역에 대해 새 worker를 스폰한다.
 
-### 6. 정리 및 결과 출력
+### 6. 정리 및 결과 출력 (Pane 회수)
 
 1. 로그 파일에서 결과 수집 (정리 전에 수행):
 ```bash
 TEAM_DIR="$PWD/.team-tmp"
+TEAM="{팀이름}"
 i=1
 while read -r pane_id; do
   echo "=== Worker $i (pane: $pane_id) ==="
   tmux capture-pane -t "$pane_id" -p 2>/dev/null | tail -20 || echo "(pane already closed)"
   i=$((i+1))
-done < "$TEAM_DIR/team-{팀이름}-worker-panes.txt"
+done < "$TEAM_DIR/team-${TEAM}-worker-panes.txt"
 ```
 
-2. **worker pane 종료** (Other CC pane이 원래 높이로 자동 복원):
+2. **worker pane 회수** (리더 pane이 원래 넓이로 자동 복원):
 ```bash
 TEAM_DIR="$PWD/.team-tmp"
+TEAM="{팀이름}"
 while read -r pane_id; do
   tmux kill-pane -t "$pane_id" 2>/dev/null || true
-done < "$TEAM_DIR/team-{팀이름}-worker-panes.txt"
+done < "$TEAM_DIR/team-${TEAM}-worker-panes.txt"
 ```
+> Worker pane을 kill하면 tmux가 **해당 리더 pane만** 원래 넓이로 복원한다.
+> 다른 리더의 worker pane에는 영향 없음 (팀 이름별 파일 격리).
 
 3. 임시 파일 정리:
 ```bash
-rm -rf "$PWD/.team-tmp"
+rm -f "$PWD/.team-tmp/team-{팀이름}-"*
+# .team-tmp 디렉토리가 비면 삭제
+[ -z "$(ls -A "$PWD/.team-tmp" 2>/dev/null)" ] && rm -rf "$PWD/.team-tmp"
 ```
+> 다른 팀의 임시 파일이 남아있을 수 있으므로, **팀별 파일만 삭제**한다.
 
 4. 레이아웃 복원 확인:
 ```bash
-tmux list-panes -F "pane=#{pane_id} size=#{pane_width}x#{pane_height}"
+tmux list-panes -F "pane=#{pane_id} left=#{pane_left} size=#{pane_width}x#{pane_height}"
 ```
-> Worker pane을 kill하면 tmux가 자동으로 Other CC pane을 원래 크기로 복원한다.
 
 5. 결과 요약 출력
 
@@ -364,17 +375,17 @@ tmux list-panes -F "pane=#{pane_id} size=#{pane_width}x#{pane_height}"
 
 ## 주의사항
 
-### CRITICAL — 리더 pane 절대 미변경 (v7 핵심)
-- 리더 pane의 **크기, 위치, 프로세스를 변경하지 않는다**
-- worker는 Other pane(비활성 CC)을 **세로 분할**하여 그 위에 생성
-- 분할 후 Other CC 프로세스는 유지됨 (높이만 임시로 줄어듬)
+### CRITICAL — 자기 영역만 분할 (v8 핵심)
+- 리더 pane을 **가로 분할(`-h`)**하여 오른쪽에 worker 컬럼 생성 → 리더 **넓이만 임시로 줄어듦**
+- worker pane kill 시 리더 pane 넓이 **자동 복원**
+- **리더 외 다른 pane의 크기/위치/프로세스는 절대 변경하지 않는다**
+- 복수 리더가 각각 `/team`을 실행해도 **서로의 영역에 간섭하지 않음**
 - **break-pane, swap-pane, select-window 사용 금지** — 윈도우 상태 불안정 원인
-- worker pane kill 시 Other CC pane이 원래 크기로 자동 복원
 
 ### CRITICAL — 기존 pane에 send-keys/kill 금지
-- 다른 pane에 `send-keys` 금지 — 기존 세션을 파괴할 수 있음
 - **새로 생성한 worker pane에만** `send-keys` 사용
-- 기존 pane(Leader, Other CC, Status)의 프로세스는 절대 종료하지 않음
+- 기존 pane(다른 Leader, Other CC, Status)에 `send-keys`/`kill-pane` 금지
+- 팀 이름별로 `worker-panes.txt` 격리 → 다른 팀의 worker를 실수로 kill하지 않음
 
 ### CRITICAL — claude alias 충돌 방지
 - `.bashrc`에 `alias claude=...`가 정의되어 있으면, tmux pane의 interactive shell에서 `claude -p`가 alias로 가로채진다
@@ -392,7 +403,7 @@ tmux list-panes -F "pane=#{pane_id} size=#{pane_width}x#{pane_height}"
 - worker 프롬프트는 `.team-tmp/` 임시 파일 + **runner 스크립트**로 전달 (send-keys 내 `$(cat ...)` 확장 금지)
 - runner 스크립트에서 `command claude`로 호출 + PATH를 명시적으로 설정하여 alias 충돌과 tmux pane 환경 차이를 해소
 - git 작업(commit, push)은 worker에게 시키지 않는다 — 리더만 수행
-- tmux pane 최대 3개 권장 (같은 column 분할이므로 3개 초과 시 높이 부족)
+- worker pane 최대 3개 권장 (같은 column 세로 분할이므로 3개 초과 시 높이 부족)
 - `$ARGUMENTS`가 비어있으면 사용자에게 작업 설명을 요청한다
 
 ## tmux 기본 조작법
