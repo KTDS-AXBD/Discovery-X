@@ -16,8 +16,11 @@
 - ⚠️ signal.service.ts는 signal-router.ts에서 활성 사용 → 유지
 - 📝 남은 구조적 부채: executor.ts(885줄), tool-registry.ts(1,164줄) 모듈화
 
+- ✅ changeOwner 테스트 수정: HYPOTHESIS→HOLD (ACTIVE_STATUSES 포함으로 기존 테스트 불일치)
+- ✅ 프로덕션 배포 완료 (CI/CD 2m01s)
+
 **검증 결과**:
-- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,043/1,043 PASS / build 성공
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,043/1,043 PASS / build 성공 / 배포 성공
 
 ### 세션 233 (2026-02-21)
 **Gap Analysis 4건 수행 + 설계 문서 현행화 (F20/F21)**:
