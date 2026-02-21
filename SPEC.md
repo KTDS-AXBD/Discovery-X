@@ -410,8 +410,8 @@ build/
 ### 주요 지표
 - **라우트**: 153개 (서비스 레이어 전환 완료: folders/ideas/lab/radar/proposals)
 - **테이블**: 92개 (+5: Archive 2, Token 1, Matrix 7, Worker 2, FTS 1, Proposals +2, Graph +1 — 기존 중복 제거 후)
-- **Agent 도구**: 47개 (executor 3분할: executor.ts 110줄 + executor-stream.ts 270줄 + agent-pipeline.ts 202줄, schema: 8 도메인 파일 분할)
-- **코드**: ~62,500줄 (367파일) — 서비스 4개 신규 + executor 3분할
+- **Agent 도구**: 47개 (executor 3분할 + query-tools 3분할 + discovery-tools 4분할, schema: 8 도메인 파일)
+- **코드**: ~62,500줄 (374파일) — Agent 도구 구현체 7파일 분할
 - **테스트**: 1,043개 (78 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개

@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 239 (2026-02-21)
+**query-tools + discovery-tools 도메인별 분할 — Agent 도구 구현체 최종 모듈화**:
+- ✅ `query-tools.ts` (867줄) → barrel re-export + 3 서브파일: `query-discovery.ts` (515줄), `query-radar.ts` (253줄), `query-review.ts` (122줄)
+- ✅ `discovery-tools.ts` (858줄) → barrel re-export + 4 서브파일: `discovery-crud.ts` (287줄), `discovery-experiment.ts` (209줄), `discovery-decision.ts` (372줄), `discovery-utils.ts` (27줄)
+- ✅ barrel re-export 패턴으로 기존 import 경로 100% 호환 (tool-handlers.ts 변경 불필요)
+- ✅ /team Worker 2명 병렬 실행 (W1: query-tools, W2: discovery-tools)
+- ✅ 미래 리팩토링 계획 memory/refactoring.md에 저장 (Phase 9~10)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,043/1,043 PASS / build 정상
+
 ### 세션 238 (2026-02-21)
 **executor-stream.ts 분리 — executor.ts 최종 슬림화**:
 - ✅ `executor-stream.ts` 신규 (270줄): createAgentStreamResponse + consumeClaudeStream + sendToolResults + flushSessionMemory 추출
