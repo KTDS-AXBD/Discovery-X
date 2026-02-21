@@ -411,7 +411,7 @@ build/
 - **라우트**: 139개 (리팩토링: Cron 통합 19→13, Venture/Knowledge/Briefing/ValueUp 아카이브, Market/evidence/dashboard 서브라우트 삭제 반영)
 - **테이블**: 92개 (+5: Archive 2, Token 1, Matrix 7, Worker 2, FTS 1, Proposals +2, Graph +1 — 기존 중복 제거 후)
 - **Agent 도구**: 47개 (executor: Map 패턴, schema: 8 도메인 파일 분할)
-- **코드**: 61,925줄 (361파일) — executor 모듈화 +65줄 (구조 분리)
+- **코드**: ~61,780줄 (361파일) — Phase 4C 서비스 전환 -145줄
 - **테스트**: 1,043개 (78 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개

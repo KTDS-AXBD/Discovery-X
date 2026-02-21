@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 236 (2026-02-21)
+**서비스 레이어 Phase 4C — Discovery 라우트 5개 서비스 전환**:
+- ✅ `approve.tsx` (full): action 80줄 인라인 DB → `service.approveDecision()`/`rejectDecision()` 2줄
+- ✅ `request-extension.tsx` (full): loader+action → `service.getById()`, `getExperimentCount()`, `requestExtension()`
+- ✅ `graph.tsx` (partial): loader+action `findFirst()` → `service.getById()`
+- ✅ `methods.tsx` (partial): `db.select().from(discoveries)...limit(1)` + `[0]` 패턴 → `service.getById()`
+- ✅ `gate.tsx` (fix): Worker 2 잔여 에러 3개 수정 (discovery[0] + 미참조 discoveries)
+- ✅ Phase 4 Discovery 라우트 11/11 완료 (세션 232 3개 + 세션 236 8개)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 5 files changed, -145줄
+
 ### 세션 235 (2026-02-21)
 **executor.ts 모듈화 (switch→Map) + tool-registry.ts 도메인별 분할**:
 - ✅ `executor.ts` 885→549줄: 47-case switch를 `Record<string, ToolHandler>` Map 패턴으로 전환 → `tool-handlers.ts` (217줄) 분리
