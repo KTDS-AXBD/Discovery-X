@@ -7,7 +7,8 @@ import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, Link } from "@remix-run/react";
 import { eq, desc } from "drizzle-orm";
 import { getDb } from "~/db";
-import { discoveries, extractedPatterns, reusableRules, decisionLogs } from "~/db/schema";
+import { extractedPatterns, reusableRules, decisionLogs } from "~/db/schema";
+import { DiscoveryService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
@@ -23,9 +24,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const { id } = params;
   if (!id) throw new Response("Not Found", { status: 404 });
 
-  const discovery = await db.query.discoveries.findFirst({
-    where: eq(discoveries.id, id),
-  });
+  const service = new DiscoveryService(db);
+  const discovery = await service.getById(id);
   if (!discovery) throw new Response("Not Found", { status: 404 });
 
   // 관련 패턴 조회

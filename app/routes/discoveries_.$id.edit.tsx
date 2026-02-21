@@ -2,7 +2,6 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, eventLogs } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
@@ -13,10 +12,10 @@ import { Select } from "~/components/ui/Select";
 import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
-import { eq } from "drizzle-orm";
 import { DiscoveryStatus, SourceType } from "~/db/schema";
 import { CreateDiscoverySchema } from "~/lib/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
+import { DiscoveryService } from "~/lib/services";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -33,10 +32,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  const discovery = await db.query.discoveries.findFirst({
-    where: eq(discoveries.id, id),
-  });
-
+  const service = new DiscoveryService(db);
+  const discovery = await service.getById(id);
   if (!discovery) {
     throw new Response("Not Found", { status: 404 });
   }
@@ -64,10 +61,8 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  const discovery = await db.query.discoveries.findFirst({
-    where: eq(discoveries.id, id),
-  });
-
+  const service = new DiscoveryService(db);
+  const discovery = await service.getById(id);
   if (!discovery) {
     throw new Response("Not Found", { status: 404 });
   }
@@ -99,26 +94,14 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
       sourceType,
     });
 
-    await db
-      .update(discoveries)
-      .set({
-        title: validated.title,
-        seedSummary: validated.seedSummary,
-        seedLinks: validated.seedLinks || null,
-        sourceType: validated.sourceType,
-        targetSegment: targetSegment ? String(targetSegment).slice(0, 200) : null,
-        valueProposition: valueProposition ? String(valueProposition).slice(0, 400) : null,
-        updatedAt: new Date(),
-      })
-      .where(eq(discoveries.id, id));
-
-    await db.insert(eventLogs).values({
-      id: crypto.randomUUID(),
-      actorId: user.id,
-      discoveryId: id,
-      eventType: "UPDATE_DISCOVERY",
-      metadata: { title: validated.title, sourceType: validated.sourceType },
-    });
+    await service.update(id, {
+      title: validated.title,
+      seedSummary: validated.seedSummary,
+      seedLinks: validated.seedLinks,
+      sourceType: validated.sourceType,
+      targetSegment: targetSegment ? String(targetSegment).slice(0, 200) : null,
+      valueProposition: valueProposition ? String(valueProposition).slice(0, 400) : null,
+    }, user.id);
 
     return redirect(`/discoveries/${id}`);
   } catch (error: unknown) {

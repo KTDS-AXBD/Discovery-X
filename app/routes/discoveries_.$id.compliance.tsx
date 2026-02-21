@@ -8,12 +8,12 @@ import { useLoaderData, Link } from "@remix-run/react";
 import { eq, and, desc } from "drizzle-orm";
 import { getDb } from "~/db";
 import {
-  discoveries,
   industryAdapters,
   industryRules,
   evidence,
   eventLogs,
 } from "~/db/schema";
+import { DiscoveryService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
@@ -30,9 +30,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const { id } = params;
   if (!id) throw new Response("Not Found", { status: 404 });
 
-  const discovery = await db.query.discoveries.findFirst({
-    where: eq(discoveries.id, id),
-  });
+  const service = new DiscoveryService(db);
+  const discovery = await service.getById(id);
   if (!discovery) throw new Response("Not Found", { status: 404 });
 
   // 산업 어댑터 정보
