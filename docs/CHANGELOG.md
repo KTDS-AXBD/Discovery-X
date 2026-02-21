@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 231 (2026-02-21)
+**/team 스킬 v7 in-window split 완성**:
+- ✅ v4~v6 실패 원인 분석 (monitor pane → select-window → break-pane)
+- ✅ v7 설계: Other pane을 `split-window -v -b`로 세로 분할, 리더 pane 미변경
+- ✅ SKILL.md 전면 재작성 — in-window split, 위치 자동 감지, 3c-alt 분기
+- ✅ patterns.md 업데이트 — v7 패턴 + v4~v6 실패 교훈 + 금지 명령 목록
+- ✅ 테스트 2회 성공 (echo 테스트): 리더 pane 크기 유지, Other CC 프로세스 유지, 정리 후 자동 복원
+
+**검증 결과**:
+- ✅ 앱 코드 변경 없음 (스킬/메모리만 수정)
+
 ### 세션 230 (2026-02-21)
 **리팩토링 Phase 5 스키마/도구 정리 — valueup/shadow 삭제 (-1,600 LOC)**:
 - ✅ `valueup-tools.ts` (610줄) 전체 삭제 — executor에서만 참조
