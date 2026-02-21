@@ -3,16 +3,25 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 238 (2026-02-21)
+**executor-stream.ts 분리 — executor.ts 최종 슬림화**:
+- ✅ `executor-stream.ts` 신규 (270줄): createAgentStreamResponse + consumeClaudeStream + sendToolResults + flushSessionMemory 추출
+- ✅ `executor.ts` 367→110줄 (-70%): 비스트리밍 executeAgentTurn만 잔류
+- ✅ `api.chat.ts` import 경로 변경: executor → executor-stream
+- ✅ /team Worker 2명 병렬 실행 (executor-split)
+- ✅ executor.ts 누적 감소: 885→110줄 (세션 235~238, -87.6%)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,043/1,043 PASS
+
 ### 세션 237 (2026-02-21)
 **executor.ts 리팩토링 + 서비스 레이어 전환 마무리**:
 - ✅ `agent-pipeline.ts` 신규 (202줄): prepareAgentPipeline, processToolBlocks, saveAndFinalize 공통 함수 3개 추출
-- ✅ `executor.ts` 549→367줄 (-33%): consumeClaudeStream/sendToolResults/flushSessionMemory 헬퍼 분리
+- ✅ `executor.ts` 549→367줄 (-33%): 공통 로직 agent-pipeline.ts로 추출
 - ✅ 서비스 레이어 전환 27개 라우트: FolderService, IdeaService, LabService, RadarService 신규 4개
 - ✅ ProposalService 메서드 추가 (getById, update, getWithSections)
 - ✅ proposals.$id_.edit.tsx typecheck 수정 (description null→undefined)
 - ✅ /team Worker 2명 병렬 실행 (executor-refactor)
-- ✅ `executor-stream.ts` 분리 (270줄): createAgentStreamResponse SSE 스트리밍 로직 추출
-- ✅ `executor.ts` 367→110줄 (최종 -88%: 885→110줄, 세션 235~237 누적)
 - ✅ 프로덕션 배포 완료 (CI/CD 1m54s, https://dx.minu.best)
 
 **검증 결과**:

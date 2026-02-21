@@ -418,7 +418,7 @@ build/
 - **Build**: ✅ 성공
 - **부하 테스트**: Artillery v2.0.30 — 4개 시나리오 (health, api-crud, chat-stream, spike)
 - **Feature Flag**: 9개 — 8/9 true, agentDO만 false
-- **배포**: 세션 237 배포 완료 (CI/CD 1m54s)
+- **배포**: 세션 238 배포 완료 (CI/CD 1m51s)
 - **Cron 등록**: cron-job.org 13개 (vectorize 3→1 통합, lab 2→1 통합, profile-learn/shadow-analyze/briefing 삭제)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
