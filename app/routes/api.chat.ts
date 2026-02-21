@@ -9,7 +9,7 @@ import { getDb } from "~/db";
 import { conversations } from "~/db/schema";
 import { eq } from "drizzle-orm";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { createAgentStreamResponse } from "~/lib/agent/executor";
+import { createAgentStreamResponse } from "~/lib/agent/executor-stream";
 import { tryAcquireSSESession, releaseSSESession } from "~/lib/rate-limit/sse-limiter";
 import { isAgentDOAvailable, delegateToDO } from "~/lib/agent/agent-do.stub";
 
