@@ -4,38 +4,38 @@
  * Designed for Cloudflare Workers 30s CPU limit (single-step execution).
  */
 
-import { eq } from "drizzle-orm";
 import type { DB } from "~/db";
-import { messages, agentConfig, conversations, radarItems } from "~/db/schema";
 import type { ClaudeContentBlock } from "./claude-client";
-import { callClaude, callClaudeStream, parseSSEStream, CLAUDE_MODEL } from "./claude-client";
+import { callClaude, callClaudeStream, parseSSEStream } from "./claude-client";
 import { buildConversationContext } from "./context-builder";
 import { buildSystemPrompt, buildIdeaSystemPrompt } from "./system-prompt";
 import { getToolsForAutonomyLevel, IDEA_TOOLS } from "./tool-registry";
-import { executeTool } from "./tool-handlers";
-import { generateId, updateTokenUsage, sendBudgetWarning, addSummaryHeader } from "./agent-utils";
+import { sendBudgetWarning, addSummaryHeader } from "./agent-utils";
 import { SoulEngine } from "~/lib/agent/soul-engine";
 import { SessionManager } from "~/lib/agent/session-manager";
 import { MemoryLifecycle } from "~/lib/agent/memory-lifecycle";
 import { isFeatureEnabled } from "~/lib/feature-flags";
+import {
+  prepareAgentPipeline,
+  processToolBlocks,
+  saveAndFinalize,
+  MAX_TOOL_ROUNDS,
+  type ToolCallResult,
+} from "./agent-pipeline";
 
 interface ExecuteResult {
   assistantText: string;
-  toolCalls: Array<{
-    name: string;
-    input: Record<string, unknown>;
-    result: string;
-  }>;
+  toolCalls: ToolCallResult[];
   tokensUsed: { input: number; output: number };
 }
+
+export type AgentEvent =
+  | { type: "tool_call"; name: string; input: Record<string, unknown>; result: string };
 
 /**
  * Execute one agent turn: send user message → get Claude response → handle tools → return final text.
  * Supports multi-step tool use (up to 12 consecutive tool calls per turn).
  */
-export type AgentEvent =
-  | { type: "tool_call"; name: string; input: Record<string, unknown>; result: string };
-
 export async function executeAgentTurn(
   db: DB,
   apiKey: string,
@@ -44,60 +44,18 @@ export async function executeAgentTurn(
   onEvent?: (event: AgentEvent) => void,
   tenantId?: string
 ): Promise<ExecuteResult> {
-  // Save user message
-  await db.insert(messages).values({
-    id: generateId(),
-    conversationId,
-    role: "user",
-    content: userMessage,
-  });
-
-  // Get agent config
-  const config = await db
-    .select()
-    .from(agentConfig)
-    .where(eq(agentConfig.id, "default"))
-    .limit(1);
-
-  const agentCfg = config[0] || null;
-
-  // BD PoC: 소스 컨텍스트 조회 (conversation.sourceItemId → radarItem)
-  let sourceContext: { title?: string; summaryKo?: string; url?: string; keyPoints?: string[] } | null = null;
-  try {
-    const conv = await db.select({ sourceItemId: conversations.sourceItemId })
-      .from(conversations).where(eq(conversations.id, conversationId)).limit(1);
-    if (conv[0]?.sourceItemId) {
-      const item = await db.select({
-        title: radarItems.title, titleKo: radarItems.titleKo,
-        summaryKo: radarItems.summaryKo, url: radarItems.url,
-        keyPoints: radarItems.keyPoints,
-      }).from(radarItems).where(eq(radarItems.id, conv[0].sourceItemId)).limit(1);
-      if (item[0]) {
-        sourceContext = {
-          title: item[0].titleKo || item[0].title || undefined,
-          summaryKo: item[0].summaryKo || undefined,
-          url: item[0].url || undefined,
-          keyPoints: (item[0].keyPoints as string[]) || undefined,
-        };
-      }
-    }
-  } catch { /* sourceContext is optional */ }
-
-  const systemPrompt = buildSystemPrompt(agentCfg, sourceContext);
-  const modelId = agentCfg?.modelId || CLAUDE_MODEL;
-  const autonomyLevel = agentCfg?.autonomyLevel ?? 3;
-  const filteredTools = getToolsForAutonomyLevel(autonomyLevel);
-  const allToolCalls: ExecuteResult["toolCalls"] = [];
+  const ctx = await prepareAgentPipeline(db, conversationId, userMessage);
+  const systemPrompt = buildSystemPrompt(ctx.agentCfg, ctx.sourceContext);
+  const filteredTools = getToolsForAutonomyLevel(ctx.autonomyLevel);
+  const allToolCalls: ToolCallResult[] = [];
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
 
-  const MAX_TOOL_ROUNDS = 12;
-
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-    const contextMessages = await buildConversationContext(db, conversationId, modelId);
+    const contextMessages = await buildConversationContext(db, conversationId, ctx.modelId);
 
     const response = await callClaude(apiKey, {
-      model: modelId,
+      model: ctx.modelId,
       max_tokens: 4096,
       system: systemPrompt,
       messages: contextMessages,
@@ -107,31 +65,19 @@ export async function executeAgentTurn(
     totalInputTokens += response.usage.input_tokens;
     totalOutputTokens += response.usage.output_tokens;
 
-    // Extract text and tool_use blocks
     const textBlocks = response.content.filter((b) => b.type === "text");
     const toolUseBlocks = response.content.filter((b) => b.type === "tool_use");
     const assistantText = textBlocks.map((b) => b.text || "").join("");
 
     if (toolUseBlocks.length === 0 || response.stop_reason !== "tool_use") {
-      // No tool calls — save assistant message and return
-      await db.insert(messages).values({
-        id: generateId(),
-        conversationId,
-        role: "assistant",
-        content: addSummaryHeader(assistantText),
-      });
-
-      // Update token usage
-      await updateTokenUsage(db, totalInputTokens + totalOutputTokens, {
-        conversationId,
+      await saveAndFinalize(db, conversationId, addSummaryHeader(assistantText), {
         mode: "default",
-        model: modelId,
+        model: ctx.modelId,
         inputTokens: totalInputTokens,
         outputTokens: totalOutputTokens,
         toolRounds: round,
         tenantId,
       });
-
       return {
         assistantText,
         toolCalls: allToolCalls,
@@ -139,65 +85,23 @@ export async function executeAgentTurn(
       };
     }
 
-    // Process tool calls
-    for (let idx = 0; idx < toolUseBlocks.length; idx++) {
-      const toolBlock = toolUseBlocks[idx];
-      const toolName = toolBlock.name!;
-      const toolInput = toolBlock.input as Record<string, unknown>;
-      const toolUseId = toolBlock.id!;
-
-      // Save tool_use message (only first block carries assistantText to avoid duplication)
-      await db.insert(messages).values({
-        id: toolUseId,
-        conversationId,
-        role: "tool_use",
-        content: idx === 0 ? assistantText : "",
-        toolName,
-        toolInput,
-      });
-
-      // Execute tool
-      let toolResult: string;
-      try {
-        toolResult = await executeTool(db, toolName, toolInput, autonomyLevel, tenantId);
-      } catch (e) {
-        const errorMessage = e instanceof Error ? e.message : "도구 실행 오류";
-        toolResult = JSON.stringify({
-          error: `도구 '${toolName}' 실행 실패: ${errorMessage}`,
-          suggestion: "입력값을 확인하고 다시 시도해보세요.",
-          retryable: false,
-        });
-      }
-
-      // Save tool_result message
-      await db.insert(messages).values({
-        id: generateId(),
-        conversationId,
-        role: "tool_result",
-        content: toolResult,
-        toolName: toolUseId, // Store tool_use_id in toolName for context builder
-      });
-
-      allToolCalls.push({ name: toolName, input: toolInput, result: toolResult });
-      onEvent?.({ type: "tool_call", name: toolName, input: toolInput, result: toolResult });
+    // Process tool calls via shared pipeline
+    const results = await processToolBlocks(
+      db, conversationId, toolUseBlocks, assistantText, ctx.autonomyLevel, tenantId
+    );
+    for (const tc of results) {
+      allToolCalls.push(tc);
+      onEvent?.({ type: "tool_call", name: tc.name, input: tc.input, result: tc.result });
     }
   }
 
-  // If we hit max rounds, save what we have with tool summary
+  // Max rounds reached
   const toolSummary = allToolCalls.map((tc) => tc.name).join(", ");
   const maxRoundsMessage = `도구 호출 제한(${MAX_TOOL_ROUNDS}회)에 도달했습니다. 수행한 도구: ${toolSummary || "없음"}. 추가 작업이 필요하면 이어서 요청해주세요.`;
 
-  await db.insert(messages).values({
-    id: generateId(),
-    conversationId,
-    role: "assistant",
-    content: maxRoundsMessage,
-  });
-
-  await updateTokenUsage(db, totalInputTokens + totalOutputTokens, {
-    conversationId,
+  await saveAndFinalize(db, conversationId, maxRoundsMessage, {
     mode: "default",
-    model: modelId,
+    model: ctx.modelId,
     inputTokens: totalInputTokens,
     outputTokens: totalOutputTokens,
     toolRounds: MAX_TOOL_ROUNDS,
@@ -222,6 +126,111 @@ export interface StreamOptions {
   userId?: string;
 }
 
+type SendFn = (ctrl: ReadableStreamDefaultController<Uint8Array>, data: Record<string, unknown>) => void;
+
+interface StreamRoundResult {
+  assistantText: string;
+  toolUseBlocks: ClaudeContentBlock[];
+  stopReason?: string;
+  inputTokensDelta: number;
+  outputTokensDelta: number;
+}
+
+/** Claude SSE 스트림을 소비하며 text_delta/tool_start를 클라이언트에 전달, 결과를 반환. */
+async function consumeClaudeStream(
+  rawStream: ReadableStream<Uint8Array>,
+  controller: ReadableStreamDefaultController<Uint8Array>,
+  send: SendFn,
+): Promise<StreamRoundResult> {
+  let assistantText = "";
+  const contentBlocks: ClaudeContentBlock[] = [];
+  let currentBlockIndex = -1;
+  let currentToolInput = "";
+  let stopReason: string | undefined;
+  let inputTokensDelta = 0;
+  let outputTokensDelta = 0;
+
+  for await (const event of parseSSEStream(rawStream)) {
+    switch (event.type) {
+      case "message_start":
+        if (event.message?.usage) inputTokensDelta += event.message.usage.input_tokens;
+        break;
+      case "content_block_start":
+        currentBlockIndex = event.index ?? -1;
+        if (event.content_block) {
+          contentBlocks[currentBlockIndex] = { ...event.content_block };
+          if (event.content_block.type === "tool_use") {
+            currentToolInput = "";
+            send(controller, { type: "tool_start", name: event.content_block.name });
+          }
+        }
+        break;
+      case "content_block_delta":
+        if (event.delta?.type === "text_delta" && event.delta.text) {
+          assistantText += event.delta.text;
+          send(controller, { type: "text_delta", content: event.delta.text });
+        } else if (event.delta?.type === "input_json_delta" && event.delta.partial_json) {
+          currentToolInput += event.delta.partial_json;
+        }
+        break;
+      case "content_block_stop":
+        if (currentBlockIndex >= 0 && contentBlocks[currentBlockIndex]?.type === "tool_use") {
+          try { contentBlocks[currentBlockIndex].input = JSON.parse(currentToolInput); }
+          catch { contentBlocks[currentBlockIndex].input = {}; }
+        }
+        break;
+      case "message_delta":
+        if (event.delta?.stop_reason) stopReason = event.delta.stop_reason;
+        if (event.usage) outputTokensDelta += event.usage.output_tokens;
+        break;
+    }
+  }
+
+  return {
+    assistantText,
+    toolUseBlocks: contentBlocks.filter((b) => b?.type === "tool_use"),
+    stopReason,
+    inputTokensDelta,
+    outputTokensDelta,
+  };
+}
+
+/** 도구 결과를 JSON 파싱 후 SSE tool_call 이벤트로 전송. */
+function sendToolResults(
+  results: ToolCallResult[],
+  controller: ReadableStreamDefaultController<Uint8Array>,
+  send: SendFn,
+  executedToolNames: string[],
+) {
+  for (const tc of results) {
+    executedToolNames.push(tc.name);
+    let parsedResult: unknown;
+    try { parsedResult = JSON.parse(tc.result); } catch { parsedResult = tc.result; }
+    send(controller, { type: "tool_call", name: tc.name, input: tc.input, result: parsedResult });
+  }
+}
+
+async function flushSessionMemory(
+  db: DB,
+  streamOptions: StreamOptions | undefined,
+  totalInput: number,
+  totalOutput: number,
+  text: string
+): Promise<void> {
+  if (streamOptions?.sessionId) {
+    try {
+      const sm = new SessionManager(db);
+      await sm.updateTokenCount(streamOptions.sessionId, totalInput, totalOutput);
+    } catch { /* 세션 집계 실패는 비치명적 */ }
+  }
+  if (streamOptions?.userId && streamOptions?.env && isFeatureEnabled(streamOptions.env, "memoryLifecycle")) {
+    try {
+      const ml = new MemoryLifecycle(db);
+      await ml.addDailyLog(streamOptions.userId, text.slice(0, 500), "conversation");
+    } catch { /* 메모리 저장 실패는 비치명적 */ }
+  }
+}
+
 export function createAgentStreamResponse(
   db: DB,
   apiKey: string,
@@ -240,49 +249,10 @@ export function createAgentStreamResponse(
   return new ReadableStream({
     async start(controller) {
       try {
-        // Save user message
-        await db.insert(messages).values({
-          id: generateId(),
-          conversationId,
-          role: "user",
-          content: userMessage,
-        });
-
-        // Get agent config
-        const cfgRows = await db
-          .select()
-          .from(agentConfig)
-          .where(eq(agentConfig.id, "default"))
-          .limit(1);
-
-        const agentCfg = cfgRows[0] || null;
-
-        // BD PoC: 소스 컨텍스트 조회
-        let sourceCtx: { title?: string; summaryKo?: string; url?: string; keyPoints?: string[] } | null = null;
-        try {
-          const conv = await db.select({ sourceItemId: conversations.sourceItemId })
-            .from(conversations).where(eq(conversations.id, conversationId)).limit(1);
-          if (conv[0]?.sourceItemId) {
-            const item = await db.select({
-              title: radarItems.title, titleKo: radarItems.titleKo,
-              summaryKo: radarItems.summaryKo, url: radarItems.url,
-              keyPoints: radarItems.keyPoints,
-            }).from(radarItems).where(eq(radarItems.id, conv[0].sourceItemId)).limit(1);
-            if (item[0]) {
-              sourceCtx = {
-                title: item[0].titleKo || item[0].title || undefined,
-                summaryKo: item[0].summaryKo || undefined,
-                url: item[0].url || undefined,
-                keyPoints: (item[0].keyPoints as string[]) || undefined,
-              };
-            }
-          }
-        } catch { /* optional */ }
-
+        const ctx = await prepareAgentPipeline(db, conversationId, userMessage);
         const isIdeasMode = mode === "ideas";
-        const autonomyLevel = agentCfg?.autonomyLevel ?? 3;
 
-        // SoulEngine 분기: Feature Flag 활성화 + userId 전달 시 Graph Projection 기반 프롬프트
+        // System prompt: 3-branch logic (ideas / graph projection / default)
         const useGraphProjection =
           !isIdeasMode &&
           !!streamOptions?.env &&
@@ -291,237 +261,85 @@ export function createAgentStreamResponse(
 
         let systemPrompt: string;
         if (isIdeasMode) {
-          systemPrompt = buildIdeaSystemPrompt(sourceCtx);
+          systemPrompt = buildIdeaSystemPrompt(ctx.sourceContext);
         } else if (useGraphProjection && streamOptions?.userId) {
           const soulEngine = new SoulEngine({
             db,
             userId: streamOptions.userId,
-            autonomyLevel,
+            autonomyLevel: ctx.autonomyLevel,
             useGraphProjection: true,
           });
           const result = await soulEngine.buildPrompt();
           systemPrompt = result.systemPrompt;
         } else {
-          systemPrompt = buildSystemPrompt(agentCfg, sourceCtx);
+          systemPrompt = buildSystemPrompt(ctx.agentCfg, ctx.sourceContext);
         }
 
-        const modelId = agentCfg?.modelId || CLAUDE_MODEL;
         const filteredTools = isIdeasMode
           ? IDEA_TOOLS
-          : getToolsForAutonomyLevel(autonomyLevel);
+          : getToolsForAutonomyLevel(ctx.autonomyLevel);
         let totalInputTokens = 0;
         let totalOutputTokens = 0;
         const executedToolNames: string[] = [];
 
-        const MAX_TOOL_ROUNDS = 12;
-
         for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-          const contextMessages = await buildConversationContext(db, conversationId, modelId);
+          const contextMessages = await buildConversationContext(db, conversationId, ctx.modelId);
 
           const rawStream = await callClaudeStream(apiKey, {
-            model: modelId,
+            model: ctx.modelId,
             max_tokens: 4096,
             system: systemPrompt,
             messages: contextMessages,
             tools: filteredTools.length > 0 ? filteredTools : undefined,
           });
 
-          // Parse SSE stream from Claude
-          let assistantText = "";
-          const contentBlocks: ClaudeContentBlock[] = [];
-          let currentBlockIndex = -1;
-          let currentToolInput = "";
-          let stopReason: string | undefined;
-
-          for await (const event of parseSSEStream(rawStream)) {
-            switch (event.type) {
-              case "message_start":
-                if (event.message?.usage) {
-                  totalInputTokens += event.message.usage.input_tokens;
-                }
-                break;
-
-              case "content_block_start":
-                currentBlockIndex = event.index ?? -1;
-                if (event.content_block) {
-                  contentBlocks[currentBlockIndex] = { ...event.content_block };
-                  if (event.content_block.type === "tool_use") {
-                    currentToolInput = "";
-                    send(controller, {
-                      type: "tool_start",
-                      name: event.content_block.name,
-                    });
-                  }
-                }
-                break;
-
-              case "content_block_delta":
-                if (event.delta?.type === "text_delta" && event.delta.text) {
-                  assistantText += event.delta.text;
-                  send(controller, {
-                    type: "text_delta",
-                    content: event.delta.text,
-                  });
-                } else if (event.delta?.type === "input_json_delta" && event.delta.partial_json) {
-                  currentToolInput += event.delta.partial_json;
-                }
-                break;
-
-              case "content_block_stop":
-                if (currentBlockIndex >= 0 && contentBlocks[currentBlockIndex]?.type === "tool_use") {
-                  try {
-                    contentBlocks[currentBlockIndex].input = JSON.parse(currentToolInput);
-                  } catch {
-                    contentBlocks[currentBlockIndex].input = {};
-                  }
-                }
-                break;
-
-              case "message_delta":
-                if (event.delta?.stop_reason) {
-                  stopReason = event.delta.stop_reason;
-                }
-                if (event.usage) {
-                  totalOutputTokens += event.usage.output_tokens;
-                }
-                break;
-            }
-          }
-
-          const toolUseBlocks = contentBlocks.filter((b) => b?.type === "tool_use");
+          const streamResult = await consumeClaudeStream(rawStream, controller, send);
+          totalInputTokens += streamResult.inputTokensDelta;
+          totalOutputTokens += streamResult.outputTokensDelta;
+          const { assistantText, toolUseBlocks, stopReason } = streamResult;
 
           if (toolUseBlocks.length === 0 || stopReason !== "tool_use") {
             // No tool calls — save and finish
-            await db.insert(messages).values({
-              id: generateId(),
-              conversationId,
-              role: "assistant",
-              content: addSummaryHeader(assistantText),
-            });
-
-            await updateTokenUsage(db, totalInputTokens + totalOutputTokens, {
-              conversationId,
+            await saveAndFinalize(db, conversationId, addSummaryHeader(assistantText), {
               mode: isIdeasMode ? "ideas" : "default",
-              model: modelId,
+              model: ctx.modelId,
               inputTokens: totalInputTokens,
               outputTokens: totalOutputTokens,
               toolRounds: round,
               tenantId,
             });
-            // SessionManager 토큰 집계
-            if (streamOptions?.sessionId) {
-              try {
-                const sm = new SessionManager(db);
-                await sm.updateTokenCount(streamOptions.sessionId, totalInputTokens, totalOutputTokens);
-              } catch { /* 세션 집계 실패는 비치명적 */ }
-            }
-            // Memory flush: 대화 요약을 daily_log로 저장
-            if (streamOptions?.userId && streamOptions?.env && isFeatureEnabled(streamOptions.env, "memoryLifecycle")) {
-              try {
-                const ml = new MemoryLifecycle(db);
-                const summary = assistantText.slice(0, 500);
-                await ml.addDailyLog(streamOptions.userId, summary, "conversation");
-              } catch { /* 메모리 저장 실패는 비치명적 */ }
-            }
+            await flushSessionMemory(db, streamOptions, totalInputTokens, totalOutputTokens, assistantText);
             await sendBudgetWarning(db, controller, send);
             send(controller, { type: "done", tokensUsed: { input: totalInputTokens, output: totalOutputTokens } });
             controller.close();
             return;
           }
 
-          // Process tool calls
-          for (let idx = 0; idx < toolUseBlocks.length; idx++) {
-            const toolBlock = toolUseBlocks[idx];
-            const toolName = toolBlock.name!;
-            const toolInput = (toolBlock.input || {}) as Record<string, unknown>;
-            const toolUseId = toolBlock.id || generateId();
+          // Process tool calls via shared pipeline
+          const results = await processToolBlocks(
+            db, conversationId, toolUseBlocks, assistantText, ctx.autonomyLevel, tenantId
+          );
+          sendToolResults(results, controller, send, executedToolNames);
 
-            await db.insert(messages).values({
-              id: toolUseId,
-              conversationId,
-              role: "tool_use",
-              content: idx === 0 ? assistantText : "",
-              toolName,
-              toolInput,
-            });
-
-            let toolResult: string;
-            try {
-              toolResult = await executeTool(db, toolName, toolInput, autonomyLevel, tenantId);
-            } catch (e) {
-              const errorMessage = e instanceof Error ? e.message : "도구 실행 오류";
-              toolResult = JSON.stringify({
-                error: `도구 '${toolName}' 실행 실패: ${errorMessage}`,
-                suggestion: "입력값을 확인하고 다시 시도해보세요.",
-                retryable: false,
-              });
-            }
-
-            await db.insert(messages).values({
-              id: generateId(),
-              conversationId,
-              role: "tool_result",
-              content: toolResult,
-              toolName: toolUseId,
-            });
-
-            executedToolNames.push(toolName);
-            // Send tool_call event with result
-            let parsedResult: unknown;
-            try {
-              parsedResult = JSON.parse(toolResult);
-            } catch {
-              parsedResult = toolResult;
-            }
-            send(controller, {
-              type: "tool_call",
-              name: toolName,
-              input: toolInput,
-              result: parsedResult,
-            });
-          }
           // Rate limit mitigation: wait between tool rounds in ideas mode
           if (isIdeasMode && round < MAX_TOOL_ROUNDS - 1) {
             await new Promise((r) => setTimeout(r, 2000));
           }
-          // Continue to next round for tool_result → Claude response
         }
 
         // Max rounds reached
         const streamToolSummary = executedToolNames.join(", ");
         const streamMaxRoundsMsg = `도구 호출 제한(${MAX_TOOL_ROUNDS}회)에 도달했습니다. 수행한 도구: ${streamToolSummary || "없음"}. 추가 작업이 필요하면 이어서 요청해주세요.`;
 
-        await db.insert(messages).values({
-          id: generateId(),
-          conversationId,
-          role: "assistant",
-          content: streamMaxRoundsMsg,
-        });
-
-        await updateTokenUsage(db, totalInputTokens + totalOutputTokens, {
-          conversationId,
+        await saveAndFinalize(db, conversationId, streamMaxRoundsMsg, {
           mode: isIdeasMode ? "ideas" : "default",
-          model: modelId,
+          model: ctx.modelId,
           inputTokens: totalInputTokens,
           outputTokens: totalOutputTokens,
           toolRounds: MAX_TOOL_ROUNDS,
           tenantId,
         });
-        // SessionManager 토큰 집계 (max rounds)
-        if (streamOptions?.sessionId) {
-          try {
-            const sm = new SessionManager(db);
-            await sm.updateTokenCount(streamOptions.sessionId, totalInputTokens, totalOutputTokens);
-          } catch { /* 세션 집계 실패는 비치명적 */ }
-        }
-        // Memory flush: 대화 요약을 daily_log로 저장 (max rounds)
-        if (streamOptions?.userId && streamOptions?.env && isFeatureEnabled(streamOptions.env, "memoryLifecycle")) {
-          try {
-            const ml = new MemoryLifecycle(db);
-            const summary = streamMaxRoundsMsg.slice(0, 500);
-            await ml.addDailyLog(streamOptions.userId, summary, "conversation");
-          } catch { /* 메모리 저장 실패는 비치명적 */ }
-        }
+        await flushSessionMemory(db, streamOptions, totalInputTokens, totalOutputTokens, streamMaxRoundsMsg);
         send(controller, { type: "text_delta", content: streamMaxRoundsMsg });
         send(controller, { type: "done", tokensUsed: { input: totalInputTokens, output: totalOutputTokens } });
         controller.close();
