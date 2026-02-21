@@ -62,6 +62,7 @@ fi
   - 기능 구현: 레이어/모듈별 분할하여 2~3명
   - 대규모 리팩토링: 영역별 분할하여 2~3명
 - **역할 분배**: worker끼리 **같은 파일을 동시 수정하지 않도록** 파일/모듈/레이어 기준으로 분할
+- **태스크 요약**: 각 worker의 작업을 **10자 내외 한줄**로 요약 (pane 타이틀에 표시됨)
 - **allowedTools 결정**: 태스크에 필요한 도구 목록 결정
   - 읽기만: `Read,Glob,Grep`
   - 수정 포함: `Read,Edit,Write,Glob,Grep,Bash`
@@ -131,20 +132,43 @@ cat > "$TEAM_DIR/team-{팀이름}-run-{N}.sh" << RUNNER
 export PATH="/home/sinclair/.local/bin:\$PATH"
 export CLAUDE_CONFIG_DIR="$CLAUDE_CFG"
 cd $PROJECT_DIR
+
+# --- pane 타이틀: 작업 중 표시 ---
+TASK_SUMMARY="{태스크요약}"
+tmux select-pane -t "\$TMUX_PANE" -T "W{N}: \$TASK_SUMMARY ⏳" 2>/dev/null
+
+# --- 시작 배너 ---
+echo ""
+echo "╔══════════════════════════════════════════╗"
+echo "║  Worker {N} — \$TASK_SUMMARY"
+echo "║  시작: \$(date '+%H:%M:%S')"
+echo "╚══════════════════════════════════════════╝"
+echo ""
+
 prompt=\$(cat "$TEAM_DIR/team-{팀이름}-worker-{N}.txt")
 command claude -p "\$prompt" \\
   --allowedTools 'Read,Edit,Write,Glob,Grep,Bash' \\
   --max-turns 20 \\
   --verbose 2>&1 | tee "$TEAM_DIR/team-{팀이름}-worker-{N}.log"
+
+# --- 종료 배너 + pane 타이틀 완료 표시 ---
+echo ""
+echo "╔══════════════════════════════════════════╗"
+echo "║  Worker {N} — 완료 ✅"
+echo "║  종료: \$(date '+%H:%M:%S')"
+echo "╚══════════════════════════════════════════╝"
 echo '=== WORKER-{N} DONE ===' >> "$TEAM_DIR/team-{팀이름}-worker-{N}.log"
+tmux select-pane -t "\$TMUX_PANE" -T "W{N}: \$TASK_SUMMARY ✅" 2>/dev/null
 RUNNER
 chmod +x "$TEAM_DIR/team-{팀이름}-run-{N}.sh"
 ```
 
 > **주의**: heredoc에서 `$PROJECT_DIR`, `$TEAM_DIR`, `$CLAUDE_CFG`는 **생성 시점에 확장**시킨다 (경로를 하드코딩).
-> `\$PATH`, `\$prompt` 등 runner 실행 시점 변수는 이스케이프한다.
+> `\$PATH`, `\$prompt`, `\$TMUX_PANE`, `\$TASK_SUMMARY` 등 runner 실행 시점 변수는 이스케이프한다.
 > **`command claude`**: `.bashrc`의 `alias claude=...`를 우회하여 실제 바이너리를 호출한다.
 > **`CLAUDE_CONFIG_DIR`**: 리더 세션의 인증 컨텍스트(personal/work)를 worker에 전파한다.
+> **`$TMUX_PANE`**: tmux가 각 pane에 자동 설정하는 환경변수. runner가 자기 pane 타이틀을 직접 업데이트한다.
+> **`{태스크요약}`**: Step 1에서 결정한 각 worker의 10자 내외 태스크 요약을 삽입한다.
 
 **3c. launcher 스크립트를 생성**한다:
 
@@ -199,6 +223,10 @@ elif [ "\$WORKER_COUNT" -eq 3 ]; then
   tmux send-keys -t "\$W2" "bash \$TEAM_DIR/team-\${TEAM}-run-2.sh" Enter
   tmux send-keys -t "\$W3" "bash \$TEAM_DIR/team-\${TEAM}-run-3.sh" Enter
 fi
+
+# 3) Pane 타이틀 표시 활성화 + 리더 pane 타이틀 설정
+tmux set-option -w pane-border-status top 2>/dev/null
+tmux select-pane -t "\$LEADER_PANE" -T "Leader: \$TEAM" 2>/dev/null
 
 echo "Workers created: WORKER_COUNT=\$WORKER_COUNT (right of leader \$LEADER_PANE)"
 tmux list-panes -F "pane=#{pane_id} left=#{pane_left} top=#{pane_top} size=#{pane_width}x#{pane_height}"
@@ -330,9 +358,16 @@ TEAM="{팀이름}"
 while read -r pane_id; do
   tmux kill-pane -t "$pane_id" 2>/dev/null || true
 done < "$TEAM_DIR/team-${TEAM}-worker-panes.txt"
+
+# pane 타이틀 표시 해제 (다른 팀 worker가 없을 때만)
+REMAINING_TEAMS=$(ls "$TEAM_DIR"/team-*-worker-panes.txt 2>/dev/null | grep -v "team-${TEAM}-" | wc -l)
+if [ "$REMAINING_TEAMS" -eq 0 ]; then
+  tmux set-option -w pane-border-status off 2>/dev/null
+fi
 ```
 > Worker pane을 kill하면 tmux가 **해당 리더 pane만** 원래 넓이로 복원한다.
 > 다른 리더의 worker pane에는 영향 없음 (팀 이름별 파일 격리).
+> `pane-border-status off`는 **동일 window에 다른 팀 worker가 없을 때만** 해제한다.
 
 3. 임시 파일 정리:
 ```bash
