@@ -5,7 +5,6 @@ import { eq, and } from "drizzle-orm";
 import { getDb } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import {
-  discoveries,
   gatePackages,
   gateApprovals,
   users,
@@ -18,6 +17,7 @@ import {
   UserRole,
   eventLogs,
 } from "~/db/schema";
+import { DiscoveryService } from "~/lib/services";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Button } from "~/components/ui/Button";
@@ -39,13 +39,9 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const { id } = params;
   if (!id) throw new Response("Not Found", { status: 404 });
 
-  const discovery = await db
-    .select()
-    .from(discoveries)
-    .where(eq(discoveries.id, id))
-    .limit(1);
-
-  if (!discovery[0]) throw new Response("Not Found", { status: 404 });
+  const service = new DiscoveryService(db);
+  const discovery = await service.getById(id);
+  if (!discovery) throw new Response("Not Found", { status: 404 });
 
   // Get existing gate packages
   const packages = await db
@@ -81,7 +77,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 
   return json({
     user,
-    discovery: discovery[0],
+    discovery,
     packages: packages.map((p) => ({
       id: p.id,
       gateType: p.gateType,
@@ -116,13 +112,9 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   if (intent === "draft") {
     const gateType = (formData.get("gateType") as string) || "GATE1";
 
-    const discovery = await db
-      .select()
-      .from(discoveries)
-      .where(eq(discoveries.id, id))
-      .limit(1);
-
-    if (!discovery[0]) return json({ error: "Discovery를 찾을 수 없습니다." }, { status: 404 });
+    const service = new DiscoveryService(db);
+    const discovery = await service.getById(id);
+    if (!discovery) return json({ error: "Discovery를 찾을 수 없습니다." }, { status: 404 });
 
     // Gather data
     const allEvidence = await db

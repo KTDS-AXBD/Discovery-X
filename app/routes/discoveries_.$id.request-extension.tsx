@@ -2,7 +2,8 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, experiments, eventLogs, users } from "~/db/schema";
+import { users, DiscoveryStatus } from "~/db/schema";
+import { DiscoveryService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
@@ -11,8 +12,7 @@ import { Textarea } from "~/components/ui/Textarea";
 import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
-import { eq, count } from "drizzle-orm";
-import { DiscoveryStatus } from "~/db/schema";
+import { eq } from "drizzle-orm";
 import {
   DiscoveryValidationRules,
   ExtensionRequestedSchema,
@@ -37,10 +37,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  const discovery = await db.query.discoveries.findFirst({
-    where: eq(discoveries.id, id),
-  });
-
+  const service = new DiscoveryService(db);
+  const discovery = await service.getById(id);
   if (!discovery) {
     throw new Response("Not Found", { status: 404 });
   }
@@ -51,13 +49,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   }
 
   // Must have exactly 2 experiments
-  const experimentCount = await db
-    .select({ count: count() })
-    .from(experiments)
-    .where(eq(experiments.discoveryId, id));
-
-  const currentCount = experimentCount[0]?.count || 0;
-
+  const currentCount = await service.getExperimentCount(id);
   if (currentCount < 2) {
     return redirect(`/discoveries/${id}`);
   }
@@ -80,10 +72,8 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  const discovery = await db.query.discoveries.findFirst({
-    where: eq(discoveries.id, id),
-  });
-
+  const service = new DiscoveryService(db);
+  const discovery = await service.getById(id);
   if (!discovery) {
     throw new Response("Not Found", { status: 404 });
   }
@@ -96,12 +86,8 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   }
 
   // Verify 2 experiments exist
-  const experimentCount = await db
-    .select({ count: count() })
-    .from(experiments)
-    .where(eq(experiments.discoveryId, id));
-
-  if ((experimentCount[0]?.count || 0) < 2) {
+  const currentCount = await service.getExperimentCount(id);
+  if (currentCount < 2) {
     return json(
       { error: "실험이 2개 이상이어야 연장 요청할 수 있습니다" },
       { status: 400 }
@@ -112,11 +98,6 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   const extensionRationale = formData.get("extensionRationale");
 
   try {
-    // Validate reviewer assigned
-    DiscoveryValidationRules.validateReviewerRequired(discovery.reviewerId);
-    // Block duplicate pending
-    DiscoveryValidationRules.validateNoApprovalPending(discovery.approvalStatus);
-
     const validated = ExtensionRequestedSchema.parse({
       extensionRationale,
     });
@@ -128,38 +109,11 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     const newDueDate =
       DiscoveryValidationRules.calculateExtensionDueDate(currentDueDate);
 
-    // Save as PENDING instead of directly applying
-    await db
-      .update(discoveries)
-      .set({
-        approvalStatus: "PENDING",
-        pendingDecision: DiscoveryStatus.IDEA_CARD,
-        pendingDecisionData: {
-          extensionRationale: validated.extensionRationale,
-          previousDueDate: discovery.dueDate
-            ? new Date(discovery.dueDate).toISOString()
-            : null,
-          newDueDate: newDueDate.toISOString(),
-        },
-        updatedAt: new Date(),
-      })
-      .where(eq(discoveries.id, id));
-
-    // Create event log
-    await db.insert(eventLogs).values({
-      id: crypto.randomUUID(),
-      actorId: user.id,
-      discoveryId: id,
-      eventType: "SUBMIT_FOR_APPROVAL",
-      metadata: {
-        pendingDecision: DiscoveryStatus.IDEA_CARD,
-        extensionRationale: validated.extensionRationale,
-        previousDueDate: discovery.dueDate
-          ? new Date(discovery.dueDate).toISOString()
-          : null,
-        newDueDate: newDueDate.toISOString(),
-      },
-    });
+    await service.requestExtension(id, {
+      extensionRationale: validated.extensionRationale,
+      previousDueDate: discovery.dueDate ? new Date(discovery.dueDate) : null,
+      newDueDate,
+    }, user.id);
 
     // Send email to reviewer
     try {

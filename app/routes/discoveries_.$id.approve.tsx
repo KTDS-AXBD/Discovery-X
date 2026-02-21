@@ -2,8 +2,9 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, users, eventLogs } from "~/db/schema";
+import { users } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
+import { DiscoveryService } from "~/lib/services";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Card, CardContent } from "~/components/ui/Card";
@@ -12,7 +13,6 @@ import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { eq } from "drizzle-orm";
-import { DiscoveryStatus } from "~/db/schema";
 import { ApprovalDecisionSchema } from "~/lib/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
 import { createEmailClient } from "~/lib/notifications/email";
@@ -41,10 +41,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  const discovery = await db.query.discoveries.findFirst({
-    where: eq(discoveries.id, id),
-  });
-
+  const service = new DiscoveryService(db);
+  const discovery = await service.getById(id);
   if (!discovery) {
     throw new Response("Not Found", { status: 404 });
   }
@@ -88,10 +86,8 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  const discovery = await db.query.discoveries.findFirst({
-    where: eq(discoveries.id, id),
-  });
-
+  const service = new DiscoveryService(db);
+  const discovery = await service.getById(id);
   if (!discovery) {
     throw new Response("Not Found", { status: 404 });
   }
@@ -114,90 +110,9 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
       comment: comment ? String(comment) : undefined,
     });
 
-    const pendingData = discovery.pendingDecisionData as Record<string, unknown> | null;
-    const pendingDecision = discovery.pendingDecision;
-
-    if (validated.action === "approve") {
-      // Apply the pending decision
-      const updateData: Record<string, unknown> = {
-        approvalStatus: "APPROVED",
-        approvalComment: validated.comment || null,
-        approvedAt: new Date(),
-        approvedBy: user.id,
-        pendingDecision: null,
-        pendingDecisionData: null,
-        updatedAt: new Date(),
-      };
-
-      if (pendingDecision === DiscoveryStatus.GATE1) {
-        updateData.status = DiscoveryStatus.GATE1;
-        updateData.decisionState = DiscoveryStatus.GATE1;
-        updateData.decisionRationale = pendingData?.decisionRationale || null;
-        updateData.decidedAt = new Date();
-      } else if (pendingDecision === DiscoveryStatus.HOLD) {
-        updateData.status = DiscoveryStatus.HOLD;
-        updateData.decisionState = DiscoveryStatus.HOLD;
-        updateData.decisionRationale = pendingData?.decisionRationale || null;
-        updateData.notNowTriggerType = pendingData?.notNowTriggerType || null;
-        updateData.notNowTriggerCondition = pendingData?.notNowTriggerCondition || null;
-        updateData.revisitDate = pendingData?.revisitDate
-          ? new Date(pendingData.revisitDate as string)
-          : null;
-        updateData.decidedAt = new Date();
-      } else if (pendingDecision === DiscoveryStatus.DROP) {
-        updateData.status = DiscoveryStatus.DROP;
-        updateData.decisionState = DiscoveryStatus.DROP;
-        updateData.decisionRationale = pendingData?.decisionRationale || null;
-        updateData.deadEndFailurePattern = pendingData?.deadEndFailurePattern || null;
-        updateData.deadEndEvidenceReason = pendingData?.deadEndEvidenceReason || null;
-        updateData.decidedAt = new Date();
-      } else if (pendingDecision === DiscoveryStatus.IDEA_CARD) {
-        updateData.status = DiscoveryStatus.IDEA_CARD;
-        updateData.decisionRationale = pendingData?.extensionRationale || null;
-        if (pendingData?.newDueDate) {
-          updateData.dueDate = new Date(pendingData.newDueDate as string);
-        }
-      }
-
-      await db.update(discoveries).set(updateData).where(eq(discoveries.id, id));
-
-      // Event log
-      await db.insert(eventLogs).values({
-        id: crypto.randomUUID(),
-        actorId: user.id,
-        discoveryId: id,
-        eventType: "APPROVE_DECISION",
-        metadata: {
-          decision: pendingDecision,
-          comment: validated.comment || null,
-        },
-      });
-    } else {
-      // Reject -- revert to no pending state
-      await db
-        .update(discoveries)
-        .set({
-          approvalStatus: "REJECTED",
-          approvalComment: validated.comment || null,
-          rejectedAt: new Date(),
-          pendingDecision: null,
-          pendingDecisionData: null,
-          updatedAt: new Date(),
-        })
-        .where(eq(discoveries.id, id));
-
-      // Event log
-      await db.insert(eventLogs).values({
-        id: crypto.randomUUID(),
-        actorId: user.id,
-        discoveryId: id,
-        eventType: "REJECT_DECISION",
-        metadata: {
-          decision: pendingDecision,
-          comment: validated.comment || null,
-        },
-      });
-    }
+    const result = validated.action === "approve"
+      ? await service.approveDecision(id, user.id, validated.comment)
+      : await service.rejectDecision(id, user.id, validated.comment);
 
     // Send email to owner
     try {
@@ -213,7 +128,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
               discoveryId: id,
               discoveryTitle: discovery.title,
               reviewerName: user.name,
-              decision: pendingDecision || "",
+              decision: result.pendingDecision || "",
               approved: validated.action === "approve",
               comment: validated.comment,
             });

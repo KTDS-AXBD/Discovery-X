@@ -4,12 +4,12 @@ import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
 import {
-  discoveries,
   contextNodes,
   contextEdges,
   contextSnapshots,
   ontologyTypes,
 } from "~/db/schema";
+import { DiscoveryService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { Button } from "~/components/ui/Button";
@@ -27,9 +27,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const { id } = params;
   if (!id) throw new Response("Not Found", { status: 404 });
 
-  const discovery = await db.query.discoveries.findFirst({
-    where: eq(discoveries.id, id),
-  });
+  const service = new DiscoveryService(db);
+  const discovery = await service.getById(id);
   if (!discovery) throw new Response("Not Found", { status: 404 });
 
   const nodes = await db
@@ -63,9 +62,8 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   const { id } = params;
   if (!id) throw new Response("Not Found", { status: 404 });
 
-  const discovery = await db.query.discoveries.findFirst({
-    where: eq(discoveries.id, id),
-  });
+  const service = new DiscoveryService(db);
+  const discovery = await service.getById(id);
   if (!discovery) throw new Response("Not Found", { status: 404 });
 
   const formData = await request.formData();

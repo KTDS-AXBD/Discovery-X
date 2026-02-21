@@ -5,12 +5,12 @@ import { eq, and } from "drizzle-orm";
 import { getDb } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import {
-  discoveries,
   methodPacks,
   methodRuns,
   eventLogs,
   MethodRunStatus,
 } from "~/db/schema";
+import { DiscoveryService } from "~/lib/services";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Card, CardContent } from "~/components/ui/Card";
@@ -28,13 +28,9 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const { id } = params;
   if (!id) throw new Response("Not Found", { status: 404 });
 
-  const discovery = await db
-    .select()
-    .from(discoveries)
-    .where(eq(discoveries.id, id))
-    .limit(1);
-
-  if (!discovery[0]) throw new Response("Not Found", { status: 404 });
+  const service = new DiscoveryService(db);
+  const discovery = await service.getById(id);
+  if (!discovery) throw new Response("Not Found", { status: 404 });
 
   // Get all method packs
   const allPacks = await db.select().from(methodPacks);
@@ -46,7 +42,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     .where(eq(methodRuns.discoveryId, id));
 
   // Build recommendations
-  const currentStatus = discovery[0].status;
+  const currentStatus = discovery.status;
   const applicable = allPacks.filter((pack) => {
     const stages = pack.applicableStages as string[] | null;
     return stages?.includes(currentStatus) ?? false;
@@ -97,7 +93,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 
   return json({
     user,
-    discovery: discovery[0],
+    discovery,
     recommendations,
     timelineRuns,
     allPacks: allPacks.map((p) => ({
