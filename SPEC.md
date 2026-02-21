@@ -410,15 +410,15 @@ build/
 ### 주요 지표
 - **라우트**: 153개 (서비스 레이어 전환 완료: folders/ideas/lab/radar/proposals)
 - **테이블**: 92개 (+5: Archive 2, Token 1, Matrix 7, Worker 2, FTS 1, Proposals +2, Graph +1 — 기존 중복 제거 후)
-- **Agent 도구**: 47개 (executor: agent-pipeline.ts 공통 모듈 추출, schema: 8 도메인 파일 분할)
-- **코드**: ~62,500줄 (366파일) — 서비스 4개 신규 + executor 리팩토링
+- **Agent 도구**: 47개 (executor 3분할: executor.ts 110줄 + executor-stream.ts 270줄 + agent-pipeline.ts 202줄, schema: 8 도메인 파일 분할)
+- **코드**: ~62,500줄 (367파일) — 서비스 4개 신규 + executor 3분할
 - **테스트**: 1,043개 (78 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **부하 테스트**: Artillery v2.0.30 — 4개 시나리오 (health, api-crud, chat-stream, spike)
 - **Feature Flag**: 9개 — 8/9 true, agentDO만 false
-- **배포**: 세션 234 배포 완료 (CI/CD 2m01s)
+- **배포**: 세션 237 배포 완료 (CI/CD 1m54s)
 - **Cron 등록**: cron-job.org 13개 (vectorize 3→1 통합, lab 2→1 통합, profile-learn/shadow-analyze/briefing 삭제)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 

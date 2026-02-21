@@ -11,9 +11,12 @@
 - ✅ ProposalService 메서드 추가 (getById, update, getWithSections)
 - ✅ proposals.$id_.edit.tsx typecheck 수정 (description null→undefined)
 - ✅ /team Worker 2명 병렬 실행 (executor-refactor)
+- ✅ `executor-stream.ts` 분리 (270줄): createAgentStreamResponse SSE 스트리밍 로직 추출
+- ✅ `executor.ts` 367→110줄 (최종 -88%: 885→110줄, 세션 235~237 누적)
+- ✅ 프로덕션 배포 완료 (CI/CD 1m54s, https://dx.minu.best)
 
 **검증 결과**:
-- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,043/1,043 PASS / build 정상
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,043/1,043 PASS / build 정상 / 배포 정상
 
 ### 세션 236 (2026-02-21)
 **서비스 레이어 Phase 4C — Discovery 라우트 5개 서비스 전환**:
