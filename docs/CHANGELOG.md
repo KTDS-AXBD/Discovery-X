@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 237 (2026-02-21)
+**executor.ts 리팩토링 + 서비스 레이어 전환 마무리**:
+- ✅ `agent-pipeline.ts` 신규 (202줄): prepareAgentPipeline, processToolBlocks, saveAndFinalize 공통 함수 3개 추출
+- ✅ `executor.ts` 549→367줄 (-33%): consumeClaudeStream/sendToolResults/flushSessionMemory 헬퍼 분리
+- ✅ 서비스 레이어 전환 27개 라우트: FolderService, IdeaService, LabService, RadarService 신규 4개
+- ✅ ProposalService 메서드 추가 (getById, update, getWithSections)
+- ✅ proposals.$id_.edit.tsx typecheck 수정 (description null→undefined)
+- ✅ /team Worker 2명 병렬 실행 (executor-refactor)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,043/1,043 PASS / build 정상
+
 ### 세션 236 (2026-02-21)
 **서비스 레이어 Phase 4C — Discovery 라우트 5개 서비스 전환**:
 - ✅ `approve.tsx` (full): action 80줄 인라인 DB → `service.approveDecision()`/`rejectDecision()` 2줄
