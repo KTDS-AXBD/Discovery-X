@@ -7,103 +7,17 @@
 import { eq } from "drizzle-orm";
 import type { DB } from "~/db";
 import { messages, agentConfig, conversations, radarItems } from "~/db/schema";
-import { tokenUsageLogs } from "~/db/token-usage-schema";
-import type { ClaudeResponse, ClaudeContentBlock } from "./claude-client";
+import type { ClaudeContentBlock } from "./claude-client";
 import { callClaude, callClaudeStream, parseSSEStream, CLAUDE_MODEL } from "./claude-client";
 import { buildConversationContext } from "./context-builder";
 import { buildSystemPrompt, buildIdeaSystemPrompt } from "./system-prompt";
-import { getToolsForAutonomyLevel, TOOL_MIN_AUTONOMY, IDEA_TOOLS } from "./tool-registry";
-import {
-  createDiscovery,
-  updateDiscovery,
-  promoteDiscovery,
-  transitionStage,
-  addExperiment,
-  completeExperiment,
-  addEvidence,
-  decideGate,
-  decideHold,
-  decideDrop,
-  requestExtension,
-  getStageInfo,
-  validateEvidence,
-  tagDiscovery,
-  removeDiscoveryTag,
-  generateIdeaCandidates,
-  selectIdeaCandidate,
-  autoFillTemplate,
-} from "./tools/discovery-tools";
-import {
-  listDiscoveries,
-  getDiscoveryDetail,
-  getExperimentContext,
-  searchSimilar,
-  getMetrics,
-  getRadarItems,
-  listUsers,
-  getWeeklyReview,
-  getRecallQueue,
-  generateDiscoveryDigest,
-  compareDiscoveries,
-  getIndustryContext,
-} from "./tools/query-tools";
-import {
-  listMethodPacks,
-  recommendMethods,
-  startMethodRun,
-  completeMethodRun,
-  draftGatePackage,
-  getGatePackage,
-} from "./tools/method-tools";
-import {
-  extractEntities,
-  linkEntities,
-  queryGraph,
-  getDuplicateQueue,
-  reviewDuplicate,
-} from "./tools/ontology-tools";
-import {
-  registerKpi,
-  recordKpiMeasurement,
-  getKpiStatus,
-  getPipelineHealth,
-} from "./tools/indicator-tools";
-import {
-  linkDiscoveries,
-  getLinkedDiscoveries,
-} from "./tools/connector-tools";
-import {
-  requestGateApproval,
-  submitGateApproval,
-} from "./tools/governance-tools";
-import {
-  getAlerts,
-  acknowledgeAlert,
-  manageWebhook,
-} from "./tools/alert-tools";
-import {
-  generateAuditTrail,
-  checkRegulatoryCompliance,
-  packageEvidenceForAudit,
-  formatComplianceReport,
-} from "./tools/compliance-tools";
-import {
-  extractDecisionPattern,
-  applyReusableRule,
-} from "./tools/asset-tools";
+import { getToolsForAutonomyLevel, IDEA_TOOLS } from "./tool-registry";
+import { executeTool } from "./tool-handlers";
+import { generateId, updateTokenUsage, sendBudgetWarning, addSummaryHeader } from "./agent-utils";
 import { SoulEngine } from "~/lib/agent/soul-engine";
 import { SessionManager } from "~/lib/agent/session-manager";
 import { MemoryLifecycle } from "~/lib/agent/memory-lifecycle";
 import { isFeatureEnabled } from "~/lib/feature-flags";
-import {
-  getTenantInfo,
-  manageTenantMembers,
-} from "./tools/tenant-tools";
-import { updateIdeaAnalysis } from "./tools/idea-tools";
-
-function generateId(): string {
-  return crypto.randomUUID();
-}
 
 interface ExecuteResult {
   assistantText: string;
@@ -115,173 +29,9 @@ interface ExecuteResult {
   tokensUsed: { input: number; output: number };
 }
 
-async function executeTool(
-  db: DB,
-  toolName: string,
-  toolInput: Record<string, unknown>,
-  autonomyLevel?: number,
-  tenantId?: string
-): Promise<string> {
-  // Enforce autonomy level at execution time
-  if (autonomyLevel !== undefined) {
-    const minLevel = TOOL_MIN_AUTONOMY[toolName] ?? 3;
-    if (autonomyLevel < minLevel) {
-      return JSON.stringify({
-        error: `현재 자율도 레벨(${autonomyLevel})에서는 이 도구(${toolName})를 사용할 수 없습니다. 최소 레벨 ${minLevel} 필요.`,
-        suggestion: "설정에서 자율도 레벨을 올리거나, 관리자에게 요청하세요.",
-      });
-    }
-  }
-
-  // Multi-Tenant: 모든 도구 호출에 tenantId 자동 주입
-  if (tenantId) {
-    toolInput.tenantId = tenantId;
-  }
-
-  switch (toolName) {
-    case "create_discovery":
-      return createDiscovery(db, toolInput as Parameters<typeof createDiscovery>[1]);
-    case "update_discovery":
-      return updateDiscovery(db, toolInput as Parameters<typeof updateDiscovery>[1]);
-    case "promote_discovery":
-      return promoteDiscovery(db, toolInput as Parameters<typeof promoteDiscovery>[1]);
-    case "transition_stage":
-      return transitionStage(db, toolInput as Parameters<typeof transitionStage>[1]);
-    case "add_experiment":
-      return addExperiment(db, toolInput as Parameters<typeof addExperiment>[1]);
-    case "complete_experiment":
-      return completeExperiment(db, toolInput as Parameters<typeof completeExperiment>[1]);
-    case "add_evidence":
-      return addEvidence(db, toolInput as Parameters<typeof addEvidence>[1]);
-    case "decide_gate":
-    case "decide_next":
-      return decideGate(db, toolInput as Parameters<typeof decideGate>[1]);
-    case "decide_hold":
-    case "decide_not_now":
-      return decideHold(db, toolInput as Parameters<typeof decideHold>[1]);
-    case "decide_drop":
-    case "decide_dead_end":
-      return decideDrop(db, toolInput as Parameters<typeof decideDrop>[1]);
-    case "request_extension":
-      return requestExtension(db, toolInput as Parameters<typeof requestExtension>[1]);
-    case "list_discoveries":
-      return listDiscoveries(db, toolInput as Parameters<typeof listDiscoveries>[1]);
-    case "get_discovery_detail":
-      return getDiscoveryDetail(db, toolInput as Parameters<typeof getDiscoveryDetail>[1]);
-    case "get_experiment_context":
-      return getExperimentContext(db, toolInput as Parameters<typeof getExperimentContext>[1]);
-    case "search_similar":
-      return searchSimilar(db, toolInput as Parameters<typeof searchSimilar>[1]);
-    case "get_metrics":
-      return getMetrics(db, toolInput as Parameters<typeof getMetrics>[1]);
-    case "get_radar_items":
-      return getRadarItems(db, toolInput as Parameters<typeof getRadarItems>[1]);
-    case "get_weekly_review":
-      return getWeeklyReview(db);
-    case "get_recall_queue":
-      return getRecallQueue(db);
-    case "list_users":
-      return listUsers(db);
-    case "generate_discovery_digest":
-      return generateDiscoveryDigest(db, toolInput as Parameters<typeof generateDiscoveryDigest>[1]);
-    case "get_stage_info":
-      return getStageInfo(db, toolInput as Parameters<typeof getStageInfo>[1]);
-    case "validate_evidence":
-      return validateEvidence(db, toolInput as Parameters<typeof validateEvidence>[1]);
-    case "list_method_packs":
-      return listMethodPacks(db, toolInput as Parameters<typeof listMethodPacks>[1]);
-    case "recommend_methods":
-      return recommendMethods(db, toolInput as Parameters<typeof recommendMethods>[1]);
-    case "start_method_run":
-      return startMethodRun(db, toolInput as Parameters<typeof startMethodRun>[1]);
-    case "complete_method_run":
-      return completeMethodRun(db, toolInput as Parameters<typeof completeMethodRun>[1]);
-    case "draft_gate_package":
-      return draftGatePackage(db, toolInput as Parameters<typeof draftGatePackage>[1]);
-    case "get_gate_package":
-      return getGatePackage(db, toolInput as Parameters<typeof getGatePackage>[1]);
-    case "extract_entities":
-      return extractEntities(db, toolInput as Parameters<typeof extractEntities>[1]);
-    case "link_entities":
-      return linkEntities(db, toolInput as Parameters<typeof linkEntities>[1]);
-    case "query_graph":
-      return queryGraph(db, toolInput as Parameters<typeof queryGraph>[1]);
-    case "get_duplicate_queue":
-      return getDuplicateQueue(db, toolInput as Parameters<typeof getDuplicateQueue>[1]);
-    case "review_duplicate":
-      return reviewDuplicate(db, toolInput as Parameters<typeof reviewDuplicate>[1]);
-    // R3: Indicator tools
-    case "register_kpi":
-      return registerKpi(db, toolInput as Parameters<typeof registerKpi>[1]);
-    case "record_kpi_measurement":
-      return recordKpiMeasurement(db, toolInput as Parameters<typeof recordKpiMeasurement>[1]);
-    case "get_kpi_status":
-      return getKpiStatus(db, toolInput as Parameters<typeof getKpiStatus>[1]);
-    case "get_pipeline_health":
-      return getPipelineHealth(db, toolInput as Parameters<typeof getPipelineHealth>[1]);
-    // R3: Connector tools
-    case "link_discoveries":
-      return linkDiscoveries(db, toolInput as Parameters<typeof linkDiscoveries>[1]);
-    case "get_linked_discoveries":
-      return getLinkedDiscoveries(db, toolInput as Parameters<typeof getLinkedDiscoveries>[1]);
-    // R3: Governance tools
-    case "request_gate_approval":
-      return requestGateApproval(db, toolInput as Parameters<typeof requestGateApproval>[1]);
-    case "submit_gate_approval":
-      return submitGateApproval(db, toolInput as Parameters<typeof submitGateApproval>[1]);
-    // R3b: Alert tools
-    case "get_alerts":
-      return getAlerts(db, toolInput as unknown as Parameters<typeof getAlerts>[1]);
-    case "acknowledge_alert":
-      return acknowledgeAlert(db, toolInput as unknown as Parameters<typeof acknowledgeAlert>[1]);
-    case "manage_webhook":
-      return manageWebhook(db, toolInput as unknown as Parameters<typeof manageWebhook>[1]);
-    case "compare_discoveries":
-      return compareDiscoveries(db, toolInput as Parameters<typeof compareDiscoveries>[1]);
-    case "tag_discovery":
-      return tagDiscovery(db, toolInput as Parameters<typeof tagDiscovery>[1]);
-    case "remove_discovery_tag":
-      return removeDiscoveryTag(db, toolInput as Parameters<typeof removeDiscoveryTag>[1]);
-    // Strategic Evolution F1: Industry Adapter
-    case "get_industry_context":
-      return getIndustryContext(db, toolInput as unknown as Parameters<typeof getIndustryContext>[1]);
-    // Strategic Evolution F3: Asset tools
-    case "extract_decision_pattern":
-      return extractDecisionPattern(db, toolInput as unknown as Parameters<typeof extractDecisionPattern>[1]);
-    case "apply_reusable_rule":
-      return applyReusableRule(db, toolInput as unknown as Parameters<typeof applyReusableRule>[1]);
-    // Strategic Evolution F5: Compliance tools
-    case "generate_audit_trail":
-      return generateAuditTrail(db, toolInput as unknown as Parameters<typeof generateAuditTrail>[1]);
-    case "check_regulatory_compliance":
-      return checkRegulatoryCompliance(db, toolInput as unknown as Parameters<typeof checkRegulatoryCompliance>[1]);
-    case "package_evidence_for_audit":
-      return packageEvidenceForAudit(db, toolInput as unknown as Parameters<typeof packageEvidenceForAudit>[1]);
-    case "format_compliance_report":
-      return formatComplianceReport(db, toolInput as unknown as Parameters<typeof formatComplianceReport>[1]);
-    // Multi-Tenant tools (F6)
-    case "get_tenant_info":
-      return getTenantInfo(db, toolInput as unknown as Parameters<typeof getTenantInfo>[1]);
-    case "manage_tenant_members":
-      return manageTenantMembers(db, toolInput as unknown as Parameters<typeof manageTenantMembers>[1]);
-    // BD팀 PoC: 아이디어 후보 & 템플릿
-    case "generate_idea_candidates":
-      return generateIdeaCandidates(db, toolInput as Parameters<typeof generateIdeaCandidates>[1]);
-    case "select_idea_candidate":
-      return selectIdeaCandidate(db, toolInput as Parameters<typeof selectIdeaCandidate>[1]);
-    case "auto_fill_template":
-      return autoFillTemplate(db, toolInput as Parameters<typeof autoFillTemplate>[1]);
-    // Idea analysis tools
-    case "update_idea_analysis":
-      return updateIdeaAnalysis(db, toolInput as unknown as Parameters<typeof updateIdeaAnalysis>[1]);
-    default:
-      return JSON.stringify({ error: `알 수 없는 도구: ${toolName}` });
-  }
-}
-
 /**
  * Execute one agent turn: send user message → get Claude response → handle tools → return final text.
- * Supports multi-step tool use (up to 5 consecutive tool calls per turn).
+ * Supports multi-step tool use (up to 12 consecutive tool calls per turn).
  */
 export type AgentEvent =
   | { type: "tool_call"; name: string; input: Record<string, unknown>; result: string };
@@ -346,7 +96,7 @@ export async function executeAgentTurn(
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
     const contextMessages = await buildConversationContext(db, conversationId, modelId);
 
-    const response: ClaudeResponse = await callClaude(apiKey, {
+    const response = await callClaude(apiKey, {
       model: modelId,
       max_tokens: 4096,
       system: systemPrompt,
@@ -460,59 +210,6 @@ export async function executeAgentTurn(
     tokensUsed: { input: totalInputTokens, output: totalOutputTokens },
   };
 }
-
-interface TokenUsageMeta {
-  conversationId?: string | null;
-  mode?: "default" | "ideas" | "direct";
-  model?: string;
-  inputTokens?: number;
-  outputTokens?: number;
-  toolRounds?: number;
-  tenantId?: string | null;
-}
-
-async function updateTokenUsage(db: DB, tokensUsed: number, meta?: TokenUsageMeta) {
-  const today = new Date().toISOString().slice(0, 10);
-  const config = await db
-    .select()
-    .from(agentConfig)
-    .where(eq(agentConfig.id, "default"))
-    .limit(1);
-
-  if (config[0]) {
-    const isNewDay = config[0].tokenResetDate !== today;
-    await db
-      .update(agentConfig)
-      .set({
-        tokensUsedToday: isNewDay ? tokensUsed : (config[0].tokensUsedToday + tokensUsed),
-        tokenResetDate: today,
-        updatedAt: new Date(),
-      })
-      .where(eq(agentConfig.id, "default"));
-  }
-
-  // Log to token_usage_logs for historical tracking
-  if (meta) {
-    try {
-      await db.insert(tokenUsageLogs).values({
-        id: crypto.randomUUID(),
-        conversationId: meta.conversationId || null,
-        mode: meta.mode || "default",
-        model: meta.model || CLAUDE_MODEL,
-        inputTokens: meta.inputTokens || 0,
-        outputTokens: meta.outputTokens || 0,
-        totalTokens: tokensUsed,
-        toolRounds: meta.toolRounds || 0,
-        tenantId: meta.tenantId || null,
-      });
-    } catch {
-      // Non-critical: don't fail the main operation if logging fails
-    }
-  }
-}
-
-// Re-export for use by analyzer.ts
-export { updateTokenUsage };
 
 /**
  * Streaming variant: uses callClaudeStream + parseSSEStream for real-time text deltas.
@@ -849,37 +546,4 @@ export function createAgentStreamResponse(
       }
     },
   });
-}
-
-async function sendBudgetWarning(
-  db: DB,
-  controller: ReadableStreamDefaultController<Uint8Array>,
-  send: (ctrl: ReadableStreamDefaultController<Uint8Array>, data: Record<string, unknown>) => void
-) {
-  const configAfter = await db
-    .select()
-    .from(agentConfig)
-    .where(eq(agentConfig.id, "default"))
-    .limit(1);
-
-  const cfg = configAfter[0];
-  if (cfg) {
-    const percentUsed = Math.round((cfg.tokensUsedToday / cfg.dailyTokenBudget) * 100);
-    if (percentUsed > 80) {
-      send(controller, {
-        type: "budget_warning",
-        tokensUsedToday: cfg.tokensUsedToday,
-        dailyTokenBudget: cfg.dailyTokenBudget,
-        percentUsed,
-      });
-    }
-  }
-}
-
-/** 500자 이상 응답 상단에 첫 문장 기반 요약 blockquote를 삽입한다. */
-function addSummaryHeader(text: string): string {
-  if (text.length < 500) return text;
-  const firstSentence = text.match(/^[^.!?]*[.!?]/)?.[0]?.trim();
-  if (!firstSentence || firstSentence.length > 120) return text;
-  return `> **요약**: ${firstSentence}\n\n${text}`;
 }
