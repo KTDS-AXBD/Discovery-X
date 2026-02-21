@@ -575,8 +575,84 @@ Phase 1 (Loader)
 
 ---
 
+## 9. Implementation Reality (현행화, 2026-02-21)
+
+> **Gap Analysis 결과**: 7/20 (35%). 이 설계의 전제(`dashboard.metrics.tsx` 파일 존재)가 무효화됨. 대시보드 구조가 근본적으로 재설계되어 설계 문서 전체가 **Superseded** 상태.
+
+### 9.1 핵심 변경: dashboard.metrics.tsx 미존재
+
+이 설계의 전제는 `dashboard.metrics.tsx` 라우트에 이미 `allDiscoveries`/`allExperiments` 데이터가 로딩되어 있어 JS 집계만 추가하면 되는 것이었다. 그러나 v6.x 리팩토링 과정에서 대시보드 구조가 완전히 변경되었다.
+
+**대시보드 라우트 (현행)**:
+| 라우트 | 역할 |
+|--------|------|
+| `dashboard.tsx` | AppShell 레이아웃 래퍼 |
+| `dashboard._index.tsx` | 개요 (SourceSidebar + SummaryCard + PipelineKanban + StatisticsPanel) |
+| `dashboard.review.tsx` | 주간 의사결정 리뷰 (활성 Discovery 테이블) |
+| `dashboard.recall.tsx` | 재검토 큐 (NOT_NOW Revisit Date 도래 항목) |
+
+**`dashboard.metrics.tsx`는 존재하지 않음** — 대시보드 탭 구조에서 제거됨.
+
+### 9.2 차트 컴포넌트의 실제 사용처
+
+설계에서 대시보드에 배치하려 했던 3개 차트 컴포넌트는 **다른 라우트에서 사용** 중:
+
+| 컴포넌트 | 파일 | 사용 라우트 | 대시보드 사용 여부 |
+|----------|------|-----------|------------------|
+| StatusDonut | `components/charts/StatusDonut.tsx` | `discoveries.$id.tsx`, `metrics.tsx` | ❌ |
+| WeeklyBar | `components/charts/WeeklyBar.tsx` | `discoveries.$id.tsx`, `metrics.tsx` | ❌ |
+| ExperimentGantt | `components/charts/ExperimentGantt.tsx` | `discoveries.$id.tsx`, `metrics.tsx` | ❌ |
+| KpiCard | `components/dashboard/KpiCard.tsx` | `discoveries.$id.tsx` | ❌ |
+
+차트는 **전역 메트릭스 페이지** (`/metrics`)와 **Discovery 상세 페이지** (`/discoveries/:id`)에서 활용된다.
+
+### 9.3 현행 대시보드 개요 구조 (dashboard._index.tsx)
+
+```
+dashboard._index.tsx
+├── 2-column grid (280px | 1fr)
+│   ├── [Left] SourceSidebar (최근 수집 소스 10건, 선택/읽음 상태)
+│   └── [Right] SummaryCard (선택된 소스 상세)
+├── PipelineKanban (Discovery 파이프라인 칸반 보드)
+└── StatisticsPanel (Discovery/Proposal 통계 + 산업 어댑터 + 소스 통계)
+```
+
+`StatisticsPanel`이 설계의 "지표" 역할을 부분적으로 대체하지만, 차트 컴포넌트(StatusDonut/WeeklyBar/ExperimentGantt)는 포함하지 않는다.
+
+### 9.4 구현된 항목 (설계와 관계없이 존재하는 것)
+
+| 설계 항목 | 상태 | 비고 |
+|----------|------|------|
+| StatusDonut 컴포넌트 | ✅ 존재 | `discoveries.$id.tsx`, `metrics.tsx`에서 사용 |
+| WeeklyBar 컴포넌트 | ✅ 존재 | 동일 |
+| ExperimentGantt 컴포넌트 | ✅ 존재 | 동일 |
+| 11단계→5그룹 상태 매핑 | ✅ 구현 | `metrics.tsx`에 구현됨 |
+| 8주 주간 집계 | ✅ 구현 | `metrics.tsx`에 구현됨 |
+| serverNow SSR-safe 패턴 | ✅ 구현 | `dashboard._index.tsx`에서 `serverNow: Date.now()` 전달 |
+| 다크모드 CSS 토큰 | ✅ 구현 | `dx-custom-tokens.css`에 정의 |
+
+### 9.5 미구현 항목
+
+| 설계 항목 | 상태 | 비고 |
+|----------|------|------|
+| dashboard.metrics.tsx 라우트 | ❌ 미존재 | 대시보드 구조 변경으로 제거 |
+| 대시보드 내 StatusDonut 배치 | ❌ 미구현 | 차트가 /metrics, /discoveries/:id에만 존재 |
+| 대시보드 내 WeeklyBar 배치 | ❌ 미구현 | 동일 |
+| 대시보드 내 ExperimentGantt 배치 | ❌ 미구현 | 동일 |
+| MetricCard 그리드 (전체/Agent/실험/강한근거) | ❌ 미구현 | 대시보드에 MetricCard 없음 (KpiCard는 discoveries.$id에서만 사용) |
+
+### 9.6 향후 권장 사항
+
+이 설계를 재활용하려면:
+1. `dashboard._index.tsx`의 `StatisticsPanel` 내에 차트를 추가하는 방식으로 접근
+2. 또는 `dashboard.metrics.tsx` 탭을 새로 생성 (현행 탭 구조: _index / review / recall에 metrics 추가)
+3. 차트 컴포넌트와 집계 로직은 이미 `metrics.tsx`에서 검증되었으므로 그대로 재사용 가능
+
+---
+
 ## Version History
 
 | Version | Date | Changes | Author |
 |---------|------|---------|--------|
 | 0.1 | 2026-02-10 | Initial design — 데이터 집계 설계, UI 배치, 구현 순서 정의 | Claude |
+| 0.2 | 2026-02-21 | 현행화 — Gap Analysis 결과 반영, §9 Implementation Reality 추가. dashboard.metrics.tsx 미존재 확인, 차트 실사용처 문서화, 설계 상태를 Superseded로 변경 | Claude |
