@@ -11,9 +11,7 @@ import type {
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { GraphStore } from "~/lib/graph/store";
-import { GraphQueryEngine } from "~/lib/graph/query";
-import type { JsonLdGraph, JsonLdNode } from "~/lib/graph/types";
+import { TopicService } from "~/lib/services";
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
   try {
@@ -31,8 +29,8 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       return json({ error: "id 파라미터가 필요합니다" }, { status: 400 });
     }
 
-    const query = new GraphQueryEngine(db);
-    const glossary = await query.findByType("topic", topicId, "dx:Glossary");
+    const service = new TopicService(db);
+    const glossary = await service.listGlossary(topicId);
 
     return json({ glossary });
   } catch (error) {
@@ -78,43 +76,14 @@ export async function action({
       return json({ error: "definition은 필수입니다" }, { status: 400 });
     }
 
-    const store = new GraphStore(db);
-    let graph = await store.getByScopeId("topic", topicId);
+    const service = new TopicService(db);
+    const term = await service.createGlossaryTerm(
+      topicId,
+      { term: body.term.trim(), definition: body.definition.trim() },
+      ctx.user.id,
+    );
 
-    const audit = { actorId: ctx.user.id, actorType: "user" as const };
-
-    // Graph가 없으면 새로 생성
-    if (!graph) {
-      graph = await store.create({
-        scopeType: "topic",
-        scopeId: topicId,
-        jsonld: {
-          "@context": { dx: "https://discovery-x.dev/ns/" },
-          "@graph": [],
-        },
-        contentHash: "",
-      }, audit);
-    }
-
-    // 새 Glossary 노드 생성
-    const nodeId = `dx:glossary-${crypto.randomUUID()}`;
-    const newNode: JsonLdNode = {
-      "@id": nodeId,
-      "@type": "dx:Glossary",
-      "dx:term": body.term.trim(),
-      "dx:definition": body.definition.trim(),
-      "dx:createdBy": ctx.user.id,
-      "dx:createdAt": new Date().toISOString(),
-    };
-
-    const updatedJsonld: JsonLdGraph = {
-      ...graph.jsonld,
-      "@graph": [...graph.jsonld["@graph"], newNode],
-    };
-
-    await store.update(graph.id, updatedJsonld, "용어 추가", audit);
-
-    return json({ term: newNode }, { status: 201 });
+    return json({ term }, { status: 201 });
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error("[api.topics.$id.glossary] action error:", error);

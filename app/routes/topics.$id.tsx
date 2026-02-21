@@ -2,12 +2,11 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { useFetcher, useLoaderData } from "@remix-run/react";
 import { useState } from "react";
-import { eq, and, like } from "drizzle-orm";
 
-import { getDb, users } from "~/db";
-import { topics, topicMembers } from "~/db/schema-v2";
+import { getDb } from "~/db";
 import { requireScopeAccess } from "~/lib/acl/middleware";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
+import { TopicService } from "~/lib/services";
 import { Button } from "~/components/ui/Button";
 import { TopicStatusBadge } from "~/components/topic/TopicStatusBadge";
 import { TopicMemberList } from "~/components/topic/MemberList";
@@ -45,28 +44,14 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   await requireScopeAccess({ request, params, context }, "read");
 
   const topicId = params.id!;
+  const service = new TopicService(db);
+  const detail = await service.getById(topicId);
 
-  const topic = await db.query.topics.findFirst({
-    where: eq(topics.id, topicId),
-  });
-
-  if (!topic) {
+  if (!detail) {
     throw json({ error: "Topic을 찾을 수 없습니다" }, { status: 404 });
   }
 
-  // 멤버 목록 (user 정보 조인)
-  const members = await db
-    .select({
-      userId: topicMembers.userId,
-      role: topicMembers.role,
-      name: users.name,
-      email: users.email,
-    })
-    .from(topicMembers)
-    .innerJoin(users, eq(users.id, topicMembers.userId))
-    .where(eq(topicMembers.topicId, topicId));
-
-  return json({ user, topic, members });
+  return json({ user, topic: detail.topic, members: detail.members });
 }
 
 // ─── Action ────────────────────────────────────────────────────────────────
@@ -89,6 +74,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   const topicId = params.id!;
   const formData = await request.formData();
   const intent = formData.get("intent") as string;
+  const service = new TopicService(db);
 
   if (intent === "update-topic") {
     const name = formData.get("name") as string;
@@ -98,14 +84,10 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       return json({ error: "이름은 필수입니다" }, { status: 400 });
     }
 
-    await db
-      .update(topics)
-      .set({
-        name: name.trim(),
-        description: description?.trim() || null,
-        updatedAt: new Date(),
-      })
-      .where(eq(topics.id, topicId));
+    await service.update(topicId, {
+      name: name.trim(),
+      description: description?.trim() || null,
+    });
 
     return json({ ok: true });
   }
@@ -118,23 +100,12 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       return json({ error: "사용자를 선택해주세요" }, { status: 400 });
     }
 
-    // 이미 멤버인지 확인
-    const existing = await db.query.topicMembers.findFirst({
-      where: and(
-        eq(topicMembers.topicId, topicId),
-        eq(topicMembers.userId, userId),
-      ),
-    });
-
+    const existing = await service.getMember(topicId, userId);
     if (existing) {
       return json({ error: "이미 멤버입니다" }, { status: 400 });
     }
 
-    await db.insert(topicMembers).values({
-      topicId,
-      userId,
-      role,
-    });
+    await service.addMember(topicId, userId, role as "owner" | "editor" | "viewer");
 
     return json({ ok: true });
   }
@@ -142,26 +113,12 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   if (intent === "remove-member") {
     const userId = formData.get("userId") as string;
 
-    // owner는 제거 불가
-    const member = await db.query.topicMembers.findFirst({
-      where: and(
-        eq(topicMembers.topicId, topicId),
-        eq(topicMembers.userId, userId),
-      ),
-    });
-
+    const member = await service.getMember(topicId, userId);
     if (member?.role === "owner") {
       return json({ error: "owner는 제거할 수 없습니다" }, { status: 400 });
     }
 
-    await db
-      .delete(topicMembers)
-      .where(
-        and(
-          eq(topicMembers.topicId, topicId),
-          eq(topicMembers.userId, userId),
-        ),
-      );
+    await service.removeMember(topicId, userId);
 
     return json({ ok: true });
   }
@@ -170,24 +127,13 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     const userId = formData.get("userId") as string;
     const role = formData.get("role") as string;
 
-    await db
-      .update(topicMembers)
-      .set({ role })
-      .where(
-        and(
-          eq(topicMembers.topicId, topicId),
-          eq(topicMembers.userId, userId),
-        ),
-      );
+    await service.updateMemberRole(topicId, userId, role as "owner" | "editor" | "viewer");
 
     return json({ ok: true });
   }
 
   if (intent === "archive") {
-    await db
-      .update(topics)
-      .set({ status: "archived", updatedAt: new Date() })
-      .where(eq(topics.id, topicId));
+    await service.archive(topicId);
 
     return json({ ok: true });
   }
@@ -198,11 +144,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       return json({ users: [] });
     }
 
-    const results = await db
-      .select({ id: users.id, name: users.name, email: users.email })
-      .from(users)
-      .where(like(users.email, `%${query}%`))
-      .limit(5);
+    const results = await service.searchUsers(query);
 
     return json({ users: results });
   }

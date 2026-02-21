@@ -8,8 +8,7 @@ import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { GraphStore } from "~/lib/graph/store";
-import type { JsonLdGraph } from "~/lib/graph/types";
+import { TopicService } from "~/lib/services";
 
 export async function action({
   request,
@@ -32,22 +31,7 @@ export async function action({
       return json({ error: "id, termId 파라미터가 필요합니다" }, { status: 400 });
     }
 
-    const store = new GraphStore(db);
-    const audit = { actorId: ctx.user.id, actorType: "user" as const };
-    const graph = await store.getByScopeId("topic", topicId);
-
-    if (!graph) {
-      return json({ error: "Topic Graph를 찾을 수 없습니다" }, { status: 404 });
-    }
-
-    const nodes = graph.jsonld["@graph"];
-    const targetIdx = nodes.findIndex(
-      (n) => n["@id"] === termId && n["@type"] === "dx:Glossary",
-    );
-
-    if (targetIdx === -1) {
-      return json({ error: "용어를 찾을 수 없습니다" }, { status: 404 });
-    }
+    const service = new TopicService(db);
 
     if (request.method === "PATCH") {
       const body = (await request.json()) as {
@@ -55,42 +39,29 @@ export async function action({
         definition?: string;
       };
 
-      const updated = { ...nodes[targetIdx] };
-      if (body.term !== undefined) updated["dx:term"] = body.term;
-      if (body.definition !== undefined) updated["dx:definition"] = body.definition;
-      updated["dx:updatedAt"] = new Date().toISOString();
+      const term = await service.updateGlossaryTerm(
+        topicId,
+        termId,
+        body,
+        ctx.user.id,
+      );
 
-      const updatedNodes = [...nodes];
-      updatedNodes[targetIdx] = updated;
-
-      const updatedJsonld: JsonLdGraph = {
-        ...graph.jsonld,
-        "@graph": updatedNodes,
-      };
-
-      await store.update(graph.id, updatedJsonld, "용어 수정", audit);
-
-      return json({ term: updated });
+      return json({ term });
     }
 
     if (request.method === "DELETE") {
-      const filteredNodes = nodes.filter(
-        (n) => !(n["@id"] === termId && n["@type"] === "dx:Glossary"),
-      );
-
-      const updatedJsonld: JsonLdGraph = {
-        ...graph.jsonld,
-        "@graph": filteredNodes,
-      };
-
-      await store.update(graph.id, updatedJsonld, "용어 삭제", audit);
-
+      await service.deleteGlossaryTerm(topicId, termId, ctx.user.id);
       return json({ ok: true });
     }
 
     return json({ error: "Method not allowed" }, { status: 405 });
   } catch (error) {
     if (error instanceof Response) throw error;
+
+    if (error instanceof Error && error.message.includes("찾을 수 없습니다")) {
+      return json({ error: error.message }, { status: 404 });
+    }
+
     console.error("[api.topics.$id.glossary.$termId] error:", error);
     return json({ error: "Internal server error" }, { status: 500 });
   }

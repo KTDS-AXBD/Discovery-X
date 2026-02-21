@@ -7,7 +7,7 @@ import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
-import { GraphStore } from "~/lib/graph/store";
+import { TopicService } from "~/lib/services";
 
 export async function action({
   request,
@@ -50,24 +50,18 @@ export async function action({
       );
     }
 
-    const store = new GraphStore(db);
-    const graph = await store.getByScopeId("topic", topicId);
-
-    if (!graph) {
-      return json({ error: "해당 Topic의 Graph가 없습니다" }, { status: 404 });
-    }
-
-    const audit = { actorId: user.id, actorType: "user" as const };
     const eventId = parseInt(suggestionId, 10);
 
     if (isNaN(eventId)) {
       return json({ error: "유효하지 않은 suggestionId" }, { status: 400 });
     }
 
+    const service = new TopicService(db);
+
     if (body.action === "approve") {
-      await store.approveSuggestion(graph.id, eventId, audit);
+      await service.approveSuggestion(topicId, eventId, user.id);
     } else {
-      await store.rejectSuggestion(graph.id, eventId, body.reason, audit);
+      await service.rejectSuggestion(topicId, eventId, body.reason, user.id);
     }
 
     return json({ success: true });
@@ -75,7 +69,7 @@ export async function action({
     if (error instanceof Response) throw error;
 
     if (error instanceof Error) {
-      if (error.message.includes("not found")) {
+      if (error.message.includes("not found") || error.message.includes("Graph가 없습니다")) {
         return json({ error: error.message }, { status: 404 });
       }
       if (error.message.includes("already processed")) {

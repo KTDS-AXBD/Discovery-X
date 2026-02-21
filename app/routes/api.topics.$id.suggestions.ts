@@ -7,7 +7,7 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { GraphStore } from "~/lib/graph/store";
+import { TopicService } from "~/lib/services";
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
   try {
@@ -25,14 +25,8 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       return json({ error: "id 파라미터가 필요합니다" }, { status: 400 });
     }
 
-    const store = new GraphStore(db);
-    const graph = await store.getByScopeId("topic", topicId);
-
-    if (!graph) {
-      return json({ suggestions: [] });
-    }
-
-    const suggestions = await store.getPendingSuggestions(graph.id);
+    const service = new TopicService(db);
+    const suggestions = await service.listSuggestions(topicId);
 
     return json({ suggestions });
   } catch (error) {

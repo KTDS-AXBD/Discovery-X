@@ -1,8 +1,11 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, like, sql } from "drizzle-orm";
 import type { DB } from "~/db";
 import { topics, topicMembers } from "~/db/schema-v2";
-import type { Topic } from "~/db/schema-v2";
+import type { Topic, TopicMember } from "~/db/schema-v2";
 import { users } from "~/db/schema";
+import { GraphStore } from "~/lib/graph/store";
+import { GraphQueryEngine } from "~/lib/graph/query";
+import type { JsonLdNode, JsonLdGraph, PendingSuggestion } from "~/lib/graph/types";
 
 // ============================================================================
 // Types
@@ -17,7 +20,7 @@ interface CreateTopicInput {
 
 interface UpdateTopicInput {
   name?: string;
-  description?: string;
+  description?: string | null;
 }
 
 interface TopicMemberWithUser {
@@ -34,6 +37,43 @@ interface TopicDetail {
 }
 
 type TopicRole = "owner" | "editor" | "viewer";
+
+interface CreateDecisionInput {
+  summary: string;
+  date?: string;
+  context?: string;
+  decidedBy?: string;
+}
+
+interface UpdateDecisionInput {
+  summary?: string;
+  date?: string;
+  context?: string;
+  decidedBy?: string;
+}
+
+interface CreateGlossaryInput {
+  term: string;
+  definition: string;
+}
+
+interface UpdateGlossaryInput {
+  term?: string;
+  definition?: string;
+}
+
+interface TopicListItem {
+  id: string;
+  name: string;
+  status: string;
+  memberCount: number;
+}
+
+interface UserSearchResult {
+  id: string;
+  name: string;
+  email: string;
+}
 
 // ============================================================================
 // Service
@@ -215,5 +255,398 @@ export class TopicService {
       .where(eq(topicMembers.topicId, topicId));
 
     return rows;
+  }
+
+  /**
+   * 멤버 단건 조회
+   */
+  async getMember(
+    topicId: string,
+    userId: string,
+  ): Promise<TopicMember | null> {
+    const member = await this.db.query.topicMembers.findFirst({
+      where: and(
+        eq(topicMembers.topicId, topicId),
+        eq(topicMembers.userId, userId),
+      ),
+    });
+    return member ?? null;
+  }
+
+  // ============================================================================
+  // Topic 목록 (사용자별)
+  // ============================================================================
+
+  /**
+   * 사용자가 참여 중인 Topic 목록 (멤버 수 포함)
+   */
+  async listForUser(userId: string): Promise<TopicListItem[]> {
+    return this.db
+      .select({
+        id: topics.id,
+        name: topics.name,
+        status: topics.status,
+        memberCount: sql<number>`count(${topicMembers.userId})`.as(
+          "member_count",
+        ),
+      })
+      .from(topics)
+      .innerJoin(topicMembers, eq(topicMembers.topicId, topics.id))
+      .where(eq(topicMembers.userId, userId))
+      .groupBy(topics.id)
+      .orderBy(topics.name);
+  }
+
+  // ============================================================================
+  // 사용자 검색
+  // ============================================================================
+
+  /**
+   * 이메일로 사용자 검색
+   */
+  async searchUsers(
+    query: string,
+    limit = 5,
+  ): Promise<UserSearchResult[]> {
+    return this.db
+      .select({ id: users.id, name: users.name, email: users.email })
+      .from(users)
+      .where(like(users.email, `%${query}%`))
+      .limit(limit);
+  }
+
+  // ============================================================================
+  // Decisions (Graph 기반)
+  // ============================================================================
+
+  /**
+   * Decision 목록 조회
+   */
+  async listDecisions(topicId: string): Promise<JsonLdNode[]> {
+    const query = new GraphQueryEngine(this.db);
+    return query.findByType("topic", topicId, "dx:Decision");
+  }
+
+  /**
+   * Decision 생성 — Graph가 없으면 자동 생성
+   */
+  async createDecision(
+    topicId: string,
+    data: CreateDecisionInput,
+    actorId: string,
+  ): Promise<JsonLdNode> {
+    const store = new GraphStore(this.db);
+    const audit = { actorId, actorType: "user" as const };
+    const graph = await this.getOrCreateGraph(store, topicId, audit);
+
+    const nodeId = `dx:decision-${crypto.randomUUID()}`;
+    const newNode: JsonLdNode = {
+      "@id": nodeId,
+      "@type": "dx:Decision",
+      "dx:summary": data.summary,
+      ...(data.date && { "dx:date": data.date }),
+      ...(data.context && { "dx:context": data.context }),
+      ...(data.decidedBy && { "dx:decidedBy": data.decidedBy }),
+      "dx:createdBy": actorId,
+      "dx:createdAt": new Date().toISOString(),
+    };
+
+    const updatedJsonld: JsonLdGraph = {
+      ...graph.jsonld,
+      "@graph": [...graph.jsonld["@graph"], newNode],
+    };
+
+    await store.update(graph.id, updatedJsonld, "결정 추가", audit);
+    return newNode;
+  }
+
+  /**
+   * Decision 수정
+   */
+  async updateDecision(
+    topicId: string,
+    decisionId: string,
+    data: UpdateDecisionInput,
+    actorId: string,
+  ): Promise<JsonLdNode> {
+    const { store, graph, nodes, targetIdx } = await this.findGraphNode(
+      topicId,
+      decisionId,
+      "dx:Decision",
+      "Decision",
+    );
+    const audit = { actorId, actorType: "user" as const };
+
+    const updated = { ...nodes[targetIdx] };
+    if (data.summary !== undefined) updated["dx:summary"] = data.summary;
+    if (data.date !== undefined) updated["dx:date"] = data.date;
+    if (data.context !== undefined) updated["dx:context"] = data.context;
+    if (data.decidedBy !== undefined) updated["dx:decidedBy"] = data.decidedBy;
+    updated["dx:updatedAt"] = new Date().toISOString();
+
+    const updatedNodes = [...nodes];
+    updatedNodes[targetIdx] = updated;
+
+    const updatedJsonld: JsonLdGraph = {
+      ...graph.jsonld,
+      "@graph": updatedNodes,
+    };
+
+    await store.update(graph.id, updatedJsonld, "결정 수정", audit);
+    return updated;
+  }
+
+  /**
+   * Decision 삭제
+   */
+  async deleteDecision(
+    topicId: string,
+    decisionId: string,
+    actorId: string,
+  ): Promise<void> {
+    const { store, graph, nodes } = await this.findGraphNode(
+      topicId,
+      decisionId,
+      "dx:Decision",
+      "Decision",
+    );
+    const audit = { actorId, actorType: "user" as const };
+
+    const filteredNodes = nodes.filter(
+      (n) => !(n["@id"] === decisionId && n["@type"] === "dx:Decision"),
+    );
+
+    const updatedJsonld: JsonLdGraph = {
+      ...graph.jsonld,
+      "@graph": filteredNodes,
+    };
+
+    await store.update(graph.id, updatedJsonld, "결정 삭제", audit);
+  }
+
+  // ============================================================================
+  // Glossary (Graph 기반)
+  // ============================================================================
+
+  /**
+   * Glossary 목록 조회
+   */
+  async listGlossary(topicId: string): Promise<JsonLdNode[]> {
+    const query = new GraphQueryEngine(this.db);
+    return query.findByType("topic", topicId, "dx:Glossary");
+  }
+
+  /**
+   * Glossary 용어 생성
+   */
+  async createGlossaryTerm(
+    topicId: string,
+    data: CreateGlossaryInput,
+    actorId: string,
+  ): Promise<JsonLdNode> {
+    const store = new GraphStore(this.db);
+    const audit = { actorId, actorType: "user" as const };
+    const graph = await this.getOrCreateGraph(store, topicId, audit);
+
+    const nodeId = `dx:glossary-${crypto.randomUUID()}`;
+    const newNode: JsonLdNode = {
+      "@id": nodeId,
+      "@type": "dx:Glossary",
+      "dx:term": data.term,
+      "dx:definition": data.definition,
+      "dx:createdBy": actorId,
+      "dx:createdAt": new Date().toISOString(),
+    };
+
+    const updatedJsonld: JsonLdGraph = {
+      ...graph.jsonld,
+      "@graph": [...graph.jsonld["@graph"], newNode],
+    };
+
+    await store.update(graph.id, updatedJsonld, "용어 추가", audit);
+    return newNode;
+  }
+
+  /**
+   * Glossary 용어 수정
+   */
+  async updateGlossaryTerm(
+    topicId: string,
+    termId: string,
+    data: UpdateGlossaryInput,
+    actorId: string,
+  ): Promise<JsonLdNode> {
+    const { store, graph, nodes, targetIdx } = await this.findGraphNode(
+      topicId,
+      termId,
+      "dx:Glossary",
+      "용어",
+    );
+    const audit = { actorId, actorType: "user" as const };
+
+    const updated = { ...nodes[targetIdx] };
+    if (data.term !== undefined) updated["dx:term"] = data.term;
+    if (data.definition !== undefined)
+      updated["dx:definition"] = data.definition;
+    updated["dx:updatedAt"] = new Date().toISOString();
+
+    const updatedNodes = [...nodes];
+    updatedNodes[targetIdx] = updated;
+
+    const updatedJsonld: JsonLdGraph = {
+      ...graph.jsonld,
+      "@graph": updatedNodes,
+    };
+
+    await store.update(graph.id, updatedJsonld, "용어 수정", audit);
+    return updated;
+  }
+
+  /**
+   * Glossary 용어 삭제
+   */
+  async deleteGlossaryTerm(
+    topicId: string,
+    termId: string,
+    actorId: string,
+  ): Promise<void> {
+    const { store, graph, nodes } = await this.findGraphNode(
+      topicId,
+      termId,
+      "dx:Glossary",
+      "용어",
+    );
+    const audit = { actorId, actorType: "user" as const };
+
+    const filteredNodes = nodes.filter(
+      (n) => !(n["@id"] === termId && n["@type"] === "dx:Glossary"),
+    );
+
+    const updatedJsonld: JsonLdGraph = {
+      ...graph.jsonld,
+      "@graph": filteredNodes,
+    };
+
+    await store.update(graph.id, updatedJsonld, "용어 삭제", audit);
+  }
+
+  // ============================================================================
+  // Suggestions (Graph 기반)
+  // ============================================================================
+
+  /**
+   * 미처리 제안 목록 조회
+   */
+  async listSuggestions(topicId: string): Promise<PendingSuggestion[]> {
+    const store = new GraphStore(this.db);
+    const graph = await store.getByScopeId("topic", topicId);
+    if (!graph) return [];
+    return store.getPendingSuggestions(graph.id);
+  }
+
+  /**
+   * 제안 승인
+   */
+  async approveSuggestion(
+    topicId: string,
+    suggestionId: number,
+    actorId: string,
+  ): Promise<void> {
+    const store = new GraphStore(this.db);
+    const graph = await store.getByScopeId("topic", topicId);
+    if (!graph) {
+      throw new Error("해당 Topic의 Graph가 없습니다");
+    }
+    const audit = { actorId, actorType: "user" as const };
+    await store.approveSuggestion(graph.id, suggestionId, audit);
+  }
+
+  /**
+   * 제안 거절
+   */
+  async rejectSuggestion(
+    topicId: string,
+    suggestionId: number,
+    reason: string | undefined,
+    actorId: string,
+  ): Promise<void> {
+    const store = new GraphStore(this.db);
+    const graph = await store.getByScopeId("topic", topicId);
+    if (!graph) {
+      throw new Error("해당 Topic의 Graph가 없습니다");
+    }
+    const audit = { actorId, actorType: "user" as const };
+    await store.rejectSuggestion(graph.id, suggestionId, reason, audit);
+  }
+
+  // ============================================================================
+  // Events (Graph 기반)
+  // ============================================================================
+
+  /**
+   * Topic Graph 변경 이력 조회
+   */
+  async listEvents(topicId: string, limit = 50) {
+    const store = new GraphStore(this.db);
+    const graph = await store.getByScopeId("topic", topicId);
+    if (!graph) return [];
+    return store.getHistory(graph.id, limit);
+  }
+
+  // ============================================================================
+  // Private helpers
+  // ============================================================================
+
+  /**
+   * Topic Graph 조회 또는 생성
+   */
+  private async getOrCreateGraph(
+    store: GraphStore,
+    topicId: string,
+    audit: { actorId: string; actorType: "user" },
+  ) {
+    let graph = await store.getByScopeId("topic", topicId);
+    if (!graph) {
+      graph = await store.create(
+        {
+          scopeType: "topic",
+          scopeId: topicId,
+          jsonld: {
+            "@context": { dx: "https://discovery-x.dev/ns/" },
+            "@graph": [],
+          },
+          contentHash: "",
+        },
+        audit,
+      );
+    }
+    return graph;
+  }
+
+  /**
+   * Graph 내 특정 노드 검색 (수정/삭제용)
+   */
+  private async findGraphNode(
+    topicId: string,
+    nodeId: string,
+    nodeType: string,
+    label: string,
+  ) {
+    const store = new GraphStore(this.db);
+    const graph = await store.getByScopeId("topic", topicId);
+    if (!graph) {
+      throw new Error("Topic Graph를 찾을 수 없습니다");
+    }
+
+    const nodes = graph.jsonld["@graph"];
+    const targetIdx = nodes.findIndex(
+      (n) => n["@id"] === nodeId && n["@type"] === nodeType,
+    );
+
+    if (targetIdx === -1) {
+      throw new Error(`${label}을 찾을 수 없습니다`);
+    }
+
+    return { store, graph, nodes, targetIdx };
   }
 }

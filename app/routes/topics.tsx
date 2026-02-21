@@ -2,11 +2,10 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { Outlet, useLoaderData, useNavigation } from "@remix-run/react";
 import { useState, useMemo } from "react";
-import { eq, sql } from "drizzle-orm";
 
 import { getDb } from "~/db";
-import { topics, topicMembers } from "~/db/schema-v2";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
+import { TopicService } from "~/lib/services";
 import { AppShell } from "~/components/layout/AppShell";
 import { TopicCard } from "~/components/topic/TopicCard";
 
@@ -23,19 +22,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return redirect("/login");
   }
 
-  // 현재 사용자가 멤버인 Topic 목록 + 멤버 수
-  const topicList = await db
-    .select({
-      id: topics.id,
-      name: topics.name,
-      status: topics.status,
-      memberCount: sql<number>`count(${topicMembers.userId})`.as("member_count"),
-    })
-    .from(topics)
-    .innerJoin(topicMembers, eq(topicMembers.topicId, topics.id))
-    .where(eq(topicMembers.userId, user.id))
-    .groupBy(topics.id)
-    .orderBy(topics.name);
+  const service = new TopicService(db);
+  const topicList = await service.listForUser(user.id);
 
   return json({ user, topics: topicList });
 }

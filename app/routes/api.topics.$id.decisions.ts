@@ -11,9 +11,7 @@ import type {
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { GraphStore } from "~/lib/graph/store";
-import { GraphQueryEngine } from "~/lib/graph/query";
-import type { JsonLdGraph, JsonLdNode } from "~/lib/graph/types";
+import { TopicService } from "~/lib/services";
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
   try {
@@ -31,8 +29,8 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       return json({ error: "id 파라미터가 필요합니다" }, { status: 400 });
     }
 
-    const query = new GraphQueryEngine(db);
-    const decisions = await query.findByType("topic", topicId, "dx:Decision");
+    const service = new TopicService(db);
+    const decisions = await service.listDecisions(topicId);
 
     return json({ decisions });
   } catch (error) {
@@ -77,46 +75,19 @@ export async function action({
       return json({ error: "summary는 필수입니다" }, { status: 400 });
     }
 
-    const store = new GraphStore(db);
-    let graph = await store.getByScopeId("topic", topicId);
+    const service = new TopicService(db);
+    const decision = await service.createDecision(
+      topicId,
+      {
+        summary: body.summary.trim(),
+        date: body.date,
+        context: body.context,
+        decidedBy: body.decidedBy,
+      },
+      ctx.user.id,
+    );
 
-    const audit = { actorId: ctx.user.id, actorType: "user" as const };
-
-    // Graph가 없으면 새로 생성
-    if (!graph) {
-      graph = await store.create({
-        scopeType: "topic",
-        scopeId: topicId,
-        jsonld: {
-          "@context": { dx: "https://discovery-x.dev/ns/" },
-          "@graph": [],
-        },
-        contentHash: "",
-      }, audit);
-    }
-
-    // 새 Decision 노드 생성
-    const nodeId = `dx:decision-${crypto.randomUUID()}`;
-    const newNode: JsonLdNode = {
-      "@id": nodeId,
-      "@type": "dx:Decision",
-      "dx:summary": body.summary.trim(),
-      ...(body.date && { "dx:date": body.date }),
-      ...(body.context && { "dx:context": body.context }),
-      ...(body.decidedBy && { "dx:decidedBy": body.decidedBy }),
-      "dx:createdBy": ctx.user.id,
-      "dx:createdAt": new Date().toISOString(),
-    };
-
-    // @graph 배열에 노드 추가 후 Graph 업데이트
-    const updatedJsonld: JsonLdGraph = {
-      ...graph.jsonld,
-      "@graph": [...graph.jsonld["@graph"], newNode],
-    };
-
-    await store.update(graph.id, updatedJsonld, "결정 추가", audit);
-
-    return json({ decision: newNode }, { status: 201 });
+    return json({ decision }, { status: 201 });
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error("[api.topics.$id.decisions] action error:", error);

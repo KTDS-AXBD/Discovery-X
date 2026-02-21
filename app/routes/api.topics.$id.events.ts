@@ -8,7 +8,7 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { GraphStore } from "~/lib/graph/store";
+import { TopicService } from "~/lib/services";
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
   try {
@@ -32,15 +32,8 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       200,
     );
 
-    // Topic에 연결된 Graph 조회
-    const store = new GraphStore(db);
-    const graph = await store.getByScopeId("topic", topicId);
-
-    if (!graph) {
-      return json({ events: [] });
-    }
-
-    const events = await store.getHistory(graph.id, limit);
+    const service = new TopicService(db);
+    const events = await service.listEvents(topicId, limit);
 
     return json({ events });
   } catch (error) {

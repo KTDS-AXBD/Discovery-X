@@ -3,9 +3,9 @@ import { json, redirect } from "@remix-run/cloudflare";
 import { Link, useLoaderData, useSearchParams } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import { getDb } from "~/db";
-import { discoveries, users } from "~/db/schema";
+import { DiscoveryStatus } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { tenantWhere } from "~/lib/query/tenant-scope";
+import { DiscoveryService } from "~/lib/services";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { StatusBadge } from "~/components/ui/StatusBadge";
@@ -15,9 +15,7 @@ import { SearchInput } from "~/components/ui/SearchInput";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "~/components/ui/Table";
 import { STATUS_CONFIG } from "~/lib/constants/status";
 import { cn } from "~/lib/utils/cn";
-import { eq, inArray } from "drizzle-orm";
-import { DiscoveryStatus } from "~/db/schema";
-import { formatDate, isOverdue } from "~/lib/format-date";
+import { formatDate } from "~/lib/format-date";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -28,55 +26,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return redirect("/login");
   }
 
-  // Get filter from query params
   const url = new URL(request.url);
   const statusFilter = url.searchParams.get("status");
 
-  // Query discoveries with optional status filter + tenant scope
-  let allDiscoveries;
-  if (statusFilter === "OVERDUE") {
-    // Special filter: OPEN/EXTENSION_REQUESTED + dueDate < now
-    const openDiscoveries = await db.select().from(discoveries)
-      .where(tenantWhere(discoveries, ctx.tenantId));
-    allDiscoveries = openDiscoveries.filter(
-      (d) =>
-        (d.status === DiscoveryStatus.IDEA_CARD ||
-          d.status === DiscoveryStatus.HYPOTHESIS) &&
-        isOverdue(d.dueDate)
-    );
-  } else if (statusFilter && statusFilter in DiscoveryStatus) {
-    allDiscoveries = await db.select().from(discoveries)
-      .where(tenantWhere(discoveries, ctx.tenantId, eq(discoveries.status, statusFilter)));
-  } else {
-    allDiscoveries = await db.select().from(discoveries)
-      .where(tenantWhere(discoveries, ctx.tenantId));
-  }
-
-  // Batch-fetch owner names
-  const ownerIds = [...new Set(allDiscoveries.map((d) => d.ownerId).filter(Boolean))] as string[];
-  const ownerList = ownerIds.length > 0
-    ? await db.select().from(users).where(inArray(users.id, ownerIds))
-    : [];
-  const ownerMap = new Map(ownerList.map((u) => [u.id, u]));
-
-  const discoveryList = allDiscoveries.map((discovery) => {
-    const owner = discovery.ownerId ? ownerMap.get(discovery.ownerId) : null;
-
-    const isInboxOverdue =
-      discovery.status === DiscoveryStatus.DISCOVERY &&
-      Date.now() - new Date(discovery.createdAt).getTime() > 7 * 24 * 60 * 60 * 1000;
-
-    const isOpenOverdue =
-      (discovery.status === DiscoveryStatus.IDEA_CARD ||
-        discovery.status === DiscoveryStatus.HYPOTHESIS) &&
-      isOverdue(discovery.dueDate);
-
-    return {
-      ...discovery,
-      ownerName: owner?.name,
-      isInboxOverdue,
-      isOpenOverdue,
-    };
+  const service = new DiscoveryService(db);
+  const discoveryList = await service.list({
+    tenantId: ctx.tenantId,
+    status: statusFilter || undefined,
   });
 
   return json({ user: ctx.user, discoveries: discoveryList });

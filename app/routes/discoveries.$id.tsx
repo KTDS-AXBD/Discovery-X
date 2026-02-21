@@ -2,8 +2,10 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, experiments, evidence, users, eventLogs, discoveryKpis, kpiMeasurements, discoveryLinks } from "~/db/schema";
+import { discoveries, users, discoveryKpis, kpiMeasurements, discoveryLinks } from "~/db/schema";
+import { DiscoveryStatus } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
+import { DiscoveryService } from "~/lib/services";
 import { AppShell } from "~/components/layout/AppShell";
 import { StatusBadge } from "~/components/ui/StatusBadge";
 import { Badge } from "~/components/ui/Badge";
@@ -13,8 +15,6 @@ import { Select } from "~/components/ui/Select";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { cn } from "~/lib/utils/cn";
 import { eq, desc, inArray } from "drizzle-orm";
-import { DiscoveryStatus } from "~/db/schema";
-import { ACTIVE_STATUSES } from "~/lib/constants/status";
 import { KpiCard } from "~/components/dashboard/KpiCard";
 import { RelatedDiscoveries } from "~/components/discovery/RelatedDiscoveries";
 import { ExperimentGantt } from "~/components/charts/ExperimentGantt";
@@ -35,44 +35,19 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  // Get discovery
-  const discovery = await db.query.discoveries.findFirst({
-    where: eq(discoveries.id, id),
-  });
+  const service = new DiscoveryService(db);
 
-  if (!discovery) {
+  // 코어 데이터: Discovery + Owner + Reviewer + Gatekeeper + Experiments + Evidence
+  const detail = await service.getDetail(id);
+  if (!detail) {
     throw new Response("Not Found", { status: 404 });
   }
+  const { discovery, owner, reviewer, gatekeeper, experiments: discoveryExperiments, evidence: discoveryEvidence } = detail;
 
-  // Get owner and reviewer
-  const owner = discovery.ownerId
-    ? await db.query.users.findFirst({ where: eq(users.id, discovery.ownerId) })
-    : null;
-
-  const reviewer = discovery.reviewerId
-    ? await db.query.users.findFirst({ where: eq(users.id, discovery.reviewerId) })
-    : null;
-
-  const gatekeeper = discovery.gatekeeperId
-    ? await db.query.users.findFirst({ where: eq(users.id, discovery.gatekeeperId) })
-    : null;
-
-  // Get experiments
-  const discoveryExperiments = await db
-    .select()
-    .from(experiments)
-    .where(eq(experiments.discoveryId, id));
-
-  // Get evidence
-  const discoveryEvidence = await db
-    .select()
-    .from(evidence)
-    .where(eq(evidence.discoveryId, id));
-
-  // Get all users for Owner selection
+  // All users for Owner selection
   const allUsers = await db.select().from(users);
 
-  // Get KPIs + recent measurements
+  // KPIs + recent measurements
   const kpis = await db
     .select()
     .from(discoveryKpis)
@@ -97,7 +72,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     })
   );
 
-  // Get discovery links (from and to)
+  // Discovery links (from and to)
   const linksFrom = await db
     .select()
     .from(discoveryLinks)
@@ -120,7 +95,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     ...linksTo.map((l) => ({ ...l, direction: "to" as const })),
   ];
 
-  // Get related discoveries via embeddings (Vectorize → fallback empty)
+  // Related discoveries via embeddings (Vectorize → fallback empty)
   let relatedDiscoveries: Array<{ id: string; score: number; title?: string }> = [];
   try {
     const cfEnv = context.cloudflare.env as unknown as Record<string, unknown>;
@@ -136,14 +111,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     // Vectorize 미응답 시 빈 배열 유지
   }
 
-  // Get activity logs for this discovery
-  const activityLogs = await db
-    .select()
-    .from(eventLogs)
-    .where(eq(eventLogs.discoveryId, id))
-    .orderBy(desc(eventLogs.timestamp))
-    .limit(50);
-
+  // Activity logs
+  const activityLogs = await service.getActivityLogs(id);
   const actorIds = [...new Set(activityLogs.map((l) => l.actorId))];
   const systemActors = ["system-agent", "system-radar", "system"];
   const nonSystemActorIds = actorIds.filter((aid) => !systemActors.includes(aid));
@@ -151,7 +120,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     ? await db.select().from(users).where(inArray(users.id, nonSystemActorIds))
     : [];
   const actorMap = new Map<string, string>();
-  for (const aid of systemActors) actorMap.set(aid, "\uC2DC\uC2A4\uD15C");
+  for (const aid of systemActors) actorMap.set(aid, "시스템");
   for (const u of actorUsers) actorMap.set(u.id, u.name);
 
   const serializedLogs = activityLogs.map((l) => ({
@@ -203,82 +172,51 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  const discovery = await db.query.discoveries.findFirst({
-    where: eq(discoveries.id, id),
-  });
-
-  if (!discovery) {
-    throw new Response("Not Found", { status: 404 });
-  }
-
+  const service = new DiscoveryService(db);
   const formData = await request.formData();
   const intent = formData.get("intent");
 
-  if (intent === "changeOwner") {
-    if (!(ACTIVE_STATUSES as readonly string[]).includes(discovery.status)) {
-      return json({ error: "활성 상태(DISCOVERY~GATE2)에서만 Owner를 변경할 수 있습니다" }, { status: 400 });
+  try {
+    if (intent === "changeOwner") {
+      const newOwnerId = formData.get("ownerId");
+      if (!newOwnerId) {
+        return json({ error: "Owner를 선택해주세요" }, { status: 400 });
+      }
+      const handoverNote = formData.get("handoverNote");
+      if (!handoverNote || String(handoverNote).trim().length < 10) {
+        return json({ error: "인수인계 메모는 필수입니다. 진행 상황과 다음 결정 사항을 작성해주세요." }, { status: 400 });
+      }
+      await service.changeOwner({
+        discoveryId: id,
+        newOwnerId: String(newOwnerId),
+        actorId: user.id,
+        handoverNote: String(handoverNote),
+      });
+      return redirect(`/discoveries/${id}`);
     }
-    const newOwnerId = formData.get("ownerId");
-    if (!newOwnerId) {
-      return json({ error: "Owner를 선택해주세요" }, { status: 400 });
+
+    if (intent === "changeGatekeeper") {
+      const newGatekeeperId = formData.get("gatekeeperId") || null;
+      await service.changeGatekeeper({
+        discoveryId: id,
+        newGatekeeperId: newGatekeeperId ? String(newGatekeeperId) : null,
+        actorId: user.id,
+      });
+      return redirect(`/discoveries/${id}`);
     }
-    const handoverNote = formData.get("handoverNote");
-    if (!handoverNote || String(handoverNote).trim().length < 10) {
-      return json({ error: "인수인계 메모는 필수입니다. 진행 상황과 다음 결정 사항을 작성해주세요." }, { status: 400 });
+
+    if (intent === "changeReviewer") {
+      const newReviewerId = formData.get("reviewerId") || null;
+      await service.changeReviewer({
+        discoveryId: id,
+        newReviewerId: newReviewerId ? String(newReviewerId) : null,
+        actorId: user.id,
+      });
+      return redirect(`/discoveries/${id}`);
     }
-    await db
-      .update(discoveries)
-      .set({ ownerId: String(newOwnerId), updatedAt: new Date() })
-      .where(eq(discoveries.id, id));
-
-    await db.insert(eventLogs).values({
-      id: crypto.randomUUID(),
-      actorId: user.id,
-      discoveryId: id,
-      eventType: "CHANGE_OWNER",
-      metadata: { previousOwnerId: discovery.ownerId, newOwnerId: String(newOwnerId), handoverNote: String(handoverNote) },
-    });
-
-    return redirect(`/discoveries/${id}`);
-  }
-
-  if (intent === "changeGatekeeper") {
-    const newGatekeeperId = formData.get("gatekeeperId") || null;
-    await db
-      .update(discoveries)
-      .set({ gatekeeperId: newGatekeeperId ? String(newGatekeeperId) : null, updatedAt: new Date() })
-      .where(eq(discoveries.id, id));
-
-    await db.insert(eventLogs).values({
-      id: crypto.randomUUID(),
-      actorId: user.id,
-      discoveryId: id,
-      eventType: "CHANGE_GATEKEEPER",
-      metadata: { previousGatekeeperId: discovery.gatekeeperId, newGatekeeperId: newGatekeeperId ? String(newGatekeeperId) : null },
-    });
-
-    return redirect(`/discoveries/${id}`);
-  }
-
-  if (intent === "changeReviewer") {
-    if (discovery.status !== DiscoveryStatus.DISCOVERY && discovery.status !== DiscoveryStatus.IDEA_CARD) {
-      return json({ error: "INBOX/OPEN 상태에서만 Reviewer를 변경할 수 있습니다" }, { status: 400 });
-    }
-    const newReviewerId = formData.get("reviewerId") || null;
-    await db
-      .update(discoveries)
-      .set({ reviewerId: newReviewerId ? String(newReviewerId) : null, updatedAt: new Date() })
-      .where(eq(discoveries.id, id));
-
-    await db.insert(eventLogs).values({
-      id: crypto.randomUUID(),
-      actorId: user.id,
-      discoveryId: id,
-      eventType: "CHANGE_REVIEWER",
-      metadata: { previousReviewerId: discovery.reviewerId, newReviewerId: newReviewerId ? String(newReviewerId) : null },
-    });
-
-    return redirect(`/discoveries/${id}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "처리 중 오류가 발생했습니다";
+    return json({ error: message }, { status: 400 });
   }
 
   return json({ error: "알 수 없는 요청입니다" }, { status: 400 });

@@ -3,13 +3,13 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, eventLogs } from "~/db/schema";
+import { SourceType } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
+import { DiscoveryService } from "~/lib/services";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { CreateDiscoverySchema } from "~/lib/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
-import { SourceType, DiscoveryStatus } from "~/db/schema";
 import { StatusBadge } from "~/components/ui/StatusBadge";
 import { Card, CardContent } from "~/components/ui/Card";
 import { Input } from "~/components/ui/Input";
@@ -66,28 +66,20 @@ export async function action({ request, context }: ActionFunctionArgs) {
       sourceType,
     });
 
-    // Create discovery
-    const discoveryId = crypto.randomUUID();
-    await db.insert(discoveries).values({
-      id: discoveryId,
-      title: validated.title,
-      seedSummary: validated.seedSummary,
-      seedLinks: validated.seedLinks || null,
-      sourceType: validated.sourceType,
-      status: DiscoveryStatus.DISCOVERY,
-      ownerId: user.id, // Set creator as default owner
-      tenantId: ctx.tenantId,
-    });
+    const service = new DiscoveryService(db);
+    const created = await service.create(
+      {
+        title: validated.title,
+        seedSummary: validated.seedSummary,
+        seedLinks: validated.seedLinks,
+        sourceType: validated.sourceType,
+        ownerId: user.id,
+        tenantId: ctx.tenantId,
+      },
+      user.id,
+    );
 
-    await db.insert(eventLogs).values({
-      id: crypto.randomUUID(),
-      actorId: user.id,
-      discoveryId,
-      eventType: "CREATE_DISCOVERY",
-      metadata: { title: validated.title, sourceType: validated.sourceType },
-    });
-
-    return redirect(`/discoveries/${discoveryId}`);
+    return redirect(`/discoveries/${created.id}`);
   } catch (error: unknown) {
     return json({ error: getFormErrorMessage(error) }, { status: 400 });
   }
