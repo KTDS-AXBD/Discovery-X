@@ -4,10 +4,9 @@
  */
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
-import { radarItems } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { RadarService } from "~/lib/services";
 
 interface SummarizeEnv {
   DB: D1Database;
@@ -33,22 +32,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: "itemId는 필수입니다." }, { status: 400 });
   }
 
-  const item = await db
-    .select()
-    .from(radarItems)
-    .where(eq(radarItems.id, body.itemId))
-    .limit(1);
+  const service = new RadarService(db);
+  const item = await service.getItem(body.itemId);
 
-  if (!item[0]) {
+  if (!item) {
     return json({ error: "아이템을 찾을 수 없습니다." }, { status: 404 });
   }
 
   // 이미 keyPoints가 있으면 캐시 반환
-  const existing = item[0].keyPoints as string[] | null;
+  const existing = item.keyPoints as string[] | null;
   if (existing && existing.length > 0) {
     return json({
-      itemId: item[0].id,
-      summaryKo: item[0].summaryKo,
+      itemId: item.id,
+      summaryKo: item.summaryKo,
       keyPoints: existing,
       cached: true,
     });
@@ -59,7 +55,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: "OPENAI_API_KEY가 설정되지 않았습니다." }, { status: 500 });
   }
 
-  const inputText = [item[0].titleKo || item[0].title, item[0].summaryKo || "", item[0].url]
+  const inputText = [item.titleKo || item.title, item.summaryKo || "", item.url]
     .filter(Boolean)
     .join("\n");
 
@@ -105,14 +101,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     // DB 업데이트
-    await db
-      .update(radarItems)
-      .set({ keyPoints })
-      .where(eq(radarItems.id, body.itemId));
+    await service.updateItemKeyPoints({ itemId: body.itemId, keyPoints });
 
     return json({
-      itemId: item[0].id,
-      summaryKo: item[0].summaryKo,
+      itemId: item.id,
+      summaryKo: item.summaryKo,
       keyPoints,
       cached: false,
     });

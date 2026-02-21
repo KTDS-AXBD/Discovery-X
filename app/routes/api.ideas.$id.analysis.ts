@@ -5,9 +5,8 @@
 
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
-import { ideas } from "~/features/ideas/db/schema";
+import { IdeaService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
@@ -24,14 +23,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     return json({ error: "아이디어 ID가 필요합니다" }, { status: 400 });
   }
 
-  const idea = await db
-    .select({
-      title: ideas.title,
-      analysisData: ideas.analysisData,
-    })
-    .from(ideas)
-    .where(eq(ideas.id, ideaId))
-    .get();
+  const service = new IdeaService(db);
+  const idea = await service.getAnalysisData(ideaId);
 
   if (!idea) {
     return json({ error: "아이디어를 찾을 수 없습니다" }, { status: 404 });

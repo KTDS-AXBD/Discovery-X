@@ -1,9 +1,9 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
-import { eq, sql } from "drizzle-orm";
 import { getDb } from "~/db";
-import { proposals, proposalSections, ProposalSectionType } from "~/features/proposals/db/schema";
+import { ProposalSectionType } from "~/features/proposals/db/schema";
+import { ProposalService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { ProposalForm } from "~/components/proposals/ProposalForm";
 import { resolveSection } from "~/features/proposals/constants";
@@ -17,7 +17,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     return redirect("/login");
   }
 
-  const proposal = await db.select().from(proposals).where(eq(proposals.id, params.id!)).get();
+  const service = new ProposalService(db);
+  const proposal = await service.getById(params.id!);
 
   if (!proposal || proposal.tenantId !== ctx.tenantId) {
     throw new Response("Not Found", { status: 404 });
@@ -28,16 +29,12 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     return redirect(`/proposals/${params.id}`);
   }
 
-  const sections = await db
-    .select()
-    .from(proposalSections)
-    .where(eq(proposalSections.proposalId, params.id!));
+  const sections = await service.getSections(params.id!);
 
   // Build sections map with legacy resolution
   const sectionsMap: Record<string, string> = {};
   for (const s of sections) {
     const resolved = resolveSection(s.type);
-    // Prefer new type over legacy type
     if (!sectionsMap[resolved] || s.type === resolved) {
       sectionsMap[resolved] = s.content;
     }
@@ -58,7 +55,8 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
     return redirect("/login");
   }
 
-  const proposal = await db.select().from(proposals).where(eq(proposals.id, params.id!)).get();
+  const service = new ProposalService(db);
+  const proposal = await service.getById(params.id!);
 
   if (!proposal || proposal.tenantId !== ctx.tenantId) {
     throw new Response("Not Found", { status: 404 });
@@ -75,44 +73,30 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
     return json({ error: "제목은 필수입니다." }, { status: 400 });
   }
 
-  const description = String(formData.get("description") || "").trim() || null;
+  const description = String(formData.get("description") || "").trim() || undefined;
   const category = String(formData.get("category") || "").trim() || null;
   const teamSize = formData.get("teamSize") ? Number(formData.get("teamSize")) : null;
   const startDate = String(formData.get("startDate") || "").trim() || null;
   const budget = String(formData.get("budget") || "").trim() || null;
 
-  await db.update(proposals).set({
+  // 제안 기본 정보 업데이트
+  await service.update(params.id!, ctx.tenantId, {
     title,
     description,
     category,
     teamSize,
     startDate,
     budget,
-    updatedAt: sql`(unixepoch())`,
-  }).where(eq(proposals.id, params.id!));
+  });
 
-  // Upsert sections (new types)
+  // 섹션 upsert
   const sectionTypes = Object.values(ProposalSectionType);
-  for (const type of sectionTypes) {
-    const content = String(formData.get(`section_${type}`) || "").trim();
-    const existing = await db
-      .select()
-      .from(proposalSections)
-      .where(eq(proposalSections.proposalId, params.id!))
-      .all()
-      .then((rows) => rows.find((r) => r.type === type));
-
-    if (existing) {
-      await db.update(proposalSections).set({ content }).where(eq(proposalSections.id, existing.id));
-    } else {
-      await db.insert(proposalSections).values({
-        proposalId: params.id!,
-        type,
-        content,
-        sortOrder: sectionTypes.indexOf(type),
-      });
-    }
-  }
+  const sectionsToUpsert = sectionTypes.map((type, index) => ({
+    type,
+    content: String(formData.get(`section_${type}`) || "").trim(),
+    sortOrder: index,
+  }));
+  await service.upsertSections(params.id!, sectionsToUpsert);
 
   return redirect(`/proposals/${params.id}`);
 }

@@ -374,6 +374,46 @@ export class ProposalService {
   }
 
   /**
+   * 섹션 목록 조회
+   */
+  async getSections(
+    proposalId: string,
+  ): Promise<Array<typeof proposalSections.$inferSelect>> {
+    return this.db
+      .select()
+      .from(proposalSections)
+      .where(eq(proposalSections.proposalId, proposalId));
+  }
+
+  /**
+   * 섹션 일괄 upsert (없으면 생성, 있으면 업데이트)
+   */
+  async upsertSections(
+    proposalId: string,
+    sections: Array<{ type: string; content: string; sortOrder: number }>,
+  ): Promise<void> {
+    const existing = await this.getSections(proposalId);
+    const existingMap = new Map(existing.map((s) => [s.type, s]));
+
+    for (const sec of sections) {
+      const found = existingMap.get(sec.type);
+      if (found) {
+        await this.db
+          .update(proposalSections)
+          .set({ content: sec.content })
+          .where(eq(proposalSections.id, found.id));
+      } else {
+        await this.db.insert(proposalSections).values({
+          proposalId,
+          type: sec.type,
+          content: sec.content,
+          sortOrder: sec.sortOrder,
+        });
+      }
+    }
+  }
+
+  /**
    * 단일 섹션 업데이트
    */
   async updateSection(

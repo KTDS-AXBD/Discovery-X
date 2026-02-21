@@ -2,14 +2,16 @@ import { useState } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { useLoaderData, useSearchParams } from "@remix-run/react";
+import type { MethodPack } from "~/db/schema";
 import { getDb } from "~/db";
-import { methodPacks, type MethodPack } from "~/db/schema";
+import { LabService } from "~/lib/services";
 import { MethodPackCard } from "~/components/methods/MethodPackCard";
 import { MethodPackDetailDialog } from "~/components/methods/MethodPackDetailDialog";
 
 export async function loader({ context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
-  const allPacks = await db.select().from(methodPacks);
+  const service = new LabService(db);
+  const allPacks = await service.getMethodPacks();
   return json({ packs: allPacks });
 }
 

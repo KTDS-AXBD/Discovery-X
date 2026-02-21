@@ -3,16 +3,13 @@ import { useNavigate } from "@remix-run/react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useLoaderData, useActionData, useNavigation } from "@remix-run/react";
-import { eq, desc, sql } from "drizzle-orm";
 import { getDb } from "~/db";
 import {
-  radarSources,
-  radarItems,
-  radarRuns,
   RadarSourceType,
   RadarRunStatus,
 } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
+import { RadarService } from "~/lib/services";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Card, CardContent } from "~/components/ui/Card";
@@ -33,25 +30,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   if (!ctx) {
     return redirect("/login");
   }
-  const user = ctx.user;
 
-  const sources = await db.select().from(radarSources).where(eq(radarSources.tenantId, ctx.tenantId));
-  const runs = await db
-    .select()
-    .from(radarRuns)
-    .where(eq(radarRuns.tenantId, ctx.tenantId))
-    .orderBy(desc(radarRuns.startedAt))
-    .limit(20);
+  const service = new RadarService(db);
+  const { sources, runs, recentItems } = await service.getRadarData({
+    tenantId: ctx.tenantId,
+  });
 
-  // Get recent items (last 50) — radarItems has no tenantId, filter via runId subquery
-  const recentItems = await db
-    .select()
-    .from(radarItems)
-    .where(sql`${radarItems.runId} IN (SELECT id FROM radar_runs WHERE tenant_id = ${ctx.tenantId})`)
-    .orderBy(desc(radarItems.collectedAt))
-    .limit(50);
-
-  return json({ user, sources, runs, recentItems });
+  return json({ user: ctx.user, sources, runs, recentItems });
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
@@ -65,6 +50,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const formData = await request.formData();
   const intent = formData.get("intent");
+  const service = new RadarService(db);
 
   if (intent === "create-source") {
     const name = String(formData.get("name") || "").trim();
@@ -85,9 +71,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const keywords = keywordsRaw ? keywordsRaw.split(",").map(k => k.trim()).filter(Boolean) : [];
     const radarTags = radarTagsRaw ? radarTagsRaw.split(",").map(t => t.trim()).filter(Boolean) : [];
 
-    const id = crypto.randomUUID();
-    await db.insert(radarSources).values({
-      id,
+    await service.createSource({
       name,
       sourceType,
       url,
@@ -102,16 +86,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (intent === "toggle-source") {
     const id = String(formData.get("id") || "");
     const currentEnabled = formData.get("enabled") === "1";
-    await db
-      .update(radarSources)
-      .set({ enabled: currentEnabled ? 0 : 1, updatedAt: new Date() })
-      .where(eq(radarSources.id, id));
+    await service.toggleSource(id, currentEnabled);
     return json({ success: true });
   }
 
   if (intent === "delete-source") {
     const id = String(formData.get("id") || "");
-    await db.delete(radarSources).where(eq(radarSources.id, id));
+    await service.deleteSource(id);
     return json({ success: true });
   }
 

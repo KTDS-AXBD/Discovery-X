@@ -7,10 +7,9 @@
 
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
-import { ideas } from "~/features/ideas/db/schema";
-import { proposals, proposalSections, ProposalSectionType } from "~/features/proposals/db/schema";
+import { ProposalSectionType } from "~/features/proposals/db/schema";
+import { IdeaService, ProposalService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import type { AnalysisEntry } from "~/lib/ideas/proposal-mapper";
 import { mapAnalysisToSections } from "~/lib/ideas/proposal-mapper";
@@ -37,11 +36,8 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
   }
 
   // Fetch idea with analysis data
-  const idea = await db
-    .select({ title: ideas.title, analysisData: ideas.analysisData })
-    .from(ideas)
-    .where(eq(ideas.id, ideaId))
-    .get();
+  const ideaService = new IdeaService(db);
+  const idea = await ideaService.getAnalysisData(ideaId);
 
   if (!idea) {
     return json({ error: "아이디어를 찾을 수 없습니다" }, { status: 404 });
@@ -55,10 +51,9 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
   // Map analysis data to proposal sections
   const sectionContents = mapAnalysisToSections(analysisData, selectedCategories);
 
-  // Create proposal
-  const proposalId = crypto.randomUUID();
-  await db.insert(proposals).values({
-    id: proposalId,
+  // Create proposal via ProposalService
+  const proposalService = new ProposalService(db);
+  const proposalId = await proposalService.create({
     tenantId: ctx.tenantId,
     title: idea.title,
     description: "아이디어 분석에서 생성됨",
@@ -67,16 +62,15 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
 
   // Insert all 10 sections
   const sectionTypes = Object.values(ProposalSectionType);
-  const sectionValues = sectionTypes.map((type, i) => {
+  const sectionsToUpsert = sectionTypes.map((type, i) => {
     const mapped = sectionContents.find((s) => s.type === type);
     return {
-      proposalId,
       type,
       content: mapped?.content || "",
       sortOrder: i,
     };
   });
-  await db.insert(proposalSections).values(sectionValues);
+  await proposalService.upsertSections(proposalId, sectionsToUpsert);
 
   return json({ proposalId });
 }

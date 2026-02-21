@@ -1,8 +1,7 @@
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { and, eq } from "drizzle-orm";
 import { getDb } from "~/db";
-import { archiveFolders } from "~/features/archive/db/schema";
+import { FolderService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 
 export async function action({ request, context }: ActionFunctionArgs) {
@@ -25,13 +24,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: "orderedIds 배열이 필요합니다" }, { status: 400 });
     }
 
-    const statements = body.orderedIds.map((id, index) =>
-      db
-        .update(archiveFolders)
-        .set({ sortOrder: index })
-        .where(and(eq(archiveFolders.id, id), eq(archiveFolders.tenantId, ctx!.tenantId))),
-    );
-    await db.batch(statements as [typeof statements[0], ...typeof statements[0][]]);
+    const service = new FolderService(db);
+    await service.reorder(ctx.tenantId, body.orderedIds);
 
     return json({ success: true });
   } catch (error) {

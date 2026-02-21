@@ -1,8 +1,7 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
-import { radarItems } from "~/db/schema";
+import { RadarService } from "~/lib/services";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 
 const MAX_MEMO_LENGTH = 5000;
@@ -24,17 +23,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       return json({ error: "itemId는 필수입니다." }, { status: 400 });
     }
 
-    const item = await db
-      .select({ id: radarItems.id, memo: radarItems.memo })
-      .from(radarItems)
-      .where(eq(radarItems.id, itemId))
-      .limit(1);
+    const service = new RadarService(db);
+    const item = await service.getItemMemo(itemId);
 
-    if (!item[0]) {
+    if (!item) {
       return json({ error: "아이템을 찾을 수 없습니다." }, { status: 404 });
     }
 
-    return json({ itemId, memo: item[0].memo ?? null });
+    return json({ itemId, memo: item.memo ?? null });
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error("[api.ideas.memo] loader error:", error);
@@ -66,20 +62,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: `메모는 ${MAX_MEMO_LENGTH}자 이내여야 합니다.` }, { status: 400 });
     }
 
-    const item = await db
-      .select({ id: radarItems.id })
-      .from(radarItems)
-      .where(eq(radarItems.id, body.itemId))
-      .limit(1);
+    const service = new RadarService(db);
+    const exists = await service.itemExists(body.itemId);
 
-    if (!item[0]) {
+    if (!exists) {
       return json({ error: "아이템을 찾을 수 없습니다." }, { status: 404 });
     }
 
-    await db
-      .update(radarItems)
-      .set({ memo: body.memo ?? null })
-      .where(eq(radarItems.id, body.itemId));
+    await service.updateItemMemo(body.itemId, body.memo ?? null);
 
     return json({ success: true, itemId: body.itemId });
   } catch (error) {

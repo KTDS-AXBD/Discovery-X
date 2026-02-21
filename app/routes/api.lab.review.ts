@@ -1,9 +1,8 @@
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
-import { contextNodes, contextEdges } from "~/db/schema";
 import { getSessionContext } from "~/lib/auth/session.server";
+import { LabService } from "~/lib/services";
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const env = context.cloudflare.env as unknown as {
@@ -30,38 +29,25 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: "Invalid action. Must be: approve, reject, edit" }, 400);
   }
 
+  const service = new LabService(db);
+
   if (body.type === "node") {
-    const node = await db
-      .select({ id: contextNodes.id })
-      .from(contextNodes)
-      .where(eq(contextNodes.id, body.id))
-      .limit(1);
-
-    if (node.length === 0) return json({ error: "Node not found" }, 404);
-
-    const updates: Record<string, unknown> = {
-      reviewed: body.action === "reject" ? 2 : 1,
-    };
-
-    if (body.action === "edit") {
-      if (body.editedLabel) updates.label = body.editedLabel;
-      if (body.editedTypeId) updates.ontologyTypeId = body.editedTypeId;
-    }
-
-    await db.update(contextNodes).set(updates).where(eq(contextNodes.id, body.id));
+    const found = await service.reviewNode({
+      id: body.id,
+      action: body.action,
+      editedLabel: body.editedLabel,
+      editedTypeId: body.editedTypeId,
+    });
+    if (!found) return json({ error: "Node not found" }, 404);
   } else if (body.type === "edge") {
-    const edge = await db
-      .select({ id: contextEdges.id })
-      .from(contextEdges)
-      .where(eq(contextEdges.id, body.id))
-      .limit(1);
-
-    if (edge.length === 0) return json({ error: "Edge not found" }, 404);
-
-    await db
-      .update(contextEdges)
-      .set({ reviewed: body.action === "reject" ? 2 : 1 })
-      .where(eq(contextEdges.id, body.id));
+    if (body.action === "edit") {
+      return json({ error: "Edge edit is not supported" }, 400);
+    }
+    const found = await service.reviewEdge({
+      id: body.id,
+      action: body.action as "approve" | "reject",
+    });
+    if (!found) return json({ error: "Edge not found" }, 404);
   } else {
     return json({ error: "Invalid type. Must be: node, edge" }, 400);
   }

@@ -2,10 +2,8 @@ import { useState, useCallback, useEffect } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { Outlet, useLoaderData, useNavigate, useParams, useRevalidator } from "@remix-run/react";
-import { desc, eq, sql } from "drizzle-orm";
 import { getDb } from "~/db";
-import { radarItems } from "~/db/schema";
-import { ideas } from "~/features/ideas/db/schema";
+import { IdeaService, RadarService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { SidebarProvider } from "~/lib/context/sidebar-context";
 import { usePanelLayout } from "~/lib/hooks/use-panel-layout";
@@ -37,32 +35,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       return redirect("/login");
     }
 
-    // Fetch ideas list for drawer
-    let ideaList: Array<{
-      id: string;
-      title: string;
-      status: string;
-      createdAt: Date | string | null;
-    }> = [];
+    const ideaService = new IdeaService(db);
+    const radarService = new RadarService(db);
 
+    let ideaList: Awaited<ReturnType<IdeaService["list"]>> = [];
     try {
-      ideaList = await db
-        .select({
-          id: ideas.id,
-          title: ideas.title,
-          status: ideas.status,
-          createdAt: ideas.createdAt,
-        })
-        .from(ideas)
-        .where(eq(ideas.tenantId, ctx.tenantId))
-        .orderBy(desc(ideas.createdAt))
-        .limit(50);
+      ideaList = await ideaService.list(ctx.tenantId);
     } catch {
       // ideas table might not exist yet
     }
-
-    // Fetch all radar items for source panel (legacy sources not yet linked to ideas)
-    const tenantRunIds = sql`(SELECT id FROM radar_runs WHERE tenant_id = ${ctx.tenantId})`;
 
     let allItems: Array<{
       id: string;
@@ -75,24 +56,19 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       collectedAt: Date | string | null;
       memo: string | null;
     }> = [];
-
     try {
-      allItems = await db
-        .select({
-          id: radarItems.id,
-          title: radarItems.title,
-          titleKo: radarItems.titleKo,
-          summaryKo: radarItems.summaryKo,
-          url: radarItems.url,
-          relevanceScore: radarItems.relevanceScore,
-          status: radarItems.status,
-          collectedAt: radarItems.collectedAt,
-          memo: radarItems.memo,
-        })
-        .from(radarItems)
-        .where(sql`${radarItems.runId} IN ${tenantRunIds}`)
-        .orderBy(desc(radarItems.collectedAt))
-        .limit(100);
+      const items = await radarService.listRecentItemsByTenant(ctx.tenantId, 100);
+      allItems = items.map((item) => ({
+        id: item.id,
+        title: item.title,
+        titleKo: item.titleKo,
+        summaryKo: item.summaryKo,
+        url: item.url,
+        relevanceScore: item.relevanceScore,
+        status: item.status,
+        collectedAt: item.collectedAt,
+        memo: item.memo,
+      }));
     } catch {
       // Radar tables might not exist
     }

@@ -2,10 +2,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, useOutletContext } from "@remix-run/react";
-import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
-import { radarItems } from "~/db/schema";
-import { ideas, ideaSources } from "~/features/ideas/db/schema";
+import { IdeaService, RadarService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { MethodologyCards } from "~/components/ideas/MethodologyCards";
 import { ALL_METHODOLOGIES } from "~/lib/constants/methodology";
@@ -21,25 +19,13 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     }
 
     const ideaId = params.id!;
+    const ideaService = new IdeaService(db);
 
     // Try loading as idea first
-    const idea = await db.select().from(ideas).where(eq(ideas.id, ideaId)).get();
+    const idea = await ideaService.getById(ideaId);
 
     if (idea) {
-      // Fetch linked sources
-      const sources = await db
-        .select({
-          id: radarItems.id,
-          title: radarItems.title,
-          titleKo: radarItems.titleKo,
-          summaryKo: radarItems.summaryKo,
-          url: radarItems.url,
-          keyPoints: radarItems.keyPoints,
-          memo: radarItems.memo,
-        })
-        .from(ideaSources)
-        .innerJoin(radarItems, eq(ideaSources.radarItemId, radarItems.id))
-        .where(eq(ideaSources.ideaId, ideaId));
+      const sources = await ideaService.getLinkedSourcesDetail(ideaId);
 
       return json({
         type: "idea" as const,
@@ -50,7 +36,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     }
 
     // Fallback: try loading as radarItem (backward compatibility)
-    const item = await db.select().from(radarItems).where(eq(radarItems.id, ideaId)).get();
+    const radarService = new RadarService(db);
+    const item = await radarService.getItem(ideaId);
 
     if (!item) {
       throw new Response("Not Found", { status: 404 });

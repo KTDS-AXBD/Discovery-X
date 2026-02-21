@@ -3,10 +3,9 @@
  */
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { eq, and } from "drizzle-orm";
 import { getDb } from "~/db";
-import { radarItems, radarItemUserStatus } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { RadarService } from "~/lib/services";
 
 type Reaction = "like" | "dislike" | null;
 
@@ -38,45 +37,20 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       );
     }
 
-    // 아이템 존재 확인
-    const item = await db
-      .select({ id: radarItems.id })
-      .from(radarItems)
-      .where(eq(radarItems.id, itemId))
-      .limit(1);
+    const service = new RadarService(db);
 
-    if (!item[0]) {
+    // 아이템 존재 확인
+    if (!(await service.itemExists(itemId))) {
       return json({ error: "아이템을 찾을 수 없습니다." }, { status: 404 });
     }
 
-    // UPSERT
-    const existing = await db
-      .select()
-      .from(radarItemUserStatus)
-      .where(
-        and(
-          eq(radarItemUserStatus.userId, user.id),
-          eq(radarItemUserStatus.itemId, itemId),
-        ),
-      )
-      .limit(1);
+    const result = await service.upsertItemReaction({
+      userId: user.id,
+      itemId,
+      reaction,
+    });
 
-    if (existing[0]) {
-      await db
-        .update(radarItemUserStatus)
-        .set({ reaction })
-        .where(eq(radarItemUserStatus.id, existing[0].id));
-    } else {
-      await db.insert(radarItemUserStatus).values({
-        id: crypto.randomUUID(),
-        userId: user.id,
-        itemId,
-        status: "new",
-        reaction,
-      });
-    }
-
-    return json({ success: true, itemId, reaction });
+    return json({ success: true, ...result });
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error("[api.radar.items.$id.reaction] error:", error);

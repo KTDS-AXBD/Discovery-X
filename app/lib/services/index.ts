@@ -4,3 +4,7 @@ export { TopicService } from "./topic.service";
 export { SignalService } from "./signal.service";
 export { MatrixService } from "./matrix.service";
 export { ScoringService } from "./scoring.service";
+export { FolderService } from "./folder.service";
+export { RadarService } from "./radar.service";
+export { LabService } from "./lab.service";
+export { IdeaService } from "./idea.service";

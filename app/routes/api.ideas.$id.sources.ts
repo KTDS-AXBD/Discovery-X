@@ -3,7 +3,7 @@ import { json } from "@remix-run/cloudflare";
 import { eq, and, gte } from "drizzle-orm";
 import { getDb } from "~/db";
 import { radarSources, radarItems, radarRuns } from "~/db/schema";
-import { ideaSources } from "~/features/ideas/db/schema";
+import { IdeaService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 
 function detectSourceType(input: string): "web" | "youtube" | "text" {
@@ -43,22 +43,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     return json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const ideaId = params.id!;
-  const sources = await db
-    .select({
-      id: ideaSources.id,
-      radarItemId: ideaSources.radarItemId,
-      addedAt: ideaSources.addedAt,
-      title: radarItems.title,
-      titleKo: radarItems.titleKo,
-      summaryKo: radarItems.summaryKo,
-      url: radarItems.url,
-      status: radarItems.status,
-      memo: radarItems.memo,
-    })
-    .from(ideaSources)
-    .innerJoin(radarItems, eq(ideaSources.radarItemId, radarItems.id))
-    .where(eq(ideaSources.ideaId, ideaId));
+  const service = new IdeaService(db);
+  const sources = await service.getLinkedSources(params.id!);
 
   return json({ sources });
 }
@@ -73,6 +59,7 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
   }
 
   const ideaId = params.id!;
+  const service = new IdeaService(db);
 
   // DELETE: remove a source link from the idea
   if (request.method === "DELETE") {
@@ -82,12 +69,7 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
       return json({ error: "radarItemId가 필요합니다." }, { status: 400 });
     }
 
-    await db.delete(ideaSources).where(
-      and(
-        eq(ideaSources.ideaId, ideaId),
-        eq(ideaSources.radarItemId, radarItemId)
-      )
-    );
+    await service.unlinkSource(ideaId, radarItemId);
     return json({ success: true });
   }
 
@@ -185,16 +167,10 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
         });
       }
 
-      // Link to idea (ignore duplicate)
-      try {
-        await db.insert(ideaSources).values({
-          id: crypto.randomUUID(),
-          ideaId,
-          radarItemId: itemId,
-        });
+      // Link to idea via service
+      const linked = await service.linkSource(ideaId, itemId);
+      if (linked) {
         created.push({ id: itemId, title });
-      } catch {
-        // duplicate — already linked
       }
     }
 

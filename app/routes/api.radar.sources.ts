@@ -1,9 +1,8 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
-import { eq, or, isNull } from "drizzle-orm";
 import { getDb } from "~/db";
-import { radarSources } from "~/db/schema";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { RadarService } from "~/lib/services";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -17,12 +16,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const userOnly = url.searchParams.get("userOnly") === "true";
 
-  // BD팀 PoC: userId 필터 — 본인 소스 + 공용 소스(userId=null)
-  const sources = userOnly
-    ? await db.select().from(radarSources).where(
-        or(eq(radarSources.userId, user.id), isNull(radarSources.userId))
-      )
-    : await db.select().from(radarSources);
+  const service = new RadarService(db);
+  const sources = await service.listSources({ userOnly, userId: user.id });
 
   return json({ sources });
 }
@@ -38,6 +33,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const formData = await request.formData();
   const intent = formData.get("intent");
+  const service = new RadarService(db);
 
   if (intent === "create") {
     const name = String(formData.get("name") || "").trim();
@@ -74,9 +70,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       try { radarTags = JSON.parse(radarTagsRaw); } catch { radarTags = radarTagsRaw.split(",").map(t => t.trim()).filter(Boolean); }
     }
 
-    const id = crypto.randomUUID();
-    await db.insert(radarSources).values({
-      id,
+    const id = await service.createSource({
       name,
       sourceType,
       url,
@@ -100,21 +94,22 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: "id는 필수입니다." }, { status: 400 });
     }
 
-    const updates: Record<string, unknown> = {
-      updatedAt: new Date(),
-    };
-    if (name) updates.name = name;
-    if (url) updates.url = url;
-    if (formData.has("enabled")) updates.enabled = enabled;
+    let config: Record<string, unknown> | undefined;
     if (configRaw) {
       try {
-        updates.config = JSON.parse(configRaw);
+        config = JSON.parse(configRaw);
       } catch {
         return json({ error: "config는 유효한 JSON이어야 합니다." }, { status: 400 });
       }
     }
 
-    await db.update(radarSources).set(updates).where(eq(radarSources.id, id));
+    await service.updateSource({
+      id,
+      name: name || undefined,
+      url: url || undefined,
+      enabled: formData.has("enabled") ? enabled : undefined,
+      config,
+    });
     return json({ success: true });
   }
 
@@ -123,7 +118,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (!id) {
       return json({ error: "id는 필수입니다." }, { status: 400 });
     }
-    await db.delete(radarSources).where(eq(radarSources.id, id));
+    await service.deleteSource(id);
     return json({ success: true });
   }
 

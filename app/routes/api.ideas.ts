@@ -1,8 +1,7 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
-import { eq, desc, sql } from "drizzle-orm";
 import { getDb } from "~/db";
-import { ideas } from "~/features/ideas/db/schema";
+import { IdeaService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -14,17 +13,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const ideaList = await db
-    .select({
-      id: ideas.id,
-      title: ideas.title,
-      status: ideas.status,
-      createdAt: ideas.createdAt,
-    })
-    .from(ideas)
-    .where(eq(ideas.tenantId, ctx.tenantId))
-    .orderBy(desc(ideas.createdAt))
-    .limit(50);
+  const service = new IdeaService(db);
+  const ideaList = await service.list(ctx.tenantId);
 
   return json({ ideas: ideaList });
 }
@@ -42,6 +32,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const service = new IdeaService(db);
+
   if (request.method === "PATCH") {
     const body = (await request.json()) as { id?: string; title?: string };
     if (!body.id) {
@@ -55,11 +47,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: "제목은 200자 이내여야 합니다." }, { status: 400 });
     }
 
-    await db
-      .update(ideas)
-      .set({ title, updatedAt: sql`(unixepoch())` })
-      .where(eq(ideas.id, body.id));
-
+    await service.updateTitle(body.id, title);
     return json({ ok: true, title });
   }
 
@@ -67,14 +55,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const body = (await request.json()) as { title?: string };
     const title = body.title?.trim() || "새 아이디어";
 
-    const id = crypto.randomUUID();
-    await db.insert(ideas).values({
-      id,
-      tenantId: ctx.tenantId,
-      ownerId: ctx.user.id,
-      title,
-    });
-
+    const id = await service.create(ctx.tenantId, ctx.user.id, title);
     return redirect(`/ideas/${id}`);
   }
 
@@ -84,7 +65,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: "id가 필요합니다." }, { status: 400 });
     }
 
-    await db.delete(ideas).where(eq(ideas.id, body.id));
+    await service.delete(body.id);
     return json({ ok: true });
   }
 

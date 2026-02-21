@@ -1,8 +1,7 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { asc, count, eq, max, sql } from "drizzle-orm";
 import { getDb } from "~/db";
-import { archiveFolders, archiveFolderItems } from "~/features/archive/db/schema";
+import { FolderService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -15,31 +14,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       return json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const itemCountSq = db
-      .select({
-        folderId: archiveFolderItems.folderId,
-        itemCount: count(archiveFolderItems.id).as("item_count"),
-      })
-      .from(archiveFolderItems)
-      .groupBy(archiveFolderItems.folderId)
-      .as("item_counts");
-
-    const folders = await db
-      .select({
-        id: archiveFolders.id,
-        tenantId: archiveFolders.tenantId,
-        name: archiveFolders.name,
-        icon: archiveFolders.icon,
-        sortOrder: archiveFolders.sortOrder,
-        createdBy: archiveFolders.createdBy,
-        createdAt: archiveFolders.createdAt,
-        updatedAt: archiveFolders.updatedAt,
-        itemCount: sql<number>`coalesce(${itemCountSq.itemCount}, 0)`.as("item_count"),
-      })
-      .from(archiveFolders)
-      .leftJoin(itemCountSq, eq(archiveFolders.id, itemCountSq.folderId))
-      .where(eq(archiveFolders.tenantId, ctx.tenantId))
-      .orderBy(asc(archiveFolders.sortOrder), asc(archiveFolders.createdAt));
+    const service = new FolderService(db);
+    const folders = await service.list(ctx.tenantId);
 
     return json({ folders });
   } catch (error) {
@@ -73,23 +49,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
       );
     }
 
-    const maxOrder = await db
-      .select({ val: max(archiveFolders.sortOrder) })
-      .from(archiveFolders)
-      .where(eq(archiveFolders.tenantId, ctx.tenantId))
-      .get();
-
-    const nextOrder = (maxOrder?.val ?? -1) + 1;
-
-    const [folder] = await db
-      .insert(archiveFolders)
-      .values({
-        tenantId: ctx.tenantId,
-        name,
-        sortOrder: nextOrder,
-        createdBy: ctx.user.id,
-      })
-      .returning();
+    const service = new FolderService(db);
+    const folder = await service.create({
+      tenantId: ctx.tenantId,
+      name,
+      createdBy: ctx.user.id,
+    });
 
     return json({ folder }, { status: 201 });
   } catch (error) {

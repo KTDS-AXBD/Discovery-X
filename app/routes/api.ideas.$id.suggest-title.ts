@@ -1,9 +1,7 @@
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
-import { radarItems } from "~/db/schema";
-import { ideas, ideaSources } from "~/features/ideas/db/schema";
+import { IdeaService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { callClaude } from "~/lib/agent/claude-client";
 
@@ -21,26 +19,17 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
   }
 
   const ideaId = params.id!;
+  const service = new IdeaService(db);
 
   // Fetch linked sources for this idea
-  const sources = await db
-    .select({
-      title: radarItems.title,
-      titleKo: radarItems.titleKo,
-      summaryKo: radarItems.summaryKo,
-      memo: radarItems.memo,
-    })
-    .from(ideaSources)
-    .innerJoin(radarItems, eq(ideaSources.radarItemId, radarItems.id))
-    .where(eq(ideaSources.ideaId, ideaId))
-    .limit(10);
+  const sources = await service.getLinkedSourcesForContext(ideaId);
 
   if (sources.length === 0) {
     return json({ error: "소스가 없습니다. 소스를 추가한 후 다시 시도해주세요." }, { status: 400 });
   }
 
   // Also fetch existing analysis data for richer context
-  const idea = await db.select({ analysisData: ideas.analysisData }).from(ideas).where(eq(ideas.id, ideaId)).get();
+  const idea = await service.getAnalysisData(ideaId);
   const analysisKeys = idea?.analysisData ? Object.keys(idea.analysisData as Record<string, unknown>) : [];
 
   // Build context from sources

@@ -6,8 +6,7 @@
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { ideas } from "~/features/ideas/db/schema";
-import { eq } from "drizzle-orm";
+import { IdeaService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { runIdeaAnalysis } from "~/lib/ideas/analyzer";
 import type { AnalysisProgress } from "~/lib/ideas/analyzer";
@@ -27,7 +26,8 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   }
 
   // Verify idea exists and belongs to tenant
-  const idea = await db.select().from(ideas).where(eq(ideas.id, ideaId)).get();
+  const service = new IdeaService(db);
+  const idea = await service.getById(ideaId);
   if (!idea || idea.tenantId !== ctx.tenantId) {
     return json({ error: "아이디어를 찾을 수 없습니다" }, { status: 404 });
   }

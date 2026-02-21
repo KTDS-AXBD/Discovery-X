@@ -2,10 +2,9 @@ import { useState, useMemo } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { useLoaderData, useFetcher } from "@remix-run/react";
-import { eq, and, ne } from "drizzle-orm";
 import { getDb } from "~/db";
-import { contextNodes, discoveries, ontologyTypes } from "~/db/schema";
 import { getSessionContext } from "~/lib/auth/session.server";
+import { LabService } from "~/lib/services";
 import { InsightPanel } from "~/components/ontology/InsightPanel";
 import { SimulationView } from "~/components/ontology/SimulationView";
 import { Badge } from "~/components/ui/Badge";
@@ -30,25 +29,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const ctx = await getSessionContext(request, db, env.SESSION_SECRET);
   if (!ctx) throw new Response("Unauthorized", { status: 401 });
 
-  // Simulation needs nodes and types
-  const nodes = await db
-    .select({
-      id: contextNodes.id,
-      label: contextNodes.label,
-      ontologyTypeId: contextNodes.ontologyTypeId,
-      discoveryId: contextNodes.discoveryId,
-      globalEntityId: contextNodes.globalEntityId,
-    })
-    .from(contextNodes)
-    .innerJoin(discoveries, eq(contextNodes.discoveryId, discoveries.id))
-    .where(
-      and(eq(discoveries.tenantId, ctx.tenantId), ne(contextNodes.reviewed, 2)),
-    )
-    .limit(200);
+  const service = new LabService(db);
+  const data = await service.getAnalysisData({ tenantId: ctx.tenantId });
 
-  const types = await db.select().from(ontologyTypes);
-
-  return json({ nodes, types, tenantId: ctx.tenantId });
+  return json(data);
 }
 
 export default function LabAnalysis() {

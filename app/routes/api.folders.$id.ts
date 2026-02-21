@@ -1,8 +1,7 @@
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { and, eq, sql } from "drizzle-orm";
 import { getDb } from "~/db";
-import { archiveFolders } from "~/features/archive/db/schema";
+import { FolderService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 
 export async function action({ request, params, context }: ActionFunctionArgs) {
@@ -16,6 +15,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     }
 
     const folderId = params.id!;
+    const service = new FolderService(db);
 
     if (request.method === "PATCH") {
       const body = (await request.json()) as { name?: string; icon?: string };
@@ -25,30 +25,22 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
         return json({ error: "폴더 이름은 1~20자여야 합니다" }, { status: 400 });
       }
 
-      const updates: Record<string, unknown> = { updatedAt: sql`(unixepoch())` };
-      if (name !== undefined) updates.name = name;
-      if (body.icon !== undefined) updates.icon = body.icon;
+      const folder = await service.update(folderId, ctx.tenantId, {
+        name,
+        icon: body.icon,
+      });
 
-      const result = await db
-        .update(archiveFolders)
-        .set(updates)
-        .where(and(eq(archiveFolders.id, folderId), eq(archiveFolders.tenantId, ctx.tenantId)))
-        .returning();
-
-      if (result.length === 0) {
+      if (!folder) {
         return json({ error: "폴더를 찾을 수 없습니다" }, { status: 404 });
       }
 
-      return json({ folder: result[0] });
+      return json({ folder });
     }
 
     if (request.method === "DELETE") {
-      const result = await db
-        .delete(archiveFolders)
-        .where(and(eq(archiveFolders.id, folderId), eq(archiveFolders.tenantId, ctx.tenantId)))
-        .returning({ id: archiveFolders.id });
+      const deleted = await service.delete(folderId, ctx.tenantId);
 
-      if (result.length === 0) {
+      if (!deleted) {
         return json({ error: "폴더를 찾을 수 없습니다" }, { status: 404 });
       }
 
