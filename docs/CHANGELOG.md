@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 229 (2026-02-21)
+**리팩토링 Phase 4 UI 정리 — dead 컴포넌트 5개 삭제 + dead 참조 수정 (-457 LOC)**:
+- ✅ `CollectionStatusPanel.tsx` 삭제 (import 0, dashboard 서브라우트 삭제 잔해)
+- ✅ `StageDurationTable.tsx` 삭제 (import 0)
+- ✅ `DailyActivityChart.tsx` 삭제 (import 0)
+- ✅ `IndustryDonut.tsx` 삭제 (import 0, StatisticsPanel에 자체 구현 있음)
+- ✅ `DuplicateCard.tsx` 삭제 (evidence/duplicates 라우트 삭제 잔해) + evidence 폴더 정리
+- ✅ `TenantSettingsForm.tsx`: shadowMode + valueupEngine 토글 제거 (radarEnabled만 유지)
+- ✅ `SidebarPanel.tsx`: 버전 "v4.2" → "v6.18"
+
+**검증 결과**: ✅ typecheck 0 에러 / lint 0 에러
+
 ### 세션 228 (2026-02-20)
 **리팩토링 Phase 2+3 — Cron 통합 + 모듈 아카이브, 119파일 삭제, -50,836 LOC**:
 
