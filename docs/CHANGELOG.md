@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 230 (2026-02-21)
+**리팩토링 Phase 5 스키마/도구 정리 — valueup/shadow 삭제 (-1,600 LOC)**:
+- ✅ `valueup-tools.ts` (610줄) 전체 삭제 — executor에서만 참조
+- ✅ `shadow-tools.ts` (528줄) 전체 삭제 — executor에서만 참조
+- ✅ `executor.ts` 수정: shadow/valueup import 2개 + case 7개 제거 (-27줄)
+- ✅ `tool-registry.ts` 수정: TOOL_MIN_AUTONOMY 7개 + 도구 정의 7개 제거 (-159줄)
+- ✅ `schema.ts` 수정: shadow 2테이블 + valueup 4테이블 + 12타입 + features 필드 제거 (-276줄)
+- ✅ `industryAdapters`/`industryRules` 보존 (dashboard/compliance/query/discovery 4곳 활성 사용)
+- ℹ️ Phase 6 서비스 정리 보류: briefing-builder/signal-router/pipeline-bridge 모두 활성 Cron 참조
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공 (2,007 kB)
+
 ### 세션 229 (2026-02-21)
 **리팩토링 Phase 4 UI 정리 — dead 컴포넌트 5개 삭제 + dead 참조 수정 (-457 LOC)**:
 - ✅ `CollectionStatusPanel.tsx` 삭제 (import 0, dashboard 서브라우트 삭제 잔해)

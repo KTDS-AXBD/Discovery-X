@@ -419,7 +419,7 @@ build/
 ### 주요 지표
 - **라우트**: 153개 (Phase 2-3 리팩토링: Cron 통합 19→13, Venture/Knowledge/Briefing/ValueUp 아카이브)
 - **테이블**: 92개 (+5: Archive 2, Token 1, Matrix 7, Worker 2, FTS 1, Proposals +2, Graph +1 — 기존 중복 제거 후)
-- **Agent 도구**: 54개 (변경 없음)
+- **Agent 도구**: 47개 (Phase 5: shadow 3 + valueup 4 도구 삭제)
 - **테스트**: 1111개 (82 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
