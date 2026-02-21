@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 235 (2026-02-21)
+**executor.ts 모듈화 (switch→Map) + tool-registry.ts 도메인별 분할**:
+- ✅ `executor.ts` 885→549줄: 47-case switch를 `Record<string, ToolHandler>` Map 패턴으로 전환 → `tool-handlers.ts` (217줄) 분리
+- ✅ `agent-utils.ts` (97줄) 분리: generateId, updateTokenUsage, sendBudgetWarning, addSummaryHeader
+- ✅ `tool-registry.ts` 1,164→127줄: AGENT_TOOLS를 8개 도메인 스키마 파일로 분할 (`tool-schemas/` 디렉토리, 1,124줄)
+  - discovery, decision, query, method, ontology, platform, strategic, idea
+- ✅ `/team` Worker 2명 병렬 실행 (W1: executor 모듈화, W2: registry 분할)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 (agent 모듈) / lint 0 에러 / 테스트 1,043/1,043 PASS / build 미확인
+
 ### 세션 234 (2026-02-21)
 **리팩토링 갭 분석 + Dead 코드 정리 (Phase 4 완료)**:
 - ✅ 리팩토링 계획 vs 현재 프로젝트 현황 갭 분석 수행
