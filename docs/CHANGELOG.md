@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 233 (2026-02-21)
+**Gap Analysis 4건 수행 + 설계 문서 현행화 (F20/F21)**:
+- ✅ 4개 설계 문서 Gap Analysis 수행: F20 (60%), F21 (35%), F22 (95%), Ontology (92%), 전체 77% (106/137)
+- ✅ F20 설계 문서 현행화: §7 Implementation Reality 추가 — 3-Panel 아키텍처 재설계 문서화, ideas/ideaSources 테이블 추가, 신규 컴포넌트 15건 기록
+- ✅ F21 설계 문서 현행화: §9 Implementation Reality 추가 — dashboard.metrics.tsx 미존재 확인, 차트 실사용처(metrics.tsx, discoveries.$id.tsx) 문서화, Status → Superseded
+- ✅ Dead 컴포넌트 3개 식별: FilterBar.tsx, SimilarSources.tsx, MemoPanel.tsx (파일 존재하나 미사용)
+- ✅ Task tool subagent 2명 병렬 Gap Analysis (tmux 충돌로 전환)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 (문서 변경만, 코드 변경 없음)
+
 ### 세션 232 (2026-02-21)
 **서비스 레이어 강화 Phase 4A+4B — /team 병렬 작업으로 Discovery + Proposal 서비스 전환**:
 - ✅ DiscoveryService 5개 메서드 추가: promote, submitForApproval, addExperiment, addEvidence, completeExperiment
