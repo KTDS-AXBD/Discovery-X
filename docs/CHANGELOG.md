@@ -10,9 +10,10 @@
 - ✅ `api.chat.ts` import 경로 변경: executor → executor-stream
 - ✅ /team Worker 2명 병렬 실행 (executor-split)
 - ✅ executor.ts 누적 감소: 885→110줄 (세션 235~238, -87.6%)
+- ✅ 프로덕션 배포 완료 (CI/CD ~2분, https://dx.minu.best)
 
 **검증 결과**:
-- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,043/1,043 PASS
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,043/1,043 PASS / 배포 성공
 
 ### 세션 237 (2026-02-21)
 **executor.ts 리팩토링 + 서비스 레이어 전환 마무리**:
