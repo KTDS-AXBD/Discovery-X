@@ -96,17 +96,6 @@ import { SessionManager } from "~/lib/agent/session-manager";
 import { MemoryLifecycle } from "~/lib/agent/memory-lifecycle";
 import { isFeatureEnabled } from "~/lib/feature-flags";
 import {
-  runShadowComparison,
-  getShadowStats,
-  analyzeShadowDeviation,
-} from "./tools/shadow-tools";
-import {
-  createValueupAssessment,
-  runAiReadinessDiagnosis,
-  generateValueupScenario,
-  generateDueDiligenceChecklist,
-} from "./tools/valueup-tools";
-import {
   getTenantInfo,
   manageTenantMembers,
 } from "./tools/tenant-tools";
@@ -270,22 +259,6 @@ async function executeTool(
       return packageEvidenceForAudit(db, toolInput as unknown as Parameters<typeof packageEvidenceForAudit>[1]);
     case "format_compliance_report":
       return formatComplianceReport(db, toolInput as unknown as Parameters<typeof formatComplianceReport>[1]);
-    // Strategic Evolution F2: Shadow Mode tools
-    case "run_shadow_comparison":
-      return runShadowComparison(db, toolInput as unknown as Parameters<typeof runShadowComparison>[1]);
-    case "get_shadow_stats":
-      return getShadowStats(db, toolInput as unknown as Parameters<typeof getShadowStats>[1]);
-    case "analyze_shadow_deviation":
-      return analyzeShadowDeviation(db, toolInput as unknown as Parameters<typeof analyzeShadowDeviation>[1]);
-    // Strategic Evolution F4: Value-up Engine tools
-    case "create_valueup_assessment":
-      return createValueupAssessment(db, toolInput as unknown as Parameters<typeof createValueupAssessment>[1]);
-    case "run_ai_readiness_diagnosis":
-      return runAiReadinessDiagnosis(db, toolInput as unknown as Parameters<typeof runAiReadinessDiagnosis>[1]);
-    case "generate_valueup_scenario":
-      return generateValueupScenario(db, toolInput as unknown as Parameters<typeof generateValueupScenario>[1]);
-    case "generate_due_diligence_checklist":
-      return generateDueDiligenceChecklist(db, toolInput as unknown as Parameters<typeof generateDueDiligenceChecklist>[1]);
     // Multi-Tenant tools (F6)
     case "get_tenant_info":
       return getTenantInfo(db, toolInput as unknown as Parameters<typeof getTenantInfo>[1]);
