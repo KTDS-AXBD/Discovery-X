@@ -93,9 +93,10 @@ PROMPT
 ### 3. Worker 생성 (tmux in-window split)
 
 > **CRITICAL**: worker는 리더와 **같은 window** 내에서 실행된다.
-> 리더 pane **옆에 있는** 다른 pane(Other CC)을 **세로 분할(`-v -b`)**하여 worker pane을 "위에" 생성한다.
+> 리더 오른쪽 이웃 pane의 **가로 넓이를 50% 분할(`-h -b`)**하여 worker 전용 컬럼을 생성한다.
+> 이웃 pane의 **프로세스는 유지**되고 **넓이만 50%로 줄어든다** (높이 변경 없음).
+> Worker 컬럼 내에서 worker 수만큼 **세로 분할(`-v`)**하여 각 worker에게 할당한다.
 > **리더 pane의 크기/위치/프로세스는 절대 변경하지 않는다.**
-> Other CC pane의 프로세스도 유지된다 (높이만 임시로 줄어듬).
 > **break-pane, swap-pane, select-window 사용 금지** — 윈도우 상태 불안정의 원인.
 
 **3a. pane 구조 감지**:
