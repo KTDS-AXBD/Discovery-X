@@ -64,8 +64,6 @@ export function TenantSettingsForm({ tenant, isOwner }: TenantSettingsFormProps)
         </h4>
         <div className="space-y-2">
           {[
-            { key: "shadowMode", label: "Shadow Mode" },
-            { key: "valueupEngine", label: "Value-up Engine" },
             { key: "radarEnabled", label: "Radar" },
           ].map(({ key, label }) => (
             <div key={key} className="flex items-center justify-between rounded-md border border-[var(--axis-surface-tertiary)] px-3 py-2">

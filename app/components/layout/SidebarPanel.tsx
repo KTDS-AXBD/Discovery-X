@@ -310,7 +310,7 @@ export function SidebarPanel({
               </Form>
             </div>
           </div>
-          <p className="mt-1 text-center text-[9px] text-[var(--axis-text-tertiary)]">Discovery-X v4.2</p>
+          <p className="mt-1 text-center text-[9px] text-[var(--axis-text-tertiary)]">Discovery-X v6.18</p>
         </div>
       </aside>
     </>
