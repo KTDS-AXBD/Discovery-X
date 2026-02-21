@@ -3,6 +3,22 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 234 (2026-02-21)
+**리팩토링 갭 분석 + Dead 코드 정리 (Phase 4 완료)**:
+- ✅ 리팩토링 계획 vs 현재 프로젝트 현황 갭 분석 수행
+- ✅ Dead 컴포넌트 3개 삭제: FilterBar/SimilarSources/MemoPanel (-250 LOC)
+- ✅ Dead 서비스 4개 삭제: idea/radar/matrix-graph/topic-graph (-1,014 LOC)
+- ✅ orphan 테스트 4개 삭제 (-1,162 LOC)
+- ✅ services/index.ts 정리: 10→6 exports
+- ✅ SPEC.md 라우트 현행화: 153→139 (삭제된 Market/evidence/dashboard 서브라우트 반영)
+- ✅ SPEC.md 테스트 수 갱신: 1,111→1,043 (78 files)
+- ✅ refactoring.md 현황 수치 갱신: 61,581줄/350파일 (리팩토링 전 대비 -29%)
+- ⚠️ signal.service.ts는 signal-router.ts에서 활성 사용 → 유지
+- 📝 남은 구조적 부채: executor.ts(885줄), tool-registry.ts(1,164줄) 모듈화
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,043/1,043 PASS / build 성공
+
 ### 세션 233 (2026-02-21)
 **Gap Analysis 4건 수행 + 설계 문서 현행화 (F20/F21)**:
 - ✅ 4개 설계 문서 Gap Analysis 수행: F20 (60%), F21 (35%), F22 (95%), Ontology (92%), 전체 77% (106/137)

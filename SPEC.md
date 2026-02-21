@@ -157,11 +157,11 @@ Flow I: BD 워크스페이스 (v4.2)
 **라우팅 정책**
 - `/` → `/dashboard` 리다이렉트 (인증 시), 미인증 시 `/login` 리다이렉트
 
-### 페이지 맵 (153개 라우트)
+### 페이지 맵 (139개 라우트)
 
-**Core (46개)**
+**Core (37개)**
 - `/` — `/dashboard` 리다이렉트 (1)
-- `/dashboard/*` — 대시보드 레이아웃 + 서브탭 (9): _index/metrics/health/alerts/audit-log/review/recall/assets/shadow
+- `/dashboard/*` — 대시보드 레이아웃 + 서브탭 (4): _index/review/recall + layout
 - `/discoveries*` — 목록/생성/상세 (3): _index/new/$id
 - `/discoveries/:id/*` — 편집/승격/실험/근거/결정/Gate/Graph/Methods/승인/연장/규제/패턴 (13)
 - `/settings*` — Agent 설정 + 조직 설정 (2)
@@ -174,14 +174,8 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/admin*` — 관리자 (3): users/seed/costs
 - `/onboarding` — 온보딩 (1)
 - `/pending` — 승인 대기 (1)
-- `/evidence/duplicates` — 근거 중복 관리 (1)
-- ~~`/valueup*`~~ — *(아카이브됨, 세션 228)*
 - `/radar` — Radar 소스 관리 (1)
 - `/admin/monitoring` — 시스템 모니터링 대시보드 (1)
-- `/dashboard/exec` — 경영진 대시보드 (1)
-- `/dashboard/failure-replay` — Monthly Failure Replay (1)
-- `/dashboard/ops` — 운영 대시보드 (1)
-- `/dashboard/ops-metrics` — v1.4 §10 운영 지표 (1)
 - `/api/health` — 시스템 헬스체크 API (1)
 
 **Ideas (5 pages + 3 API)**
@@ -246,10 +240,7 @@ Flow I: BD 워크스페이스 (v4.2)
 
 **Briefing** *(아카이브됨, 세션 228)*
 
-**Market (3개: 2 pages + 1 layout)**
-- `/market` — 시장 분석 레이아웃
-- `/market/_index` — 시장 분석 목록
-- `/market/:id` — 시장 분석 상세
+**Market** *(삭제됨, 세션 227 — Dead Code 정리)*
 
 **Matrix (12개: 3 pages + 9 API)**
 - `/lab/matrix` — Matrix 레이아웃
@@ -300,7 +291,7 @@ Flow I: BD 워크스페이스 (v4.2)
 - `/api/proposals/categories` — 카테고리 API
 - `/api/recall-events` — 재호출 이벤트 API
 
-**라우트 합계**: Core 51 + Ideas 15 + Proposals 7 + Lab 6 + Agent 4 + Profile 3 + Topics 12 + Signals 2 + Matrix 12 + API 41 = **153** (Venture/Knowledge/Briefing/ValueUp 아카이브, Cron 통합 반영)
+**라우트 합계**: Core 37 + Ideas 15 + Proposals 7 + Lab 6 + Agent 4 + Profile 3 + Topics 12 + Signals 2 + Matrix 12 + API 41 = **139** (Venture/Knowledge/Briefing/ValueUp 아카이브, Market/evidence/dashboard 서브라우트 삭제 반영)
 
 ---
 
@@ -417,10 +408,10 @@ build/
 - **DB**: 41개 마이그레이션 (0000~0040), 로컬 적용 완료
 
 ### 주요 지표
-- **라우트**: 153개 (Phase 2-3 리팩토링: Cron 통합 19→13, Venture/Knowledge/Briefing/ValueUp 아카이브)
+- **라우트**: 139개 (리팩토링: Cron 통합 19→13, Venture/Knowledge/Briefing/ValueUp 아카이브, Market/evidence/dashboard 서브라우트 삭제 반영)
 - **테이블**: 92개 (+5: Archive 2, Token 1, Matrix 7, Worker 2, FTS 1, Proposals +2, Graph +1 — 기존 중복 제거 후)
 - **Agent 도구**: 47개 (Phase 5: shadow 3 + valueup 4 도구 삭제)
-- **테스트**: 1111개 (82 test files, 로컬 통과)
+- **테스트**: 1043개 (78 test files, 로컬 통과) — Dead 서비스 4개 + orphan 테스트 4개 삭제 반영
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
