@@ -2,7 +2,8 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, experiments, eventLogs } from "~/db/schema";
+import { discoveries, experiments } from "~/db/schema";
+import { DiscoveryService } from "~/lib/services/discovery.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
@@ -13,7 +14,7 @@ import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { eq, count } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
-import { DiscoveryValidationRules, CreateExperimentSchema } from "~/lib/validation/discovery-rules";
+import { CreateExperimentSchema } from "~/lib/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
 import { formatDate, getDefaultDeadline } from "~/lib/format-date";
 
@@ -85,45 +86,6 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  // Get discovery
-  const discovery = await db.query.discoveries.findFirst({
-    where: eq(discoveries.id, id),
-  });
-
-  if (!discovery) {
-    throw new Response("Not Found", { status: 404 });
-  }
-
-  if (
-    discovery.status !== DiscoveryStatus.IDEA_CARD &&
-    discovery.status !== DiscoveryStatus.IDEA_CARD
-  ) {
-    return json(
-      { error: "OPEN 또는 EXTENSION_REQUESTED 상태의 Discovery만 실험을 추가할 수 있습니다" },
-      { status: 400 }
-    );
-  }
-
-  // Validate experiment limit (max 2, or max 3 if EXTENSION_REQUESTED)
-  if (discovery.status === DiscoveryStatus.IDEA_CARD) {
-    const expCount = await db
-      .select({ count: count() })
-      .from(experiments)
-      .where(eq(experiments.discoveryId, id));
-    if ((expCount[0]?.count || 0) >= 3) {
-      return json(
-        { error: "연장 상태에서도 최대 3개 실험만 가능합니다." },
-        { status: 400 }
-      );
-    }
-  } else {
-    try {
-      await DiscoveryValidationRules.validateExperimentLimit(db, id);
-    } catch (error: unknown) {
-      return json({ error: getFormErrorMessage(error, "실험 제한 초과") }, { status: 400 });
-    }
-  }
-
   const formData = await request.formData();
   const hypothesis = formData.get("hypothesis");
   const minimalAction = formData.get("minimalAction");
@@ -131,13 +93,11 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   const expectedEvidence = formData.get("expectedEvidence");
 
   try {
-    // Parse deadline
     const deadline = deadlineStr ? new Date(String(deadlineStr)) : null;
     if (!deadline) {
       throw new Error("실험 마감일을 입력해주세요");
     }
 
-    // Validate using Zod schema
     const validated = CreateExperimentSchema.parse({
       hypothesis,
       minimalAction,
@@ -145,30 +105,17 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
       expectedEvidence,
     });
 
-    // Create experiment
-    const experimentId = crypto.randomUUID();
-    await db.insert(experiments).values({
-      id: experimentId,
-      discoveryId: id,
-      hypothesis: validated.hypothesis,
-      minimalAction: validated.minimalAction,
-      deadline: validated.deadline,
-      expectedEvidence: validated.expectedEvidence,
-    });
-
-    // Update discovery updatedAt
-    await db
-      .update(discoveries)
-      .set({ updatedAt: new Date() })
-      .where(eq(discoveries.id, id));
-
-    await db.insert(eventLogs).values({
-      id: crypto.randomUUID(),
-      actorId: user.id,
-      discoveryId: id,
-      eventType: "ADD_EXPERIMENT",
-      metadata: { experimentId, hypothesis: validated.hypothesis },
-    });
+    const service = new DiscoveryService(db);
+    await service.addExperiment(
+      id,
+      {
+        hypothesis: validated.hypothesis,
+        minimalAction: validated.minimalAction,
+        deadline: validated.deadline,
+        expectedEvidence: validated.expectedEvidence,
+      },
+      user.id,
+    );
 
     return redirect(`/discoveries/${id}`);
   } catch (error: unknown) {

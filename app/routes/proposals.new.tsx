@@ -1,7 +1,8 @@
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { proposals, proposalSections, ProposalSectionType } from "~/features/proposals/db/schema";
+import { ProposalSectionType } from "~/features/proposals/db/schema";
+import { ProposalService } from "~/lib/services/proposal.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { ProposalForm } from "~/components/proposals/ProposalForm";
 
@@ -21,34 +22,24 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: "제목은 필수입니다." }, { status: 400 });
   }
 
-  const id = crypto.randomUUID();
-  const description = String(formData.get("description") || "").trim() || null;
-  const category = String(formData.get("category") || "").trim() || null;
-  const teamSize = formData.get("teamSize") ? Number(formData.get("teamSize")) : null;
-  const startDate = String(formData.get("startDate") || "").trim() || null;
-  const budget = String(formData.get("budget") || "").trim() || null;
+  // 섹션 내용 수집
+  const sectionContents: Record<string, string> = {};
+  for (const type of Object.values(ProposalSectionType)) {
+    sectionContents[type] = String(formData.get(`section_${type}`) || "").trim();
+  }
 
-  await db.insert(proposals).values({
-    id,
+  const service = new ProposalService(db);
+  const id = await service.create({
     tenantId: ctx.tenantId,
     title,
-    description,
-    category,
-    teamSize,
-    startDate,
-    budget,
     ownerId: ctx.user.id,
+    description: String(formData.get("description") || "").trim() || null,
+    category: String(formData.get("category") || "").trim() || null,
+    teamSize: formData.get("teamSize") ? Number(formData.get("teamSize")) : null,
+    startDate: String(formData.get("startDate") || "").trim() || null,
+    budget: String(formData.get("budget") || "").trim() || null,
+    sectionContents,
   });
-
-  // Insert new sections
-  const sectionTypes = Object.values(ProposalSectionType);
-  const sectionValues = sectionTypes.map((type, i) => ({
-    proposalId: id,
-    type,
-    content: String(formData.get(`section_${type}`) || "").trim(),
-    sortOrder: i,
-  }));
-  await db.insert(proposalSections).values(sectionValues);
 
   return redirect(`/proposals/${id}`);
 }

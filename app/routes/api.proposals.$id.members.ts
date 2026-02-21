@@ -1,8 +1,7 @@
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { and, eq } from "drizzle-orm";
 import { getDb } from "~/db";
-import { proposals, proposalMembers } from "~/features/proposals/db/schema";
+import { ProposalService } from "~/lib/services/proposal.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 
 export async function action({ params, request, context }: ActionFunctionArgs) {
@@ -15,12 +14,11 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
       return json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const proposal = await db
-      .select({ tenantId: proposals.tenantId })
-      .from(proposals)
-      .where(eq(proposals.id, params.id!))
-      .get();
-    if (!proposal || proposal.tenantId !== ctx.tenantId) {
+    const service = new ProposalService(db);
+
+    try {
+      await service.verifyAccess(params.id!, ctx.tenantId);
+    } catch {
       return json({ error: "Not found" }, { status: 404 });
     }
 
@@ -31,27 +29,16 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
         return json({ error: "userId is required" }, { status: 400 });
       }
 
-      // 중복 체크
-      const existing = await db
-        .select({ userId: proposalMembers.userId })
-        .from(proposalMembers)
-        .where(
-          and(
-            eq(proposalMembers.proposalId, params.id!),
-            eq(proposalMembers.userId, body.userId),
-          ),
-        )
-        .get();
-      if (existing) {
-        return json({ error: "이미 등록된 멤버입니다" }, { status: 409 });
+      try {
+        await service.addMember(params.id!, body.userId);
+        return json({ success: true });
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : "Unknown error";
+        if (msg === "이미 등록된 멤버입니다") {
+          return json({ error: msg }, { status: 409 });
+        }
+        return json({ error: msg }, { status: 400 });
       }
-
-      await db.insert(proposalMembers).values({
-        proposalId: params.id!,
-        userId: body.userId,
-      });
-
-      return json({ success: true });
     }
 
     if (request.method === "DELETE") {
@@ -61,15 +48,7 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
         return json({ error: "userId is required" }, { status: 400 });
       }
 
-      await db
-        .delete(proposalMembers)
-        .where(
-          and(
-            eq(proposalMembers.proposalId, params.id!),
-            eq(proposalMembers.userId, body.userId),
-          ),
-        );
-
+      await service.removeMember(params.id!, body.userId);
       return json({ success: true });
     }
 

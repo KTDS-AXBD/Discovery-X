@@ -2,7 +2,8 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, eventLogs, users } from "~/db/schema";
+import { discoveries, users } from "~/db/schema";
+import { DiscoveryService } from "~/lib/services/discovery.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
@@ -14,7 +15,7 @@ import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { eq } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
-import { DiscoveryValidationRules, DeadEndDecisionSchema } from "~/lib/validation/discovery-rules";
+import { DeadEndDecisionSchema } from "~/lib/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
 import { FAILURE_PATTERNS } from "~/lib/constants/failure-patterns";
 import { ACTIVE_STATUSES } from "~/lib/constants/status";
@@ -68,7 +69,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  // Get discovery
+  // Discovery 조회 (상태 검증 + 이메일용)
   const discovery = await db.query.discoveries.findFirst({
     where: eq(discoveries.id, id),
   });
@@ -77,7 +78,6 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  // 활성 상태에서만 DROP 결정 가능
   if (!ACTIVE_STATUSES.includes(discovery.status as typeof ACTIVE_STATUSES[number])) {
     return json(
       { error: "활성 상태의 Discovery만 결정할 수 있습니다" },
@@ -89,7 +89,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   const decisionRationale = formData.get("decisionRationale");
   const deadEndEvidenceReason = formData.get("deadEndEvidenceReason");
 
-  // Get selected failure patterns (checkboxes)
+  // 체크박스에서 선택된 실패 패턴 수집
   const deadEndFailurePattern: string[] = [];
   for (const pattern of FAILURE_PATTERNS) {
     if (formData.get(`pattern_${pattern.id}`)) {
@@ -98,48 +98,27 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   }
 
   try {
-    // Validate reviewer assigned
-    DiscoveryValidationRules.validateReviewerRequired(discovery.reviewerId);
-    // Block duplicate pending
-    DiscoveryValidationRules.validateNoApprovalPending(discovery.approvalStatus);
-
-    // Validate using Zod schema
     const validated = DeadEndDecisionSchema.parse({
       decisionRationale,
       deadEndFailurePattern,
       deadEndEvidenceReason,
     });
 
-    // Save as PENDING instead of directly applying
-    await db
-      .update(discoveries)
-      .set({
-        approvalStatus: "PENDING",
+    const service = new DiscoveryService(db);
+    await service.submitForApproval(
+      id,
+      {
         pendingDecision: DiscoveryStatus.DROP,
         pendingDecisionData: {
           decisionRationale: validated.decisionRationale,
           deadEndFailurePattern: validated.deadEndFailurePattern,
           deadEndEvidenceReason: validated.deadEndEvidenceReason,
         },
-        updatedAt: new Date(),
-      })
-      .where(eq(discoveries.id, id));
-
-    // Create event log
-    await db.insert(eventLogs).values({
-      id: crypto.randomUUID(),
-      actorId: user.id,
-      discoveryId: id,
-      eventType: "SUBMIT_FOR_APPROVAL",
-      metadata: {
-        pendingDecision: DiscoveryStatus.DROP,
-        decisionRationale: validated.decisionRationale,
-        failurePattern: validated.deadEndFailurePattern,
-        evidenceReason: validated.deadEndEvidenceReason,
       },
-    });
+      user.id,
+    );
 
-    // Send email to reviewer
+    // 이메일 발송 (라우트 유지)
     try {
       const reviewerUser = await db.query.users.findFirst({
         where: eq(users.id, discovery.reviewerId!),

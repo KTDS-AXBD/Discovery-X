@@ -2,7 +2,8 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, evidence, experiments, eventLogs } from "~/db/schema";
+import { discoveries, experiments } from "~/db/schema";
+import { DiscoveryService } from "~/lib/services/discovery.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
@@ -72,19 +73,6 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  // Get discovery
-  const discovery = await db.query.discoveries.findFirst({
-    where: eq(discoveries.id, id),
-  });
-
-  if (!discovery) {
-    throw new Response("Not Found", { status: 404 });
-  }
-
-  if (discovery.status === DiscoveryStatus.DISCOVERY) {
-    return json({ error: "INBOX 상태에서는 Evidence를 추가할 수 없습니다" }, { status: 400 });
-  }
-
   const formData = await request.formData();
   const type = formData.get("type");
   const strength = formData.get("strength");
@@ -93,7 +81,6 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   const experimentId = formData.get("experimentId") || undefined;
 
   try {
-    // Validate using Zod schema
     const validated = CreateEvidenceSchema.parse({
       type,
       strength,
@@ -102,32 +89,19 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
       experimentId,
     });
 
-    // Create evidence
-    const evidenceId = crypto.randomUUID();
-    await db.insert(evidence).values({
-      id: evidenceId,
-      discoveryId: id,
-      experimentId: validated.experimentId || null,
-      type: validated.type,
-      strength: validated.strength,
-      content: validated.content,
-      linkOrAttachment: validated.linkOrAttachment || null,
-      createdById: user.id,
-    });
-
-    // Update discovery updatedAt
-    await db
-      .update(discoveries)
-      .set({ updatedAt: new Date() })
-      .where(eq(discoveries.id, id));
-
-    await db.insert(eventLogs).values({
-      id: crypto.randomUUID(),
-      actorId: user.id,
-      discoveryId: id,
-      eventType: "ADD_EVIDENCE",
-      metadata: { evidenceId, type: validated.type, strength: validated.strength },
-    });
+    const service = new DiscoveryService(db);
+    await service.addEvidence(
+      id,
+      {
+        type: validated.type,
+        strength: validated.strength,
+        content: validated.content,
+        linkOrAttachment: validated.linkOrAttachment || null,
+        experimentId: validated.experimentId || null,
+        createdById: user.id,
+      },
+      user.id,
+    );
 
     return redirect(`/discoveries/${id}`);
   } catch (error: unknown) {

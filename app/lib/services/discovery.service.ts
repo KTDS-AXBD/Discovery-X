@@ -1,4 +1,4 @@
-import { eq, desc, inArray } from "drizzle-orm";
+import { eq, desc, inArray, count, and } from "drizzle-orm";
 import type { DB } from "~/db";
 import { discoveries, experiments, evidence, users, eventLogs } from "~/db/schema";
 import { DiscoveryStatus } from "~/db/schema";
@@ -52,6 +52,46 @@ interface ChangeOwnerInput {
   newOwnerId: string;
   actorId: string;
   handoverNote?: string;
+}
+
+interface PromoteInput {
+  ownerId: string;
+  reviewerId?: string | null;
+  firstExperiment: {
+    hypothesis: string;
+    minimalAction: string;
+    deadline: Date;
+    expectedEvidence: string;
+  };
+}
+
+interface SubmitApprovalInput {
+  pendingDecision: string;
+  pendingDecisionData: Record<string, unknown>;
+}
+
+interface AddExperimentInput {
+  hypothesis: string;
+  minimalAction: string;
+  deadline: Date;
+  expectedEvidence: string;
+}
+
+interface AddEvidenceInput {
+  type: string;
+  strength: string;
+  content: string;
+  linkOrAttachment?: string | null;
+  experimentId?: string | null;
+  reliabilityLabel?: string;
+  sourceUrl?: string | null;
+  publishedOrObservedDate?: string | null;
+  createdById: string;
+}
+
+interface CompleteExperimentInput {
+  experimentId: string;
+  resultSummary: string;
 }
 
 // ============================================================================
@@ -320,5 +360,255 @@ export class DiscoveryService {
       .where(eq(eventLogs.discoveryId, discoveryId))
       .orderBy(desc(eventLogs.timestamp))
       .limit(limit);
+  }
+
+  /**
+   * INBOX → OPEN 승격 (실험 생성 + Owner 설정 + 상태 전환)
+   */
+  async promote(
+    id: string,
+    input: PromoteInput,
+    actorId: string,
+  ): Promise<Discovery> {
+    const discovery = await this.getById(id);
+    if (!discovery) {
+      throw new Error(`Discovery를 찾을 수 없습니다: ${id}`);
+    }
+
+    if (discovery.status !== DiscoveryStatus.DISCOVERY) {
+      throw new Error("INBOX 상태의 Discovery만 승격할 수 있습니다");
+    }
+
+    DiscoveryValidationRules.validateOwnerRequired(input.ownerId);
+    const dueDate = DiscoveryValidationRules.calculateDueDate(
+      discovery.createdAt,
+    );
+
+    // 첫 번째 실험 생성
+    const experimentId = crypto.randomUUID();
+    await this.db.insert(experiments).values({
+      id: experimentId,
+      discoveryId: id,
+      hypothesis: input.firstExperiment.hypothesis,
+      minimalAction: input.firstExperiment.minimalAction,
+      deadline: input.firstExperiment.deadline,
+      expectedEvidence: input.firstExperiment.expectedEvidence,
+    });
+
+    // Discovery 상태 + Owner 업데이트
+    await this.db
+      .update(discoveries)
+      .set({
+        status: DiscoveryStatus.IDEA_CARD,
+        ownerId: input.ownerId,
+        reviewerId: input.reviewerId ?? null,
+        dueDate,
+        updatedAt: new Date(),
+      })
+      .where(eq(discoveries.id, id));
+
+    await this.db.insert(eventLogs).values({
+      id: crypto.randomUUID(),
+      actorId,
+      discoveryId: id,
+      eventType: "PROMOTE_OPEN",
+      metadata: {
+        ownerId: input.ownerId,
+        experimentId,
+        dueDate: dueDate.toISOString(),
+      },
+    });
+
+    const updated = await this.getById(id);
+    return updated!;
+  }
+
+  /**
+   * 승인 요청 (PENDING 설정 + 이벤트 로그)
+   * decide-not-now, decide-dead-end, decide-next에서 공통 사용
+   */
+  async submitForApproval(
+    id: string,
+    input: SubmitApprovalInput,
+    actorId: string,
+  ): Promise<void> {
+    const discovery = await this.getById(id);
+    if (!discovery) {
+      throw new Error(`Discovery를 찾을 수 없습니다: ${id}`);
+    }
+
+    DiscoveryValidationRules.validateReviewerRequired(discovery.reviewerId);
+    DiscoveryValidationRules.validateNoApprovalPending(
+      discovery.approvalStatus,
+    );
+
+    await this.db
+      .update(discoveries)
+      .set({
+        approvalStatus: "PENDING",
+        pendingDecision: input.pendingDecision,
+        pendingDecisionData: input.pendingDecisionData,
+        updatedAt: new Date(),
+      })
+      .where(eq(discoveries.id, id));
+
+    await this.db.insert(eventLogs).values({
+      id: crypto.randomUUID(),
+      actorId,
+      discoveryId: id,
+      eventType: "SUBMIT_FOR_APPROVAL",
+      metadata: {
+        pendingDecision: input.pendingDecision,
+        ...input.pendingDecisionData,
+      },
+    });
+  }
+
+  /**
+   * 실험 추가
+   */
+  async addExperiment(
+    discoveryId: string,
+    input: AddExperimentInput,
+    actorId: string,
+  ): Promise<string> {
+    const discovery = await this.getById(discoveryId);
+    if (!discovery) {
+      throw new Error(`Discovery를 찾을 수 없습니다: ${discoveryId}`);
+    }
+
+    if (discovery.status !== DiscoveryStatus.IDEA_CARD) {
+      throw new Error(
+        "OPEN 상태의 Discovery만 실험을 추가할 수 있습니다",
+      );
+    }
+
+    // 실험 제한 검증 (최대 3개)
+    const expCount = await this.db
+      .select({ count: count() })
+      .from(experiments)
+      .where(eq(experiments.discoveryId, discoveryId));
+    if ((expCount[0]?.count || 0) >= 3) {
+      throw new Error("최대 3개 실험만 가능합니다");
+    }
+
+    const experimentId = crypto.randomUUID();
+    await this.db.insert(experiments).values({
+      id: experimentId,
+      discoveryId,
+      hypothesis: input.hypothesis,
+      minimalAction: input.minimalAction,
+      deadline: input.deadline,
+      expectedEvidence: input.expectedEvidence,
+    });
+
+    await this.db
+      .update(discoveries)
+      .set({ updatedAt: new Date() })
+      .where(eq(discoveries.id, discoveryId));
+
+    await this.db.insert(eventLogs).values({
+      id: crypto.randomUUID(),
+      actorId,
+      discoveryId,
+      eventType: "ADD_EXPERIMENT",
+      metadata: { experimentId, hypothesis: input.hypothesis },
+    });
+
+    return experimentId;
+  }
+
+  /**
+   * 근거 추가
+   */
+  async addEvidence(
+    discoveryId: string,
+    input: AddEvidenceInput,
+    actorId: string,
+  ): Promise<string> {
+    const discovery = await this.getById(discoveryId);
+    if (!discovery) {
+      throw new Error(`Discovery를 찾을 수 없습니다: ${discoveryId}`);
+    }
+
+    if (discovery.status === DiscoveryStatus.DISCOVERY) {
+      throw new Error("INBOX 상태에서는 Evidence를 추가할 수 없습니다");
+    }
+
+    const evidenceId = crypto.randomUUID();
+    await this.db.insert(evidence).values({
+      id: evidenceId,
+      discoveryId,
+      experimentId: input.experimentId || null,
+      type: input.type,
+      strength: input.strength,
+      content: input.content,
+      linkOrAttachment: input.linkOrAttachment || null,
+      createdById: input.createdById,
+    });
+
+    await this.db
+      .update(discoveries)
+      .set({ updatedAt: new Date() })
+      .where(eq(discoveries.id, discoveryId));
+
+    await this.db.insert(eventLogs).values({
+      id: crypto.randomUUID(),
+      actorId,
+      discoveryId,
+      eventType: "ADD_EVIDENCE",
+      metadata: { evidenceId, type: input.type, strength: input.strength },
+    });
+
+    return evidenceId;
+  }
+
+  /**
+   * 실험 완료 처리
+   */
+  async completeExperiment(
+    discoveryId: string,
+    input: CompleteExperimentInput,
+    actorId: string,
+  ): Promise<void> {
+    const experiment = await this.db.query.experiments.findFirst({
+      where: and(
+        eq(experiments.id, input.experimentId),
+        eq(experiments.discoveryId, discoveryId),
+      ),
+    });
+
+    if (!experiment) {
+      throw new Error("실험을 찾을 수 없습니다");
+    }
+
+    if (experiment.completedAt) {
+      throw new Error("이미 완료된 실험입니다");
+    }
+
+    await this.db
+      .update(experiments)
+      .set({
+        resultSummary: input.resultSummary,
+        completedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(experiments.id, input.experimentId));
+
+    await this.db
+      .update(discoveries)
+      .set({ updatedAt: new Date() })
+      .where(eq(discoveries.id, discoveryId));
+
+    await this.db.insert(eventLogs).values({
+      id: crypto.randomUUID(),
+      actorId,
+      discoveryId,
+      eventType: "COMPLETE_EXPERIMENT",
+      metadata: {
+        experimentId: input.experimentId,
+        resultSummary: input.resultSummary,
+      },
+    });
   }
 }

@@ -1,10 +1,8 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, Link } from "@remix-run/react";
-import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
-import { proposals, proposalLikes } from "~/features/proposals/db/schema";
-import { users } from "~/db/schema";
+import { ProposalService } from "~/lib/services/proposal.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { PipelineView } from "~/components/proposals/PipelineView";
 import { CategoryCardRow } from "~/components/proposals/CategoryCardRow";
@@ -22,30 +20,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   try {
-    // Fetch all proposals with owner name
-    const allProposals = await db
-      .select({
-        id: proposals.id,
-        title: proposals.title,
-        description: proposals.description,
-        status: proposals.status,
-        category: proposals.category,
-        likeCount: proposals.likeCount,
-        commentCount: proposals.commentCount,
-        createdAt: proposals.createdAt,
-        updatedAt: proposals.updatedAt,
-        ownerName: users.name,
-      })
-      .from(proposals)
-      .leftJoin(users, eq(proposals.ownerId, users.id))
-      .where(eq(proposals.tenantId, ctx.tenantId));
+    const service = new ProposalService(db);
 
-    // Get user's likes
-    const userLikes = await db
-      .select({ proposalId: proposalLikes.proposalId })
-      .from(proposalLikes)
-      .where(eq(proposalLikes.userId, ctx.user.id));
-    const likedSet = new Set(userLikes.map((l) => l.proposalId));
+    const [allProposals, likedIds] = await Promise.all([
+      service.listWithOwnerNames(ctx.tenantId),
+      service.getUserLikedIds(ctx.user.id),
+    ]);
+    const likedSet = new Set(likedIds);
 
     // Pipeline stage counts + items
     const stageGroups = new Map<string, { count: number; items: { id: string; title: string }[] }>();

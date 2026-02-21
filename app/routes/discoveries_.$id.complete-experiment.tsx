@@ -2,7 +2,8 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, experiments, eventLogs } from "~/db/schema";
+import { discoveries, experiments } from "~/db/schema";
+import { DiscoveryService } from "~/lib/services/discovery.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
@@ -90,48 +91,18 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     return json({ error: "실험 ID가 필요합니다" }, { status: 400 });
   }
 
-  const experiment = await db.query.experiments.findFirst({
-    where: and(
-      eq(experiments.id, String(experimentId)),
-      eq(experiments.discoveryId, id)
-    ),
-  });
-
-  if (!experiment) {
-    return json({ error: "실험을 찾을 수 없습니다" }, { status: 400 });
-  }
-
-  if (experiment.completedAt) {
-    return json({ error: "이미 완료된 실험입니다" }, { status: 400 });
-  }
-
   try {
     const validated = CompleteExperimentSchema.parse({ resultSummary });
 
-    await db
-      .update(experiments)
-      .set({
-        resultSummary: validated.resultSummary,
-        completedAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(eq(experiments.id, String(experimentId)));
-
-    await db
-      .update(discoveries)
-      .set({ updatedAt: new Date() })
-      .where(eq(discoveries.id, id));
-
-    await db.insert(eventLogs).values({
-      id: crypto.randomUUID(),
-      actorId: user.id,
-      discoveryId: id,
-      eventType: "COMPLETE_EXPERIMENT",
-      metadata: {
+    const service = new DiscoveryService(db);
+    await service.completeExperiment(
+      id,
+      {
         experimentId: String(experimentId),
         resultSummary: validated.resultSummary,
       },
-    });
+      user.id,
+    );
 
     return redirect(`/discoveries/${id}`);
   } catch (error: unknown) {

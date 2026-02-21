@@ -2,7 +2,8 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, eventLogs, users } from "~/db/schema";
+import { discoveries, users } from "~/db/schema";
+import { DiscoveryService } from "~/lib/services/discovery.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
@@ -15,7 +16,7 @@ import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { eq } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
-import { DiscoveryValidationRules, NotNowDecisionSchema } from "~/lib/validation/discovery-rules";
+import { NotNowDecisionSchema } from "~/lib/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
 import { TRIGGER_TYPES } from "~/lib/constants/failure-patterns";
 import { ACTIVE_STATUSES } from "~/lib/constants/status";
@@ -69,7 +70,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  // Get discovery
+  // Discovery 조회 (상태 검증 + 이메일용)
   const discovery = await db.query.discoveries.findFirst({
     where: eq(discoveries.id, id),
   });
@@ -78,7 +79,6 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  // 활성 상태에서만 HOLD 결정 가능
   if (!ACTIVE_STATUSES.includes(discovery.status as typeof ACTIVE_STATUSES[number])) {
     return json(
       { error: "활성 상태의 Discovery만 결정할 수 있습니다" },
@@ -93,18 +93,11 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   const revisitDateStr = formData.get("revisitDate");
 
   try {
-    // Validate reviewer assigned
-    DiscoveryValidationRules.validateReviewerRequired(discovery.reviewerId);
-    // Block duplicate pending
-    DiscoveryValidationRules.validateNoApprovalPending(discovery.approvalStatus);
-
-    // Parse revisit date
     const revisitDate = revisitDateStr ? new Date(String(revisitDateStr)) : null;
     if (!revisitDate) {
       throw new Error("재검토 날짜를 입력해주세요");
     }
 
-    // Validate using Zod schema
     const validated = NotNowDecisionSchema.parse({
       decisionRationale,
       notNowTriggerType,
@@ -112,11 +105,10 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
       revisitDate,
     });
 
-    // Save as PENDING instead of directly applying
-    await db
-      .update(discoveries)
-      .set({
-        approvalStatus: "PENDING",
+    const service = new DiscoveryService(db);
+    await service.submitForApproval(
+      id,
+      {
         pendingDecision: DiscoveryStatus.HOLD,
         pendingDecisionData: {
           decisionRationale: validated.decisionRationale,
@@ -124,26 +116,11 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
           notNowTriggerCondition: validated.notNowTriggerCondition,
           revisitDate: validated.revisitDate.toISOString(),
         },
-        updatedAt: new Date(),
-      })
-      .where(eq(discoveries.id, id));
-
-    // Create event log
-    await db.insert(eventLogs).values({
-      id: crypto.randomUUID(),
-      actorId: user.id,
-      discoveryId: id,
-      eventType: "SUBMIT_FOR_APPROVAL",
-      metadata: {
-        pendingDecision: DiscoveryStatus.HOLD,
-        decisionRationale: validated.decisionRationale,
-        triggerType: validated.notNowTriggerType,
-        triggerCondition: validated.notNowTriggerCondition,
-        revisitDate: validated.revisitDate.toISOString(),
       },
-    });
+      user.id,
+    );
 
-    // Send email to reviewer
+    // 이메일 발송 (라우트 유지)
     try {
       const reviewerUser = await db.query.users.findFirst({
         where: eq(users.id, discovery.reviewerId!),

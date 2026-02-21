@@ -2,7 +2,8 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, evidence, eventLogs, users } from "~/db/schema";
+import { discoveries, evidence, users } from "~/db/schema";
+import { DiscoveryService } from "~/lib/services/discovery.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
@@ -76,7 +77,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  // Get discovery
+  // Discovery 조회 (상태 검증 + 이메일용)
   const discovery = await db.query.discoveries.findFirst({
     where: eq(discoveries.id, id),
   });
@@ -99,47 +100,27 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   const decisionRationale = formData.get("decisionRationale");
 
   try {
-    // Validate reviewer assigned
-    DiscoveryValidationRules.validateReviewerRequired(discovery.reviewerId);
-    // Block duplicate pending
-    DiscoveryValidationRules.validateNoApprovalPending(discovery.approvalStatus);
-
-    // Validate using Zod schema
     const validated = NextDecisionSchema.parse({
       decisionRationale,
     });
 
-    // Check evidence quality (warning only, not blocking)
+    // 근거 품질 경고 (차단하지 않음, 기록용)
     const validationResult = await DiscoveryValidationRules.validateNextDecision(db, id);
 
-    // Save as PENDING instead of directly applying
-    await db
-      .update(discoveries)
-      .set({
-        approvalStatus: "PENDING",
+    const service = new DiscoveryService(db);
+    await service.submitForApproval(
+      id,
+      {
         pendingDecision: DiscoveryStatus.GATE1,
         pendingDecisionData: {
           decisionRationale: validated.decisionRationale,
           evidenceWarning: validationResult.warning || null,
         },
-        updatedAt: new Date(),
-      })
-      .where(eq(discoveries.id, id));
-
-    // Create event log
-    await db.insert(eventLogs).values({
-      id: crypto.randomUUID(),
-      actorId: user.id,
-      discoveryId: id,
-      eventType: "SUBMIT_FOR_APPROVAL",
-      metadata: {
-        pendingDecision: DiscoveryStatus.GATE1,
-        decisionRationale: validated.decisionRationale,
-        evidenceWarning: validationResult.warning || null,
       },
-    });
+      user.id,
+    );
 
-    // Send email to reviewer
+    // 이메일 발송 (라우트 유지)
     try {
       const reviewerUser = await db.query.users.findFirst({
         where: eq(users.id, discovery.reviewerId!),

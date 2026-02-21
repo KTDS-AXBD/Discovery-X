@@ -1,8 +1,7 @@
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { and, eq } from "drizzle-orm";
 import { getDb } from "~/db";
-import { proposals, proposalMilestones } from "~/features/proposals/db/schema";
+import { ProposalService } from "~/lib/services/proposal.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 
 export async function action({ params, request, context }: ActionFunctionArgs) {
@@ -15,12 +14,11 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
       return json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const proposal = await db
-      .select({ tenantId: proposals.tenantId })
-      .from(proposals)
-      .where(eq(proposals.id, params.id!))
-      .get();
-    if (!proposal || proposal.tenantId !== ctx.tenantId) {
+    const service = new ProposalService(db);
+
+    try {
+      await service.verifyAccess(params.id!, ctx.tenantId);
+    } catch {
       return json({ error: "Not found" }, { status: 404 });
     }
 
@@ -35,25 +33,13 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
         return json({ error: "Title is required" }, { status: 400 });
       }
 
-      // 해당 proposal의 최대 sortOrder 조회
-      const existing = await db
-        .select({ sortOrder: proposalMilestones.sortOrder })
-        .from(proposalMilestones)
-        .where(eq(proposalMilestones.proposalId, params.id!));
-      const maxSort = existing.reduce((max, m) => Math.max(max, m.sortOrder), -1);
+      const id = await service.createMilestone(params.id!, {
+        title: body.title.trim(),
+        startDate: body.startDate,
+        endDate: body.endDate,
+      });
 
-      const [created] = await db
-        .insert(proposalMilestones)
-        .values({
-          proposalId: params.id!,
-          title: body.title.trim(),
-          startDate: body.startDate ?? null,
-          endDate: body.endDate ?? null,
-          sortOrder: maxSort + 1,
-        })
-        .returning({ id: proposalMilestones.id });
-
-      return json({ success: true, id: created.id });
+      return json({ success: true, id });
     }
 
     if (request.method === "PUT") {
@@ -65,58 +51,30 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
         endDate?: string | null;
       };
 
-      const milestone = await db
-        .select({ id: proposalMilestones.id })
-        .from(proposalMilestones)
-        .where(
-          and(
-            eq(proposalMilestones.id, body.milestoneId),
-            eq(proposalMilestones.proposalId, params.id!),
-          ),
-        )
-        .get();
-      if (!milestone) {
-        return json({ error: "Milestone not found" }, { status: 404 });
+      try {
+        await service.updateMilestone(body.milestoneId, params.id!, {
+          title: body.title,
+          status: body.status,
+          startDate: body.startDate,
+          endDate: body.endDate,
+        });
+        return json({ success: true });
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : "Unknown error";
+        return json({ error: msg }, { status: 404 });
       }
-
-      const updates: Record<string, unknown> = {};
-      if (body.title !== undefined) updates.title = body.title;
-      if (body.status !== undefined) updates.status = body.status;
-      if (body.startDate !== undefined) updates.startDate = body.startDate;
-      if (body.endDate !== undefined) updates.endDate = body.endDate;
-
-      if (Object.keys(updates).length > 0) {
-        await db
-          .update(proposalMilestones)
-          .set(updates)
-          .where(eq(proposalMilestones.id, body.milestoneId));
-      }
-
-      return json({ success: true });
     }
 
     if (request.method === "DELETE") {
       const body = (await request.json()) as { milestoneId: string };
 
-      const milestone = await db
-        .select({ id: proposalMilestones.id })
-        .from(proposalMilestones)
-        .where(
-          and(
-            eq(proposalMilestones.id, body.milestoneId),
-            eq(proposalMilestones.proposalId, params.id!),
-          ),
-        )
-        .get();
-      if (!milestone) {
-        return json({ error: "Milestone not found" }, { status: 404 });
+      try {
+        await service.deleteMilestone(body.milestoneId, params.id!);
+        return json({ success: true });
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : "Unknown error";
+        return json({ error: msg }, { status: 404 });
       }
-
-      await db
-        .delete(proposalMilestones)
-        .where(eq(proposalMilestones.id, body.milestoneId));
-
-      return json({ success: true });
     }
 
     return json({ error: "Method not allowed" }, { status: 405 });

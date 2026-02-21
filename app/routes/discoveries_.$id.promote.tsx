@@ -2,7 +2,8 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, experiments, users, eventLogs } from "~/db/schema";
+import { discoveries, users } from "~/db/schema";
+import { DiscoveryService } from "~/lib/services/discovery.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
@@ -72,19 +73,6 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  // Get discovery
-  const discovery = await db.query.discoveries.findFirst({
-    where: eq(discoveries.id, id),
-  });
-
-  if (!discovery) {
-    throw new Response("Not Found", { status: 404 });
-  }
-
-  if (discovery.status !== DiscoveryStatus.DISCOVERY) {
-    return json({ error: "INBOX 상태의 Discovery만 승격할 수 있습니다" }, { status: 400 });
-  }
-
   const formData = await request.formData();
   const ownerId = formData.get("ownerId");
   const reviewerId = formData.get("reviewerId") || null;
@@ -94,13 +82,11 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   const expectedEvidence = formData.get("expectedEvidence");
 
   try {
-    // Parse deadline
     const deadline = deadlineStr ? new Date(String(deadlineStr)) : null;
     if (!deadline) {
       throw new Error("실험 마감일을 입력해주세요");
     }
 
-    // Validate using Zod schema
     const validated = PromoteToOpenSchema.parse({
       ownerId,
       firstExperiment: {
@@ -111,47 +97,16 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
       },
     });
 
-    // Additional validation: Owner required
-    DiscoveryValidationRules.validateOwnerRequired(validated.ownerId);
-
-    // Calculate due date (createdAt + 28 days)
-    const dueDate = DiscoveryValidationRules.calculateDueDate(discovery.createdAt);
-
-    // Create experiment
-    const experimentId = crypto.randomUUID();
-    await db.insert(experiments).values({
-      id: experimentId,
-      discoveryId: id,
-      hypothesis: validated.firstExperiment.hypothesis,
-      minimalAction: validated.firstExperiment.minimalAction,
-      deadline: validated.firstExperiment.deadline,
-      expectedEvidence: validated.firstExperiment.expectedEvidence,
-    });
-
-    // Update discovery status
-    await db
-      .update(discoveries)
-      .set({
-        status: DiscoveryStatus.IDEA_CARD,
+    const service = new DiscoveryService(db);
+    await service.promote(
+      id,
+      {
         ownerId: validated.ownerId,
         reviewerId: reviewerId ? String(reviewerId) : null,
-        dueDate,
-        updatedAt: new Date(),
-      })
-      .where(eq(discoveries.id, id));
-
-    // Create event log
-    await db.insert(eventLogs).values({
-      id: crypto.randomUUID(),
-      actorId: user.id,
-      discoveryId: id,
-      eventType: "PROMOTE_OPEN",
-      metadata: {
-        ownerId: validated.ownerId,
-        experimentId,
-        dueDate: dueDate.toISOString(),
+        firstExperiment: validated.firstExperiment,
       },
-    });
+      user.id,
+    );
 
     return redirect(`/discoveries/${id}`);
   } catch (error: unknown) {

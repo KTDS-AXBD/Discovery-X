@@ -1,9 +1,7 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
-import { proposals, proposalComments } from "~/features/proposals/db/schema";
-import { users } from "~/db/schema";
+import { ProposalService } from "~/lib/services/proposal.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
@@ -16,24 +14,15 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       return json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const proposal = await db.select({ tenantId: proposals.tenantId })
-      .from(proposals).where(eq(proposals.id, params.id!)).get();
-    if (!proposal || proposal.tenantId !== ctx.tenantId) {
+    const service = new ProposalService(db);
+
+    try {
+      await service.verifyAccess(params.id!, ctx.tenantId);
+    } catch {
       return json({ error: "Not found" }, { status: 404 });
     }
 
-    const comments = await db
-      .select({
-        id: proposalComments.id,
-        authorId: proposalComments.authorId,
-        content: proposalComments.content,
-        createdAt: proposalComments.createdAt,
-        authorName: users.name,
-      })
-      .from(proposalComments)
-      .leftJoin(users, eq(proposalComments.authorId, users.id))
-      .where(eq(proposalComments.proposalId, params.id!));
-
+    const comments = await service.listComments(params.id!);
     return json({ comments });
   } catch (error) {
     if (error instanceof Response) throw error;
@@ -52,9 +41,11 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
       return json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const proposal = await db.select({ tenantId: proposals.tenantId })
-      .from(proposals).where(eq(proposals.id, params.id!)).get();
-    if (!proposal || proposal.tenantId !== ctx.tenantId) {
+    const service = new ProposalService(db);
+
+    try {
+      await service.verifyAccess(params.id!, ctx.tenantId);
+    } catch {
       return json({ error: "Not found" }, { status: 404 });
     }
 
@@ -66,12 +57,7 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
         return json({ error: "Content is required" }, { status: 400 });
       }
 
-      await db.insert(proposalComments).values({
-        proposalId: params.id!,
-        authorId: ctx.user.id,
-        content,
-      });
-
+      await service.addComment(params.id!, ctx.user.id, content);
       return json({ success: true });
     }
 

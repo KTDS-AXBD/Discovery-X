@@ -1,14 +1,8 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
-import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
-import {
-  proposals,
-  proposalSections,
-  proposalComments,
-} from "~/features/proposals/db/schema";
-import { users } from "~/db/schema";
+import { ProposalService } from "~/lib/services/proposal.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { ProposalDetailHeader } from "~/components/proposals/ProposalDetailHeader";
 import { ProposalDetailSidebar } from "~/components/proposals/ProposalDetailSidebar";
@@ -23,38 +17,20 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     return redirect("/login");
   }
 
-  const proposal = await db.select().from(proposals).where(eq(proposals.id, params.id!)).get();
+  const service = new ProposalService(db);
+  const detail = await service.getDetail(params.id!, ctx.tenantId);
 
-  if (!proposal) {
+  if (!detail) {
     throw new Response("Not Found", { status: 404 });
   }
-
-  if (proposal.tenantId !== ctx.tenantId) {
-    throw new Response("Not Found", { status: 404 });
-  }
-
-  const [sections, commentsRaw, ownerRow] = await Promise.all([
-    db.select().from(proposalSections).where(eq(proposalSections.proposalId, params.id!)),
-    db.select({
-      id: proposalComments.id,
-      authorId: proposalComments.authorId,
-      content: proposalComments.content,
-      createdAt: proposalComments.createdAt,
-      authorName: users.name,
-    })
-    .from(proposalComments)
-    .leftJoin(users, eq(proposalComments.authorId, users.id))
-    .where(eq(proposalComments.proposalId, params.id!)),
-    db.select({ name: users.name }).from(users).where(eq(users.id, proposal.ownerId)).get(),
-  ]);
 
   return json({
-    proposal,
-    sections,
-    comments: commentsRaw,
+    proposal: detail.proposal,
+    sections: detail.sections,
+    comments: detail.comments,
     currentUserId: ctx.user.id,
-    isOwner: proposal.ownerId === ctx.user.id,
-    ownerName: ownerRow?.name || null,
+    isOwner: detail.proposal.ownerId === ctx.user.id,
+    ownerName: detail.ownerName,
   });
 }
 
