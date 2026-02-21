@@ -488,14 +488,14 @@ describe("DiscoveryService", () => {
       expect(updated!.ownerId).toBe(USER_B);
     });
 
-    it("HYPOTHESIS 상태에서 Owner 변경 불가 — Error throw", async () => {
+    it("HOLD 상태에서 Owner 변경 불가 — Error throw", async () => {
       await expect(
         service.changeOwner({
-          discoveryId: "disc-hypothesis",
+          discoveryId: "disc-hold",
           newOwnerId: USER_B,
           actorId: USER_A,
         }),
-      ).rejects.toThrow("INBOX/OPEN 상태에서만");
+      ).rejects.toThrow("활성 상태");
     });
 
     it("존재하지 않는 Discovery — Error throw", async () => {
