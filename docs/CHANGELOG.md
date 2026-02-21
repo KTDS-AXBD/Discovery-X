@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 240 (2026-02-21)
+**/team 스킬 v8 완성 — 리더 자체 분할 + worker pane 상태 표시**:
+- ✅ tmux pane 분할 전략 변경: Other CC 세로분할 → 리더 자체 가로분할(-h), 복수 리더 독립 분할
+- ✅ worker pane 상태 표시: `pane-border-status top` + `$TMUX_PANE` 자율 타이틀 (⏳→✅ 자동 전환)
+- ✅ runner 스크립트 시작/종료 배너 (╔══╗) + 시간 표시
+- ✅ cleanup 시 `pane-border-status off` 조건부 해제 (복수 팀 worker 보존)
+- ✅ discovery.service.ts → discovery/{index,entity,query,workflow,types}.ts 모듈 분할
+- ✅ proposal.service.ts → proposal/{index,mutation,query,collab,types}.ts 모듈 분할
+- ✅ 싱글 리더 / 복수 리더 / 상태 표시 테스트 전부 통과
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,043/1,043 PASS / build 정상
+
 ### 세션 239 (2026-02-21)
 **query-tools + discovery-tools 도메인별 분할 — Agent 도구 구현체 최종 모듈화**:
 - ✅ `query-tools.ts` (867줄) → barrel re-export + 3 서브파일: `query-discovery.ts` (515줄), `query-radar.ts` (253줄), `query-review.ts` (122줄)

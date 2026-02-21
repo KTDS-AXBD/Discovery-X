@@ -1,3 +1,5 @@
+// TODO: 브리핑 UI 아카이브됨 (세션 228). signal-router에서 non-fatal 호출만 존재.
+// 운영 실험 종료 후 UI 복원 또는 코드 제거 결정 필요.
 import { desc, eq, and, gte, sql } from "drizzle-orm";
 import type { DB } from "~/db";
 import { radarItems, discoveries, tenantMembers } from "~/db/schema";
