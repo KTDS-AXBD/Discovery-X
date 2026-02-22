@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 242 (2026-02-22)
+**/team 스킬 v8 테스트 — 싱글/복수 리더 검증 + 배포**:
+- ✅ 싱글 리더 테스트: 2 workers (읽기 전용), pane 분할 + 타이틀 ⏳→✅ + 회수 복원 확인
+- ✅ 복수 리더 테스트: Alpha(L1=%98) + Beta(L2=%100) 각 2 workers, 6 panes 독립 구동
+- ✅ 독립 회수 검증: Alpha만 회수 시 Beta 영향 없음, pane-border-status 조건부 해제
+- ✅ 프로덕션 배포 2회 (CI/CD 2m4s + 2m1s)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,043/1,043 PASS / build 정상
+- ✅ 프로덕션 배포 완료 (CI/CD 2m1s, https://dx.minu.best)
+
 ### 세션 241 (2026-02-22)
 **리팩토링 Phase 10 완료 — recall-tracking barrel + ACL/Integration 분석**:
 - ✅ `RecallTrackingService` barrel 등록 (`services/index.ts`에 추가 — 유일하게 누락된 서비스)
