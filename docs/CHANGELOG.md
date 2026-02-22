@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 241 (2026-02-22)
+**리팩토링 Phase 10 완료 — recall-tracking barrel + ACL/Integration 분석**:
+- ✅ `RecallTrackingService` barrel 등록 (`services/index.ts`에 추가 — 유일하게 누락된 서비스)
+- ✅ ACL 모듈 분석 (287줄, 4파일): YAGNI 판정 — FF-gated, 1개 라우트만 사용, 변경 불필요
+- ✅ Integration 모듈 분석: `briefing-builder.ts` (393줄) TODO 주석 추가 (UI 아카이브, non-fatal 호출만)
+- ✅ `pipeline-bridge.ts` (291줄) + `signal-router.ts` (217줄): 활성 코드, 유지
+- ✅ Phase 9 서비스 분할 결과 재검증 (이전 세션 커밋 확인)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,043/1,043 PASS / build 정상
+
 ### 세션 240 (2026-02-21)
 **/team 스킬 v8 완성 — 리더 자체 분할 + worker pane 상태 표시**:
 - ✅ tmux pane 분할 전략 변경: Other CC 세로분할 → 리더 자체 가로분할(-h), 복수 리더 독립 분할
