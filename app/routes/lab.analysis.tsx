@@ -120,8 +120,8 @@ export default function LabAnalysis() {
             }}
             className={`rounded-md px-3 py-1.5 text-xs font-medium uppercase tracking-wider transition-colors ${
               activeMode === key
-                ? "bg-[var(--dx-lab-accent)] text-white"
-                : "bg-[var(--axis-surface-secondary)] text-[var(--axis-text-secondary)] hover:text-[var(--axis-text-primary)]"
+                ? "bg-lab-accent text-white"
+                : "bg-surface-secondary text-fg-secondary hover:text-fg"
             }`}
             style={{ fontFamily: "var(--dx-font-mono)" }}
           >
@@ -134,7 +134,7 @@ export default function LabAnalysis() {
       {activeMode !== "simulation" && (
         <>
           {analysisFetcher.data?.error && (
-            <div className="rounded-md bg-[var(--axis-badge-destructive-bg,#FEE2E2)] px-4 py-2 text-sm text-[var(--axis-badge-destructive-text,#991B1B)]">
+            <div className="rounded-md bg-badge-destructive-bg px-4 py-2 text-sm text-badge-destructive-text">
               {analysisFetcher.data.error}
             </div>
           )}
@@ -146,8 +146,8 @@ export default function LabAnalysis() {
           />
 
           {!analysisResults[activeMode] && !isAnalysisLoading && (
-            <div className="flex h-48 items-center justify-center rounded-lg border border-dashed border-[var(--dx-border-subtle,var(--axis-border-default))]">
-              <p className="text-sm text-[var(--axis-text-tertiary)]" style={{ fontFamily: "var(--dx-font-mono)" }}>
+            <div className="flex h-48 items-center justify-center rounded-lg border border-dashed border-line-subtle">
+              <p className="text-sm text-fg-tertiary font-mono-dx">
                 &gt; Click button above to run analysis
               </p>
             </div>
@@ -165,8 +165,8 @@ export default function LabAnalysis() {
               onClick={() => setSimMode("propagate")}
               className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 simMode === "propagate"
-                  ? "bg-[var(--dx-lab-accent)] text-white"
-                  : "bg-[var(--axis-surface-secondary)] text-[var(--axis-text-secondary)] hover:text-[var(--axis-text-primary)]"
+                  ? "bg-lab-accent text-white"
+                  : "bg-surface-secondary text-fg-secondary hover:text-fg"
               }`}
               style={{ fontFamily: "var(--dx-font-mono)" }}
             >
@@ -177,8 +177,8 @@ export default function LabAnalysis() {
               onClick={() => setSimMode("scenario")}
               className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 simMode === "scenario"
-                  ? "bg-[var(--dx-lab-accent)] text-white"
-                  : "bg-[var(--axis-surface-secondary)] text-[var(--axis-text-secondary)] hover:text-[var(--axis-text-primary)]"
+                  ? "bg-lab-accent text-white"
+                  : "bg-surface-secondary text-fg-secondary hover:text-fg"
               }`}
               style={{ fontFamily: "var(--dx-font-mono)" }}
             >
@@ -187,13 +187,13 @@ export default function LabAnalysis() {
           </div>
 
           {/* Input Form */}
-          <div className="space-y-3 rounded-lg border border-[var(--dx-border-subtle,var(--axis-border-default))] p-4">
+          <div className="space-y-3 rounded-lg border border-line-subtle p-4">
             <div>
               <label className="lab-stat-terminal mb-1 block">SOURCE ENTITY</label>
               <select
                 value={sourceNodeId}
                 onChange={(e) => setSourceNodeId(e.target.value)}
-                className="w-full rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] px-3 py-2 text-sm text-[var(--axis-text-primary)]"
+                className="w-full rounded border border-line bg-surface-primary px-3 py-2 text-sm text-fg"
               >
                 <option value="">엔티티 선택...</option>
                 {nodes.map((node) => (
@@ -225,7 +225,7 @@ export default function LabAnalysis() {
                 onChange={(e) => setMagnitude(e.target.value)}
                 className="w-full"
               />
-              <span className="text-xs text-[var(--axis-text-tertiary)]" style={{ fontFamily: "var(--dx-font-mono)" }}>
+              <span className="text-xs text-fg-tertiary font-mono-dx">
                 {magnitude}
               </span>
             </div>
@@ -238,7 +238,7 @@ export default function LabAnalysis() {
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
                   placeholder="예: 이 시장이 30% 성장하면 어떤 영향이?"
-                  className="w-full rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] px-3 py-2 text-sm text-[var(--axis-text-primary)] placeholder:text-[var(--axis-text-tertiary)]"
+                  className="w-full rounded border border-line bg-surface-primary px-3 py-2 text-sm text-fg placeholder:text-fg-tertiary"
                 />
               </div>
             )}
@@ -247,7 +247,7 @@ export default function LabAnalysis() {
               type="button"
               onClick={runSimulation}
               disabled={!sourceNodeId || isSimLoading || (simMode === "scenario" && !question)}
-              className="rounded-md bg-[var(--dx-lab-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+              className="rounded-md bg-lab-accent px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
               style={{ fontFamily: "var(--dx-font-mono)" }}
             >
               {isSimLoading ? "RUNNING..." : simMode === "propagate" ? "RUN PROPAGATION" : "RUN SCENARIO"}
@@ -255,7 +255,7 @@ export default function LabAnalysis() {
           </div>
 
           {simFetcher.data?.error && (
-            <p className="text-sm text-[var(--axis-badge-destructive-text,#991B1B)]">
+            <p className="text-sm text-badge-destructive-text">
               {simFetcher.data.error}
             </p>
           )}
@@ -267,8 +267,8 @@ export default function LabAnalysis() {
           />
 
           {!propagationResult && !isSimLoading && (
-            <div className="flex h-48 items-center justify-center rounded-lg border border-dashed border-[var(--dx-border-subtle,var(--axis-border-default))]">
-              <p className="text-sm text-[var(--axis-text-tertiary)]" style={{ fontFamily: "var(--dx-font-mono)" }}>
+            <div className="flex h-48 items-center justify-center rounded-lg border border-dashed border-line-subtle">
+              <p className="text-sm text-fg-tertiary font-mono-dx">
                 &gt; Select entity and run simulation
               </p>
             </div>

@@ -30,16 +30,16 @@ export function ProposalDetailSidebar({ proposalId, sections, comments, currentU
   const [activeTab, setActiveTab] = useState<Tab>("toc");
 
   return (
-    <aside className="flex h-full w-56 shrink-0 flex-col border-r border-[var(--axis-border-default)] bg-[var(--dx-surface-panel,var(--axis-surface-default))]">
+    <aside className="flex h-full w-56 shrink-0 flex-col border-r border-line bg-surface-panel">
       {/* Tab switcher */}
-      <div className="flex border-b border-[var(--axis-border-default)]">
+      <div className="flex border-b border-line">
         <button
           type="button"
           onClick={() => setActiveTab("toc")}
           className={`flex-1 py-2.5 text-xs font-medium transition-colors ${
             activeTab === "toc"
-              ? "border-b-2 border-[var(--axis-text-brand)] text-[var(--axis-text-brand)]"
-              : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-secondary)]"
+              ? "border-b-2 border-fg-brand text-fg-brand"
+              : "text-fg-tertiary hover:text-fg-secondary"
           }`}
         >
           목차
@@ -49,8 +49,8 @@ export function ProposalDetailSidebar({ proposalId, sections, comments, currentU
           onClick={() => setActiveTab("reviews")}
           className={`flex-1 py-2.5 text-xs font-medium transition-colors ${
             activeTab === "reviews"
-              ? "border-b-2 border-[var(--axis-text-brand)] text-[var(--axis-text-brand)]"
-              : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-secondary)]"
+              ? "border-b-2 border-fg-brand text-fg-brand"
+              : "text-fg-tertiary hover:text-fg-secondary"
           }`}
         >
           검토 의견 ({comments.length})
@@ -86,7 +86,7 @@ function TableOfContents({ sections }: { sections: Section[] }) {
         if (!hasContent) return null;
         return (
           <div key={group.name} className="mb-3">
-            <h4 className="mb-1 text-[10px] font-semibold text-[var(--axis-text-tertiary)] uppercase tracking-wider">
+            <h4 className="mb-1 text-[10px] font-semibold text-fg-tertiary uppercase tracking-wider">
               {group.name}
             </h4>
             <ul className="space-y-0.5">
@@ -96,7 +96,7 @@ function TableOfContents({ sections }: { sections: Section[] }) {
                   <li key={type}>
                     <a
                       href={`#section-${type}`}
-                      className="block rounded px-2 py-1 text-xs text-[var(--axis-text-secondary)] transition-colors hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-primary)]"
+                      className="block rounded px-2 py-1 text-xs text-fg-secondary transition-colors hover:bg-surface-secondary hover:text-fg"
                     >
                       {SECTION_LABELS[type] || type}
                     </a>

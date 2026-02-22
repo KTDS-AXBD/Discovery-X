@@ -3,6 +3,151 @@
 @import "./dx-custom-tokens.css";
 @plugin "@tailwindcss/typography";
 
+/* ── AXIS + DX 토큰을 Tailwind 네이티브 유틸리티로 등록 ── */
+@theme inline {
+  /* ── fg (foreground / text) ─────────────────── */
+  --color-fg: var(--axis-text-primary);
+  --color-fg-secondary: var(--axis-text-secondary);
+  --color-fg-tertiary: var(--axis-text-tertiary);
+  --color-fg-brand: var(--axis-text-brand);
+  --color-fg-error: var(--axis-text-error);
+  --color-fg-success: var(--axis-text-success);
+  --color-fg-warning: var(--axis-text-warning);
+  --color-fg-info: var(--axis-text-info);
+  --color-fg-inverse: var(--axis-text-inverse);
+  --color-fg-on-brand: var(--axis-text-on-brand);
+  --color-fg-muted: var(--dx-text-muted);
+
+  /* ── surface (background) ───────────────────── */
+  --color-surface: var(--axis-surface-default);
+  --color-surface-secondary: var(--axis-surface-secondary);
+  --color-surface-tertiary: var(--axis-surface-tertiary);
+  --color-surface-inverse: var(--axis-surface-inverse);
+  --color-surface-brand: var(--axis-surface-brand);
+  --color-surface-success: var(--axis-surface-success);
+  --color-surface-warning: var(--axis-surface-warning);
+  --color-surface-error: var(--axis-surface-error);
+  --color-surface-info: var(--axis-surface-info);
+  --color-surface-deep: var(--dx-surface-deep);
+  --color-surface-panel: var(--dx-surface-panel);
+  --color-surface-card: var(--dx-surface-card);
+  --color-surface-card-hover: var(--dx-surface-card-hover);
+
+  /* ── line (border / divide) ─────────────────── */
+  --color-line: var(--axis-border-default);
+  --color-line-secondary: var(--axis-border-secondary);
+  --color-line-focus: var(--axis-border-focus);
+  --color-line-error: var(--axis-border-error);
+  --color-line-success: var(--axis-border-success);
+  --color-line-brand: var(--axis-border-brand);
+  --color-line-subtle: var(--dx-border-subtle);
+  --color-line-muted: var(--dx-border-muted);
+  --color-line-card: var(--dx-card-border-subtle);
+
+  /* ── icon ────────────────────────────────────── */
+  --color-icon: var(--axis-icon-default);
+  --color-icon-secondary: var(--axis-icon-secondary);
+  --color-icon-inverse: var(--axis-icon-inverse);
+  --color-icon-brand: var(--axis-icon-brand);
+  --color-icon-success: var(--axis-icon-success);
+  --color-icon-warning: var(--axis-icon-warning);
+  --color-icon-error: var(--axis-icon-error);
+
+  /* ── btn (button) ────────────────────────────── */
+  /* primary */
+  --color-btn-bg: var(--axis-button-bg-default);
+  --color-btn-bg-hover: var(--axis-button-bg-hover);
+  --color-btn-bg-active: var(--axis-button-bg-active);
+  --color-btn-bg-disabled: var(--axis-button-bg-disabled);
+  --color-btn-text: var(--axis-button-text-default);
+  --color-btn-text-disabled: var(--axis-button-text-disabled);
+  --color-btn-border-focus: var(--axis-button-border-focus);
+  /* secondary */
+  --color-btn-secondary-bg: var(--axis-button-secondary-bg-default);
+  --color-btn-secondary-bg-hover: var(--axis-button-secondary-bg-hover);
+  --color-btn-secondary-bg-active: var(--axis-button-secondary-bg-active);
+  --color-btn-secondary-text: var(--axis-button-secondary-text-default);
+  /* ghost */
+  --color-btn-ghost-bg-hover: var(--axis-button-ghost-bg-hover);
+  --color-btn-ghost-bg-active: var(--axis-button-ghost-bg-active);
+  --color-btn-ghost-text: var(--axis-button-ghost-text-default);
+  /* outline (DX custom) */
+  --color-btn-outline-border: var(--dx-button-outline-border);
+  --color-btn-outline-hover-bg: var(--dx-button-outline-hover-bg);
+  /* success */
+  --color-btn-success-bg: var(--axis-button-success-bg-default);
+  --color-btn-success-bg-hover: var(--axis-button-success-bg-hover);
+  --color-btn-success-bg-active: var(--axis-button-success-bg-active);
+  --color-btn-success-bg-disabled: var(--axis-button-success-bg-disabled);
+  --color-btn-success-text: var(--axis-button-success-text-default);
+  /* purple */
+  --color-btn-purple-bg: var(--axis-button-purple-bg-default);
+  --color-btn-purple-bg-hover: var(--axis-button-purple-bg-hover);
+  --color-btn-purple-bg-active: var(--axis-button-purple-bg-active);
+  --color-btn-purple-bg-disabled: var(--axis-button-purple-bg-disabled);
+  --color-btn-purple-text: var(--axis-button-purple-text-default);
+  /* destructive */
+  --color-btn-destructive-bg: var(--axis-button-destructive-bg-default);
+  --color-btn-destructive-bg-hover: var(--axis-button-destructive-bg-hover);
+  --color-btn-destructive-bg-active: var(--axis-button-destructive-bg-active);
+  --color-btn-destructive-bg-disabled: var(--axis-button-destructive-bg-disabled);
+  --color-btn-destructive-text: var(--axis-button-destructive-text-default);
+
+  /* ── badge ───────────────────────────────────── */
+  --color-badge-purple-bg: var(--axis-badge-purple-bg);
+  --color-badge-purple-text: var(--axis-badge-purple-text);
+  --color-badge-warning-bg: var(--axis-badge-warning-bg);
+  --color-badge-warning-text: var(--axis-badge-warning-text);
+  --color-badge-success-bg: var(--axis-badge-success-bg);
+  --color-badge-success-text: var(--axis-badge-success-text);
+  --color-badge-destructive-bg: var(--axis-badge-destructive-bg);
+  --color-badge-destructive-text: var(--axis-badge-destructive-text);
+
+  /* ── chart ───────────────────────────────────── */
+  --color-chart-inbox: var(--axis-chart-inbox);
+  --color-chart-open: var(--axis-chart-open);
+  --color-chart-next: var(--axis-chart-next);
+  --color-chart-not-now: var(--axis-chart-not-now);
+  --color-chart-dead-end: var(--axis-chart-dead-end);
+  --color-chart-bar: var(--axis-chart-bar);
+  --color-chart-empty: var(--axis-chart-empty);
+
+  /* ── lab ──────────────────────────────────────── */
+  --color-lab-accent: var(--dx-lab-accent);
+  --color-lab-accent-muted: var(--dx-lab-accent-muted);
+
+  /* ── focus-ring ──────────────────────────────── */
+  --color-focus-ring: var(--dx-focus-ring-color-default);
+  --color-focus-ring-success: var(--dx-focus-ring-color-success);
+  --color-focus-ring-destructive: var(--dx-focus-ring-color-destructive);
+  --color-focus-ring-purple: var(--dx-focus-ring-color-purple);
+
+  /* ── input ─────────────────────────────────── */
+  --color-input-bg: var(--axis-input-bg-default);
+  --color-input-bg-disabled: var(--axis-input-bg-disabled);
+  --color-input-text: var(--axis-input-text-default);
+  --color-input-placeholder: var(--axis-input-text-placeholder);
+  --color-input-border: var(--axis-input-border-default);
+  --color-input-border-hover: var(--axis-input-border-hover);
+  --color-input-border-focus: var(--axis-input-border-focus);
+  --color-input-border-error: var(--axis-input-border-error);
+
+  /* ── surface extras ─────────────────────────── */
+  --color-surface-primary: var(--axis-surface-primary, var(--axis-surface-default));
+  --color-surface-hover: var(--axis-surface-hover, var(--axis-surface-secondary));
+  --color-surface-code: var(--dx-code-bg, var(--axis-surface-secondary));
+
+  /* ── line extras ───────────────────────────── */
+  --color-line-subtle-alt: var(--axis-border-subtle, var(--axis-border-default));
+
+  /* ── non-color tokens ────────────────────────── */
+  --font-mono-dx: var(--dx-font-mono);
+  --radius-card: var(--dx-card-radius);
+  --shadow-card: var(--dx-card-shadow);
+  --shadow-card-hover: var(--dx-card-shadow-hover);
+  --transition-normal: var(--dx-transition-normal);
+}
+
 /* Pretendard font override — unlayered to override @axis-ds/tokens */
 :root {
   --axis-font-family-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;

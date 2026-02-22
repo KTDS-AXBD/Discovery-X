@@ -121,14 +121,14 @@ function SummaryCard({
   return (
     <Card>
       <CardContent className="pt-5 pb-4 px-5">
-        <p className="text-xs font-medium text-[var(--axis-text-tertiary)] uppercase tracking-wide">
+        <p className="text-xs font-medium text-fg-tertiary uppercase tracking-wide">
           {label}
         </p>
-        <p className="mt-1 text-2xl font-bold text-[var(--axis-text-primary)]">
+        <p className="mt-1 text-2xl font-bold text-fg">
           {value}
         </p>
         {sub && (
-          <p className="mt-0.5 text-xs text-[var(--axis-text-tertiary)]">{sub}</p>
+          <p className="mt-0.5 text-xs text-fg-tertiary">{sub}</p>
         )}
       </CardContent>
     </Card>
@@ -139,7 +139,7 @@ function SummaryCard({
 function DailyChart({ data }: { data: DailySummaryRow[] }) {
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-48 text-sm text-[var(--axis-text-tertiary)]">
+      <div className="flex items-center justify-center h-48 text-sm text-fg-tertiary">
         데이터가 없습니다
       </div>
     );
@@ -173,7 +173,7 @@ function DailyChart({ data }: { data: DailySummaryRow[] }) {
         {modes.map((mode) => (
           <div key={mode} className="flex items-center gap-1.5">
             <span className={`inline-block w-2.5 h-2.5 rounded-sm ${MODE_DOT_COLORS[mode]}`} />
-            <span className="text-xs text-[var(--axis-text-secondary)]">{modeLabel(mode)}</span>
+            <span className="text-xs text-fg-secondary">{modeLabel(mode)}</span>
           </div>
         ))}
       </div>
@@ -224,7 +224,7 @@ function DailyChart({ data }: { data: DailySummaryRow[] }) {
           <div key={date} className="flex-1 min-w-0">
             {/* 날짜가 많으면 짝수만 표시 */}
             {dates.length <= 14 || i % 2 === 0 ? (
-              <p className="text-[10px] text-center text-[var(--axis-text-tertiary)] truncate">
+              <p className="text-[10px] text-center text-fg-tertiary truncate">
                 {shortDate(date)}
               </p>
             ) : null}
@@ -255,7 +255,7 @@ function UsageBar({ used, limit }: { used: number; limit: number }) {
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="text-xs text-[var(--axis-text-tertiary)] whitespace-nowrap w-12 text-right">
+      <span className="text-xs text-fg-tertiary whitespace-nowrap w-12 text-right">
         {pct.toFixed(0)}%
       </span>
     </div>
@@ -319,23 +319,23 @@ export default function AdminCosts() {
       {/* 페이지 헤더 */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">
+          <h1 className="text-2xl font-bold text-fg">
             비용 대시보드
           </h1>
-          <p className="mt-1 text-sm text-[var(--axis-text-secondary)]">
+          <p className="mt-1 text-sm text-fg-secondary">
             토큰 사용 현황과 사용자별 예산 상태를 확인합니다.
           </p>
         </div>
 
         {/* 기간 토글 */}
-        <div className="flex items-center gap-1 rounded-lg bg-[var(--axis-surface-tertiary)] p-1">
+        <div className="flex items-center gap-1 rounded-lg bg-surface-tertiary p-1">
           <button
             type="button"
             onClick={() => handleRangeChange("7d")}
             className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
               range === "7d"
-                ? "bg-[var(--axis-surface-default)] text-[var(--axis-text-primary)] shadow-sm"
-                : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-secondary)]"
+                ? "bg-surface text-fg shadow-sm"
+                : "text-fg-tertiary hover:text-fg-secondary"
             }`}
           >
             7일
@@ -345,8 +345,8 @@ export default function AdminCosts() {
             onClick={() => handleRangeChange("30d")}
             className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
               range === "30d"
-                ? "bg-[var(--axis-surface-default)] text-[var(--axis-text-primary)] shadow-sm"
-                : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-secondary)]"
+                ? "bg-surface text-fg shadow-sm"
+                : "text-fg-tertiary hover:text-fg-secondary"
             }`}
           >
             30일
@@ -395,10 +395,10 @@ export default function AdminCosts() {
               <div className="h-16 animate-pulse bg-neutral-200 dark:bg-neutral-700 rounded" />
             ) : usageData?.todayUsage ? (
               <div>
-                <p className="text-xl font-bold text-[var(--axis-text-primary)]">
+                <p className="text-xl font-bold text-fg">
                   {formatTokenCount(usageData.todayUsage.tokensUsedToday)}
                 </p>
-                <p className="text-xs text-[var(--axis-text-tertiary)] mt-1">
+                <p className="text-xs text-fg-tertiary mt-1">
                   일일 한도: {formatTokenCount(usageData.todayUsage.dailyTokenBudget)}
                 </p>
                 <div className="mt-3">
@@ -433,7 +433,7 @@ export default function AdminCosts() {
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm">사용자별 예산 현황</CardTitle>
             {budgetData?.summary && (
-              <span className="text-xs text-[var(--axis-text-tertiary)]">
+              <span className="text-xs text-fg-tertiary">
                 {budgetData.summary.overBudget > 0 && (
                   <Badge variant="destructive" className="mr-2">
                     초과 {budgetData.summary.overBudget}명
@@ -452,19 +452,19 @@ export default function AdminCosts() {
               ))}
             </div>
           ) : !budgetData?.users?.length ? (
-            <p className="text-sm text-[var(--axis-text-tertiary)] py-4">사용자 데이터가 없습니다</p>
+            <p className="text-sm text-fg-tertiary py-4">사용자 데이터가 없습니다</p>
           ) : (
             <div className="overflow-x-auto -mx-5">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-[var(--axis-border-default)]">
-                    <th className="text-left py-2 px-5 text-xs font-medium text-[var(--axis-text-tertiary)]">이메일</th>
-                    <th className="text-left py-2 px-3 text-xs font-medium text-[var(--axis-text-tertiary)]">메모리 사용</th>
-                    <th className="text-left py-2 px-3 text-xs font-medium text-[var(--axis-text-tertiary)]">월간 사용</th>
-                    <th className="text-center py-2 px-3 text-xs font-medium text-[var(--axis-text-tertiary)]">상태</th>
+                  <tr className="border-b border-line">
+                    <th className="text-left py-2 px-5 text-xs font-medium text-fg-tertiary">이메일</th>
+                    <th className="text-left py-2 px-3 text-xs font-medium text-fg-tertiary">메모리 사용</th>
+                    <th className="text-left py-2 px-3 text-xs font-medium text-fg-tertiary">월간 사용</th>
+                    <th className="text-center py-2 px-3 text-xs font-medium text-fg-tertiary">상태</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--axis-border-default)]">
+                <tbody className="divide-y divide-line">
                   {budgetData.users.map((user) => {
                     const memoryPct =
                       user.budget.memoryLimit > 0
@@ -481,12 +481,12 @@ export default function AdminCosts() {
                         key={user.userId}
                         className={isOver ? "bg-red-50 dark:bg-red-950/20" : ""}
                       >
-                        <td className="py-2.5 px-5 text-[var(--axis-text-primary)] truncate max-w-[200px]">
+                        <td className="py-2.5 px-5 text-fg truncate max-w-[200px]">
                           {user.email}
                         </td>
                         <td className="py-2.5 px-3 w-48">
                           <div>
-                            <span className="text-xs text-[var(--axis-text-secondary)]">
+                            <span className="text-xs text-fg-secondary">
                               {formatTokenCount(user.budget.memoryUsed)} / {formatTokenCount(user.budget.memoryLimit)}
                             </span>
                             <UsageBar used={user.budget.memoryUsed} limit={user.budget.memoryLimit} />
@@ -494,7 +494,7 @@ export default function AdminCosts() {
                         </td>
                         <td className="py-2.5 px-3 w-48">
                           <div>
-                            <span className="text-xs text-[var(--axis-text-secondary)]">
+                            <span className="text-xs text-fg-secondary">
                               {formatTokenCount(user.budget.monthlyUsed)} / {formatTokenCount(user.budget.monthlyLimit)}
                             </span>
                             <UsageBar used={user.budget.monthlyUsed} limit={user.budget.monthlyLimit} />
@@ -532,39 +532,39 @@ export default function AdminCosts() {
               ))}
             </div>
           ) : !usageData?.recentLogs?.length ? (
-            <p className="text-sm text-[var(--axis-text-tertiary)] py-4">최근 로그가 없습니다</p>
+            <p className="text-sm text-fg-tertiary py-4">최근 로그가 없습니다</p>
           ) : (
             <div className="overflow-x-auto -mx-5">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-[var(--axis-border-default)]">
-                    <th className="text-left py-2 px-5 text-xs font-medium text-[var(--axis-text-tertiary)]">시간</th>
-                    <th className="text-left py-2 px-3 text-xs font-medium text-[var(--axis-text-tertiary)]">모드</th>
-                    <th className="text-left py-2 px-3 text-xs font-medium text-[var(--axis-text-tertiary)]">모델</th>
-                    <th className="text-right py-2 px-3 text-xs font-medium text-[var(--axis-text-tertiary)]">입력</th>
-                    <th className="text-right py-2 px-3 text-xs font-medium text-[var(--axis-text-tertiary)]">출력</th>
-                    <th className="text-right py-2 px-5 text-xs font-medium text-[var(--axis-text-tertiary)]">합계</th>
+                  <tr className="border-b border-line">
+                    <th className="text-left py-2 px-5 text-xs font-medium text-fg-tertiary">시간</th>
+                    <th className="text-left py-2 px-3 text-xs font-medium text-fg-tertiary">모드</th>
+                    <th className="text-left py-2 px-3 text-xs font-medium text-fg-tertiary">모델</th>
+                    <th className="text-right py-2 px-3 text-xs font-medium text-fg-tertiary">입력</th>
+                    <th className="text-right py-2 px-3 text-xs font-medium text-fg-tertiary">출력</th>
+                    <th className="text-right py-2 px-5 text-xs font-medium text-fg-tertiary">합계</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--axis-border-default)]">
+                <tbody className="divide-y divide-line">
                   {usageData.recentLogs.map((log) => (
                     <tr key={log.id}>
-                      <td className="py-2 px-5 text-xs text-[var(--axis-text-secondary)] whitespace-nowrap">
+                      <td className="py-2 px-5 text-xs text-fg-secondary whitespace-nowrap">
                         {formatLogTime(log.createdAt)}
                       </td>
                       <td className="py-2 px-3">
                         <Badge variant="subtle">{modeLabel(log.mode)}</Badge>
                       </td>
-                      <td className="py-2 px-3 text-xs text-[var(--axis-text-secondary)] truncate max-w-[120px]">
+                      <td className="py-2 px-3 text-xs text-fg-secondary truncate max-w-[120px]">
                         {log.model}
                       </td>
-                      <td className="py-2 px-3 text-xs text-right text-[var(--axis-text-secondary)] tabular-nums">
+                      <td className="py-2 px-3 text-xs text-right text-fg-secondary tabular-nums">
                         {formatTokenCount(log.inputTokens)}
                       </td>
-                      <td className="py-2 px-3 text-xs text-right text-[var(--axis-text-secondary)] tabular-nums">
+                      <td className="py-2 px-3 text-xs text-right text-fg-secondary tabular-nums">
                         {formatTokenCount(log.outputTokens)}
                       </td>
-                      <td className="py-2 px-5 text-xs text-right font-medium text-[var(--axis-text-primary)] tabular-nums">
+                      <td className="py-2 px-5 text-xs text-right font-medium text-fg tabular-nums">
                         {formatTokenCount(log.totalTokens)}
                       </td>
                     </tr>

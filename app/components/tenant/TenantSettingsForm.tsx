@@ -42,9 +42,9 @@ export function TenantSettingsForm({ tenant, isOwner }: TenantSettingsFormProps)
             />
           </FormField>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-[var(--axis-text-secondary)]">Plan:</span>
+            <span className="text-sm text-fg-secondary">Plan:</span>
             <Badge variant="purple">{tenant.plan}</Badge>
-            <span className="text-sm text-[var(--axis-text-secondary)]">Status:</span>
+            <span className="text-sm text-fg-secondary">Status:</span>
             <Badge variant={tenant.status === "active" ? "success" : "warning"}>
               {tenant.status}
             </Badge>
@@ -59,15 +59,15 @@ export function TenantSettingsForm({ tenant, isOwner }: TenantSettingsFormProps)
 
       {/* Feature Toggles */}
       <div>
-        <h4 className="mb-3 text-sm font-medium text-[var(--axis-text-primary)]">
+        <h4 className="mb-3 text-sm font-medium text-fg">
           Features
         </h4>
         <div className="space-y-2">
           {[
             { key: "radarEnabled", label: "Radar" },
           ].map(({ key, label }) => (
-            <div key={key} className="flex items-center justify-between rounded-md border border-[var(--axis-surface-tertiary)] px-3 py-2">
-              <span className="text-sm text-[var(--axis-text-secondary)]">{label}</span>
+            <div key={key} className="flex items-center justify-between rounded-md border border-surface-tertiary px-3 py-2">
+              <span className="text-sm text-fg-secondary">{label}</span>
               <Badge variant={(features as Record<string, unknown>)[key] ? "success" : "secondary"}>
                 {(features as Record<string, unknown>)[key] ? "Enabled" : "Disabled"}
               </Badge>

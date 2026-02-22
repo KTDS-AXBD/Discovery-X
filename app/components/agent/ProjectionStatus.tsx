@@ -29,7 +29,7 @@ export function ProjectionStatus({ projections, className }: ProjectionStatusPro
               "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-mono font-medium tracking-wide transition-colors",
               active
                 ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                : "bg-[var(--axis-surface-secondary)] text-[var(--axis-text-tertiary)]",
+                : "bg-surface-secondary text-fg-tertiary",
             )}
           >
             {label}

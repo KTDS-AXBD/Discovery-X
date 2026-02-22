@@ -29,7 +29,7 @@ export default function AuditTimeline({ entries, maxVisible = 50 }: AuditTimelin
 
   if (entries.length === 0) {
     return (
-      <div className="py-8 text-center text-sm text-[var(--axis-text-tertiary)]">
+      <div className="py-8 text-center text-sm text-fg-tertiary">
         타임라인 항목이 없습니다.
       </div>
     );
@@ -46,7 +46,7 @@ export default function AuditTimeline({ entries, maxVisible = 50 }: AuditTimelin
           >
             {/* 타임라인 라인 */}
             {i < visible.length - 1 && (
-              <div className="absolute left-[11px] top-6 h-full w-px bg-[var(--dx-border-subtle)]" />
+              <div className="absolute left-[11px] top-6 h-full w-px bg-line-subtle" />
             )}
 
             {/* 도트 */}
@@ -64,11 +64,11 @@ export default function AuditTimeline({ entries, maxVisible = 50 }: AuditTimelin
                 >
                   {style.label}
                 </span>
-                <span className="text-sm text-[var(--axis-text-primary)]">
+                <span className="text-sm text-fg">
                   {entry.action}
                 </span>
               </div>
-              <div className="mt-0.5 flex gap-3 text-xs text-[var(--axis-text-tertiary)]">
+              <div className="mt-0.5 flex gap-3 text-xs text-fg-tertiary">
                 <span>{new Date(entry.time).toLocaleString("ko-KR")}</span>
                 {entry.actor && <span>by {entry.actor}</span>}
               </div>
@@ -77,7 +77,7 @@ export default function AuditTimeline({ entries, maxVisible = 50 }: AuditTimelin
         );
       })}
       {hasMore && (
-        <div className="py-2 pl-6 text-xs text-[var(--axis-text-tertiary)]">
+        <div className="py-2 pl-6 text-xs text-fg-tertiary">
           ... 외 {entries.length - maxVisible}건
         </div>
       )}

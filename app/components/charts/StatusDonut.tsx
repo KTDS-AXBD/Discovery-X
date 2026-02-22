@@ -37,7 +37,7 @@ export function StatusDonut({ inbox, open, next, notNow, deadEnd }: StatusDonutP
             0건
           </text>
         </svg>
-        <p className="mt-2 text-sm text-[var(--axis-text-tertiary)]">데이터 없음</p>
+        <p className="mt-2 text-sm text-fg-tertiary">데이터 없음</p>
       </div>
     );
   }
@@ -97,7 +97,7 @@ export function StatusDonut({ inbox, open, next, notNow, deadEnd }: StatusDonutP
           return (
             <div
               key={seg.key}
-              className="flex items-center gap-1 text-xs text-[var(--axis-text-tertiary)]"
+              className="flex items-center gap-1 text-xs text-fg-tertiary"
               style={{ opacity: hovered && hovered !== seg.key ? 0.4 : 1, transition: "opacity 0.2s" }}
               onMouseEnter={() => setHovered(seg.key)}
               onMouseLeave={() => setHovered(null)}

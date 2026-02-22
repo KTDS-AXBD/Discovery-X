@@ -29,7 +29,7 @@ export function ProposalContentView({ proposal, sections }: ProposalContentViewP
     <div className="mx-auto max-w-3xl px-6 py-6">
       {/* Description */}
       {proposal.description && (
-        <p className="mb-6 text-sm leading-relaxed text-[var(--axis-text-secondary)]">
+        <p className="mb-6 text-sm leading-relaxed text-fg-secondary">
           {proposal.description}
         </p>
       )}
@@ -48,20 +48,20 @@ export function ProposalContentView({ proposal, sections }: ProposalContentViewP
 
           return (
             <div key={group.name}>
-              <h2 className="mb-4 text-xs font-semibold text-[var(--axis-text-tertiary)] uppercase tracking-wider">
+              <h2 className="mb-4 text-xs font-semibold text-fg-tertiary uppercase tracking-wider">
                 {group.name}
               </h2>
               <div className="space-y-4">
                 {groupSections.map(({ type, content }) => (
                   <section key={type} id={`section-${type}`} className="scroll-mt-20">
-                    <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--axis-text-primary)]">
-                      <span className="flex h-6 w-6 items-center justify-center rounded bg-[var(--axis-surface-secondary)] text-[10px] font-bold text-[var(--axis-text-tertiary)]">
+                    <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-fg">
+                      <span className="flex h-6 w-6 items-center justify-center rounded bg-surface-secondary text-[10px] font-bold text-fg-tertiary">
                         {SECTION_ICONS[type] || ""}
                       </span>
                       {SECTION_LABELS[type] || type}
                     </h3>
-                    <div className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--dx-surface-card,var(--axis-surface-default))] p-4">
-                      <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--axis-text-secondary)]">
+                    <div className="rounded-lg border border-line bg-surface-card p-4">
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed text-fg-secondary">
                         {content || "내용이 아직 작성되지 않았습니다."}
                       </p>
                     </div>
@@ -74,7 +74,7 @@ export function ProposalContentView({ proposal, sections }: ProposalContentViewP
       </div>
 
       {sections.length === 0 && (
-        <p className="py-8 text-center text-sm text-[var(--axis-text-tertiary)]">
+        <p className="py-8 text-center text-sm text-fg-tertiary">
           섹션이 아직 추가되지 않았습니다.
         </p>
       )}

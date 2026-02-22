@@ -10,7 +10,7 @@ export function ProposalGrid({ proposals, emptyMessage = "사업제안이 없습
   if (proposals.length === 0) {
     return (
       <div className="flex items-center justify-center py-16">
-        <p className="text-sm text-[var(--axis-text-tertiary)]">{emptyMessage}</p>
+        <p className="text-sm text-fg-tertiary">{emptyMessage}</p>
       </div>
     );
   }

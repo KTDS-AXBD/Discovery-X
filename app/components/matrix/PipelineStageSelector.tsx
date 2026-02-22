@@ -61,10 +61,10 @@ export function PipelineStageSelector({
               <div
                 className={`flex h-8 items-center justify-center rounded px-2 text-[10px] font-medium transition-colors ${
                   isCurrent
-                    ? "bg-[var(--dx-lab-accent,#6366f1)] text-white ring-2 ring-[var(--dx-lab-accent,#6366f1)] ring-offset-1 ring-offset-[var(--axis-bg-secondary,#0f172a)]"
+                    ? "bg-lab-accent text-white ring-2 ring-lab-accent ring-offset-1 ring-offset-2"
                     : isActive
-                      ? "bg-[var(--dx-lab-accent,#6366f1)]/20 text-[var(--dx-lab-accent,#6366f1)]"
-                      : "bg-[var(--axis-bg-tertiary,#1e293b)] text-[var(--axis-text-tertiary,#64748b)]"
+                      ? "bg-lab-accent/20 text-lab-accent"
+                      : "bg-surface-tertiary text-fg-tertiary"
                 }`}
                 title={STAGE_GATE_LABELS[gate] ?? stage}
               >
@@ -75,8 +75,8 @@ export function PipelineStageSelector({
                 <div
                   className={`h-0.5 w-3 ${
                     i < currentIdx
-                      ? "bg-[var(--dx-lab-accent,#6366f1)]"
-                      : "bg-[var(--dx-border-subtle,#334155)]"
+                      ? "bg-lab-accent"
+                      : "bg-line-subtle"
                   }`}
                 />
               )}
@@ -86,8 +86,8 @@ export function PipelineStageSelector({
       </div>
 
       {/* 현재 단계 레이블 */}
-      <p className="mt-2 text-[10px] text-[var(--axis-text-tertiary,#64748b)]">
-        현재: <strong className="text-[var(--axis-text-primary)]">{currentGate} · {STAGE_GATE_LABELS[currentGate] ?? currentStage}</strong>
+      <p className="mt-2 text-[10px] text-fg-tertiary">
+        현재: <strong className="text-fg">{currentGate} · {STAGE_GATE_LABELS[currentGate] ?? currentStage}</strong>
       </p>
 
       {/* 전진 버튼 */}
@@ -96,7 +96,7 @@ export function PipelineStageSelector({
           type="button"
           onClick={() => setShowConfirm(true)}
           disabled={isSubmitting}
-          className="mt-3 rounded border border-[var(--dx-lab-accent,#6366f1)] px-3 py-1.5 text-[10px] font-medium text-[var(--dx-lab-accent,#6366f1)] transition-colors hover:bg-[var(--dx-lab-accent,#6366f1)] hover:text-white disabled:opacity-50"
+          className="mt-3 rounded border border-lab-accent px-3 py-1.5 text-[10px] font-medium text-lab-accent transition-colors hover:bg-lab-accent hover:text-white disabled:opacity-50"
         >
           {nextGate}로 전진 →
         </button>
@@ -104,24 +104,24 @@ export function PipelineStageSelector({
 
       {/* 확인 다이얼로그 (인라인) */}
       {showConfirm && nextStage && (
-        <div className="mt-3 rounded border border-[var(--dx-border-subtle,#334155)] bg-[var(--axis-bg-tertiary,#0f172a)] p-3">
-          <p className="text-xs text-[var(--axis-text-secondary,#94a3b8)]">
-            <strong className="text-[var(--axis-text-primary)]">{currentGate}</strong>에서{" "}
-            <strong className="text-[var(--dx-lab-accent,#6366f1)]">{nextGate}</strong>로 이동하시겠습니까?
+        <div className="mt-3 rounded border border-line-subtle bg-surface-tertiary p-3">
+          <p className="text-xs text-fg-secondary">
+            <strong className="text-fg">{currentGate}</strong>에서{" "}
+            <strong className="text-lab-accent">{nextGate}</strong>로 이동하시겠습니까?
           </p>
           <div className="mt-2 flex gap-2">
             <button
               type="button"
               onClick={handleAdvance}
               disabled={isSubmitting}
-              className="rounded bg-[var(--dx-lab-accent,#6366f1)] px-3 py-1 text-[10px] font-medium text-white disabled:opacity-50"
+              className="rounded bg-lab-accent px-3 py-1 text-[10px] font-medium text-white disabled:opacity-50"
             >
               {isSubmitting ? "처리 중..." : "확인"}
             </button>
             <button
               type="button"
               onClick={() => setShowConfirm(false)}
-              className="rounded border border-[var(--dx-border-subtle,#334155)] px-3 py-1 text-[10px] text-[var(--axis-text-tertiary,#64748b)]"
+              className="rounded border border-line-subtle px-3 py-1 text-[10px] text-fg-tertiary"
             >
               취소
             </button>
@@ -131,7 +131,7 @@ export function PipelineStageSelector({
 
       {/* 마지막 단계 안내 */}
       {!nextStage && (
-        <p className="mt-3 text-[10px] text-[var(--dx-score-high,#22c55e)]">
+        <p className="mt-3 text-[10px] text-fg-success">
           파일럿 준비 단계 (최종)
         </p>
       )}

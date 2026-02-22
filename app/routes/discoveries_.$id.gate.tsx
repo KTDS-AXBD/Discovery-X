@@ -431,11 +431,11 @@ export default function DiscoveryGatePage() {
           <CardContent>
             {/* 승인 요청 */}
             <div className="mb-6">
-              <h3 className="mb-3 text-sm font-medium text-[var(--axis-text-secondary)]">승인 요청</h3>
+              <h3 className="mb-3 text-sm font-medium text-fg-secondary">승인 요청</h3>
               <Form method="post" className="flex flex-wrap items-end gap-3">
                 <input type="hidden" name="intent" value="request-approval" />
                 <div>
-                  <label className="block text-xs text-[var(--axis-text-tertiary)]">Gate 패키지</label>
+                  <label className="block text-xs text-fg-tertiary">Gate 패키지</label>
                   <Select name="gatePackageId" className="mt-1">
                     {packages.map((pkg) => (
                       <option key={pkg.id} value={pkg.id}>
@@ -445,7 +445,7 @@ export default function DiscoveryGatePage() {
                   </Select>
                 </div>
                 <div>
-                  <label className="block text-xs text-[var(--axis-text-tertiary)]">리뷰어 (Gatekeeper)</label>
+                  <label className="block text-xs text-fg-tertiary">리뷰어 (Gatekeeper)</label>
                   <Select name="reviewerId" className="mt-1">
                     <option value="">선택...</option>
                     {gatekeepers.map((g) => (
@@ -461,46 +461,46 @@ export default function DiscoveryGatePage() {
 
             {/* 승인 목록 */}
             {approvals.length === 0 ? (
-              <p className="text-sm text-[var(--axis-text-tertiary)]">아직 승인 요청이 없습니다.</p>
+              <p className="text-sm text-fg-tertiary">아직 승인 요청이 없습니다.</p>
             ) : (
               <div className="space-y-3">
                 {approvals.map((a) => (
                   <div
                     key={a.id}
-                    className="rounded-md border border-[var(--axis-border-default)] p-3"
+                    className="rounded-md border border-line p-3"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-[var(--axis-text-primary)]">
+                        <span className="text-sm font-medium text-fg">
                           {a.reviewerName}
                         </span>
                         {decisionBadge(a.decision)}
                         {a.slaDeadline && a.decision === "PENDING" && (
-                          <span className="text-xs text-[var(--axis-text-tertiary)]">
+                          <span className="text-xs text-fg-tertiary">
                             기한: {formatDate(a.slaDeadline)}
                           </span>
                         )}
                       </div>
                       {a.decidedAt && (
-                        <span className="text-xs text-[var(--axis-text-tertiary)]">
+                        <span className="text-xs text-fg-tertiary">
                           {formatDate(a.decidedAt)}
                         </span>
                       )}
                     </div>
                     {a.comment && (
-                      <p className="mt-1 text-sm text-[var(--axis-text-secondary)]">{a.comment}</p>
+                      <p className="mt-1 text-sm text-fg-secondary">{a.comment}</p>
                     )}
 
                     {/* 본인이 리뷰어이고 아직 PENDING인 경우 승인/거부 폼 */}
                     {a.decision === "PENDING" && a.reviewerId === user.id && (
-                      <Form method="post" className="mt-3 space-y-2 border-t border-[var(--axis-border-default)] pt-3">
+                      <Form method="post" className="mt-3 space-y-2 border-t border-line pt-3">
                         <input type="hidden" name="intent" value="submit-approval" />
                         <input type="hidden" name="approvalId" value={a.id} />
                         <textarea
                           name="comment"
                           placeholder="코멘트 (선택)"
                           rows={2}
-                          className="w-full rounded-md border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] px-3 py-2 text-sm text-[var(--axis-text-primary)] placeholder-[var(--axis-text-tertiary)]"
+                          className="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-fg placeholder-fg-tertiary"
                         />
                         <div className="flex gap-2">
                           <Button type="submit" name="decision" value="APPROVED" variant="success" size="sm" disabled={isSubmitting}>

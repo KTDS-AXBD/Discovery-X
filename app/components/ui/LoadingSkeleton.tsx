@@ -10,7 +10,7 @@ function SkeletonLine({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "h-3 rounded-md bg-[var(--axis-surface-tertiary)]",
+        "h-3 rounded-md bg-surface-tertiary",
         "animate-[dx-loading-pulse_1.5s_ease-in-out_infinite]",
         className,
       )}

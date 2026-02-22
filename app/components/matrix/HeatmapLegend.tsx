@@ -12,7 +12,7 @@ const STAGES = ["S0", "S1", "S2", "S3", "S4"];
 export function HeatmapLegend() {
   return (
     <div
-      className="flex flex-wrap items-center gap-6 text-[10px] text-[var(--axis-text-tertiary,#64748b)]"
+      className="flex flex-wrap items-center gap-6 text-[10px] text-fg-tertiary"
       style={{ fontFamily: "var(--dx-font-mono)" }}
     >
       {/* 스코어 범례 */}
@@ -34,7 +34,7 @@ export function HeatmapLegend() {
         <span className="font-medium uppercase tracking-wider">Stage</span>
         {STAGES.map((s) => (
           <span key={s} className="flex items-center gap-1">
-            <span className="font-bold text-[var(--dx-lab-accent,#6366f1)]">{s}</span>
+            <span className="font-bold text-lab-accent">{s}</span>
             {STAGE_GATE_LABELS[s] ?? s}
           </span>
         ))}

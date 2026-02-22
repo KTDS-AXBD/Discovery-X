@@ -16,7 +16,7 @@ export function ProposalTabNav() {
   }
 
   return (
-    <nav className="flex gap-1 border-b border-[var(--axis-border-default)] px-4">
+    <nav className="flex gap-1 border-b border-line px-4">
       {PROPOSAL_TABS.map((tab) => {
         const active = isActive(tab);
         return (
@@ -26,13 +26,13 @@ export function ProposalTabNav() {
             className={cn(
               "relative px-3 py-2.5 text-sm font-medium transition-colors",
               active
-                ? "text-[var(--axis-text-brand)]"
-                : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-secondary)]",
+                ? "text-fg-brand"
+                : "text-fg-tertiary hover:text-fg-secondary",
             )}
           >
             {tab.label}
             {active && (
-              <div className="absolute inset-x-0 bottom-0 h-0.5 bg-[var(--axis-text-brand)]" />
+              <div className="absolute inset-x-0 bottom-0 h-0.5 bg-fg-brand" />
             )}
           </Link>
         );

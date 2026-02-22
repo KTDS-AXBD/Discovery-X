@@ -181,7 +181,7 @@ export default function DiscoveryMethodsPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Left: Recommendations */}
         <div>
-          <h3 className="mb-3 text-sm font-semibold text-[var(--axis-text-primary)]">
+          <h3 className="mb-3 text-sm font-semibold text-fg">
             추천 방법론
           </h3>
           {recommendations.length > 0 ? (
@@ -200,7 +200,7 @@ export default function DiscoveryMethodsPage() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-[var(--axis-text-tertiary)]">
+                          <span className="text-xs text-fg-tertiary">
                             {rec.id}
                           </span>
                           <span
@@ -219,21 +219,21 @@ export default function DiscoveryMethodsPage() {
                             {rec.tier}
                           </span>
                           {rec.quickRun && (
-                            <span className="inline-flex items-center rounded-full bg-[var(--axis-badge-success-bg)] px-2 py-0.5 text-[10px] font-medium text-[var(--axis-badge-success-text)]">
+                            <span className="inline-flex items-center rounded-full bg-badge-success-bg px-2 py-0.5 text-[10px] font-medium text-badge-success-text">
                               2h
                             </span>
                           )}
                         </div>
-                        <h4 className="mt-1 text-sm font-semibold text-[var(--axis-text-primary)]">
+                        <h4 className="mt-1 text-sm font-semibold text-fg">
                           {rec.nameKo}
                         </h4>
-                        <p className="mt-0.5 text-xs text-[var(--axis-text-tertiary)]">
+                        <p className="mt-0.5 text-xs text-fg-tertiary">
                           {rec.reason}
                         </p>
                       </div>
                       <div className="flex-shrink-0">
                         {rec.alreadyRunning ? (
-                          <span className="inline-flex items-center rounded-full bg-[var(--axis-badge-warning-bg)] px-2 py-0.5 text-xs font-medium text-[var(--axis-badge-warning-text)]">
+                          <span className="inline-flex items-center rounded-full bg-badge-warning-bg px-2 py-0.5 text-xs font-medium text-badge-warning-text">
                             실행 중
                           </span>
                         ) : (
@@ -269,7 +269,7 @@ export default function DiscoveryMethodsPage() {
 
         {/* Right: Timeline */}
         <div>
-          <h3 className="mb-3 text-sm font-semibold text-[var(--axis-text-primary)]">
+          <h3 className="mb-3 text-sm font-semibold text-fg">
             실행 이력
           </h3>
           <MethodRunTimeline runs={timelineRuns} />

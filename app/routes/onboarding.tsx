@@ -81,13 +81,13 @@ export default function Onboarding() {
   const { user } = useLoaderData<typeof loader>();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--axis-color-bg-default)]">
+    <div className="min-h-screen flex items-center justify-center bg-surface">
       <div className="w-full max-w-md p-8 space-y-6">
         <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold text-[var(--axis-color-text-default)]">
+          <h1 className="text-2xl font-bold text-fg">
             Discovery-X에 오신 것을 환영합니다
           </h1>
-          <p className="text-[var(--axis-color-text-muted)]">
+          <p className="text-fg-muted">
             {user.name}님, 조직을 만들어 시작하세요.
           </p>
         </div>
@@ -96,7 +96,7 @@ export default function Onboarding() {
           <div>
             <label
               htmlFor="orgName"
-              className="block text-sm font-medium text-[var(--axis-color-text-default)] mb-1"
+              className="block text-sm font-medium text-fg mb-1"
             >
               조직명
             </label>
@@ -107,13 +107,13 @@ export default function Onboarding() {
               required
               minLength={2}
               placeholder="예: AX BD팀"
-              className="w-full px-3 py-2 border rounded-md bg-[var(--axis-color-bg-surface)] border-[var(--axis-color-border-default)] text-[var(--axis-color-text-default)] placeholder:text-[var(--axis-color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--axis-color-primary)]"
+              className="w-full px-3 py-2 border rounded-md bg-surface border-line text-fg placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-fg-brand"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full py-2 px-4 rounded-md bg-[var(--axis-color-primary)] text-white font-medium hover:opacity-90 transition-opacity"
+            className="w-full py-2 px-4 rounded-md bg-fg-brand text-white font-medium hover:opacity-90 transition-opacity"
           >
             조직 만들기
           </button>

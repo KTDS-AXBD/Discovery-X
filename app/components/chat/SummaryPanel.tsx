@@ -40,14 +40,14 @@ export function SummaryPanel({
   onClose,
 }: SummaryPanelProps) {
   return (
-    <div className="flex h-full flex-col border-l border-[var(--axis-border-default)] bg-[var(--dx-surface-panel,var(--axis-surface-default))]">
+    <div className="flex h-full flex-col border-l border-line bg-surface-panel">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-[var(--axis-border-default)] px-3 py-2">
-        <span className="text-xs font-medium text-[var(--axis-text-secondary)]">요약</span>
+      <div className="flex items-center justify-between border-b border-line px-3 py-2">
+        <span className="text-xs font-medium text-fg-secondary">요약</span>
         {onClose && (
           <button
             onClick={onClose}
-            className="text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)] text-xs"
+            className="text-fg-tertiary hover:text-fg text-xs"
           >
             닫기
           </button>
@@ -58,16 +58,16 @@ export function SummaryPanel({
         {/* Source Summary */}
         {activeSource && (
           <div>
-            <h4 className="text-xs font-semibold text-[var(--axis-text-secondary)] mb-2">
+            <h4 className="text-xs font-semibold text-fg-secondary mb-2">
               소스 요약
             </h4>
             <Card>
               <CardContent className="p-3">
-                <p className="text-sm font-medium text-[var(--axis-text-primary)] mb-1">
+                <p className="text-sm font-medium text-fg mb-1">
                   {activeSource.titleKo || activeSource.title}
                 </p>
                 {activeSource.summaryKo && (
-                  <p className="text-xs text-[var(--axis-text-secondary)] mb-2">
+                  <p className="text-xs text-fg-secondary mb-2">
                     {activeSource.summaryKo}
                   </p>
                 )}
@@ -76,9 +76,9 @@ export function SummaryPanel({
                     {activeSource.keyPoints.map((point, i) => (
                       <li
                         key={i}
-                        className="text-xs text-[var(--axis-text-secondary)] flex items-start gap-1"
+                        className="text-xs text-fg-secondary flex items-start gap-1"
                       >
-                        <span className="text-[var(--axis-text-brand)] shrink-0">•</span>
+                        <span className="text-fg-brand shrink-0">•</span>
                         {point}
                       </li>
                     ))}
@@ -88,7 +88,7 @@ export function SummaryPanel({
                   href={activeSource.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-2 block text-xs text-[var(--axis-text-brand)] hover:underline truncate"
+                  className="mt-2 block text-xs text-fg-brand hover:underline truncate"
                 >
                   원문 링크
                 </a>
@@ -100,20 +100,20 @@ export function SummaryPanel({
         {/* Idea Candidates */}
         {candidates.length > 0 && (
           <div>
-            <h4 className="text-xs font-semibold text-[var(--axis-text-secondary)] mb-2">
+            <h4 className="text-xs font-semibold text-fg-secondary mb-2">
               아이디어 후보
             </h4>
             <div className="space-y-2">
               {candidates.map((c) => (
-                <Card key={c.id} className="cursor-pointer hover:border-[var(--axis-text-brand)]">
+                <Card key={c.id} className="cursor-pointer hover:border-fg-brand">
                   <CardContent className="p-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-[var(--axis-text-primary)] line-clamp-2">
+                        <p className="text-sm font-medium text-fg line-clamp-2">
                           {c.title}
                         </p>
                         {c.seedSummary && (
-                          <p className="mt-1 text-xs text-[var(--axis-text-tertiary)] line-clamp-2">
+                          <p className="mt-1 text-xs text-fg-tertiary line-clamp-2">
                             {c.seedSummary}
                           </p>
                         )}
@@ -142,7 +142,7 @@ export function SummaryPanel({
         {/* Template Preview */}
         {selectedIdea && (
           <div>
-            <h4 className="text-xs font-semibold text-[var(--axis-text-secondary)] mb-2">
+            <h4 className="text-xs font-semibold text-fg-secondary mb-2">
               템플릿 미리보기
             </h4>
             <Card>
@@ -158,7 +158,7 @@ export function SummaryPanel({
         {/* Empty State */}
         {!activeSource && candidates.length === 0 && !selectedIdea && (
           <div className="flex h-32 items-center justify-center">
-            <p className="text-xs text-[var(--axis-text-tertiary)]">
+            <p className="text-xs text-fg-tertiary">
               소스를 선택하거나 아이디어를 생성하면 여기에 표시됩니다.
             </p>
           </div>
@@ -171,9 +171,9 @@ export function SummaryPanel({
 function TemplateField({ label, value }: { label: string; value?: string | null }) {
   return (
     <div>
-      <span className="text-[10px] font-medium text-[var(--axis-text-tertiary)]">{label}</span>
-      <p className="text-xs text-[var(--axis-text-primary)]">
-        {value || <span className="italic text-[var(--axis-text-tertiary)]">미입력</span>}
+      <span className="text-[10px] font-medium text-fg-tertiary">{label}</span>
+      <p className="text-xs text-fg">
+        {value || <span className="italic text-fg-tertiary">미입력</span>}
       </p>
     </div>
   );

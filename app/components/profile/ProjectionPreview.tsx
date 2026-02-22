@@ -38,10 +38,10 @@ export function ProjectionPreview({ content, meta, syncing, onSync }: Projection
           <>
             <MarkdownViewer content={content} />
             {meta && (
-              <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[var(--axis-border-default)] pt-3">
+              <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-3">
                 <Badge variant="subtle">v{meta.graphVersion}</Badge>
                 {meta.generatedAt && (
-                  <span className="text-xs text-[var(--axis-text-tertiary)]">
+                  <span className="text-xs text-fg-tertiary">
                     마지막 동기화: {formatDate(meta.generatedAt)}
                   </span>
                 )}
@@ -49,7 +49,7 @@ export function ProjectionPreview({ content, meta, syncing, onSync }: Projection
             )}
           </>
         ) : (
-          <p className="py-8 text-center text-sm text-[var(--axis-text-tertiary)]">
+          <p className="py-8 text-center text-sm text-fg-tertiary">
             프로필을 저장하면 Projection이 자동 생성됩니다.
           </p>
         )}

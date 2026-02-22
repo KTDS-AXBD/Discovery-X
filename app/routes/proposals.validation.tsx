@@ -68,8 +68,8 @@ export default function ValidationTab() {
   return (
     <div className="p-6">
       <div className="mb-4">
-        <h2 className="text-lg font-bold text-[var(--axis-text-primary)]">검증</h2>
-        <p className="text-xs text-[var(--axis-text-tertiary)]">실제 검증을 진행 중인 제안들</p>
+        <h2 className="text-lg font-bold text-fg">검증</h2>
+        <p className="text-xs text-fg-tertiary">실제 검증을 진행 중인 제안들</p>
       </div>
       <ProposalGrid proposals={items} emptyMessage="검증 단계의 제안이 없습니다." />
     </div>

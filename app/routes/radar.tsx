@@ -156,7 +156,7 @@ export default function RadarPage() {
       {/* Sources Section */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-[var(--axis-text-primary)]">수집 소스</h2>
+          <h2 className="text-lg font-semibold text-fg">수집 소스</h2>
           <Button
             variant={showAddForm ? "outline" : "default"}
             size="sm"
@@ -227,7 +227,7 @@ export default function RadarPage() {
         )}
 
         {sources.length === 0 ? (
-          <p className="text-sm text-[var(--axis-text-tertiary)]">등록된 소스가 없습니다.</p>
+          <p className="text-sm text-fg-tertiary">등록된 소스가 없습니다.</p>
         ) : (
           <Table>
             <TableHeader>
@@ -242,7 +242,7 @@ export default function RadarPage() {
             <TableBody>
               {sources.map((source) => (
                 <TableRow key={source.id}>
-                  <TableCell className="pl-4 font-medium text-[var(--axis-text-primary)]">
+                  <TableCell className="pl-4 font-medium text-fg">
                     {source.name}
                   </TableCell>
                   <TableCell>
@@ -250,7 +250,7 @@ export default function RadarPage() {
                       {SOURCE_TYPE_LABELS[source.sourceType] || source.sourceType}
                     </Badge>
                   </TableCell>
-                  <TableCell className="max-w-xs truncate text-[var(--axis-text-tertiary)]" title={source.url}>
+                  <TableCell className="max-w-xs truncate text-fg-tertiary" title={source.url}>
                     {source.url}
                   </TableCell>
                   <TableCell>
@@ -275,7 +275,7 @@ export default function RadarPage() {
                           variant="ghost"
                           size="sm"
                           type="submit"
-                          className="text-[var(--axis-text-error)]"
+                          className="text-fg-error"
                           onClick={(e) => {
                             if (!confirm("이 소스를 삭제하시겠습니까?")) {
                               e.preventDefault();
@@ -296,9 +296,9 @@ export default function RadarPage() {
 
       {/* Run History Section */}
       <div className="mb-8">
-        <h2 className="mb-4 text-lg font-semibold text-[var(--axis-text-primary)]">실행 이력</h2>
+        <h2 className="mb-4 text-lg font-semibold text-fg">실행 이력</h2>
         {runs.length === 0 ? (
-          <p className="text-sm text-[var(--axis-text-tertiary)]">실행 이력이 없습니다.</p>
+          <p className="text-sm text-fg-tertiary">실행 이력이 없습니다.</p>
         ) : (
           <Table>
             <TableHeader>
@@ -315,7 +315,7 @@ export default function RadarPage() {
             <TableBody>
               {runs.map((run) => (
                 <TableRow key={run.id}>
-                  <TableCell className="pl-4 text-[var(--axis-text-primary)]">
+                  <TableCell className="pl-4 text-fg">
                     {formatDateLocal(run.startedAt)}
                   </TableCell>
                   <TableCell>
@@ -323,19 +323,19 @@ export default function RadarPage() {
                       {run.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-center text-[var(--axis-text-tertiary)]">
+                  <TableCell className="text-center text-fg-tertiary">
                     {run.sourcesChecked}
                   </TableCell>
-                  <TableCell className="text-center text-[var(--axis-text-tertiary)]">
+                  <TableCell className="text-center text-fg-tertiary">
                     {run.itemsCollected}
                   </TableCell>
-                  <TableCell className="text-center text-[var(--axis-text-tertiary)]">
+                  <TableCell className="text-center text-fg-tertiary">
                     {run.itemsDeduplicated}
                   </TableCell>
-                  <TableCell className="text-center font-medium text-[var(--axis-text-brand)]">
+                  <TableCell className="text-center font-medium text-fg-brand">
                     {run.seedsCreated}
                   </TableCell>
-                  <TableCell className="text-[var(--axis-text-tertiary)]">
+                  <TableCell className="text-fg-tertiary">
                     {formatDateLocal(run.completedAt)}
                   </TableCell>
                 </TableRow>
@@ -347,9 +347,9 @@ export default function RadarPage() {
 
       {/* Recent Items Section */}
       <div>
-        <h2 className="mb-4 text-lg font-semibold text-[var(--axis-text-primary)]">최근 수집 아이템</h2>
+        <h2 className="mb-4 text-lg font-semibold text-fg">최근 수집 아이템</h2>
         {recentItems.length === 0 ? (
-          <p className="text-sm text-[var(--axis-text-tertiary)]">수집된 아이템이 없습니다. Radar Worker가 실행되면 여기에 표시됩니다.</p>
+          <p className="text-sm text-fg-tertiary">수집된 아이템이 없습니다. Radar Worker가 실행되면 여기에 표시됩니다.</p>
         ) : (
           <div className="space-y-3">
             {recentItems.map((item) => (
@@ -357,20 +357,20 @@ export default function RadarPage() {
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
                     <div className="min-w-0 flex-1">
-                      <h3 className="text-sm font-medium text-[var(--axis-text-primary)]">
+                      <h3 className="text-sm font-medium text-fg">
                         {item.titleKo || item.title}
                       </h3>
                       {item.summaryKo && (
-                        <p className="mt-1 text-sm text-[var(--axis-text-secondary)] line-clamp-2">
+                        <p className="mt-1 text-sm text-fg-secondary line-clamp-2">
                           {item.summaryKo}
                         </p>
                       )}
-                      <div className="mt-2 flex items-center gap-3 text-xs text-[var(--axis-text-tertiary)]">
+                      <div className="mt-2 flex items-center gap-3 text-xs text-fg-tertiary">
                         <a
                           href={item.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="hover:text-[var(--axis-text-brand)] truncate max-w-xs"
+                          className="hover:text-fg-brand truncate max-w-xs"
                         >
                           {item.url}
                         </a>

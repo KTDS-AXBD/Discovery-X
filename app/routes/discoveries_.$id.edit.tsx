@@ -217,7 +217,7 @@ export default function EditDiscovery() {
               </FormField>
 
               {/* Actions */}
-              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-[var(--axis-border-default)] pt-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-line pt-6">
                 <Button variant="outline" asChild>
                   <a href={`/discoveries/${discovery.id}`}>취소</a>
                 </Button>

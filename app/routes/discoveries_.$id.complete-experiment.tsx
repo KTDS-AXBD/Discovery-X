@@ -128,24 +128,24 @@ export default function CompleteExperiment() {
         </AlertBanner>
 
         {/* Experiment Info */}
-        <div className="mb-6 rounded-lg bg-[var(--axis-surface-secondary)] p-4">
-          <h3 className="text-sm font-medium text-[var(--axis-text-primary)]">실험 정보</h3>
+        <div className="mb-6 rounded-lg bg-surface-secondary p-4">
+          <h3 className="text-sm font-medium text-fg">실험 정보</h3>
           <dl className="mt-3 space-y-2 text-sm">
             <div>
-              <dt className="font-medium text-[var(--axis-text-tertiary)]">가설</dt>
-              <dd className="mt-1 text-[var(--axis-text-primary)]">{experiment.hypothesis}</dd>
+              <dt className="font-medium text-fg-tertiary">가설</dt>
+              <dd className="mt-1 text-fg">{experiment.hypothesis}</dd>
             </div>
             <div>
-              <dt className="font-medium text-[var(--axis-text-tertiary)]">최소 행동</dt>
-              <dd className="mt-1 text-[var(--axis-text-primary)]">{experiment.minimalAction}</dd>
+              <dt className="font-medium text-fg-tertiary">최소 행동</dt>
+              <dd className="mt-1 text-fg">{experiment.minimalAction}</dd>
             </div>
             <div>
-              <dt className="font-medium text-[var(--axis-text-tertiary)]">예상 근거</dt>
-              <dd className="mt-1 text-[var(--axis-text-primary)]">{experiment.expectedEvidence}</dd>
+              <dt className="font-medium text-fg-tertiary">예상 근거</dt>
+              <dd className="mt-1 text-fg">{experiment.expectedEvidence}</dd>
             </div>
             <div>
-              <dt className="font-medium text-[var(--axis-text-tertiary)]">마감일</dt>
-              <dd className="mt-1 text-[var(--axis-text-primary)]">
+              <dt className="font-medium text-fg-tertiary">마감일</dt>
+              <dd className="mt-1 text-fg">
                 {formatDate(experiment.deadline)}
               </dd>
             </div>
@@ -174,7 +174,7 @@ export default function CompleteExperiment() {
                 />
               </FormField>
 
-              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-[var(--axis-border-default)] pt-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-line pt-6">
                 <Button variant="outline" asChild>
                   <a href={`/discoveries/${discovery.id}`}>취소</a>
                 </Button>

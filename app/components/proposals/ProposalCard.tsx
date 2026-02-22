@@ -38,16 +38,16 @@ export function ProposalCard({ proposal }: { proposal: ProposalCardData }) {
     : proposal.likeCount;
 
   return (
-    <div className="group rounded-xl border border-[var(--axis-border-default)] bg-[var(--dx-surface-card,var(--axis-surface-default))] p-4 transition-shadow hover:shadow-md">
+    <div className="group rounded-xl border border-line bg-surface-card p-4 transition-shadow hover:shadow-md">
       <Link to={`/proposals/${proposal.id}`} className="block">
         {/* Title (2 lines) */}
-        <h3 className="mb-1 text-sm font-semibold text-[var(--axis-text-primary)] line-clamp-2">
+        <h3 className="mb-1 text-sm font-semibold text-fg line-clamp-2">
           {proposal.title}
         </h3>
 
         {/* Description (3 lines) */}
         {proposal.description && (
-          <p className="mb-3 text-xs leading-relaxed text-[var(--axis-text-secondary)] line-clamp-3">
+          <p className="mb-3 text-xs leading-relaxed text-fg-secondary line-clamp-3">
             {proposal.description}
           </p>
         )}
@@ -55,7 +55,7 @@ export function ProposalCard({ proposal }: { proposal: ProposalCardData }) {
         {/* Time badge */}
         {proposal.updatedAt && (
           <div className="mb-3">
-            <span className="inline-block rounded-full bg-[var(--axis-surface-secondary)] px-2 py-0.5 text-[10px] text-[var(--axis-text-tertiary)]">
+            <span className="inline-block rounded-full bg-surface-secondary px-2 py-0.5 text-[10px] text-fg-tertiary">
               {formatRelativeTime(proposal.updatedAt)}
             </span>
           </div>
@@ -63,8 +63,8 @@ export function ProposalCard({ proposal }: { proposal: ProposalCardData }) {
       </Link>
 
       {/* Footer: author + likes + comments */}
-      <div className="flex items-center justify-between border-t border-[var(--axis-border-default)] pt-2">
-        <span className="text-[10px] text-[var(--axis-text-tertiary)]">
+      <div className="flex items-center justify-between border-t border-line pt-2">
+        <span className="text-[10px] text-fg-tertiary">
           {proposal.ownerName || "Unknown"}
         </span>
         <div className="flex items-center gap-3">
@@ -79,7 +79,7 @@ export function ProposalCard({ proposal }: { proposal: ProposalCardData }) {
                 { method: "POST", action: `/api/proposals/${proposal.id}/likes` },
               );
             }}
-            className="flex items-center gap-0.5 text-[10px] text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-brand)] transition-colors"
+            className="flex items-center gap-0.5 text-[10px] text-fg-tertiary hover:text-fg-brand transition-colors"
           >
             <svg
               className={cn("h-3.5 w-3.5", optimisticLiked && "fill-current text-red-500")}
@@ -93,7 +93,7 @@ export function ProposalCard({ proposal }: { proposal: ProposalCardData }) {
             {optimisticCount > 0 && <span>{optimisticCount}</span>}
           </button>
           {/* Comment count */}
-          <span className="flex items-center gap-0.5 text-[10px] text-[var(--axis-text-tertiary)]">
+          <span className="flex items-center gap-0.5 text-[10px] text-fg-tertiary">
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z" />
             </svg>

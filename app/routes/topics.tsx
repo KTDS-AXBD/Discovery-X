@@ -50,26 +50,26 @@ export default function TopicsLayout() {
   }, [topicList, search, statusFilter]);
 
   const sidebar = (
-    <aside className="hidden w-[280px] shrink-0 border-r border-[var(--axis-border-default)] bg-[var(--dx-surface-panel,var(--axis-surface-default))] sm:block">
+    <aside className="hidden w-[280px] shrink-0 border-r border-line bg-surface-panel sm:block">
       <div className="flex h-full flex-col">
         {/* 헤더 */}
-        <div className="shrink-0 border-b border-[var(--axis-border-default)] px-4 py-3">
-          <h3 className="text-sm font-semibold text-[var(--axis-text-primary)]">
+        <div className="shrink-0 border-b border-line px-4 py-3">
+          <h3 className="text-sm font-semibold text-fg">
             Topics
-            <span className="ml-1.5 text-xs font-normal text-[var(--axis-text-tertiary)]">
+            <span className="ml-1.5 text-xs font-normal text-fg-tertiary">
               ({filteredTopics.length}{filteredTopics.length !== topicList.length ? `/${topicList.length}` : ""})
             </span>
           </h3>
         </div>
 
         {/* 검색 + 필터 */}
-        <div className="shrink-0 space-y-2 border-b border-[var(--axis-border-default)] px-3 py-2">
+        <div className="shrink-0 space-y-2 border-b border-line px-3 py-2">
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Topic 검색..."
-            className="w-full rounded-md border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] px-2.5 py-1.5 text-xs text-[var(--axis-text-primary)] placeholder:text-[var(--axis-text-tertiary)] focus:border-[var(--axis-border-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--axis-border-brand)]"
+            className="w-full rounded-md border border-line bg-surface px-2.5 py-1.5 text-xs text-fg placeholder:text-fg-tertiary focus:border-line-brand focus:outline-none focus:ring-1 focus:ring-line-brand"
           />
           <div className="flex gap-1">
             {STATUS_OPTIONS.map((opt) => (
@@ -78,8 +78,8 @@ export default function TopicsLayout() {
                 onClick={() => setStatusFilter(opt.value)}
                 className={`rounded-md px-2 py-1 text-[10px] font-medium transition-colors ${
                   statusFilter === opt.value
-                    ? "bg-[var(--axis-surface-brand)] text-[var(--axis-text-brand)]"
-                    : "text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-hover)]"
+                    ? "bg-surface-brand text-fg-brand"
+                    : "text-fg-tertiary hover:bg-surface-hover"
                 }`}
               >
                 {opt.label}
@@ -91,7 +91,7 @@ export default function TopicsLayout() {
         {/* Topic 목록 */}
         <div className="flex-1 overflow-y-auto">
           {filteredTopics.length === 0 ? (
-            <p className="px-4 py-8 text-center text-xs text-[var(--axis-text-tertiary)]">
+            <p className="px-4 py-8 text-center text-xs text-fg-tertiary">
               {topicList.length === 0
                 ? "참여 중인 Topic이 없습니다"
                 : "검색 결과가 없습니다"}
@@ -116,8 +116,8 @@ export default function TopicsLayout() {
     <AppShell user={user} sidebarContent={sidebar}>
       <div className="flex h-full flex-col">
         {/* 모바일 헤더 */}
-        <div className="flex items-center justify-between border-b border-[var(--axis-border-default)] px-4 py-2 sm:hidden">
-          <span className="text-sm font-medium text-[var(--axis-text-primary)]">
+        <div className="flex items-center justify-between border-b border-line px-4 py-2 sm:hidden">
+          <span className="text-sm font-medium text-fg">
             Topics
           </span>
         </div>
@@ -125,7 +125,7 @@ export default function TopicsLayout() {
         <div className="flex-1 overflow-hidden">
           {navigation.state === "loading" ? (
             <div className="flex h-full items-center justify-center">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--axis-border-default)] border-t-[var(--axis-text-brand)]" />
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-line border-t-fg-brand" />
             </div>
           ) : (
             <Outlet />

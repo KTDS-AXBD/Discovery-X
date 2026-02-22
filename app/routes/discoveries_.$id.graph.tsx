@@ -123,10 +123,10 @@ export default function DiscoveryGraph() {
     <AppShell user={user}>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">
+          <h1 className="text-2xl font-bold text-fg">
             맥락 그래프 — {discovery.title}
           </h1>
-          <p className="mt-1 text-sm text-[var(--axis-text-tertiary)]">
+          <p className="mt-1 text-sm text-fg-tertiary">
             노드 {nodes.length}개, 엣지 {edges.length}개 · 스냅샷 {snapshots.length}개
           </p>
         </div>
@@ -144,7 +144,7 @@ export default function DiscoveryGraph() {
       </div>
 
       {actionData && "message" in actionData && (
-        <div className="mb-4 rounded-md bg-[var(--axis-surface-success)] px-4 py-2 text-sm text-[var(--axis-badge-success-text)]">
+        <div className="mb-4 rounded-md bg-surface-success px-4 py-2 text-sm text-badge-success-text">
           {actionData.message}
         </div>
       )}
@@ -165,21 +165,21 @@ export default function DiscoveryGraph() {
           <CardTitle className="text-sm">범례</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-4 text-xs text-[var(--axis-text-secondary)]">
+          <div className="flex flex-wrap gap-4 text-xs text-fg-secondary">
             <span className="flex items-center gap-1">
-              <span className="inline-block h-0.5 w-6 bg-[var(--axis-badge-success-text)]" /> supports
+              <span className="inline-block h-0.5 w-6 bg-badge-success-text" /> supports
             </span>
             <span className="flex items-center gap-1">
-              <span className="inline-block h-0.5 w-6 border-t-2 border-dashed border-[var(--axis-button-destructive-bg-default)]" /> contradicts
+              <span className="inline-block h-0.5 w-6 border-t-2 border-dashed border-btn-destructive-bg" /> contradicts
             </span>
             <span className="flex items-center gap-1">
-              <span className="inline-block h-0.5 w-6 bg-[var(--axis-badge-purple-text)]" /> causes
+              <span className="inline-block h-0.5 w-6 bg-badge-purple-text" /> causes
             </span>
             <span className="flex items-center gap-1">
-              <span className="inline-block h-0.5 w-6 border-t-2 border-dashed border-[var(--axis-text-tertiary)]" /> relates_to
+              <span className="inline-block h-0.5 w-6 border-t-2 border-dashed border-fg-tertiary" /> relates_to
             </span>
             <span className="flex items-center gap-1">
-              <span className="inline-block h-0.5 w-6 border-t-2 border-dashed border-[var(--axis-badge-info-text)]" /> depends_on
+              <span className="inline-block h-0.5 w-6 border-t-2 border-dashed border-fg-info" /> depends_on
             </span>
           </div>
         </CardContent>

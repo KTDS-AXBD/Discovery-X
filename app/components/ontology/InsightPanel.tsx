@@ -46,7 +46,7 @@ function PatternCard({ item }: { item: PatternItem }) {
     <Card>
       <CardContent className="p-3">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-[var(--axis-text-primary)]">
+          <span className="text-sm font-medium text-fg">
             {item.path.join(" → ")}
           </span>
           <Badge variant="secondary" className="text-[10px]">
@@ -54,7 +54,7 @@ function PatternCard({ item }: { item: PatternItem }) {
           </Badge>
         </div>
         {item.description && (
-          <p className="mt-1 text-xs text-[var(--axis-text-tertiary)]">{item.description}</p>
+          <p className="mt-1 text-xs text-fg-tertiary">{item.description}</p>
         )}
       </CardContent>
     </Card>
@@ -66,16 +66,16 @@ function ContradictionCard({ item }: { item: ContradictionItem }) {
     <Card>
       <CardContent className="p-3">
         <div className="flex items-center gap-2 text-sm">
-          <span className="font-medium text-[var(--axis-text-primary)]">{item.nodeA}</span>
-          <span className="text-[var(--axis-text-tertiary)]">↔</span>
-          <span className="font-medium text-[var(--axis-text-primary)]">{item.nodeB}</span>
+          <span className="font-medium text-fg">{item.nodeA}</span>
+          <span className="text-fg-tertiary">↔</span>
+          <span className="font-medium text-fg">{item.nodeB}</span>
         </div>
         <div className="mt-1 flex gap-2 text-[10px]">
           <Badge variant="success">{item.supports} 지지</Badge>
           <Badge variant="destructive">{item.contradicts} 모순</Badge>
         </div>
         {item.description && (
-          <p className="mt-1 text-xs text-[var(--axis-text-tertiary)]">{item.description}</p>
+          <p className="mt-1 text-xs text-fg-tertiary">{item.description}</p>
         )}
       </CardContent>
     </Card>
@@ -88,7 +88,7 @@ function ClusterCard({ item }: { item: ClusterItem }) {
       <CardContent className="p-3">
         <div className="flex items-center gap-2">
           {item.label && (
-            <span className="text-sm font-medium text-[var(--axis-text-primary)]">{item.label}</span>
+            <span className="text-sm font-medium text-fg">{item.label}</span>
           )}
           <Badge variant="secondary" className="text-[10px]">
             {item.nodes.length}개 노드
@@ -101,13 +101,13 @@ function ClusterCard({ item }: { item: ClusterItem }) {
           {item.nodes.slice(0, 8).map((node) => (
             <span
               key={node}
-              className="rounded bg-[var(--axis-surface-secondary)] px-1.5 py-0.5 text-[10px] text-[var(--axis-text-secondary)]"
+              className="rounded bg-surface-secondary px-1.5 py-0.5 text-[10px] text-fg-secondary"
             >
               {node}
             </span>
           ))}
           {item.nodes.length > 8 && (
-            <span className="text-[10px] text-[var(--axis-text-tertiary)]">
+            <span className="text-[10px] text-fg-tertiary">
               +{item.nodes.length - 8}
             </span>
           )}
@@ -125,19 +125,19 @@ function CentralityCard({ item }: { item: CentralityItem }) {
     <Card>
       <CardContent className="p-3">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-[var(--axis-text-primary)]">{item.label}</span>
+          <span className="text-sm font-medium text-fg">{item.label}</span>
           <Badge variant="secondary" className="text-[10px]">
             degree {item.degree}
           </Badge>
         </div>
-        <div className="mt-2 h-1.5 rounded-full bg-[var(--axis-surface-secondary)]">
+        <div className="mt-2 h-1.5 rounded-full bg-surface-secondary">
           <div
-            className="h-full rounded-full bg-[var(--axis-surface-brand)]"
+            className="h-full rounded-full bg-surface-brand"
             style={{ width: `${barWidth}%` }}
           />
         </div>
         {item.betweenness !== undefined && (
-          <p className="mt-1 text-[10px] text-[var(--axis-text-tertiary)]">
+          <p className="mt-1 text-[10px] text-fg-tertiary">
             betweenness: {item.betweenness.toFixed(3)}
           </p>
         )}
@@ -152,11 +152,11 @@ export function InsightPanel({ type, data, loading }: InsightPanelProps) {
   if (loading) {
     return (
       <div className="space-y-3">
-        <h3 className="flex items-center gap-2 text-sm font-semibold text-[var(--axis-text-secondary)]">
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-fg-secondary">
           <span className="lab-stat-terminal">[{code}]</span> {title}
         </h3>
-        <div className="flex h-32 items-center justify-center rounded-lg border border-[var(--dx-border-subtle,var(--axis-border-default))]">
-          <p className="text-sm text-[var(--axis-text-tertiary)]" style={{ fontFamily: "var(--dx-font-mono)" }}>ANALYZING...</p>
+        <div className="flex h-32 items-center justify-center rounded-lg border border-line-subtle">
+          <p className="text-sm text-fg-tertiary font-mono-dx">ANALYZING...</p>
         </div>
       </div>
     );
@@ -165,10 +165,10 @@ export function InsightPanel({ type, data, loading }: InsightPanelProps) {
   if (!data || (Array.isArray(data) && data.length === 0)) {
     return (
       <div className="space-y-3">
-        <h3 className="flex items-center gap-2 text-sm font-semibold text-[var(--axis-text-secondary)]">
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-fg-secondary">
           <span className="lab-stat-terminal">[{code}]</span> {title}
         </h3>
-        <p className="text-sm text-[var(--axis-text-tertiary)]">결과가 없습니다.</p>
+        <p className="text-sm text-fg-tertiary">결과가 없습니다.</p>
       </div>
     );
   }
@@ -177,7 +177,7 @@ export function InsightPanel({ type, data, loading }: InsightPanelProps) {
 
   return (
     <div className="space-y-3">
-      <h3 className="flex items-center gap-2 text-sm font-semibold text-[var(--axis-text-secondary)]">
+      <h3 className="flex items-center gap-2 text-sm font-semibold text-fg-secondary">
         <span className="lab-stat-terminal">[{code}]</span> {title}
         <Badge variant="secondary" className="ml-2 text-[10px]">
           {items.length}건

@@ -51,8 +51,8 @@ export default function MethodsPage() {
         <button
           className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
             !tierFilter
-              ? "bg-[var(--axis-surface-brand)] text-white"
-              : "bg-[var(--axis-surface-secondary)] text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-default)]"
+              ? "bg-surface-brand text-white"
+              : "bg-surface-secondary text-fg-secondary hover:bg-surface"
           }`}
           onClick={() => setSearchParams({})}
         >
@@ -65,8 +65,8 @@ export default function MethodsPage() {
               key={tier}
               className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                 tierFilter === tier
-                  ? "bg-[var(--axis-surface-brand)] text-white"
-                  : "bg-[var(--axis-surface-secondary)] text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-default)]"
+                  ? "bg-surface-brand text-white"
+                  : "bg-surface-secondary text-fg-secondary hover:bg-surface"
               }`}
               onClick={() => setSearchParams({ tier })}
             >
@@ -96,7 +96,7 @@ export default function MethodsPage() {
       </div>
 
       {filteredPacks.length === 0 && (
-        <p className="mt-8 text-center text-sm text-[var(--axis-text-tertiary)]">
+        <p className="mt-8 text-center text-sm text-fg-tertiary">
           해당 티어에 등록된 방법론이 없습니다.
         </p>
       )}

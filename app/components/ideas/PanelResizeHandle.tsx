@@ -51,8 +51,8 @@ export function PanelResizeHandle({ onResize, side }: PanelResizeHandleProps) {
       onMouseDown={handleMouseDown}
       className={`relative z-10 flex w-1 shrink-0 cursor-col-resize items-center justify-center transition-colors ${
         isDragging
-          ? "bg-[var(--axis-text-brand)]"
-          : "bg-transparent hover:bg-[var(--axis-border-default)]"
+          ? "bg-fg-brand"
+          : "bg-transparent hover:bg-line"
       }`}
     >
       {/* Wider hit area */}

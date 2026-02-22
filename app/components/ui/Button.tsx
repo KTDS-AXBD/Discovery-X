@@ -5,35 +5,35 @@ import { cn } from "~/lib/utils/cn";
 
 // 공통 인터랙션 스타일
 const baseInteractionStyles = cn(
-  "transition-all duration-[var(--dx-transition-normal)]",
-  "active:scale-[var(--dx-scale-pressed)]",
-  "focus-visible:outline-none focus-visible:ring-[var(--dx-focus-ring-width)] focus-visible:ring-offset-[var(--dx-focus-ring-offset)]",
+  "transition-all duration-normal",
+  "active:scale-95",
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
   "disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
 );
 
 const customVariants = {
   success: cn(
-    "bg-[var(--axis-button-success-bg-default)] text-[var(--axis-button-success-text-default)]",
-    "hover:bg-[var(--axis-button-success-bg-hover)]",
-    "active:bg-[var(--axis-button-success-bg-active)]",
-    "focus-visible:ring-[var(--dx-focus-ring-color-success)]",
-    "disabled:bg-[var(--axis-button-success-bg-disabled)]",
+    "bg-btn-success-bg text-btn-success-text",
+    "hover:bg-btn-success-bg-hover",
+    "active:bg-btn-success-bg-active",
+    "focus-visible:ring-focus-ring-success",
+    "disabled:bg-btn-success-bg-disabled",
     baseInteractionStyles
   ),
   purple: cn(
-    "bg-[var(--axis-button-purple-bg-default)] text-[var(--axis-button-purple-text-default)]",
-    "hover:bg-[var(--axis-button-purple-bg-hover)]",
-    "active:bg-[var(--axis-button-purple-bg-active)]",
-    "focus-visible:ring-[var(--dx-focus-ring-color-purple)]",
-    "disabled:bg-[var(--axis-button-purple-bg-disabled)]",
+    "bg-btn-purple-bg text-btn-purple-text",
+    "hover:bg-btn-purple-bg-hover",
+    "active:bg-btn-purple-bg-active",
+    "focus-visible:ring-focus-ring-purple",
+    "disabled:bg-btn-purple-bg-disabled",
     baseInteractionStyles
   ),
   destructive: cn(
-    "bg-[var(--axis-button-destructive-bg-default)] text-[var(--axis-button-destructive-text-default)]",
-    "hover:bg-[var(--axis-button-destructive-bg-hover)]",
-    "active:bg-[var(--axis-button-destructive-bg-active)]",
-    "focus-visible:ring-[var(--dx-focus-ring-color-destructive)]",
-    "disabled:bg-[var(--axis-button-destructive-bg-disabled)]",
+    "bg-btn-destructive-bg text-btn-destructive-text",
+    "hover:bg-btn-destructive-bg-hover",
+    "active:bg-btn-destructive-bg-active",
+    "focus-visible:ring-focus-ring-destructive",
+    "disabled:bg-btn-destructive-bg-disabled",
     baseInteractionStyles
   ),
 } as const;
@@ -50,9 +50,9 @@ type IconSize = keyof typeof sizeStyles;
 
 // 기본 variant용 인터랙션 스타일
 const defaultInteractionStyles = cn(
-  "transition-all duration-[var(--dx-transition-normal)]",
-  "active:scale-[var(--dx-scale-pressed)]",
-  "focus-visible:outline-none focus-visible:ring-[var(--dx-focus-ring-width)] focus-visible:ring-offset-[var(--dx-focus-ring-offset)] focus-visible:ring-[var(--dx-focus-ring-color-default)]",
+  "transition-all duration-normal",
+  "active:scale-95",
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-focus-ring",
   "disabled:active:scale-100"
 );
 
@@ -102,8 +102,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           disabled={isDisabled}
           size={axisSize}
           className={cn(
-            "border border-[var(--dx-button-outline-border,rgba(0,0,0,0.12))] bg-transparent text-[var(--axis-text-secondary)]",
-            "hover:bg-[var(--dx-button-outline-hover-bg,rgba(0,0,0,0.04))] hover:text-[var(--axis-text-primary)]",
+            "border border-btn-outline-border bg-transparent text-fg-secondary",
+            "hover:bg-btn-outline-hover-bg hover:text-fg",
             defaultInteractionStyles,
             iconSizeClass,
             className
@@ -117,7 +117,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     // ghost variant: transparent background, subtle hover
     const ghostStyles = variant === "ghost"
-      ? "bg-transparent hover:bg-[var(--dx-button-outline-hover-bg,var(--axis-surface-secondary))] text-[var(--axis-text-secondary)] hover:text-[var(--axis-text-primary)]"
+      ? "bg-transparent hover:bg-btn-outline-hover-bg text-fg-secondary hover:text-fg"
       : undefined;
 
     return (

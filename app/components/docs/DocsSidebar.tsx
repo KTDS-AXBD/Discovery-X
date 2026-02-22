@@ -21,7 +21,7 @@ export function DocsSidebar({ docs, activeSlug, onSelect }: DocsSidebarProps) {
     <nav className="space-y-4">
       {grouped.map((group) => (
         <div key={group.category}>
-          <h3 className="mb-1.5 px-2 text-xs font-semibold uppercase tracking-wider text-[var(--axis-text-tertiary)]">
+          <h3 className="mb-1.5 px-2 text-xs font-semibold uppercase tracking-wider text-fg-tertiary">
             {group.label}
           </h3>
           <ul className="space-y-0.5">
@@ -33,8 +33,8 @@ export function DocsSidebar({ docs, activeSlug, onSelect }: DocsSidebarProps) {
                   className={cn(
                     "w-full rounded-md px-2 py-1.5 text-left text-sm transition-colors",
                     activeSlug === doc.slug
-                      ? "bg-[var(--axis-surface-brand)] text-[var(--axis-text-brand)] font-medium"
-                      : "text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-primary)]"
+                      ? "bg-surface-brand text-fg-brand font-medium"
+                      : "text-fg-secondary hover:bg-surface-secondary hover:text-fg"
                   )}
                 >
                   {doc.title}

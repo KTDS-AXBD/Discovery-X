@@ -8,7 +8,7 @@ const alertBannerVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-[var(--axis-surface-default)] text-[var(--axis-text-primary)] border-[var(--axis-border-default)]",
+          "bg-surface text-fg border-line",
         info:
           "bg-[var(--axis-blue-100)] text-[var(--axis-blue-900)] border-[var(--axis-blue-200)]",
         success:

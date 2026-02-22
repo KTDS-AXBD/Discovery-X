@@ -63,9 +63,9 @@ export function GlossaryList({ topicId }: { topicId: string }) {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-[var(--axis-text-primary)]">
+        <h3 className="text-sm font-semibold text-fg">
           용어 정의{" "}
-          <span className="font-normal text-[var(--axis-text-tertiary)]">
+          <span className="font-normal text-fg-tertiary">
             ({glossary.length})
           </span>
         </h3>
@@ -79,20 +79,20 @@ export function GlossaryList({ topicId }: { topicId: string }) {
       </div>
 
       {showForm && (
-        <div className="mb-4 space-y-3 rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] p-4">
+        <div className="mb-4 space-y-3 rounded-lg border border-line bg-surface p-4">
           <input
             type="text"
             value={term}
             onChange={(e) => setTerm(e.target.value)}
             placeholder="용어 (필수)"
-            className="w-full rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-3 py-2 text-sm"
+            className="w-full rounded border border-line bg-surface-secondary px-3 py-2 text-sm"
           />
           <textarea
             value={definition}
             onChange={(e) => setDefinition(e.target.value)}
             placeholder="정의 (필수)"
             rows={2}
-            className="w-full rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-3 py-2 text-sm"
+            className="w-full rounded border border-line bg-surface-secondary px-3 py-2 text-sm"
           />
           <Button
             size="sm"
@@ -105,7 +105,7 @@ export function GlossaryList({ topicId }: { topicId: string }) {
       )}
 
       {glossary.length === 0 ? (
-        <p className="text-sm text-[var(--axis-text-tertiary)]">
+        <p className="text-sm text-fg-tertiary">
           정의된 용어가 없습니다
         </p>
       ) : (
@@ -115,22 +115,22 @@ export function GlossaryList({ topicId }: { topicId: string }) {
             return (
               <li
                 key={id}
-                className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] p-4"
+                className="rounded-lg border border-line bg-surface p-4"
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-[var(--axis-text-primary)]">
+                    <p className="text-sm font-semibold text-fg">
                       {g["dx:term"]}
                     </p>
                     {g["dx:definition"] && (
-                      <p className="mt-1 text-sm text-[var(--axis-text-secondary)]">
+                      <p className="mt-1 text-sm text-fg-secondary">
                         {g["dx:definition"]}
                       </p>
                     )}
                   </div>
                   <button
                     onClick={() => handleDelete(id)}
-                    className="text-xs text-[var(--axis-text-tertiary)] hover:text-red-500"
+                    className="text-xs text-fg-tertiary hover:text-red-500"
                   >
                     삭제
                   </button>

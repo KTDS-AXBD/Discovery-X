@@ -129,8 +129,8 @@ export default function Settings() {
 
   return (
     <AppShell user={user}>
-      <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">설정</h1>
-      <p className="mt-1 text-sm text-[var(--axis-text-secondary)]">
+      <h1 className="text-2xl font-bold text-fg">설정</h1>
+      <p className="mt-1 text-sm text-fg-secondary">
         프로필 및 알림 설정을 관리합니다.
       </p>
 
@@ -148,12 +148,12 @@ export default function Settings() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--axis-surface-brand)] text-lg font-bold text-[var(--axis-text-brand)]">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-brand text-lg font-bold text-fg-brand">
                 {user.name.charAt(0).toUpperCase()}
               </div>
               <div>
-                <p className="text-sm font-medium text-[var(--axis-text-primary)]">{user.name}</p>
-                <p className="text-xs text-[var(--axis-text-tertiary)]">{user.email}</p>
+                <p className="text-sm font-medium text-fg">{user.name}</p>
+                <p className="text-xs text-fg-tertiary">{user.email}</p>
               </div>
               <Badge variant={role === UserRole.ADMIN ? "destructive" : role === UserRole.GATEKEEPER ? "info" : "default"} className="ml-auto">
                 {role}
@@ -168,7 +168,7 @@ export default function Settings() {
             <CardTitle className="text-base">알림 설정</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-[var(--axis-text-tertiary)]">
+            <p className="text-sm text-fg-tertiary">
               알림 설정은 현재 시스템 기본값을 사용합니다.
             </p>
           </CardContent>
@@ -181,7 +181,7 @@ export default function Settings() {
               <CardTitle className="text-base">Gate 알림</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-[var(--axis-text-tertiary)]">
+              <p className="text-sm text-fg-tertiary">
                 Gate 승인 요청 시 이메일 알림을 받습니다. (Gatekeeper/Admin 전용)
               </p>
             </CardContent>
@@ -240,7 +240,7 @@ export default function Settings() {
                   />
                 </FormField>
                 <div className="mt-2 flex items-center gap-2">
-                  <span className="text-xs text-[var(--axis-text-tertiary)]">
+                  <span className="text-xs text-fg-tertiary">
                     오늘 사용: {String(config.tokensUsedToday || 0)}
                   </span>
                   <Badge

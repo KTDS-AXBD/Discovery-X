@@ -61,23 +61,23 @@ export function TeamDiscussion({ proposalId, comments, currentUserId: _currentUs
           {comments.map((comment) => (
             <div key={comment.id}>
               <div className="flex items-center gap-1.5">
-                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--axis-surface-secondary)] text-[8px] font-bold text-[var(--axis-text-secondary)]">
+                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-surface-secondary text-[8px] font-bold text-fg-secondary">
                   {(comment.authorName || "U").charAt(0).toUpperCase()}
                 </div>
-                <span className="text-[10px] font-medium text-[var(--axis-text-primary)]">
+                <span className="text-[10px] font-medium text-fg">
                   {comment.authorName || "사용자"}
                 </span>
                 {comment.createdAt && (
-                  <span className="text-[8px] text-[var(--axis-text-tertiary)]">
+                  <span className="text-[8px] text-fg-tertiary">
                     {formatRelativeTime(comment.createdAt)}
                   </span>
                 )}
               </div>
-              <p className="ml-6 mt-0.5 text-xs text-[var(--axis-text-secondary)]">{comment.content}</p>
+              <p className="ml-6 mt-0.5 text-xs text-fg-secondary">{comment.content}</p>
             </div>
           ))}
           {comments.length === 0 && (
-            <p className="text-xs text-[var(--axis-text-tertiary)]">아직 검토 의견이 없습니다.</p>
+            <p className="text-xs text-fg-tertiary">아직 검토 의견이 없습니다.</p>
           )}
         </div>
 
@@ -88,13 +88,13 @@ export function TeamDiscussion({ proposalId, comments, currentUserId: _currentUs
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="의견을 남겨주세요..."
-            className="w-full resize-none rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-2 py-1.5 text-xs text-[var(--axis-text-primary)] placeholder:text-[var(--axis-text-tertiary)] focus:border-[var(--axis-border-brand)] focus:outline-none"
+            className="w-full resize-none rounded-lg border border-line bg-surface-secondary px-2 py-1.5 text-xs text-fg placeholder:text-fg-tertiary focus:border-line-brand focus:outline-none"
           />
           <div className="mt-1 flex justify-end">
             <button
               type="submit"
               disabled={isSubmitting || !content.trim()}
-              className="rounded bg-[var(--axis-button-bg-default)] px-2.5 py-1 text-[10px] font-medium text-[var(--axis-button-text-default)] hover:bg-[var(--axis-button-bg-hover)] disabled:opacity-50"
+              className="rounded bg-btn-bg px-2.5 py-1 text-[10px] font-medium text-btn-text hover:bg-btn-bg-hover disabled:opacity-50"
             >
               작성
             </button>
@@ -105,33 +105,33 @@ export function TeamDiscussion({ proposalId, comments, currentUserId: _currentUs
   }
 
   return (
-    <div className="rounded-xl border border-[var(--axis-border-default)] p-5">
-      <h3 className="mb-4 text-sm font-semibold text-[var(--axis-text-primary)]">팀 토론</h3>
+    <div className="rounded-xl border border-line p-5">
+      <h3 className="mb-4 text-sm font-semibold text-fg">팀 토론</h3>
 
       {/* Comment list */}
       <div className="mb-4 space-y-4">
         {comments.map((comment) => (
           <div key={comment.id} className="flex gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--axis-surface-secondary)] text-xs font-bold text-[var(--axis-text-secondary)]">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-secondary text-xs font-bold text-fg-secondary">
               {(comment.authorName || "U").charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-[var(--axis-text-primary)]">
+                <span className="text-xs font-medium text-fg">
                   {comment.authorName || "사용자"}
                 </span>
                 {comment.createdAt && (
-                  <span className="text-[10px] text-[var(--axis-text-tertiary)]">
+                  <span className="text-[10px] text-fg-tertiary">
                     {formatRelativeTime(comment.createdAt)}
                   </span>
                 )}
               </div>
-              <p className="mt-0.5 text-sm text-[var(--axis-text-secondary)]">{comment.content}</p>
+              <p className="mt-0.5 text-sm text-fg-secondary">{comment.content}</p>
             </div>
           </div>
         ))}
         {comments.length === 0 && (
-          <p className="text-sm text-[var(--axis-text-tertiary)]">아직 댓글이 없습니다.</p>
+          <p className="text-sm text-fg-tertiary">아직 댓글이 없습니다.</p>
         )}
       </div>
 
@@ -142,13 +142,13 @@ export function TeamDiscussion({ proposalId, comments, currentUserId: _currentUs
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="의견을 남겨주세요..."
-          className="w-full resize-none rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-3 py-2 text-sm text-[var(--axis-text-primary)] placeholder:text-[var(--axis-text-tertiary)] focus:border-[var(--axis-border-brand)] focus:outline-none"
+          className="w-full resize-none rounded-lg border border-line bg-surface-secondary px-3 py-2 text-sm text-fg placeholder:text-fg-tertiary focus:border-line-brand focus:outline-none"
         />
         <div className="flex justify-end">
           <button
             type="submit"
             disabled={isSubmitting || !content.trim()}
-            className="shrink-0 rounded-lg bg-[var(--axis-button-bg-default)] px-4 py-2 text-sm font-medium text-[var(--axis-button-text-default)] transition-colors hover:bg-[var(--axis-button-bg-hover)] disabled:opacity-50"
+            className="shrink-0 rounded-lg bg-btn-bg px-4 py-2 text-sm font-medium text-btn-text transition-colors hover:bg-btn-bg-hover disabled:opacity-50"
           >
             댓글 작성
           </button>

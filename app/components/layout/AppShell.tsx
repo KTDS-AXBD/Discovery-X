@@ -54,7 +54,7 @@ export function AppShell({
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen flex-col bg-[var(--dx-surface-deep,var(--axis-surface-secondary))]">
+      <div className="flex h-screen flex-col bg-surface-deep">
         <TopNav user={user} />
         <div className="flex flex-1 overflow-hidden">
           {!hideSidebar && (

@@ -29,7 +29,7 @@ function CodeBlock({ children, className, ...props }: ComponentProps<"code">) {
       {children}
       <button
         onClick={handleCopy}
-        className="absolute right-2 top-2 rounded bg-[var(--axis-surface-default)] px-1.5 py-0.5 text-[10px] text-[var(--axis-text-secondary)] opacity-0 transition-opacity hover:text-[var(--axis-text-primary)] group-hover:opacity-100"
+        className="absolute right-2 top-2 rounded bg-surface px-1.5 py-0.5 text-[10px] text-fg-secondary opacity-0 transition-opacity hover:text-fg group-hover:opacity-100"
       >
         {copied ? "복사됨" : "복사"}
       </button>
@@ -55,20 +55,20 @@ export function MarkdownViewer({ content, className }: MarkdownViewerProps) {
     <div
       className={cn(
         "prose prose-sm md:prose-base max-w-none",
-        "text-[var(--axis-text-primary)]",
-        "prose-headings:text-[var(--axis-text-primary)]",
-        "prose-strong:text-[var(--axis-text-primary)]",
-        "prose-code:text-[var(--axis-text-primary)]",
-        "prose-code:bg-[var(--axis-surface-secondary)]",
+        "text-fg",
+        "prose-headings:text-fg",
+        "prose-strong:text-fg",
+        "prose-code:text-fg",
+        "prose-code:bg-surface-secondary",
         "prose-code:rounded prose-code:px-1 prose-code:py-0.5",
         "prose-code:before:content-none prose-code:after:content-none",
-        "prose-pre:bg-[var(--axis-surface-secondary)]",
-        "prose-pre:border prose-pre:border-[var(--axis-border-default)]",
-        "prose-th:text-[var(--axis-text-primary)]",
-        "prose-td:text-[var(--axis-text-primary)]",
-        "prose-a:text-[var(--axis-text-brand)]",
-        "prose-li:text-[var(--axis-text-primary)]",
-        "prose-p:text-[var(--axis-text-primary)]",
+        "prose-pre:bg-surface-secondary",
+        "prose-pre:border prose-pre:border-line",
+        "prose-th:text-fg",
+        "prose-td:text-fg",
+        "prose-a:text-fg-brand",
+        "prose-li:text-fg",
+        "prose-p:text-fg",
         className
       )}
     >

@@ -3,10 +3,10 @@ import { cn } from "~/lib/utils/cn";
 
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
-    <div className="overflow-hidden rounded-lg border border-[var(--dx-border-subtle,var(--axis-border-default))]">
+    <div className="overflow-hidden rounded-lg border border-line-subtle">
       <table
         ref={ref}
-        className={cn("min-w-full divide-y divide-[var(--dx-border-subtle,var(--axis-border-default))]", className)}
+        className={cn("min-w-full divide-y divide-line-subtle", className)}
         {...props}
       />
     </div>
@@ -18,7 +18,7 @@ const TableHeader = React.forwardRef<HTMLTableSectionElement, React.HTMLAttribut
   ({ className, ...props }, ref) => (
     <thead
       ref={ref}
-      className={cn("bg-[var(--axis-surface-secondary)]", className)}
+      className={cn("bg-surface-secondary", className)}
       {...props}
     />
   )
@@ -29,7 +29,7 @@ const TableBody = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes
   ({ className, ...props }, ref) => (
     <tbody
       ref={ref}
-      className={cn("divide-y divide-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-card,var(--axis-surface-default))]", className)}
+      className={cn("divide-y divide-line-subtle bg-surface-card", className)}
       {...props}
     />
   )
@@ -40,7 +40,7 @@ const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTML
   ({ className, ...props }, ref) => (
     <tr
       ref={ref}
-      className={cn("hover:bg-[var(--axis-surface-secondary)] transition-colors", className)}
+      className={cn("hover:bg-surface-secondary transition-colors", className)}
       {...props}
     />
   )
@@ -52,7 +52,7 @@ const TableHead = React.forwardRef<HTMLTableCellElement, React.ThHTMLAttributes<
     <th
       ref={ref}
       className={cn(
-        "px-4 py-3.5 text-left text-sm font-semibold text-[var(--axis-text-primary)]",
+        "px-4 py-3.5 text-left text-sm font-semibold text-fg",
         className
       )}
       {...props}
@@ -66,7 +66,7 @@ const TableCell = React.forwardRef<HTMLTableCellElement, React.TdHTMLAttributes<
     <td
       ref={ref}
       className={cn(
-        "px-4 py-4 text-sm text-[var(--axis-text-secondary)]",
+        "px-4 py-4 text-sm text-fg-secondary",
         className
       )}
       {...props}

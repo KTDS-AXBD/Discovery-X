@@ -21,6 +21,8 @@ interface MethodologyCardsProps {
   loadingCategory: string | null;
   onRunMethodology: (category: string) => void;
   staleSections?: Set<string>;
+  onStartFullAnalysis?: () => void;
+  analysisRunning?: boolean;
 }
 
 // ── Icons (inline SVG) ──────────────────────────────────────────────
@@ -85,7 +87,7 @@ const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
 
 function MdHeading2({ children, ...props }: ComponentProps<"h2">) {
   return (
-    <h2 className="mt-4 mb-2 border-b border-[var(--axis-border-default)] pb-1.5 text-sm font-semibold text-[var(--axis-text-primary)]" {...props}>
+    <h2 className="mt-4 mb-2 border-b border-line pb-1.5 text-sm font-semibold text-fg" {...props}>
       {children}
     </h2>
   );
@@ -93,7 +95,7 @@ function MdHeading2({ children, ...props }: ComponentProps<"h2">) {
 
 function MdHeading3({ children, ...props }: ComponentProps<"h3">) {
   return (
-    <h3 className="mt-3 mb-1.5 border-l-2 border-[var(--axis-text-brand)] pl-2 text-sm font-semibold text-[var(--axis-text-primary)]" {...props}>
+    <h3 className="mt-3 mb-1.5 border-l-2 border-fg-brand pl-2 text-sm font-semibold text-fg" {...props}>
       {children}
     </h3>
   );
@@ -101,7 +103,7 @@ function MdHeading3({ children, ...props }: ComponentProps<"h3">) {
 
 function MdHeading4({ children, ...props }: ComponentProps<"h4">) {
   return (
-    <h4 className="mt-2 mb-1 text-sm font-medium text-[var(--axis-text-primary)]" {...props}>
+    <h4 className="mt-2 mb-1 text-sm font-medium text-fg" {...props}>
       {children}
     </h4>
   );
@@ -109,7 +111,7 @@ function MdHeading4({ children, ...props }: ComponentProps<"h4">) {
 
 function MdPre({ children, ...props }: ComponentProps<"pre">) {
   return (
-    <pre className="group relative my-2 rounded-lg border border-[var(--axis-border-default)] bg-[var(--dx-code-bg,var(--axis-surface-secondary))] p-3 text-xs" {...props}>
+    <pre className="group relative my-2 rounded-lg border border-line bg-surface-code p-3 text-xs" {...props}>
       {children}
     </pre>
   );
@@ -119,7 +121,7 @@ function MdCode({ children, className, ...props }: ComponentProps<"code">) {
   const isInline = !className;
   if (isInline) {
     return (
-      <code className="rounded bg-[var(--axis-surface-secondary)] px-1 py-0.5 text-xs text-[var(--axis-text-primary)]" {...props}>
+      <code className="rounded bg-surface-secondary px-1 py-0.5 text-xs text-fg" {...props}>
         {children}
       </code>
     );
@@ -129,18 +131,18 @@ function MdCode({ children, className, ...props }: ComponentProps<"code">) {
 
 function MdTable({ children, ...props }: ComponentProps<"table">) {
   return (
-    <div className="my-2 overflow-x-auto rounded-lg border border-[var(--axis-border-default)]">
+    <div className="my-2 overflow-x-auto rounded-lg border border-line">
       <table className="w-full text-xs" {...props}>{children}</table>
     </div>
   );
 }
 
 function MdTr({ children, ...props }: ComponentProps<"tr">) {
-  return <tr className="border-b border-[var(--axis-border-subtle)] even:bg-[var(--axis-surface-secondary)]" {...props}>{children}</tr>;
+  return <tr className="border-b border-line-subtle-alt even:bg-surface-secondary" {...props}>{children}</tr>;
 }
 
 function MdTh({ children, ...props }: ComponentProps<"th">) {
-  return <th className="bg-[var(--axis-surface-secondary)] px-2.5 py-1.5 text-left text-xs font-semibold text-[var(--axis-text-secondary)]" {...props}>{children}</th>;
+  return <th className="bg-surface-secondary px-2.5 py-1.5 text-left text-xs font-semibold text-fg-secondary" {...props}>{children}</th>;
 }
 
 function MdTd({ children, ...props }: ComponentProps<"td">) {
@@ -149,7 +151,7 @@ function MdTd({ children, ...props }: ComponentProps<"td">) {
 
 function MdBlockquote({ children, ...props }: ComponentProps<"blockquote">) {
   return (
-    <blockquote className="my-2 border-l-3 border-[var(--axis-text-brand)] bg-[var(--axis-surface-secondary)] py-1.5 pl-3 pr-2 text-xs italic text-[var(--axis-text-secondary)]" {...props}>
+    <blockquote className="my-2 border-l-3 border-fg-brand bg-surface-secondary py-1.5 pl-3 pr-2 text-xs italic text-fg-secondary" {...props}>
       {children}
     </blockquote>
   );
@@ -191,10 +193,10 @@ function MethodologyContent({ section, isStale, onReanalyze }: { section: Analys
             )}
           </div>
         )}
-        <h3 className="text-base font-semibold text-[var(--axis-text-primary)]">
+        <h3 className="text-base font-semibold text-fg">
           {section.title}
         </h3>
-        <div className="prose prose-sm max-w-none text-[var(--axis-text-secondary)] prose-headings:text-[var(--axis-text-primary)] prose-strong:text-[var(--axis-text-primary)] prose-li:my-0.5 prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5">
+        <div className="prose prose-sm max-w-none text-fg-secondary prose-headings:text-fg prose-strong:text-fg prose-li:my-0.5 prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeHighlight]}
@@ -206,8 +208,8 @@ function MethodologyContent({ section, isStale, onReanalyze }: { section: Analys
 
         {/* Source badges */}
         {section.sources && section.sources.length > 0 && (
-          <div className="mt-6 border-t border-[var(--axis-border-default)] pt-4">
-            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--axis-text-tertiary)]">
+          <div className="mt-6 border-t border-line pt-4">
+            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-fg-tertiary">
               출처
             </h4>
             <div className="flex flex-wrap gap-1.5">
@@ -217,7 +219,7 @@ function MethodologyContent({ section, isStale, onReanalyze }: { section: Analys
                   href={source.startsWith("http") ? source : undefined}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 rounded-full bg-[var(--axis-surface-secondary)] px-2.5 py-1 text-xs text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-brand)]/10 hover:text-[var(--axis-text-brand)]"
+                  className="inline-flex items-center gap-1 rounded-full bg-surface-secondary px-2.5 py-1 text-xs text-fg-secondary hover:bg-surface-brand/10 hover:text-fg-brand"
                 >
                   <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
@@ -230,10 +232,10 @@ function MethodologyContent({ section, isStale, onReanalyze }: { section: Analys
         )}
 
         {/* Feedback + refinement actions */}
-        <div className="flex items-center gap-2 border-t border-[var(--axis-border-default)] pt-4">
+        <div className="flex items-center gap-2 border-t border-line pt-4">
           <button
             type="button"
-            className="flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs text-[var(--axis-text-tertiary)] transition-colors hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-primary)]"
+            className="flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs text-fg-tertiary transition-colors hover:bg-surface-secondary hover:text-fg"
             title="좋아요"
           >
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -242,7 +244,7 @@ function MethodologyContent({ section, isStale, onReanalyze }: { section: Analys
           </button>
           <button
             type="button"
-            className="flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs text-[var(--axis-text-tertiary)] transition-colors hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-primary)]"
+            className="flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs text-fg-tertiary transition-colors hover:bg-surface-secondary hover:text-fg"
             title="싫어요"
           >
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -254,7 +256,7 @@ function MethodologyContent({ section, isStale, onReanalyze }: { section: Analys
 
           <button
             type="button"
-            className="flex items-center gap-1 rounded-md bg-[var(--axis-surface-secondary)] px-3 py-1.5 text-xs font-medium text-[var(--axis-text-secondary)] transition-colors hover:bg-[var(--axis-surface-brand)]/10 hover:text-[var(--axis-text-brand)]"
+            className="flex items-center gap-1 rounded-md bg-surface-secondary px-3 py-1.5 text-xs font-medium text-fg-secondary transition-colors hover:bg-surface-brand/10 hover:text-fg-brand"
           >
             더 구체화하기
           </button>
@@ -265,7 +267,7 @@ function MethodologyContent({ section, isStale, onReanalyze }: { section: Analys
 
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
-      <p className="text-sm text-[var(--axis-text-tertiary)]">
+      <p className="text-sm text-fg-tertiary">
         카드를 클릭하여 분석을 시작하세요.
       </p>
     </div>
@@ -279,6 +281,8 @@ export function MethodologyCards({
   loadingCategory,
   onRunMethodology,
   staleSections,
+  onStartFullAnalysis,
+  analysisRunning,
 }: MethodologyCardsProps) {
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [addedSecondary, setAddedSecondary] = useState<string[]>([]);
@@ -346,7 +350,7 @@ export function MethodologyCards({
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       {/* Card row — horizontal scroll */}
-      <div className="flex items-center gap-2 overflow-x-auto border-b border-[var(--axis-border-default)] px-4 py-3 scrollbar-none">
+      <div className="flex items-center gap-2 overflow-x-auto border-b border-line px-4 py-3 scrollbar-none">
         {visibleCards.map((card) => {
           const hasData = !!sections[card.key]?.content;
           const isLoading = loadingCategory === card.key;
@@ -366,11 +370,11 @@ export function MethodologyCards({
                 ${isStale ? "opacity-75" : ""}
                 ${hasData
                   ? isActive
-                    ? "border-[var(--axis-text-brand)] bg-[var(--axis-surface-brand)]/10 ring-1 ring-[var(--axis-text-brand)]/30"
-                    : "border-[var(--axis-text-brand)]/30 bg-[var(--axis-surface-brand)]/5 hover:border-[var(--axis-text-brand)]/50"
+                    ? "border-fg-brand bg-surface-brand/10 ring-1 ring-fg-brand/30"
+                    : "border-fg-brand/30 bg-surface-brand/5 hover:border-fg-brand/50"
                   : isActive
-                    ? "border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] ring-1 ring-[var(--axis-text-brand)]/30"
-                    : "border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] hover:border-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)]"
+                    ? "border-line bg-surface-secondary ring-1 ring-fg-brand/30"
+                    : "border-line bg-surface hover:border-fg-tertiary hover:bg-surface-secondary"
                 }
               `}
             >
@@ -384,13 +388,13 @@ export function MethodologyCards({
               {/* Icon or status indicator */}
               <span className="flex h-5 w-5 shrink-0 items-center justify-center">
                 {isLoading ? (
-                  <SpinnerIcon className="h-4 w-4 text-[var(--axis-text-brand)]" />
+                  <SpinnerIcon className="h-4 w-4 text-fg-brand" />
                 ) : hasData ? (
-                  <CheckIcon className={`h-4 w-4 ${isStale ? "text-amber-500" : "text-[var(--axis-text-brand)]"}`} />
+                  <CheckIcon className={`h-4 w-4 ${isStale ? "text-amber-500" : "text-fg-brand"}`} />
                 ) : IconComponent ? (
-                  <IconComponent className="h-4 w-4 text-[var(--axis-text-tertiary)] group-hover:text-[var(--axis-text-secondary)]" />
+                  <IconComponent className="h-4 w-4 text-fg-tertiary group-hover:text-fg-secondary" />
                 ) : (
-                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--axis-text-tertiary)]" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-fg-tertiary" />
                 )}
               </span>
 
@@ -398,12 +402,12 @@ export function MethodologyCards({
               <span className="flex flex-col">
                 <span className={`text-xs font-medium whitespace-nowrap ${
                   hasData
-                    ? isStale ? "text-amber-600 dark:text-amber-400" : "text-[var(--axis-text-brand)]"
-                    : "text-[var(--axis-text-primary)]"
+                    ? isStale ? "text-amber-600 dark:text-amber-400" : "text-fg-brand"
+                    : "text-fg"
                 }`}>
                   {ALL_METHODOLOGIES.find((m) => m.key === card.key)?.label ?? card.key}
                 </span>
-                <span className="text-[10px] text-[var(--axis-text-tertiary)] whitespace-nowrap">
+                <span className="text-[10px] text-fg-tertiary whitespace-nowrap">
                   {ALL_METHODOLOGIES.find((m) => m.key === card.key)?.description ?? ""}
                 </span>
               </span>
@@ -417,7 +421,7 @@ export function MethodologyCards({
             <button
               type="button"
               onClick={() => setPopoverOpen(!popoverOpen)}
-              className="flex h-[52px] w-[52px] items-center justify-center rounded-lg border border-dashed border-[var(--axis-border-default)] text-[var(--axis-text-tertiary)] transition-colors hover:border-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-secondary)]"
+              className="flex h-[52px] w-[52px] items-center justify-center rounded-lg border border-dashed border-line text-fg-tertiary transition-colors hover:border-fg-tertiary hover:bg-surface-secondary hover:text-fg-secondary"
               title="방법론 추가"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
@@ -427,8 +431,8 @@ export function MethodologyCards({
 
             {/* Popover dropdown */}
             {popoverOpen && (
-              <div className="absolute left-0 top-full z-30 mt-1 w-64 rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] py-1 shadow-lg">
-                <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--axis-text-tertiary)]">
+              <div className="absolute left-0 top-full z-30 mt-1 w-64 rounded-lg border border-line bg-surface py-1 shadow-lg">
+                <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-fg-tertiary">
                   방법론 추가
                 </p>
                 {availableSecondary.map((m) => (
@@ -436,16 +440,16 @@ export function MethodologyCards({
                     key={m.key}
                     type="button"
                     onClick={() => handleAddSecondary(m.key)}
-                    className="flex w-full items-start gap-2 px-3 py-2 text-left transition-colors hover:bg-[var(--axis-surface-secondary)]"
+                    className="flex w-full items-start gap-2 px-3 py-2 text-left transition-colors hover:bg-surface-secondary"
                   >
-                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[var(--axis-surface-secondary)]">
-                      <span className="h-1.5 w-1.5 rounded-full bg-[var(--axis-text-tertiary)]" />
+                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-surface-secondary">
+                      <span className="h-1.5 w-1.5 rounded-full bg-fg-tertiary" />
                     </span>
                     <span className="flex flex-col">
-                      <span className="text-xs font-medium text-[var(--axis-text-primary)]">
+                      <span className="text-xs font-medium text-fg">
                         {m.label}
                       </span>
-                      <span className="text-[10px] text-[var(--axis-text-tertiary)]">
+                      <span className="text-[10px] text-fg-tertiary">
                         {m.description}
                       </span>
                     </span>
@@ -462,8 +466,8 @@ export function MethodologyCards({
         {activeKey ? (
           loadingCategory === activeKey ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-              <SpinnerIcon className="h-6 w-6 text-[var(--axis-text-brand)]" />
-              <p className="mt-3 text-sm text-[var(--axis-text-secondary)]">
+              <SpinnerIcon className="h-6 w-6 text-fg-brand" />
+              <p className="mt-3 text-sm text-fg-secondary">
                 {ALL_METHODOLOGIES.find((m) => m.key === activeKey)?.label} 분석 중...
               </p>
             </div>
@@ -476,12 +480,22 @@ export function MethodologyCards({
           )
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <p className="text-sm text-[var(--axis-text-tertiary)]">
+            <p className="text-sm text-fg-tertiary">
               카드를 클릭하여 방법론 분석을 시작하세요.
             </p>
-            <p className="mt-1 text-xs text-[var(--axis-text-tertiary)]">
+            <p className="mt-1 text-xs text-fg-tertiary">
               분석이 완료된 카드는 다시 클릭하여 결과를 확인할 수 있습니다.
             </p>
+            {onStartFullAnalysis && (
+              <button
+                type="button"
+                onClick={onStartFullAnalysis}
+                disabled={analysisRunning}
+                className="mt-4 text-xs text-fg-tertiary underline underline-offset-2 hover:text-fg-secondary disabled:opacity-40 disabled:cursor-not-allowed disabled:no-underline"
+              >
+                {analysisRunning ? "분석 중..." : "전체 분석 (6개 카테고리)"}
+              </button>
+            )}
           </div>
         )}
       </div>

@@ -19,11 +19,11 @@ export function TopicCard({ id, name, memberCount, status }: TopicCardProps) {
     <Link
       to={`/topics/${id}`}
       className={cn(
-        "block border-b border-[var(--axis-border-default)] px-4 py-3 last:border-b-0",
+        "block border-b border-line px-4 py-3 last:border-b-0",
         "border-l-2 transition-colors",
         isSelected
-          ? "border-l-[var(--axis-text-brand)] bg-[var(--axis-surface-secondary)]"
-          : "border-l-transparent hover:bg-[var(--axis-surface-secondary)]/50",
+          ? "border-l-fg-brand bg-surface-secondary"
+          : "border-l-transparent hover:bg-surface-secondary/50",
       )}
     >
       <div className="flex items-center justify-between gap-2">
@@ -31,15 +31,15 @@ export function TopicCard({ id, name, memberCount, status }: TopicCardProps) {
           className={cn(
             "truncate text-sm font-medium",
             isSelected
-              ? "text-[var(--axis-text-brand)]"
-              : "text-[var(--axis-text-primary)]",
+              ? "text-fg-brand"
+              : "text-fg",
           )}
         >
           {name}
         </p>
         <TopicStatusBadge status={status} />
       </div>
-      <p className="mt-1 text-xs text-[var(--axis-text-tertiary)]">
+      <p className="mt-1 text-xs text-fg-tertiary">
         멤버 {memberCount}명
       </p>
     </Link>

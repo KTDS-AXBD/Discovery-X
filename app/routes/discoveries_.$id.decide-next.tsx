@@ -166,10 +166,10 @@ export default function DecideNext() {
         />
 
         {/* Discovery Info */}
-        <div className="mb-6 rounded-lg bg-[var(--axis-badge-success-bg)] p-4">
-          <h2 className="text-lg font-semibold text-[var(--axis-text-primary)]">{discovery.title}</h2>
-          <p className="mt-2 text-sm text-[var(--axis-text-secondary)]">{discovery.seedSummary}</p>
-          <div className="mt-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:space-x-4 text-xs text-[var(--axis-text-tertiary)]">
+        <div className="mb-6 rounded-lg bg-badge-success-bg p-4">
+          <h2 className="text-lg font-semibold text-fg">{discovery.title}</h2>
+          <p className="mt-2 text-sm text-fg-secondary">{discovery.seedSummary}</p>
+          <div className="mt-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:space-x-4 text-xs text-fg-tertiary">
             <span>전체 Evidence: {evidenceCount}개</span>
             <span>강한 Evidence (A/B급): {strongEvidenceCount}개</span>
           </div>
@@ -181,7 +181,7 @@ export default function DecideNext() {
             <div className="flex">
               <div className="flex-shrink-0">
                 <svg
-                  className="h-5 w-5 text-[var(--axis-badge-warning-text)]"
+                  className="h-5 w-5 text-badge-warning-text"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -235,7 +235,7 @@ export default function DecideNext() {
               </FormField>
 
               {/* Actions */}
-              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-[var(--axis-border-default)] pt-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-line pt-6">
                 <Button variant="outline" asChild>
                   <a href={`/discoveries/${discovery.id}`}>취소</a>
                 </Button>
@@ -246,7 +246,7 @@ export default function DecideNext() {
         </Card>
 
         {/* Info */}
-        <div className="mt-6 rounded-md bg-[var(--axis-surface-secondary)] p-4 text-sm text-[var(--axis-text-tertiary)]">
+        <div className="mt-6 rounded-md bg-surface-secondary p-4 text-sm text-fg-tertiary">
           <p className="font-semibold">NEXT 결정 후:</p>
           <ul className="mt-2 list-inside list-disc space-y-1">
             <li>상태: OPEN → NEXT</li>

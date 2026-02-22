@@ -25,7 +25,7 @@ export function MethodRecommender({
 }: MethodRecommenderProps) {
   if (recommendations.length === 0) {
     return (
-      <p className="text-sm text-[var(--axis-text-tertiary)]">
+      <p className="text-sm text-fg-tertiary">
         현재 단계에 적합한 방법론이 없습니다.
       </p>
     );
@@ -47,7 +47,7 @@ export function MethodRecommender({
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-[var(--axis-text-tertiary)]">
+                  <span className="text-xs text-fg-tertiary">
                     {rec.id}
                   </span>
                   <Badge
@@ -63,10 +63,10 @@ export function MethodRecommender({
                   </Badge>
                   {rec.quickRun && <Badge variant="success">2h</Badge>}
                 </div>
-                <h4 className="mt-1 text-sm font-semibold text-[var(--axis-text-primary)]">
+                <h4 className="mt-1 text-sm font-semibold text-fg">
                   {rec.nameKo}
                 </h4>
-                <p className="mt-0.5 text-xs text-[var(--axis-text-tertiary)]">
+                <p className="mt-0.5 text-xs text-fg-tertiary">
                   {rec.reason}
                 </p>
               </div>

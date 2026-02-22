@@ -92,7 +92,7 @@ export function PipelineKanban({ discoveries, proposals }: PipelineKanbanProps) 
 
   return (
     <div className="dx-panel p-5">
-      <h3 className="mb-4 text-base font-bold text-[var(--axis-text-primary)]">
+      <h3 className="mb-4 text-base font-bold text-fg">
         파이프라인
       </h3>
 
@@ -105,10 +105,10 @@ export function PipelineKanban({ discoveries, proposals }: PipelineKanbanProps) 
                 className="inline-block h-2 w-2 rounded-full"
                 style={{ backgroundColor: col.color }}
               />
-              <span className="text-sm font-semibold text-[var(--axis-text-primary)]">
+              <span className="text-sm font-semibold text-fg">
                 {col.label}
               </span>
-              <span className="rounded-full bg-[var(--axis-surface-secondary)] px-2 py-0.5 text-xs font-medium text-[var(--axis-text-secondary)]">
+              <span className="rounded-full bg-surface-secondary px-2 py-0.5 text-xs font-medium text-fg-secondary">
                 {col.items.length}
               </span>
             </div>
@@ -116,7 +116,7 @@ export function PipelineKanban({ discoveries, proposals }: PipelineKanbanProps) 
             {/* Items */}
             <div className="space-y-1">
               {col.items.length === 0 ? (
-                <p className="py-3 text-center text-xs text-[var(--axis-text-tertiary)]">
+                <p className="py-3 text-center text-xs text-fg-tertiary">
                   항목 없음
                 </p>
               ) : (
@@ -126,9 +126,9 @@ export function PipelineKanban({ discoveries, proposals }: PipelineKanbanProps) 
                     to={item.link}
                     className={cn(
                       "flex items-center gap-2 rounded px-2.5 py-2 text-sm transition-colors",
-                      "text-[var(--axis-text-primary)] hover:bg-[var(--axis-surface-secondary)]/50",
+                      "text-fg hover:bg-surface-secondary/50",
                       "border border-transparent",
-                      item.isDelayed && "border-[var(--axis-badge-destructive-bg)]",
+                      item.isDelayed && "border-badge-destructive-bg",
                     )}
                   >
                     <span
@@ -137,7 +137,7 @@ export function PipelineKanban({ discoveries, proposals }: PipelineKanbanProps) 
                     />
                     <span className="min-w-0 flex-1 truncate">{item.title}</span>
                     {item.isDelayed && item.delayDays !== null && (
-                      <span className="shrink-0 rounded bg-[var(--axis-badge-destructive-bg)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--axis-badge-destructive-text)]">
+                      <span className="shrink-0 rounded bg-badge-destructive-bg px-1.5 py-0.5 text-[10px] font-medium text-badge-destructive-text">
                         {item.delayDays}d
                       </span>
                     )}

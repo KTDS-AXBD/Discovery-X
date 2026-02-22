@@ -2,9 +2,9 @@ export default function TopicsIndex() {
   return (
     <div className="flex h-full items-center justify-center px-6">
       <div className="max-w-md text-center">
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--axis-surface-brand)]">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-surface-brand">
           <svg
-            className="h-8 w-8 text-[var(--axis-text-brand)]"
+            className="h-8 w-8 text-fg-brand"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth="1.5"
@@ -18,11 +18,11 @@ export default function TopicsIndex() {
           </svg>
         </div>
 
-        <h2 className="text-lg font-semibold text-[var(--axis-text-primary)]">
+        <h2 className="text-lg font-semibold text-fg">
           Topics
         </h2>
 
-        <p className="mt-3 text-sm leading-relaxed text-[var(--axis-text-secondary)]">
+        <p className="mt-3 text-sm leading-relaxed text-fg-secondary">
           아직 Topic이 없습니다.
           <br />
           Topic은 팀 내 주제별 협업 공간입니다.
@@ -31,7 +31,7 @@ export default function TopicsIndex() {
         <div className="mt-6">
           <a
             href="/topics/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-[var(--axis-button-primary-bg-default)] px-4 py-2.5 text-sm font-medium text-[var(--axis-button-primary-text-default)] transition-colors hover:bg-[var(--axis-button-primary-bg-hover)]"
+            className="inline-flex items-center gap-2 rounded-lg bg-btn-bg px-4 py-2.5 text-sm font-medium text-btn-text transition-colors hover:bg-btn-bg-hover"
           >
             <svg
               className="h-4 w-4"

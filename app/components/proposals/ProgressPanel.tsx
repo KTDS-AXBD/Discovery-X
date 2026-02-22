@@ -79,16 +79,16 @@ export function ProgressPanel({
 
   return (
     <div className="p-4">
-      <h3 className="mb-4 text-sm font-semibold text-[var(--axis-text-primary)]">진행 상황</h3>
+      <h3 className="mb-4 text-sm font-semibold text-fg">진행 상황</h3>
 
       {/* Milestones */}
       <div className="mb-1 flex items-center justify-between">
-        <h4 className="text-xs font-semibold text-[var(--axis-text-tertiary)]">마일스톤</h4>
+        <h4 className="text-xs font-semibold text-fg-tertiary">마일스톤</h4>
         {isOwner && (
           <button
             type="button"
             onClick={() => setShowAddMilestone(!showAddMilestone)}
-            className="text-[10px] text-[var(--axis-text-brand)] hover:underline"
+            className="text-[10px] text-fg-brand hover:underline"
           >
             {showAddMilestone ? "취소" : "+ 추가"}
           </button>
@@ -103,7 +103,7 @@ export function ProgressPanel({
             value={newMilestoneTitle}
             onChange={(e) => setNewMilestoneTitle(e.target.value)}
             placeholder="마일스톤 이름"
-            className="flex-1 rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] px-2 py-1 text-xs text-[var(--axis-text-primary)] placeholder:text-[var(--axis-text-tertiary)]"
+            className="flex-1 rounded border border-line bg-surface px-2 py-1 text-xs text-fg placeholder:text-fg-tertiary"
             onKeyDown={(e) => {
               if (e.key === "Enter" && newMilestoneTitle.trim()) {
                 milestoneFetcher.submit(
@@ -127,7 +127,7 @@ export function ProgressPanel({
                 setShowAddMilestone(false);
               }
             }}
-            className="rounded bg-[var(--axis-surface-brand)] px-2 py-1 text-[10px] text-white"
+            className="rounded bg-surface-brand px-2 py-1 text-[10px] text-white"
           >
             추가
           </button>
@@ -138,7 +138,7 @@ export function ProgressPanel({
         {/* Vertical connecting line */}
         {milestones.length > 1 && (
           <div
-            className="absolute left-[7px] top-2 bottom-2 w-px bg-[var(--axis-border-default)]"
+            className="absolute left-[7px] top-2 bottom-2 w-px bg-line"
           />
         )}
         <div className="space-y-3">
@@ -157,23 +157,23 @@ export function ProgressPanel({
                 }}
               >
                 {ms.status === "COMPLETED" ? (
-                  <div className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--axis-text-success,#22C55E)] text-white">
+                  <div className="flex h-4 w-4 items-center justify-center rounded-full bg-fg-success text-white">
                     <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" strokeWidth="3" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                     </svg>
                   </div>
                 ) : ms.status === "ACTIVE" ? (
-                  <div className="h-4 w-4 rounded-full border-2 border-[var(--axis-text-brand)] bg-[var(--axis-surface-brand)]" />
+                  <div className="h-4 w-4 rounded-full border-2 border-fg-brand bg-surface-brand" />
                 ) : (
-                  <div className="h-4 w-4 rounded-full border-2 border-[var(--axis-border-default)]" />
+                  <div className="h-4 w-4 rounded-full border-2 border-line" />
                 )}
               </button>
               <div className="min-w-0 flex-1">
                 <p className={cn(
                   "text-xs",
                   ms.status === "COMPLETED"
-                    ? "text-[var(--axis-text-tertiary)] line-through"
-                    : "text-[var(--axis-text-primary)]"
+                    ? "text-fg-tertiary line-through"
+                    : "text-fg"
                 )}>
                   {ms.title}
                 </p>
@@ -182,7 +182,7 @@ export function ProgressPanel({
                   const e = new Date(ms.endDate);
                   const range = `${s.getFullYear()}.${String(s.getMonth() + 1).padStart(2, "0")}~${String(e.getMonth() + 1).padStart(2, "0")}`;
                   return (
-                    <p className="text-[10px] text-[var(--axis-text-tertiary)]">{range}</p>
+                    <p className="text-[10px] text-fg-tertiary">{range}</p>
                   );
                 })()}
               </div>
@@ -195,7 +195,7 @@ export function ProgressPanel({
                       { method: "DELETE", action: `/api/proposals/${proposalId}/milestones`, encType: "application/json" },
                     );
                   }}
-                  className="hidden shrink-0 text-[10px] text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-destructive,#DC2626)] group-hover:block"
+                  className="hidden shrink-0 text-[10px] text-fg-tertiary hover:text-fg-error group-hover:block"
                 >
                   삭제
                 </button>
@@ -203,19 +203,19 @@ export function ProgressPanel({
             </div>
           ))}
           {milestones.length === 0 && (
-            <p className="text-xs text-[var(--axis-text-tertiary)]">마일스톤이 없습니다.</p>
+            <p className="text-xs text-fg-tertiary">마일스톤이 없습니다.</p>
           )}
         </div>
       </div>
 
       {/* Action Items */}
       <div className="mb-1 flex items-center justify-between">
-        <h4 className="text-xs font-semibold text-[var(--axis-text-tertiary)]">액션 아이템</h4>
+        <h4 className="text-xs font-semibold text-fg-tertiary">액션 아이템</h4>
         {isOwner && (
           <button
             type="button"
             onClick={() => setShowAddAction(!showAddAction)}
-            className="text-[10px] text-[var(--axis-text-brand)] hover:underline"
+            className="text-[10px] text-fg-brand hover:underline"
           >
             {showAddAction ? "취소" : "+ 추가"}
           </button>
@@ -230,7 +230,7 @@ export function ProgressPanel({
             value={newActionTitle}
             onChange={(e) => setNewActionTitle(e.target.value)}
             placeholder="액션 아이템 이름"
-            className="flex-1 rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] px-2 py-1 text-xs text-[var(--axis-text-primary)] placeholder:text-[var(--axis-text-tertiary)]"
+            className="flex-1 rounded border border-line bg-surface px-2 py-1 text-xs text-fg placeholder:text-fg-tertiary"
             onKeyDown={(e) => {
               if (e.key === "Enter" && newActionTitle.trim()) {
                 actionFetcher.submit(
@@ -254,7 +254,7 @@ export function ProgressPanel({
                 setShowAddAction(false);
               }
             }}
-            className="rounded bg-[var(--axis-surface-brand)] px-2 py-1 text-[10px] text-white"
+            className="rounded bg-surface-brand px-2 py-1 text-[10px] text-white"
           >
             추가
           </button>
@@ -278,7 +278,7 @@ export function ProgressPanel({
                       }
                     );
                   }}
-                  className="h-4 w-4 shrink-0 appearance-none rounded border-2 border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] relative cursor-pointer flex items-center justify-center"
+                  className="h-4 w-4 shrink-0 appearance-none rounded border-2 border-line bg-surface relative cursor-pointer flex items-center justify-center"
                   style={action.completed ? { borderColor: "var(--axis-text-brand)", backgroundColor: "var(--axis-text-brand)" } : undefined}
                   aria-label={action.completed ? "완료 해제" : "완료 처리"}
                 >
@@ -291,8 +291,8 @@ export function ProgressPanel({
                 <span className={cn(
                   "flex-1 text-xs",
                   action.completed
-                    ? "text-[var(--axis-text-tertiary)] line-through"
-                    : "text-[var(--axis-text-primary)]"
+                    ? "text-fg-tertiary line-through"
+                    : "text-fg"
                 )}>
                   {action.title}
                 </span>
@@ -306,17 +306,17 @@ export function ProgressPanel({
                       { method: "DELETE", action: `/api/proposals/${proposalId}/actions`, encType: "application/json" },
                     );
                   }}
-                  className="hidden shrink-0 text-[10px] text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-destructive,#DC2626)] group-hover:block"
+                  className="hidden shrink-0 text-[10px] text-fg-tertiary hover:text-fg-error group-hover:block"
                 >
                   삭제
                 </button>
               )}
             </div>
-            <p className="ml-6 text-[10px] text-[var(--axis-text-tertiary)]">담당: {action.assigneeName || "미지정"}</p>
+            <p className="ml-6 text-[10px] text-fg-tertiary">담당: {action.assigneeName || "미지정"}</p>
           </div>
         ))}
         {actions.length === 0 && (
-          <p className="text-xs text-[var(--axis-text-tertiary)]">액션 아이템이 없습니다.</p>
+          <p className="text-xs text-fg-tertiary">액션 아이템이 없습니다.</p>
         )}
       </div>
 
@@ -324,12 +324,12 @@ export function ProgressPanel({
       {members.length > 0 && (
         <>
           <div className="mb-1 flex items-center justify-between">
-            <h4 className="text-xs font-semibold text-[var(--axis-text-tertiary)]">팀 멤버</h4>
+            <h4 className="text-xs font-semibold text-fg-tertiary">팀 멤버</h4>
             {isOwner && availableUsers.length > 0 && (
               <button
                 type="button"
                 onClick={() => setShowAddMember(!showAddMember)}
-                className="text-[10px] text-[var(--axis-text-brand)] hover:underline"
+                className="text-[10px] text-fg-brand hover:underline"
               >
                 {showAddMember ? "취소" : "+ 추가"}
               </button>
@@ -348,7 +348,7 @@ export function ProgressPanel({
                     setShowAddMember(false);
                   }
                 }}
-                className="w-full rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] px-2 py-1 text-xs text-[var(--axis-text-primary)]"
+                className="w-full rounded border border-line bg-surface px-2 py-1 text-xs text-fg"
                 defaultValue=""
               >
                 <option value="" disabled>멤버 선택...</option>
@@ -362,7 +362,7 @@ export function ProgressPanel({
           <div className="mb-4 space-y-1">
             {members.map((m) => (
               <div key={m.userId} className="group flex items-center justify-between">
-                <span className="text-xs text-[var(--axis-text-secondary)]">{m.userName || "Unknown"}</span>
+                <span className="text-xs text-fg-secondary">{m.userName || "Unknown"}</span>
                 {isOwner && (
                   <button
                     type="button"
@@ -372,7 +372,7 @@ export function ProgressPanel({
                         { method: "DELETE", action: `/api/proposals/${proposalId}/members`, encType: "application/json" },
                       );
                     }}
-                    className="hidden text-[10px] text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-destructive,#DC2626)] group-hover:block"
+                    className="hidden text-[10px] text-fg-tertiary hover:text-fg-error group-hover:block"
                   >
                     제거
                   </button>
@@ -387,11 +387,11 @@ export function ProgressPanel({
       {members.length === 0 && isOwner && availableUsers.length > 0 && (
         <>
           <div className="mb-1 flex items-center justify-between">
-            <h4 className="text-xs font-semibold text-[var(--axis-text-tertiary)]">팀 멤버</h4>
+            <h4 className="text-xs font-semibold text-fg-tertiary">팀 멤버</h4>
             <button
               type="button"
               onClick={() => setShowAddMember(!showAddMember)}
-              className="text-[10px] text-[var(--axis-text-brand)] hover:underline"
+              className="text-[10px] text-fg-brand hover:underline"
             >
               {showAddMember ? "취소" : "+ 추가"}
             </button>
@@ -408,7 +408,7 @@ export function ProgressPanel({
                     setShowAddMember(false);
                   }
                 }}
-                className="w-full rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] px-2 py-1 text-xs text-[var(--axis-text-primary)]"
+                className="w-full rounded border border-line bg-surface px-2 py-1 text-xs text-fg"
                 defaultValue=""
               >
                 <option value="" disabled>멤버 선택...</option>
@@ -419,25 +419,25 @@ export function ProgressPanel({
             </div>
           )}
           {!showAddMember && (
-            <p className="mb-4 text-xs text-[var(--axis-text-tertiary)]">멤버가 없습니다.</p>
+            <p className="mb-4 text-xs text-fg-tertiary">멤버가 없습니다.</p>
           )}
         </>
       )}
 
       {/* Stats */}
       <div className="space-y-2">
-        <h4 className="text-xs font-semibold text-[var(--axis-text-tertiary)]">통계</h4>
+        <h4 className="text-xs font-semibold text-fg-tertiary">통계</h4>
         <div className="flex items-center justify-between text-xs">
-          <span className="text-[var(--axis-text-secondary)]">전체 진행률</span>
-          <span className="font-medium text-[var(--axis-text-primary)]">{totalProgress}%</span>
+          <span className="text-fg-secondary">전체 진행률</span>
+          <span className="font-medium text-fg">{totalProgress}%</span>
         </div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-[var(--axis-surface-secondary)]">
+        <div className="h-1.5 overflow-hidden rounded-full bg-surface-secondary">
           <div
-            className="h-full rounded-full bg-[var(--axis-text-brand)] transition-all"
+            className="h-full rounded-full bg-fg-brand transition-all"
             style={{ width: `${totalProgress}%` }}
           />
         </div>
-        <div className="flex items-center justify-between text-[10px] text-[var(--axis-text-tertiary)]">
+        <div className="flex items-center justify-between text-[10px] text-fg-tertiary">
           <span>완료된 작업 {completedActions}/{actions.length}</span>
           {daysRemaining !== null && <span>남은 기간 {daysRemaining}일</span>}
         </div>

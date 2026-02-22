@@ -154,12 +154,12 @@ function StatCard({
   return (
     <Card>
       <CardContent className="pt-5 pb-4 px-5">
-        <p className="text-xs font-medium text-[var(--axis-text-tertiary)] uppercase tracking-wide">
+        <p className="text-xs font-medium text-fg-tertiary uppercase tracking-wide">
           {label}
         </p>
-        <p className="mt-1 text-2xl font-bold text-[var(--axis-text-primary)]">
+        <p className="mt-1 text-2xl font-bold text-fg">
           {value}
-          <span className="text-sm font-normal text-[var(--axis-text-tertiary)] ml-1">
+          <span className="text-sm font-normal text-fg-tertiary ml-1">
             {unit}
           </span>
         </p>
@@ -184,10 +184,10 @@ export default function AdminMonitoring() {
     <AppShell user={{ ...currentUser, name: currentUser.name ?? "" }}>
       {/* 페이지 헤더 */}
       <div>
-        <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">
+        <h1 className="text-2xl font-bold text-fg">
           시스템 모니터링
         </h1>
-        <p className="mt-1 text-sm text-[var(--axis-text-secondary)]">
+        <p className="mt-1 text-sm text-fg-secondary">
           시스템 상태, Feature Flag, Cron 실행 이력을 확인합니다.
         </p>
       </div>
@@ -205,7 +205,7 @@ export default function AdminMonitoring() {
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm">Feature Flags</CardTitle>
-            <span className="text-xs text-[var(--axis-text-tertiary)]">
+            <span className="text-xs text-fg-tertiary">
               {enabledCount}/{flagEntries.length} 활성
             </span>
           </div>
@@ -215,9 +215,9 @@ export default function AdminMonitoring() {
             {flagEntries.map(([key, enabled]) => (
               <div
                 key={key}
-                className="flex items-center justify-between py-2 px-3 rounded-lg bg-[var(--axis-surface-tertiary)]"
+                className="flex items-center justify-between py-2 px-3 rounded-lg bg-surface-tertiary"
               >
-                <span className="text-sm text-[var(--axis-text-primary)]">
+                <span className="text-sm text-fg">
                   {FF_LABELS[key] ?? key}
                 </span>
                 <Badge variant={enabled ? "default" : "secondary"}>
@@ -234,36 +234,36 @@ export default function AdminMonitoring() {
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm">Cron 실행 로그</CardTitle>
-            <span className="text-xs text-[var(--axis-text-tertiary)]">
+            <span className="text-xs text-fg-tertiary">
               최근 {cronLogs.length}건
             </span>
           </div>
         </CardHeader>
         <CardContent>
           {cronLogs.length === 0 ? (
-            <p className="text-sm text-[var(--axis-text-tertiary)] py-4">
+            <p className="text-sm text-fg-tertiary py-4">
               실행 기록이 없습니다
             </p>
           ) : (
             <div className="overflow-x-auto -mx-5">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-[var(--axis-border-default)]">
-                    <th className="text-left py-2 px-5 text-xs font-medium text-[var(--axis-text-tertiary)]">
+                  <tr className="border-b border-line">
+                    <th className="text-left py-2 px-5 text-xs font-medium text-fg-tertiary">
                       시간
                     </th>
-                    <th className="text-left py-2 px-3 text-xs font-medium text-[var(--axis-text-tertiary)]">
+                    <th className="text-left py-2 px-3 text-xs font-medium text-fg-tertiary">
                       작업
                     </th>
-                    <th className="text-center py-2 px-3 text-xs font-medium text-[var(--axis-text-tertiary)]">
+                    <th className="text-center py-2 px-3 text-xs font-medium text-fg-tertiary">
                       상태
                     </th>
-                    <th className="text-right py-2 px-5 text-xs font-medium text-[var(--axis-text-tertiary)]">
+                    <th className="text-right py-2 px-5 text-xs font-medium text-fg-tertiary">
                       소요시간
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--axis-border-default)]">
+                <tbody className="divide-y divide-line">
                   {cronLogs.map((log) => {
                     // results 배열의 첫 번째 항목에서 정보 추출
                     const first = log.results[0];
@@ -277,10 +277,10 @@ export default function AdminMonitoring() {
 
                     return (
                       <tr key={log.id}>
-                        <td className="py-2 px-5 text-xs text-[var(--axis-text-secondary)] whitespace-nowrap tabular-nums">
+                        <td className="py-2 px-5 text-xs text-fg-secondary whitespace-nowrap tabular-nums">
                           {formatTimestamp(log.createdAt)}
                         </td>
-                        <td className="py-2 px-3 text-xs text-[var(--axis-text-primary)]">
+                        <td className="py-2 px-3 text-xs text-fg">
                           {first?.name ?? log.cronExpression}
                         </td>
                         <td className="py-2 px-3 text-center">
@@ -290,7 +290,7 @@ export default function AdminMonitoring() {
                             <Badge variant="default">성공</Badge>
                           )}
                         </td>
-                        <td className="py-2 px-5 text-xs text-right text-[var(--axis-text-secondary)] tabular-nums">
+                        <td className="py-2 px-5 text-xs text-right text-fg-secondary tabular-nums">
                           {formatDuration(totalDuration || undefined)}
                         </td>
                       </tr>

@@ -31,7 +31,7 @@ export default function Pending() {
   const { name, email } = useLoaderData<typeof loader>();
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--axis-surface-secondary)]">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-surface-secondary">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50">
@@ -53,20 +53,20 @@ export default function Pending() {
           <CardTitle className="text-xl">승인 대기 중</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-center">
-          <p className="text-sm text-[var(--axis-text-secondary)]">
+          <p className="text-sm text-fg-secondary">
             <strong>{name}</strong> ({email})님의 가입 신청이 접수되었습니다.
           </p>
-          <p className="text-sm text-[var(--axis-text-secondary)]">
+          <p className="text-sm text-fg-secondary">
             관리자 승인 후 Discovery-X를 이용하실 수 있습니다.
           </p>
 
-          <div className="rounded-lg bg-[var(--axis-surface-secondary)] p-4 text-left">
-            <p className="text-xs font-medium text-[var(--axis-text-secondary)]">
+          <div className="rounded-lg bg-surface-secondary p-4 text-left">
+            <p className="text-xs font-medium text-fg-secondary">
               승인 문의
             </p>
-            <p className="mt-1 text-sm text-[var(--axis-text-primary)]">
+            <p className="mt-1 text-sm text-fg">
               sinclairseo@gmail.com
-              <span className="ml-1 text-xs text-[var(--axis-text-tertiary)]">
+              <span className="ml-1 text-xs text-fg-tertiary">
                 (서비스 관리자)
               </span>
             </p>
@@ -86,7 +86,7 @@ export default function Pending() {
           </div>
         </CardContent>
       </Card>
-      <p className="mt-6 text-xs text-[var(--axis-text-tertiary)]">
+      <p className="mt-6 text-xs text-fg-tertiary">
         AX Lab &middot; 2026
       </p>
     </div>

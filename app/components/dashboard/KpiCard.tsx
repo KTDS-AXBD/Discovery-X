@@ -41,10 +41,10 @@ function getStatus(
 }
 
 const statusColors = {
-  normal: "border-[var(--axis-border-success)] bg-[var(--axis-surface-success)]",
-  warning: "border-[var(--axis-yellow-200)] bg-[var(--axis-surface-warning)]",
-  critical: "border-[var(--axis-border-error)] bg-[var(--axis-surface-error)]",
-  unknown: "border-[var(--axis-border-default)]",
+  normal: "border-line-success bg-surface-success",
+  warning: "border-[var(--axis-yellow-200)] bg-surface-warning",
+  critical: "border-line-error bg-surface-error",
+  unknown: "border-line",
 };
 
 const statusLabels = {
@@ -67,8 +67,8 @@ export function KpiCard({ kpi, measurements }: KpiCardProps) {
     <div className={cn("rounded-lg border p-5", statusColors[status])}>
       <div className="flex items-start justify-between">
         <div>
-          <h4 className="text-sm font-semibold text-[var(--axis-text-primary)]">{kpi.name}</h4>
-          <p className="mt-0.5 text-xs text-[var(--axis-text-tertiary)]">
+          <h4 className="text-sm font-semibold text-fg">{kpi.name}</h4>
+          <p className="mt-0.5 text-xs text-fg-tertiary">
             {kpi.direction === "higher_is_better" ? "높을수록 좋음" : "낮을수록 좋음"} &middot; {kpi.unit}
           </p>
         </div>
@@ -78,7 +78,7 @@ export function KpiCard({ kpi, measurements }: KpiCardProps) {
             status === "normal" && "bg-[var(--axis-green-100)] text-[var(--axis-green-700)]",
             status === "warning" && "bg-[var(--axis-yellow-100)] text-[var(--axis-yellow-700)]",
             status === "critical" && "bg-[var(--axis-red-100)] text-[var(--axis-red-700)]",
-            status === "unknown" && "bg-[var(--axis-surface-tertiary)] text-[var(--axis-text-tertiary)]"
+            status === "unknown" && "bg-surface-tertiary text-fg-tertiary"
           )}
         >
           {statusLabels[status]}
@@ -87,11 +87,11 @@ export function KpiCard({ kpi, measurements }: KpiCardProps) {
 
       <div className="mt-3 flex items-end gap-4">
         <div>
-          <p className="text-2xl font-bold text-[var(--axis-text-primary)]">
+          <p className="text-2xl font-bold text-fg">
             {currentValue !== null ? String(currentValue) : "—"}
           </p>
           {kpi.targetValue !== null && (
-            <p className="text-xs text-[var(--axis-text-tertiary)]">
+            <p className="text-xs text-fg-tertiary">
               목표: {String(kpi.targetValue)} {kpi.unit}
             </p>
           )}
@@ -105,7 +105,7 @@ export function KpiCard({ kpi, measurements }: KpiCardProps) {
               return (
                 <div
                   key={m.id}
-                  className="w-2 rounded-t bg-[var(--axis-brand-500)]"
+                  className="w-2 rounded-t bg-fg-brand" /* AXIS primitive — 유지 */
                   style={{ height: h }}
                   title={`${m.value} (${formatDate(m.measuredAt)})`}
                 />

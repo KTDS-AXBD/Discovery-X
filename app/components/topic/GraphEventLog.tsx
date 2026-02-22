@@ -56,7 +56,7 @@ export function GraphEventLog({ topicId }: { topicId: string }) {
 
   if (fetcher.state === "loading") {
     return (
-      <p className="text-sm text-[var(--axis-text-tertiary)]">
+      <p className="text-sm text-fg-tertiary">
         이력을 불러오는 중...
       </p>
     );
@@ -64,7 +64,7 @@ export function GraphEventLog({ topicId }: { topicId: string }) {
 
   if (events.length === 0) {
     return (
-      <p className="text-sm text-[var(--axis-text-tertiary)]">
+      <p className="text-sm text-fg-tertiary">
         기록된 이력이 없습니다
       </p>
     );
@@ -74,11 +74,11 @@ export function GraphEventLog({ topicId }: { topicId: string }) {
     <div className="space-y-2">
       {events.map((e) => (
         <div key={e.id} className="flex items-start gap-3 text-xs">
-          <span className="whitespace-nowrap text-[var(--axis-text-tertiary)]">
+          <span className="whitespace-nowrap text-fg-tertiary">
             {formatDate(e.createdAt)}
           </span>
           <span className={actionBadgeClass(e.action)}>{e.action}</span>
-          <span className="text-[var(--axis-text-secondary)]">
+          <span className="text-fg-secondary">
             {e.actorType}:{e.actorId}
             {e.reason ? ` \u2014 ${e.reason}` : ""}
             {e.prevVersion != null && e.newVersion != null

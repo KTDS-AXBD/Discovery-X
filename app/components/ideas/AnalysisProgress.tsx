@@ -13,7 +13,7 @@ interface AnalysisProgressProps {
 }
 
 const STATE_STYLES: Record<CategoryState, string> = {
-  pending: "bg-[var(--axis-surface-secondary)] text-[var(--axis-text-tertiary)]",
+  pending: "bg-surface-secondary text-fg-tertiary",
   running: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 animate-pulse",
   complete: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
   failed: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
@@ -32,21 +32,21 @@ export function AnalysisProgress({ categoryStates, isRunning }: AnalysisProgress
   const totalCount = ANALYSIS_CATEGORIES.length;
 
   return (
-    <div className="border-b border-[var(--axis-border-default)] px-4 py-3">
+    <div className="border-b border-line px-4 py-3">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-medium text-[var(--axis-text-secondary)]">
+        <span className="text-xs font-medium text-fg-secondary">
           {isRunning ? "분석 진행 중..." : "분석 완료"}
         </span>
-        <span className="text-[10px] text-[var(--axis-text-tertiary)]">
+        <span className="text-[10px] text-fg-tertiary">
           {completedCount}/{totalCount}
           {failedCount > 0 && ` (${failedCount} 실패)`}
         </span>
       </div>
 
       {/* Progress bar */}
-      <div className="mb-2 h-1 overflow-hidden rounded-full bg-[var(--axis-surface-secondary)]">
+      <div className="mb-2 h-1 overflow-hidden rounded-full bg-surface-secondary">
         <div
-          className="h-full rounded-full bg-[var(--axis-text-brand)] transition-all duration-500"
+          className="h-full rounded-full bg-fg-brand transition-all duration-500"
           style={{ width: `${((completedCount + failedCount) / totalCount) * 100}%` }}
         />
       </div>

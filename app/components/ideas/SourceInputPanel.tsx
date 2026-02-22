@@ -184,18 +184,18 @@ export function SourceInputPanel({
   }, []);
 
   return (
-    <div className="flex h-full shrink-0 flex-col border-r border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))]">
+    <div className="flex h-full shrink-0 flex-col border-r border-line-subtle bg-surface-panel">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3">
-        <h2 className="text-sm font-semibold text-[var(--axis-text-primary)]">소스</h2>
+        <h2 className="text-sm font-semibold text-fg">소스</h2>
         <button
           type="button"
           onClick={() => setShow24h(!show24h)}
           className={cn(
             "rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors",
             show24h
-              ? "bg-[var(--axis-surface-brand)] text-white"
-              : "bg-[var(--axis-surface-secondary)] text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-secondary)]"
+              ? "bg-surface-brand text-white"
+              : "bg-surface-secondary text-fg-tertiary hover:text-fg-secondary"
           )}
         >
           24h
@@ -208,8 +208,8 @@ export function SourceInputPanel({
           className={cn(
             "relative rounded-lg border transition-colors",
             isDragOver
-              ? "border-[var(--axis-text-brand)] bg-[var(--axis-surface-brand)]/5"
-              : "border-[var(--axis-border-default)]"
+              ? "border-fg-brand bg-surface-brand/5"
+              : "border-line"
           )}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -222,7 +222,7 @@ export function SourceInputPanel({
             placeholder={isDragOver ? "여기에 놓으세요" : "PDF, 웹사이트 링크, 텍스트 입력"}
             rows={2}
             disabled={isAdding}
-            className="w-full resize-none rounded-lg border-0 bg-[var(--axis-surface-secondary)] px-3 py-2 pr-16 text-sm text-[var(--axis-text-primary)] placeholder:text-[var(--axis-text-tertiary)] focus:outline-none disabled:opacity-60"
+            className="w-full resize-none rounded-lg border-0 bg-surface-secondary px-3 py-2 pr-16 text-sm text-fg placeholder:text-fg-tertiary focus:outline-none disabled:opacity-60"
           />
           <div className="absolute bottom-2.5 right-2 flex items-center gap-1">
             {/* Add button */}
@@ -232,7 +232,7 @@ export function SourceInputPanel({
                 // Focus textarea
                 setInputValue((prev) => prev + (prev ? "\n" : ""));
               }}
-              className="flex h-6 w-6 items-center justify-center rounded-md text-[var(--axis-text-tertiary)] transition-colors hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-primary)]"
+              className="flex h-6 w-6 items-center justify-center rounded-md text-fg-tertiary transition-colors hover:bg-surface-secondary hover:text-fg"
               aria-label="줄 추가"
               title="줄 추가"
             >
@@ -245,7 +245,7 @@ export function SourceInputPanel({
               type="button"
               onClick={handleSubmit}
               disabled={!inputValue.trim() || isAdding}
-              className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--axis-surface-brand)] text-white transition-colors hover:opacity-90 disabled:opacity-40"
+              className="flex h-6 w-6 items-center justify-center rounded-md bg-surface-brand text-white transition-colors hover:opacity-90 disabled:opacity-40"
               aria-label="소스 추가"
             >
               {isAdding ? (
@@ -276,10 +276,10 @@ export function SourceInputPanel({
           </p>
         )}
 
-        <p className="mt-1 text-[10px] leading-relaxed text-[var(--axis-text-tertiary)]">
+        <p className="mt-1 text-[10px] leading-relaxed text-fg-tertiary">
           여러 URL을 추가하려면 줄 바꿈으로 구분하세요.
         </p>
-        <p className="text-[10px] leading-relaxed text-[var(--axis-text-tertiary)]">
+        <p className="text-[10px] leading-relaxed text-fg-tertiary">
           현재는 PDF, 웹사이트 및 Youtube 링크, 텍스트 입력만 지원합니다.
         </p>
       </div>
@@ -288,7 +288,7 @@ export function SourceInputPanel({
       <div
         className={cn(
           "flex-1 overflow-y-auto px-2 pb-3 transition-colors",
-          dropTargetActive === "upper" && "bg-[var(--axis-surface-brand)]/5"
+          dropTargetActive === "upper" && "bg-surface-brand/5"
         )}
         onDragOver={(e) => {
           if (dragAction === "add") {
@@ -319,8 +319,8 @@ export function SourceInputPanel({
           <div className={cn(
             "mb-2 rounded-lg border-2 border-dashed px-3 py-2 text-center text-xs transition-colors",
             dropTargetActive === "upper"
-              ? "border-[var(--axis-text-brand)] bg-[var(--axis-surface-brand)]/10 text-[var(--axis-text-brand)]"
-              : "border-[var(--axis-border-default)] text-[var(--axis-text-tertiary)]"
+              ? "border-fg-brand bg-surface-brand/10 text-fg-brand"
+              : "border-line text-fg-tertiary"
           )}>
             여기에 놓아 소스 추가
           </div>
@@ -333,15 +333,15 @@ export function SourceInputPanel({
               <button
                 type="button"
                 onClick={onToggleAll}
-                className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-secondary)]"
+                className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-fg-tertiary hover:text-fg-secondary"
               >
                 {/* Select-all checkbox icon */}
                 {selectedItemIds.length === items.length && items.length > 0 ? (
-                  <svg className="h-3.5 w-3.5 text-[var(--axis-text-brand)]" viewBox="0 0 24 24" fill="currentColor">
+                  <svg className="h-3.5 w-3.5 text-fg-brand" viewBox="0 0 24 24" fill="currentColor">
                     <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clipRule="evenodd" />
                   </svg>
                 ) : selectedItemIds.length > 0 ? (
-                  <svg className="h-3.5 w-3.5 text-[var(--axis-text-brand)]" viewBox="0 0 24 24" fill="currentColor">
+                  <svg className="h-3.5 w-3.5 text-fg-brand" viewBox="0 0 24 24" fill="currentColor">
                     <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-.53 14.03a.75.75 0 0 0 1.06 0l.72-.72H8.25a.75.75 0 0 1 0-1.5h5l-.72-.72a.75.75 0 1 1 1.06-1.06l2 2a.75.75 0 0 1 0 1.06l-2 2Z" clipRule="evenodd" />
                   </svg>
                 ) : (
@@ -351,7 +351,7 @@ export function SourceInputPanel({
                 )}
                 모든 소스 선택
               </button>
-              <span className="text-[10px] text-[var(--axis-text-tertiary)]">
+              <span className="text-[10px] text-fg-tertiary">
                 {selectedItemIds.length}개 선택
               </span>
             </div>
@@ -375,7 +375,7 @@ export function SourceInputPanel({
                     onDragEnd={() => { setDragAction(null); setDropTargetActive(null); }}
                     className={cn(
                       "group relative flex items-center gap-1.5 rounded-lg px-2 py-2.5 transition-colors",
-                      "hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))]",
+                      "hover:bg-surface-card-hover",
                       dragAction === "remove" && "cursor-grab"
                     )}
                   >
@@ -387,11 +387,11 @@ export function SourceInputPanel({
                       aria-label={isChecked ? "선택 해제" : "선택"}
                     >
                       {isChecked ? (
-                        <svg className="h-4 w-4 text-[var(--axis-text-brand)]" viewBox="0 0 24 24" fill="currentColor">
+                        <svg className="h-4 w-4 text-fg-brand" viewBox="0 0 24 24" fill="currentColor">
                           <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clipRule="evenodd" />
                         </svg>
                       ) : (
-                        <svg className="h-4 w-4 text-[var(--axis-text-tertiary)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <svg className="h-4 w-4 text-fg-tertiary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                           <circle cx="12" cy="12" r="9.75" />
                         </svg>
                       )}
@@ -404,7 +404,7 @@ export function SourceInputPanel({
                       className="flex min-w-0 flex-1 items-center gap-2 text-left"
                     >
                       {/* Type icon */}
-                      <span className="shrink-0 text-[var(--axis-text-tertiary)]">
+                      <span className="shrink-0 text-fg-tertiary">
                         {isText ? (
                           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
@@ -427,7 +427,7 @@ export function SourceInputPanel({
                       {/* Title */}
                       <span className={cn(
                         "min-w-0 flex-1 text-sm font-medium line-clamp-1",
-                        isChecked ? "text-[var(--axis-text-primary)]" : "text-[var(--axis-text-tertiary)]"
+                        isChecked ? "text-fg" : "text-fg-tertiary"
                       )}>
                         {displayTitle(item.titleKo, item.title, item.url)}
                       </span>
@@ -441,7 +441,7 @@ export function SourceInputPanel({
                           e.stopPropagation();
                           onDeleteSource(item.id);
                         }}
-                        className="shrink-0 rounded p-0.5 text-[var(--axis-text-tertiary)] opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover:opacity-100 dark:hover:bg-red-900/30"
+                        className="shrink-0 rounded p-0.5 text-fg-tertiary opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover:opacity-100 dark:hover:bg-red-900/30"
                         aria-label="소스 삭제"
                         title="소스 삭제"
                       >
@@ -460,7 +460,7 @@ export function SourceInputPanel({
               <button
                 type="button"
                 onClick={() => setPage((p) => p + 1)}
-                className="mt-1 w-full rounded-md px-3 py-1.5 text-xs text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-secondary)]"
+                className="mt-1 w-full rounded-md px-3 py-1.5 text-xs text-fg-tertiary hover:bg-surface-secondary hover:text-fg-secondary"
               >
                 더보기 ({page}/{totalPages})
               </button>
@@ -470,15 +470,15 @@ export function SourceInputPanel({
 
         {items.length === 0 && !dragAction && (
           <div className="flex flex-1 flex-col items-center justify-center px-4 py-12 text-center">
-            <div className="rounded-lg border border-dashed border-[var(--axis-border-default)] p-3">
-              <svg className="mx-auto h-8 w-8 text-[var(--axis-text-tertiary)]" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+            <div className="rounded-lg border border-dashed border-line p-3">
+              <svg className="mx-auto h-8 w-8 text-fg-tertiary" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
               </svg>
             </div>
-            <p className="mt-3 text-xs text-[var(--axis-text-secondary)]">
+            <p className="mt-3 text-xs text-fg-secondary">
               새로운 사업 발굴을 위해
             </p>
-            <p className="text-xs text-[var(--axis-text-secondary)]">
+            <p className="text-xs text-fg-secondary">
               다양한 소스를 모아두는 공간입니다.
             </p>
           </div>
@@ -496,8 +496,8 @@ export function SourceInputPanel({
             className={cn(
               "relative z-10 flex h-px shrink-0 cursor-row-resize items-center justify-center transition-colors",
               isResizingCollected
-                ? "bg-[var(--axis-text-brand)]"
-                : "bg-[var(--axis-border-default)] hover:bg-[var(--axis-text-brand)]"
+                ? "bg-fg-brand"
+                : "bg-line hover:bg-fg-brand"
             )}
           >
             <div className="absolute -top-1.5 -bottom-1.5 inset-x-0" />
@@ -537,13 +537,13 @@ export function SourceInputPanel({
                 "mb-2 rounded-lg border-2 border-dashed px-3 py-2 text-center text-xs transition-colors",
                 dropTargetActive === "lower"
                   ? "border-red-400 bg-red-100/50 text-red-600 dark:border-red-500 dark:bg-red-900/20 dark:text-red-400"
-                  : "border-[var(--axis-border-default)] text-[var(--axis-text-tertiary)]"
+                  : "border-line text-fg-tertiary"
               )}>
                 여기에 놓아 소스 제외
               </div>
             )}
 
-            <p className="shrink-0 px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--axis-text-tertiary)]">
+            <p className="shrink-0 px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-fg-tertiary">
               수집된 소스에서 선택하기
             </p>
             <div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto">
@@ -571,9 +571,9 @@ export function SourceInputPanel({
                       showFeedback(result);
                     }}
                     disabled={isAdding}
-                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition-colors hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))] disabled:opacity-60"
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition-colors hover:bg-surface-card-hover disabled:opacity-60"
                   >
-                    <span className="min-w-0 flex-1 text-xs text-[var(--axis-text-secondary)] line-clamp-1">
+                    <span className="min-w-0 flex-1 text-xs text-fg-secondary line-clamp-1">
                       {displayTitle(item.titleKo, item.title)}
                     </span>
                   </button>

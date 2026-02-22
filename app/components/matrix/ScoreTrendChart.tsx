@@ -10,7 +10,7 @@ export function ScoreTrendChart({ trend, height = 120 }: ScoreTrendChartProps) {
   if (trend.length < 2) {
     return (
       <div
-        className="flex items-center justify-center rounded border border-dashed border-[var(--dx-border-subtle,#334155)] text-[10px] text-[var(--axis-text-tertiary,#64748b)]"
+        className="flex items-center justify-center rounded border border-dashed border-line-subtle text-[10px] text-fg-tertiary"
         style={{ height, fontFamily: "var(--dx-font-mono)" }}
       >
         추세 데이터 부족 (최소 2개 기간 필요)

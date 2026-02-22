@@ -16,7 +16,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     <AxisCard
       ref={ref}
       className={cn(
-        "rounded-[var(--dx-card-radius)] shadow-none border border-[var(--dx-border-subtle,var(--dx-card-border-subtle))] bg-[var(--dx-surface-card,var(--axis-surface-default))] transition-colors duration-200",
+        "rounded-card shadow-none border border-line-subtle bg-surface-card transition-colors duration-200",
         className,
       )}
       {...props}

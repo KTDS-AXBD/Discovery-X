@@ -153,7 +153,7 @@ function DiffPanel({ diffJson }: { diffJson: string }) {
     next = parsed.next;
   } catch {
     return (
-      <p className="text-sm text-[var(--axis-text-secondary)]">
+      <p className="text-sm text-fg-secondary">
         Diff 데이터를 파싱할 수 없습니다.
       </p>
     );
@@ -164,7 +164,7 @@ function DiffPanel({ diffJson }: { diffJson: string }) {
   const lines = computeLineDiff(prevText, nextText);
 
   return (
-    <div className="mt-3 overflow-x-auto rounded-lg border border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--axis-surface-secondary)] dark:bg-[var(--axis-surface-tertiary)]">
+    <div className="mt-3 overflow-x-auto rounded-lg border border-line-subtle bg-surface-secondary dark:bg-surface-tertiary">
       <pre className="p-3 text-xs leading-5 font-mono">
         {lines.map((l, i) => {
           const bgClass =
@@ -172,7 +172,7 @@ function DiffPanel({ diffJson }: { diffJson: string }) {
               ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-900 dark:text-emerald-300"
               : l.type === "removed"
                 ? "bg-red-50 dark:bg-red-900/20 text-red-900 dark:text-red-300"
-                : "text-[var(--axis-text-secondary)]";
+                : "text-fg-secondary";
           const prefix =
             l.type === "added" ? "+" : l.type === "removed" ? "-" : " ";
           return (
@@ -236,14 +236,14 @@ function EventItem({
   }, [event.newVersion, graphId, onRollbackSuccess]);
 
   return (
-    <Card className="transition-colors hover:border-[var(--axis-border-focus)]">
+    <Card className="transition-colors hover:border-line-focus">
       <CardContent className="p-4">
         {/* 헤더 행 */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
             {/* 버전 배지 */}
             {event.newVersion != null && (
-              <span className="flex-shrink-0 inline-flex items-center justify-center h-6 min-w-[2rem] px-1.5 rounded-md bg-[var(--axis-surface-tertiary)] text-xs font-mono font-medium text-[var(--axis-text-primary)]">
+              <span className="flex-shrink-0 inline-flex items-center justify-center h-6 min-w-[2rem] px-1.5 rounded-md bg-surface-tertiary text-xs font-mono font-medium text-fg">
                 v{event.newVersion}
               </span>
             )}
@@ -257,14 +257,14 @@ function EventItem({
 
             {/* 이유 */}
             {event.reason && (
-              <span className="truncate text-sm text-[var(--axis-text-secondary)]">
+              <span className="truncate text-sm text-fg-secondary">
                 {event.reason}
               </span>
             )}
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
-            <span className="text-xs text-[var(--axis-text-tertiary)]">
+            <span className="text-xs text-fg-tertiary">
               {formatTime(event.createdAt)}
             </span>
 
@@ -337,16 +337,16 @@ export default function ProfileHistory() {
       {/* 헤더 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">
+          <h1 className="text-2xl font-bold text-fg">
             프로필 변경 이력
           </h1>
-          <p className="mt-1 text-sm text-[var(--axis-text-secondary)]">
+          <p className="mt-1 text-sm text-fg-secondary">
             Graph 버전 히스토리를 확인하고 이전 버전으로 롤백할 수 있습니다.
           </p>
         </div>
         <Link
           to="/profile"
-          className="text-sm text-[var(--axis-text-secondary)] hover:text-[var(--axis-text-primary)] hover:underline"
+          className="text-sm text-fg-secondary hover:text-fg hover:underline"
         >
           ← 프로필로 돌아가기
         </Link>
@@ -354,7 +354,7 @@ export default function ProfileHistory() {
 
       {/* 현재 버전 정보 */}
       {data.currentVersion > 0 && (
-        <div className="mt-4 flex items-center gap-2 text-sm text-[var(--axis-text-secondary)]">
+        <div className="mt-4 flex items-center gap-2 text-sm text-fg-secondary">
           <span>현재 버전:</span>
           <Badge variant="subtle">v{data.currentVersion}</Badge>
           <span>·</span>
@@ -366,7 +366,7 @@ export default function ProfileHistory() {
       <div className="mt-6 space-y-3">
         {data.events.length === 0 ? (
           <Card>
-            <CardContent className="p-8 text-center text-[var(--axis-text-secondary)]">
+            <CardContent className="p-8 text-center text-fg-secondary">
               아직 변경 이력이 없습니다. 프로필을 편집하면 이력이 기록됩니다.
             </CardContent>
           </Card>

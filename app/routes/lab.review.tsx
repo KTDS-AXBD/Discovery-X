@@ -36,11 +36,11 @@ function LabButton({ variant, children, ...props }: {
   children: React.ReactNode;
 } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   const styles = {
-    approve: "bg-[var(--axis-badge-success-bg,#D1FAE5)] text-[var(--axis-badge-success-text,#065F46)]",
-    reject: "bg-[var(--axis-badge-destructive-bg,#FEE2E2)] text-[var(--axis-badge-destructive-text,#991B1B)]",
-    edit: "bg-[var(--axis-surface-secondary)] text-[var(--axis-text-secondary)]",
-    save: "bg-[var(--dx-lab-accent)] text-white",
-    cancel: "bg-[var(--axis-surface-secondary)] text-[var(--axis-text-secondary)]",
+    approve: "bg-badge-success-bg text-badge-success-text",
+    reject: "bg-badge-destructive-bg text-badge-destructive-text",
+    edit: "bg-surface-secondary text-fg-secondary",
+    save: "bg-lab-accent text-white",
+    cancel: "bg-surface-secondary text-fg-secondary",
   };
   return (
     <button
@@ -88,13 +88,13 @@ export default function LabReview() {
     <div className="mx-auto max-w-3xl">
       <div className="mb-6 flex items-center gap-3">
         <p className="lab-stat-terminal text-sm">REVIEW QUEUE</p>
-        <Badge variant="secondary" className="text-[10px]" style={{ fontFamily: "var(--dx-font-mono)" }}>
+        <Badge variant="secondary" className="text-[10px] font-mono-dx">
           {totalCount}
         </Badge>
       </div>
 
       {totalCount === 0 && (
-        <p className="text-sm text-[var(--axis-text-tertiary)]" style={{ fontFamily: "var(--dx-font-mono)" }}>
+        <p className="text-sm text-fg-tertiary font-mono-dx">
           &gt; Queue empty. Items appear after auto-extraction runs.
         </p>
       )}
@@ -125,12 +125,12 @@ export default function LabReview() {
                             type="text"
                             value={editLabel}
                             onChange={(e) => setEditLabel(e.target.value)}
-                            className="rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] px-2 py-1 text-sm text-[var(--axis-text-primary)]"
+                            className="rounded border border-line bg-surface-primary px-2 py-1 text-sm text-fg"
                           />
                           <select
                             value={editTypeId}
                             onChange={(e) => setEditTypeId(e.target.value)}
-                            className="rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] px-2 py-1 text-xs text-[var(--axis-text-secondary)]"
+                            className="rounded border border-line bg-surface-primary px-2 py-1 text-xs text-fg-secondary"
                           >
                             {types.map((t) => (
                               <option key={t.id} value={t.id}>{t.nameKo}</option>
@@ -140,7 +140,7 @@ export default function LabReview() {
                       ) : (
                         <>
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-[var(--axis-text-primary)]">
+                            <span className="text-sm font-medium text-fg">
                               {node.label}
                             </span>
                             {typeInfo && (
@@ -149,7 +149,7 @@ export default function LabReview() {
                               </Badge>
                             )}
                           </div>
-                          <div className="mt-0.5 flex items-center gap-2 text-[10px] text-[var(--axis-text-tertiary)]" style={{ fontFamily: "var(--dx-font-mono)" }}>
+                          <div className="mt-0.5 flex items-center gap-2 text-[10px] text-fg-tertiary font-mono-dx">
                             <span>CONF {((node.confidence ?? 1) * 100).toFixed(0)}%</span>
                             {node.globalEntityId && <span>GLOBAL_ID</span>}
                           </div>
@@ -197,16 +197,16 @@ export default function LabReview() {
               <Card key={edge.id}>
                 <CardContent className="flex items-center gap-3 p-3">
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1 text-sm" style={{ fontFamily: "var(--dx-font-mono)" }}>
-                      <span className="text-[var(--axis-text-tertiary)]">{edge.fromNodeId.slice(0, 8)}</span>
-                      <span className="text-[var(--dx-lab-accent)]">&rarr;</span>
+                    <div className="flex items-center gap-1 text-sm font-mono-dx">
+                      <span className="text-fg-tertiary">{edge.fromNodeId.slice(0, 8)}</span>
+                      <span className="text-lab-accent">&rarr;</span>
                       <Badge variant="secondary" className="text-[10px]">
                         {RELATION_LABELS[edge.relationType] || edge.relationType}
                       </Badge>
-                      <span className="text-[var(--dx-lab-accent)]">&rarr;</span>
-                      <span className="text-[var(--axis-text-tertiary)]">{edge.toNodeId.slice(0, 8)}</span>
+                      <span className="text-lab-accent">&rarr;</span>
+                      <span className="text-fg-tertiary">{edge.toNodeId.slice(0, 8)}</span>
                     </div>
-                    <div className="mt-0.5 flex items-center gap-2 text-[10px] text-[var(--axis-text-tertiary)]" style={{ fontFamily: "var(--dx-font-mono)" }}>
+                    <div className="mt-0.5 flex items-center gap-2 text-[10px] text-fg-tertiary font-mono-dx">
                       <span>STR {((edge.strength ?? 100) / 100).toFixed(2)}</span>
                       <span>CONF {((edge.confidence ?? 1) * 100).toFixed(0)}%</span>
                     </div>

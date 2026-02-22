@@ -53,10 +53,10 @@ function NodePreview({ node }: { node: JsonLdNode }) {
     (k) => !k.startsWith("@") && k !== "dx:createdAt" && k !== "dx:createdBy",
   );
   return (
-    <div className="mt-1 rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-3 py-2">
+    <div className="mt-1 rounded border border-line bg-surface-secondary px-3 py-2">
       <div className="flex items-center gap-2">
         <TypeBadge type={node["@type"]} />
-        <span className="text-xs text-[var(--axis-text-tertiary)]">
+        <span className="text-xs text-fg-tertiary">
           {node["@id"]}
         </span>
       </div>
@@ -64,16 +64,16 @@ function NodePreview({ node }: { node: JsonLdNode }) {
         <dl className="mt-1.5 space-y-0.5">
           {displayKeys.slice(0, 4).map((key) => (
             <div key={key} className="flex gap-2 text-xs">
-              <dt className="shrink-0 font-medium text-[var(--axis-text-secondary)]">
+              <dt className="shrink-0 font-medium text-fg-secondary">
                 {key.replace("dx:", "")}:
               </dt>
-              <dd className="truncate text-[var(--axis-text-primary)]">
+              <dd className="truncate text-fg">
                 {String(node[key])}
               </dd>
             </div>
           ))}
           {displayKeys.length > 4 && (
-            <p className="text-[10px] text-[var(--axis-text-tertiary)]">
+            <p className="text-[10px] text-fg-tertiary">
               +{displayKeys.length - 4}개 속성
             </p>
           )}
@@ -134,25 +134,25 @@ export function SuggestionList({ topicId }: { topicId: string }) {
   return (
     <div>
       <div className="mb-4">
-        <h3 className="text-sm font-semibold text-[var(--axis-text-primary)]">
+        <h3 className="text-sm font-semibold text-fg">
           Agent 제안{" "}
-          <span className="font-normal text-[var(--axis-text-tertiary)]">
+          <span className="font-normal text-fg-tertiary">
             ({suggestions.length})
           </span>
         </h3>
-        <p className="mt-1 text-xs text-[var(--axis-text-tertiary)]">
+        <p className="mt-1 text-xs text-fg-tertiary">
           Agent가 Topic Graph에 추가를 제안한 노드입니다. 승인하면 Graph에 반영됩니다.
         </p>
       </div>
 
       {listFetcher.state === "loading" && (
-        <p className="text-sm text-[var(--axis-text-tertiary)]">
+        <p className="text-sm text-fg-tertiary">
           제안을 불러오는 중...
         </p>
       )}
 
       {suggestions.length === 0 && listFetcher.state !== "loading" ? (
-        <p className="text-sm text-[var(--axis-text-tertiary)]">
+        <p className="text-sm text-fg-tertiary">
           대기 중인 제안이 없습니다
         </p>
       ) : (
@@ -160,23 +160,23 @@ export function SuggestionList({ topicId }: { topicId: string }) {
           {suggestions.map((s) => (
             <li
               key={s.id}
-              className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] p-4"
+              className="rounded-lg border border-line bg-surface p-4"
             >
               {/* 헤더: agent 정보 + 시간 */}
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-[var(--axis-text-secondary)]">
+                <span className="text-xs font-medium text-fg-secondary">
                   <span className="inline-block rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-medium text-purple-800 dark:bg-purple-900/30 dark:text-purple-400">
                     agent
                   </span>
                   <span className="ml-1.5">{s.actorId}</span>
                 </span>
-                <span className="text-[10px] text-[var(--axis-text-tertiary)]">
+                <span className="text-[10px] text-fg-tertiary">
                   {formatDate(s.createdAt)}
                 </span>
               </div>
 
               {/* 제안 사유 */}
-              <p className="mt-2 text-sm text-[var(--axis-text-primary)]">
+              <p className="mt-2 text-sm text-fg">
                 {s.enrichment.reason}
               </p>
 
@@ -197,7 +197,7 @@ export function SuggestionList({ topicId }: { topicId: string }) {
                     value={rejectReason}
                     onChange={(e) => setRejectReason(e.target.value)}
                     placeholder="거절 사유 (선택)"
-                    className="w-full rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-3 py-1.5 text-sm text-[var(--axis-text-primary)] outline-none placeholder:text-[var(--axis-text-tertiary)] focus:border-[var(--axis-text-brand)]"
+                    className="w-full rounded border border-line bg-surface-secondary px-3 py-1.5 text-sm text-fg outline-none placeholder:text-fg-tertiary focus:border-fg-brand"
                   />
                 </div>
               )}

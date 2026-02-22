@@ -270,14 +270,14 @@ export default function Profile() {
     <AppShell user={data.user} hideSidebar>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">프로필</h1>
-          <p className="mt-1 text-sm text-[var(--axis-text-secondary)]">
+          <h1 className="text-2xl font-bold text-fg">프로필</h1>
+          <p className="mt-1 text-sm text-fg-secondary">
             Graph 기반 프로필을 편집하고 USER.md Projection을 미리봅니다.
           </p>
         </div>
         <Link
           to="/profile/history"
-          className="text-sm text-[var(--axis-text-secondary)] hover:text-[var(--axis-text-primary)] hover:underline"
+          className="text-sm text-fg-secondary hover:text-fg hover:underline"
         >
           변경 이력 보기 →
         </Link>

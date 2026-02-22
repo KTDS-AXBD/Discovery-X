@@ -116,6 +116,17 @@
   --dx-card-shadow-hover: 0 4px 12px rgba(0,0,0,0.12);
   --dx-card-border-subtle: rgba(0,0,0,0.06);
 
+  /* Surface hierarchy (light-mode defaults — dark overrides in .dark) */
+  --dx-surface-deep: var(--axis-surface-secondary);
+  --dx-surface-panel: var(--axis-surface-default);
+  --dx-surface-card: var(--axis-surface-default);
+  --dx-surface-card-hover: var(--axis-surface-secondary);
+  --dx-border-subtle: var(--dx-card-border-subtle);
+  --dx-border-muted: rgba(0,0,0,0.03);
+  --dx-text-muted: rgba(0,0,0,0.4);
+  --dx-button-outline-border: rgba(0,0,0,0.12);
+  --dx-button-outline-hover-bg: rgba(0,0,0,0.04);
+
   /* Navigation */
   --dx-nav-height: 56px;
 

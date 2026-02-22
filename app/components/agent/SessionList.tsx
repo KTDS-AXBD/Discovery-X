@@ -43,12 +43,12 @@ export function SessionList({ sessions, onNewSession, isCreating }: SessionListP
   return (
     <div className="flex h-full flex-col">
       {/* 새 대화 버튼 */}
-      <div className="border-b border-[var(--axis-border-default)] p-3">
+      <div className="border-b border-line p-3">
         <button
           type="button"
           onClick={onNewSession}
           disabled={isCreating}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] px-3 py-2 text-sm font-medium text-[var(--axis-text-primary)] transition-colors hover:bg-[var(--axis-surface-secondary)] disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium text-fg transition-colors hover:bg-surface-secondary disabled:cursor-not-allowed disabled:opacity-50"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -60,7 +60,7 @@ export function SessionList({ sessions, onNewSession, isCreating }: SessionListP
       {/* 세션 목록 */}
       <div className="flex-1 overflow-y-auto">
         {sessions.length === 0 ? (
-          <div className="px-4 py-8 text-center text-xs text-[var(--axis-text-tertiary)]">
+          <div className="px-4 py-8 text-center text-xs text-fg-tertiary">
             세션이 없습니다
           </div>
         ) : (
@@ -74,8 +74,8 @@ export function SessionList({ sessions, onNewSession, isCreating }: SessionListP
                     className={cn(
                       "flex items-start gap-2 px-3 py-2.5 text-sm transition-colors",
                       isSelected
-                        ? "bg-[var(--axis-surface-brand)] text-[var(--axis-text-brand)]"
-                        : "text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-secondary)]",
+                        ? "bg-surface-brand text-fg-brand"
+                        : "text-fg-secondary hover:bg-surface-secondary",
                     )}
                   >
                     {/* 활성 상태 dot */}
@@ -83,7 +83,7 @@ export function SessionList({ sessions, onNewSession, isCreating }: SessionListP
                       {session.isActive ? (
                         <span className="block h-2 w-2 rounded-full bg-emerald-500" />
                       ) : (
-                        <span className="block h-2 w-2 rounded-full bg-[var(--axis-border-default)]" />
+                        <span className="block h-2 w-2 rounded-full bg-line" />
                       )}
                     </span>
 
@@ -91,13 +91,13 @@ export function SessionList({ sessions, onNewSession, isCreating }: SessionListP
                       {/* 요약 텍스트 */}
                       <p className={cn(
                         "truncate text-xs font-medium",
-                        isSelected ? "text-[var(--axis-text-brand)]" : "text-[var(--axis-text-primary)]",
+                        isSelected ? "text-fg-brand" : "text-fg",
                       )}>
                         {session.summary || "새 대화"}
                       </p>
 
                       {/* 시간 + 토큰 */}
-                      <div className="mt-0.5 flex items-center gap-2 text-[10px] text-[var(--axis-text-tertiary)]">
+                      <div className="mt-0.5 flex items-center gap-2 text-[10px] text-fg-tertiary">
                         <span>{formatRelativeTime(session.startedAt)}</span>
                         {session.tokenCount > 0 && (
                           <>

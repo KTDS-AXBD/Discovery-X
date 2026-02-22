@@ -163,10 +163,10 @@ export default function ApproveDecision() {
         />
 
         {/* Discovery Summary */}
-        <div className="mb-6 rounded-lg bg-[var(--axis-badge-purple-bg)] p-4">
-          <h2 className="text-lg font-semibold text-[var(--axis-text-primary)]">{discovery.title}</h2>
-          <p className="mt-2 text-sm text-[var(--axis-text-secondary)]">{discovery.seedSummary}</p>
-          <div className="mt-3 text-xs text-[var(--axis-text-tertiary)]">
+        <div className="mb-6 rounded-lg bg-badge-purple-bg p-4">
+          <h2 className="text-lg font-semibold text-fg">{discovery.title}</h2>
+          <p className="mt-2 text-sm text-fg-secondary">{discovery.seedSummary}</p>
+          <div className="mt-3 text-xs text-fg-tertiary">
             <span>Owner: {ownerName}</span>
             <span className="mx-2">|</span>
             <span>현재 상태: {discovery.status}</span>
@@ -174,62 +174,62 @@ export default function ApproveDecision() {
         </div>
 
         {/* Pending Decision Details */}
-        <Card className="mb-6 border-2 border-[var(--axis-badge-purple-border)]">
+        <Card className="mb-6 border-2 border-badge-purple-bg">
           <CardContent className="pt-6">
-            <h3 className="text-lg font-semibold text-[var(--axis-text-primary)]">
-              제출된 결정: <span className="text-[var(--axis-badge-purple-text)]">{decisionLabel}</span>
+            <h3 className="text-lg font-semibold text-fg">
+              제출된 결정: <span className="text-badge-purple-text">{decisionLabel}</span>
             </h3>
 
             {pendingDecisionData && (
               <dl className="mt-4 space-y-3">
                 {pendingDecisionData.decisionRationale && (
                   <div>
-                    <dt className="text-sm font-medium text-[var(--axis-text-tertiary)]">결정 근거</dt>
-                    <dd className="mt-1 text-sm text-[var(--axis-text-primary)]">
+                    <dt className="text-sm font-medium text-fg-tertiary">결정 근거</dt>
+                    <dd className="mt-1 text-sm text-fg">
                       {String(pendingDecisionData.decisionRationale)}
                     </dd>
                   </div>
                 )}
                 {pendingDecisionData.extensionRationale && (
                   <div>
-                    <dt className="text-sm font-medium text-[var(--axis-text-tertiary)]">연장 사유</dt>
-                    <dd className="mt-1 text-sm text-[var(--axis-text-primary)]">
+                    <dt className="text-sm font-medium text-fg-tertiary">연장 사유</dt>
+                    <dd className="mt-1 text-sm text-fg">
                       {String(pendingDecisionData.extensionRationale)}
                     </dd>
                   </div>
                 )}
                 {pendingDecisionData.notNowTriggerType && (
                   <div>
-                    <dt className="text-sm font-medium text-[var(--axis-text-tertiary)]">트리거 유형</dt>
-                    <dd className="mt-1 text-sm text-[var(--axis-text-primary)]">
+                    <dt className="text-sm font-medium text-fg-tertiary">트리거 유형</dt>
+                    <dd className="mt-1 text-sm text-fg">
                       {String(pendingDecisionData.notNowTriggerType)}
                     </dd>
                   </div>
                 )}
                 {pendingDecisionData.notNowTriggerCondition && (
                   <div>
-                    <dt className="text-sm font-medium text-[var(--axis-text-tertiary)]">트리거 조건</dt>
-                    <dd className="mt-1 text-sm text-[var(--axis-text-primary)]">
+                    <dt className="text-sm font-medium text-fg-tertiary">트리거 조건</dt>
+                    <dd className="mt-1 text-sm text-fg">
                       {String(pendingDecisionData.notNowTriggerCondition)}
                     </dd>
                   </div>
                 )}
                 {pendingDecisionData.revisitDate && (
                   <div>
-                    <dt className="text-sm font-medium text-[var(--axis-text-tertiary)]">재검토 날짜</dt>
-                    <dd className="mt-1 text-sm text-[var(--axis-text-primary)]">
+                    <dt className="text-sm font-medium text-fg-tertiary">재검토 날짜</dt>
+                    <dd className="mt-1 text-sm text-fg">
                       {formatDate(String(pendingDecisionData.revisitDate))}
                     </dd>
                   </div>
                 )}
                 {pendingDecisionData.deadEndFailurePattern && (
                   <div>
-                    <dt className="text-sm font-medium text-[var(--axis-text-tertiary)]">실패 패턴</dt>
+                    <dt className="text-sm font-medium text-fg-tertiary">실패 패턴</dt>
                     <dd className="mt-1 flex flex-wrap gap-1">
                       {(pendingDecisionData.deadEndFailurePattern as string[]).map((p) => (
                         <span
                           key={p}
-                          className="rounded bg-[var(--axis-badge-error-bg)] px-2 py-0.5 text-xs text-[var(--axis-badge-error-text)]"
+                          className="rounded bg-badge-destructive-bg px-2 py-0.5 text-xs text-fg-error"
                         >
                           {p}
                         </span>
@@ -239,8 +239,8 @@ export default function ApproveDecision() {
                 )}
                 {pendingDecisionData.deadEndEvidenceReason && (
                   <div>
-                    <dt className="text-sm font-medium text-[var(--axis-text-tertiary)]">증거 기반 사유</dt>
-                    <dd className="mt-1 text-sm text-[var(--axis-text-primary)]">
+                    <dt className="text-sm font-medium text-fg-tertiary">증거 기반 사유</dt>
+                    <dd className="mt-1 text-sm text-fg">
                       {String(pendingDecisionData.deadEndEvidenceReason)}
                     </dd>
                   </div>
@@ -266,7 +266,7 @@ export default function ApproveDecision() {
             <Form method="post" className="space-y-6">
               {/* Action Selection */}
               <fieldset>
-                <legend className="text-sm font-medium text-[var(--axis-text-secondary)]">결정</legend>
+                <legend className="text-sm font-medium text-fg-secondary">결정</legend>
                 <div className="mt-3 space-y-3">
                   <div className="flex items-center">
                     <input
@@ -275,9 +275,9 @@ export default function ApproveDecision() {
                       type="radio"
                       value="approve"
                       defaultChecked
-                      className="h-4 w-4 border-[var(--axis-border-default)] text-[var(--axis-badge-success-text)] focus:ring-[var(--axis-badge-success-border)]"
+                      className="h-4 w-4 border-line text-badge-success-text focus:ring-badge-success-bg"
                     />
-                    <label htmlFor="approve" className="ml-3 text-sm font-medium text-[var(--axis-text-secondary)]">
+                    <label htmlFor="approve" className="ml-3 text-sm font-medium text-fg-secondary">
                       승인 -- 결정을 적용합니다
                     </label>
                   </div>
@@ -287,9 +287,9 @@ export default function ApproveDecision() {
                       name="action"
                       type="radio"
                       value="reject"
-                      className="h-4 w-4 border-[var(--axis-border-default)] text-[var(--axis-text-error)] focus:ring-[var(--axis-border-error)]"
+                      className="h-4 w-4 border-line text-fg-error focus:ring-line-error"
                     />
-                    <label htmlFor="reject" className="ml-3 text-sm font-medium text-[var(--axis-text-secondary)]">
+                    <label htmlFor="reject" className="ml-3 text-sm font-medium text-fg-secondary">
                       거부 -- Owner에게 반려합니다
                     </label>
                   </div>
@@ -308,7 +308,7 @@ export default function ApproveDecision() {
               </FormField>
 
               {/* Actions */}
-              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-[var(--axis-border-default)] pt-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-line pt-6">
                 <Button variant="outline" asChild>
                   <a href={`/discoveries/${discovery.id}`}>취소</a>
                 </Button>

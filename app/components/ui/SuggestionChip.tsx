@@ -12,19 +12,19 @@ const SuggestionChip = React.forwardRef<HTMLButtonElement, SuggestionChipProps>(
         className={cn(
           // Base styles
           "inline-flex items-center justify-center",
-          "rounded-full border border-[var(--axis-border-default)]",
+          "rounded-full border border-line",
           "px-3 py-1.5 text-xs",
           // Colors
-          "text-[var(--axis-text-secondary)]",
+          "text-fg-secondary",
           "bg-transparent",
           // Transitions
-          "transition-all duration-[var(--dx-transition-normal)]",
+          "transition-all duration-normal",
           // Hover
-          "hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-primary)] hover:border-[var(--axis-border-secondary)]",
+          "hover:bg-surface-secondary hover:text-fg hover:border-line-secondary",
           // Active
-          "active:scale-[var(--dx-scale-pressed)]",
+          "active:scale-95",
           // Focus visible
-          "focus-visible:outline-none focus-visible:ring-[var(--dx-focus-ring-width)] focus-visible:ring-offset-[var(--dx-focus-ring-offset)] focus-visible:ring-[var(--dx-focus-ring-color-default)]",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-focus-ring",
           // Disabled
           "disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100",
           className

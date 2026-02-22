@@ -16,7 +16,7 @@ const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
         <AxisBadge
           ref={ref}
           className={cn(
-            "border-transparent bg-[var(--axis-badge-purple-bg)] text-[var(--axis-badge-purple-text)]",
+            "border-transparent bg-badge-purple-bg text-badge-purple-text",
             className
           )}
           {...props}
@@ -28,7 +28,7 @@ const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
         <AxisBadge
           ref={ref}
           className={cn(
-            "border-transparent bg-[var(--axis-badge-warning-bg)] text-[var(--axis-badge-warning-text)]",
+            "border-transparent bg-badge-warning-bg text-badge-warning-text",
             className
           )}
           {...props}
@@ -40,7 +40,7 @@ const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
         <AxisBadge
           ref={ref}
           className={cn(
-            "border-transparent bg-[var(--dx-surface-card-hover,var(--axis-surface-tertiary))] text-[var(--dx-text-muted,var(--axis-text-tertiary))]",
+            "border-transparent bg-surface-card-hover text-fg-muted",
             className
           )}
           {...props}

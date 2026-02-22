@@ -25,6 +25,8 @@ export class IdeaService {
         id: ideas.id,
         title: ideas.title,
         status: ideas.status,
+        ownerId: ideas.ownerId,
+        analysisData: ideas.analysisData,
         createdAt: ideas.createdAt,
       })
       .from(ideas)

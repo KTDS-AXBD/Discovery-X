@@ -60,15 +60,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 function getAgeColor(ageInDays: number): string {
-  if (ageInDays < 14) return "text-[var(--axis-badge-success-text)]";
-  if (ageInDays < 21) return "text-[var(--axis-badge-warning-text)]";
-  return "text-[var(--axis-text-error)]";
+  if (ageInDays < 14) return "text-badge-success-text";
+  if (ageInDays < 21) return "text-badge-warning-text";
+  return "text-fg-error";
 }
 
 function getAgeBgColor(ageInDays: number): string {
-  if (ageInDays < 14) return "bg-[var(--axis-badge-success-bg)]";
-  if (ageInDays < 21) return "bg-[var(--axis-badge-warning-bg)]";
-  return "bg-[var(--axis-surface-error)]";
+  if (ageInDays < 14) return "bg-badge-success-bg";
+  if (ageInDays < 21) return "bg-badge-warning-bg";
+  return "bg-surface-error";
 }
 
 export default function DashboardReview() {
@@ -80,27 +80,27 @@ export default function DashboardReview() {
         title="Weekly Review"
         description="진행 중인 Discovery를 검토하고 결정합니다 (목표: 30분 내 검토 완료)"
         actions={
-          <div className="text-sm text-[var(--axis-text-tertiary)]">
-            총 <span className="font-semibold text-[var(--axis-text-primary)]">{discoveries.length}</span>개 진행 중
+          <div className="text-sm text-fg-tertiary">
+            총 <span className="font-semibold text-fg">{discoveries.length}</span>개 진행 중
           </div>
         }
       />
 
       {/* Color Legend */}
       <Card className="p-4">
-        <h3 className="text-sm font-medium text-[var(--axis-text-primary)]">경과 일수 색상 기준</h3>
+        <h3 className="text-sm font-medium text-fg">경과 일수 색상 기준</h3>
         <div className="mt-2 flex gap-6 text-sm">
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-[var(--axis-badge-success-text)]"></div>
-            <span className="text-[var(--axis-text-secondary)]">&lt;14일: 초록</span>
+            <div className="h-3 w-3 rounded-full bg-badge-success-text"></div>
+            <span className="text-fg-secondary">&lt;14일: 초록</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-[var(--axis-badge-warning-text)]"></div>
-            <span className="text-[var(--axis-text-secondary)]">14-21일: 노랑</span>
+            <div className="h-3 w-3 rounded-full bg-badge-warning-text"></div>
+            <span className="text-fg-secondary">14-21일: 노랑</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-[var(--axis-text-error)]"></div>
-            <span className="text-[var(--axis-text-secondary)]">&gt;21일: 빨강</span>
+            <div className="h-3 w-3 rounded-full bg-fg-error"></div>
+            <span className="text-fg-secondary">&gt;21일: 빨강</span>
           </div>
         </div>
       </Card>
@@ -108,7 +108,7 @@ export default function DashboardReview() {
       {/* Discovery List - Mobile Cards */}
       <div className="mt-8 space-y-3 sm:hidden">
         {discoveries.length === 0 ? (
-          <p className="py-12 text-center text-sm text-[var(--axis-text-tertiary)]">
+          <p className="py-12 text-center text-sm text-fg-tertiary">
             진행 중인 Discovery가 없습니다.
           </p>
         ) : (
@@ -119,12 +119,12 @@ export default function DashboardReview() {
               className={cn("block rounded-lg p-4 shadow", getAgeBgColor(discovery.ageInDays))}
             >
               <div className="flex items-start justify-between">
-                <h3 className="text-sm font-medium text-[var(--axis-text-primary)]">{discovery.title}</h3>
+                <h3 className="text-sm font-medium text-fg">{discovery.title}</h3>
                 <span className={cn("ml-2 shrink-0 text-xs font-semibold", getAgeColor(discovery.ageInDays))}>
                   {discovery.ageInDays}일
                 </span>
               </div>
-              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[var(--axis-text-tertiary)]">
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-fg-tertiary">
                 <span>{discovery.ownerName || "미지정"}</span>
                 {discovery.isOverdue && (
                   <Badge variant="destructive">OVERDUE</Badge>
@@ -158,7 +158,7 @@ export default function DashboardReview() {
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className="py-12 text-center text-[var(--axis-text-tertiary)]"
+                  className="py-12 text-center text-fg-tertiary"
                 >
                   진행 중인 Discovery가 없습니다.
                 </TableCell>
@@ -166,10 +166,10 @@ export default function DashboardReview() {
             ) : (
               discoveries.map((discovery) => (
                 <TableRow key={discovery.id} className={getAgeBgColor(discovery.ageInDays)}>
-                  <TableCell className="whitespace-nowrap pl-6 font-medium text-[var(--axis-text-primary)]">
+                  <TableCell className="whitespace-nowrap pl-6 font-medium text-fg">
                     <Link
                       to={`/discoveries/${discovery.id}`}
-                      className="hover:text-[var(--axis-text-brand)]"
+                      className="hover:text-fg-brand"
                     >
                       {discovery.title}
                     </Link>
@@ -189,7 +189,7 @@ export default function DashboardReview() {
                         {discovery.isOverdue ? (
                           <Badge variant="destructive">OVERDUE</Badge>
                         ) : discovery.daysUntilDue !== null ? (
-                          <span className="text-xs text-[var(--axis-text-tertiary)]">
+                          <span className="text-xs text-fg-tertiary">
                             ({discovery.daysUntilDue}일 남음)
                           </span>
                         ) : null}
@@ -206,7 +206,7 @@ export default function DashboardReview() {
                   <TableCell className="whitespace-nowrap pr-6 text-right font-medium">
                     <Link
                       to={`/discoveries/${discovery.id}`}
-                      className="text-[var(--axis-text-brand)] hover:underline"
+                      className="text-fg-brand hover:underline"
                     >
                       결정하기
                     </Link>

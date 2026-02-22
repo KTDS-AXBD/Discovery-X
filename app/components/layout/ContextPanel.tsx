@@ -7,7 +7,7 @@ interface ContextPanelProps {
 export function ContextPanel({ children }: ContextPanelProps) {
   return (
     <aside
-      className="hidden shrink-0 overflow-y-auto border-l border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))] lg:block"
+      className="hidden shrink-0 overflow-y-auto border-l border-line-subtle bg-surface-panel lg:block"
       style={{ width: "var(--dx-context-panel-width)" }}
     >
       {children}

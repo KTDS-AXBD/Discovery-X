@@ -56,15 +56,15 @@ export function CategoryInput({ defaultValue }: CategoryInputProps) {
         }}
         placeholder="예: Physical AI, 헬스케어, 핀테크..."
         autoComplete="off"
-        className="w-full rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-3 py-2 text-sm text-[var(--axis-text-primary)] placeholder:text-[var(--axis-text-tertiary)] focus:border-[var(--axis-border-brand)] focus:outline-none"
+        className="w-full rounded-lg border border-line bg-surface-secondary px-3 py-2 text-sm text-fg placeholder:text-fg-tertiary focus:border-line-brand focus:outline-none"
       />
       {open && suggestions.length > 0 && (
-        <ul className="absolute z-20 mt-1 max-h-40 w-full overflow-y-auto rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] shadow-lg">
+        <ul className="absolute z-20 mt-1 max-h-40 w-full overflow-y-auto rounded-lg border border-line bg-surface shadow-lg">
           {suggestions.map((s) => (
             <li key={s}>
               <button
                 type="button"
-                className="w-full px-3 py-1.5 text-left text-sm text-[var(--axis-text-primary)] hover:bg-[var(--axis-surface-secondary)]"
+                className="w-full px-3 py-1.5 text-left text-sm text-fg hover:bg-surface-secondary"
                 onClick={() => {
                   setValue(s);
                   setOpen(false);

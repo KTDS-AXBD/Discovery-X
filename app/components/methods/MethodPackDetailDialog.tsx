@@ -23,10 +23,10 @@ const TIER_COLORS: Record<string, { variant: "destructive" | "warning" | "second
 function DetailSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1">
-      <h4 className="text-xs font-semibold uppercase tracking-wide text-[var(--axis-text-tertiary)]">
+      <h4 className="text-xs font-semibold uppercase tracking-wide text-fg-tertiary">
         {title}
       </h4>
-      <div className="text-sm text-[var(--axis-text-primary)]">{children}</div>
+      <div className="text-sm text-fg">{children}</div>
     </div>
   );
 }
@@ -43,12 +43,12 @@ export function MethodPackDetailDialog({ pack, open, onOpenChange }: MethodPackD
         <DialogHeader>
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <p className="text-xs text-[var(--axis-text-tertiary)]">{pack.id}</p>
+              <p className="text-xs text-fg-tertiary">{pack.id}</p>
               <DialogTitle className="mt-1 text-lg font-bold">{pack.nameKo}</DialogTitle>
             </div>
             <Badge variant={tierConfig.variant}>{tierConfig.label}</Badge>
           </div>
-          <DialogDescription className="text-sm text-[var(--axis-text-secondary)]">
+          <DialogDescription className="text-sm text-fg-secondary">
             {pack.category}
           </DialogDescription>
         </DialogHeader>
@@ -58,12 +58,12 @@ export function MethodPackDetailDialog({ pack, open, onOpenChange }: MethodPackD
           <div className="flex flex-wrap gap-2">
             {pack.quickRun === 1 && <Badge variant="success">2h Quick-Run</Badge>}
             {pack.timebox && (
-              <span className="inline-flex items-center rounded-md bg-[var(--axis-surface-secondary)] px-2 py-1 text-xs text-[var(--axis-text-tertiary)]">
+              <span className="inline-flex items-center rounded-md bg-surface-secondary px-2 py-1 text-xs text-fg-tertiary">
                 ⏱ {pack.timebox}
               </span>
             )}
             {pack.evidenceMinimum && (
-              <span className="inline-flex items-center rounded-md bg-[var(--axis-surface-secondary)] px-2 py-1 text-xs text-[var(--axis-text-tertiary)]">
+              <span className="inline-flex items-center rounded-md bg-surface-secondary px-2 py-1 text-xs text-fg-tertiary">
                 📋 {pack.evidenceMinimum}
               </span>
             )}
@@ -97,7 +97,7 @@ export function MethodPackDetailDialog({ pack, open, onOpenChange }: MethodPackD
                 {applicableStages.map((stage) => (
                   <span
                     key={stage}
-                    className="inline-flex items-center rounded-full bg-[var(--axis-surface-brand)] px-2 py-0.5 text-[10px] font-medium text-white"
+                    className="inline-flex items-center rounded-full bg-surface-brand px-2 py-0.5 text-[10px] font-medium text-white"
                   >
                     {stage}
                   </span>
@@ -109,22 +109,22 @@ export function MethodPackDetailDialog({ pack, open, onOpenChange }: MethodPackD
           {/* Score Hooks */}
           {pack.scoreHooks && (
             <DetailSection title="점수 영향">
-              <p className="leading-relaxed text-[var(--axis-text-secondary)]">{pack.scoreHooks}</p>
+              <p className="leading-relaxed text-fg-secondary">{pack.scoreHooks}</p>
             </DetailSection>
           )}
 
           {/* Gate Hooks */}
           {pack.gateHooks && (
             <DetailSection title="Gate 연계">
-              <p className="leading-relaxed text-[var(--axis-text-secondary)]">{pack.gateHooks}</p>
+              <p className="leading-relaxed text-fg-secondary">{pack.gateHooks}</p>
             </DetailSection>
           )}
 
           {/* Template Prompt (Quick-Run only) */}
           {pack.quickRun === 1 && pack.templatePrompt && (
             <DetailSection title="실행 프롬프트 템플릿">
-              <div className="rounded-md bg-[var(--axis-surface-secondary)] p-3">
-                <pre className="whitespace-pre-wrap text-xs leading-relaxed text-[var(--axis-text-secondary)]">
+              <div className="rounded-md bg-surface-secondary p-3">
+                <pre className="whitespace-pre-wrap text-xs leading-relaxed text-fg-secondary">
                   {pack.templatePrompt}
                 </pre>
               </div>
@@ -134,8 +134,8 @@ export function MethodPackDetailDialog({ pack, open, onOpenChange }: MethodPackD
           {/* Output Schema (Quick-Run only) */}
           {pack.quickRun === 1 && pack.outputSchema && (
             <DetailSection title="출력 스키마">
-              <div className="rounded-md bg-[var(--axis-surface-secondary)] p-3">
-                <pre className="max-h-40 overflow-auto whitespace-pre-wrap text-xs leading-relaxed text-[var(--axis-text-secondary)]">
+              <div className="rounded-md bg-surface-secondary p-3">
+                <pre className="max-h-40 overflow-auto whitespace-pre-wrap text-xs leading-relaxed text-fg-secondary">
                   {JSON.stringify(pack.outputSchema, null, 2)}
                 </pre>
               </div>

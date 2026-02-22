@@ -134,7 +134,7 @@ export function SidebarPanel({
       {/* Sidebar */}
       <aside
         className={cn(
-          "flex h-full flex-col border-r border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))] transition-transform duration-200",
+          "flex h-full flex-col border-r border-line-subtle bg-surface-panel transition-transform duration-200",
           "fixed inset-y-0 left-0 z-50 sm:static sm:z-auto",
           open ? "translate-x-0" : "-translate-x-full sm:translate-x-0 sm:hidden",
         )}
@@ -145,7 +145,7 @@ export function SidebarPanel({
           {isOnChat ? (
             <button
               onClick={handleNew}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--axis-button-bg-default)] px-4 py-2 text-sm font-medium text-[var(--axis-button-text-default)] transition-colors hover:bg-[var(--axis-button-bg-hover)]"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-btn-bg px-4 py-2 text-sm font-medium text-btn-text transition-colors hover:bg-btn-bg-hover"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -155,7 +155,7 @@ export function SidebarPanel({
           ) : (
             <Link
               to="/"
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--axis-button-bg-default)] px-4 py-2 text-sm font-medium text-[var(--axis-button-text-default)] transition-colors hover:bg-[var(--axis-button-bg-hover)]"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-btn-bg px-4 py-2 text-sm font-medium text-btn-text transition-colors hover:bg-btn-bg-hover"
               onClick={() => { if (window.innerWidth < 640) close(); }}
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
@@ -188,14 +188,14 @@ export function SidebarPanel({
 
         {/* Chat history section label */}
         <div className="mt-2 px-5 pb-1">
-          <span className="text-xs font-semibold uppercase tracking-wider text-[var(--axis-text-tertiary)]">채팅</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-fg-tertiary">채팅</span>
         </div>
 
         {/* Conversation list */}
         <div className="flex-1 overflow-y-auto px-3 pb-3">
           {groups.map((group) => (
             <div key={group.label} className="mb-2">
-              <div className="mb-0.5 px-2 text-[11px] font-medium text-[var(--axis-text-tertiary)]">{group.label}</div>
+              <div className="mb-0.5 px-2 text-[11px] font-medium text-fg-tertiary">{group.label}</div>
               <div className="space-y-0.5">
                 {group.items.map((conv) => {
                   const isActive = isOnChat && activeConversationId === conv.id;
@@ -211,28 +211,28 @@ export function SidebarPanel({
                         e.dataTransfer.effectAllowed = "move";
                       }}
                       className={cn(
-                        "group flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm transition-all duration-[var(--dx-transition-normal)]",
+                        "group flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm transition-all duration-normal",
                         isActive
-                          ? "bg-[var(--dx-surface-card,var(--axis-surface-brand))] text-[var(--axis-text-primary)]"
-                          : "text-[var(--axis-text-secondary)] hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))]"
+                          ? "bg-surface-card text-fg"
+                          : "text-fg-secondary hover:bg-surface-card-hover"
                       )}
                       onClick={() => handleSelect(conv.id)}
                     >
                       {pendingDeleteId === conv.id ? (
                         <div className="flex w-full items-center gap-1 text-xs" onClick={(e) => e.stopPropagation()}>
-                          <span className="text-[var(--axis-text-error)]">삭제?</span>
+                          <span className="text-fg-error">삭제?</span>
                           <button
                             onClick={() => {
                               onDeleteConversation?.(conv.id);
                               setPendingDeleteId(null);
                             }}
-                            className="rounded bg-[var(--axis-button-destructive-bg-default)] px-1.5 py-0.5 text-[var(--axis-button-destructive-text-default)] hover:bg-[var(--axis-button-destructive-bg-hover)]"
+                            className="rounded bg-btn-destructive-bg px-1.5 py-0.5 text-btn-destructive-text hover:bg-btn-destructive-bg-hover"
                           >
                             확인
                           </button>
                           <button
                             onClick={() => setPendingDeleteId(null)}
-                            className="rounded bg-[var(--axis-surface-secondary)] px-1.5 py-0.5 text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-tertiary)]"
+                            className="rounded bg-surface-secondary px-1.5 py-0.5 text-fg-secondary hover:bg-surface-tertiary"
                           >
                             취소
                           </button>
@@ -240,7 +240,7 @@ export function SidebarPanel({
                       ) : (
                         <>
                           <div className="flex min-w-0 items-center gap-2">
-                            <svg className="h-3.5 w-3.5 shrink-0 text-[var(--axis-text-tertiary)]" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                            <svg className="h-3.5 w-3.5 shrink-0 text-fg-tertiary" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
                             </svg>
                             <span className="truncate flex-1">{conv.title}</span>
@@ -251,7 +251,7 @@ export function SidebarPanel({
                                 e.stopPropagation();
                                 setPendingDeleteId(conv.id);
                               }}
-                              className="ml-1 hidden shrink-0 rounded p-0.5 text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-error)] group-hover:inline"
+                              className="ml-1 hidden shrink-0 rounded p-0.5 text-fg-tertiary hover:text-fg-error group-hover:inline"
                               aria-label={`${conv.title} 삭제`}
                             >
                               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -268,28 +268,28 @@ export function SidebarPanel({
             </div>
           ))}
           {filtered.length === 0 && (
-            <p className="px-3 py-8 text-center text-sm text-[var(--axis-text-tertiary)]">
+            <p className="px-3 py-8 text-center text-sm text-fg-tertiary">
               {searchQuery ? "검색 결과 없음" : "대화가 없습니다"}
             </p>
           )}
         </div>
 
         {/* Bottom: user profile */}
-        <div className="border-t border-[var(--dx-border-subtle,var(--axis-border-default))] px-3 py-3">
+        <div className="border-t border-line-subtle px-3 py-3">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--axis-surface-brand)] text-xs font-bold text-[var(--axis-text-brand)]">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-brand text-xs font-bold text-fg-brand">
               {user.name.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-medium text-[var(--axis-text-primary)]">{user.name}</p>
-              <p className="truncate text-[10px] text-[var(--axis-text-tertiary)]">AX팀</p>
+              <p className="truncate text-xs font-medium text-fg">{user.name}</p>
+              <p className="truncate text-[10px] text-fg-tertiary">AX팀</p>
             </div>
             <div className="flex items-center gap-1">
               {/* Theme toggle */}
               <button
                 type="button"
                 onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-                className="rounded p-1 text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-primary)]"
+                className="rounded p-1 text-fg-tertiary hover:bg-surface-secondary hover:text-fg"
                 aria-label={resolvedTheme === "dark" ? "라이트 모드" : "다크 모드"}
               >
                 {resolvedTheme === "dark" ? (
@@ -302,7 +302,7 @@ export function SidebarPanel({
               <Form method="post" action="/logout">
                 <button
                   type="submit"
-                  className="rounded p-1 text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-error)]"
+                  className="rounded p-1 text-fg-tertiary hover:bg-surface-secondary hover:text-fg-error"
                   aria-label="로그아웃"
                 >
                   <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" /></svg>
@@ -310,7 +310,7 @@ export function SidebarPanel({
               </Form>
             </div>
           </div>
-          <p className="mt-1 text-center text-[9px] text-[var(--axis-text-tertiary)]">Discovery-X v6.18</p>
+          <p className="mt-1 text-center text-[9px] text-fg-tertiary">Discovery-X v6.18</p>
         </div>
       </aside>
     </>

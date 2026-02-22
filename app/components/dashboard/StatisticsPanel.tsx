@@ -106,7 +106,7 @@ function MonthlyActivityChart({
 
   return (
     <div className="dx-panel flex flex-col p-4">
-      <h4 className="mb-3 text-sm font-semibold text-[var(--axis-text-primary)]">
+      <h4 className="mb-3 text-sm font-semibold text-fg">
         월별 활동 현황
       </h4>
       <div className="flex flex-1 items-end gap-3">
@@ -133,14 +133,14 @@ function MonthlyActivityChart({
                   title={`사업제안 ${d.proposals}건`}
                 />
               </div>
-              <span className="text-[10px] text-[var(--axis-text-tertiary)]">
+              <span className="text-[10px] text-fg-tertiary">
                 {monthLabel(d.month)}
               </span>
             </div>
           );
         })}
       </div>
-      <div className="mt-2 flex items-center gap-4 text-[10px] text-[var(--axis-text-tertiary)]">
+      <div className="mt-2 flex items-center gap-4 text-[10px] text-fg-tertiary">
         <span className="flex items-center gap-1">
           <span className="inline-block h-2 w-2 rounded-sm" style={{ backgroundColor: "var(--axis-chart-bar)" }} />
           아이디어
@@ -202,11 +202,11 @@ function IndustryDonutChart({
 
   return (
     <div className="dx-panel flex flex-col p-4">
-      <h4 className="mb-3 text-sm font-semibold text-[var(--axis-text-primary)]">
+      <h4 className="mb-3 text-sm font-semibold text-fg">
         산업 분포
       </h4>
       {total === 0 ? (
-        <p className="py-6 text-center text-xs text-[var(--axis-text-tertiary)]">
+        <p className="py-6 text-center text-xs text-fg-tertiary">
           데이터 없음
         </p>
       ) : (
@@ -234,10 +234,10 @@ function IndustryDonutChart({
                   className="inline-block h-2 w-2 shrink-0 rounded-full"
                   style={{ backgroundColor: seg.color }}
                 />
-                <span className="truncate text-[var(--axis-text-secondary)]">
+                <span className="truncate text-fg-secondary">
                   {seg.label}
                 </span>
-                <span className="ml-auto shrink-0 font-medium text-[var(--axis-text-primary)]">
+                <span className="ml-auto shrink-0 font-medium text-fg">
                   {seg.count}
                 </span>
               </div>
@@ -267,16 +267,16 @@ function CollectionStats({
 
   return (
     <div className="dx-panel flex flex-col p-4">
-      <h4 className="mb-3 text-sm font-semibold text-[var(--axis-text-primary)]">
+      <h4 className="mb-3 text-sm font-semibold text-fg">
         수집 현황
       </h4>
       <div className="grid grid-cols-2 gap-3">
         {items.map((item) => (
           <div key={item.label}>
-            <p className="text-xl font-bold text-[var(--axis-text-primary)]">
+            <p className="text-xl font-bold text-fg">
               {item.value.toLocaleString()}
             </p>
-            <p className="text-[11px] text-[var(--axis-text-tertiary)]">{item.label}</p>
+            <p className="text-[11px] text-fg-tertiary">{item.label}</p>
           </div>
         ))}
       </div>
@@ -321,21 +321,21 @@ function StageResidencyChart({
 
   return (
     <div className="dx-panel flex flex-col p-4">
-      <h4 className="mb-3 text-sm font-semibold text-[var(--axis-text-primary)]">
+      <h4 className="mb-3 text-sm font-semibold text-fg">
         단계별 평균 체류
       </h4>
       {stageData.length === 0 ? (
-        <p className="py-6 text-center text-xs text-[var(--axis-text-tertiary)]">
+        <p className="py-6 text-center text-xs text-fg-tertiary">
           데이터 없음
         </p>
       ) : (
         <div className="flex flex-col gap-2">
           {stageData.map((s) => (
             <div key={s.status} className="flex items-center gap-2">
-              <span className="w-16 shrink-0 text-right text-[11px] text-[var(--axis-text-secondary)]">
+              <span className="w-16 shrink-0 text-right text-[11px] text-fg-secondary">
                 {s.label}
               </span>
-              <div className="relative h-4 flex-1 overflow-hidden rounded bg-[var(--axis-surface-secondary)]">
+              <div className="relative h-4 flex-1 overflow-hidden rounded bg-surface-secondary">
                 <div
                   className="h-full rounded"
                   style={{
@@ -344,7 +344,7 @@ function StageResidencyChart({
                   }}
                 />
               </div>
-              <span className="w-10 shrink-0 text-right text-[11px] font-medium text-[var(--axis-text-primary)]">
+              <span className="w-10 shrink-0 text-right text-[11px] font-medium text-fg">
                 {s.avgDays}일
               </span>
             </div>
@@ -369,7 +369,7 @@ export function StatisticsPanel({
 }: StatisticsPanelProps) {
   return (
     <div>
-      <h3 className="mb-4 text-base font-bold text-[var(--axis-text-primary)]">
+      <h3 className="mb-4 text-base font-bold text-fg">
         통계
       </h3>
       <div className="grid grid-cols-2 gap-4">

@@ -58,18 +58,18 @@ export function MethodPackCard({
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <p className="text-xs text-[var(--axis-text-tertiary)]">{id}</p>
-            <h3 className="mt-0.5 text-sm font-semibold text-[var(--axis-text-primary)]">
+            <p className="text-xs text-fg-tertiary">{id}</p>
+            <h3 className="mt-0.5 text-sm font-semibold text-fg">
               {nameKo}
             </h3>
           </div>
           <Badge variant={tierConfig.variant}>{tierConfig.label}</Badge>
         </div>
 
-        <p className="mt-1 text-xs text-[var(--axis-text-secondary)]">{category}</p>
+        <p className="mt-1 text-xs text-fg-secondary">{category}</p>
 
         {whenToUse && (
-          <p className="mt-2 text-xs leading-relaxed text-[var(--axis-text-tertiary)]">
+          <p className="mt-2 text-xs leading-relaxed text-fg-tertiary">
             {whenToUse}
           </p>
         )}
@@ -79,12 +79,12 @@ export function MethodPackCard({
             <Badge variant="success">2h Quick-Run</Badge>
           )}
           {timebox && (
-            <span className="inline-flex items-center rounded-md bg-[var(--axis-surface-secondary)] px-2 py-0.5 text-[10px] text-[var(--axis-text-tertiary)]">
+            <span className="inline-flex items-center rounded-md bg-surface-secondary px-2 py-0.5 text-[10px] text-fg-tertiary">
               {timebox}
             </span>
           )}
           {evidenceMinimum && (
-            <span className="inline-flex items-center rounded-md bg-[var(--axis-surface-secondary)] px-2 py-0.5 text-[10px] text-[var(--axis-text-tertiary)]">
+            <span className="inline-flex items-center rounded-md bg-surface-secondary px-2 py-0.5 text-[10px] text-fg-tertiary">
               {evidenceMinimum}
             </span>
           )}

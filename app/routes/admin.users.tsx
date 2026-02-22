@@ -95,8 +95,8 @@ export default function AdminUsers() {
 
   return (
     <AppShell user={currentUser}>
-      <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">사용자 관리</h1>
-      <p className="mt-1 text-sm text-[var(--axis-text-secondary)]">
+      <h1 className="text-2xl font-bold text-fg">사용자 관리</h1>
+      <p className="mt-1 text-sm text-fg-secondary">
         사용자 목록과 역할을 관리합니다.
       </p>
 
@@ -115,20 +115,20 @@ export default function AdminUsers() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="divide-y divide-[var(--axis-border-default)]">
+            <div className="divide-y divide-line">
               {pendingUsers.map((user) => (
                 <div key={user.id} className="flex items-center justify-between py-3">
                   <div className="flex items-center gap-3">
                     {user.avatarUrl ? (
                       <img src={user.avatarUrl} alt="" className="h-10 w-10 rounded-full" />
                     ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--axis-surface-tertiary)] text-sm font-medium text-[var(--axis-text-secondary)]">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-tertiary text-sm font-medium text-fg-secondary">
                         {user.name.charAt(0)}
                       </div>
                     )}
                     <div>
-                      <p className="text-sm font-medium text-[var(--axis-text-primary)]">{user.name}</p>
-                      <p className="text-xs text-[var(--axis-text-tertiary)]">
+                      <p className="text-sm font-medium text-fg">{user.name}</p>
+                      <p className="text-xs text-fg-tertiary">
                         {user.email}
                         {user.createdAt && (
                           <span className="ml-2">
@@ -164,7 +164,7 @@ export default function AdminUsers() {
           <CardTitle className="text-base">사용자 목록 ({activeUsers.length}명)</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="divide-y divide-[var(--axis-border-default)]">
+          <div className="divide-y divide-line">
             {activeUsers.map((user) => (
               <div key={user.id} className="flex items-center justify-between py-3">
                 <div className="flex items-center gap-3">
@@ -175,18 +175,18 @@ export default function AdminUsers() {
                       className="h-10 w-10 rounded-full"
                     />
                   ) : (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--axis-surface-tertiary)] text-sm font-medium text-[var(--axis-text-secondary)]">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-tertiary text-sm font-medium text-fg-secondary">
                       {user.name.charAt(0)}
                     </div>
                   )}
                   <div>
-                    <p className="text-sm font-medium text-[var(--axis-text-primary)]">
+                    <p className="text-sm font-medium text-fg">
                       {user.name}
                       {user.id === currentUser.id && (
-                        <span className="ml-1.5 text-xs font-normal text-[var(--axis-text-tertiary)]">(나)</span>
+                        <span className="ml-1.5 text-xs font-normal text-fg-tertiary">(나)</span>
                       )}
                     </p>
-                    <p className="text-xs text-[var(--axis-text-tertiary)]">
+                    <p className="text-xs text-fg-tertiary">
                       {user.email}
                       {user.createdAt && (
                         <span className="ml-2">

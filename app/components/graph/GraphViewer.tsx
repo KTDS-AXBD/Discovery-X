@@ -375,8 +375,8 @@ export function GraphViewer({ nodes, edges, ontologyTypes, onNodeClick }: GraphV
 
   if (nodes.length === 0) {
     return (
-      <div className="flex h-96 items-center justify-center rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)]">
-        <p className="text-sm text-[var(--axis-text-tertiary)]">
+      <div className="flex h-96 items-center justify-center rounded-lg border border-line bg-surface">
+        <p className="text-sm text-fg-tertiary">
           맥락 그래프가 비어 있습니다. Agent에게 엔티티 추출을 요청하세요.
         </p>
       </div>
@@ -387,7 +387,7 @@ export function GraphViewer({ nodes, edges, ontologyTypes, onNodeClick }: GraphV
     <div className="flex gap-4">
       {/* Filter panel */}
       <div className="w-48 shrink-0 space-y-2">
-        <h3 className="text-xs font-semibold uppercase text-[var(--axis-text-tertiary)]">필터</h3>
+        <h3 className="text-xs font-semibold uppercase text-fg-tertiary">필터</h3>
         {ontologyTypes.map((t) => (
           <label key={t.id} className="flex items-center gap-2 text-sm">
             <input
@@ -397,13 +397,13 @@ export function GraphViewer({ nodes, edges, ontologyTypes, onNodeClick }: GraphV
               className="rounded"
             />
             <span style={{ color: t.color }}>{t.icon}</span>
-            <span className="text-[var(--axis-text-secondary)]">{t.nameKo}</span>
+            <span className="text-fg-secondary">{t.nameKo}</span>
           </label>
         ))}
       </div>
 
       {/* SVG graph */}
-      <div className="relative flex-1 overflow-hidden rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)]">
+      <div className="relative flex-1 overflow-hidden rounded-lg border border-line bg-surface">
         <svg
           ref={svgRef}
           viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
@@ -507,7 +507,7 @@ export function GraphViewer({ nodes, edges, ontologyTypes, onNodeClick }: GraphV
           <button
             type="button"
             onClick={zoomIn}
-            className="flex h-7 w-7 items-center justify-center rounded bg-[var(--axis-surface-secondary)] text-sm text-[var(--axis-text-secondary)] shadow-sm hover:bg-[var(--axis-surface-tertiary)]"
+            className="flex h-7 w-7 items-center justify-center rounded bg-surface-secondary text-sm text-fg-secondary shadow-sm hover:bg-surface-tertiary"
             title="확대"
           >
             +
@@ -515,7 +515,7 @@ export function GraphViewer({ nodes, edges, ontologyTypes, onNodeClick }: GraphV
           <button
             type="button"
             onClick={zoomOut}
-            className="flex h-7 w-7 items-center justify-center rounded bg-[var(--axis-surface-secondary)] text-sm text-[var(--axis-text-secondary)] shadow-sm hover:bg-[var(--axis-surface-tertiary)]"
+            className="flex h-7 w-7 items-center justify-center rounded bg-surface-secondary text-sm text-fg-secondary shadow-sm hover:bg-surface-tertiary"
             title="축소"
           >
             −
@@ -523,7 +523,7 @@ export function GraphViewer({ nodes, edges, ontologyTypes, onNodeClick }: GraphV
           <button
             type="button"
             onClick={resetView}
-            className="flex h-7 w-7 items-center justify-center rounded bg-[var(--axis-surface-secondary)] text-[10px] text-[var(--axis-text-tertiary)] shadow-sm hover:bg-[var(--axis-surface-tertiary)]"
+            className="flex h-7 w-7 items-center justify-center rounded bg-surface-secondary text-[10px] text-fg-tertiary shadow-sm hover:bg-surface-tertiary"
             title="초기화"
             style={{ fontFamily: "var(--dx-font-mono)" }}
           >
@@ -534,7 +534,7 @@ export function GraphViewer({ nodes, edges, ontologyTypes, onNodeClick }: GraphV
         {/* Zoom level indicator */}
         {transform.k !== 1 && (
           <span
-            className="absolute bottom-2 right-2 rounded bg-[var(--axis-surface-secondary)] px-1.5 py-0.5 text-[10px] tabular-nums text-[var(--axis-text-tertiary)]"
+            className="absolute bottom-2 right-2 rounded bg-surface-secondary px-1.5 py-0.5 text-[10px] tabular-nums text-fg-tertiary"
             style={{ fontFamily: "var(--dx-font-mono)" }}
           >
             {Math.round(transform.k * 100)}%
@@ -544,18 +544,18 @@ export function GraphViewer({ nodes, edges, ontologyTypes, onNodeClick }: GraphV
 
       {/* Detail panel */}
       {selectedNodeData && (
-        <div className="w-56 shrink-0 space-y-3 rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] p-4">
-          <h3 className="text-sm font-semibold text-[var(--axis-text-primary)]">
+        <div className="w-56 shrink-0 space-y-3 rounded-lg border border-line bg-surface p-4">
+          <h3 className="text-sm font-semibold text-fg">
             {selectedNodeData.label}
           </h3>
           {selectedNodeData.ontologyTypeId && (
-            <p className="text-xs text-[var(--axis-text-tertiary)]">
+            <p className="text-xs text-fg-tertiary">
               {typeMap.get(selectedNodeData.ontologyTypeId)?.nameKo}
             </p>
           )}
           {connectedEdges.length > 0 && (
             <div>
-              <h4 className="text-xs font-medium text-[var(--axis-text-tertiary)]">
+              <h4 className="text-xs font-medium text-fg-tertiary">
                 관계 ({connectedEdges.length})
               </h4>
               <ul className="mt-1 space-y-1">
@@ -565,7 +565,7 @@ export function GraphViewer({ nodes, edges, ontologyTypes, onNodeClick }: GraphV
                       ? nodeMap.get(e.toNodeId)
                       : nodeMap.get(e.fromNodeId);
                   return (
-                    <li key={e.id} className="text-xs text-[var(--axis-text-secondary)]">
+                    <li key={e.id} className="text-xs text-fg-secondary">
                       {e.relationType} → {other?.label || "?"}
                     </li>
                   );

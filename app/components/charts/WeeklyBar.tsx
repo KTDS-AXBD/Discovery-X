@@ -4,7 +4,7 @@ interface WeeklyBarProps {
 
 export function WeeklyBar({ data }: WeeklyBarProps) {
   if (data.length === 0) {
-    return <p className="py-8 text-center text-sm text-[var(--axis-text-tertiary)]">데이터 없음</p>;
+    return <p className="py-8 text-center text-sm text-fg-tertiary">데이터 없음</p>;
   }
 
   const maxCount = Math.max(...data.map((d) => d.count), 1);

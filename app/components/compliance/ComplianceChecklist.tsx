@@ -53,7 +53,7 @@ export default function ComplianceChecklist({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {industry && (
-            <span className="text-sm text-[var(--axis-text-secondary)]">
+            <span className="text-sm text-fg-secondary">
               {industry}
             </span>
           )}
@@ -69,7 +69,7 @@ export default function ComplianceChecklist({
         </div>
         {overallCompliance !== undefined && (
           <div className="flex items-center gap-2">
-            <div className="h-2 w-24 rounded-full bg-[var(--axis-surface-tertiary)]">
+            <div className="h-2 w-24 rounded-full bg-surface-tertiary">
               <div
                 className={cn(
                   "h-2 rounded-full transition-all",
@@ -82,7 +82,7 @@ export default function ComplianceChecklist({
                 style={{ width: `${overallCompliance}%` }}
               />
             </div>
-            <span className="text-sm font-medium text-[var(--axis-text-primary)]">
+            <span className="text-sm font-medium text-fg">
               {overallCompliance}%
             </span>
           </div>
@@ -106,15 +106,15 @@ export default function ComplianceChecklist({
               </span>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-[var(--axis-text-primary)]">
+                  <span className="text-sm text-fg">
                     {check.requirement}
                   </span>
-                  <span className="text-xs text-[var(--axis-text-tertiary)]">
+                  <span className="text-xs text-fg-tertiary">
                     ({check.ruleType})
                   </span>
                 </div>
                 {check.suggestion && (
-                  <p className="mt-0.5 text-xs text-[var(--axis-text-secondary)]">
+                  <p className="mt-0.5 text-xs text-fg-secondary">
                     {check.suggestion}
                   </p>
                 )}
@@ -125,7 +125,7 @@ export default function ComplianceChecklist({
       </div>
 
       {checks.length === 0 && (
-        <div className="py-6 text-center text-sm text-[var(--axis-text-tertiary)]">
+        <div className="py-6 text-center text-sm text-fg-tertiary">
           체크 항목이 없습니다.
         </div>
       )}

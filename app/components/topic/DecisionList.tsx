@@ -67,9 +67,9 @@ export function DecisionList({ topicId }: { topicId: string }) {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-[var(--axis-text-primary)]">
+        <h3 className="text-sm font-semibold text-fg">
           결정 기록{" "}
-          <span className="font-normal text-[var(--axis-text-tertiary)]">
+          <span className="font-normal text-fg-tertiary">
             ({decisions.length})
           </span>
         </h3>
@@ -83,20 +83,20 @@ export function DecisionList({ topicId }: { topicId: string }) {
       </div>
 
       {showForm && (
-        <div className="mb-4 space-y-3 rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] p-4">
+        <div className="mb-4 space-y-3 rounded-lg border border-line bg-surface p-4">
           <input
             type="text"
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
             placeholder="결정 내용 (필수)"
-            className="w-full rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-3 py-2 text-sm"
+            className="w-full rounded border border-line bg-surface-secondary px-3 py-2 text-sm"
           />
           <div className="flex gap-2">
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-3 py-2 text-sm"
+              className="rounded border border-line bg-surface-secondary px-3 py-2 text-sm"
             />
           </div>
           <textarea
@@ -104,7 +104,7 @@ export function DecisionList({ topicId }: { topicId: string }) {
             onChange={(e) => setDecisionContext(e.target.value)}
             placeholder="배경/맥락 (선택)"
             rows={2}
-            className="w-full rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-3 py-2 text-sm"
+            className="w-full rounded border border-line bg-surface-secondary px-3 py-2 text-sm"
           />
           <Button size="sm" onClick={handleAdd} disabled={!summary.trim()}>
             추가
@@ -113,7 +113,7 @@ export function DecisionList({ topicId }: { topicId: string }) {
       )}
 
       {decisions.length === 0 ? (
-        <p className="text-sm text-[var(--axis-text-tertiary)]">
+        <p className="text-sm text-fg-tertiary">
           기록된 결정이 없습니다
         </p>
       ) : (
@@ -123,27 +123,27 @@ export function DecisionList({ topicId }: { topicId: string }) {
             return (
               <li
                 key={id}
-                className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] p-4"
+                className="rounded-lg border border-line bg-surface p-4"
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-sm font-medium text-[var(--axis-text-primary)]">
+                    <p className="text-sm font-medium text-fg">
                       {d["dx:summary"]}
                     </p>
                     {d["dx:date"] && (
-                      <p className="mt-1 text-xs text-[var(--axis-text-tertiary)]">
+                      <p className="mt-1 text-xs text-fg-tertiary">
                         {d["dx:date"]}
                       </p>
                     )}
                     {d["dx:context"] && (
-                      <p className="mt-1 text-xs text-[var(--axis-text-secondary)]">
+                      <p className="mt-1 text-xs text-fg-secondary">
                         {d["dx:context"]}
                       </p>
                     )}
                   </div>
                   <button
                     onClick={() => handleDelete(id)}
-                    className="text-xs text-[var(--axis-text-tertiary)] hover:text-red-500"
+                    className="text-xs text-fg-tertiary hover:text-red-500"
                   >
                     삭제
                   </button>

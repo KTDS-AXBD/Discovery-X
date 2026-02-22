@@ -39,12 +39,12 @@ export function IdeaChatWrapper({
   const showProgress = analysisRunning || Object.keys(categoryStates).length > 0;
 
   return (
-    <div className="flex h-full min-w-0 flex-col overflow-hidden border-l border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))]">
+    <div className="flex h-full min-w-0 flex-col overflow-hidden border-l border-line-subtle bg-surface-panel">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-[var(--axis-border-default)] px-4 py-3">
-        <h2 className="text-sm font-semibold text-[var(--axis-text-primary)]">채팅</h2>
+      <div className="flex items-center justify-between border-b border-line px-4 py-3">
+        <h2 className="text-sm font-semibold text-fg">채팅</h2>
         {totalSourceCount > 0 && (
-          <span className="rounded-full bg-[var(--axis-surface-secondary)] px-2 py-0.5 text-[10px] text-[var(--axis-text-tertiary)]">
+          <span className="rounded-full bg-surface-secondary px-2 py-0.5 text-[10px] text-fg-tertiary">
             {selectedSourceCount}/{totalSourceCount}개 소스
           </span>
         )}
@@ -72,28 +72,28 @@ export function IdeaChatWrapper({
         ) : (
           <div className="flex h-full flex-col items-center justify-center px-6">
             {/* Empty state with speech bubble icon */}
-            <div className="rounded-full bg-[var(--axis-surface-secondary)] p-3">
-              <svg className="h-6 w-6 text-[var(--axis-text-tertiary)]" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+            <div className="rounded-full bg-surface-secondary p-3">
+              <svg className="h-6 w-6 text-fg-tertiary" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
               </svg>
             </div>
-            <p className="mt-3 text-center text-sm text-[var(--axis-text-secondary)]">
+            <p className="mt-3 text-center text-sm text-fg-secondary">
               에이전트와 함께 아이디어를 사업으로 발전시켜보세요.
             </p>
 
             {/* Research category checklist */}
             <div className="mt-4 w-full space-y-1.5">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--axis-text-tertiary)]">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-fg-tertiary">
                 리서치 카테고리
               </p>
               {PRIMARY_METHODOLOGIES.map((cat) => (
                 <label
                   key={cat.key}
-                  className="flex items-center gap-2 rounded-md px-2 py-1 text-xs text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-secondary)]"
+                  className="flex items-center gap-2 rounded-md px-2 py-1 text-xs text-fg-secondary hover:bg-surface-secondary"
                 >
                   <input
                     type="checkbox"
-                    className="h-3.5 w-3.5 rounded border-[var(--axis-border-default)] text-[var(--axis-text-brand)] focus:ring-[var(--axis-text-brand)]"
+                    className="h-3.5 w-3.5 rounded border-line text-fg-brand focus:ring-fg-brand"
                     defaultChecked
                   />
                   {cat.label}
@@ -105,11 +105,11 @@ export function IdeaChatWrapper({
       </div>
 
       {/* Bottom bar */}
-      <div className="flex items-center justify-between border-t border-[var(--axis-border-default)] px-3 py-2">
+      <div className="flex items-center justify-between border-t border-line px-3 py-2">
         {/* Model label button */}
         <button
           type="button"
-          className="rounded-full border border-[var(--axis-border-default)] px-2.5 py-0.5 text-[10px] text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-secondary)]"
+          className="rounded-full border border-line px-2.5 py-0.5 text-[10px] text-fg-secondary hover:bg-surface-secondary"
           title="모델 변경 (준비 중)"
         >
           Claude Sonnet 4.5
@@ -119,7 +119,7 @@ export function IdeaChatWrapper({
         <div className="flex items-center gap-1">
           <button
             type="button"
-            className="flex h-6 w-6 items-center justify-center rounded-md text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-secondary)]"
+            className="flex h-6 w-6 items-center justify-center rounded-md text-fg-tertiary hover:bg-surface-secondary hover:text-fg-secondary"
             title="첨부 (준비 중)"
           >
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
@@ -128,7 +128,7 @@ export function IdeaChatWrapper({
           </button>
           <button
             type="button"
-            className="flex h-6 w-6 items-center justify-center rounded-md text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-secondary)]"
+            className="flex h-6 w-6 items-center justify-center rounded-md text-fg-tertiary hover:bg-surface-secondary hover:text-fg-secondary"
             title="설정 (준비 중)"
           >
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">

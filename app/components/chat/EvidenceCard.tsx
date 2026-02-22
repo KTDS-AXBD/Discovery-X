@@ -34,11 +34,11 @@ export function EvidenceCard({ evidence }: EvidenceCardProps) {
   const reliabilityInfo = RELIABILITY_LABELS[reliability];
 
   return (
-    <div className={`ml-2 mb-1.5 rounded-r-lg border border-[var(--axis-border-default)] border-l-4 ${borderColor} p-2`}>
+    <div className={`ml-2 mb-1.5 rounded-r-lg border border-line border-l-4 ${borderColor} p-2`}>
       <div className="flex items-center gap-1.5">
         <span className="text-xs">{icon}</span>
-        <span className="text-[10px] font-medium text-[var(--axis-text-secondary)]">{type}</span>
-        <span className="rounded bg-[var(--axis-surface-secondary)] px-1.5 py-0.5 text-[9px] font-semibold">
+        <span className="text-[10px] font-medium text-fg-secondary">{type}</span>
+        <span className="rounded bg-surface-secondary px-1.5 py-0.5 text-[9px] font-semibold">
           {strength}
         </span>
         {reliabilityInfo && (
@@ -47,7 +47,7 @@ export function EvidenceCard({ evidence }: EvidenceCardProps) {
           </span>
         )}
       </div>
-      <div className="mt-1 text-xs text-[var(--axis-text-primary)] leading-relaxed">
+      <div className="mt-1 text-xs text-fg leading-relaxed">
         {content}
       </div>
       {!!sourceUrl && /^https?:\/\//i.test(String(sourceUrl)) && (
@@ -56,7 +56,7 @@ export function EvidenceCard({ evidence }: EvidenceCardProps) {
             href={String(sourceUrl)}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[10px] text-[var(--axis-text-brand)] hover:underline"
+            className="text-[10px] text-fg-brand hover:underline"
           >
             {String(sourceUrl).length > 50
               ? String(sourceUrl).slice(0, 50) + "..."

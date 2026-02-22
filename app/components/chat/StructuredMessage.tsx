@@ -56,8 +56,8 @@ function HeadingWithId({ level, children, ...props }: HTMLAttributes<HTMLHeading
 
   const className =
     level === 2
-      ? "mt-6 mb-3 border-b border-[var(--axis-border-default)] pb-2 text-base font-semibold text-[var(--axis-text-primary)] scroll-mt-4"
-      : "mt-4 mb-2 border-l-3 border-[var(--axis-text-brand)] pl-3 text-sm font-semibold text-[var(--axis-text-primary)] scroll-mt-4";
+      ? "mt-6 mb-3 border-b border-line pb-2 text-base font-semibold text-fg scroll-mt-4"
+      : "mt-4 mb-2 border-l-3 border-fg-brand pl-3 text-sm font-semibold text-fg scroll-mt-4";
 
   return (
     <Tag id={id} className={className} {...props}>
@@ -68,7 +68,7 @@ function HeadingWithId({ level, children, ...props }: HTMLAttributes<HTMLHeading
 
 function PreBlock({ children, ...props }: ComponentProps<"pre">) {
   return (
-    <pre className="group relative rounded-lg border border-[var(--axis-border-default)] bg-[var(--dx-code-bg,var(--axis-surface-secondary))]" {...props}>
+    <pre className="group relative rounded-lg border border-line bg-surface-code" {...props}>
       {children}
     </pre>
   );
@@ -76,18 +76,18 @@ function PreBlock({ children, ...props }: ComponentProps<"pre">) {
 
 function TableWrapper({ children, ...props }: ComponentProps<"table">) {
   return (
-    <div className="my-3 overflow-x-auto rounded-lg border border-[var(--axis-border-default)]">
+    <div className="my-3 overflow-x-auto rounded-lg border border-line">
       <table className="w-full" {...props}>{children}</table>
     </div>
   );
 }
 
 function TableRow({ children, ...props }: ComponentProps<"tr">) {
-  return <tr className="border-b border-[var(--axis-border-subtle)] even:bg-[var(--axis-surface-secondary)]" {...props}>{children}</tr>;
+  return <tr className="border-b border-line-subtle-alt even:bg-surface-secondary" {...props}>{children}</tr>;
 }
 
 function TableHead({ children, ...props }: ComponentProps<"th">) {
-  return <th className="bg-[var(--axis-surface-secondary)] px-3 py-2 text-left text-xs font-semibold text-[var(--axis-text-secondary)]" {...props}>{children}</th>;
+  return <th className="bg-surface-secondary px-3 py-2 text-left text-xs font-semibold text-fg-secondary" {...props}>{children}</th>;
 }
 
 function TableCell({ children, ...props }: ComponentProps<"td">) {
@@ -96,7 +96,7 @@ function TableCell({ children, ...props }: ComponentProps<"td">) {
 
 function BlockquoteBlock({ children, ...props }: ComponentProps<"blockquote">) {
   return (
-    <blockquote className="my-3 border-l-4 border-[var(--axis-text-brand)] bg-[var(--axis-surface-secondary)] py-2 pl-4 pr-3 text-sm italic text-[var(--axis-text-secondary)]" {...props}>
+    <blockquote className="my-3 border-l-4 border-fg-brand bg-surface-secondary py-2 pl-4 pr-3 text-sm italic text-fg-secondary" {...props}>
       {children}
     </blockquote>
   );
@@ -115,10 +115,10 @@ export function StructuredMessage({ content, streaming }: StructuredMessageProps
     <div>
       {/* Mini TOC */}
       {headings.length >= 2 && !streaming && (
-        <div className="mb-4 rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] p-3">
+        <div className="mb-4 rounded-lg border border-line bg-surface-secondary p-3">
           <button
             onClick={() => setTocOpen(!tocOpen)}
-            className="flex w-full items-center justify-between text-xs font-semibold text-[var(--axis-text-secondary)]"
+            className="flex w-full items-center justify-between text-xs font-semibold text-fg-secondary"
           >
             <span>목차 ({headings.length})</span>
             <span>{tocOpen ? "▲" : "▼"}</span>
@@ -129,9 +129,9 @@ export function StructuredMessage({ content, streaming }: StructuredMessageProps
                 <button
                   key={h.id}
                   onClick={() => scrollToHeading(h.id)}
-                  className={`block w-full text-left text-xs hover:text-[var(--axis-text-brand)] transition-colors ${
+                  className={`block w-full text-left text-xs hover:text-fg-brand transition-colors ${
                     h.level === 3 ? "pl-4" : ""
-                  } text-[var(--axis-text-secondary)]`}
+                  } text-fg-secondary`}
                 >
                   {h.text}
                 </button>
@@ -161,9 +161,9 @@ export function StructuredMessage({ content, streaming }: StructuredMessageProps
 
       {streaming && (
         <span className="inline-flex gap-0.5 ml-1 items-center">
-          <span className="w-1.5 h-1.5 rounded-full bg-[var(--axis-text-brand)] animate-bounce [animation-delay:0ms]" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[var(--axis-text-brand)] animate-bounce [animation-delay:150ms]" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[var(--axis-text-brand)] animate-bounce [animation-delay:300ms]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-fg-brand animate-bounce [animation-delay:0ms]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-fg-brand animate-bounce [animation-delay:150ms]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-fg-brand animate-bounce [animation-delay:300ms]" />
         </span>
       )}
     </div>

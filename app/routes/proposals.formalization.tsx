@@ -68,8 +68,8 @@ export default function FormalizationTab() {
   return (
     <div className="p-6">
       <div className="mb-4">
-        <h2 className="text-lg font-bold text-[var(--axis-text-primary)]">형상화</h2>
-        <p className="text-xs text-[var(--axis-text-tertiary)]">아이디어를 구체화하고 있는 제안들</p>
+        <h2 className="text-lg font-bold text-fg">형상화</h2>
+        <p className="text-xs text-fg-tertiary">아이디어를 구체화하고 있는 제안들</p>
       </div>
       <ProposalGrid proposals={items} emptyMessage="형상화 단계의 제안이 없습니다." />
     </div>

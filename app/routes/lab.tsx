@@ -39,16 +39,16 @@ export default function LabLayout() {
         <div className="px-6 py-6">
           {/* Header */}
           <div className="mb-6">
-            <h1 className="text-xl font-bold text-[var(--axis-text-primary)]" style={{ fontFamily: "var(--dx-font-mono)" }}>
+            <h1 className="text-xl font-bold text-fg font-mono-dx">
               실험실
             </h1>
-            <p className="mt-1 text-xs tracking-wide text-[var(--dx-lab-accent)]" style={{ fontFamily: "var(--dx-font-mono)" }}>
+            <p className="mt-1 text-xs tracking-wide text-lab-accent font-mono-dx">
               Knowledge Graph Intelligence Laboratory
             </p>
           </div>
 
           {/* Tab Navigation */}
-          <nav className="mb-6 flex gap-1 border-b border-[var(--dx-border-subtle,var(--axis-border-default))]">
+          <nav className="mb-6 flex gap-1 border-b border-line-subtle">
             {TABS.map((tab) => (
               <NavLink
                 key={tab.to}
@@ -57,8 +57,8 @@ export default function LabLayout() {
                 className={({ isActive }) =>
                   `px-4 py-2 text-xs font-medium uppercase tracking-wider transition-colors ${
                     isActive
-                      ? "border-b-2 border-[var(--dx-lab-accent)] text-[var(--dx-lab-accent)]"
-                      : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-secondary)]"
+                      ? "border-b-2 border-lab-accent text-lab-accent"
+                      : "text-fg-tertiary hover:text-fg-secondary"
                   }`
                 }
                 style={{ fontFamily: "var(--dx-font-mono)" }}

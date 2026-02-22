@@ -19,11 +19,11 @@ export const PROPOSAL_STATUS_VARIANTS: Record<string, "warning" | "success" | "d
 };
 
 export const PROPOSAL_STATUS_COLORS: Record<string, string> = {
-  PROPOSAL: "bg-[var(--axis-badge-secondary-bg,#E5E7EB)] text-[var(--axis-badge-secondary-text,#374151)]",
-  FORMALIZATION: "bg-[var(--axis-badge-warning-bg,#FEF3C7)] text-[var(--axis-badge-warning-text,#92400E)]",
+  PROPOSAL: "bg-surface-secondary text-[var(--axis-badge-secondary-text,#374151)]",
+  FORMALIZATION: "bg-badge-warning-bg text-badge-warning-text",
   VALIDATION: "bg-blue-100 text-blue-800",
-  COMPLETED: "bg-[var(--axis-badge-success-bg,#D1FAE5)] text-[var(--axis-badge-success-text,#065F46)]",
-  CLOSED: "bg-[var(--axis-badge-destructive-bg,#FEE2E2)] text-[var(--axis-badge-destructive-text,#991B1B)]",
+  COMPLETED: "bg-badge-success-bg text-badge-success-text",
+  CLOSED: "bg-badge-destructive-bg text-badge-destructive-text",
 };
 
 // ============================================================================

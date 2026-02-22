@@ -63,15 +63,15 @@ export function SourcePanel({
   similarSources,
 }: SourcePanelProps) {
   return (
-    <div className="flex h-full flex-col border-r border-[var(--axis-border-default)]">
+    <div className="flex h-full flex-col border-r border-line">
       {/* Tab Header */}
-      <div className="flex border-b border-[var(--axis-border-default)]">
+      <div className="flex border-b border-line">
         <button
           onClick={() => onTabChange("sources")}
           className={`flex-1 px-3 py-2 text-xs font-medium ${
             activeTab === "sources"
-              ? "border-b-2 border-[var(--axis-text-brand)] text-[var(--axis-text-brand)]"
-              : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-secondary)]"
+              ? "border-b-2 border-fg-brand text-fg-brand"
+              : "text-fg-tertiary hover:text-fg-secondary"
           }`}
         >
           소스
@@ -80,8 +80,8 @@ export function SourcePanel({
           onClick={() => onTabChange("history")}
           className={`flex-1 px-3 py-2 text-xs font-medium ${
             activeTab === "history"
-              ? "border-b-2 border-[var(--axis-text-brand)] text-[var(--axis-text-brand)]"
-              : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-secondary)]"
+              ? "border-b-2 border-fg-brand text-fg-brand"
+              : "text-fg-tertiary hover:text-fg-secondary"
           }`}
         >
           히스토리
@@ -93,15 +93,15 @@ export function SourcePanel({
         {activeTab === "sources" ? (
           <div>
             {/* Status Filter */}
-            <div className="flex gap-1 p-2 border-b border-[var(--axis-border-default)]">
+            <div className="flex gap-1 p-2 border-b border-line">
               {STATUS_FILTERS.map((f) => (
                 <button
                   key={f.key}
                   onClick={() => onStatusFilterChange(f.key)}
                   className={`px-2 py-1 text-xs rounded ${
                     statusFilter === f.key
-                      ? "bg-[var(--axis-surface-brand)] text-[var(--axis-text-on-brand)]"
-                      : "text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-hover)]"
+                      ? "bg-surface-brand text-fg-on-brand"
+                      : "text-fg-tertiary hover:bg-surface-hover"
                   }`}
                 >
                   {f.label}
@@ -117,19 +117,19 @@ export function SourcePanel({
             {/* Radar Items */}
             <div className="space-y-0">
               {radarItems.length === 0 ? (
-                <p className="p-3 text-xs text-[var(--axis-text-tertiary)]">소스가 없습니다.</p>
+                <p className="p-3 text-xs text-fg-tertiary">소스가 없습니다.</p>
               ) : (
                 radarItems.map((item) => (
                   <div
                     key={item.id}
-                    className="cursor-pointer border-b border-[var(--axis-border-default)] p-3 hover:bg-[var(--axis-surface-hover)]"
+                    className="cursor-pointer border-b border-line p-3 hover:bg-surface-hover"
                     onClick={() => onItemClick(item)}
                   >
-                    <p className="text-sm font-medium text-[var(--axis-text-primary)] line-clamp-2">
+                    <p className="text-sm font-medium text-fg line-clamp-2">
                       {item.titleKo || item.title}
                     </p>
                     {item.summaryKo && (
-                      <p className="mt-1 text-xs text-[var(--axis-text-tertiary)] line-clamp-1">
+                      <p className="mt-1 text-xs text-fg-tertiary line-clamp-1">
                         {item.summaryKo}
                       </p>
                     )}
@@ -159,19 +159,19 @@ export function SourcePanel({
         ) : (
           <div className="space-y-0">
             {conversations.length === 0 ? (
-              <p className="p-3 text-xs text-[var(--axis-text-tertiary)]">대화 기록이 없습니다.</p>
+              <p className="p-3 text-xs text-fg-tertiary">대화 기록이 없습니다.</p>
             ) : (
               conversations.map((conv) => (
                 <div
                   key={conv.id}
                   onClick={() => onSelectConversation(conv.id)}
-                  className={`cursor-pointer border-b border-[var(--axis-border-default)] p-3 ${
+                  className={`cursor-pointer border-b border-line p-3 ${
                     activeConversationId === conv.id
-                      ? "bg-[var(--axis-surface-selected)]"
-                      : "hover:bg-[var(--axis-surface-hover)]"
+                      ? "bg-surface-secondary"
+                      : "hover:bg-surface-hover"
                   }`}
                 >
-                  <p className="text-sm text-[var(--axis-text-primary)] line-clamp-1">{conv.title}</p>
+                  <p className="text-sm text-fg line-clamp-1">{conv.title}</p>
                 </div>
               ))
             )}
@@ -181,12 +181,12 @@ export function SourcePanel({
 
       {/* Related Sources */}
       {similarSources.length > 0 && (
-        <div className="border-t border-[var(--axis-border-default)] p-2">
-          <p className="text-[10px] font-medium text-[var(--axis-text-tertiary)] mb-1">연관 소스</p>
+        <div className="border-t border-line p-2">
+          <p className="text-[10px] font-medium text-fg-tertiary mb-1">연관 소스</p>
           {similarSources.map((s) => (
             <div
               key={s.id}
-              className="flex items-center gap-1 py-1 text-xs text-[var(--axis-text-secondary)]"
+              className="flex items-center gap-1 py-1 text-xs text-fg-secondary"
             >
               <span className="truncate flex-1">{s.title}</span>
               <Badge variant="secondary" className="text-[10px] shrink-0">{s.score}%</Badge>

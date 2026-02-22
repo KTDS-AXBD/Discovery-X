@@ -77,8 +77,8 @@ export default function DashboardRecall() {
         title="Recall Queue"
         description="재검토 날짜가 도래한 NOT_NOW Discovery 목록"
         actions={
-          <div className="text-sm text-[var(--axis-text-tertiary)]">
-            총 <span className="font-semibold text-[var(--axis-text-primary)]">{discoveries.length}</span>개 재검토 대기
+          <div className="text-sm text-fg-tertiary">
+            총 <span className="font-semibold text-fg">{discoveries.length}</span>개 재검토 대기
           </div>
         }
       />
@@ -86,7 +86,7 @@ export default function DashboardRecall() {
       {/* Discovery List - Mobile Cards */}
       <div className="space-y-3 sm:hidden">
         {discoveries.length === 0 ? (
-          <p className="py-12 text-center text-sm text-[var(--axis-text-tertiary)]">
+          <p className="py-12 text-center text-sm text-fg-tertiary">
             재검토 대기 중인 Discovery가 없습니다.
           </p>
         ) : (
@@ -96,14 +96,14 @@ export default function DashboardRecall() {
               to={`/discoveries/${discovery.id}`}
               className={`block rounded-lg p-4 shadow ${
                 discovery.daysSinceRevisit > 7
-                  ? "bg-[var(--axis-badge-warning-bg)]"
+                  ? "bg-badge-warning-bg"
                   : discovery.daysSinceRevisit > 0
-                  ? "bg-[var(--axis-badge-info-bg)]"
-                  : "bg-[var(--axis-surface-default)]"
+                  ? "bg-surface-info"
+                  : "bg-surface"
               }`}
             >
-              <h3 className="text-sm font-medium text-[var(--axis-text-primary)]">{discovery.title}</h3>
-              <div className="mt-2 space-y-1 text-xs text-[var(--axis-text-tertiary)]">
+              <h3 className="text-sm font-medium text-fg">{discovery.title}</h3>
+              <div className="mt-2 space-y-1 text-xs text-fg-tertiary">
                 <p>{discovery.ownerName || "미지정"}</p>
                 {discovery.revisitDate && (
                   <p>
@@ -144,7 +144,7 @@ export default function DashboardRecall() {
                   <TableRow>
                     <TableCell
                       colSpan={6}
-                      className="py-12 text-center text-[var(--axis-text-tertiary)]"
+                      className="py-12 text-center text-fg-tertiary"
                     >
                       재검토 대기 중인 Discovery가 없습니다.
                     </TableCell>
@@ -155,16 +155,16 @@ export default function DashboardRecall() {
                       key={discovery.id}
                       className={
                         discovery.daysSinceRevisit > 7
-                          ? "bg-[var(--axis-badge-warning-bg)]"
+                          ? "bg-badge-warning-bg"
                           : discovery.daysSinceRevisit > 0
-                          ? "bg-[var(--axis-badge-info-bg)]"
+                          ? "bg-surface-info"
                           : ""
                       }
                     >
-                      <TableCell className="max-w-xs truncate pl-6 font-medium text-[var(--axis-text-primary)]">
+                      <TableCell className="max-w-xs truncate pl-6 font-medium text-fg">
                         <Link
                           to={`/discoveries/${discovery.id}`}
-                          className="hover:text-[var(--axis-text-brand)]"
+                          className="hover:text-fg-brand"
                         >
                           {discovery.title}
                         </Link>
@@ -179,7 +179,7 @@ export default function DashboardRecall() {
                               {formatDate(discovery.revisitDate)}
                             </div>
                             {discovery.daysSinceRevisit > 0 && (
-                              <span className="text-xs text-[var(--axis-text-tertiary)]">
+                              <span className="text-xs text-fg-tertiary">
                                 ({discovery.daysSinceRevisit}일 경과)
                               </span>
                             )}
@@ -200,7 +200,7 @@ export default function DashboardRecall() {
                       <TableCell className="whitespace-nowrap pr-6 text-right font-medium">
                         <Link
                           to={`/discoveries/${discovery.id}`}
-                          className="text-[var(--axis-text-brand)] hover:underline"
+                          className="text-fg-brand hover:underline"
                         >
                           재평가하기
                         </Link>
@@ -226,12 +226,12 @@ export default function DashboardRecall() {
 
       {/* Trigger Type Reference */}
       <Card className="mt-6 p-4">
-        <h3 className="text-sm font-medium text-[var(--axis-text-primary)]">트리거 유형 참고</h3>
+        <h3 className="text-sm font-medium text-fg">트리거 유형 참고</h3>
         <dl className="mt-2 grid grid-cols-2 gap-4 text-sm">
           {Object.entries(TRIGGER_TYPE_LABELS).map(([key, label]) => (
             <div key={key}>
-              <dt className="font-medium text-[var(--axis-text-secondary)]">{label}</dt>
-              <dd className="mt-1 text-xs text-[var(--axis-text-tertiary)]">
+              <dt className="font-medium text-fg-secondary">{label}</dt>
+              <dd className="mt-1 text-xs text-fg-tertiary">
                 {key === TriggerType.TECHNOLOGY_MATURITY &&
                   "새로운 기술/도구의 성숙도가 임계점에 도달"}
                 {key === TriggerType.POLICY_REGULATION &&

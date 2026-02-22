@@ -30,7 +30,7 @@ export function IdeaCandidateCards({
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-medium text-[var(--axis-text-secondary)]">
+      <p className="text-xs font-medium text-fg-secondary">
         아이디어 후보 ({candidates.length}개)
       </p>
       <div className="grid gap-2 grid-cols-1">
@@ -43,25 +43,25 @@ export function IdeaCandidateCards({
               key={c.id}
               className={`transition-all ${
                 isSelected
-                  ? "border-[var(--axis-text-brand)] ring-1 ring-[var(--axis-text-brand)]"
+                  ? "border-fg-brand ring-1 ring-fg-brand"
                   : isDropped
                     ? "opacity-50"
-                    : "hover:border-[var(--axis-text-brand)]"
+                    : "hover:border-fg-brand"
               }`}
             >
               <CardContent className="p-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5 mb-1">
-                      <span className="text-xs font-bold text-[var(--axis-text-brand)]">
+                      <span className="text-xs font-bold text-fg-brand">
                         #{i + 1}
                       </span>
-                      <p className="text-sm font-medium text-[var(--axis-text-primary)] line-clamp-1">
+                      <p className="text-sm font-medium text-fg line-clamp-1">
                         {c.title}
                       </p>
                     </div>
                     {c.seedSummary && (
-                      <p className="text-xs text-[var(--axis-text-tertiary)] line-clamp-2">
+                      <p className="text-xs text-fg-tertiary line-clamp-2">
                         {c.seedSummary}
                       </p>
                     )}

@@ -1,7 +1,6 @@
 import { Link, useLocation } from "@remix-run/react";
 import { useTheme } from "@axis-ds/theme";
 import { cn } from "~/lib/utils/cn";
-import { useSidebar } from "~/lib/context/sidebar-context";
 
 const NAV_TABS = [
   { to: "/dashboard", label: "대시보드" },
@@ -11,44 +10,32 @@ const NAV_TABS = [
 ];
 
 interface IdeaPageHeaderProps {
-  title?: string;
   user: { id: string; name: string; email: string };
+  showProposalButton?: boolean;
   onOpenProposalModal?: () => void;
 }
 
-export function IdeaPageHeader({ title, user, onOpenProposalModal }: IdeaPageHeaderProps) {
-  const { toggle } = useSidebar();
+export function IdeaPageHeader({ user, showProposalButton, onOpenProposalModal }: IdeaPageHeaderProps) {
   const { resolvedTheme, setTheme } = useTheme();
   const location = useLocation();
 
   return (
     <nav
-      className="shrink-0 border-b border-[var(--dx-border-muted,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))]"
+      className="shrink-0 border-b border-line-muted bg-surface-panel"
       style={{ height: "var(--dx-nav-height)" }}
     >
       <div className="flex h-full items-center justify-between px-4">
-        {/* Left: hamburger + logo + GNB tabs */}
+        {/* Left: logo + GNB tabs */}
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            className="inline-flex items-center justify-center rounded-lg p-1.5 text-[var(--axis-icon-secondary)] hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-icon-default)]"
-            onClick={toggle}
-            aria-label="아이디어 목록 토글"
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-            </svg>
-          </button>
-
           {/* Logo link */}
-          <Link to="/dashboard" className="flex items-center gap-1.5 text-[var(--axis-text-primary)]">
-            <svg className="h-4 w-4 text-[var(--axis-text-brand)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <Link to="/dashboard" className="flex items-center gap-1.5 text-fg">
+            <svg className="h-4 w-4 text-fg-brand" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="10" />
               <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
             </svg>
           </Link>
 
-          <span className="text-[var(--axis-text-tertiary)]">/</span>
+          <span className="text-fg-tertiary">/</span>
 
           {/* GNB nav tabs */}
           <div className="hidden items-center gap-1 sm:flex">
@@ -61,8 +48,8 @@ export function IdeaPageHeader({ title, user, onOpenProposalModal }: IdeaPageHea
                   className={cn(
                     "rounded-md px-2.5 py-1 text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-[var(--axis-surface-brand)] text-[var(--axis-text-brand)]"
-                      : "text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-primary)]",
+                      ? "bg-surface-brand text-fg-brand"
+                      : "text-fg-tertiary hover:bg-surface-secondary hover:text-fg",
                   )}
                 >
                   {tab.label}
@@ -71,18 +58,18 @@ export function IdeaPageHeader({ title, user, onOpenProposalModal }: IdeaPageHea
             })}
           </div>
 
-          {/* Mobile: show current title only */}
-          <h1 className="truncate text-sm font-semibold text-[var(--axis-text-primary)] sm:hidden">
-            {title || "아이디어"}
+          {/* Mobile: title */}
+          <h1 className="truncate text-sm font-semibold text-fg sm:hidden">
+            아이디어
           </h1>
         </div>
 
-        {/* Right: share + proposal button + theme + user */}
+        {/* Right: proposal button + theme + user */}
         <div className="flex items-center gap-2">
           {/* Share (placeholder) */}
           <button
             type="button"
-            className="rounded-md p-1.5 text-[var(--axis-icon-secondary)] transition-colors hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-icon-default)]"
+            className="rounded-md p-1.5 text-icon-secondary transition-colors hover:bg-surface-secondary hover:text-icon"
             aria-label="공유"
             title="공유 (준비 중)"
           >
@@ -91,20 +78,22 @@ export function IdeaPageHeader({ title, user, onOpenProposalModal }: IdeaPageHea
             </svg>
           </button>
 
-          {/* Proposal button */}
-          <button
-            type="button"
-            onClick={onOpenProposalModal}
-            className="rounded-lg bg-[var(--axis-surface-brand)] px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
-          >
-            사업 제안하기
-          </button>
+          {/* Proposal button — only shown on detail page */}
+          {showProposalButton && onOpenProposalModal && (
+            <button
+              type="button"
+              onClick={onOpenProposalModal}
+              className="rounded-lg bg-surface-brand px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
+            >
+              사업 제안하기
+            </button>
+          )}
 
           {/* Theme toggle */}
           <button
             type="button"
             onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-            className="rounded-md p-1.5 text-[var(--axis-icon-secondary)] transition-colors hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-icon-default)]"
+            className="rounded-md p-1.5 text-icon-secondary transition-colors hover:bg-surface-secondary hover:text-icon"
             aria-label={resolvedTheme === "dark" ? "라이트 모드" : "다크 모드"}
           >
             {resolvedTheme === "dark" ? (
@@ -115,7 +104,7 @@ export function IdeaPageHeader({ title, user, onOpenProposalModal }: IdeaPageHea
           </button>
 
           {/* User name */}
-          <span className="hidden text-sm text-[var(--axis-text-secondary)] sm:inline">
+          <span className="hidden text-sm text-fg-secondary sm:inline">
             {user.name}
           </span>
         </div>

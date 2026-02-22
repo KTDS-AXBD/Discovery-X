@@ -139,10 +139,10 @@ export default function DiscoveriesIndex() {
         <Link
           to="/discoveries"
           className={cn(
-            "pb-1 text-sm font-medium transition-colors duration-[var(--dx-transition-normal)]",
+            "pb-1 text-sm font-medium transition-colors duration-normal",
             !currentFilter
-              ? "text-[var(--axis-text-primary)] font-semibold border-b-2 border-[var(--axis-text-brand)]"
-              : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]"
+              ? "text-fg font-semibold border-b-2 border-fg-brand"
+              : "text-fg-tertiary hover:text-fg"
           )}
         >
           전체
@@ -152,10 +152,10 @@ export default function DiscoveriesIndex() {
             key={status}
             to={`/discoveries?status=${status}`}
             className={cn(
-              "pb-1 text-sm font-medium transition-colors duration-[var(--dx-transition-normal)]",
+              "pb-1 text-sm font-medium transition-colors duration-normal",
               currentFilter === status
-                ? "text-[var(--axis-text-primary)] font-semibold border-b-2 border-[var(--axis-text-brand)]"
-                : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]"
+                ? "text-fg font-semibold border-b-2 border-fg-brand"
+                : "text-fg-tertiary hover:text-fg"
             )}
           >
             {status === "DISCOVERY" ? "Inbox (임시)" : label}
@@ -164,10 +164,10 @@ export default function DiscoveriesIndex() {
         <Link
           to="/discoveries?status=OVERDUE"
           className={cn(
-            "pb-1 text-sm font-medium transition-colors duration-[var(--dx-transition-normal)]",
+            "pb-1 text-sm font-medium transition-colors duration-normal",
             currentFilter === "OVERDUE"
-              ? "text-[var(--axis-text-error)] font-semibold border-b-2 border-[var(--axis-text-error)]"
-              : "text-[var(--axis-text-error)] opacity-60 hover:opacity-100"
+              ? "text-fg-error font-semibold border-b-2 border-fg-error"
+              : "text-fg-error opacity-60 hover:opacity-100"
           )}
         >
           기한초과
@@ -193,8 +193,8 @@ export default function DiscoveriesIndex() {
             className={cn(
               "rounded px-2 py-1 transition-colors",
               searchMode === "text"
-                ? "bg-[var(--dx-surface-card-hover,var(--axis-surface-tertiary))] text-[var(--axis-text-primary)] font-medium"
-                : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]",
+                ? "bg-surface-card-hover text-fg font-medium"
+                : "text-fg-tertiary hover:text-fg",
             )}
           >
             텍스트
@@ -205,8 +205,8 @@ export default function DiscoveriesIndex() {
             className={cn(
               "rounded px-2 py-1 transition-colors",
               searchMode === "semantic"
-                ? "bg-[var(--dx-surface-card-hover,var(--axis-surface-tertiary))] text-[var(--axis-text-primary)] font-medium"
-                : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]",
+                ? "bg-surface-card-hover text-fg font-medium"
+                : "text-fg-tertiary hover:text-fg",
             )}
           >
             시맨틱 (AI)
@@ -232,7 +232,7 @@ export default function DiscoveriesIndex() {
             >
               {semanticSource === "vectorize" ? "Vectorize" : "FTS"}
             </Badge>
-            <span className="text-xs text-[var(--axis-text-tertiary)]">
+            <span className="text-xs text-fg-tertiary">
               {semanticResults.length}건 검색됨
             </span>
           </div>
@@ -240,7 +240,7 @@ export default function DiscoveriesIndex() {
 
       {/* 로딩 */}
       {isSemanticView && isSearching && (
-        <p className="mt-8 py-12 text-center text-sm text-[var(--axis-text-tertiary)]">
+        <p className="mt-8 py-12 text-center text-sm text-fg-tertiary">
           검색 중...
         </p>
       )}
@@ -251,7 +251,7 @@ export default function DiscoveriesIndex() {
           {/* Mobile Cards — Semantic */}
           <div className="mt-4 space-y-3 sm:hidden">
             {semanticResults.length === 0 ? (
-              <p className="py-12 text-center text-sm text-[var(--axis-text-tertiary)]">
+              <p className="py-12 text-center text-sm text-fg-tertiary">
                 검색 결과가 없습니다.
               </p>
             ) : (
@@ -259,10 +259,10 @@ export default function DiscoveriesIndex() {
                 <Link
                   key={String(result.id)}
                   to={`/discoveries/${result.id}`}
-                  className="block rounded-[var(--dx-card-radius)] bg-[var(--dx-surface-card,var(--axis-surface-default))] p-5 border border-[var(--dx-border-subtle,var(--dx-card-border-subtle))] transition-colors hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))]"
+                  className="block rounded-card bg-surface-card p-5 border border-line-subtle transition-colors hover:bg-surface-card-hover"
                 >
                   <div className="flex items-start justify-between">
-                    <h3 className="text-sm font-medium text-[var(--axis-text-primary)]">
+                    <h3 className="text-sm font-medium text-fg">
                       {result.title}
                     </h3>
                     <span className="ml-2 shrink-0">
@@ -270,7 +270,7 @@ export default function DiscoveriesIndex() {
                     </span>
                   </div>
                   {result.score != null && (
-                    <div className="mt-2 text-xs text-[var(--axis-text-brand)]">
+                    <div className="mt-2 text-xs text-fg-brand">
                       {Math.round(result.score * 100)}% 유사
                     </div>
                   )}
@@ -297,7 +297,7 @@ export default function DiscoveriesIndex() {
                   <tr>
                     <td
                       colSpan={4}
-                      className="py-12 text-center text-sm text-[var(--axis-text-tertiary)]"
+                      className="py-12 text-center text-sm text-fg-tertiary"
                     >
                       검색 결과가 없습니다.
                     </td>
@@ -305,10 +305,10 @@ export default function DiscoveriesIndex() {
                 ) : (
                   semanticResults.map((result) => (
                     <TableRow key={String(result.id)}>
-                      <TableCell className="pl-6 font-medium text-[var(--axis-text-primary)]">
+                      <TableCell className="pl-6 font-medium text-fg">
                         <Link
                           to={`/discoveries/${result.id}`}
-                          className="hover:text-[var(--axis-text-brand)]"
+                          className="hover:text-fg-brand"
                         >
                           {result.title}
                         </Link>
@@ -318,7 +318,7 @@ export default function DiscoveriesIndex() {
                       </TableCell>
                       <TableCell>
                         {result.score != null ? (
-                          <span className="text-xs text-[var(--axis-text-brand)]">
+                          <span className="text-xs text-fg-brand">
                             {Math.round(result.score * 100)}%
                           </span>
                         ) : (
@@ -328,7 +328,7 @@ export default function DiscoveriesIndex() {
                       <TableCell className="text-right pr-6">
                         <Link
                           to={`/discoveries/${result.id}`}
-                          className="text-[var(--axis-text-brand)] hover:underline"
+                          className="text-fg-brand hover:underline"
                         >
                           보기
                         </Link>
@@ -348,7 +348,7 @@ export default function DiscoveriesIndex() {
           {/* Mobile Cards */}
           <div className="mt-8 space-y-3 sm:hidden">
             {filteredDiscoveries.length === 0 ? (
-              <p className="py-12 text-center text-sm text-[var(--axis-text-tertiary)]">
+              <p className="py-12 text-center text-sm text-fg-tertiary">
                 {searchQuery.length >= 2
                   ? "검색 결과가 없습니다."
                   : "표시할 Discovery가 없습니다."}
@@ -359,20 +359,20 @@ export default function DiscoveriesIndex() {
                   key={discovery.id}
                   to={`/discoveries/${discovery.id}`}
                   className={cn(
-                    "block rounded-[var(--dx-card-radius)] bg-[var(--dx-surface-card,var(--axis-surface-default))] p-5 border border-[var(--dx-border-subtle,var(--dx-card-border-subtle))] transition-colors hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))]",
+                    "block rounded-card bg-surface-card p-5 border border-line-subtle transition-colors hover:bg-surface-card-hover",
                     (discovery.isInboxOverdue || discovery.isOpenOverdue) &&
-                      "ring-2 ring-[var(--axis-border-error)]",
+                      "ring-2 ring-line-error",
                   )}
                 >
                   <div className="flex items-start justify-between">
-                    <h3 className="text-sm font-medium text-[var(--axis-text-primary)]">
+                    <h3 className="text-sm font-medium text-fg">
                       {discovery.title}
                     </h3>
                     <span className="ml-2 shrink-0">
                       <StatusBadge status={discovery.status} />
                     </span>
                   </div>
-                  <div className="mt-2 flex items-center gap-3 text-xs text-[var(--axis-text-tertiary)]">
+                  <div className="mt-2 flex items-center gap-3 text-xs text-fg-tertiary">
                     <span>{discovery.ownerName || "미지정"}</span>
                     <span>{formatDate(discovery.createdAt)}</span>
                     {discovery.isInboxOverdue && (
@@ -383,7 +383,7 @@ export default function DiscoveriesIndex() {
                     )}
                   </div>
                   {discovery.status === DiscoveryStatus.DISCOVERY && !discovery.isInboxOverdue && (
-                    <p className="mt-1 text-xs text-[var(--axis-text-tertiary)]">
+                    <p className="mt-1 text-xs text-fg-tertiary">
                       실험을 등록하여 승격하세요
                     </p>
                   )}
@@ -411,7 +411,7 @@ export default function DiscoveriesIndex() {
                   <tr>
                     <td
                       colSpan={5}
-                      className="py-12 text-center text-sm text-[var(--axis-text-tertiary)]"
+                      className="py-12 text-center text-sm text-fg-tertiary"
                     >
                       {searchQuery.length >= 2
                         ? "검색 결과가 없습니다."
@@ -423,16 +423,16 @@ export default function DiscoveriesIndex() {
                     <TableRow
                       key={discovery.id}
                       className={cn(
-                        "transition-colors hover:bg-[var(--axis-surface-secondary)]",
+                        "transition-colors hover:bg-surface-secondary",
                         (discovery.isInboxOverdue ||
                           discovery.isOpenOverdue) &&
-                          "bg-[var(--axis-surface-error)]",
+                          "bg-surface-error",
                       )}
                     >
-                      <TableCell className="pl-6 font-medium text-[var(--axis-text-primary)]">
+                      <TableCell className="pl-6 font-medium text-fg">
                         <Link
                           to={`/discoveries/${discovery.id}`}
-                          className="hover:text-[var(--axis-text-brand)]"
+                          className="hover:text-fg-brand"
                         >
                           {discovery.title}
                         </Link>
@@ -447,7 +447,7 @@ export default function DiscoveriesIndex() {
                           </Badge>
                         )}
                         {discovery.status === DiscoveryStatus.DISCOVERY && !discovery.isInboxOverdue && (
-                          <span className="ml-2 text-xs text-[var(--axis-text-tertiary)]">
+                          <span className="ml-2 text-xs text-fg-tertiary">
                             실험을 등록하여 승격하세요
                           </span>
                         )}
@@ -460,7 +460,7 @@ export default function DiscoveriesIndex() {
                       <TableCell className="text-right pr-6">
                         <Link
                           to={`/discoveries/${discovery.id}`}
-                          className="text-[var(--axis-text-brand)] hover:underline"
+                          className="text-fg-brand hover:underline"
                         >
                           보기
                         </Link>

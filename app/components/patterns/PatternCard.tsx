@@ -33,9 +33,9 @@ export default function PatternCard({ pattern, onClick }: PatternCardProps) {
   return (
     <div
       className={cn(
-        "rounded-lg border border-[var(--dx-border-subtle)] p-4 transition-colors",
-        "bg-[var(--dx-surface-card)]",
-        onClick && "cursor-pointer hover:border-[var(--axis-text-brand)]"
+        "rounded-lg border border-line-subtle p-4 transition-colors",
+        "bg-surface-card",
+        onClick && "cursor-pointer hover:border-fg-brand"
       )}
       onClick={onClick ? () => onClick(pattern.id) : undefined}
     >
@@ -72,19 +72,19 @@ export default function PatternCard({ pattern, onClick }: PatternCardProps) {
       </div>
 
       {/* 이름 */}
-      <h3 className="mt-2 text-sm font-medium text-[var(--axis-text-primary)]">
+      <h3 className="mt-2 text-sm font-medium text-fg">
         {pattern.name}
       </h3>
 
       {/* 설명 */}
       {pattern.description && (
-        <p className="mt-1 text-xs text-[var(--axis-text-secondary)] line-clamp-2">
+        <p className="mt-1 text-xs text-fg-secondary line-clamp-2">
           {pattern.description}
         </p>
       )}
 
       {/* 메타 */}
-      <div className="mt-3 flex items-center gap-3 text-xs text-[var(--axis-text-tertiary)]">
+      <div className="mt-3 flex items-center gap-3 text-xs text-fg-tertiary">
         <span>빈도: {pattern.frequency}회</span>
         {pattern.validatedAt && <span>검증됨</span>}
         <span>{new Date(pattern.createdAt).toLocaleDateString("ko-KR")}</span>

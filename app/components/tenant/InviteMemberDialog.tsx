@@ -43,8 +43,8 @@ export function InviteMemberDialog({ open, onClose, onInvite }: InviteMemberDial
         tabIndex={0}
         aria-label="Close dialog"
       />
-      <div className="relative w-full max-w-md rounded-lg border border-[var(--axis-surface-tertiary)] bg-[var(--axis-surface-primary)] p-6 shadow-xl">
-        <h3 className="mb-4 text-lg font-semibold text-[var(--axis-text-primary)]">
+      <div className="relative w-full max-w-md rounded-lg border border-surface-tertiary bg-surface-primary p-6 shadow-xl">
+        <h3 className="mb-4 text-lg font-semibold text-fg">
           Invite Member
         </h3>
         <form onSubmit={handleSubmit}>

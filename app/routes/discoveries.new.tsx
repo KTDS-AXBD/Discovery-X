@@ -135,20 +135,20 @@ function SimilarSeedsPanel({ seeds, source }: { seeds: SimilarSeed[]; source?: "
             <div className="flex items-center justify-between">
               <Link
                 to={`/discoveries/${seed.id}`}
-                className="text-sm font-medium text-[var(--axis-text-brand)] hover:underline"
+                className="text-sm font-medium text-fg-brand hover:underline"
               >
                 {seed.title}
               </Link>
               <div className="flex items-center gap-2">
                 {seed.score != null && (
-                  <span className="text-xs text-[var(--axis-text-tertiary)]">
+                  <span className="text-xs text-fg-tertiary">
                     {Math.round(seed.score * 100)}%
                   </span>
                 )}
                 <StatusBadge status={seed.status} />
               </div>
             </div>
-            <p className="mt-1 text-xs text-[var(--axis-text-secondary)] line-clamp-2">{seed.seedSummary}</p>
+            <p className="mt-1 text-xs text-fg-secondary line-clamp-2">{seed.seedSummary}</p>
             {seed.deadEndFailurePattern && seed.deadEndFailurePattern.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1">
                 {seed.deadEndFailurePattern.map((p) => (
@@ -157,12 +157,12 @@ function SimilarSeedsPanel({ seeds, source }: { seeds: SimilarSeed[]; source?: "
               </div>
             )}
             {seed.status === "DROP" && (
-              <p className="mt-1 text-xs text-[var(--axis-text-error)]">
+              <p className="mt-1 text-xs text-fg-error">
                 실패 사례 — 동일 패턴에 주의하세요
               </p>
             )}
             {seed.status === "HOLD" && seed.notNowTriggerCondition && (
-              <p className="mt-1 text-xs text-[var(--axis-text-tertiary)]">
+              <p className="mt-1 text-xs text-fg-tertiary">
                 트리거: {seed.notNowTriggerType ? `${TRIGGER_TYPE_LABELS[seed.notNowTriggerType] ?? seed.notNowTriggerType} — ` : ""}{seed.notNowTriggerCondition}
               </p>
             )}
@@ -275,7 +275,7 @@ export default function NewDiscovery() {
                 />
               </FormField>
 
-              <div className="flex flex-col gap-2 border-t border-[var(--axis-border-default)] pt-6 sm:flex-row sm:justify-end sm:gap-3">
+              <div className="flex flex-col gap-2 border-t border-line pt-6 sm:flex-row sm:justify-end sm:gap-3">
                 <Button variant="outline" asChild>
                   <a href="/discoveries">취소</a>
                 </Button>

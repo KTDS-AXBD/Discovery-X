@@ -39,8 +39,8 @@ export default function AdminSeed() {
 
   return (
     <AppShell user={currentUser}>
-      <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">Seed 데이터 생성</h1>
-      <p className="mt-1 text-sm text-[var(--axis-text-secondary)]">
+      <h1 className="text-2xl font-bold text-fg">Seed 데이터 생성</h1>
+      <p className="mt-1 text-sm text-fg-secondary">
         테스트용 사용자 5명과 샘플 Discovery 2개를 생성합니다.
       </p>
 
@@ -51,7 +51,7 @@ export default function AdminSeed() {
               <p className="text-sm">{actionData.message}</p>
               <a
                 href="/login"
-                className="mt-2 block text-sm font-medium text-[var(--axis-text-brand)] hover:underline"
+                className="mt-2 block text-sm font-medium text-fg-brand hover:underline"
               >
                 로그인 페이지로 이동 →
               </a>
@@ -70,7 +70,7 @@ export default function AdminSeed() {
             </Button>
           </Form>
 
-          <div className="text-xs text-[var(--axis-text-tertiary)]">
+          <div className="text-xs text-fg-tertiary">
             <p className="font-semibold">생성되는 데이터:</p>
             <ul className="mt-2 list-inside list-disc space-y-1">
               <li>사용자 5명: 김탐험, 이실험, 박근거, 최검토, 정큐레이터</li>

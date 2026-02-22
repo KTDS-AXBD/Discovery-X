@@ -30,18 +30,18 @@ export function MemberList({ members, currentUserId, ownerUserId, onRemove, onRo
   const isOwner = currentUserId === ownerUserId;
 
   return (
-    <div className="divide-y divide-[var(--axis-surface-tertiary)]">
+    <div className="divide-y divide-surface-tertiary">
       {members.map((m) => (
         <div key={m.id} className="flex items-center justify-between py-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--axis-surface-tertiary)] text-sm font-medium text-[var(--axis-text-secondary)]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-tertiary text-sm font-medium text-fg-secondary">
               {(m.name || m.email)?.[0]?.toUpperCase() || "?"}
             </div>
             <div>
-              <div className="text-sm font-medium text-[var(--axis-text-primary)]">
+              <div className="text-sm font-medium text-fg">
                 {m.name || m.email}
               </div>
-              <div className="text-xs text-[var(--axis-text-tertiary)]">{m.email}</div>
+              <div className="text-xs text-fg-tertiary">{m.email}</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -53,7 +53,7 @@ export function MemberList({ members, currentUserId, ownerUserId, onRemove, onRo
                 variant="ghost"
                 size="sm"
                 onClick={() => onRemove(m.userId)}
-                className="text-xs text-[var(--axis-text-tertiary)] hover:text-[var(--axis-badge-error-text)]"
+                className="text-xs text-fg-tertiary hover:text-fg-error"
               >
                 Remove
               </Button>

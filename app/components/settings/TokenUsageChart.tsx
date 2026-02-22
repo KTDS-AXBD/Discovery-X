@@ -83,8 +83,8 @@ export function TokenUsageChart({
               onClick={() => onRangeChange("7d")}
               className={`rounded px-2 py-0.5 text-xs ${
                 range === "7d"
-                  ? "bg-[var(--axis-surface-brand)] text-[var(--axis-text-brand)]"
-                  : "text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)]"
+                  ? "bg-surface-brand text-fg-brand"
+                  : "text-fg-tertiary hover:bg-surface-secondary"
               }`}
             >
               7일
@@ -94,8 +94,8 @@ export function TokenUsageChart({
               onClick={() => onRangeChange("30d")}
               className={`rounded px-2 py-0.5 text-xs ${
                 range === "30d"
-                  ? "bg-[var(--axis-surface-brand)] text-[var(--axis-text-brand)]"
-                  : "text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)]"
+                  ? "bg-surface-brand text-fg-brand"
+                  : "text-fg-tertiary hover:bg-surface-secondary"
               }`}
             >
               30일
@@ -112,12 +112,12 @@ export function TokenUsageChart({
                 className="h-2.5 w-2.5 rounded-sm"
                 style={{ backgroundColor: MODE_COLORS[mode] }}
               />
-              <span className="text-[10px] text-[var(--axis-text-tertiary)]">{label}</span>
+              <span className="text-[10px] text-fg-tertiary">{label}</span>
             </div>
           ))}
           <div className="flex items-center gap-1.5">
             <div className="h-0 w-4 border-t-2 border-dashed border-red-400" />
-            <span className="text-[10px] text-[var(--axis-text-tertiary)]">예산</span>
+            <span className="text-[10px] text-fg-tertiary">예산</span>
           </div>
         </div>
 
@@ -147,11 +147,11 @@ export function TokenUsageChart({
                   style={{ height: "100%" }}
                 >
                   {/* Tooltip on hover */}
-                  <div className="pointer-events-none absolute -top-16 left-1/2 z-10 hidden -translate-x-1/2 rounded bg-[var(--axis-surface-default)] px-2 py-1 text-[10px] shadow-lg group-hover:block">
-                    <div className="font-medium text-[var(--axis-text-primary)]">
+                  <div className="pointer-events-none absolute -top-16 left-1/2 z-10 hidden -translate-x-1/2 rounded bg-surface px-2 py-1 text-[10px] shadow-lg group-hover:block">
+                    <div className="font-medium text-fg">
                       {date.slice(5)}
                     </div>
-                    <div className="text-[var(--axis-text-tertiary)]">
+                    <div className="text-fg-tertiary">
                       {total.toLocaleString()} tokens
                     </div>
                   </div>
@@ -185,10 +185,10 @@ export function TokenUsageChart({
 
         {/* X-axis labels (show a subset) */}
         <div className="mt-1 flex justify-between">
-          <span className="text-[9px] text-[var(--axis-text-tertiary)]">
+          <span className="text-[9px] text-fg-tertiary">
             {dates[0]?.slice(5)}
           </span>
-          <span className="text-[9px] text-[var(--axis-text-tertiary)]">
+          <span className="text-[9px] text-fg-tertiary">
             {dates[dates.length - 1]?.slice(5)}
           </span>
         </div>

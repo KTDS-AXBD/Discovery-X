@@ -35,10 +35,10 @@ export function ContextPanel({ items, onClose, messageCount = 0, toolCallCount =
   };
 
   return (
-    <div className="flex h-full flex-col border-l border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] dx-animate-slide-right">
+    <div className="flex h-full flex-col border-l border-line bg-surface dx-animate-slide-right">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-[var(--axis-border-default)] px-3 py-2.5">
-        <span className="text-sm font-semibold text-[var(--axis-text-primary)]">
+      <div className="flex items-center justify-between border-b border-line px-3 py-2.5">
+        <span className="text-sm font-semibold text-fg">
           컨텍스트
         </span>
         <IconButton label="패널 닫기" size="xs" onClick={onClose}>
@@ -52,33 +52,33 @@ export function ContextPanel({ items, onClose, messageCount = 0, toolCallCount =
       {(messageCount > 0 || toolCallCount > 0) && (
         <SectionPanel title="대화 통계">
           <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-lg bg-[var(--axis-surface-secondary)] px-3 py-2 text-center">
-              <div className="text-lg font-bold text-[var(--axis-text-primary)]">{messageCount}</div>
-              <div className="text-[10px] text-[var(--axis-text-tertiary)]">메시지</div>
+            <div className="rounded-lg bg-surface-secondary px-3 py-2 text-center">
+              <div className="text-lg font-bold text-fg">{messageCount}</div>
+              <div className="text-[10px] text-fg-tertiary">메시지</div>
             </div>
-            <div className="rounded-lg bg-[var(--axis-surface-secondary)] px-3 py-2 text-center">
-              <div className="text-lg font-bold text-[var(--axis-text-primary)]">{toolCallCount}</div>
-              <div className="text-[10px] text-[var(--axis-text-tertiary)]">도구 호출</div>
+            <div className="rounded-lg bg-surface-secondary px-3 py-2 text-center">
+              <div className="text-lg font-bold text-fg">{toolCallCount}</div>
+              <div className="text-[10px] text-fg-tertiary">도구 호출</div>
             </div>
           </div>
         </SectionPanel>
       )}
 
       {/* Context items tabs */}
-      <div className="flex border-b border-[var(--axis-border-default)]">
+      <div className="flex border-b border-line">
         {TAB_CONFIG.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
             className={`flex-1 px-2 py-2 text-[10px] font-medium transition-colors ${
               activeTab === tab.key
-                ? "border-b-2 border-[var(--axis-text-brand)] text-[var(--axis-text-brand)]"
-                : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-secondary)]"
+                ? "border-b-2 border-fg-brand text-fg-brand"
+                : "text-fg-tertiary hover:text-fg-secondary"
             }`}
           >
             {tab.label}
             {counts[tab.key] > 0 && (
-              <span className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-[var(--axis-surface-secondary)] text-[9px]">
+              <span className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-surface-secondary text-[9px]">
                 {counts[tab.key]}
               </span>
             )}
@@ -89,7 +89,7 @@ export function ContextPanel({ items, onClose, messageCount = 0, toolCallCount =
       {/* Items */}
       <div className="flex-1 overflow-y-auto p-2">
         {filtered.length === 0 ? (
-          <div className="py-8 text-center text-xs text-[var(--axis-text-tertiary)]">
+          <div className="py-8 text-center text-xs text-fg-tertiary">
             참조된 항목 없음
           </div>
         ) : (
@@ -100,7 +100,7 @@ export function ContextPanel({ items, onClose, messageCount = 0, toolCallCount =
                 className="dx-panel dx-panel-hover rounded-lg p-2.5 text-xs"
               >
                 <div className="flex items-center gap-1.5">
-                  <span className="font-mono text-[var(--axis-text-tertiary)]">
+                  <span className="font-mono text-fg-tertiary">
                     {item.id.slice(0, 8)}
                   </span>
                   {item.status && (
@@ -109,11 +109,11 @@ export function ContextPanel({ items, onClose, messageCount = 0, toolCallCount =
                     </Badge>
                   )}
                 </div>
-                <div className="mt-1 font-medium text-[var(--axis-text-primary)] line-clamp-2">
+                <div className="mt-1 font-medium text-fg line-clamp-2">
                   {item.title}
                 </div>
                 {item.meta && (
-                  <div className="mt-0.5 text-[var(--axis-text-tertiary)]">
+                  <div className="mt-0.5 text-fg-tertiary">
                     {item.meta}
                   </div>
                 )}

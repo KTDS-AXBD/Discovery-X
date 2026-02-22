@@ -157,7 +157,7 @@ export default function SettingsOrganization() {
   return (
     <AppShell user={user}>
       <div className="mx-auto max-w-[800px] px-4 py-6 sm:px-6 lg:px-8">
-        <h1 className="mb-6 text-xl font-bold text-[var(--axis-text-primary)]">
+        <h1 className="mb-6 text-xl font-bold text-fg">
           Organization Settings
         </h1>
 

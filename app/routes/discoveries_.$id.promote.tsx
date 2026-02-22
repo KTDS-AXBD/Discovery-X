@@ -191,11 +191,11 @@ export default function PromoteToOpen() {
                 </Select>
               </FormField>
 
-              <hr className="border-[var(--axis-border-default)]" />
+              <hr className="border-line" />
 
               <div>
-                <h3 className="text-lg font-medium text-[var(--axis-text-primary)]">첫 번째 Experiment</h3>
-                <p className="mt-1 text-sm text-[var(--axis-text-tertiary)]">
+                <h3 className="text-lg font-medium text-fg">첫 번째 Experiment</h3>
+                <p className="mt-1 text-sm text-fg-tertiary">
                   가설을 검증하기 위한 최소 행동을 정의합니다
                 </p>
               </div>
@@ -248,7 +248,7 @@ export default function PromoteToOpen() {
               </FormField>
 
               {/* Actions */}
-              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-[var(--axis-border-default)] pt-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-line pt-6">
                 <Button variant="outline" asChild>
                   <a href={`/discoveries/${discovery.id}`}>취소</a>
                 </Button>
@@ -259,7 +259,7 @@ export default function PromoteToOpen() {
         </Card>
 
         {/* Info Box */}
-        <div className="mt-6 rounded-md bg-[var(--axis-surface-secondary)] p-4 text-sm text-[var(--axis-text-tertiary)]">
+        <div className="mt-6 rounded-md bg-surface-secondary p-4 text-sm text-fg-tertiary">
           <p className="font-semibold">승격 시 자동 설정:</p>
           <ul className="mt-2 list-inside list-disc space-y-1">
             <li>상태: INBOX → OPEN</li>

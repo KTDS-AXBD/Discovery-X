@@ -73,25 +73,25 @@ export default function DocsPage() {
   return (
     <AppShell user={user}>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">
+        <h1 className="text-2xl font-bold text-fg">
           Docs
         </h1>
-        <p className="mt-1 text-sm text-[var(--axis-text-secondary)]">
+        <p className="mt-1 text-sm text-fg-secondary">
           프로젝트 기획서 및 운영 문서
         </p>
       </div>
 
       {/* Tab bar — pill/segment style */}
-      <div className="mb-6 flex gap-1 overflow-x-auto rounded-xl bg-[var(--axis-surface-secondary)] p-1" role="tablist">
+      <div className="mb-6 flex gap-1 overflow-x-auto rounded-xl bg-surface-secondary p-1" role="tablist">
         <button
           type="button"
           role="tab"
           aria-selected={tab === "docs"}
           onClick={() => handleTabChange("docs")}
-          className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all duration-[var(--dx-transition-normal)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--axis-button-border-focus)] focus-visible:ring-offset-1 ${
+          className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all duration-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-btn-border-focus focus-visible:ring-offset-1 ${
             tab === "docs"
-              ? "bg-[var(--axis-surface-default)] text-[var(--axis-text-primary)] shadow-sm"
-              : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]"
+              ? "bg-surface text-fg shadow-sm"
+              : "text-fg-tertiary hover:text-fg"
           }`}
         >
           기획서
@@ -101,10 +101,10 @@ export default function DocsPage() {
           role="tab"
           aria-selected={tab === "github"}
           onClick={() => handleTabChange("github")}
-          className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all duration-[var(--dx-transition-normal)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--axis-button-border-focus)] focus-visible:ring-offset-1 ${
+          className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all duration-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-btn-border-focus focus-visible:ring-offset-1 ${
             tab === "github"
-              ? "bg-[var(--axis-surface-default)] text-[var(--axis-text-primary)] shadow-sm"
-              : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]"
+              ? "bg-surface text-fg shadow-sm"
+              : "text-fg-tertiary hover:text-fg"
           }`}
         >
           GitHub Project
@@ -134,7 +134,7 @@ export default function DocsPage() {
               <select
                 value={activeSlug}
                 onChange={(e) => handleDocSelect(e.target.value)}
-                className="w-full rounded-md border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] px-3 py-2 text-sm text-[var(--axis-text-primary)]"
+                className="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-fg"
               >
                 {docs.map((d) => (
                   <option key={d.slug} value={d.slug}>
@@ -149,7 +149,7 @@ export default function DocsPage() {
                 {activeDoc ? (
                   <MarkdownViewer content={activeDoc.content} />
                 ) : (
-                  <p className="text-sm text-[var(--axis-text-secondary)]">
+                  <p className="text-sm text-fg-secondary">
                     문서를 선택해주세요.
                   </p>
                 )}
@@ -163,9 +163,9 @@ export default function DocsPage() {
       {tab === "github" && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center gap-6 py-20">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--axis-surface-secondary)]">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-surface-secondary">
               <svg
-                className="h-8 w-8 text-[var(--axis-text-secondary)]"
+                className="h-8 w-8 text-fg-secondary"
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
@@ -173,10 +173,10 @@ export default function DocsPage() {
               </svg>
             </div>
             <div className="text-center">
-              <h3 className="text-lg font-semibold text-[var(--axis-text-primary)]">
+              <h3 className="text-lg font-semibold text-fg">
                 GitHub Project Board
               </h3>
-              <p className="mt-1 text-sm text-[var(--axis-text-secondary)]">
+              <p className="mt-1 text-sm text-fg-secondary">
                 프로젝트 백로그, 진행 상황, 이슈를 GitHub에서 관리합니다.
               </p>
             </div>
@@ -184,7 +184,7 @@ export default function DocsPage() {
               href={GITHUB_PROJECT_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-md bg-[var(--axis-surface-default)] border border-[var(--axis-border-default)] px-4 py-2 text-sm font-medium text-[var(--axis-text-primary)] hover:bg-[var(--axis-surface-secondary)] transition-colors"
+              className="inline-flex items-center gap-2 rounded-md bg-surface border border-line px-4 py-2 text-sm font-medium text-fg hover:bg-surface-secondary transition-colors"
             >
               GitHub에서 열기
               <svg

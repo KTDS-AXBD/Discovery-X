@@ -23,7 +23,7 @@ const STATUS_BADGE: Record<string, { variant: "warning" | "success" | "destructi
 export function MethodRunTimeline({ runs }: MethodRunTimelineProps) {
   if (runs.length === 0) {
     return (
-      <p className="text-sm text-[var(--axis-text-tertiary)]">
+      <p className="text-sm text-fg-tertiary">
         아직 실행된 방법론이 없습니다.
       </p>
     );
@@ -32,7 +32,7 @@ export function MethodRunTimeline({ runs }: MethodRunTimelineProps) {
   return (
     <div className="relative space-y-4">
       {/* Timeline line */}
-      <div className="absolute left-3 top-2 bottom-2 w-px bg-[var(--axis-border-default)]" />
+      <div className="absolute left-3 top-2 bottom-2 w-px bg-line" />
 
       {runs.map((run) => {
         const statusConfig = STATUS_BADGE[run.status] || STATUS_BADGE.RUNNING;
@@ -41,7 +41,7 @@ export function MethodRunTimeline({ runs }: MethodRunTimelineProps) {
           <div key={run.id} className="relative flex gap-3 pl-8">
             {/* Timeline dot */}
             <div
-              className="absolute left-1.5 top-1.5 h-3 w-3 rounded-full border-2 border-[var(--axis-surface-default)]"
+              className="absolute left-1.5 top-1.5 h-3 w-3 rounded-full border-2 border-surface"
               style={{
                 backgroundColor:
                   run.status === "COMPLETED"
@@ -52,20 +52,20 @@ export function MethodRunTimeline({ runs }: MethodRunTimelineProps) {
               }}
             />
 
-            <div className="min-w-0 flex-1 rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] p-3">
+            <div className="min-w-0 flex-1 rounded-lg border border-line bg-surface p-3">
               <div className="flex items-center justify-between gap-2">
                 <div>
-                  <span className="text-xs text-[var(--axis-text-tertiary)]">
+                  <span className="text-xs text-fg-tertiary">
                     {run.methodPackId}
                   </span>
-                  <h4 className="text-sm font-medium text-[var(--axis-text-primary)]">
+                  <h4 className="text-sm font-medium text-fg">
                     {run.methodPackName}
                   </h4>
                 </div>
                 <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
               </div>
 
-              <div className="mt-1 flex gap-3 text-[10px] text-[var(--axis-text-tertiary)]">
+              <div className="mt-1 flex gap-3 text-[10px] text-fg-tertiary">
                 <span>
                   시작: {formatDate(run.startedAt)}
                 </span>

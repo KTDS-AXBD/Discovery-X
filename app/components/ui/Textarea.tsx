@@ -11,13 +11,13 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
       <textarea
         className={cn(
           "flex min-h-[80px] w-full rounded-md border px-3 py-2 text-sm transition-colors",
-          "bg-[var(--axis-input-bg-default)] text-[var(--axis-input-text-default)]",
-          "border-[var(--axis-input-border-default)]",
-          "placeholder:text-[var(--axis-input-text-placeholder)]",
-          "hover:border-[var(--axis-input-border-hover)]",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--axis-input-border-focus)] focus-visible:ring-offset-2",
-          "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[var(--axis-input-bg-disabled)]",
-          error && "border-[var(--axis-input-border-error)] focus-visible:ring-[var(--axis-input-border-error)]",
+          "bg-input-bg text-input-text",
+          "border-input-border",
+          "placeholder:text-input-placeholder",
+          "hover:border-input-border-hover",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-input-border-focus focus-visible:ring-offset-2",
+          "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-input-bg-disabled",
+          error && "border-input-border-error focus-visible:ring-input-border-error",
           className
         )}
         ref={ref}

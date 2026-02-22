@@ -144,12 +144,12 @@ export default function AgentSession() {
   return (
     <div className="flex h-full flex-col">
       {/* 세션 헤더 */}
-      <header className="flex items-center justify-between border-b border-[var(--axis-border-default)] bg-[var(--dx-surface-panel,var(--axis-surface-default))] px-4 py-2">
+      <header className="flex items-center justify-between border-b border-line bg-surface-panel px-4 py-2">
         <div className="flex items-center gap-3">
-          <span className="text-xs font-mono text-[var(--axis-text-tertiary)]">
+          <span className="text-xs font-mono text-fg-tertiary">
             {formatDateTime(session.startedAt)}
           </span>
-          <span className="inline-flex items-center rounded-full bg-[var(--axis-surface-secondary)] px-2 py-0.5 text-[10px] font-mono text-[var(--axis-text-secondary)]">
+          <span className="inline-flex items-center rounded-full bg-surface-secondary px-2 py-0.5 text-[10px] font-mono text-fg-secondary">
             {formatTokenBadge(session.tokenCount)}
           </span>
         </div>

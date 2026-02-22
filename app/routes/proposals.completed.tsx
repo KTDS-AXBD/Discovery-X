@@ -81,8 +81,8 @@ export default function CompletedTab() {
       {/* Completed */}
       <div>
         <div className="mb-4">
-          <h2 className="text-lg font-bold text-[var(--axis-text-primary)]">완료</h2>
-          <p className="text-xs text-[var(--axis-text-tertiary)]">파이프라인을 통과해 완료된 제안들</p>
+          <h2 className="text-lg font-bold text-fg">완료</h2>
+          <p className="text-xs text-fg-tertiary">파이프라인을 통과해 완료된 제안들</p>
         </div>
         <ProposalGrid proposals={completed} emptyMessage="완료된 제안이 없습니다." />
       </div>
@@ -90,8 +90,8 @@ export default function CompletedTab() {
       {/* Closed */}
       <div>
         <div className="mb-4">
-          <h2 className="text-lg font-bold text-[var(--axis-text-primary)]">종료</h2>
-          <p className="text-xs text-[var(--axis-text-tertiary)]">보류 또는 폐기된 제안들</p>
+          <h2 className="text-lg font-bold text-fg">종료</h2>
+          <p className="text-xs text-fg-tertiary">보류 또는 폐기된 제안들</p>
         </div>
         <ProposalGrid proposals={closed} emptyMessage="종료된 제안이 없습니다." />
       </div>

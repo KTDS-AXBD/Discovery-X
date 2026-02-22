@@ -139,13 +139,13 @@ export default function DiscoveryComplianceRoute() {
         <div className="mb-4">
           <Link
             to={`/discoveries/${discovery.id}`}
-            className="text-sm text-[var(--axis-text-brand)] hover:underline"
+            className="text-sm text-fg-brand hover:underline"
           >
             ← {discovery.title}
           </Link>
         </div>
 
-        <h1 className="text-xl font-semibold text-[var(--axis-text-primary)] mb-6">
+        <h1 className="text-xl font-semibold text-fg mb-6">
           규제 준수 현황
         </h1>
 
@@ -161,18 +161,18 @@ export default function DiscoveryComplianceRoute() {
             <CardContent>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <h4 className="text-xs font-medium text-[var(--axis-text-tertiary)] mb-1">규제 프레임워크</h4>
+                  <h4 className="text-xs font-medium text-fg-tertiary mb-1">규제 프레임워크</h4>
                   <div className="space-y-1">
                     {((adapter.regulatoryFramework as string[]) || []).map((r, i) => (
-                      <div key={i} className="text-sm text-[var(--axis-text-secondary)]">
+                      <div key={i} className="text-sm text-fg-secondary">
                         {r}
                       </div>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <h4 className="text-xs font-medium text-[var(--axis-text-tertiary)] mb-1">기본 타임박스</h4>
-                  <div className="text-sm text-[var(--axis-text-secondary)]">
+                  <h4 className="text-xs font-medium text-fg-tertiary mb-1">기본 타임박스</h4>
+                  <div className="text-sm text-fg-secondary">
                     {adapter.defaultTimeboxDays}일
                   </div>
                 </div>
@@ -181,7 +181,7 @@ export default function DiscoveryComplianceRoute() {
           </Card>
         ) : (
           <Card className="mb-4">
-            <CardContent className="py-6 text-center text-sm text-[var(--axis-text-tertiary)]">
+            <CardContent className="py-6 text-center text-sm text-fg-tertiary">
               산업 어댑터가 지정되지 않았습니다. Discovery 편집에서 산업을 설정하세요.
             </CardContent>
           </Card>

@@ -66,13 +66,13 @@ export default function DiscoveryPatternsRoute() {
         <div className="mb-4">
           <Link
             to={`/discoveries/${discovery.id}`}
-            className="text-sm text-[var(--axis-text-brand)] hover:underline"
+            className="text-sm text-fg-brand hover:underline"
           >
             ← {discovery.title}
           </Link>
         </div>
 
-        <h1 className="text-xl font-semibold text-[var(--axis-text-primary)] mb-6">
+        <h1 className="text-xl font-semibold text-fg mb-6">
           의사결정 패턴
         </h1>
 
@@ -80,20 +80,20 @@ export default function DiscoveryPatternsRoute() {
         <div className="grid grid-cols-3 gap-4 mb-6">
           <Card>
             <CardContent className="py-4 text-center">
-              <div className="text-2xl font-bold text-[var(--axis-text-primary)]">{logCount}</div>
-              <div className="text-xs text-[var(--axis-text-tertiary)]">의사결정 로그</div>
+              <div className="text-2xl font-bold text-fg">{logCount}</div>
+              <div className="text-xs text-fg-tertiary">의사결정 로그</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="py-4 text-center">
-              <div className="text-2xl font-bold text-[var(--axis-text-primary)]">{patterns.length}</div>
-              <div className="text-xs text-[var(--axis-text-tertiary)]">추출된 패턴</div>
+              <div className="text-2xl font-bold text-fg">{patterns.length}</div>
+              <div className="text-xs text-fg-tertiary">추출된 패턴</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="py-4 text-center">
-              <div className="text-2xl font-bold text-[var(--axis-text-primary)]">{rules.length}</div>
-              <div className="text-xs text-[var(--axis-text-tertiary)]">재사용 규칙</div>
+              <div className="text-2xl font-bold text-fg">{rules.length}</div>
+              <div className="text-xs text-fg-tertiary">재사용 규칙</div>
             </CardContent>
           </Card>
         </div>
@@ -105,7 +105,7 @@ export default function DiscoveryPatternsRoute() {
           </CardHeader>
           <CardContent>
             {patterns.length === 0 ? (
-              <div className="py-8 text-center text-sm text-[var(--axis-text-tertiary)]">
+              <div className="py-8 text-center text-sm text-fg-tertiary">
                 아직 추출된 패턴이 없습니다. Agent 활동이 축적되면 자동으로 패턴이 추출됩니다.
               </div>
             ) : (
@@ -141,15 +141,15 @@ export default function DiscoveryPatternsRoute() {
                 {rules.map((r) => (
                   <div
                     key={r.id}
-                    className="flex items-center justify-between rounded-md border border-[var(--dx-border-subtle)] px-3 py-2"
+                    className="flex items-center justify-between rounded-md border border-line-subtle px-3 py-2"
                   >
                     <div>
-                      <span className="text-sm text-[var(--axis-text-primary)]">{r.name}</span>
-                      <span className="ml-2 text-xs text-[var(--axis-text-tertiary)]">
+                      <span className="text-sm text-fg">{r.name}</span>
+                      <span className="ml-2 text-xs text-fg-tertiary">
                         ({r.ruleType})
                       </span>
                     </div>
-                    <span className="text-xs text-[var(--axis-text-tertiary)]">
+                    <span className="text-xs text-fg-tertiary">
                       우선순위: {r.priority}
                     </span>
                   </div>

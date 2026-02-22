@@ -89,20 +89,20 @@ export default function SignalsLayout() {
   }
 
   const sidebar = (
-    <aside className="hidden w-[280px] shrink-0 border-r border-[var(--axis-border-default)] bg-[var(--dx-surface-panel,var(--axis-surface-default))] sm:block">
+    <aside className="hidden w-[280px] shrink-0 border-r border-line bg-surface-panel sm:block">
       <div className="flex h-full flex-col">
         {/* 헤더 */}
-        <div className="shrink-0 border-b border-[var(--axis-border-default)] px-4 py-3">
-          <h3 className="text-sm font-semibold text-[var(--axis-text-primary)]">
+        <div className="shrink-0 border-b border-line px-4 py-3">
+          <h3 className="text-sm font-semibold text-fg">
             시그널
-            <span className="ml-1.5 text-xs font-normal text-[var(--axis-text-tertiary)]">
+            <span className="ml-1.5 text-xs font-normal text-fg-tertiary">
               ({totalSignals})
             </span>
           </h3>
         </div>
 
         {/* 상태 필터 */}
-        <div className="shrink-0 border-b border-[var(--axis-border-default)] px-3 py-2">
+        <div className="shrink-0 border-b border-line px-3 py-2">
           <div className="flex flex-wrap gap-1">
             {STATUS_FILTERS.map((f) => (
               <Link
@@ -111,8 +111,8 @@ export default function SignalsLayout() {
                 className={cn(
                   "rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
                   activeStatus === f.value
-                    ? "bg-[var(--axis-surface-brand)] text-[var(--axis-text-brand)]"
-                    : "text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-primary)]",
+                    ? "bg-surface-brand text-fg-brand"
+                    : "text-fg-tertiary hover:bg-surface-secondary hover:text-fg",
                 )}
               >
                 {f.label}
@@ -129,18 +129,18 @@ export default function SignalsLayout() {
             className={cn(
               "flex items-center justify-between px-4 py-2.5 text-sm transition-colors",
               !activeTopicId
-                ? "bg-[var(--axis-surface-brand)] text-[var(--axis-text-brand)] font-medium"
-                : "text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-secondary)]",
+                ? "bg-surface-brand text-fg-brand font-medium"
+                : "text-fg-secondary hover:bg-surface-secondary",
             )}
           >
             <span>전체 시그널</span>
-            <span className="text-xs tabular-nums text-[var(--axis-text-tertiary)]">
+            <span className="text-xs tabular-nums text-fg-tertiary">
               {totalSignals}
             </span>
           </Link>
 
           {topicList.length === 0 ? (
-            <p className="px-4 py-8 text-center text-xs text-[var(--axis-text-tertiary)]">
+            <p className="px-4 py-8 text-center text-xs text-fg-tertiary">
               참여 중인 Topic이 없습니다
             </p>
           ) : (
@@ -151,12 +151,12 @@ export default function SignalsLayout() {
                 className={cn(
                   "flex items-center justify-between px-4 py-2.5 text-sm transition-colors",
                   activeTopicId === t.id
-                    ? "bg-[var(--axis-surface-brand)] text-[var(--axis-text-brand)] font-medium"
-                    : "text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-secondary)]",
+                    ? "bg-surface-brand text-fg-brand font-medium"
+                    : "text-fg-secondary hover:bg-surface-secondary",
                 )}
               >
                 <span className="truncate">#{t.name}</span>
-                <span className="ml-2 shrink-0 text-xs tabular-nums text-[var(--axis-text-tertiary)]">
+                <span className="ml-2 shrink-0 text-xs tabular-nums text-fg-tertiary">
                   {t.signalCount}
                 </span>
               </Link>
@@ -171,8 +171,8 @@ export default function SignalsLayout() {
     <AppShell user={user} sidebarContent={sidebar}>
       <div className="flex h-full flex-col">
         {/* 모바일 헤더 */}
-        <div className="flex items-center justify-between border-b border-[var(--axis-border-default)] px-4 py-2 sm:hidden">
-          <span className="text-sm font-medium text-[var(--axis-text-primary)]">
+        <div className="flex items-center justify-between border-b border-line px-4 py-2 sm:hidden">
+          <span className="text-sm font-medium text-fg">
             시그널
           </span>
         </div>
@@ -180,7 +180,7 @@ export default function SignalsLayout() {
         <div className="flex-1 overflow-hidden">
           {navigation.state === "loading" ? (
             <div className="flex h-full items-center justify-center">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--axis-border-default)] border-t-[var(--axis-text-brand)]" />
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-line border-t-fg-brand" />
             </div>
           ) : (
             <Outlet />

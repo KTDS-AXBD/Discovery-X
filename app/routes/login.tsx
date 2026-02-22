@@ -24,18 +24,18 @@ export default function Login() {
   const { error, detail } = useLoaderData<typeof loader>();
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--dx-surface-deep,var(--axis-surface-secondary))]" style={{ background: "linear-gradient(135deg, var(--dx-surface-deep, var(--axis-surface-secondary)) 0%, var(--dx-surface-panel, var(--axis-surface-default)) 50%, var(--dx-surface-deep, var(--axis-surface-secondary)) 100%)" }}>
-      <Card className="w-full max-w-md bg-[var(--dx-surface-card,var(--axis-surface-default))]">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-surface-deep" style={{ background: "linear-gradient(135deg, var(--dx-surface-deep, var(--axis-surface-secondary)) 0%, var(--dx-surface-panel, var(--axis-surface-default)) 50%, var(--dx-surface-deep, var(--axis-surface-secondary)) 100%)" }}>
+      <Card className="w-full max-w-md bg-surface-card">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--axis-surface-brand-subtle)]">
-            <svg className="h-8 w-8 text-[var(--axis-text-brand)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-brand">
+            <svg className="h-8 w-8 text-fg-brand" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="10" />
               <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
             </svg>
           </div>
           <CardTitle className="text-3xl">Discovery-X</CardTitle>
           <CardDescription>내부 실험 중심 사고 시스템</CardDescription>
-          <span className="mt-2 inline-block rounded-full bg-[var(--axis-surface-tertiary)] px-2.5 py-0.5 text-xs font-medium text-[var(--axis-text-secondary)]">
+          <span className="mt-2 inline-block rounded-full bg-surface-tertiary px-2.5 py-0.5 text-xs font-medium text-fg-secondary">
             v0.1.0
           </span>
         </CardHeader>
@@ -52,7 +52,7 @@ export default function Login() {
           <Link to="/auth/google" className="block">
             <button
               type="button"
-              className="flex w-full items-center justify-center gap-3 rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] px-4 py-2.5 text-sm font-medium text-[var(--axis-text-primary)] shadow-sm transition-colors hover:bg-[var(--axis-surface-secondary)]"
+              className="flex w-full items-center justify-center gap-3 rounded-lg border border-line bg-surface px-4 py-2.5 text-sm font-medium text-fg shadow-sm transition-colors hover:bg-surface-secondary"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
                 <path
@@ -76,15 +76,15 @@ export default function Login() {
             </button>
           </Link>
 
-          <p className="text-center text-xs text-[var(--axis-text-tertiary)]">
+          <p className="text-center text-xs text-fg-tertiary">
             Google 계정으로 로그인합니다
           </p>
-          <p className="text-center text-xs text-[var(--axis-text-tertiary)]">
+          <p className="text-center text-xs text-fg-tertiary">
             처음 방문하시나요? Google 로그인 후 관리자 승인을 거쳐 이용하실 수 있습니다.
           </p>
         </CardContent>
       </Card>
-      <p className="mt-6 text-xs text-[var(--axis-text-tertiary)]">
+      <p className="mt-6 text-xs text-fg-tertiary">
         AX Lab &middot; 2026
       </p>
     </div>

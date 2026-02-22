@@ -54,8 +54,8 @@ function PriorityDots({ priority }: { priority: number }) {
           key={i}
           className={`inline-block h-2 w-2 rounded-full ${
             i < priority
-              ? "bg-[var(--dx-lab-accent,#6366f1)]"
-              : "bg-[var(--dx-border-subtle,#e2e8f0)]"
+              ? "bg-lab-accent"
+              : "bg-line-subtle"
           }`}
         />
       ))}
@@ -71,17 +71,17 @@ function ScoreBar({ label, score, maxScore = 5 }: { label: string; score: number
 
   return (
     <div className="flex items-center gap-3">
-      <span className="w-20 text-xs text-[var(--dx-text-muted,#94a3b8)] font-[var(--dx-font-mono,monospace)]">
+      <span className="w-20 text-xs text-fg-muted font-mono-dx">
         {label}
       </span>
-      <div className="flex-1 h-2 rounded-full bg-[var(--dx-border-subtle,#e2e8f0)] overflow-hidden">
+      <div className="flex-1 h-2 rounded-full bg-line-subtle overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-300"
           style={{ width: `${pct}%`, backgroundColor: color }}
         />
       </div>
       <span
-        className="w-10 text-right text-xs font-semibold font-[var(--dx-font-mono,monospace)]"
+        className="w-10 text-right text-xs font-semibold font-mono-dx"
         style={{ color }}
       >
         {score.toFixed(1)}
@@ -101,13 +101,13 @@ export function CellDetailPanel({ cell, topics, consensus }: CellDetailPanelProp
   return (
     <Card className="overflow-hidden">
       {/* ─── 헤더: 산업 × 기능 + Stage 배지 ─── */}
-      <div className="px-5 pt-5 pb-3 border-b border-[var(--dx-border-subtle,#e2e8f0)]">
+      <div className="px-5 pt-5 pb-3 border-b border-line-subtle">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-[var(--dx-text-primary,#1e293b)] font-[var(--dx-font-mono,monospace)]">
+            <h2 className="text-lg font-semibold text-fg font-mono-dx">
               {cell.industryName} × {cell.functionName}
             </h2>
-            <p className="mt-1 text-xs text-[var(--dx-text-muted,#94a3b8)]">
+            <p className="mt-1 text-xs text-fg-muted">
               {TIME_HORIZON_LABELS[cell.timeHorizon] ?? cell.timeHorizon}
             </p>
           </div>
@@ -128,12 +128,12 @@ export function CellDetailPanel({ cell, topics, consensus }: CellDetailPanelProp
           <div className="space-y-3">
             <div className="flex items-end gap-3">
               <span
-                className="text-4xl font-bold font-[var(--dx-font-mono,monospace)] leading-none"
+                className="text-4xl font-bold font-mono-dx leading-none"
                 style={{ color: scoreColor }}
               >
                 {compositeScore?.toFixed(2) ?? "—"}
               </span>
-              <span className="text-xs text-[var(--dx-text-muted,#94a3b8)] pb-1">
+              <span className="text-xs text-fg-muted pb-1">
                 / 5.00
                 {consensus.prevComposite !== null && (
                   <span className="ml-2">
@@ -145,7 +145,7 @@ export function CellDetailPanel({ cell, topics, consensus }: CellDetailPanelProp
             </div>
             <ScoreBar label="C-Level" score={consensus.clevelScore} />
             <ScoreBar label="Execution" score={consensus.executionScore} />
-            <div className="flex items-center gap-4 text-xs text-[var(--dx-text-muted,#94a3b8)]">
+            <div className="flex items-center gap-4 text-xs text-fg-muted">
               <span>시그널 보정: {consensus.signalAdjustment >= 0 ? "+" : ""}{consensus.signalAdjustment.toFixed(2)}</span>
               <span>참여자: {consensus.participantCount}명</span>
               {consensus.deviation !== null && (
@@ -157,7 +157,7 @@ export function CellDetailPanel({ cell, topics, consensus }: CellDetailPanelProp
             </div>
           </div>
         ) : (
-          <p className="text-sm text-[var(--dx-text-muted,#94a3b8)]">
+          <p className="text-sm text-fg-muted">
             아직 합의 스코어가 없습니다. 개별 스코어를 입력하세요.
           </p>
         )}
@@ -167,28 +167,28 @@ export function CellDetailPanel({ cell, topics, consensus }: CellDetailPanelProp
       <CardSection title="상세 정보">
         <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
           <div>
-            <dt className="text-xs text-[var(--dx-text-muted,#94a3b8)]">담당자</dt>
+            <dt className="text-xs text-fg-muted">담당자</dt>
             <dd className="font-medium">{cell.ownerName ?? "미지정"}</dd>
           </div>
           <div>
-            <dt className="text-xs text-[var(--dx-text-muted,#94a3b8)]">우선순위</dt>
+            <dt className="text-xs text-fg-muted">우선순위</dt>
             <dd><PriorityDots priority={cell.priority} /></dd>
           </div>
           <div>
-            <dt className="text-xs text-[var(--dx-text-muted,#94a3b8)]">매출 잠재력</dt>
-            <dd className="font-medium font-[var(--dx-font-mono,monospace)]">
+            <dt className="text-xs text-fg-muted">매출 잠재력</dt>
+            <dd className="font-medium font-mono-dx">
               {cell.revenuePotential !== null
                 ? `${cell.revenuePotential}${REVENUE_UNIT_LABELS[cell.revenueUnit] ?? ""}`
                 : "—"}
             </dd>
           </div>
           <div>
-            <dt className="text-xs text-[var(--dx-text-muted,#94a3b8)]">시간지평선</dt>
+            <dt className="text-xs text-fg-muted">시간지평선</dt>
             <dd className="font-medium">{TIME_HORIZON_LABELS[cell.timeHorizon] ?? cell.timeHorizon}</dd>
           </div>
         </dl>
         {cell.description && (
-          <p className="mt-3 text-sm text-[var(--dx-text-secondary,#475569)]">
+          <p className="mt-3 text-sm text-fg-secondary">
             {cell.description}
           </p>
         )}
@@ -203,8 +203,8 @@ export function CellDetailPanel({ cell, topics, consensus }: CellDetailPanelProp
                 key={t.topicId}
                 className="flex items-center justify-between text-sm"
               >
-                <span className="text-[var(--dx-text-primary,#1e293b)]">{t.topicName}</span>
-                <span className="text-xs text-[var(--dx-text-muted,#94a3b8)] font-[var(--dx-font-mono,monospace)]">
+                <span className="text-fg">{t.topicName}</span>
+                <span className="text-xs text-fg-muted font-mono-dx">
                   {(t.relevance * 100).toFixed(0)}%
                 </span>
               </li>

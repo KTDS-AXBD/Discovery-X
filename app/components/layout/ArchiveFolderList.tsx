@@ -77,7 +77,7 @@ export function ArchiveFolderList({
     <div className="px-3 pt-2">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)]"
+        className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-fg-tertiary hover:bg-surface-secondary"
       >
         <span>보관함</span>
         <svg
@@ -96,19 +96,19 @@ export function ArchiveFolderList({
             <div key={folder.id}>
               {pendingDeleteId === folder.id ? (
                 <div className="flex w-full items-center gap-1 rounded-md px-2 py-1.5 text-xs">
-                  <span className="text-[var(--axis-text-error)]">삭제?</span>
+                  <span className="text-fg-error">삭제?</span>
                   <button
                     onClick={() => {
                       onDeleteFolder(folder.id);
                       setPendingDeleteId(null);
                     }}
-                    className="rounded bg-[var(--axis-button-destructive-bg-default)] px-1.5 py-0.5 text-[var(--axis-button-destructive-text-default)] hover:bg-[var(--axis-button-destructive-bg-hover)]"
+                    className="rounded bg-btn-destructive-bg px-1.5 py-0.5 text-btn-destructive-text hover:bg-btn-destructive-bg-hover"
                   >
                     확인
                   </button>
                   <button
                     onClick={() => setPendingDeleteId(null)}
-                    className="rounded bg-[var(--axis-surface-secondary)] px-1.5 py-0.5 text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-tertiary)]"
+                    className="rounded bg-surface-secondary px-1.5 py-0.5 text-fg-secondary hover:bg-surface-tertiary"
                   >
                     취소
                   </button>
@@ -123,14 +123,14 @@ export function ArchiveFolderList({
                     if (e.key === "Escape") setEditingId(null);
                   }}
                   onBlur={(e) => handleRename(folder.id, e.currentTarget.value)}
-                  className="w-full rounded-md border border-[var(--axis-border-brand)] bg-[var(--axis-surface-default)] px-2 py-1.5 text-sm text-[var(--axis-text-primary)] outline-none"
+                  className="w-full rounded-md border border-line-brand bg-surface px-2 py-1.5 text-sm text-fg outline-none"
                 />
               ) : (
                 <button
                   className={cn(
-                    "group flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-secondary)]",
-                    activeFolderId === folder.id && "bg-[var(--axis-surface-brand)] text-[var(--axis-text-primary)]",
-                    dragOverId === folder.id && "bg-[var(--axis-surface-brand)] ring-1 ring-[var(--axis-border-brand)]",
+                    "group flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-fg-secondary hover:bg-surface-secondary",
+                    activeFolderId === folder.id && "bg-surface-brand text-fg",
+                    dragOverId === folder.id && "bg-surface-brand ring-1 ring-line-brand",
                   )}
                   onClick={() => onSelectFolder?.(folder.id)}
                   onDoubleClick={() => setEditingId(folder.id)}
@@ -142,19 +142,19 @@ export function ArchiveFolderList({
                   onDragLeave={() => setDragOverId(null)}
                   onDrop={(e) => handleDrop(folder.id, e)}
                 >
-                  <svg className="h-3.5 w-3.5 shrink-0 text-[var(--axis-text-tertiary)]" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                  <svg className="h-3.5 w-3.5 shrink-0 text-fg-tertiary" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
                   </svg>
                   <span className="flex-1 truncate text-left">{folder.name}</span>
                   {folder.itemCount > 0 && (
-                    <span className="text-[10px] text-[var(--axis-text-tertiary)]">{folder.itemCount}</span>
+                    <span className="text-[10px] text-fg-tertiary">{folder.itemCount}</span>
                   )}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setPendingDeleteId(folder.id);
                     }}
-                    className="ml-auto hidden shrink-0 rounded p-0.5 text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-error)] group-hover:inline"
+                    className="ml-auto hidden shrink-0 rounded p-0.5 text-fg-tertiary hover:text-fg-error group-hover:inline"
                     aria-label={`${folder.name} 삭제`}
                   >
                     <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -182,12 +182,12 @@ export function ArchiveFolderList({
                   setCreating(false);
                 }
               }}
-              className="w-full rounded-md border border-[var(--axis-border-brand)] bg-[var(--axis-surface-default)] px-2 py-1.5 text-sm text-[var(--axis-text-primary)] outline-none placeholder:text-[var(--axis-text-tertiary)]"
+              className="w-full rounded-md border border-line-brand bg-surface px-2 py-1.5 text-sm text-fg outline-none placeholder:text-fg-tertiary"
             />
           ) : (
             <button
               onClick={() => setCreating(true)}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-secondary)]"
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-fg-tertiary hover:bg-surface-secondary hover:text-fg-secondary"
             >
               <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

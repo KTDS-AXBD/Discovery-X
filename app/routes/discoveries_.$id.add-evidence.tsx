@@ -219,7 +219,7 @@ export default function AddEvidence() {
               )}
 
               {/* Actions */}
-              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-[var(--axis-border-default)] pt-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-line pt-6">
                 <Button variant="outline" asChild>
                   <a href={`/discoveries/${discovery.id}`}>취소</a>
                 </Button>
@@ -230,7 +230,7 @@ export default function AddEvidence() {
         </Card>
 
         {/* Helper */}
-        <div className="mt-6 rounded-md bg-[var(--axis-surface-secondary)] p-4 text-sm text-[var(--axis-text-tertiary)]">
+        <div className="mt-6 rounded-md bg-surface-secondary p-4 text-sm text-fg-tertiary">
           <p className="font-semibold">Evidence 작성 팁:</p>
           <ul className="mt-2 list-inside list-disc space-y-1">
             <li>
@@ -246,7 +246,7 @@ export default function AddEvidence() {
               <strong>D급 (Intuition):</strong> 추론, 직관, 가정
             </li>
           </ul>
-          <p className="mt-3 text-xs text-[var(--axis-badge-warning-text)]">
+          <p className="mt-3 text-xs text-badge-warning-text">
             NEXT 결정은 A/B급 Evidence 2개 이상 권장됩니다
           </p>
         </div>

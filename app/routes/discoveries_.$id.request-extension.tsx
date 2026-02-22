@@ -157,14 +157,14 @@ export default function RequestExtension() {
         />
 
         {/* Discovery Info */}
-        <div className="mb-6 rounded-lg bg-[var(--axis-badge-purple-bg)] p-4">
-          <h2 className="text-lg font-semibold text-[var(--axis-text-primary)]">
+        <div className="mb-6 rounded-lg bg-badge-purple-bg p-4">
+          <h2 className="text-lg font-semibold text-fg">
             {discovery.title}
           </h2>
-          <p className="mt-2 text-sm text-[var(--axis-text-secondary)]">
+          <p className="mt-2 text-sm text-fg-secondary">
             {discovery.seedSummary}
           </p>
-          <div className="mt-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:space-x-4 text-xs text-[var(--axis-text-tertiary)]">
+          <div className="mt-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:space-x-4 text-xs text-fg-tertiary">
             <span>실험 수: {experimentCount}/2</span>
             {discovery.dueDate && (
               <span>
@@ -204,7 +204,7 @@ export default function RequestExtension() {
               </FormField>
 
               {/* Actions */}
-              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-[var(--axis-border-default)] pt-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-line pt-6">
                 <Button variant="outline" asChild>
                   <a href={`/discoveries/${discovery.id}`}>취소</a>
                 </Button>
@@ -215,7 +215,7 @@ export default function RequestExtension() {
         </Card>
 
         {/* Info */}
-        <div className="mt-6 rounded-md bg-[var(--axis-surface-secondary)] p-4 text-sm text-[var(--axis-text-tertiary)]">
+        <div className="mt-6 rounded-md bg-surface-secondary p-4 text-sm text-fg-tertiary">
           <p className="font-semibold">연장 요청 후:</p>
           <ul className="mt-2 list-inside list-disc space-y-1">
             <li>상태: OPEN → EXTENSION_REQUESTED</li>

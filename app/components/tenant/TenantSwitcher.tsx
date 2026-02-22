@@ -32,7 +32,7 @@ export function TenantSwitcher({ currentTenantId, tenants }: TenantSwitcherProps
 
   if (tenants.length <= 1) {
     return (
-      <span className="text-sm font-medium text-[var(--axis-text-secondary)]">
+      <span className="text-sm font-medium text-fg-secondary">
         {current?.name || "Discovery-X"}
       </span>
     );
@@ -43,7 +43,7 @@ export function TenantSwitcher({ currentTenantId, tenants }: TenantSwitcherProps
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-tertiary)] transition-colors"
+        className="flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-fg-secondary hover:bg-surface-tertiary transition-colors"
       >
         {current?.name || "Discovery-X"}
         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,7 +52,7 @@ export function TenantSwitcher({ currentTenantId, tenants }: TenantSwitcherProps
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full z-50 mt-1 min-w-[180px] rounded-md border border-[var(--axis-surface-tertiary)] bg-[var(--axis-surface-primary)] py-1 shadow-lg">
+        <div className="absolute left-0 top-full z-50 mt-1 min-w-[180px] rounded-md border border-surface-tertiary bg-surface-primary py-1 shadow-lg">
           {tenants.map((t) => (
             <button
               key={t.id}
@@ -68,24 +68,24 @@ export function TenantSwitcher({ currentTenantId, tenants }: TenantSwitcherProps
               }}
               className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${
                 t.id === currentTenantId
-                  ? "bg-[var(--axis-surface-secondary)] font-medium text-[var(--axis-text-primary)]"
-                  : "text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-secondary)]"
+                  ? "bg-surface-secondary font-medium text-fg"
+                  : "text-fg-secondary hover:bg-surface-secondary"
               }`}
             >
               {t.name}
               {t.id === currentTenantId && (
-                <span className="ml-auto text-xs text-[var(--axis-text-tertiary)]">current</span>
+                <span className="ml-auto text-xs text-fg-tertiary">current</span>
               )}
             </button>
           ))}
-          <div className="my-1 border-t border-[var(--axis-surface-tertiary)]" />
+          <div className="my-1 border-t border-surface-tertiary" />
           <button
             type="button"
             onClick={() => {
               setOpen(false);
               navigate("/onboarding");
             }}
-            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)]"
+            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-fg-tertiary hover:bg-surface-secondary"
           >
             + New Organization
           </button>

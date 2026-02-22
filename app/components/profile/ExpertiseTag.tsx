@@ -27,7 +27,7 @@ export function ExpertiseTag({ label, level, onRemove, className }: ExpertiseTag
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-2.5 py-1 text-sm text-[var(--axis-text-primary)]",
+        "inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-secondary px-2.5 py-1 text-sm text-fg",
         className,
       )}
     >
@@ -41,7 +41,7 @@ export function ExpertiseTag({ label, level, onRemove, className }: ExpertiseTag
         <button
           type="button"
           onClick={onRemove}
-          className="ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded-full text-[var(--axis-text-tertiary)] transition-colors hover:bg-[var(--axis-surface-tertiary)] hover:text-[var(--axis-text-primary)]"
+          className="ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded-full text-fg-tertiary transition-colors hover:bg-surface-tertiary hover:text-fg"
           aria-label={`${label} 제거`}
         >
           &times;

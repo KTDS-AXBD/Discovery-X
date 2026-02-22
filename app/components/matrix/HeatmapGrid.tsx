@@ -43,7 +43,7 @@ function HeatmapCellBox({
       <button
         type="button"
         onClick={onClick}
-        className="flex h-16 w-full items-center justify-center rounded border border-dashed border-[var(--dx-border-subtle,#334155)] bg-[var(--axis-bg-tertiary,#0f172a)] text-[10px] text-[var(--axis-text-tertiary,#475569)] opacity-50 transition-opacity hover:opacity-80"
+        className="flex h-16 w-full items-center justify-center rounded border border-dashed border-line-subtle bg-surface-tertiary text-[10px] text-fg-tertiary opacity-50 transition-opacity hover:opacity-80"
         style={{ fontFamily: "var(--dx-font-mono)" }}
         title="셀 미생성"
       >
@@ -62,8 +62,8 @@ function HeatmapCellBox({
       onClick={onClick}
       className={cn(
         "group relative flex h-16 w-full flex-col items-center justify-center rounded border transition-all",
-        "border-[var(--dx-border-subtle,#334155)]",
-        "hover:border-[var(--dx-lab-accent,#6366f1)] hover:ring-1 hover:ring-[var(--dx-lab-accent,#6366f1)]",
+        "border-line-subtle",
+        "hover:border-lab-accent hover:ring-1 hover:ring-lab-accent",
         cell.cellStatus === "archived" && "opacity-40",
         cell.cellStatus === "paused" && "opacity-60",
       )}
@@ -82,7 +82,7 @@ function HeatmapCellBox({
       </span>
 
       {/* Stage 배지 */}
-      <span className="mt-1 text-[9px] font-medium uppercase tracking-wider text-[var(--axis-text-tertiary,#64748b)]">
+      <span className="mt-1 text-[9px] font-medium uppercase tracking-wider text-fg-tertiary">
         {gate}
       </span>
 
@@ -115,25 +115,25 @@ export function HeatmapGrid({ data, onCellClick }: HeatmapGridProps) {
   const fnGroups = groupFunctionsByCategory(fns);
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-[var(--dx-border-subtle,#334155)] bg-[var(--axis-bg-secondary,#0f172a)]">
-      <table className="w-full border-collapse" style={{ fontFamily: "var(--dx-font-mono)" }}>
+    <div className="overflow-x-auto rounded-lg border border-line-subtle bg-surface-secondary">
+      <table className="w-full border-collapse font-mono-dx">
         {/* ─── 헤더: 산업 (X축) ─── */}
         <thead>
           <tr>
-            <th className="sticky left-0 z-10 w-36 bg-[var(--axis-bg-secondary,#0f172a)] px-3 py-2 text-left text-[10px] font-normal uppercase tracking-wider text-[var(--axis-text-tertiary,#64748b)]">
+            <th className="sticky left-0 z-10 w-36 bg-surface-secondary px-3 py-2 text-left text-[10px] font-normal uppercase tracking-wider text-fg-tertiary">
               기능 ＼ 산업
             </th>
             {industries.map((ind) => (
               <th
                 key={ind.id}
-                className="px-1 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[var(--dx-lab-accent,#6366f1)]"
+                className="px-1 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-lab-accent"
                 style={{ minWidth: 80 }}
               >
                 <span className="block max-w-[80px] truncate" title={ind.name}>
                   {ind.name}
                 </span>
                 {ind.nameEn && (
-                  <span className="block text-[8px] font-normal text-[var(--axis-text-tertiary,#64748b)]">
+                  <span className="block text-[8px] font-normal text-fg-tertiary">
                     {ind.nameEn}
                   </span>
                 )}
@@ -150,15 +150,15 @@ export function HeatmapGrid({ data, onCellClick }: HeatmapGridProps) {
               <tr key={`cat-${group.category}`}>
                 <td
                   colSpan={industries.length + 1}
-                  className="border-t border-[var(--dx-border-subtle,#334155)] bg-[var(--axis-bg-tertiary,#0f172a)] px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest text-[var(--dx-lab-accent,#6366f1)]"
+                  className="border-t border-line-subtle bg-surface-tertiary px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest text-lab-accent"
                 >
                   {CATEGORY_LABELS[group.category] ?? group.category}
                 </td>
               </tr>
               {group.items.map((fn) => (
-                <tr key={fn.id} className="border-t border-[var(--dx-border-subtle,#1e293b)]">
+                <tr key={fn.id} className="border-t border-line-subtle">
                   {/* 기능명 */}
-                  <td className="sticky left-0 z-10 bg-[var(--axis-bg-secondary,#0f172a)] px-3 py-1 text-xs text-[var(--axis-text-secondary,#94a3b8)]">
+                  <td className="sticky left-0 z-10 bg-surface-secondary px-3 py-1 text-xs text-fg-secondary">
                     <span className="block max-w-[130px] truncate" title={fn.name}>
                       {fn.name}
                     </span>

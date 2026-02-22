@@ -87,7 +87,7 @@ export function ProfileEditor({
               })}
             </div>
           ) : (
-            <p className="text-sm text-[var(--axis-text-tertiary)]">등록된 전문 분야가 없습니다.</p>
+            <p className="text-sm text-fg-tertiary">등록된 전문 분야가 없습니다.</p>
           )}
 
           <Form method="post" className="flex items-end gap-2">
@@ -148,7 +148,7 @@ export function ProfileEditor({
               })}
             </div>
           ) : (
-            <p className="text-sm text-[var(--axis-text-tertiary)]">등록된 관심 분야가 없습니다.</p>
+            <p className="text-sm text-fg-tertiary">등록된 관심 분야가 없습니다.</p>
           )}
 
           <Form method="post" className="flex items-end gap-2">

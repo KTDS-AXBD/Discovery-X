@@ -12,12 +12,12 @@ export function CategoryCardRow({ category, proposals }: CategoryCardRowProps) {
   return (
     <div className="mb-6">
       <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-[var(--axis-text-primary)]">
+        <h3 className="text-sm font-semibold text-fg">
           {category}
         </h3>
         <div className="flex items-center gap-1">
-          <span className="text-xs text-[var(--axis-text-tertiary)]">{proposals.length}건</span>
-          <svg className="h-3.5 w-3.5 text-[var(--axis-text-tertiary)]" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+          <span className="text-xs text-fg-tertiary">{proposals.length}건</span>
+          <svg className="h-3.5 w-3.5 text-fg-tertiary" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
           </svg>
         </div>

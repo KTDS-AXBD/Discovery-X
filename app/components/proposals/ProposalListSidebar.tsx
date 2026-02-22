@@ -35,7 +35,7 @@ export function ProposalListSidebar({ proposals, activeId }: ProposalListSidebar
 
       <aside
         className={cn(
-          "flex h-full flex-col border-r border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))] transition-transform duration-200",
+          "flex h-full flex-col border-r border-line-subtle bg-surface-panel transition-transform duration-200",
           "fixed inset-y-0 left-0 z-50 sm:static sm:z-auto",
           open ? "translate-x-0" : "-translate-x-full sm:translate-x-0 sm:hidden",
         )}
@@ -45,7 +45,7 @@ export function ProposalListSidebar({ proposals, activeId }: ProposalListSidebar
         <div className="px-3 pt-3">
           <Link
             to="/proposals/new"
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--axis-button-bg-default)] px-4 py-2 text-sm font-medium text-[var(--axis-button-text-default)] transition-colors hover:bg-[var(--axis-button-bg-hover)]"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-btn-bg px-4 py-2 text-sm font-medium text-btn-text transition-colors hover:bg-btn-bg-hover"
             onClick={() => { if (window.innerWidth < 640) close(); }}
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
@@ -68,11 +68,11 @@ export function ProposalListSidebar({ proposals, activeId }: ProposalListSidebar
                   className={cn(
                     "block rounded-lg px-3 py-2.5 transition-colors",
                     isActive
-                      ? "bg-[var(--dx-surface-card,var(--axis-surface-brand))]"
-                      : "hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))]"
+                      ? "bg-surface-card"
+                      : "hover:bg-surface-card-hover"
                   )}
                 >
-                  <p className="text-sm font-medium text-[var(--axis-text-primary)] line-clamp-1">
+                  <p className="text-sm font-medium text-fg line-clamp-1">
                     {p.title}
                   </p>
                   <div className="mt-1 flex items-center gap-2">
@@ -83,7 +83,7 @@ export function ProposalListSidebar({ proposals, activeId }: ProposalListSidebar
                       {PROPOSAL_STATUS_LABELS[p.status] || p.status}
                     </span>
                     {p.teamSize && (
-                      <span className="text-[10px] text-[var(--axis-text-tertiary)]">
+                      <span className="text-[10px] text-fg-tertiary">
                         {p.teamSize}명
                       </span>
                     )}
@@ -93,16 +93,16 @@ export function ProposalListSidebar({ proposals, activeId }: ProposalListSidebar
                       const d = new Date(typeof p.updatedAt === "number" ? p.updatedAt * 1000 : p.updatedAt);
                       const formatted = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
                       return (
-                        <span className="text-[10px] text-[var(--axis-text-tertiary)]">
+                        <span className="text-[10px] text-fg-tertiary">
                           📅 {formatted}
                         </span>
                       );
                     })()}
                   </div>
                   {/* Progress bar */}
-                  <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-[var(--axis-surface-secondary)]">
+                  <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-surface-secondary">
                     <div
-                      className="h-full rounded-full bg-[var(--axis-text-brand)] transition-all"
+                      className="h-full rounded-full bg-fg-brand transition-all"
                       style={{ width: `${p.totalProgress ?? 0}%` }}
                     />
                   </div>
@@ -110,7 +110,7 @@ export function ProposalListSidebar({ proposals, activeId }: ProposalListSidebar
               );
             })}
             {proposals.length === 0 && (
-              <p className="px-3 py-8 text-center text-sm text-[var(--axis-text-tertiary)]">
+              <p className="px-3 py-8 text-center text-sm text-fg-tertiary">
                 사업제안이 없습니다.
               </p>
             )}

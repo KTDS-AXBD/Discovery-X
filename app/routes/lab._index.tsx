@@ -66,8 +66,8 @@ export default function LabOverview() {
                 <p
                   className={`mt-1 text-[30px] font-bold tabular-nums ${
                     isWarning
-                      ? "text-[var(--dx-lab-accent)]"
-                      : "text-[var(--axis-text-primary)]"
+                      ? "text-lab-accent"
+                      : "text-fg"
                   }`}
                   style={{ fontFamily: "var(--dx-font-mono)" }}
                 >
@@ -84,7 +84,7 @@ export default function LabOverview() {
         <CardContent className="p-4">
           <div className="mb-3 flex items-center justify-between">
             <p className="lab-stat-terminal">KNOWLEDGE GRAPH</p>
-            <span className="text-xs text-[var(--axis-text-tertiary)]" style={{ fontFamily: "var(--dx-font-mono)" }}>
+            <span className="text-xs text-fg-tertiary font-mono-dx">
               {graphNodes.length}N / {graphEdges.length}E
             </span>
           </div>
@@ -94,21 +94,21 @@ export default function LabOverview() {
             ontologyTypes={types}
           />
           {/* Legend */}
-          <div className="mt-3 flex flex-wrap gap-4 text-xs text-[var(--axis-text-secondary)]">
+          <div className="mt-3 flex flex-wrap gap-4 text-xs text-fg-secondary">
             <span className="flex items-center gap-1">
-              <span className="inline-block h-0.5 w-6 bg-[var(--axis-badge-success-text)]" /> supports
+              <span className="inline-block h-0.5 w-6 bg-badge-success-text" /> supports
             </span>
             <span className="flex items-center gap-1">
-              <span className="inline-block h-0.5 w-6 border-t-2 border-dashed border-[var(--axis-button-destructive-bg-default)]" /> contradicts
+              <span className="inline-block h-0.5 w-6 border-t-2 border-dashed border-btn-destructive-bg" /> contradicts
             </span>
             <span className="flex items-center gap-1">
-              <span className="inline-block h-0.5 w-6 bg-[var(--axis-badge-purple-text)]" /> causes
+              <span className="inline-block h-0.5 w-6 bg-badge-purple-text" /> causes
             </span>
             <span className="flex items-center gap-1">
-              <span className="inline-block h-0.5 w-6 border-t-2 border-dashed border-[var(--axis-text-tertiary)]" /> relates_to
+              <span className="inline-block h-0.5 w-6 border-t-2 border-dashed border-fg-tertiary" /> relates_to
             </span>
             <span className="flex items-center gap-1">
-              <span className="inline-block h-0.5 w-6 border-t-2 border-dashed border-[var(--axis-badge-info-text)]" /> depends_on
+              <span className="inline-block h-0.5 w-6 border-t-2 border-dashed border-fg-info" /> depends_on
             </span>
           </div>
         </CardContent>
@@ -118,7 +118,7 @@ export default function LabOverview() {
       <div>
         <p className="lab-stat-terminal mb-3">EXTRACTION LOG</p>
         {recentNodes.length === 0 ? (
-          <p className="text-sm text-[var(--axis-text-tertiary)]" style={{ fontFamily: "var(--dx-font-mono)" }}>
+          <p className="text-sm text-fg-tertiary font-mono-dx">
             &gt; No extractions found. Run entity extraction from Agent chat.
           </p>
         ) : (
@@ -138,7 +138,7 @@ export default function LabOverview() {
                     )}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-[var(--axis-text-primary)]">
+                        <span className="text-sm font-medium text-fg">
                           {node.label}
                         </span>
                         {typeInfo && (
@@ -147,7 +147,7 @@ export default function LabOverview() {
                           </Badge>
                         )}
                       </div>
-                      <div className="mt-0.5 flex items-center gap-2 text-[10px] text-[var(--axis-text-tertiary)]" style={{ fontFamily: "var(--dx-font-mono)" }}>
+                      <div className="mt-0.5 flex items-center gap-2 text-[10px] text-fg-tertiary font-mono-dx">
                         <span>CONF {((node.confidence ?? 1) * 100).toFixed(0)}%</span>
                         {node.globalEntityId && <span>GLOBAL</span>}
                       </div>

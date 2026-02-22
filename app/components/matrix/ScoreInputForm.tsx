@@ -85,15 +85,15 @@ export function ScoreInputForm({ cellId, period, existingScore }: ScoreInputForm
   }
 
   return (
-    <div className="space-y-5" style={{ fontFamily: "var(--dx-font-mono)" }}>
+    <div className="space-y-5 font-mono-dx">
       {/* C-Level 그룹 */}
       <div>
         <div className="mb-2 flex items-center justify-between">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--dx-lab-accent,#6366f1)]">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-lab-accent">
             C-Level 관점
           </h4>
-          <span className="text-xs text-[var(--axis-text-tertiary,#64748b)]">
-            평균: <strong className="text-[var(--axis-text-primary)]">{averages.clevelAvg.toFixed(2)}</strong>
+          <span className="text-xs text-fg-tertiary">
+            평균: <strong className="text-fg">{averages.clevelAvg.toFixed(2)}</strong>
           </span>
         </div>
         <div className="space-y-2">
@@ -111,11 +111,11 @@ export function ScoreInputForm({ cellId, period, existingScore }: ScoreInputForm
       {/* Execution 그룹 */}
       <div>
         <div className="mb-2 flex items-center justify-between">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--dx-lab-accent,#6366f1)]">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-lab-accent">
             실무자(Execution) 관점
           </h4>
-          <span className="text-xs text-[var(--axis-text-tertiary,#64748b)]">
-            평균: <strong className="text-[var(--axis-text-primary)]">{averages.execAvg.toFixed(2)}</strong>
+          <span className="text-xs text-fg-tertiary">
+            평균: <strong className="text-fg">{averages.execAvg.toFixed(2)}</strong>
           </span>
         </div>
         <div className="space-y-2">
@@ -133,14 +133,14 @@ export function ScoreInputForm({ cellId, period, existingScore }: ScoreInputForm
 
       {/* 메모 */}
       <div>
-        <label className="mb-1 block text-xs text-[var(--axis-text-tertiary,#64748b)]">
+        <label className="mb-1 block text-xs text-fg-tertiary">
           메모 (선택)
         </label>
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
           rows={2}
-          className="w-full rounded border border-[var(--dx-border-subtle,#334155)] bg-[var(--axis-bg-tertiary,#0f172a)] px-3 py-2 text-xs text-[var(--axis-text-primary)]"
+          className="w-full rounded border border-line-subtle bg-surface-tertiary px-3 py-2 text-xs text-fg"
           placeholder="스코어에 대한 근거나 메모..."
         />
       </div>
@@ -150,7 +150,7 @@ export function ScoreInputForm({ cellId, period, existingScore }: ScoreInputForm
         type="button"
         onClick={handleSubmit}
         disabled={isSubmitting}
-        className="w-full rounded bg-[var(--dx-lab-accent,#6366f1)] px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-[var(--dx-lab-accent-hover,#4f46e5)] disabled:opacity-50"
+        className="w-full rounded bg-lab-accent px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-lab-accent disabled:opacity-50"
       >
         {isSubmitting ? "저장 중..." : existingScore ? "스코어 수정" : "스코어 제출"}
       </button>
@@ -172,9 +172,9 @@ function ScoreSlider({
 }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="w-32 text-xs text-[var(--axis-text-secondary,#94a3b8)]">
+      <span className="w-32 text-xs text-fg-secondary">
         {label}
-        {inverse && <span className="ml-1 text-[var(--dx-score-low,#ef4444)]">↓</span>}
+        {inverse && <span className="ml-1 text-fg-error">↓</span>}
       </span>
       <input
         type="range"
@@ -183,9 +183,9 @@ function ScoreSlider({
         step={0.5}
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="flex-1 accent-[var(--dx-lab-accent,#6366f1)]"
+        className="flex-1 accent-lab-accent"
       />
-      <span className="w-8 text-right text-xs font-semibold text-[var(--axis-text-primary)]">
+      <span className="w-8 text-right text-xs font-semibold text-fg">
         {value.toFixed(1)}
       </span>
     </div>

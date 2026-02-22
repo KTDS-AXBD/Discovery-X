@@ -46,20 +46,20 @@ const ToggleButton = React.forwardRef<HTMLButtonElement, ToggleButtonProps>(
           "inline-flex items-center justify-center rounded-md",
           sizeClasses[size],
           // Colors
-          "text-[var(--axis-icon-secondary)]",
+          "text-icon-secondary",
           "bg-transparent",
           // Transitions
-          "transition-all duration-[var(--dx-transition-normal)]",
+          "transition-all duration-normal",
           // Hover state
-          "hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-icon-default)]",
+          "hover:bg-surface-secondary hover:text-icon",
           // Active/pressed state - scale effect
-          "active:scale-[var(--dx-scale-pressed)]",
+          "active:scale-95",
           // Focus visible
-          "focus-visible:outline-none focus-visible:ring-[var(--dx-focus-ring-width)] focus-visible:ring-offset-[var(--dx-focus-ring-offset)] focus-visible:ring-[var(--dx-focus-ring-color-default)]",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-focus-ring",
           // Pressed state visual
           pressed && [
-            "bg-[var(--axis-surface-brand-muted)]",
-            "text-[var(--axis-text-brand)]",
+            "bg-surface-brand",
+            "text-fg-brand",
             "ring-1 ring-inset ring-[var(--dx-toggle-selected-ring)]",
           ],
           // Disabled

@@ -298,10 +298,10 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-[var(--axis-text-primary)]">
+          <h2 className="text-xl font-semibold text-fg">
             Discovery-X Agent
           </h2>
-          <p className="mt-2 text-sm text-[var(--axis-text-secondary)]">
+          <p className="mt-2 text-sm text-fg-secondary">
             새 대화를 시작하세요
           </p>
         </div>
@@ -316,17 +316,17 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
         <div className={`${mode === "ideas" ? "" : "mx-auto max-w-3xl"} space-y-6`}>
           {isLoadingMessages && (
             <div className="flex items-center justify-center py-12" role="status" aria-label="대화 불러오는 중">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--axis-border-default)] border-t-[var(--axis-text-brand)]" />
-              <span className="ml-2 text-sm text-[var(--axis-text-tertiary)]">대화 불러오는 중...</span>
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-line border-t-fg-brand" />
+              <span className="ml-2 text-sm text-fg-tertiary">대화 불러오는 중...</span>
             </div>
           )}
 
           {!isLoadingMessages && messages.length === 0 && (
             <div className="py-12 text-center">
-              <p className="text-lg font-medium text-[var(--axis-text-primary)]">
+              <p className="text-lg font-medium text-fg">
                 무엇을 도와드릴까요?
               </p>
-              <p className="mt-2 text-sm text-[var(--axis-text-tertiary)]">
+              <p className="mt-2 text-sm text-fg-tertiary">
                 Discovery 생성, 실험 설계, 근거 분석, 상태 전환 등을 요청해보세요
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-2">
@@ -386,12 +386,12 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
           ))}
 
           {isLoading && pendingToolCalls.length === 0 && (
-            <div className="flex items-center gap-2 text-sm text-[var(--axis-text-tertiary)]" role="status" aria-live="polite">
-              <div className="h-2 w-2 animate-pulse rounded-full bg-[var(--axis-text-brand)]" />
+            <div className="flex items-center gap-2 text-sm text-fg-tertiary" role="status" aria-live="polite">
+              <div className="h-2 w-2 animate-pulse rounded-full bg-fg-brand" />
               Agent가 처리 중...
               <button
                 onClick={handleCancel}
-                className="ml-2 text-xs text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-error)]"
+                className="ml-2 text-xs text-fg-tertiary hover:text-fg-error"
               >
                 취소
               </button>
@@ -404,7 +404,7 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
 
       {/* Budget warning banner */}
       {budgetWarning && (
-        <div className="border-t border-[var(--axis-border-warning)] px-4 py-2">
+        <div className="border-t border-line px-4 py-2">
           <div className={mode === "ideas" ? "" : "mx-auto max-w-3xl"}>
             <AlertBanner variant={isOverBudget(budgetWarning) ? "destructive" : "warning"} className="py-2">
               <div className="flex items-center justify-between text-xs">
@@ -427,7 +427,7 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
 
       {/* Dynamic suggestions */}
       {dynamicSuggestions.length > 0 && !isLoading && (
-        <div className={`border-t border-[var(--axis-border-subtle)] bg-[var(--axis-surface-default)] pt-3 pb-0 ${mode === "ideas" ? "px-3" : "px-4"}`}>
+        <div className={`border-t border-line-subtle-alt bg-surface pt-3 pb-0 ${mode === "ideas" ? "px-3" : "px-4"}`}>
           <div className={`flex flex-wrap gap-2 ${mode === "ideas" ? "" : "mx-auto max-w-3xl"}`}>
             {dynamicSuggestions.map((suggestion) => (
               <SuggestionChip
@@ -446,9 +446,9 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
       )}
 
       {/* Input area */}
-      <div className={`border-t border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))] ${mode === "ideas" ? "p-3" : "p-4"}`}>
+      <div className={`border-t border-line-subtle bg-surface-panel ${mode === "ideas" ? "p-3" : "p-4"}`}>
         <div className={mode === "ideas" ? "" : "mx-auto max-w-3xl"}>
-          <div className="flex items-center gap-2 rounded-xl border border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--dx-surface-card,var(--axis-surface-default))] px-4 py-2 transition-colors focus-within:border-[var(--axis-border-brand)] focus-within:ring-1 focus-within:ring-[var(--axis-border-brand)]">
+          <div className="flex items-center gap-2 rounded-xl border border-line-subtle bg-surface-card px-4 py-2 transition-colors focus-within:border-line-brand focus-within:ring-1 focus-within:ring-line-brand">
             <Input
               ref={inputRef}
               value={input}
@@ -467,7 +467,7 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
               type="button"
               onClick={sendMessage}
               disabled={isLoading || !input.trim() || isOverBudget(budgetWarning)}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--axis-button-bg-default)] text-[var(--axis-button-text-default)] transition-all hover:bg-[var(--axis-button-bg-hover)] disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-btn-bg text-btn-text transition-all hover:bg-btn-bg-hover disabled:opacity-40 disabled:cursor-not-allowed"
               aria-label="전송"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">

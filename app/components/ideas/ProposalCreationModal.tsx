@@ -208,8 +208,8 @@ export function ProposalCreationModal({
       return (
         <div className="flex flex-1 items-center justify-center">
           <div className="flex flex-col items-center gap-3">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--axis-border-default)] border-t-[var(--axis-text-brand)]" />
-            <p className="text-xs text-[var(--axis-text-tertiary)]">분석 데이터 로딩 중…</p>
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-line border-t-fg-brand" />
+            <p className="text-xs text-fg-tertiary">분석 데이터 로딩 중…</p>
           </div>
         </div>
       );
@@ -226,7 +226,7 @@ export function ProposalCreationModal({
     if (!hasAnalysis) {
       return (
         <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 text-center">
-          <p className="text-sm text-[var(--axis-text-secondary)]">
+          <p className="text-sm text-fg-secondary">
             AI 분석을 먼저 실행해주세요.
             <br />
             분석 결과를 바탕으로 사업 제안서를 생성합니다.
@@ -234,7 +234,7 @@ export function ProposalCreationModal({
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="rounded-lg border border-[var(--axis-border-default)] px-4 py-2 text-sm text-[var(--axis-text-secondary)] transition-colors hover:bg-[var(--axis-surface-secondary)]"
+            className="rounded-lg border border-line px-4 py-2 text-sm text-fg-secondary transition-colors hover:bg-surface-secondary"
           >
             닫기
           </button>
@@ -248,9 +248,9 @@ export function ProposalCreationModal({
     return (
       <div className="flex gap-4" style={{ minHeight: 400 }}>
         {/* Left: analysis category checkboxes */}
-        <div className="flex w-64 shrink-0 flex-col rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)]">
-          <div className="border-b border-[var(--axis-border-default)] px-4 py-2.5">
-            <p className="text-xs font-semibold text-[var(--axis-text-secondary)]">
+        <div className="flex w-64 shrink-0 flex-col rounded-lg border border-line bg-surface-secondary">
+          <div className="border-b border-line px-4 py-2.5">
+            <p className="text-xs font-semibold text-fg-secondary">
               분석 결과
             </p>
           </div>
@@ -263,7 +263,7 @@ export function ProposalCreationModal({
                   key={key}
                   className={`flex items-start gap-2 rounded-md px-2 py-1.5 text-xs ${
                     completed
-                      ? "cursor-pointer hover:bg-[var(--axis-surface-default)]"
+                      ? "cursor-pointer hover:bg-surface"
                       : "cursor-not-allowed opacity-50"
                   }`}
                 >
@@ -272,14 +272,14 @@ export function ProposalCreationModal({
                     checked={selectedCategories.has(key)}
                     disabled={!completed}
                     onChange={() => toggleCategory(key)}
-                    className="mt-0.5 accent-[var(--axis-text-brand)]"
+                    className="mt-0.5 accent-fg-brand"
                   />
                   <span className="flex flex-col gap-0.5">
-                    <span className={completed ? "text-[var(--axis-text-primary)]" : "text-[var(--axis-text-tertiary)]"}>
+                    <span className={completed ? "text-fg" : "text-fg-tertiary"}>
                       {CATEGORY_LABELS[key]}
                     </span>
                     {completed && entry?.analyzedAt && (
-                      <span className="text-[10px] text-[var(--axis-text-tertiary)]">
+                      <span className="text-[10px] text-fg-tertiary">
                         {formatDate(entry.analyzedAt)}
                       </span>
                     )}
@@ -291,9 +291,9 @@ export function ProposalCreationModal({
         </div>
 
         {/* Right: tab view */}
-        <div className="flex flex-1 flex-col rounded-lg border border-[var(--axis-border-default)]">
+        <div className="flex flex-1 flex-col rounded-lg border border-line">
           {/* Tabs */}
-          <div className="flex gap-1 overflow-x-auto border-b border-[var(--axis-border-default)] px-3 scrollbar-none">
+          <div className="flex gap-1 overflow-x-auto border-b border-line px-3 scrollbar-none">
             {PROPOSAL_TABS.map((tab) => (
               <button
                 key={tab}
@@ -301,8 +301,8 @@ export function ProposalCreationModal({
                 onClick={() => setActiveTab(tab)}
                 className={`shrink-0 px-2.5 py-2 text-xs transition-colors ${
                   activeTab === tab
-                    ? "border-b-2 border-[var(--axis-text-brand)] text-[var(--axis-text-brand)]"
-                    : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]"
+                    ? "border-b-2 border-fg-brand text-fg-brand"
+                    : "text-fg-tertiary hover:text-fg"
                 }`}
               >
                 {tab}
@@ -313,12 +313,12 @@ export function ProposalCreationModal({
           {/* Tab content */}
           <div className="flex-1 overflow-y-auto px-4 py-4">
             {tabContent ? (
-              <div className="prose prose-sm max-w-none text-sm text-[var(--axis-text-primary)]">
+              <div className="prose prose-sm max-w-none text-sm text-fg">
                 <ReactMarkdown>{tabContent}</ReactMarkdown>
               </div>
             ) : (
               <div className="flex h-full items-center justify-center">
-                <p className="text-xs text-[var(--axis-text-tertiary)]">
+                <p className="text-xs text-fg-tertiary">
                   관련 분석이 아직 없습니다
                 </p>
               </div>
@@ -344,7 +344,7 @@ export function ProposalCreationModal({
 
         {/* Footer — only when analysis exists */}
         {hasAnalysis && !loading && !error && (
-          <div className="flex items-center justify-between border-t border-[var(--axis-border-default)] pt-4">
+          <div className="flex items-center justify-between border-t border-line pt-4">
             <div>
               {submitError && (
                 <p className="text-xs text-red-500">{submitError}</p>
@@ -354,7 +354,7 @@ export function ProposalCreationModal({
               <button
                 type="button"
                 onClick={() => onOpenChange(false)}
-                className="rounded-lg border border-[var(--axis-border-default)] px-4 py-2 text-sm text-[var(--axis-text-secondary)] transition-colors hover:bg-[var(--axis-surface-secondary)]"
+                className="rounded-lg border border-line px-4 py-2 text-sm text-fg-secondary transition-colors hover:bg-surface-secondary"
               >
                 취소
               </button>
@@ -364,8 +364,8 @@ export function ProposalCreationModal({
                 disabled={selectedCategories.size === 0 || submitting}
                 className={`rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors ${
                   selectedCategories.size === 0 || submitting
-                    ? "cursor-not-allowed bg-[var(--axis-surface-brand)] opacity-50"
-                    : "bg-[var(--axis-surface-brand)] hover:opacity-90"
+                    ? "cursor-not-allowed bg-surface-brand opacity-50"
+                    : "bg-surface-brand hover:opacity-90"
                 }`}
               >
                 {submitting ? "생성 중..." : "사업 제안 생성"}

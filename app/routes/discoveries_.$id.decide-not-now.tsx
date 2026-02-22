@@ -169,9 +169,9 @@ export default function DecideNotNow() {
         />
 
         {/* Discovery Info */}
-        <div className="mb-6 rounded-lg bg-[var(--axis-surface-secondary)] p-4">
-          <h2 className="text-lg font-semibold text-[var(--axis-text-primary)]">{discovery.title}</h2>
-          <p className="mt-2 text-sm text-[var(--axis-text-secondary)]">{discovery.seedSummary}</p>
+        <div className="mb-6 rounded-lg bg-surface-secondary p-4">
+          <h2 className="text-lg font-semibold text-fg">{discovery.title}</h2>
+          <p className="mt-2 text-sm text-fg-secondary">{discovery.seedSummary}</p>
         </div>
 
         {actionData?.error && (
@@ -202,7 +202,7 @@ export default function DecideNotNow() {
                 />
               </FormField>
 
-              <hr className="border-[var(--axis-border-default)]" />
+              <hr className="border-line" />
 
               {/* Trigger Type */}
               <FormField label="트리거 유형" htmlFor="notNowTriggerType" required hint="재검토를 촉발하는 조건의 종류">
@@ -245,7 +245,7 @@ export default function DecideNotNow() {
               </FormField>
 
               {/* Actions */}
-              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-[var(--axis-border-default)] pt-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-line pt-6">
                 <Button variant="outline" asChild>
                   <a href={`/discoveries/${discovery.id}`}>취소</a>
                 </Button>
@@ -256,7 +256,7 @@ export default function DecideNotNow() {
         </Card>
 
         {/* Trigger Examples */}
-        <div className="mt-6 rounded-md bg-[var(--axis-surface-secondary)] p-4 text-sm text-[var(--axis-text-tertiary)]">
+        <div className="mt-6 rounded-md bg-surface-secondary p-4 text-sm text-fg-tertiary">
           <p className="font-semibold">트리거 조건 예시:</p>
           <ul className="mt-2 space-y-2">
             {TRIGGER_TYPES.map((trigger) => (

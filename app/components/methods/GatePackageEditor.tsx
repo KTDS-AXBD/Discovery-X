@@ -77,7 +77,7 @@ function ScoreBar({ score }: { score: number }) {
 
   return (
     <div className="flex items-center gap-3">
-      <div className="flex-1 h-2 rounded-full bg-[var(--axis-surface-secondary)]">
+      <div className="flex-1 h-2 rounded-full bg-surface-secondary">
         <div
           className="h-2 rounded-full transition-all"
           style={{ width: `${score}%`, backgroundColor: color }}
@@ -99,11 +99,11 @@ export function GatePackageEditor({ gatePackage }: GatePackageEditorProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-[var(--axis-text-primary)]">
+          <h3 className="text-lg font-semibold text-fg">
             {gatePackage.gateType} 패키지
           </h3>
           {gatePackage.autoDraftedAt && (
-            <p className="text-xs text-[var(--axis-text-tertiary)]">
+            <p className="text-xs text-fg-tertiary">
               자동 초안: {formatDate(gatePackage.autoDraftedAt)}
             </p>
           )}
@@ -115,7 +115,7 @@ export function GatePackageEditor({ gatePackage }: GatePackageEditorProps) {
       {scorecard && (
         <Card>
           <CardContent className="p-4">
-            <h4 className="mb-2 text-sm font-medium text-[var(--axis-text-primary)]">
+            <h4 className="mb-2 text-sm font-medium text-fg">
               준비도 점수
             </h4>
             <ScoreBar score={scorecard.readinessScore} />
@@ -147,7 +147,7 @@ export function GatePackageEditor({ gatePackage }: GatePackageEditorProps) {
         <Card>
           <CardContent className="p-4">
             <div className="mb-3 flex items-center justify-between">
-              <h4 className="text-sm font-medium text-[var(--axis-text-primary)]">
+              <h4 className="text-sm font-medium text-fg">
                 비판적 검증 4종
               </h4>
               <Badge variant={scorecard.criticalChecks.passed ? "success" : "destructive"}>
@@ -155,7 +155,7 @@ export function GatePackageEditor({ gatePackage }: GatePackageEditorProps) {
               </Badge>
             </div>
             {!scorecard.criticalChecks.passed && (
-              <div className="mb-3 rounded-md border border-[var(--axis-badge-destructive-text,#EF4444)] bg-[var(--axis-surface-secondary)] p-2">
+              <div className="mb-3 rounded-md border border-badge-destructive-text bg-surface-secondary p-2">
                 <p className="text-xs font-medium" style={{ color: "var(--axis-badge-destructive-text, #EF4444)" }}>
                   비판적 검증을 통과하지 못해 승인을 요청할 수 없습니다. 아래 항목을 보완하세요.
                 </p>
@@ -174,14 +174,14 @@ export function GatePackageEditor({ gatePackage }: GatePackageEditorProps) {
       {gatePackage.evidenceSummary && gatePackage.evidenceSummary.length > 0 && (
         <Card>
           <CardContent className="p-4">
-            <h4 className="mb-2 text-sm font-medium text-[var(--axis-text-primary)]">
+            <h4 className="mb-2 text-sm font-medium text-fg">
               근거 요약 ({gatePackage.evidenceSummary.length}건)
             </h4>
             <div className="space-y-2">
               {gatePackage.evidenceSummary.map((ev) => (
                 <div
                   key={ev.id}
-                  className="flex items-start gap-2 rounded border border-[var(--axis-border-default)] p-2"
+                  className="flex items-start gap-2 rounded border border-line p-2"
                 >
                   <Badge
                     variant={
@@ -193,19 +193,19 @@ export function GatePackageEditor({ gatePackage }: GatePackageEditorProps) {
                     {ev.strength}급
                   </Badge>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs text-[var(--axis-text-primary)]">
+                    <p className="text-xs text-fg">
                       {ev.content}
                     </p>
-                    <div className="mt-0.5 flex gap-2 text-[10px] text-[var(--axis-text-tertiary)]">
+                    <div className="mt-0.5 flex gap-2 text-[10px] text-fg-tertiary">
                       <span>{ev.type}</span>
                       {ev.reliabilityLabel && <span>{ev.reliabilityLabel}</span>}
                       {!ev.hasSource && (
-                        <span className="text-[var(--axis-badge-destructive-text, #EF4444)]">
+                        <span className="text-badge-destructive-text">
                           출처 누락
                         </span>
                       )}
                       {!ev.hasDate && (
-                        <span className="text-[var(--axis-badge-warning-text, #F59E0B)]">
+                        <span className="text-badge-warning-text">
                           날짜 누락
                         </span>
                       )}
@@ -222,17 +222,17 @@ export function GatePackageEditor({ gatePackage }: GatePackageEditorProps) {
       {gatePackage.assumptions && gatePackage.assumptions.length > 0 && (
         <Card>
           <CardContent className="p-4">
-            <h4 className="mb-2 text-sm font-medium text-[var(--axis-text-primary)]">
+            <h4 className="mb-2 text-sm font-medium text-fg">
               가정 ({gatePackage.assumptions.length}건)
             </h4>
             <div className="space-y-2">
               {gatePackage.assumptions.map((a) => (
                 <div
                   key={a.id}
-                  className="rounded border border-[var(--axis-border-default)] p-2"
+                  className="rounded border border-line p-2"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <p className="text-xs text-[var(--axis-text-primary)]">
+                    <p className="text-xs text-fg">
                       {a.statement}
                     </p>
                     <Badge
@@ -252,7 +252,7 @@ export function GatePackageEditor({ gatePackage }: GatePackageEditorProps) {
                     </Badge>
                   </div>
                   {a.refutationQuestions && a.refutationQuestions.length > 0 && (
-                    <p className="mt-1 text-[10px] text-[var(--axis-text-tertiary)]">
+                    <p className="mt-1 text-[10px] text-fg-tertiary">
                       반증 질문: {a.refutationQuestions.join(", ")}
                     </p>
                   )}
@@ -267,7 +267,7 @@ export function GatePackageEditor({ gatePackage }: GatePackageEditorProps) {
       {gatePackage.methodRunSummary && gatePackage.methodRunSummary.length > 0 && (
         <Card>
           <CardContent className="p-4">
-            <h4 className="mb-2 text-sm font-medium text-[var(--axis-text-primary)]">
+            <h4 className="mb-2 text-sm font-medium text-fg">
               방법론 실행 ({gatePackage.methodRunSummary.length}건)
             </h4>
             <div className="space-y-1">
@@ -276,12 +276,12 @@ export function GatePackageEditor({ gatePackage }: GatePackageEditorProps) {
                   key={run.runId}
                   className="flex items-center justify-between rounded p-1.5 text-xs"
                 >
-                  <span className="text-[var(--axis-text-primary)]">
+                  <span className="text-fg">
                     {run.methodPackId}
                   </span>
                   <div className="flex items-center gap-2">
                     {run.completedAt && (
-                      <span className="text-[var(--axis-text-tertiary)]">
+                      <span className="text-fg-tertiary">
                         {formatDate(run.completedAt)}
                       </span>
                     )}
@@ -302,10 +302,10 @@ export function GatePackageEditor({ gatePackage }: GatePackageEditorProps) {
       {gatePackage.rationale && (
         <Card>
           <CardContent className="p-4">
-            <h4 className="mb-2 text-sm font-medium text-[var(--axis-text-primary)]">
+            <h4 className="mb-2 text-sm font-medium text-fg">
               결정 근거
             </h4>
-            <p className="text-sm text-[var(--axis-text-secondary)]">
+            <p className="text-sm text-fg-secondary">
               {gatePackage.rationale}
             </p>
           </CardContent>
@@ -318,8 +318,8 @@ export function GatePackageEditor({ gatePackage }: GatePackageEditorProps) {
 function ScoreItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="text-center">
-      <p className="text-lg font-bold text-[var(--axis-text-primary)]">{value}</p>
-      <p className="text-[10px] text-[var(--axis-text-tertiary)]">{label}</p>
+      <p className="text-lg font-bold text-fg">{value}</p>
+      <p className="text-[10px] text-fg-tertiary">{label}</p>
     </div>
   );
 }
@@ -345,10 +345,10 @@ function CriticalCheckCard({ check }: { check: CriticalCheckItem }) {
         {check.passed ? "\u2705" : "\u274C"}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-medium text-[var(--axis-text-primary)]">
+        <p className="text-xs font-medium text-fg">
           {CRITICAL_CHECK_LABELS[check.name] || check.name}
         </p>
-        <p className="text-[11px] text-[var(--axis-text-secondary)]">
+        <p className="text-[11px] text-fg-secondary">
           {check.message}
         </p>
       </div>

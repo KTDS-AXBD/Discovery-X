@@ -175,8 +175,8 @@ export default function SearchPage() {
               className={cn(
                 "rounded px-2 py-1 transition-colors",
                 mode === "text"
-                  ? "bg-[var(--dx-surface-card-hover,var(--axis-surface-tertiary))] font-medium text-[var(--axis-text-primary)]"
-                  : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]",
+                  ? "bg-surface-card-hover font-medium text-fg"
+                  : "text-fg-tertiary hover:text-fg",
               )}
             >
               텍스트
@@ -187,8 +187,8 @@ export default function SearchPage() {
               className={cn(
                 "rounded px-2 py-1 transition-colors",
                 mode === "semantic"
-                  ? "bg-[var(--dx-surface-card-hover,var(--axis-surface-tertiary))] font-medium text-[var(--axis-text-primary)]"
-                  : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]",
+                  ? "bg-surface-card-hover font-medium text-fg"
+                  : "text-fg-tertiary hover:text-fg",
               )}
             >
               시맨틱 (AI)
@@ -211,15 +211,15 @@ export default function SearchPage() {
                 type="button"
                 onClick={() => setActiveTab(tab.value)}
                 className={cn(
-                  "pb-1 text-sm font-medium transition-colors duration-[var(--dx-transition-normal)]",
+                  "pb-1 text-sm font-medium transition-colors duration-normal",
                   activeTab === tab.value
-                    ? "border-b-2 border-[var(--axis-text-brand)] font-semibold text-[var(--axis-text-primary)]"
-                    : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-primary)]",
+                    ? "border-b-2 border-fg-brand font-semibold text-fg"
+                    : "text-fg-tertiary hover:text-fg",
                 )}
               >
                 {tab.label}
                 {hasSearched && (
-                  <span className="ml-1.5 text-xs text-[var(--axis-text-tertiary)]">
+                  <span className="ml-1.5 text-xs text-fg-tertiary">
                     {count}
                   </span>
                 )}
@@ -231,21 +231,21 @@ export default function SearchPage() {
 
       {/* 로딩 */}
       {isSearching && (
-        <p className="mt-8 py-12 text-center text-sm text-[var(--axis-text-tertiary)]">
+        <p className="mt-8 py-12 text-center text-sm text-fg-tertiary">
           검색 중...
         </p>
       )}
 
       {/* 초기 상태 */}
       {!hasSearched && !isSearching && query.length < 2 && (
-        <p className="mt-8 py-12 text-center text-sm text-[var(--axis-text-tertiary)]">
+        <p className="mt-8 py-12 text-center text-sm text-fg-tertiary">
           검색어를 입력하면 Discovery, 아이디어, 소스, 사업제안을 한번에 검색합니다
         </p>
       )}
 
       {/* 결과 없음 */}
       {hasSearched && !isSearching && filteredResults.length === 0 && (
-        <p className="mt-8 py-12 text-center text-sm text-[var(--axis-text-tertiary)]">
+        <p className="mt-8 py-12 text-center text-sm text-fg-tertiary">
           &ldquo;{query}&rdquo;에 대한 검색 결과가 없습니다.
         </p>
       )}
@@ -278,7 +278,7 @@ function ResultCard({ result }: { result: SearchResult }) {
   return (
     <Link
       to={result.url}
-      className="block rounded-[var(--dx-card-radius)] border border-[var(--dx-border-subtle,var(--dx-card-border-subtle))] bg-[var(--dx-surface-card,var(--axis-surface-default))] p-4 transition-colors hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))]"
+      className="block rounded-card border border-line-subtle bg-surface-card p-4 transition-colors hover:bg-surface-card-hover"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
@@ -286,12 +286,12 @@ function ResultCard({ result }: { result: SearchResult }) {
             <Badge variant={TYPE_BADGE_VARIANT[result.type]}>
               {TYPE_LABEL[result.type]}
             </Badge>
-            <h3 className="truncate text-sm font-medium text-[var(--axis-text-primary)]">
+            <h3 className="truncate text-sm font-medium text-fg">
               {result.title}
             </h3>
           </div>
           {result.subtitle && (
-            <p className="truncate text-xs text-[var(--axis-text-tertiary)]">
+            <p className="truncate text-xs text-fg-tertiary">
               {result.subtitle}
             </p>
           )}
@@ -300,9 +300,9 @@ function ResultCard({ result }: { result: SearchResult }) {
           <StatusBadge status={result.status} />
         </span>
       </div>
-      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[var(--axis-text-tertiary)]">
+      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-fg-tertiary">
         {result.score != null && (
-          <span className="text-[var(--axis-text-brand)]">
+          <span className="text-fg-brand">
             {Math.round(result.score * 100)}% 유사
           </span>
         )}
@@ -321,18 +321,18 @@ function ResultRow({ result }: { result: SearchResult }) {
   return (
     <Link
       to={result.url}
-      className="flex items-center gap-4 rounded-[var(--dx-card-radius)] border border-[var(--dx-border-subtle,var(--dx-card-border-subtle))] bg-[var(--dx-surface-card,var(--axis-surface-default))] px-5 py-3 transition-colors hover:bg-[var(--dx-surface-card-hover,var(--axis-surface-secondary))]"
+      className="flex items-center gap-4 rounded-card border border-line-subtle bg-surface-card px-5 py-3 transition-colors hover:bg-surface-card-hover"
     >
       <Badge variant={TYPE_BADGE_VARIANT[result.type]} className="shrink-0">
         {TYPE_LABEL[result.type]}
       </Badge>
 
       <div className="min-w-0 flex-1">
-        <h3 className="truncate text-sm font-medium text-[var(--axis-text-primary)]">
+        <h3 className="truncate text-sm font-medium text-fg">
           {result.title}
         </h3>
         {result.subtitle && (
-          <p className="mt-0.5 truncate text-xs text-[var(--axis-text-tertiary)]">
+          <p className="mt-0.5 truncate text-xs text-fg-tertiary">
             {result.subtitle}
           </p>
         )}
@@ -341,7 +341,7 @@ function ResultRow({ result }: { result: SearchResult }) {
       <StatusBadge status={result.status} />
 
       {result.score != null && (
-        <span className="shrink-0 text-xs text-[var(--axis-text-brand)]">
+        <span className="shrink-0 text-xs text-fg-brand">
           {Math.round(result.score * 100)}%
         </span>
       )}
@@ -352,7 +352,7 @@ function ResultRow({ result }: { result: SearchResult }) {
         </Badge>
       )}
 
-      <span className="shrink-0 text-xs text-[var(--axis-text-tertiary)]">
+      <span className="shrink-0 text-xs text-fg-tertiary">
         {formatDate(result.createdAt)}
       </span>
     </Link>

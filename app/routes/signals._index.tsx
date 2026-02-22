@@ -128,7 +128,7 @@ function StatusBadge({ status }: { status: string }) {
 
 function SignalCard({ signal }: { signal: SerializedSignal }) {
   return (
-    <div className="rounded-lg border border-[var(--axis-border-default)] bg-[var(--dx-surface-panel,var(--axis-surface-default))] p-4 transition-colors hover:border-[var(--axis-border-hover,var(--axis-border-default))]">
+    <div className="rounded-lg border border-line bg-surface-panel p-4 transition-colors hover:border-line">
       <div className="flex items-center justify-between">
         <span
           className={cn(
@@ -140,12 +140,12 @@ function SignalCard({ signal }: { signal: SerializedSignal }) {
         </span>
         <StatusBadge status={signal.status} />
       </div>
-      <p className="mt-2 text-sm leading-relaxed text-[var(--axis-text-primary)]">
+      <p className="mt-2 text-sm leading-relaxed text-fg">
         {signal.contentSummary}
       </p>
-      <div className="mt-3 flex items-center gap-2 text-xs text-[var(--axis-text-tertiary)]">
+      <div className="mt-3 flex items-center gap-2 text-xs text-fg-tertiary">
         {signal.topicName && (
-          <span className="rounded bg-[var(--axis-surface-secondary)] px-1.5 py-0.5">
+          <span className="rounded bg-surface-secondary px-1.5 py-0.5">
             #{signal.topicName}
           </span>
         )}
@@ -166,10 +166,10 @@ export default function SignalsIndex() {
   if (signals.length === 0) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 px-4">
-        <svg className="h-12 w-12 text-[var(--axis-text-tertiary)]" fill="none" viewBox="0 0 24 24" strokeWidth="1" stroke="currentColor">
+        <svg className="h-12 w-12 text-fg-tertiary" fill="none" viewBox="0 0 24 24" strokeWidth="1" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9.348 14.652a3.75 3.75 0 010-5.304m5.304 0a3.75 3.75 0 010 5.304m-7.425 2.121a6.75 6.75 0 010-9.546m9.546 0a6.75 6.75 0 010 9.546M5.106 18.894c-3.808-3.807-3.808-9.98 0-13.788m13.788 0c3.808 3.807 3.808 9.98 0 13.788M12 12h.008v.008H12V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
         </svg>
-        <p className="text-sm text-[var(--axis-text-tertiary)]">
+        <p className="text-sm text-fg-tertiary">
           {topicId || status ? "조건에 맞는 시그널이 없습니다" : "시그널이 없습니다"}
         </p>
       </div>

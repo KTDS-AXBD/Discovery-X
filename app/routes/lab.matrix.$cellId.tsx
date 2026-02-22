@@ -201,7 +201,7 @@ export default function CellDetailPage() {
       {/* 뒤로가기 */}
       <Link
         to="/lab/matrix"
-        className="inline-flex items-center gap-1 text-xs text-[var(--axis-text-tertiary,#64748b)] transition-colors hover:text-[var(--dx-lab-accent,#6366f1)]"
+        className="inline-flex items-center gap-1 text-xs text-fg-tertiary transition-colors hover:text-lab-accent"
         style={{ fontFamily: "var(--dx-font-mono)" }}
       >
         ← 매트릭스로 돌아가기
@@ -213,9 +213,9 @@ export default function CellDetailPage() {
           <CellDetailPanel cell={cellDetail} topics={topics} consensus={consensus} />
 
           {/* 추세 차트 */}
-          <div className="rounded-lg border border-[var(--dx-border-subtle,#334155)] bg-[var(--axis-bg-secondary,#0f172a)] p-4">
+          <div className="rounded-lg border border-line-subtle bg-surface-secondary p-4">
             <h3
-              className="mb-3 text-xs font-bold uppercase tracking-wider text-[var(--dx-lab-accent,#6366f1)]"
+              className="mb-3 text-xs font-bold uppercase tracking-wider text-lab-accent"
               style={{ fontFamily: "var(--dx-font-mono)" }}
             >
               스코어 추세
@@ -224,9 +224,9 @@ export default function CellDetailPage() {
           </div>
 
           {/* Pipeline Stage */}
-          <div className="rounded-lg border border-[var(--dx-border-subtle,#334155)] bg-[var(--axis-bg-secondary,#0f172a)] p-4">
+          <div className="rounded-lg border border-line-subtle bg-surface-secondary p-4">
             <h3
-              className="mb-3 text-xs font-bold uppercase tracking-wider text-[var(--dx-lab-accent,#6366f1)]"
+              className="mb-3 text-xs font-bold uppercase tracking-wider text-lab-accent"
               style={{ fontFamily: "var(--dx-font-mono)" }}
             >
               파이프라인 단계
@@ -236,9 +236,9 @@ export default function CellDetailPage() {
         </div>
 
         {/* 오른쪽: 스코어 입력 */}
-        <div className="rounded-lg border border-[var(--dx-border-subtle,#334155)] bg-[var(--axis-bg-secondary,#0f172a)] p-4">
+        <div className="rounded-lg border border-line-subtle bg-surface-secondary p-4">
           <h3
-            className="mb-4 text-xs font-bold uppercase tracking-wider text-[var(--dx-lab-accent,#6366f1)]"
+            className="mb-4 text-xs font-bold uppercase tracking-wider text-lab-accent"
             style={{ fontFamily: "var(--dx-font-mono)" }}
           >
             {myScore ? "내 스코어 수정" : "스코어 입력"}

@@ -15,10 +15,10 @@ interface SourceSidebarProps {
 export function SourceSidebar({ items, selectedItemId, viewedItemIds, onSelect }: SourceSidebarProps) {
   return (
     <div className="dx-panel flex flex-col overflow-hidden" style={{ height: "calc(100vh - var(--dx-nav-height) - 7rem)" }}>
-      <div className="shrink-0 border-b border-[var(--axis-border-default)] px-4 py-3">
-        <h3 className="text-sm font-semibold text-[var(--axis-text-primary)]">
+      <div className="shrink-0 border-b border-line px-4 py-3">
+        <h3 className="text-sm font-semibold text-fg">
           최근 수집 소스
-          <span className="ml-1.5 text-xs font-normal text-[var(--axis-text-tertiary)]">
+          <span className="ml-1.5 text-xs font-normal text-fg-tertiary">
             ({items.length})
           </span>
         </h3>
@@ -40,19 +40,19 @@ export function SourceSidebar({ items, selectedItemId, viewedItemIds, onSelect }
                 }
               }}
               className={cn(
-                "cursor-pointer border-b border-[var(--axis-border-default)] px-4 py-2.5 last:border-b-0",
+                "cursor-pointer border-b border-line px-4 py-2.5 last:border-b-0",
                 "border-l-2 transition-colors",
                 isSelected
-                  ? "border-l-[var(--axis-text-brand)] bg-[var(--axis-surface-secondary)]"
-                  : "border-l-transparent hover:bg-[var(--axis-surface-secondary)]/50",
+                  ? "border-l-fg-brand bg-surface-secondary"
+                  : "border-l-transparent hover:bg-surface-secondary/50",
               )}
             >
               <p
                 className={cn(
                   "truncate text-sm",
                   isViewed
-                    ? "font-normal text-[var(--axis-text-tertiary)]"
-                    : "font-medium text-[var(--axis-text-primary)]",
+                    ? "font-normal text-fg-tertiary"
+                    : "font-medium text-fg",
                 )}
               >
                 {displayTitle(item.titleKo, item.title)}
@@ -61,7 +61,7 @@ export function SourceSidebar({ items, selectedItemId, viewedItemIds, onSelect }
           );
         })}
         {items.length === 0 && (
-          <p className="py-4 text-center text-xs text-[var(--axis-text-tertiary)]">
+          <p className="py-4 text-center text-xs text-fg-tertiary">
             수집 항목 없음
           </p>
         )}

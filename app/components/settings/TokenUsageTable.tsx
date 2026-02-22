@@ -66,8 +66,8 @@ export function TokenUsageTable({ logs, modeFilter, onModeChange }: TokenUsageTa
                 onClick={() => onModeChange(key)}
                 className={`rounded px-2 py-0.5 text-xs ${
                   modeFilter === key
-                    ? "bg-[var(--axis-surface-brand)] text-[var(--axis-text-brand)]"
-                    : "text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)]"
+                    ? "bg-surface-brand text-fg-brand"
+                    : "text-fg-tertiary hover:bg-surface-secondary"
                 }`}
               >
                 {label}
@@ -78,29 +78,29 @@ export function TokenUsageTable({ logs, modeFilter, onModeChange }: TokenUsageTa
       </CardHeader>
       <CardContent>
         {logs.length === 0 ? (
-          <p className="py-4 text-center text-sm text-[var(--axis-text-tertiary)]">
+          <p className="py-4 text-center text-sm text-fg-tertiary">
             사용 기록이 없습니다.
           </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-[var(--axis-border-default)]">
-                  <th className="pb-2 pr-3 font-medium text-[var(--axis-text-tertiary)]">시간</th>
-                  <th className="pb-2 pr-3 font-medium text-[var(--axis-text-tertiary)]">모드</th>
-                  <th className="pb-2 pr-3 font-medium text-[var(--axis-text-tertiary)]">모델</th>
-                  <th className="pb-2 pr-3 text-right font-medium text-[var(--axis-text-tertiary)]">입력</th>
-                  <th className="pb-2 pr-3 text-right font-medium text-[var(--axis-text-tertiary)]">출력</th>
-                  <th className="pb-2 text-right font-medium text-[var(--axis-text-tertiary)]">합계</th>
+                <tr className="border-b border-line">
+                  <th className="pb-2 pr-3 font-medium text-fg-tertiary">시간</th>
+                  <th className="pb-2 pr-3 font-medium text-fg-tertiary">모드</th>
+                  <th className="pb-2 pr-3 font-medium text-fg-tertiary">모델</th>
+                  <th className="pb-2 pr-3 text-right font-medium text-fg-tertiary">입력</th>
+                  <th className="pb-2 pr-3 text-right font-medium text-fg-tertiary">출력</th>
+                  <th className="pb-2 text-right font-medium text-fg-tertiary">합계</th>
                 </tr>
               </thead>
               <tbody>
                 {logs.map((log) => (
                   <tr
                     key={log.id}
-                    className="border-b border-[var(--axis-border-default)]/50"
+                    className="border-b border-line/50"
                   >
-                    <td className="py-1.5 pr-3 text-[var(--axis-text-secondary)]">
+                    <td className="py-1.5 pr-3 text-fg-secondary">
                       {formatTimestamp(log.createdAt)}
                     </td>
                     <td className="py-1.5 pr-3">
@@ -108,16 +108,16 @@ export function TokenUsageTable({ logs, modeFilter, onModeChange }: TokenUsageTa
                         {MODE_LABELS[log.mode] || log.mode}
                       </Badge>
                     </td>
-                    <td className="py-1.5 pr-3 text-[var(--axis-text-secondary)]">
+                    <td className="py-1.5 pr-3 text-fg-secondary">
                       {formatModel(log.model)}
                     </td>
-                    <td className="py-1.5 pr-3 text-right tabular-nums text-[var(--axis-text-secondary)]">
+                    <td className="py-1.5 pr-3 text-right tabular-nums text-fg-secondary">
                       {log.inputTokens.toLocaleString()}
                     </td>
-                    <td className="py-1.5 pr-3 text-right tabular-nums text-[var(--axis-text-secondary)]">
+                    <td className="py-1.5 pr-3 text-right tabular-nums text-fg-secondary">
                       {log.outputTokens.toLocaleString()}
                     </td>
-                    <td className="py-1.5 text-right tabular-nums font-medium text-[var(--axis-text-primary)]">
+                    <td className="py-1.5 text-right tabular-nums font-medium text-fg">
                       {log.totalTokens.toLocaleString()}
                     </td>
                   </tr>

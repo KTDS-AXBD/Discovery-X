@@ -16,7 +16,7 @@ export function EvidenceChart({ distribution, total }: EvidenceChartProps) {
   return (
     <div className="mb-2">
       {/* Stack bar */}
-      <div className="flex h-3 w-full overflow-hidden rounded-full bg-[var(--axis-surface-secondary)]">
+      <div className="flex h-3 w-full overflow-hidden rounded-full bg-surface-secondary">
         {(["A", "B", "C", "D"] as const).map((strength) => {
           const count = distribution[strength] || 0;
           if (count === 0) return null;
@@ -33,7 +33,7 @@ export function EvidenceChart({ distribution, total }: EvidenceChartProps) {
         })}
       </div>
       {/* Legend */}
-      <div className="mt-1 flex gap-3 text-[10px] text-[var(--axis-text-tertiary)]">
+      <div className="mt-1 flex gap-3 text-[10px] text-fg-tertiary">
         {(["A", "B", "C", "D"] as const).map((strength) => {
           const count = distribution[strength] || 0;
           if (count === 0) return null;

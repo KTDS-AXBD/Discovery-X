@@ -22,7 +22,7 @@ const ROLE_CONFIG: Record<string, { label: string; variant: "warning" | "default
 
 export function TopicMemberList({ members, currentUserId, onRemove }: TopicMemberListProps) {
   return (
-    <div className="divide-y divide-[var(--axis-surface-tertiary)]">
+    <div className="divide-y divide-surface-tertiary">
       {members.map((m) => {
         const roleConfig = ROLE_CONFIG[m.role] || { label: m.role, variant: "subtle" as const };
         const isOwner = m.role === "owner";
@@ -30,14 +30,14 @@ export function TopicMemberList({ members, currentUserId, onRemove }: TopicMembe
         return (
           <div key={m.userId} className="flex items-center justify-between py-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--axis-surface-tertiary)] text-sm font-medium text-[var(--axis-text-secondary)]">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-tertiary text-sm font-medium text-fg-secondary">
                 {(m.name || m.email)?.[0]?.toUpperCase() || "?"}
               </div>
               <div className="min-w-0">
-                <div className="truncate text-sm font-medium text-[var(--axis-text-primary)]">
+                <div className="truncate text-sm font-medium text-fg">
                   {m.name || m.email}
                 </div>
-                <div className="truncate text-xs text-[var(--axis-text-tertiary)]">
+                <div className="truncate text-xs text-fg-tertiary">
                   {m.email}
                 </div>
               </div>
@@ -49,7 +49,7 @@ export function TopicMemberList({ members, currentUserId, onRemove }: TopicMembe
                   variant="ghost"
                   size="sm"
                   onClick={() => onRemove(m.userId)}
-                  className="text-xs text-[var(--axis-text-tertiary)] hover:text-[var(--axis-badge-error-text)]"
+                  className="text-xs text-fg-tertiary hover:text-fg-error"
                 >
                   제거
                 </Button>
@@ -59,7 +59,7 @@ export function TopicMemberList({ members, currentUserId, onRemove }: TopicMembe
         );
       })}
       {members.length === 0 && (
-        <p className="py-4 text-center text-xs text-[var(--axis-text-tertiary)]">
+        <p className="py-4 text-center text-xs text-fg-tertiary">
           멤버가 없습니다
         </p>
       )}

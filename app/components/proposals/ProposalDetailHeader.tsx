@@ -35,12 +35,12 @@ export function ProposalDetailHeader({ proposal, isOwner, ownerName }: ProposalD
   }
 
   return (
-    <div className="border-b border-[var(--axis-border-default)] bg-[var(--dx-surface-card,var(--axis-surface-default))] px-6 py-4">
+    <div className="border-b border-line bg-surface-card px-6 py-4">
       <div className="flex items-center gap-3">
         {/* Back */}
         <Link
           to="/proposals"
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--axis-text-tertiary)] transition-colors hover:bg-[var(--axis-surface-secondary)]"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-fg-tertiary transition-colors hover:bg-surface-secondary"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -50,13 +50,13 @@ export function ProposalDetailHeader({ proposal, isOwner, ownerName }: ProposalD
         {/* Title + Status */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-bold text-[var(--axis-text-primary)] truncate">{proposal.title}</h1>
+            <h1 className="text-lg font-bold text-fg truncate">{proposal.title}</h1>
             <Badge variant={PROPOSAL_STATUS_VARIANTS[proposal.status] || "secondary"}>
               {PROPOSAL_STATUS_LABELS[proposal.status] || proposal.status}
               {proposal.closeType && ` (${CLOSE_TYPE_LABELS[proposal.closeType] || proposal.closeType})`}
             </Badge>
           </div>
-          <div className="flex items-center gap-2 text-xs text-[var(--axis-text-tertiary)]">
+          <div className="flex items-center gap-2 text-xs text-fg-tertiary">
             {proposal.category && <span>{proposal.category}</span>}
             {proposal.category && ownerName && <span>·</span>}
             {ownerName && <span>{ownerName}</span>}
@@ -69,7 +69,7 @@ export function ProposalDetailHeader({ proposal, isOwner, ownerName }: ProposalD
           {isOwner && proposal.status === "PROPOSAL" && (
             <Link
               to={`/proposals/${proposal.id}/edit`}
-              className="rounded-lg border border-[var(--axis-border-default)] px-3 py-1.5 text-xs font-medium text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-secondary)]"
+              className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-fg-secondary hover:bg-surface-secondary"
             >
               편집
             </Link>
@@ -80,7 +80,7 @@ export function ProposalDetailHeader({ proposal, isOwner, ownerName }: ProposalD
             <button
               type="button"
               onClick={() => setShowCloseModal(true)}
-              className="rounded-lg border border-[var(--axis-border-default)] px-3 py-1.5 text-xs font-medium text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)]"
+              className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-fg-tertiary hover:bg-surface-secondary"
             >
               종료
             </button>
@@ -92,7 +92,7 @@ export function ProposalDetailHeader({ proposal, isOwner, ownerName }: ProposalD
               type="button"
               disabled={fetcher.state !== "idle"}
               onClick={() => handleTransition(forward.target)}
-              className="rounded-lg bg-[var(--axis-surface-brand)] px-4 py-1.5 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
+              className="rounded-lg bg-surface-brand px-4 py-1.5 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
             >
               {forward.label}
             </button>
@@ -103,8 +103,8 @@ export function ProposalDetailHeader({ proposal, isOwner, ownerName }: ProposalD
       {/* Close type modal */}
       {showCloseModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowCloseModal(false)}>
-          <div className="rounded-xl bg-[var(--axis-surface-default)] p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <h3 className="mb-4 text-sm font-semibold text-[var(--axis-text-primary)]">종료 유형 선택</h3>
+          <div className="rounded-xl bg-surface p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="mb-4 text-sm font-semibold text-fg">종료 유형 선택</h3>
             <div className="flex gap-3">
               <button
                 type="button"
@@ -112,7 +112,7 @@ export function ProposalDetailHeader({ proposal, isOwner, ownerName }: ProposalD
                   handleTransition("CLOSED", "HOLD");
                   setShowCloseModal(false);
                 }}
-                className="rounded-lg border border-[var(--axis-border-default)] px-4 py-2 text-sm font-medium text-[var(--axis-text-secondary)] hover:bg-[var(--axis-surface-secondary)]"
+                className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-fg-secondary hover:bg-surface-secondary"
               >
                 보류 (HOLD)
               </button>
@@ -130,7 +130,7 @@ export function ProposalDetailHeader({ proposal, isOwner, ownerName }: ProposalD
             <button
               type="button"
               onClick={() => setShowCloseModal(false)}
-              className="mt-3 w-full text-center text-xs text-[var(--axis-text-tertiary)] hover:underline"
+              className="mt-3 w-full text-center text-xs text-fg-tertiary hover:underline"
             >
               취소
             </button>

@@ -65,7 +65,7 @@ export default function AgentLayout() {
   }));
 
   const sidebar = (
-    <aside className="hidden w-[280px] shrink-0 border-r border-[var(--axis-border-default)] bg-[var(--dx-surface-panel,var(--axis-surface-default))] sm:block">
+    <aside className="hidden w-[280px] shrink-0 border-r border-line bg-surface-panel sm:block">
       <SessionList
         sessions={formattedSessions}
         onNewSession={handleNewSession}
@@ -78,13 +78,13 @@ export default function AgentLayout() {
     <AppShell user={user} sidebarContent={sidebar}>
       <div className="flex h-full flex-col">
         {/* 모바일 헤더 */}
-        <div className="flex items-center justify-between border-b border-[var(--axis-border-default)] px-4 py-2 sm:hidden">
-          <span className="text-sm font-medium text-[var(--axis-text-primary)]">Agent</span>
+        <div className="flex items-center justify-between border-b border-line px-4 py-2 sm:hidden">
+          <span className="text-sm font-medium text-fg">Agent</span>
           <button
             type="button"
             onClick={handleNewSession}
             disabled={isCreating}
-            className="rounded-lg p-1.5 text-[var(--axis-icon-secondary)] hover:bg-[var(--axis-surface-secondary)]"
+            className="rounded-lg p-1.5 text-icon-secondary hover:bg-surface-secondary"
             aria-label="새 대화"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -96,7 +96,7 @@ export default function AgentLayout() {
         <div className="flex-1 overflow-hidden">
           {navigation.state === "loading" ? (
             <div className="flex h-full items-center justify-center">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--axis-border-default)] border-t-[var(--axis-text-brand)]" />
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-line border-t-fg-brand" />
             </div>
           ) : (
             <Outlet />

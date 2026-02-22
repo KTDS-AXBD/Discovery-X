@@ -17,7 +17,7 @@ interface SummaryCardProps {
 
 function SectionBadge({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-block rounded border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-2 py-0.5 text-[11px] font-semibold text-[var(--axis-text-secondary)]">
+    <span className="inline-block rounded border border-line bg-surface-secondary px-2 py-0.5 text-[11px] font-semibold text-fg-secondary">
       {children}
     </span>
   );
@@ -44,9 +44,9 @@ export function SummaryCard({ item, reaction }: SummaryCardProps) {
   if (!item) {
     return (
       <div className="dx-panel p-5">
-        <h3 className="mb-4 text-base font-bold text-[var(--axis-text-primary)]">요약/정리</h3>
+        <h3 className="mb-4 text-base font-bold text-fg">요약/정리</h3>
         <div className="flex h-48 items-center justify-center">
-          <p className="text-sm text-[var(--axis-text-tertiary)]">소스를 선택하세요</p>
+          <p className="text-sm text-fg-tertiary">소스를 선택하세요</p>
         </div>
       </div>
     );
@@ -81,13 +81,13 @@ export function SummaryCard({ item, reaction }: SummaryCardProps) {
 
   return (
     <div className="dx-panel p-5">
-      <h3 className="mb-4 text-base font-bold text-[var(--axis-text-primary)]">요약/정리</h3>
+      <h3 className="mb-4 text-base font-bold text-fg">요약/정리</h3>
 
       <div className="space-y-4">
         {/* 핵심 요약 */}
         <div>
           <SectionBadge>핵심 요약</SectionBadge>
-          <div className="mt-2 space-y-2 text-sm leading-relaxed text-[var(--axis-text-secondary)]">
+          <div className="mt-2 space-y-2 text-sm leading-relaxed text-fg-secondary">
             {paragraphs.length > 0 ? (
               paragraphs.map((p, i) => <p key={i}>{p}</p>)
             ) : (
@@ -100,12 +100,12 @@ export function SummaryCard({ item, reaction }: SummaryCardProps) {
         {(subHeading || bullets.length > 0) && (
           <div>
             {subHeading && (
-              <p className="mb-1 text-sm font-bold text-[var(--axis-text-primary)]">
+              <p className="mb-1 text-sm font-bold text-fg">
                 {subHeading}
               </p>
             )}
             {bullets.length > 0 && (
-              <ul className="list-disc space-y-1 pl-5 text-sm text-[var(--axis-text-secondary)]">
+              <ul className="list-disc space-y-1 pl-5 text-sm text-fg-secondary">
                 {bullets.map((b, i) => (
                   <li key={i}>{b}</li>
                 ))}
@@ -118,7 +118,7 @@ export function SummaryCard({ item, reaction }: SummaryCardProps) {
         {item.keyPoints && item.keyPoints.length > 0 && (
           <div>
             <SectionBadge>키워드</SectionBadge>
-            <p className="mt-2 text-sm text-[var(--axis-text-secondary)]">
+            <p className="mt-2 text-sm text-fg-secondary">
               {item.keyPoints.join(", ")}
             </p>
           </div>
@@ -133,7 +133,7 @@ export function SummaryCard({ item, reaction }: SummaryCardProps) {
                 href={item.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-[var(--axis-text-link)] hover:underline"
+                className="text-sm text-fg-brand hover:underline"
               >
                 {item.url}
               </a>
@@ -142,7 +142,7 @@ export function SummaryCard({ item, reaction }: SummaryCardProps) {
         )}
 
         {/* 하단: 반응 아이콘 + 액션 버튼 */}
-        <div className="flex items-center justify-between border-t border-[var(--axis-border-default)] pt-4">
+        <div className="flex items-center justify-between border-t border-line pt-4">
           {/* 좌: 좋아요/싫어요 */}
           <div className="flex gap-2">
             <button
@@ -151,8 +151,8 @@ export function SummaryCard({ item, reaction }: SummaryCardProps) {
               className={cn(
                 "rounded-md p-1.5 transition-colors",
                 optimisticReaction === "like"
-                  ? "bg-[var(--axis-badge-success-bg,#D1FAE5)] text-[var(--axis-badge-success-text,#065F46)]"
-                  : "text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-primary)]",
+                  ? "bg-badge-success-bg text-badge-success-text"
+                  : "text-fg-tertiary hover:bg-surface-secondary hover:text-fg",
               )}
               aria-label="좋아요"
             >
@@ -166,8 +166,8 @@ export function SummaryCard({ item, reaction }: SummaryCardProps) {
               className={cn(
                 "rounded-md p-1.5 transition-colors",
                 optimisticReaction === "dislike"
-                  ? "bg-[var(--axis-badge-destructive-bg,#FEE2E2)] text-[var(--axis-badge-destructive-text,#991B1B)]"
-                  : "text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-primary)]",
+                  ? "bg-badge-destructive-bg text-badge-destructive-text"
+                  : "text-fg-tertiary hover:bg-surface-secondary hover:text-fg",
               )}
               aria-label="싫어요"
             >
@@ -181,13 +181,13 @@ export function SummaryCard({ item, reaction }: SummaryCardProps) {
           <div className="flex gap-2">
             <Link
               to="/radar"
-              className="rounded-md border border-[var(--axis-border-default)] px-4 py-1.5 text-sm font-medium text-[var(--axis-text-secondary)] transition-colors hover:bg-[var(--axis-surface-secondary)]"
+              className="rounded-md border border-line px-4 py-1.5 text-sm font-medium text-fg-secondary transition-colors hover:bg-surface-secondary"
             >
               소스 수집 관리
             </Link>
             <Link
               to={`/ideas?sourceItemId=${item.id}`}
-              className="rounded-md bg-[var(--axis-text-brand,#2563EB)] px-4 py-1.5 text-sm font-medium text-white transition-colors hover:opacity-90"
+              className="rounded-md bg-fg-brand px-4 py-1.5 text-sm font-medium text-white transition-colors hover:opacity-90"
             >
               아이디어 생성
             </Link>

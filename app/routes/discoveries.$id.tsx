@@ -248,16 +248,16 @@ export default function DiscoveryDetail() {
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <div className="flex items-center space-x-3">
-              <h1 className="text-2xl font-bold text-[var(--axis-text-primary)]">{discovery.title}</h1>
+              <h1 className="text-2xl font-bold text-fg">{discovery.title}</h1>
               <StatusBadge status={discovery.status} size="md" />
             </div>
-            <div className="mt-2 flex items-center space-x-4 text-sm text-[var(--axis-text-tertiary)]">
+            <div className="mt-2 flex items-center space-x-4 text-sm text-fg-tertiary">
               <span>Owner: {owner?.name || "미지정"}</span>
               <span>Reviewer: {reviewer?.name || "미지정"}</span>
               <span>Gatekeeper: {gatekeeper?.name || "미지정"}</span>
               <span>생성: {formatDate(discovery.createdAt)}</span>
               {discovery.dueDate && (
-                <span className="text-[var(--axis-text-error)]">
+                <span className="text-fg-error">
                   마감: {formatDate(discovery.dueDate)}
                 </span>
               )}
@@ -369,12 +369,12 @@ export default function DiscoveryDetail() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <dt className="text-sm font-medium text-[var(--axis-text-tertiary)]">요약</dt>
-            <dd className="mt-1 text-sm text-[var(--axis-text-primary)]">{discovery.seedSummary}</dd>
+            <dt className="text-sm font-medium text-fg-tertiary">요약</dt>
+            <dd className="mt-1 text-sm text-fg">{discovery.seedSummary}</dd>
           </div>
           {discovery.seedLinks && discovery.seedLinks.length > 0 && (
             <div>
-              <dt className="text-sm font-medium text-[var(--axis-text-tertiary)]">참고 링크</dt>
+              <dt className="text-sm font-medium text-fg-tertiary">참고 링크</dt>
               <dd className="mt-1 space-y-1">
                 {discovery.seedLinks.map((link, idx) => (
                   <a
@@ -382,7 +382,7 @@ export default function DiscoveryDetail() {
                     href={link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block text-sm text-[var(--axis-text-brand)] hover:underline"
+                    className="block text-sm text-fg-brand hover:underline"
                   >
                     {link}
                   </a>
@@ -391,8 +391,8 @@ export default function DiscoveryDetail() {
             </div>
           )}
           <div>
-            <dt className="text-sm font-medium text-[var(--axis-text-tertiary)]">출처 유형</dt>
-            <dd className="mt-1 text-sm text-[var(--axis-text-primary)]">{discovery.sourceType}</dd>
+            <dt className="text-sm font-medium text-fg-tertiary">출처 유형</dt>
+            <dd className="mt-1 text-sm text-fg">{discovery.sourceType}</dd>
           </div>
         </CardContent>
       </Card>
@@ -405,21 +405,21 @@ export default function DiscoveryDetail() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <dt className="text-sm font-medium text-[var(--axis-text-tertiary)]">가설</dt>
-              <dd className="mt-1 text-sm text-[var(--axis-text-primary)]">
-                {discovery.seedSummary || <span className="italic text-[var(--axis-text-tertiary)]">미입력</span>}
+              <dt className="text-sm font-medium text-fg-tertiary">가설</dt>
+              <dd className="mt-1 text-sm text-fg">
+                {discovery.seedSummary || <span className="italic text-fg-tertiary">미입력</span>}
               </dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-[var(--axis-text-tertiary)]">타겟 고객/시장</dt>
-              <dd className="mt-1 text-sm text-[var(--axis-text-primary)]">
-                {discovery.targetSegment || <span className="italic text-[var(--axis-text-tertiary)]">미입력</span>}
+              <dt className="text-sm font-medium text-fg-tertiary">타겟 고객/시장</dt>
+              <dd className="mt-1 text-sm text-fg">
+                {discovery.targetSegment || <span className="italic text-fg-tertiary">미입력</span>}
               </dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-[var(--axis-text-tertiary)]">가치 제안</dt>
-              <dd className="mt-1 text-sm text-[var(--axis-text-primary)]">
-                {discovery.valueProposition || <span className="italic text-[var(--axis-text-tertiary)]">미입력</span>}
+              <dt className="text-sm font-medium text-fg-tertiary">가치 제안</dt>
+              <dd className="mt-1 text-sm text-fg">
+                {discovery.valueProposition || <span className="italic text-fg-tertiary">미입력</span>}
               </dd>
             </div>
           </CardContent>
@@ -441,7 +441,7 @@ export default function DiscoveryDetail() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <Form method="post" className="sm:col-span-3">
                 <input type="hidden" name="intent" value="changeOwner" />
-                <label className="block text-sm font-medium text-[var(--axis-text-secondary)]">Owner</label>
+                <label className="block text-sm font-medium text-fg-secondary">Owner</label>
                 <div className="mt-1 flex space-x-2">
                   <Select name="ownerId" defaultValue={discovery.ownerId || ""}>
                     <option value="">미지정</option>
@@ -452,7 +452,7 @@ export default function DiscoveryDetail() {
                   <Button type="submit" size="sm">변경</Button>
                 </div>
                 <div className="mt-2">
-                  <label className="block text-sm font-medium text-[var(--axis-text-secondary)]">
+                  <label className="block text-sm font-medium text-fg-secondary">
                     인수인계 메모 (필수)
                   </label>
                   <textarea
@@ -460,14 +460,14 @@ export default function DiscoveryDetail() {
                     required
                     minLength={10}
                     placeholder="지금까지 진행한 내용과 다음에 해야 할 결정을 간단히 작성해주세요."
-                    className="mt-1 w-full rounded-md border border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)] px-3 py-2 text-sm text-[var(--axis-text-primary)] placeholder:text-[var(--axis-text-tertiary)] focus:border-[var(--axis-border-focus)] focus:outline-none focus:ring-1 focus:ring-[var(--axis-border-focus)]"
+                    className="mt-1 w-full rounded-md border border-line bg-surface-primary px-3 py-2 text-sm text-fg placeholder:text-fg-tertiary focus:border-line-focus focus:outline-none focus:ring-1 focus:ring-focus-ring"
                     rows={3}
                   />
                 </div>
               </Form>
               <Form method="post">
                 <input type="hidden" name="intent" value="changeReviewer" />
-                <label className="block text-sm font-medium text-[var(--axis-text-secondary)]">Reviewer</label>
+                <label className="block text-sm font-medium text-fg-secondary">Reviewer</label>
                 <div className="mt-1 flex space-x-2">
                   <Select name="reviewerId" defaultValue={discovery.reviewerId || ""}>
                     <option value="">없음</option>
@@ -480,7 +480,7 @@ export default function DiscoveryDetail() {
               </Form>
               <Form method="post">
                 <input type="hidden" name="intent" value="changeGatekeeper" />
-                <label className="block text-sm font-medium text-[var(--axis-text-secondary)]">Gatekeeper</label>
+                <label className="block text-sm font-medium text-fg-secondary">Gatekeeper</label>
                 <div className="mt-1 flex space-x-2">
                   <Select name="gatekeeperId" defaultValue={discovery.gatekeeperId || ""}>
                     <option value="">없음</option>
@@ -504,7 +504,7 @@ export default function DiscoveryDetail() {
               Experiments ({experiments.length}/{maxExperiments})
             </CardTitle>
             {experiments.length > 0 && (
-              <p className="mt-1 text-xs text-[var(--axis-text-tertiary)]">
+              <p className="mt-1 text-xs text-fg-tertiary">
                 {completedExperiments.length}/{experiments.length} 완료
               </p>
             )}
@@ -519,7 +519,7 @@ export default function DiscoveryDetail() {
         </CardHeader>
         <CardContent>
           {experiments.length === 0 ? (
-            <p className="text-sm text-[var(--axis-text-tertiary)]">
+            <p className="text-sm text-fg-tertiary">
               아직 실험이 없습니다.
               {canPromoteToOpen && " OPEN으로 승격하면서 첫 실험을 등록하세요."}
             </p>
@@ -532,18 +532,18 @@ export default function DiscoveryDetail() {
                   className={cn(
                     "border-l-4 pl-4",
                     exp.completedAt
-                      ? "border-[var(--axis-border-success)]"
-                      : "border-[var(--axis-border-focus)]"
+                      ? "border-line-success"
+                      : "border-line-focus"
                   )}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h3 className="text-sm font-medium text-[var(--axis-text-primary)]">가설: {exp.hypothesis}</h3>
-                      <p className="mt-1 text-sm text-[var(--axis-text-secondary)]">행동: {exp.minimalAction}</p>
-                      <p className="mt-1 text-sm text-[var(--axis-text-tertiary)]">
+                      <h3 className="text-sm font-medium text-fg">가설: {exp.hypothesis}</h3>
+                      <p className="mt-1 text-sm text-fg-secondary">행동: {exp.minimalAction}</p>
+                      <p className="mt-1 text-sm text-fg-tertiary">
                         예상 근거: {exp.expectedEvidence}
                       </p>
-                      <p className="mt-1 text-xs text-[var(--axis-text-tertiary)]">
+                      <p className="mt-1 text-xs text-fg-tertiary">
                         마감: {formatDate(exp.deadline)}
                       </p>
                     </div>
@@ -562,7 +562,7 @@ export default function DiscoveryDetail() {
                     </div>
                   </div>
                   {exp.resultSummary && (
-                    <p className="mt-2 text-sm text-[var(--axis-text-secondary)]">결과: {exp.resultSummary}</p>
+                    <p className="mt-2 text-sm text-fg-secondary">결과: {exp.resultSummary}</p>
                   )}
                 </div>
               ))}
@@ -583,7 +583,7 @@ export default function DiscoveryDetail() {
         </CardHeader>
         <CardContent>
           {evidence.length === 0 ? (
-            <p className="text-sm text-[var(--axis-text-tertiary)]">아직 근거가 없습니다.</p>
+            <p className="text-sm text-fg-tertiary">아직 근거가 없습니다.</p>
           ) : (
             <div className="space-y-3">
               {evidence.map((ev) => (
@@ -592,14 +592,14 @@ export default function DiscoveryDetail() {
                   className={cn(
                     "rounded-md border p-3",
                     ev.type === "ASSUMPTION"
-                      ? "border-[var(--axis-yellow-200)] bg-[var(--axis-surface-warning)]"
-                      : "border-[var(--axis-border-default)]"
+                      ? "border-[var(--axis-yellow-200)] bg-surface-warning"
+                      : "border-line"
                   )}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
-                        <span className="text-xs font-semibold text-[var(--axis-text-tertiary)]">{ev.type}</span>
+                        <span className="text-xs font-semibold text-fg-tertiary">{ev.type}</span>
                         <Badge
                           variant={
                             ev.strength === "A" ? "success"
@@ -611,13 +611,13 @@ export default function DiscoveryDetail() {
                           {ev.strength}급
                         </Badge>
                       </div>
-                      <p className="mt-1 text-sm text-[var(--axis-text-primary)]">{ev.content}</p>
+                      <p className="mt-1 text-sm text-fg">{ev.content}</p>
                       {ev.linkOrAttachment && (
                         <a
                           href={ev.linkOrAttachment}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="mt-1 block text-xs text-[var(--axis-text-brand)] hover:underline"
+                          className="mt-1 block text-xs text-fg-brand hover:underline"
                         >
                           {ev.linkOrAttachment}
                         </a>
@@ -638,7 +638,7 @@ export default function DiscoveryDetail() {
         </CardHeader>
         <CardContent>
           {kpiWithMeasurements.length === 0 ? (
-            <p className="text-sm text-[var(--axis-text-tertiary)]">
+            <p className="text-sm text-fg-tertiary">
               KPI가 등록되지 않았습니다. Agent에게 KPI 등록을 요청하세요.
             </p>
           ) : (
@@ -658,7 +658,7 @@ export default function DiscoveryDetail() {
         </CardHeader>
         <CardContent>
           {allLinks.length === 0 ? (
-            <p className="text-sm text-[var(--axis-text-tertiary)]">연결된 Discovery가 없습니다.</p>
+            <p className="text-sm text-fg-tertiary">연결된 Discovery가 없습니다.</p>
           ) : (
             <div className="space-y-2">
               {allLinks.map((link) => {
@@ -674,12 +674,12 @@ export default function DiscoveryDetail() {
                 return (
                   <div
                     key={link.id}
-                    className="flex items-center justify-between rounded-md border border-[var(--axis-border-default)] p-3"
+                    className="flex items-center justify-between rounded-md border border-line p-3"
                   >
                     <div className="flex items-center gap-2">
                       <Link
                         to={`/discoveries/${linked.id}`}
-                        className="text-sm font-medium text-[var(--axis-text-brand)] hover:underline"
+                        className="text-sm font-medium text-fg-brand hover:underline"
                       >
                         {linked.title}
                       </Link>
@@ -704,7 +704,7 @@ export default function DiscoveryDetail() {
         </CardHeader>
         <CardContent>
           {activityLogs.length === 0 ? (
-            <p className="text-sm text-[var(--axis-text-tertiary)]">{"\uD65C\uB3D9 \uB0B4\uC5ED\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."}</p>
+            <p className="text-sm text-fg-tertiary">{"\uD65C\uB3D9 \uB0B4\uC5ED\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."}</p>
           ) : (
             <div className="relative space-y-0">
               {activityLogs.map((log, i) => {
@@ -713,25 +713,25 @@ export default function DiscoveryDetail() {
                   <div key={log.id} className="relative flex gap-3 pb-4">
                     {/* Timeline line */}
                     {!isLast && (
-                      <div className="absolute left-[7px] top-4 bottom-0 w-px bg-[var(--axis-border-default)]" />
+                      <div className="absolute left-[7px] top-4 bottom-0 w-px bg-line" />
                     )}
                     {/* Dot */}
-                    <div className="relative z-10 mt-1.5 h-[15px] w-[15px] shrink-0 rounded-full border-2 border-[var(--axis-border-default)] bg-[var(--axis-surface-primary)]" />
+                    <div className="relative z-10 mt-1.5 h-[15px] w-[15px] shrink-0 rounded-full border-2 border-line bg-surface-primary" />
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                           {log.eventType}
                         </Badge>
-                        <span className="text-sm font-medium text-[var(--axis-text-primary)]">
+                        <span className="text-sm font-medium text-fg">
                           {log.actorName}
                         </span>
-                        <span className="text-xs text-[var(--axis-text-tertiary)]">
+                        <span className="text-xs text-fg-tertiary">
                           {formatDateTime(log.timestamp)}
                         </span>
                       </div>
                       {log.metadata && Object.keys(log.metadata).length > 0 && (
-                        <p className="mt-0.5 text-xs text-[var(--axis-text-tertiary)] truncate">
+                        <p className="mt-0.5 text-xs text-fg-tertiary truncate">
                           {Object.entries(log.metadata)
                             .filter(([, v]) => v != null)
                             .map(([k, v]) => `${k}: ${v}`)

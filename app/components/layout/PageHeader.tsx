@@ -20,7 +20,7 @@ export function PageHeader({ title, description, actions, breadcrumbs, className
     <div className={cn("mb-8", className)}>
       {/* Breadcrumbs */}
       {breadcrumbs && breadcrumbs.length > 0 && (
-        <nav className="mb-2 flex items-center gap-1.5 text-xs text-[var(--axis-text-tertiary)]" aria-label="breadcrumb">
+        <nav className="mb-2 flex items-center gap-1.5 text-xs text-fg-tertiary" aria-label="breadcrumb">
           {breadcrumbs.map((crumb, i) => (
             <span key={crumb.label} className="flex items-center gap-1.5">
               {i > 0 && (
@@ -29,11 +29,11 @@ export function PageHeader({ title, description, actions, breadcrumbs, className
                 </svg>
               )}
               {crumb.to ? (
-                <Link to={crumb.to} className="hover:text-[var(--axis-text-primary)] transition-colors">
+                <Link to={crumb.to} className="hover:text-fg transition-colors">
                   {crumb.label}
                 </Link>
               ) : (
-                <span className="text-[var(--axis-text-secondary)]">{crumb.label}</span>
+                <span className="text-fg-secondary">{crumb.label}</span>
               )}
             </span>
           ))}
@@ -44,13 +44,13 @@ export function PageHeader({ title, description, actions, breadcrumbs, className
       <div className="flex items-center justify-between">
         <div>
           <h1
-            className="font-bold text-[var(--axis-text-primary)]"
+            className="font-bold text-fg"
             style={{ fontSize: "var(--dx-text-page-title)" }}
           >
             {title}
           </h1>
           {description && (
-            <p className="mt-1 text-sm text-[var(--axis-text-secondary)]">{description}</p>
+            <p className="mt-1 text-sm text-fg-secondary">{description}</p>
           )}
         </div>
         {actions && <div className="flex items-center gap-3">{actions}</div>}

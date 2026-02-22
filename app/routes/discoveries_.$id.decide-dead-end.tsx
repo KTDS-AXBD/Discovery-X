@@ -162,9 +162,9 @@ export default function DecideDeadEnd() {
         />
 
         {/* Discovery Info */}
-        <div className="mb-6 rounded-lg bg-[var(--axis-surface-error)] p-4">
-          <h2 className="text-lg font-semibold text-[var(--axis-text-primary)]">{discovery.title}</h2>
-          <p className="mt-2 text-sm text-[var(--axis-text-secondary)]">{discovery.seedSummary}</p>
+        <div className="mb-6 rounded-lg bg-surface-error p-4">
+          <h2 className="text-lg font-semibold text-fg">{discovery.title}</h2>
+          <p className="mt-2 text-sm text-fg-secondary">{discovery.seedSummary}</p>
         </div>
 
         {actionData?.error && (
@@ -195,14 +195,14 @@ export default function DecideDeadEnd() {
                 />
               </FormField>
 
-              <hr className="border-[var(--axis-border-default)]" />
+              <hr className="border-line" />
 
               {/* Failure Pattern */}
               <div>
-                <label className="block text-sm font-medium text-[var(--axis-text-primary)]">
-                  실패 패턴 <span className="text-[var(--axis-text-error)] ml-0.5">*</span> (1-3개 선택)
+                <label className="block text-sm font-medium text-fg">
+                  실패 패턴 <span className="text-fg-error ml-0.5">*</span> (1-3개 선택)
                 </label>
-                <p className="mt-1 text-xs text-[var(--axis-text-tertiary)]">
+                <p className="mt-1 text-xs text-fg-tertiary">
                   유사한 Discovery에서 같은 실패를 반복하지 않도록 패턴을 태깅합니다
                 </p>
                 <div className="mt-3 space-y-3">
@@ -213,17 +213,17 @@ export default function DecideDeadEnd() {
                           id={`pattern_${pattern.id}`}
                           name={`pattern_${pattern.id}`}
                           type="checkbox"
-                          className="h-4 w-4 rounded border-[var(--axis-border-default)] text-[var(--axis-text-error)] focus:ring-[var(--axis-border-error)]"
+                          className="h-4 w-4 rounded border-line text-fg-error focus:ring-line-error"
                         />
                       </div>
                       <div className="ml-3 text-sm">
                         <label
                           htmlFor={`pattern_${pattern.id}`}
-                          className="font-medium text-[var(--axis-text-secondary)]"
+                          className="font-medium text-fg-secondary"
                         >
                           {pattern.label}
                         </label>
-                        <p className="text-[var(--axis-text-tertiary)]">{pattern.description}</p>
+                        <p className="text-fg-tertiary">{pattern.description}</p>
                       </div>
                     </div>
                   ))}
@@ -243,7 +243,7 @@ export default function DecideDeadEnd() {
               </FormField>
 
               {/* Actions */}
-              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-[var(--axis-border-default)] pt-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 border-t border-line pt-6">
                 <Button variant="outline" asChild>
                   <a href={`/discoveries/${discovery.id}`}>취소</a>
                 </Button>
@@ -254,7 +254,7 @@ export default function DecideDeadEnd() {
         </Card>
 
         {/* Info */}
-        <div className="mt-6 rounded-md bg-[var(--axis-surface-warning)] p-4 text-sm text-[var(--axis-text-secondary)]">
+        <div className="mt-6 rounded-md bg-surface-warning p-4 text-sm text-fg-secondary">
           <p className="font-semibold">DEAD END 결정 후:</p>
           <ul className="mt-2 list-inside list-disc space-y-1">
             <li>상태: OPEN → DEAD END</li>
@@ -265,7 +265,7 @@ export default function DecideDeadEnd() {
           </ul>
         </div>
 
-        <div className="mt-4 rounded-md bg-[var(--axis-surface-secondary)] p-4 text-sm text-[var(--axis-text-tertiary)]">
+        <div className="mt-4 rounded-md bg-surface-secondary p-4 text-sm text-fg-tertiary">
           <p className="font-semibold">실패를 자산으로 만드는 법:</p>
           <ul className="mt-2 list-inside list-disc space-y-1">
             <li>

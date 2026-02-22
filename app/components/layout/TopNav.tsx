@@ -113,33 +113,33 @@ function UserDropdown({ user }: TopNavProps) {
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors hover:bg-[var(--axis-surface-secondary)]"
+        className="flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors hover:bg-surface-secondary"
         aria-expanded={open}
         aria-haspopup="true"
       >
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--axis-surface-brand)] text-[10px] font-bold text-[var(--axis-text-brand)]">
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-surface-brand text-[10px] font-bold text-fg-brand">
           {initials}
         </span>
-        <span className="text-[var(--axis-text-secondary)]">{user.name}</span>
-        <svg className="h-3 w-3 text-[var(--axis-icon-secondary)]" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+        <span className="text-fg-secondary">{user.name}</span>
+        <svg className="h-3 w-3 text-icon-secondary" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
         </svg>
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-1 w-56 rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] py-1 shadow-lg">
+        <div className="absolute right-0 top-full z-50 mt-1 w-56 rounded-lg border border-line bg-surface py-1 shadow-lg">
           {/* 사용자 이메일 */}
-          <div className="px-3 py-2 text-xs text-[var(--axis-text-tertiary)]">
+          <div className="px-3 py-2 text-xs text-fg-tertiary">
             {user.email}
           </div>
 
-          <div className="my-1 border-t border-[var(--axis-border-default)]" />
+          <div className="my-1 border-t border-line" />
 
           {/* 설정 */}
           <Link
             to="/settings"
             onClick={close}
-            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-[var(--axis-text-secondary)] transition-colors hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-primary)]"
+            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-fg-secondary transition-colors hover:bg-surface-secondary hover:text-fg"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
@@ -153,7 +153,7 @@ function UserDropdown({ user }: TopNavProps) {
             <Link
               to="/admin/users"
               onClick={close}
-              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-[var(--axis-text-secondary)] transition-colors hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-primary)]"
+              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-fg-secondary transition-colors hover:bg-surface-secondary hover:text-fg"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
@@ -162,13 +162,13 @@ function UserDropdown({ user }: TopNavProps) {
             </Link>
           )}
 
-          <div className="my-1 border-t border-[var(--axis-border-default)]" />
+          <div className="my-1 border-t border-line" />
 
           {/* 로그아웃 */}
           <Form method="post" action="/logout">
             <button
               type="submit"
-              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-[var(--axis-text-secondary)] transition-colors hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-primary)]"
+              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-fg-secondary transition-colors hover:bg-surface-secondary hover:text-fg"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
@@ -193,7 +193,7 @@ export function TopNav({ user }: TopNavProps) {
 
   return (
     <nav
-      className="shrink-0 border-b border-[var(--dx-border-muted,var(--axis-border-default))] bg-[var(--dx-surface-panel,var(--axis-surface-default))]"
+      className="shrink-0 border-b border-line-muted bg-surface-panel"
       style={{ height: "var(--dx-nav-height)" }}
     >
       <div className="flex h-full items-center justify-between px-4">
@@ -202,7 +202,7 @@ export function TopNav({ user }: TopNavProps) {
           {/* Mobile hamburger */}
           <button
             type="button"
-            className="inline-flex items-center justify-center rounded-lg p-1.5 text-[var(--axis-icon-secondary)] hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-icon-default)] sm:hidden"
+            className="inline-flex items-center justify-center rounded-lg p-1.5 text-icon-secondary hover:bg-surface-secondary hover:text-icon sm:hidden"
             onClick={toggle}
             aria-label="사이드바 토글"
           >
@@ -212,8 +212,8 @@ export function TopNav({ user }: TopNavProps) {
           </button>
 
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 text-[var(--axis-text-primary)]">
-            <svg className="h-5 w-5 text-[var(--axis-text-brand)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <Link to="/" className="flex items-center gap-2 text-fg">
+            <svg className="h-5 w-5 text-fg-brand" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="10" />
               <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
             </svg>
@@ -223,7 +223,7 @@ export function TopNav({ user }: TopNavProps) {
           {/* Tenant Switcher — only show when multiple tenants exist */}
           {tenant && tenantList.length > 1 && (
             <>
-              <span className="hidden text-[var(--axis-text-tertiary)] sm:inline">/</span>
+              <span className="hidden text-fg-tertiary sm:inline">/</span>
               <TenantSwitcher currentTenantId={tenant.id} tenants={tenantList} />
             </>
           )}
@@ -237,10 +237,10 @@ export function TopNav({ user }: TopNavProps) {
                   key={tab.to}
                   to={tab.to}
                   className={cn(
-                    "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-[var(--dx-transition-normal)]",
+                    "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-normal",
                     isActive
-                      ? "bg-[var(--axis-surface-brand)] text-[var(--axis-text-brand)]"
-                      : "text-[var(--axis-text-tertiary)] hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-text-primary)]",
+                      ? "bg-surface-brand text-fg-brand"
+                      : "text-fg-tertiary hover:bg-surface-secondary hover:text-fg",
                   )}
                 >
                   {tab.icon}
@@ -256,7 +256,7 @@ export function TopNav({ user }: TopNavProps) {
           {/* Search */}
           <Link
             to="/search"
-            className="rounded-md p-1.5 text-[var(--axis-icon-secondary)] transition-colors hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-icon-default)]"
+            className="rounded-md p-1.5 text-icon-secondary transition-colors hover:bg-surface-secondary hover:text-icon"
             aria-label="통합 검색"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -268,7 +268,7 @@ export function TopNav({ user }: TopNavProps) {
           <button
             type="button"
             onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-            className="rounded-md p-1.5 text-[var(--axis-icon-secondary)] transition-colors hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-icon-default)]"
+            className="rounded-md p-1.5 text-icon-secondary transition-colors hover:bg-surface-secondary hover:text-icon"
             aria-label={mounted ? (resolvedTheme === "dark" ? "라이트 모드" : "다크 모드") : "테마 전환"}
           >
             {mounted ? (
@@ -285,7 +285,7 @@ export function TopNav({ user }: TopNavProps) {
           {/* Settings */}
           <Link
             to="/settings"
-            className="rounded-md p-1.5 text-[var(--axis-icon-secondary)] transition-colors hover:bg-[var(--axis-surface-secondary)] hover:text-[var(--axis-icon-default)]"
+            className="rounded-md p-1.5 text-icon-secondary transition-colors hover:bg-surface-secondary hover:text-icon"
             aria-label="설정"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">

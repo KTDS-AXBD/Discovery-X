@@ -219,14 +219,14 @@ export default function TopicDetail() {
                 type="text"
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                className="w-full rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] px-3 py-2 text-lg font-semibold text-[var(--axis-text-primary)] outline-none focus:border-[var(--axis-text-brand)]"
+                className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-lg font-semibold text-fg outline-none focus:border-fg-brand"
                 placeholder="Topic 이름"
               />
               <textarea
                 value={editDesc}
                 onChange={(e) => setEditDesc(e.target.value)}
                 rows={3}
-                className="w-full rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] px-3 py-2 text-sm text-[var(--axis-text-secondary)] outline-none focus:border-[var(--axis-text-brand)]"
+                className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-fg-secondary outline-none focus:border-fg-brand"
                 placeholder="설명 (선택)"
               />
               <div className="flex gap-2">
@@ -249,13 +249,13 @@ export default function TopicDetail() {
           ) : (
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-xl font-bold text-[var(--axis-text-primary)]">
+                <h1 className="text-xl font-bold text-fg">
                   {topic.name}
                 </h1>
                 <TopicStatusBadge status={topic.status} />
               </div>
               {topic.description && (
-                <p className="mt-2 text-sm text-[var(--axis-text-secondary)]">
+                <p className="mt-2 text-sm text-fg-secondary">
                   {topic.description}
                 </p>
               )}
@@ -272,7 +272,7 @@ export default function TopicDetail() {
                     variant="ghost"
                     size="sm"
                     onClick={handleArchive}
-                    className="text-[var(--axis-text-tertiary)]"
+                    className="text-fg-tertiary"
                   >
                     아카이브
                   </Button>
@@ -283,15 +283,15 @@ export default function TopicDetail() {
         </div>
 
         {/* 탭 네비게이션 */}
-        <div className="mb-6 flex gap-1 border-b border-[var(--axis-border-default)]">
+        <div className="mb-6 flex gap-1 border-b border-line">
           {(["overview", "decisions", "glossary", "suggestions", "events"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`px-3 py-2 text-sm font-medium transition-colors ${
                 activeTab === tab
-                  ? "border-b-2 border-[var(--axis-text-brand)] text-[var(--axis-text-brand)]"
-                  : "text-[var(--axis-text-tertiary)] hover:text-[var(--axis-text-secondary)]"
+                  ? "border-b-2 border-fg-brand text-fg-brand"
+                  : "text-fg-tertiary hover:text-fg-secondary"
               }`}
             >
               {tabLabels[tab]}
@@ -303,9 +303,9 @@ export default function TopicDetail() {
         {activeTab === "overview" && (
           <section>
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-[var(--axis-text-primary)]">
+              <h2 className="text-sm font-semibold text-fg">
                 멤버
-                <span className="ml-1.5 text-xs font-normal text-[var(--axis-text-tertiary)]">
+                <span className="ml-1.5 text-xs font-normal text-fg-tertiary">
                   ({members.length})
                 </span>
               </h2>
@@ -320,16 +320,16 @@ export default function TopicDetail() {
 
             {/* 멤버 추가 검색 */}
             {showAddMember && (
-              <div className="mb-4 rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-default)] p-4">
+              <div className="mb-4 rounded-lg border border-line bg-surface p-4">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => handleSearchUsers(e.target.value)}
-                  className="w-full rounded-lg border border-[var(--axis-border-default)] bg-[var(--axis-surface-secondary)] px-3 py-2 text-sm text-[var(--axis-text-primary)] outline-none placeholder:text-[var(--axis-text-tertiary)] focus:border-[var(--axis-text-brand)]"
+                  className="w-full rounded-lg border border-line bg-surface-secondary px-3 py-2 text-sm text-fg outline-none placeholder:text-fg-tertiary focus:border-fg-brand"
                   placeholder="이메일로 검색 (2글자 이상)"
                 />
                 {searchResults.length > 0 && (
-                  <ul className="mt-2 divide-y divide-[var(--axis-surface-tertiary)]">
+                  <ul className="mt-2 divide-y divide-surface-tertiary">
                     {searchResults
                       .filter((u) => !existingMemberIds.has(u.id))
                       .map((u) => (
@@ -338,10 +338,10 @@ export default function TopicDetail() {
                           className="flex items-center justify-between py-2"
                         >
                           <div>
-                            <span className="text-sm font-medium text-[var(--axis-text-primary)]">
+                            <span className="text-sm font-medium text-fg">
                               {u.name}
                             </span>
-                            <span className="ml-2 text-xs text-[var(--axis-text-tertiary)]">
+                            <span className="ml-2 text-xs text-fg-tertiary">
                               {u.email}
                             </span>
                           </div>
@@ -359,7 +359,7 @@ export default function TopicDetail() {
                 {searchQuery.length >= 2 &&
                   searchResults.filter((u) => !existingMemberIds.has(u.id))
                     .length === 0 && (
-                    <p className="mt-2 text-xs text-[var(--axis-text-tertiary)]">
+                    <p className="mt-2 text-xs text-fg-tertiary">
                       검색 결과가 없습니다
                     </p>
                   )}

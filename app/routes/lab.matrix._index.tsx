@@ -68,13 +68,13 @@ export default function MatrixHeatmapPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2
-            className="text-sm font-semibold uppercase tracking-wider text-[var(--axis-text-primary)]"
+            className="text-sm font-semibold uppercase tracking-wider text-fg"
             style={{ fontFamily: "var(--dx-font-mono)" }}
           >
             Framework Matrix
           </h2>
           <p
-            className="mt-0.5 text-xs text-[var(--dx-lab-accent)]"
+            className="mt-0.5 text-xs text-lab-accent"
             style={{ fontFamily: "var(--dx-font-mono)" }}
           >
             산업 × 기능 교차 스코어링 히트맵
@@ -83,7 +83,7 @@ export default function MatrixHeatmapPage() {
         <select
           value={currentPeriod}
           onChange={handlePeriodChange}
-          className="rounded border border-[var(--dx-border-subtle,var(--axis-border-default))] bg-[var(--axis-bg-secondary,#1a1a2e)] px-3 py-1.5 text-xs text-[var(--axis-text-primary)]"
+          className="rounded border border-line-subtle bg-surface-secondary px-3 py-1.5 text-xs text-fg"
           style={{ fontFamily: "var(--dx-font-mono)" }}
         >
           {periodOptions.map((opt) => (
@@ -100,7 +100,7 @@ export default function MatrixHeatmapPage() {
       {/* 히트맵 그리드 */}
       {heatmapData.industries.length === 0 || heatmapData.functions.length === 0 ? (
         <div
-          className="flex min-h-[200px] items-center justify-center rounded border border-dashed border-[var(--dx-border-subtle,var(--axis-border-default))] text-xs text-[var(--axis-text-tertiary)]"
+          className="flex min-h-[200px] items-center justify-center rounded border border-dashed border-line-subtle text-xs text-fg-tertiary"
           style={{ fontFamily: "var(--dx-font-mono)" }}
         >
           산업군 또는 기능이 등록되지 않았습니다. 데이터를 먼저 설정해주세요.

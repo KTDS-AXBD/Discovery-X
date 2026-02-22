@@ -35,9 +35,9 @@ export interface SimulationViewProps {
 }
 
 const PROBABILITY_STYLES = {
-  high: "bg-[var(--axis-badge-destructive-bg,#FEE2E2)] text-[var(--axis-badge-destructive-text,#991B1B)]",
-  medium: "bg-[var(--axis-badge-warning-bg,#FEF3C7)] text-[var(--axis-badge-warning-text,#92400E)]",
-  low: "bg-[var(--axis-badge-success-bg,#D1FAE5)] text-[var(--axis-badge-success-text,#065F46)]",
+  high: "bg-badge-destructive-bg text-badge-destructive-text",
+  medium: "bg-badge-warning-bg text-badge-warning-text",
+  low: "bg-badge-success-bg text-badge-success-text",
 };
 
 const PROBABILITY_LABELS = { high: "높음", medium: "중간", low: "낮음" };
@@ -45,8 +45,8 @@ const PROBABILITY_LABELS = { high: "높음", medium: "중간", low: "낮음" };
 export function SimulationView({ propagation, scenario, loading }: SimulationViewProps) {
   if (loading) {
     return (
-      <div className="flex h-48 items-center justify-center rounded-lg border border-[var(--dx-border-subtle,var(--axis-border-default))]">
-        <p className="text-sm text-[var(--axis-text-tertiary)]" style={{ fontFamily: "var(--dx-font-mono)" }}>SIMULATING...</p>
+      <div className="flex h-48 items-center justify-center rounded-lg border border-line-subtle">
+        <p className="text-sm text-fg-tertiary font-mono-dx">SIMULATING...</p>
       </div>
     );
   }
@@ -58,8 +58,8 @@ export function SimulationView({ propagation, scenario, loading }: SimulationVie
       {/* Source + Summary */}
       <div className="flex items-center gap-3">
         <Badge variant="default">{propagation.sourceNode.label}</Badge>
-        <span className="text-sm text-[var(--dx-lab-accent)]">&rarr;</span>
-        <span className="text-sm text-[var(--axis-text-secondary)]" style={{ fontFamily: "var(--dx-font-mono)" }}>
+        <span className="text-sm text-lab-accent">&rarr;</span>
+        <span className="text-sm text-fg-secondary font-mono-dx">
           {propagation.affectedNodes.length} affected ({propagation.maxDepthReached} hops)
         </span>
       </div>
@@ -72,29 +72,29 @@ export function SimulationView({ propagation, scenario, loading }: SimulationVie
             const barWidth = Math.max(4, Math.round(node.impact * 100));
             return (
               <div key={node.nodeId} className="flex items-center gap-3">
-                <span className="w-32 truncate text-sm text-[var(--axis-text-primary)]">
+                <span className="w-32 truncate text-sm text-fg">
                   {node.label}
                 </span>
                 <Badge variant="secondary" className="shrink-0 text-[10px]">
                   {node.ontologyType}
                 </Badge>
-                <div className="h-2 flex-1 rounded-full bg-[var(--axis-surface-secondary)]">
+                <div className="h-2 flex-1 rounded-full bg-surface-secondary">
                   <div
                     className="h-full rounded-full transition-all"
                     style={{ width: `${barWidth}%`, backgroundColor: "var(--dx-lab-accent)" }}
                   />
                 </div>
-                <span className="w-12 text-right text-[10px] tabular-nums text-[var(--axis-text-tertiary)]">
+                <span className="w-12 text-right text-[10px] tabular-nums text-fg-tertiary">
                   {(node.impact * 100).toFixed(0)}%
                 </span>
-                <span className="w-8 text-right text-[10px] text-[var(--axis-text-tertiary)]">
+                <span className="w-8 text-right text-[10px] text-fg-tertiary">
                   D{node.depth}
                 </span>
               </div>
             );
           })}
           {propagation.affectedNodes.length === 0 && (
-            <p className="py-4 text-center text-sm text-[var(--axis-text-tertiary)]">
+            <p className="py-4 text-center text-sm text-fg-tertiary">
               연결된 엔티티가 없습니다.
             </p>
           )}
@@ -105,19 +105,19 @@ export function SimulationView({ propagation, scenario, loading }: SimulationVie
       {scenario && (
         <>
           <div>
-            <h3 className="mb-2 text-sm font-semibold text-[var(--axis-text-secondary)]">
+            <h3 className="mb-2 text-sm font-semibold text-fg-secondary">
               시나리오 요약
             </h3>
             <Card>
               <CardContent className="p-4">
-                <p className="text-sm text-[var(--axis-text-primary)]">{scenario.summary}</p>
+                <p className="text-sm text-fg">{scenario.summary}</p>
               </CardContent>
             </Card>
           </div>
 
           {scenario.impacts.length > 0 && (
             <div>
-              <h3 className="mb-2 text-sm font-semibold text-[var(--axis-text-secondary)]">
+              <h3 className="mb-2 text-sm font-semibold text-fg-secondary">
                 예상 영향
               </h3>
               <div className="space-y-2">
@@ -125,7 +125,7 @@ export function SimulationView({ propagation, scenario, loading }: SimulationVie
                   <Card key={i}>
                     <CardContent className="p-3">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-[var(--axis-text-primary)]">
+                        <span className="text-sm font-medium text-fg">
                           {imp.entity}
                         </span>
                         <span
@@ -133,11 +133,11 @@ export function SimulationView({ propagation, scenario, loading }: SimulationVie
                         >
                           {PROBABILITY_LABELS[imp.probability]}
                         </span>
-                        <span className="text-[10px] text-[var(--axis-text-tertiary)]">
+                        <span className="text-[10px] text-fg-tertiary">
                           {imp.timeframe}
                         </span>
                       </div>
-                      <p className="mt-1 text-xs text-[var(--axis-text-secondary)]">{imp.impact}</p>
+                      <p className="mt-1 text-xs text-fg-secondary">{imp.impact}</p>
                     </CardContent>
                   </Card>
                 ))}
@@ -148,12 +148,12 @@ export function SimulationView({ propagation, scenario, loading }: SimulationVie
           <div className="grid grid-cols-2 gap-4">
             {scenario.risks.length > 0 && (
               <div>
-                <h3 className="mb-2 text-sm font-semibold text-[var(--axis-badge-destructive-text,#991B1B)]">
+                <h3 className="mb-2 text-sm font-semibold text-badge-destructive-text">
                   리스크
                 </h3>
                 <ul className="space-y-1">
                   {scenario.risks.map((risk, i) => (
-                    <li key={i} className="text-xs text-[var(--axis-text-secondary)]">
+                    <li key={i} className="text-xs text-fg-secondary">
                       &bull; {risk}
                     </li>
                   ))}
@@ -162,12 +162,12 @@ export function SimulationView({ propagation, scenario, loading }: SimulationVie
             )}
             {scenario.opportunities.length > 0 && (
               <div>
-                <h3 className="mb-2 text-sm font-semibold text-[var(--axis-badge-success-text,#065F46)]">
+                <h3 className="mb-2 text-sm font-semibold text-badge-success-text">
                   기회
                 </h3>
                 <ul className="space-y-1">
                   {scenario.opportunities.map((opp, i) => (
-                    <li key={i} className="text-xs text-[var(--axis-text-secondary)]">
+                    <li key={i} className="text-xs text-fg-secondary">
                       &bull; {opp}
                     </li>
                   ))}
@@ -178,12 +178,12 @@ export function SimulationView({ propagation, scenario, loading }: SimulationVie
 
           {scenario.recommendation && (
             <div>
-              <h3 className="mb-2 text-sm font-semibold text-[var(--axis-text-secondary)]">
+              <h3 className="mb-2 text-sm font-semibold text-fg-secondary">
                 권고 사항
               </h3>
               <Card>
                 <CardContent className="p-3">
-                  <p className="text-sm text-[var(--axis-text-primary)]">
+                  <p className="text-sm text-fg">
                     {scenario.recommendation}
                   </p>
                 </CardContent>

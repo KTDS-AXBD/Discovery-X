@@ -34,10 +34,10 @@ export function DiscoveryCard({
               </Badge>
             )}
           </div>
-          <p className="mt-1 truncate text-sm font-medium text-[var(--axis-text-primary)]">
+          <p className="mt-1 truncate text-sm font-medium text-fg">
             {title}
           </p>
-          <div className="mt-0.5 flex gap-3 text-xs text-[var(--axis-text-tertiary)]">
+          <div className="mt-0.5 flex gap-3 text-xs text-fg-tertiary">
             {ownerId && <span>Owner: {ownerId}</span>}
             {dueDate && (
               <span>기한: {formatDate(dueDate)}</span>
