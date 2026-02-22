@@ -3,6 +3,22 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 245 (2026-02-22)
+**아이디어 페이지 리디자인 v0.3 — Figma 와이어프레임 적용 + 배포**:
+- ✅ `ideas.tsx` God Component 해체: 561→~75줄 (3-Panel 로직 전부 제거, Header+Outlet만 유지)
+- ✅ `ideas._index.tsx` 카드 기반 랜딩 재작성: IdeaCardGrid (내/팀 아이디어) + SourceBrowser (소스 탐색)
+- ✅ `ideas.$id.tsx` 3-Panel 워크스페이스 흡수: 332→~700줄 (chat state/handlers/panels 이동)
+- ✅ `IdeaCardGrid.tsx` 신규: 7단계 ProgressDots + 상태 배지 + 내/팀 분리 (ownerId 기반)
+- ✅ `SourceBrowser.tsx` 신규: 좌측 소스 리스트 + 우측 요약 카드 (2컬럼)
+- ✅ `IdeaPageHeader.tsx` 수정: 햄버거 제거 + showProposalButton 조건부 렌더링
+- ✅ `IdeaService.list()`: ownerId, analysisData 필드 추가
+- ✅ `MethodologyCards.tsx`: onStartFullAnalysis prop + 전체 분석 버튼 추가
+- ✅ 프로덕션 배포 완료 (CI/CD 2m1s)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,043/1,043 PASS / build 성공
+- ✅ 프로덕션 배포 완료 (CI/CD 2m1s, https://dx.minu.best)
+
 ### 세션 244 (2026-02-22)
 **@theme inline 마이그레이션 시각 확인 — 프로덕션 light/dark 모드 검증**:
 - ✅ Playwright 브라우저로 프로덕션 (https://dx.minu.best) 7개 페이지/모드 조합 확인
