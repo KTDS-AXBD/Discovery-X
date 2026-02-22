@@ -3,6 +3,30 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 243 (2026-02-22)
+**AXIS @theme inline 마이그레이션 — var() 1,752→149 (91.5% 감소)**:
+- ✅ Phase 0: `tailwind.css`에 `@theme inline` 블록 추가 (~100 토큰: fg/surface/line/btn/badge/chart/lab/icon/input/focus-ring + font/radius/shadow/transition)
+- ✅ Phase 0: `dx-custom-tokens.css` `:root` light-mode 기본값 9개 추가 (fallback chain 제거)
+- ✅ Phase 1: UI 프리미티브 19파일 수동 마이그레이션 (Button/Card/Badge/Table/TopNav/SidebarPanel 등)
+- ✅ Phase 2-5: /team 2 workers 실행 → API 오류로 부분 성공 → 리더 sed 4-pass 일괄 치환
+  - Pass 1: 기본 패턴 (text-fg, bg-surface, border-line 등) → 1,614→373
+  - Pass 2: Cross-utility + fallback hex + 누락 토큰 → 373→198
+  - Pass 3: Edge case + misc → 198→116
+  - Pass 4: border-t/l 패턴 + 공백 fallback → 116→98 (className-only)
+- ✅ fontFamily `style={{ }}` → `className="font-mono-dx"` 전환 (18건)
+- ✅ 누락 토큰 추가: badge-success/destructive, surface-primary/hover/code, line-subtle-alt, transition-normal
+- ✅ 163파일 변경 (+2,695 / -2,373줄)
+
+**잔여 var() (149개, 허용 목록)**:
+- style= 동적 색상 (SVG stroke/fill, backgroundColor): ~51건
+- AXIS 원시 컬러 (--axis-yellow-200 등 Tailwind 충돌): ~20건
+- calc() 레이아웃 (--dx-nav-height): ~5건
+- JS 상수 문자열 (status.ts): ~8건
+- fontFamily 멀티라인 컨텍스트: ~25건
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,043/1,043 PASS / build 성공
+
 ### 세션 242 (2026-02-22)
 **/team 스킬 v8 테스트 — 싱글/복수 리더 검증 + 배포**:
 - ✅ 싱글 리더 테스트: 2 workers (읽기 전용), pane 분할 + 타이틀 ⏳→✅ + 회수 복원 확인
