@@ -3,6 +3,22 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 244 (2026-02-22)
+**@theme inline 마이그레이션 시각 확인 — 프로덕션 light/dark 모드 검증**:
+- ✅ Playwright 브라우저로 프로덕션 (https://dx.minu.best) 7개 페이지/모드 조합 확인
+  - `/login` (light) — Google 로그인 버튼, 배경, 텍스트 정상
+  - `/dashboard` (light + dark) — 통계 카드, 파이프라인, 소스 사이드바 정상
+  - `/proposals` (dark) — 파이프라인 칸반, 사이드바, 카드 정상
+  - `/ideas` (light) — 소스 패널, 방법론 카드, 채팅 패널 정상
+  - `/lab` (light) — Knowledge Graph, 통계 카운터, Extraction Log 정상
+  - `/lab/matrix` (dark) — Framework Matrix, 히트맵 범례 정상
+  - `/discoveries` (light) — 테이블, 상태 배지, 사이드바 정상
+- ✅ 다크/라이트 모드 토글 정상 동작
+- ⚠️ `/discoveries` React hydration error #418 (기존 이슈, @theme 무관)
+
+**검증 결과**:
+- ✅ 시각 회귀 없음 — 7개 페이지/모드 모두 정상
+
 ### 세션 243 (2026-02-22)
 **AXIS @theme inline 마이그레이션 — var() 1,752→149 (91.5% 감소)**:
 - ✅ Phase 0: `tailwind.css`에 `@theme inline` 블록 추가 (~100 토큰: fg/surface/line/btn/badge/chart/lab/icon/input/focus-ring + font/radius/shadow/transition)
