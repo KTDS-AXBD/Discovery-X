@@ -1,6 +1,8 @@
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { cn } from "~/lib/utils/cn";
 import { displayTitle } from "~/lib/utils/display-title";
+import { type SourceTypeFilter, detectSourceType } from "~/lib/utils/source-type";
+import { SourceFilterBar } from "~/components/ideas/SourceFilterBar";
 
 interface RadarItem {
   id: string;
@@ -46,8 +48,20 @@ export function SourceInputPanel({
   const [isDragOver, setIsDragOver] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [show24h, setShow24h] = useState(false);
+  const [searchQuery, setSearchQueryRaw] = useState("");
+  const [sourceTypeFilter, setSourceTypeFilterRaw] = useState<SourceTypeFilter>("all");
   const [page, setPage] = useState(1);
   const feedbackTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // 필터 변경 시 페이지도 함께 리셋하는 래퍼
+  const setSearchQuery = useCallback((q: string) => {
+    setSearchQueryRaw(q);
+    setPage(1);
+  }, []);
+  const setSourceTypeFilter = useCallback((t: SourceTypeFilter) => {
+    setSourceTypeFilterRaw(t);
+    setPage(1);
+  }, []);
 
   // Drag & Drop state
   const [dragAction, setDragAction] = useState<"add" | "remove" | null>(null);
@@ -121,13 +135,41 @@ export function SourceInputPanel({
   const [nowSnapshot] = useState(() => Date.now());
   const DAY_MS = 86400000;
   const filteredItems = useMemo(() => {
-    if (!show24h) return items;
-    return items.filter((item) => {
-      if (!item.collectedAt) return false;
-      const t = new Date(typeof item.collectedAt === "number" ? item.collectedAt * 1000 : item.collectedAt).getTime();
-      return nowSnapshot - t < DAY_MS;
-    });
-  }, [show24h, items, nowSnapshot]);
+    let result = items;
+    // 24h 필터
+    if (show24h) {
+      result = result.filter((item) => {
+        if (!item.collectedAt) return false;
+        const t = new Date(typeof item.collectedAt === "number" ? item.collectedAt * 1000 : item.collectedAt).getTime();
+        return nowSnapshot - t < DAY_MS;
+      });
+    }
+    // 소스 타입 필터
+    if (sourceTypeFilter !== "all") {
+      result = result.filter((item) => detectSourceType(item.url) === sourceTypeFilter);
+    }
+    // 텍스트 검색
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      result = result.filter((item) => {
+        const title = (item.title || "").toLowerCase();
+        const titleKo = (item.titleKo || "").toLowerCase();
+        const summaryKo = (item.summaryKo || "").toLowerCase();
+        return title.includes(q) || titleKo.includes(q) || summaryKo.includes(q);
+      });
+    }
+    return result;
+  }, [show24h, items, nowSnapshot, sourceTypeFilter, searchQuery]);
+
+  // 소스 타입별 개수 (필터 바 표시용)
+  const sourceTypeCounts = useMemo(() => {
+    const map: Record<string, number> = { all: items.length };
+    for (const item of items) {
+      const t = detectSourceType(item.url);
+      map[t] = (map[t] || 0) + 1;
+    }
+    return map as Record<SourceTypeFilter, number>;
+  }, [items]);
 
   // Pagination
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
@@ -200,6 +242,23 @@ export function SourceInputPanel({
         >
           24h
         </button>
+      </div>
+
+      {/* 검색 + 소스 타입 필터 */}
+      <div className="space-y-1.5 px-3 pb-2">
+        <div className="relative">
+          <svg className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-fg-tertiary" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+          </svg>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="소스 검색..."
+            className="w-full rounded-lg border border-line bg-surface-secondary py-1.5 pl-8 pr-3 text-xs text-fg placeholder:text-fg-tertiary focus:border-fg-brand focus:outline-none"
+          />
+        </div>
+        <SourceFilterBar value={sourceTypeFilter} onChange={setSourceTypeFilter} counts={sourceTypeCounts} />
       </div>
 
       {/* Input area */}
@@ -357,10 +416,10 @@ export function SourceInputPanel({
             </div>
             <div className="space-y-0.5">
               {paginatedItems.map((item) => {
-                const url = item.url?.toLowerCase() ?? "";
-                const isPdf = url.endsWith(".pdf") || url.includes("/pdf");
-                const isYoutube = url.includes("youtube.com") || url.includes("youtu.be");
-                const isText = url.startsWith("text://");
+                const sourceType = detectSourceType(item.url);
+                const isPdf = sourceType === "pdf";
+                const isYoutube = sourceType === "youtube";
+                const isText = sourceType === "text";
                 const isChecked = selectedItemIds.includes(item.id);
 
                 return (
@@ -465,6 +524,12 @@ export function SourceInputPanel({
                 더보기 ({page}/{totalPages})
               </button>
             )}
+          </div>
+        )}
+
+        {paginatedItems.length === 0 && items.length > 0 && !dragAction && (
+          <div className="flex flex-1 items-center justify-center px-4 py-8 text-center">
+            <p className="text-xs text-fg-tertiary">검색 결과가 없습니다</p>
           </div>
         )}
 

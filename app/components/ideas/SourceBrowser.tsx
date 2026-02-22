@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "@remix-run/react";
 import { cn } from "~/lib/utils/cn";
 import { displayTitle } from "~/lib/utils/display-title";
+import { useSourceFilter } from "~/lib/hooks/use-source-filter";
+import { SourceFilterBar } from "~/components/ideas/SourceFilterBar";
 
 interface SourceItem {
   id: string;
@@ -22,6 +24,14 @@ interface SourceBrowserProps {
 export function SourceBrowser({ sources }: SourceBrowserProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const navigate = useNavigate();
+  const {
+    searchQuery,
+    setSearchQuery,
+    sourceTypeFilter,
+    setSourceTypeFilter,
+    filtered,
+    counts,
+  } = useSourceFilter(sources);
   const selectedSource = sources.find((s) => s.id === selectedId);
 
   const handleCreateIdea = async () => {
@@ -58,7 +68,24 @@ export function SourceBrowser({ sources }: SourceBrowserProps) {
 
   return (
     <section>
-      <h2 className="mb-3 text-sm font-semibold text-fg">아이디어 시작하기</h2>
+      <div className="mb-3 space-y-2">
+        <h2 className="text-sm font-semibold text-fg">아이디어 시작하기</h2>
+        {/* 소스 검색 */}
+        <div className="relative">
+          <svg className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-fg-tertiary" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+          </svg>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="소스 검색..."
+            className="w-full rounded-lg border border-line bg-surface-secondary py-1.5 pl-8 pr-3 text-xs text-fg placeholder:text-fg-tertiary focus:border-fg-brand focus:outline-none"
+          />
+        </div>
+        {/* 소스 타입 필터 */}
+        <SourceFilterBar value={sourceTypeFilter} onChange={setSourceTypeFilter} counts={counts} />
+      </div>
       <div className="grid gap-4 md:grid-cols-2">
         {/* 좌측: 최근 수집 소스 리스트 */}
         <div className="rounded-xl border border-line bg-surface-card">
@@ -66,7 +93,12 @@ export function SourceBrowser({ sources }: SourceBrowserProps) {
             <h3 className="text-xs font-medium text-fg-tertiary">최근 수집 소스</h3>
           </div>
           <div className="max-h-[280px] overflow-y-auto">
-            {sources.map((source) => {
+            {filtered.length === 0 && sources.length > 0 && (
+              <div className="px-4 py-8 text-center">
+                <p className="text-xs text-fg-tertiary">검색 결과가 없습니다</p>
+              </div>
+            )}
+            {filtered.map((source) => {
               const title = displayTitle(source.titleKo, source.title, source.url);
               const isSelected = selectedId === source.id;
               return (
