@@ -13,6 +13,7 @@
 
 **검증 결과**:
 - ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,043/1,043 PASS / build 정상
+- ✅ 프로덕션 배포 완료 (CI/CD 2m7s, https://dx.minu.best)
 
 ### 세션 240 (2026-02-21)
 **/team 스킬 v8 완성 — 리더 자체 분할 + worker pane 상태 표시**:
