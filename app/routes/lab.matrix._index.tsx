@@ -73,8 +73,7 @@ export default function MatrixHeatmapPage() {
             Framework Matrix
           </h2>
           <p
-            className="mt-0.5 text-xs text-lab-accent"
-            style={{ fontFamily: "var(--dx-font-mono)" }}
+            className="mt-0.5 text-xs text-lab-accent font-mono-dx"
           >
             산업 × 기능 교차 스코어링 히트맵
           </p>
@@ -82,8 +81,7 @@ export default function MatrixHeatmapPage() {
         <select
           value={currentPeriod}
           onChange={handlePeriodChange}
-          className="rounded border border-line-subtle bg-surface-secondary px-3 py-1.5 text-xs text-fg"
-          style={{ fontFamily: "var(--dx-font-mono)" }}
+          className="rounded border border-line-subtle bg-surface-secondary px-3 py-1.5 text-xs text-fg font-mono-dx"
         >
           {periodOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -99,8 +97,7 @@ export default function MatrixHeatmapPage() {
       {/* 히트맵 그리드 */}
       {heatmapData.industries.length === 0 || heatmapData.functions.length === 0 ? (
         <div
-          className="flex min-h-[200px] items-center justify-center rounded border border-dashed border-line-subtle text-xs text-fg-tertiary"
-          style={{ fontFamily: "var(--dx-font-mono)" }}
+          className="flex min-h-[200px] items-center justify-center rounded border border-dashed border-line-subtle text-xs text-fg-tertiary font-mono-dx"
         >
           산업군 또는 기능이 등록되지 않았습니다. 데이터를 먼저 설정해주세요.
         </div>

@@ -68,8 +68,7 @@ export default function LabOverview() {
                     isWarning
                       ? "text-lab-accent"
                       : "text-fg"
-                  }`}
-                  style={{ fontFamily: "var(--dx-font-mono)" }}
+                  } font-mono-dx`}
                 >
                   {value.toLocaleString()}
                 </p>

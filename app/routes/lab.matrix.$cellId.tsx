@@ -201,8 +201,7 @@ export default function CellDetailPage() {
       {/* 뒤로가기 */}
       <Link
         to="/lab/matrix"
-        className="inline-flex items-center gap-1 text-xs text-fg-tertiary transition-colors hover:text-lab-accent"
-        style={{ fontFamily: "var(--dx-font-mono)" }}
+        className="inline-flex items-center gap-1 text-xs text-fg-tertiary transition-colors hover:text-lab-accent font-mono-dx"
       >
         ← 매트릭스로 돌아가기
       </Link>
@@ -215,8 +214,7 @@ export default function CellDetailPage() {
           {/* 추세 차트 */}
           <div className="rounded-lg border border-line-subtle bg-surface-secondary p-4">
             <h3
-              className="mb-3 text-xs font-bold uppercase tracking-wider text-lab-accent"
-              style={{ fontFamily: "var(--dx-font-mono)" }}
+              className="mb-3 text-xs font-bold uppercase tracking-wider text-lab-accent font-mono-dx"
             >
               스코어 추세
             </h3>
@@ -226,8 +224,7 @@ export default function CellDetailPage() {
           {/* Pipeline Stage */}
           <div className="rounded-lg border border-line-subtle bg-surface-secondary p-4">
             <h3
-              className="mb-3 text-xs font-bold uppercase tracking-wider text-lab-accent"
-              style={{ fontFamily: "var(--dx-font-mono)" }}
+              className="mb-3 text-xs font-bold uppercase tracking-wider text-lab-accent font-mono-dx"
             >
               파이프라인 단계
             </h3>
@@ -238,8 +235,7 @@ export default function CellDetailPage() {
         {/* 오른쪽: 스코어 입력 */}
         <div className="rounded-lg border border-line-subtle bg-surface-secondary p-4">
           <h3
-            className="mb-4 text-xs font-bold uppercase tracking-wider text-lab-accent"
-            style={{ fontFamily: "var(--dx-font-mono)" }}
+            className="mb-4 text-xs font-bold uppercase tracking-wider text-lab-accent font-mono-dx"
           >
             {myScore ? "내 스코어 수정" : "스코어 입력"}
           </h3>

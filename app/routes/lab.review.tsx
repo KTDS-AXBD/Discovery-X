@@ -45,8 +45,7 @@ function LabButton({ variant, children, ...props }: {
   return (
     <button
       type="button"
-      className={`rounded px-2 py-1 text-[10px] font-medium uppercase tracking-wide hover:opacity-80 ${styles[variant]}`}
-      style={{ fontFamily: "var(--dx-font-mono)" }}
+      className={`rounded px-2 py-1 text-[10px] font-medium uppercase tracking-wide hover:opacity-80 font-mono-dx ${styles[variant]}`}
       {...props}
     >
       {children}

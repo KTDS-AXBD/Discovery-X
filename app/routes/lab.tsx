@@ -55,13 +55,12 @@ export default function LabLayout() {
                 to={tab.to}
                 end={tab.end}
                 className={({ isActive }) =>
-                  `px-4 py-2 text-xs font-medium uppercase tracking-wider transition-colors ${
+                  `px-4 py-2 text-xs font-medium uppercase tracking-wider transition-colors font-mono-dx ${
                     isActive
                       ? "border-b-2 border-lab-accent text-lab-accent"
                       : "text-fg-tertiary hover:text-fg-secondary"
                   }`
                 }
-                style={{ fontFamily: "var(--dx-font-mono)" }}
               >
                 {tab.label}
               </NavLink>

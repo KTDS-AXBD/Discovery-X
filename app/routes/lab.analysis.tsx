@@ -122,8 +122,7 @@ export default function LabAnalysis() {
               activeMode === key
                 ? "bg-lab-accent text-white"
                 : "bg-surface-secondary text-fg-secondary hover:text-fg"
-            }`}
-            style={{ fontFamily: "var(--dx-font-mono)" }}
+            } font-mono-dx`}
           >
             {label}
           </button>
@@ -167,8 +166,7 @@ export default function LabAnalysis() {
                 simMode === "propagate"
                   ? "bg-lab-accent text-white"
                   : "bg-surface-secondary text-fg-secondary hover:text-fg"
-              }`}
-              style={{ fontFamily: "var(--dx-font-mono)" }}
+              } font-mono-dx`}
             >
               영향도 분석
             </button>
@@ -179,8 +177,7 @@ export default function LabAnalysis() {
                 simMode === "scenario"
                   ? "bg-lab-accent text-white"
                   : "bg-surface-secondary text-fg-secondary hover:text-fg"
-              }`}
-              style={{ fontFamily: "var(--dx-font-mono)" }}
+              } font-mono-dx`}
             >
               시나리오 생성
             </button>
@@ -247,8 +244,7 @@ export default function LabAnalysis() {
               type="button"
               onClick={runSimulation}
               disabled={!sourceNodeId || isSimLoading || (simMode === "scenario" && !question)}
-              className="rounded-md bg-lab-accent px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
-              style={{ fontFamily: "var(--dx-font-mono)" }}
+              className="rounded-md bg-lab-accent px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 font-mono-dx"
             >
               {isSimLoading ? "RUNNING..." : simMode === "propagate" ? "RUN PROPAGATION" : "RUN SCENARIO"}
             </button>
