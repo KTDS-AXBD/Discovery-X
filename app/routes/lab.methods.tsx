@@ -42,8 +42,7 @@ export default function LabMethodsPage() {
       {/* Section header */}
       <div className="mb-5">
         <h2
-          className="text-sm font-semibold uppercase tracking-wider text-lab-accent"
-          style={{ fontFamily: "var(--dx-font-mono)" }}
+          className="text-sm font-semibold uppercase tracking-wider text-lab-accent font-mono-dx"
         >
           Method Pack Library
         </h2>
@@ -55,8 +54,7 @@ export default function LabMethodsPage() {
       {/* Tier filter */}
       <div className="mb-5 flex items-center gap-2">
         <span
-          className="mr-1 text-[10px] uppercase tracking-widest text-fg-tertiary"
-          style={{ fontFamily: "var(--dx-font-mono)" }}
+          className="mr-1 text-[10px] uppercase tracking-widest text-fg-tertiary font-mono-dx"
         >
           Filter
         </span>
@@ -65,8 +63,7 @@ export default function LabMethodsPage() {
             !tierFilter
               ? "bg-lab-accent text-white"
               : "border border-line-subtle text-fg-tertiary hover:text-fg-secondary"
-          }`}
-          style={{ fontFamily: "var(--dx-font-mono)" }}
+          } font-mono-dx`}
           onClick={() => setSearchParams({})}
         >
           ALL ({packs.length})
@@ -80,8 +77,7 @@ export default function LabMethodsPage() {
                 tierFilter === tier.value
                   ? "bg-lab-accent text-white"
                   : "border border-line-subtle text-fg-tertiary hover:text-fg-secondary"
-              }`}
-              style={{ fontFamily: "var(--dx-font-mono)" }}
+              } font-mono-dx`}
               onClick={() => setSearchParams({ tier: tier.value })}
             >
               {tier.label} ({count})
@@ -119,8 +115,7 @@ export default function LabMethodsPage() {
             </svg>
           </div>
           <p
-            className="mt-3 text-xs uppercase tracking-wider text-fg-tertiary"
-            style={{ fontFamily: "var(--dx-font-mono)" }}
+            className="mt-3 text-xs uppercase tracking-wider text-fg-tertiary font-mono-dx"
           >
             No packs found
           </p>

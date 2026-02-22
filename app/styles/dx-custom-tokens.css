@@ -82,6 +82,12 @@
   --axis-badge-warning-bg: #FEF3C7;
   --axis-badge-warning-text: #92400E;
 
+  /* Score semantic tokens (Matrix Heatmap) */
+  --dx-score-high: #22c55e;
+  --dx-score-medium: #eab308;
+  --dx-score-low: #ef4444;
+  --dx-score-none: #94a3b8;
+
   /* Chart semantic tokens */
   --axis-chart-inbox: #93C5FD;
   --axis-chart-open: #FCD34D;
@@ -280,6 +286,12 @@
   /* Warning badge variant */
   --axis-badge-warning-bg: #78350F;
   --axis-badge-warning-text: #FDE68A;
+
+  /* Score semantic tokens (Matrix Heatmap) — dark */
+  --dx-score-high: #4ade80;
+  --dx-score-medium: #facc15;
+  --dx-score-low: #f87171;
+  --dx-score-none: #64748b;
 
   /* Chart semantic tokens */
   --axis-chart-inbox: #3B82F6;

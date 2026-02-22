@@ -112,6 +112,12 @@
   --color-chart-bar: var(--axis-chart-bar);
   --color-chart-empty: var(--axis-chart-empty);
 
+  /* ── score (Matrix Heatmap) ──────────────────── */
+  --color-score-high: var(--dx-score-high);
+  --color-score-medium: var(--dx-score-medium);
+  --color-score-low: var(--dx-score-low);
+  --color-score-none: var(--dx-score-none);
+
   /* ── lab ──────────────────────────────────────── */
   --color-lab-accent: var(--dx-lab-accent);
   --color-lab-accent-muted: var(--dx-lab-accent-muted);

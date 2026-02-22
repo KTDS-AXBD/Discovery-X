@@ -47,7 +47,7 @@ export function PipelineStageSelector({
   }
 
   return (
-    <div style={{ fontFamily: "var(--dx-font-mono)" }}>
+    <div className="font-mono-dx">
       {/* 파이프라인 Progress */}
       <div className="flex items-center gap-1">
         {PIPELINE_ORDER.map((stage, i) => {

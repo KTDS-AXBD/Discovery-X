@@ -146,13 +146,13 @@ export function getScoreLevel(score: number | null): ScoreLevel {
 export function getScoreColor(level: ScoreLevel): string {
   switch (level) {
     case "high":
-      return "var(--dx-score-high, #22c55e)";
+      return "var(--dx-score-high)";
     case "medium":
-      return "var(--dx-score-medium, #eab308)";
+      return "var(--dx-score-medium)";
     case "low":
-      return "var(--dx-score-low, #ef4444)";
+      return "var(--dx-score-low)";
     case "none":
-      return "var(--dx-score-none, #94a3b8)";
+      return "var(--dx-score-none)";
   }
 }
 

@@ -523,9 +523,8 @@ export function GraphViewer({ nodes, edges, ontologyTypes, onNodeClick }: GraphV
           <button
             type="button"
             onClick={resetView}
-            className="flex h-7 w-7 items-center justify-center rounded bg-surface-secondary text-[10px] text-fg-tertiary shadow-sm hover:bg-surface-tertiary"
+            className="flex h-7 w-7 items-center justify-center rounded bg-surface-secondary text-[10px] text-fg-tertiary shadow-sm hover:bg-surface-tertiary font-mono-dx"
             title="초기화"
-            style={{ fontFamily: "var(--dx-font-mono)" }}
           >
             1:1
           </button>
@@ -534,8 +533,7 @@ export function GraphViewer({ nodes, edges, ontologyTypes, onNodeClick }: GraphV
         {/* Zoom level indicator */}
         {transform.k !== 1 && (
           <span
-            className="absolute bottom-2 right-2 rounded bg-surface-secondary px-1.5 py-0.5 text-[10px] tabular-nums text-fg-tertiary"
-            style={{ fontFamily: "var(--dx-font-mono)" }}
+            className="absolute bottom-2 right-2 rounded bg-surface-secondary px-1.5 py-0.5 text-[10px] tabular-nums text-fg-tertiary font-mono-dx"
           >
             {Math.round(transform.k * 100)}%
           </span>

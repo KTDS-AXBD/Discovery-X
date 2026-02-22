@@ -10,8 +10,8 @@ export function ScoreTrendChart({ trend, height = 120 }: ScoreTrendChartProps) {
   if (trend.length < 2) {
     return (
       <div
-        className="flex items-center justify-center rounded border border-dashed border-line-subtle text-[10px] text-fg-tertiary"
-        style={{ height, fontFamily: "var(--dx-font-mono)" }}
+        className="flex items-center justify-center rounded border border-dashed border-line-subtle text-[10px] text-fg-tertiary font-mono-dx"
+        style={{ height }}
       >
         추세 데이터 부족 (최소 2개 기간 필요)
       </div>
@@ -49,8 +49,8 @@ export function ScoreTrendChart({ trend, height = 120 }: ScoreTrendChartProps) {
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
-      className="w-full"
-      style={{ maxHeight: height, fontFamily: "var(--dx-font-mono)" }}
+      className="w-full font-mono-dx"
+      style={{ maxHeight: height }}
     >
       {/* 그리드 */}
       {yTicks.map((y) => (
@@ -80,7 +80,7 @@ export function ScoreTrendChart({ trend, height = 120 }: ScoreTrendChartProps) {
       <path
         d={toPath(clevelData)}
         fill="none"
-        stroke="var(--dx-score-medium,#eab308)"
+        stroke="var(--dx-score-medium)"
         strokeWidth={1}
         strokeDasharray="3,2"
         opacity={0.5}
@@ -90,7 +90,7 @@ export function ScoreTrendChart({ trend, height = 120 }: ScoreTrendChartProps) {
       <path
         d={toPath(execData)}
         fill="none"
-        stroke="var(--dx-score-high,#22c55e)"
+        stroke="var(--dx-score-high)"
         strokeWidth={1}
         strokeDasharray="3,2"
         opacity={0.5}
@@ -133,9 +133,9 @@ export function ScoreTrendChart({ trend, height = 120 }: ScoreTrendChartProps) {
       <g transform={`translate(${padding.left}, ${height - 14})`}>
         <line x1={0} y1={0} x2={10} y2={0} stroke="var(--dx-lab-accent,#6366f1)" strokeWidth={2} />
         <text x={13} y={3} fontSize={7} fill="var(--axis-text-tertiary,#64748b)">종합</text>
-        <line x1={40} y1={0} x2={50} y2={0} stroke="var(--dx-score-medium,#eab308)" strokeWidth={1} strokeDasharray="3,2" />
+        <line x1={40} y1={0} x2={50} y2={0} stroke="var(--dx-score-medium)" strokeWidth={1} strokeDasharray="3,2" />
         <text x={53} y={3} fontSize={7} fill="var(--axis-text-tertiary,#64748b)">C-Level</text>
-        <line x1={85} y1={0} x2={95} y2={0} stroke="var(--dx-score-high,#22c55e)" strokeWidth={1} strokeDasharray="3,2" />
+        <line x1={85} y1={0} x2={95} y2={0} stroke="var(--dx-score-high)" strokeWidth={1} strokeDasharray="3,2" />
         <text x={98} y={3} fontSize={7} fill="var(--axis-text-tertiary,#64748b)">Exec</text>
       </g>
     </svg>

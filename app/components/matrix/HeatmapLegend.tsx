@@ -1,10 +1,10 @@
 import { STAGE_GATE_LABELS } from "~/features/matrix/types";
 
 const SCORE_LEVELS = [
-  { label: "높음 (≥4.0)", color: "var(--dx-score-high,#22c55e)" },
-  { label: "보통 (≥2.5)", color: "var(--dx-score-medium,#eab308)" },
-  { label: "낮음 (<2.5)", color: "var(--dx-score-low,#ef4444)" },
-  { label: "미평가", color: "var(--dx-score-none,#94a3b8)" },
+  { label: "높음 (≥4.0)", color: "var(--dx-score-high)" },
+  { label: "보통 (≥2.5)", color: "var(--dx-score-medium)" },
+  { label: "낮음 (<2.5)", color: "var(--dx-score-low)" },
+  { label: "미평가", color: "var(--dx-score-none)" },
 ];
 
 const STAGES = ["S0", "S1", "S2", "S3", "S4"];
@@ -12,8 +12,7 @@ const STAGES = ["S0", "S1", "S2", "S3", "S4"];
 export function HeatmapLegend() {
   return (
     <div
-      className="flex flex-wrap items-center gap-6 text-[10px] text-fg-tertiary"
-      style={{ fontFamily: "var(--dx-font-mono)" }}
+      className="flex flex-wrap items-center gap-6 text-[10px] text-fg-tertiary font-mono-dx"
     >
       {/* 스코어 범례 */}
       <div className="flex items-center gap-3">
@@ -43,8 +42,8 @@ export function HeatmapLegend() {
       {/* Delta 범례 */}
       <div className="flex items-center gap-2">
         <span className="font-medium uppercase tracking-wider">Delta</span>
-        <span style={{ color: "var(--dx-score-high,#22c55e)" }}>▲ 상승</span>
-        <span style={{ color: "var(--dx-score-low,#ef4444)" }}>▼ 하락</span>
+        <span style={{ color: "var(--dx-score-high)" }}>▲ 상승</span>
+        <span style={{ color: "var(--dx-score-low)" }}>▼ 하락</span>
       </div>
     </div>
   );

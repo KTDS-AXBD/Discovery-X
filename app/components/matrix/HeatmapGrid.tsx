@@ -43,8 +43,7 @@ function HeatmapCellBox({
       <button
         type="button"
         onClick={onClick}
-        className="flex h-16 w-full items-center justify-center rounded border border-dashed border-line-subtle bg-surface-tertiary text-[10px] text-fg-tertiary opacity-50 transition-opacity hover:opacity-80"
-        style={{ fontFamily: "var(--dx-font-mono)" }}
+        className="flex h-16 w-full items-center justify-center rounded border border-dashed border-line-subtle bg-surface-tertiary text-[10px] text-fg-tertiary opacity-50 transition-opacity hover:opacity-80 font-mono-dx"
         title="셀 미생성"
       >
         —
@@ -91,7 +90,7 @@ function HeatmapCellBox({
         <span
           className="absolute right-1 top-1 text-[8px] font-bold"
           style={{
-            color: cell.delta > 0 ? "var(--dx-score-high,#22c55e)" : "var(--dx-score-low,#ef4444)",
+            color: cell.delta > 0 ? "var(--dx-score-high)" : "var(--dx-score-low)",
           }}
         >
           {cell.delta > 0 ? "▲" : "▼"}

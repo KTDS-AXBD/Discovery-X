@@ -68,8 +68,7 @@ export default function MatrixHeatmapPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2
-            className="text-sm font-semibold uppercase tracking-wider text-fg"
-            style={{ fontFamily: "var(--dx-font-mono)" }}
+            className="text-sm font-semibold uppercase tracking-wider text-fg font-mono-dx"
           >
             Framework Matrix
           </h2>
