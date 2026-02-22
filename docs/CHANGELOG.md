@@ -3,6 +3,20 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 246 (2026-02-23)
+**G3 소스 카테고리 필터/검색 구현**:
+- ✅ `source-type.ts` 신규: detectSourceType 유틸 (URL 휴리스틱으로 웹/유튜브/텍스트/PDF 판별)
+- ✅ `use-source-filter.ts` 신규: 검색+타입 필터 커스텀 훅 (useMemo 기반)
+- ✅ `SourceFilterBar.tsx` 신규: 소스 타입 필터 pill UI (개수 표시, 비활성 스타일)
+- ✅ `SourceBrowser.tsx` 수정: useSourceFilter 훅 적용, 검색바+필터+빈 결과 UI 추가
+- ✅ `SourceInputPanel.tsx` 수정: 24h+타입+검색 3단 체이닝 필터, detectSourceType으로 인라인 로직 교체
+- ✅ `source-type.test.ts` 신규: 유닛 테스트 16개 (edge cases 포함)
+- ✅ lint 수정: useEffect 내 setState → useCallback 래퍼로 필터+페이지 리셋 원자화
+- ✅ /team 3 workers 병렬 (W1: SourceBrowser, W2: SourceInputPanel, W3: 테스트)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,065/1,065 PASS / build 성공
+
 ### 세션 245 (2026-02-22)
 **아이디어 페이지 리디자인 v0.3 — Figma 와이어프레임 적용 + 배포**:
 - ✅ `ideas.tsx` God Component 해체: 561→~75줄 (3-Panel 로직 전부 제거, Header+Outlet만 유지)

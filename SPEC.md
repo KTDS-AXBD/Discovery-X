@@ -411,8 +411,8 @@ build/
 - **라우트**: 153개 (서비스 레이어 전환 완료: folders/ideas/lab/radar/proposals)
 - **테이블**: 92개 (+5: Archive 2, Token 1, Matrix 7, Worker 2, FTS 1, Proposals +2, Graph +1 — 기존 중복 제거 후)
 - **Agent 도구**: 47개 (executor 3분할 + query-tools 3분할 + discovery-tools 4분할, schema: 8 도메인 파일)
-- **코드**: ~62,900줄 (384파일) — discovery/proposal 서비스 모듈 분할
-- **테스트**: 1,043개 (78 test files, 로컬 통과)
+- **코드**: ~63,200줄 (389파일) — discovery/proposal 서비스 모듈 분할
+- **테스트**: 1,065개 (79 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
