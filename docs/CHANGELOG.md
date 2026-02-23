@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 249 (2026-02-23)
+**Dialog/Textarea DS 컴포넌트 전환 + Select 보류**:
+- ✅ ideas.$id.tsx: `@radix-ui/react-dialog` 직접 import → DS Dialog(`~/components/ui/Dialog`) 통일
+- ✅ Textarea.tsx: 커스텀 native textarea → DS Textarea(@axis-ds/ui-react) 래핑, error prop 유지
+- ✅ ideas 유닛테스트 4파일 추가 (editable-title 14, suggest-title 14, source-browser 57, proposal-mapping 22 = 107개)
+- ⏭️ Select→DS Select 보류: DS Select = Radix 기반(SelectTrigger+SelectContent+SelectItem), 현재 native `<select>` + `<option>` 패턴과 API 비호환. 12파일/44개 `<option>` 전면 수정 필요
+- DS 활용: 7/28 → 9/28 (Textarea + ideas.$id Dialog)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,304/1,304 PASS (90 files) / build 성공
+
 ### 세션 248 (2026-02-23)
 **P1 아이디어 삭제 모달 + 분석 섹션 접기/펼치기 + 와이어프레임 비교 검증 + DS 전환**:
 - ✅ 와이어프레임(3,083줄) vs 구현(11컴포넌트) 비교 리포트 — 39기능 중 82% 구현 확인
