@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, useOutletContext, useNavigate, useRevalidator } from "@remix-run/react";
+import * as Dialog from "@radix-ui/react-dialog";
 import { getDb } from "~/db";
 import { IdeaService, RadarService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
@@ -248,6 +249,8 @@ export default function IdeaDetail() {
   const [messagesLoaded, setMessagesLoaded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [proposalModalOpen, setProposalModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // ─── Panel layout ───
   const panel = usePanelLayout();
@@ -672,7 +675,20 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
             </h1>
           )}
 
-          {/* Proposal button */}
+          {/* Delete + Proposal buttons */}
+          {isIdea && ideaId && (
+            <button
+              type="button"
+              onClick={() => setDeleteDialogOpen(true)}
+              className="shrink-0 rounded-md p-1.5 text-fg-tertiary transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30"
+              aria-label="아이디어 삭제"
+              title="아이디어 삭제"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+              </svg>
+            </button>
+          )}
           {isIdea && (
             <button
               type="button"
@@ -740,6 +756,59 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
           </svg>
         </button>
       )}
+
+      {/* Delete confirmation dialog */}
+      <Dialog.Root open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50" />
+          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-xl border border-line bg-surface p-6 shadow-lg">
+            <Dialog.Title className="text-lg font-semibold text-fg">
+              아이디어 삭제
+            </Dialog.Title>
+            <Dialog.Description className="mt-2 text-sm text-fg-secondary">
+              &ldquo;{ideaTitle}&rdquo;을(를) 삭제하시겠습니까? 연결된 분석 데이터도 함께 삭제됩니다.
+            </Dialog.Description>
+            <div className="mt-6 flex justify-end gap-3">
+              <Dialog.Close asChild>
+                <button
+                  type="button"
+                  className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-fg transition-colors hover:bg-surface-secondary"
+                >
+                  취소
+                </button>
+              </Dialog.Close>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={async () => {
+                  if (!ideaId) return;
+                  setIsDeleting(true);
+                  try {
+                    const res = await fetch("/api/ideas", {
+                      method: "DELETE",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ id: ideaId }),
+                    });
+                    if (res.ok) {
+                      setDeleteDialogOpen(false);
+                      navigate("/ideas");
+                    } else {
+                      console.error("아이디어 삭제 실패:", await res.text());
+                    }
+                  } catch (err) {
+                    console.error("아이디어 삭제 오류:", err);
+                  } finally {
+                    setIsDeleting(false);
+                  }
+                }}
+                className="rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+              >
+                {isDeleting ? "삭제 중..." : "삭제"}
+              </button>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
 
       {/* Proposal modal */}
       <ProposalCreationModal

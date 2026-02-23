@@ -284,10 +284,22 @@ export function MethodologyCards({
   onStartFullAnalysis,
   analysisRunning,
 }: MethodologyCardsProps) {
-  const [activeKey, setActiveKey] = useState<string | null>(null);
+  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
   const [addedSecondary, setAddedSecondary] = useState<string[]>([]);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
+
+  const toggleExpanded = (key: string) => {
+    setExpandedKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
 
   // Close popover on outside click
   useEffect(() => {
@@ -300,12 +312,6 @@ export function MethodologyCards({
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, [popoverOpen]);
-
-  // Auto-select a card that finishes loading
-  useEffect(() => {
-    if (!loadingCategory && activeKey === null) return;
-    // When loading stops for a category, auto-select it
-  }, [loadingCategory, activeKey]);
 
   // Determine which cards to show: primary + added secondary + any secondary with existing data
   const visibleSecondary = SECONDARY_METHODOLOGIES.filter(
@@ -324,15 +330,12 @@ export function MethodologyCards({
   const handleCardClick = (key: string) => {
     const hasData = sections[key]?.content;
     const isStale = hasData && staleSections?.has(key);
-    if (hasData && !isStale) {
-      // Toggle active
-      setActiveKey(activeKey === key ? null : key);
-    } else if (isStale) {
-      // Show stale content (user can click "다시 분석" button in banner)
-      setActiveKey(activeKey === key ? null : key);
+    if (hasData || isStale) {
+      // Toggle expand/collapse
+      toggleExpanded(key);
     } else if (loadingCategory !== key) {
-      // Start analysis
-      setActiveKey(key);
+      // Start analysis + auto-expand
+      setExpandedKeys((prev) => new Set(prev).add(key));
       onRunMethodology(key);
     }
   };
@@ -340,12 +343,10 @@ export function MethodologyCards({
   const handleAddSecondary = (key: string) => {
     setAddedSecondary((prev) => [...prev, key]);
     setPopoverOpen(false);
-    // Start analysis immediately
-    setActiveKey(key);
+    // Start analysis immediately + auto-expand
+    setExpandedKeys((prev) => new Set(prev).add(key));
     onRunMethodology(key);
   };
-
-  const currentSection = activeKey ? sections[activeKey] ?? null : null;
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -354,7 +355,7 @@ export function MethodologyCards({
         {visibleCards.map((card) => {
           const hasData = !!sections[card.key]?.content;
           const isLoading = loadingCategory === card.key;
-          const isActive = activeKey === card.key;
+          const isActive = expandedKeys.has(card.key);
           const isStale = hasData && staleSections?.has(card.key);
           const IconComponent = card.icon ? ICON_MAP[card.icon] : null;
 
@@ -461,23 +462,64 @@ export function MethodologyCards({
         )}
       </div>
 
-      {/* Content area */}
+      {/* Content area — multiple expanded sections */}
       <div className="flex-1 overflow-y-auto px-6 py-5">
-        {activeKey ? (
-          loadingCategory === activeKey ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <SpinnerIcon className="h-6 w-6 text-fg-brand" />
-              <p className="mt-3 text-sm text-fg-secondary">
-                {ALL_METHODOLOGIES.find((m) => m.key === activeKey)?.label} 분석 중...
-              </p>
-            </div>
-          ) : (
-            <MethodologyContent
-              section={currentSection}
-              isStale={!!activeKey && staleSections?.has(activeKey)}
-              onReanalyze={activeKey ? () => onRunMethodology(activeKey) : undefined}
-            />
-          )
+        {expandedKeys.size > 0 ? (
+          <div className="space-y-4">
+            {visibleCards
+              .filter((card) => expandedKeys.has(card.key))
+              .map((card) => {
+                const sectionData = sections[card.key] ?? null;
+                const isLoading = loadingCategory === card.key;
+                const isStale = !!sectionData?.content && staleSections?.has(card.key);
+                const label = ALL_METHODOLOGIES.find((m) => m.key === card.key)?.label ?? card.key;
+
+                return (
+                  <div key={card.key} className="rounded-lg border border-line">
+                    {/* Section header — collapse toggle */}
+                    <button
+                      type="button"
+                      onClick={() => toggleExpanded(card.key)}
+                      className="flex w-full items-center gap-2 rounded-t-lg bg-surface-secondary px-4 py-2.5 text-left transition-colors hover:bg-surface-secondary/80"
+                    >
+                      <svg
+                        className="h-4 w-4 shrink-0 text-fg-tertiary transition-transform rotate-90"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                      <span className="flex-1 text-sm font-semibold text-fg">
+                        {label}
+                      </span>
+                      {isStale && <span className="text-xs text-amber-500">소스 변경됨</span>}
+                      {sectionData?.content && !isLoading && (
+                        <CheckIcon className="h-4 w-4 text-fg-brand" />
+                      )}
+                      {isLoading && <SpinnerIcon className="h-4 w-4 text-fg-brand" />}
+                    </button>
+
+                    {/* Section content */}
+                    <div className="px-6 py-5">
+                      {isLoading ? (
+                        <div className="flex flex-col items-center justify-center py-10 text-center">
+                          <SpinnerIcon className="h-6 w-6 text-fg-brand" />
+                          <p className="mt-3 text-sm text-fg-secondary">
+                            {label} 분석 중...
+                          </p>
+                        </div>
+                      ) : (
+                        <MethodologyContent
+                          section={sectionData}
+                          isStale={isStale}
+                          onReanalyze={() => onRunMethodology(card.key)}
+                        />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <p className="text-sm text-fg-tertiary">
