@@ -12,6 +12,7 @@ import { Input } from "~/components/ui/Input";
 import { Textarea } from "~/components/ui/Textarea";
 import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
+import { Separator } from "~/components/ui/Separator";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { eq } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
@@ -195,7 +196,7 @@ export default function DecideDeadEnd() {
                 />
               </FormField>
 
-              <hr className="border-line" />
+              <Separator />
 
               {/* Failure Pattern */}
               <div>

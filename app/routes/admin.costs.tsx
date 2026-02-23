@@ -420,7 +420,7 @@ export default function AdminCosts() {
           </CardHeader>
           <CardContent>
             {isLoadingUsage ? (
-              <div className="h-48 animate-pulse bg-neutral-200 dark:bg-neutral-700 rounded" />
+              <Skeleton className="h-48 rounded" />
             ) : (
               <DailyChart data={usageData?.dailySummary ?? []} />
             )}
@@ -449,7 +449,7 @@ export default function AdminCosts() {
           {isLoadingBudget ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-12 animate-pulse bg-neutral-200 dark:bg-neutral-700 rounded" />
+                <Skeleton key={i} className="h-12 rounded" />
               ))}
             </div>
           ) : !budgetData?.users?.length ? (
@@ -529,7 +529,7 @@ export default function AdminCosts() {
           {isLoadingUsage ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-10 animate-pulse bg-neutral-200 dark:bg-neutral-700 rounded" />
+                <Skeleton key={i} className="h-10 rounded" />
               ))}
             </div>
           ) : !usageData?.recentLogs?.length ? (
@@ -587,9 +587,9 @@ function SkeletonCard() {
   return (
     <Card>
       <CardContent className="pt-5 pb-4 px-5 space-y-2">
-        <div className="h-3 w-20 animate-pulse bg-neutral-200 dark:bg-neutral-700 rounded" />
-        <div className="h-7 w-28 animate-pulse bg-neutral-200 dark:bg-neutral-700 rounded" />
-        <div className="h-3 w-16 animate-pulse bg-neutral-200 dark:bg-neutral-700 rounded" />
+        <Skeleton className="h-3 w-20 rounded" />
+        <Skeleton className="h-7 w-28 rounded" />
+        <Skeleton className="h-3 w-16 rounded" />
       </CardContent>
     </Card>
   );

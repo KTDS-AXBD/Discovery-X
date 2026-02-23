@@ -13,6 +13,7 @@ import { Textarea } from "~/components/ui/Textarea";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/Select";
 import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
+import { Separator } from "~/components/ui/Separator";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { eq } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
@@ -202,7 +203,7 @@ export default function DecideNotNow() {
                 />
               </FormField>
 
-              <hr className="border-line" />
+              <Separator />
 
               {/* Trigger Type */}
               <FormField label="트리거 유형" htmlFor="notNowTriggerType" required hint="재검토를 촉발하는 조건의 종류">

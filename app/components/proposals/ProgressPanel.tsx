@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useFetcher } from "@remix-run/react";
 import { cn } from "~/lib/utils/cn";
+import { Progress } from "~/components/ui/Progress";
 import {
   Select,
   SelectContent,
@@ -438,12 +439,7 @@ export function ProgressPanel({
           <span className="text-fg-secondary">전체 진행률</span>
           <span className="font-medium text-fg">{totalProgress}%</span>
         </div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-surface-secondary">
-          <div
-            className="h-full rounded-full bg-fg-brand transition-all"
-            style={{ width: `${totalProgress}%` }}
-          />
-        </div>
+        <Progress value={totalProgress} size="sm" />
         <div className="flex items-center justify-between text-[10px] text-fg-tertiary">
           <span>완료된 작업 {completedActions}/{actions.length}</span>
           {daysRemaining !== null && <span>남은 기간 {daysRemaining}일</span>}

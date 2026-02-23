@@ -4,6 +4,7 @@
  */
 
 import { ANALYSIS_CATEGORIES } from "~/lib/ideas/analysis-prompts";
+import { Progress } from "~/components/ui/Progress";
 
 export type CategoryState = "pending" | "running" | "complete" | "failed";
 
@@ -44,12 +45,7 @@ export function AnalysisProgress({ categoryStates, isRunning }: AnalysisProgress
       </div>
 
       {/* Progress bar */}
-      <div className="mb-2 h-1 overflow-hidden rounded-full bg-surface-secondary">
-        <div
-          className="h-full rounded-full bg-fg-brand transition-all duration-500"
-          style={{ width: `${((completedCount + failedCount) / totalCount) * 100}%` }}
-        />
-      </div>
+      <Progress value={((completedCount + failedCount) / totalCount) * 100} size="sm" className="mb-2" />
 
       {/* Category chips */}
       <div className="flex flex-wrap gap-1">

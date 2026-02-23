@@ -12,6 +12,7 @@ import { Input } from "~/components/ui/Input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/Select";
 import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
+import { Separator } from "~/components/ui/Separator";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { eq } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
@@ -190,7 +191,7 @@ export default function PromoteToOpen() {
                 </Select>
               </FormField>
 
-              <hr className="border-line" />
+              <Separator />
 
               <div>
                 <h3 className="text-lg font-medium text-fg">첫 번째 Experiment</h3>
