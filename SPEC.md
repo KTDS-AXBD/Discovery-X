@@ -420,7 +420,7 @@ build/
 - **Feature Flag**: 9개 — 8/9 true, agentDO만 false
 - **@theme inline**: 104 토큰 등록, var() 1,752→122 (93.0% 감소, 163 파일)
 - **@axis-ds 컴포넌트**: 11/28 활용 (Button/Badge/Card/Input/Alert/Dialog/Table/Textarea/Select/SelectItem/SelectTrigger)
-- **배포**: 세션 250 배포 완료 (CI/CD 2m0s)
+- **배포**: 세션 250 배포 완료 (CI/CD 2m9s)
 - **Cron 등록**: cron-job.org 13개 (vectorize 3→1 통합, lab 2→1 통합, profile-learn/shadow-analyze/briefing 삭제)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
