@@ -320,6 +320,11 @@
   --dx-severity-critical: #DC2626;
   --dx-severity-warning: #D97706;
   --dx-severity-info: #2563EB;
+
+  /* Dialog 다크모드 토큰 — @axis-ds/tokens에 .dark 미정의 보완 */
+  --axis-dialog-overlay-bg: rgba(0, 0, 0, 0.7);
+  --axis-dialog-content-bg: var(--axis-gray-900);
+  --axis-dialog-content-border: var(--axis-gray-700);
 }
 
 /* ===== Lab Utility Classes ===== */

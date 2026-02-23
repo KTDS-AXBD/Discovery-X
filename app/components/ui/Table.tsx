@@ -1,78 +1,68 @@
 import * as React from "react";
+
+import {
+  Table as AxisTable,
+  TableHeader as AxisTableHeader,
+  TableBody as AxisTableBody,
+  TableRow as AxisTableRow,
+  TableHead as AxisTableHead,
+  TableCell as AxisTableCell,
+  TableFooter as AxisTableFooter,
+  TableCaption as AxisTableCaption,
+} from "@axis-ds/ui-react";
+
 import { cn } from "~/lib/utils/cn";
 
+/**
+ * DS Table 래퍼.
+ * DS 기본 wrapper(`overflow-auto`)를 프로젝트 스타일(`rounded-lg border`)로 교체.
+ */
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
     <div className="overflow-hidden rounded-lg border border-line-subtle">
-      <table
-        ref={ref}
-        className={cn("min-w-full divide-y divide-line-subtle", className)}
-        {...props}
-      />
+      <AxisTable ref={ref} className={className} {...props} />
     </div>
   )
 );
 Table.displayName = "Table";
 
+// DS TableHeader + 프로젝트 배경색
 const TableHeader = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(
   ({ className, ...props }, ref) => (
-    <thead
-      ref={ref}
-      className={cn("bg-surface-secondary", className)}
-      {...props}
-    />
+    <AxisTableHeader ref={ref} className={cn("bg-surface-secondary", className)} {...props} />
   )
 );
 TableHeader.displayName = "TableHeader";
 
+// DS TableBody + 프로젝트 divide/배경
 const TableBody = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(
   ({ className, ...props }, ref) => (
-    <tbody
-      ref={ref}
-      className={cn("divide-y divide-line-subtle bg-surface-card", className)}
-      {...props}
-    />
+    <AxisTableBody ref={ref} className={cn("divide-y divide-line-subtle bg-surface-card", className)} {...props} />
   )
 );
 TableBody.displayName = "TableBody";
 
-const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTMLTableRowElement>>(
-  ({ className, ...props }, ref) => (
-    <tr
-      ref={ref}
-      className={cn("hover:bg-surface-secondary transition-colors", className)}
-      {...props}
-    />
-  )
-);
-TableRow.displayName = "TableRow";
+// DS TableRow 그대로 (hover/transition 이미 DS에 포함)
+const TableRow = AxisTableRow;
 
+// DS TableHead + 프로젝트 스타일 오버라이드 (font-semibold, py-3.5, text-fg)
 const TableHead = React.forwardRef<HTMLTableCellElement, React.ThHTMLAttributes<HTMLTableCellElement>>(
   ({ className, ...props }, ref) => (
-    <th
-      ref={ref}
-      className={cn(
-        "px-4 py-3.5 text-left text-sm font-semibold text-fg",
-        className
-      )}
-      {...props}
-    />
+    <AxisTableHead ref={ref} className={cn("py-3.5 text-sm font-semibold text-fg", className)} {...props} />
   )
 );
 TableHead.displayName = "TableHead";
 
+// DS TableCell + 프로젝트 text-sm text-fg-secondary
 const TableCell = React.forwardRef<HTMLTableCellElement, React.TdHTMLAttributes<HTMLTableCellElement>>(
   ({ className, ...props }, ref) => (
-    <td
-      ref={ref}
-      className={cn(
-        "px-4 py-4 text-sm text-fg-secondary",
-        className
-      )}
-      {...props}
-    />
+    <AxisTableCell ref={ref} className={cn("text-sm text-fg-secondary", className)} {...props} />
   )
 );
 TableCell.displayName = "TableCell";
 
-export { Table, TableHeader, TableBody, TableRow, TableHead, TableCell };
+// DS 추가 컴포넌트 re-export
+const TableFooter = AxisTableFooter;
+const TableCaption = AxisTableCaption;
+
+export { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter, TableCaption };
