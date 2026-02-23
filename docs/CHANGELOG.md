@@ -8,7 +8,7 @@
 - ✅ SourceInputPanel 전면 재작성 — 와이어프레임 v0.3 레이아웃 반영 ("소스 & 방법론 센터" 헤더, 선택된 소스 섹션, 소스 추가 패널, 카테고리 pill 필터)
 - ✅ detectContentCategory() 콘텐츠 카테고리 분류 함수 추가 (AI & 자동화, 웹 & 기술, 개발 도구, 비즈니스 & 투자)
 - ✅ 테스트 18개 추가 (detectContentCategory + CONTENT_CATEGORIES)
-- ✅ Label/Skeleton/Separator DS 래퍼 생성, FormField·LoadingSkeleton·admin.costs DS 전환
+- ✅ Label/Skeleton/Separator/Progress DS 래퍼 생성 (4개), FormField·LoadingSkeleton·admin.costs·ProgressPanel·decide-dead-end·decide-not-now·promote DS 전환
 - ✅ 프로덕션 배포 (CI/CD 2m4s)
 
 **검증 결과**:
