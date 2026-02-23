@@ -70,19 +70,12 @@ export default function ComplianceChecklist({
         </div>
         {overallCompliance !== undefined && (
           <div className="flex items-center gap-2">
-            <div className="h-2 w-24 rounded-full bg-surface-tertiary">
-              <div
-                className={cn(
-                  "h-2 rounded-full transition-all",
-                  overallCompliance >= 80
-                    ? "bg-emerald-500"
-                    : overallCompliance >= 50
-                    ? "bg-amber-500"
-                    : "bg-red-500"
-                )}
-                style={{ width: `${overallCompliance}%` }}
-              />
-            </div>
+            <Progress
+              value={overallCompliance}
+              variant={overallCompliance >= 80 ? "success" : overallCompliance >= 50 ? "warning" : "destructive"}
+              size="sm"
+              className="w-24"
+            />
             <span className="text-sm font-medium text-fg">
               {overallCompliance}%
             </span>
