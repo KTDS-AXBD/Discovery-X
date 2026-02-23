@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 251 (2026-02-23)
+**SourceInputPanel 와이어프레임 v0.3 구조 반영 + 콘텐츠 카테고리 필터 + DS 래퍼 추가**:
+- ✅ SourceInputPanel 전면 재작성 — 와이어프레임 v0.3 레이아웃 반영 ("소스 & 방법론 센터" 헤더, 선택된 소스 섹션, 소스 추가 패널, 카테고리 pill 필터)
+- ✅ detectContentCategory() 콘텐츠 카테고리 분류 함수 추가 (AI & 자동화, 웹 & 기술, 개발 도구, 비즈니스 & 투자)
+- ✅ 테스트 18개 추가 (detectContentCategory + CONTENT_CATEGORIES)
+- ✅ Label/Skeleton/Separator DS 래퍼 생성, FormField·LoadingSkeleton·admin.costs DS 전환
+- ✅ 프로덕션 배포 (CI/CD 2m4s)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,341/1,341 PASS / build 성공
+
 ### 세션 250 (2026-02-23)
 **ideas 와이어프레임 테스트 시나리오 작성 + 테스트 209개 PASS**:
 - ✅ /team 2 workers 병렬 — Worker 1: SourceBrowser 57개, Worker 2: EditableTitle+SuggestTitle+Proposal 53개
