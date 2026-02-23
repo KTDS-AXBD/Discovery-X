@@ -1,4 +1,5 @@
 import { cn } from "~/lib/utils/cn";
+import { Skeleton } from "~/components/ui/Skeleton";
 
 interface LoadingSkeletonProps {
   variant?: "card" | "list" | "text";
@@ -7,15 +8,7 @@ interface LoadingSkeletonProps {
 }
 
 function SkeletonLine({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn(
-        "h-3 rounded-md bg-surface-tertiary",
-        "animate-[dx-loading-pulse_1.5s_ease-in-out_infinite]",
-        className,
-      )}
-    />
-  );
+  return <Skeleton className={cn("h-3 rounded-md", className)} />;
 }
 
 function SkeletonCard() {

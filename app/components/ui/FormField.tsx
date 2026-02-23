@@ -1,4 +1,6 @@
 import * as React from "react";
+
+import { Label } from "~/components/ui/Label";
 import { cn } from "~/lib/utils/cn";
 
 interface FormFieldProps {
@@ -14,13 +16,13 @@ interface FormFieldProps {
 export function FormField({ label, htmlFor, error, hint, required, className, children }: FormFieldProps) {
   return (
     <div className={cn("space-y-1.5", className)}>
-      <label
+      <Label
         htmlFor={htmlFor}
         className="block text-sm font-medium text-fg"
       >
         {label}
         {required && <span className="text-fg-error ml-0.5">*</span>}
-      </label>
+      </Label>
       {children}
       {hint && !error && (
         <p className="text-xs text-fg-tertiary">{hint}</p>

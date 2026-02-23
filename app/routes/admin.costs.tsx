@@ -14,6 +14,7 @@ import { requireAdmin, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Badge } from "~/components/ui/Badge";
+import { Skeleton } from "~/components/ui/Skeleton";
 import type { BudgetStatus } from "~/lib/cost/token-budget";
 
 // ─── 타입 정의 ─────────────────────────────────────────────────────────
@@ -392,7 +393,7 @@ export default function AdminCosts() {
           </CardHeader>
           <CardContent>
             {isLoadingUsage ? (
-              <div className="h-16 animate-pulse bg-neutral-200 dark:bg-neutral-700 rounded" />
+              <Skeleton className="h-16 rounded" />
             ) : usageData?.todayUsage ? (
               <div>
                 <p className="text-xl font-bold text-fg">
