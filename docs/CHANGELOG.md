@@ -11,8 +11,15 @@
 - ✅ 신규 테스트 4파일: source-browser-logic(57), editable-title-logic(17), suggest-title-logic(14), proposal-mapping-logic(22)
 - ✅ 확장: idea-card-grid-logic 16→35개
 
+**Select → DS Select 전환 (추가 작업)**:
+- ✅ Select.tsx: 자체 구현 → @axis-ds re-export (compound 컴포넌트)
+- ✅ 12개 사용처 Radix Select 패턴 전환 (ProfileEditor, InviteMemberDialog, admin.users, discoveries 5개, radar, settings)
+- ✅ vite.config.ts: @radix-ui/react-select SSR noExternal 추가
+- ✅ DS 활용 9/28 → 10/28
+
 **검증 결과**:
-- ✅ typecheck 0 에러 / lint 0 에러 / ideas 테스트 9파일 209/209 PASS / 전체 90파일 1,323/1,323 PASS
+- ✅ typecheck 0 에러 / lint 0 에러 / 전체 90파일 1,323/1,323 PASS
+- ✅ 배포 완료 (CI/CD 2m0s)
 
 ### 세션 249 (2026-02-23)
 **Dialog/Textarea DS 컴포넌트 전환 + Select 보류**:
