@@ -1,6 +1,7 @@
 import { Link, useLocation } from "@remix-run/react";
 import { PROPOSAL_STATUS_LABELS, PROPOSAL_STATUS_COLORS } from "~/features/proposals/constants";
 import { useSidebar } from "~/lib/context/sidebar-context";
+import { Progress } from "~/components/ui/Progress";
 import { cn } from "~/lib/utils/cn";
 
 interface ProposalSummary {
@@ -100,12 +101,7 @@ export function ProposalListSidebar({ proposals, activeId }: ProposalListSidebar
                     })()}
                   </div>
                   {/* Progress bar */}
-                  <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-surface-secondary">
-                    <div
-                      className="h-full rounded-full bg-fg-brand transition-all"
-                      style={{ width: `${p.totalProgress ?? 0}%` }}
-                    />
-                  </div>
+                  <Progress value={p.totalProgress ?? 0} size="sm" className="mt-1.5" />
                 </Link>
               );
             })}

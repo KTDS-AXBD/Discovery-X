@@ -1,6 +1,7 @@
 import { useFetcher, Link } from "@remix-run/react";
 import { Badge } from "~/components/ui/Badge";
 import { Card, CardContent } from "~/components/ui/Card";
+import { Progress } from "~/components/ui/Progress";
 import { PROPOSAL_STATUS_LABELS, PROPOSAL_STATUS_VARIANTS, PROPOSAL_TRANSITIONS, SECTION_ICONS, SECTION_LABELS } from "~/features/proposals/constants";
 import { TeamDiscussion } from "./TeamDiscussion";
 
@@ -232,12 +233,7 @@ export function ProposalDetail({
                   <span className="text-fg-secondary">전체 진행률</span>
                   <span className="font-medium text-fg">{progressSummary.totalProgress}%</span>
                 </div>
-                <div className="h-1.5 overflow-hidden rounded-full bg-surface-secondary">
-                  <div
-                    className="h-full rounded-full bg-fg-brand transition-all"
-                    style={{ width: `${progressSummary.totalProgress}%` }}
-                  />
-                </div>
+                <Progress value={progressSummary.totalProgress} size="sm" />
               </div>
 
               {/* Milestones summary */}

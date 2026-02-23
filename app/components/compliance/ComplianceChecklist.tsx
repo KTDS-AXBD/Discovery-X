@@ -3,6 +3,7 @@
  */
 
 import { cn } from "~/lib/utils/cn";
+import { Progress } from "~/components/ui/Progress";
 
 interface ComplianceCheck {
   requirement: string;
