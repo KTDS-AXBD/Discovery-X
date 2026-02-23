@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, useOutletContext, useNavigate, useRevalidator } from "@remix-run/react";
-import * as Dialog from "@radix-ui/react-dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose } from "~/components/ui/Dialog";
 import { getDb } from "~/db";
 import { IdeaService, RadarService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
@@ -758,57 +758,52 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
       )}
 
       {/* Delete confirmation dialog */}
-      <Dialog.Root open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50" />
-          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-xl border border-line bg-surface p-6 shadow-lg">
-            <Dialog.Title className="text-lg font-semibold text-fg">
-              아이디어 삭제
-            </Dialog.Title>
-            <Dialog.Description className="mt-2 text-sm text-fg-secondary">
-              &ldquo;{ideaTitle}&rdquo;을(를) 삭제하시겠습니까? 연결된 분석 데이터도 함께 삭제됩니다.
-            </Dialog.Description>
-            <div className="mt-6 flex justify-end gap-3">
-              <Dialog.Close asChild>
-                <button
-                  type="button"
-                  className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-fg transition-colors hover:bg-surface-secondary"
-                >
-                  취소
-                </button>
-              </Dialog.Close>
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogTitle>아이디어 삭제</DialogTitle>
+          <DialogDescription>
+            &ldquo;{ideaTitle}&rdquo;을(를) 삭제하시겠습니까? 연결된 분석 데이터도 함께 삭제됩니다.
+          </DialogDescription>
+          <div className="mt-6 flex justify-end gap-3">
+            <DialogClose asChild>
               <button
                 type="button"
-                disabled={isDeleting}
-                onClick={async () => {
-                  if (!ideaId) return;
-                  setIsDeleting(true);
-                  try {
-                    const res = await fetch("/api/ideas", {
-                      method: "DELETE",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ id: ideaId }),
-                    });
-                    if (res.ok) {
-                      setDeleteDialogOpen(false);
-                      navigate("/ideas");
-                    } else {
-                      console.error("아이디어 삭제 실패:", await res.text());
-                    }
-                  } catch (err) {
-                    console.error("아이디어 삭제 오류:", err);
-                  } finally {
-                    setIsDeleting(false);
-                  }
-                }}
-                className="rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+                className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-fg transition-colors hover:bg-surface-secondary"
               >
-                {isDeleting ? "삭제 중..." : "삭제"}
+                취소
               </button>
-            </div>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
+            </DialogClose>
+            <button
+              type="button"
+              disabled={isDeleting}
+              onClick={async () => {
+                if (!ideaId) return;
+                setIsDeleting(true);
+                try {
+                  const res = await fetch("/api/ideas", {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: ideaId }),
+                  });
+                  if (res.ok) {
+                    setDeleteDialogOpen(false);
+                    navigate("/ideas");
+                  } else {
+                    console.error("아이디어 삭제 실패:", await res.text());
+                  }
+                } catch (err) {
+                  console.error("아이디어 삭제 오류:", err);
+                } finally {
+                  setIsDeleting(false);
+                }
+              }}
+              className="rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+            >
+              {isDeleting ? "삭제 중..." : "삭제"}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Proposal modal */}
       <ProposalCreationModal
