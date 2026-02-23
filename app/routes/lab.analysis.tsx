@@ -8,6 +8,13 @@ import { LabService } from "~/lib/services";
 import { InsightPanel } from "~/components/ontology/InsightPanel";
 import { SimulationView } from "~/components/ontology/SimulationView";
 import { Badge } from "~/components/ui/Badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/Select";
 
 const MODES = [
   { key: "patterns", label: "패턴" },
@@ -187,18 +194,18 @@ export default function LabAnalysis() {
           <div className="space-y-3 rounded-lg border border-line-subtle p-4">
             <div>
               <label className="lab-stat-terminal mb-1 block">SOURCE ENTITY</label>
-              <select
-                value={sourceNodeId}
-                onChange={(e) => setSourceNodeId(e.target.value)}
-                className="w-full rounded border border-line bg-surface-primary px-3 py-2 text-sm text-fg"
-              >
-                <option value="">엔티티 선택...</option>
-                {nodes.map((node) => (
-                  <option key={node.id} value={node.id}>
-                    {node.label} ({typeMap.get(node.ontologyTypeId ?? "") || "기타"})
-                  </option>
-                ))}
-              </select>
+              <Select value={sourceNodeId || undefined} onValueChange={setSourceNodeId}>
+                <SelectTrigger className="w-full rounded border border-line bg-surface-primary px-3 py-2 text-sm text-fg">
+                  <SelectValue placeholder="엔티티 선택..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {nodes.map((node) => (
+                    <SelectItem key={node.id} value={node.id}>
+                      {node.label} ({typeMap.get(node.ontologyTypeId ?? "") || "기타"})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {selectedNode && (
                 <div className="mt-1 flex items-center gap-1">
                   <Badge variant="secondary" className="text-[10px]">

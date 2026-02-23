@@ -13,6 +13,13 @@ import { Card, CardContent } from "~/components/ui/Card";
 import { getAllDocs, getDocBySlug } from "~/lib/docs/registry";
 import { DocsSidebar } from "~/components/docs/DocsSidebar";
 import { MarkdownViewer } from "~/components/docs/MarkdownViewer";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/Select";
 
 const GITHUB_PROJECT_URL =
   "https://github.com/orgs/AX-BD-Team/projects/4";
@@ -131,17 +138,18 @@ export default function DocsPage() {
           <div className="min-w-0 flex-1">
             {/* Mobile doc selector */}
             <div className="mb-4 lg:hidden">
-              <select
-                value={activeSlug}
-                onChange={(e) => handleDocSelect(e.target.value)}
-                className="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-fg"
-              >
-                {docs.map((d) => (
-                  <option key={d.slug} value={d.slug}>
-                    {d.title}
-                  </option>
-                ))}
-              </select>
+              <Select value={activeSlug} onValueChange={handleDocSelect}>
+                <SelectTrigger className="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-fg h-auto">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {docs.map((d) => (
+                    <SelectItem key={d.slug} value={d.slug}>
+                      {d.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <Card>

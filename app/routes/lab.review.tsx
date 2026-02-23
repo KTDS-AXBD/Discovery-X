@@ -7,6 +7,13 @@ import { getSessionContext } from "~/lib/auth/session.server";
 import { LabService } from "~/lib/services";
 import { Card, CardContent } from "~/components/ui/Card";
 import { Badge } from "~/components/ui/Badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/Select";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const env = context.cloudflare.env as unknown as {
@@ -126,15 +133,16 @@ export default function LabReview() {
                             onChange={(e) => setEditLabel(e.target.value)}
                             className="rounded border border-line bg-surface-primary px-2 py-1 text-sm text-fg"
                           />
-                          <select
-                            value={editTypeId}
-                            onChange={(e) => setEditTypeId(e.target.value)}
-                            className="rounded border border-line bg-surface-primary px-2 py-1 text-xs text-fg-secondary"
-                          >
-                            {types.map((t) => (
-                              <option key={t.id} value={t.id}>{t.nameKo}</option>
-                            ))}
-                          </select>
+                          <Select value={editTypeId} onValueChange={setEditTypeId}>
+                            <SelectTrigger className="h-auto rounded border border-line bg-surface-primary px-2 py-1 text-xs text-fg-secondary">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {types.map((t) => (
+                                <SelectItem key={t.id} value={t.id}>{t.nameKo}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                       ) : (
                         <>

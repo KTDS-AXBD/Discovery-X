@@ -7,6 +7,13 @@ import { MatrixService } from "~/lib/services/matrix.service";
 import type { HeatmapData } from "~/features/matrix/types";
 import { HeatmapGrid } from "~/components/matrix/HeatmapGrid";
 import { HeatmapLegend } from "~/components/matrix/HeatmapLegend";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/Select";
 
 // 최근 6개월 기간 옵션 생성
 function generatePeriodOptions(): Array<{ value: string; label: string }> {
@@ -53,9 +60,8 @@ export default function MatrixHeatmapPage() {
   const periodOptions = generatePeriodOptions();
   const currentPeriod = searchParams.get("period") ?? heatmapData.period;
 
-  function handlePeriodChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const newPeriod = e.target.value;
-    setSearchParams({ period: newPeriod });
+  function handlePeriodChange(value: string) {
+    setSearchParams({ period: value });
   }
 
   function handleCellClick(cellId: string) {
@@ -78,17 +84,18 @@ export default function MatrixHeatmapPage() {
             산업 × 기능 교차 스코어링 히트맵
           </p>
         </div>
-        <select
-          value={currentPeriod}
-          onChange={handlePeriodChange}
-          className="rounded border border-line-subtle bg-surface-secondary px-3 py-1.5 text-xs text-fg font-mono-dx"
-        >
-          {periodOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+        <Select value={currentPeriod} onValueChange={handlePeriodChange}>
+          <SelectTrigger className="h-auto rounded border border-line-subtle bg-surface-secondary px-3 py-1.5 text-xs text-fg font-mono-dx">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {periodOptions.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* 범례 */}

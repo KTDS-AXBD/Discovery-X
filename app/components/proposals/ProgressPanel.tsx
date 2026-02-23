@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { useFetcher } from "@remix-run/react";
 import { cn } from "~/lib/utils/cn";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/Select";
 
 interface Milestone {
   id: string;
@@ -338,24 +345,24 @@ export function ProgressPanel({
 
           {showAddMember && (
             <div className="mb-2">
-              <select
-                onChange={(e) => {
-                  if (e.target.value) {
-                    memberFetcher.submit(
-                      JSON.stringify({ userId: e.target.value }),
-                      { method: "POST", action: `/api/proposals/${proposalId}/members`, encType: "application/json" },
-                    );
-                    setShowAddMember(false);
-                  }
+              <Select
+                onValueChange={(value) => {
+                  memberFetcher.submit(
+                    JSON.stringify({ userId: value }),
+                    { method: "POST", action: `/api/proposals/${proposalId}/members`, encType: "application/json" },
+                  );
+                  setShowAddMember(false);
                 }}
-                className="w-full rounded border border-line bg-surface px-2 py-1 text-xs text-fg"
-                defaultValue=""
               >
-                <option value="" disabled>멤버 선택...</option>
-                {availableUsers.map((u) => (
-                  <option key={u.id} value={u.id}>{u.name}</option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full rounded border border-line bg-surface px-2 py-1 text-xs text-fg h-auto">
+                  <SelectValue placeholder="멤버 선택..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableUsers.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
 
@@ -398,24 +405,24 @@ export function ProgressPanel({
           </div>
           {showAddMember && (
             <div className="mb-4">
-              <select
-                onChange={(e) => {
-                  if (e.target.value) {
-                    memberFetcher.submit(
-                      JSON.stringify({ userId: e.target.value }),
-                      { method: "POST", action: `/api/proposals/${proposalId}/members`, encType: "application/json" },
-                    );
-                    setShowAddMember(false);
-                  }
+              <Select
+                onValueChange={(value) => {
+                  memberFetcher.submit(
+                    JSON.stringify({ userId: value }),
+                    { method: "POST", action: `/api/proposals/${proposalId}/members`, encType: "application/json" },
+                  );
+                  setShowAddMember(false);
                 }}
-                className="w-full rounded border border-line bg-surface px-2 py-1 text-xs text-fg"
-                defaultValue=""
               >
-                <option value="" disabled>멤버 선택...</option>
-                {availableUsers.map((u) => (
-                  <option key={u.id} value={u.id}>{u.name}</option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full rounded border border-line bg-surface px-2 py-1 text-xs text-fg h-auto">
+                  <SelectValue placeholder="멤버 선택..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableUsers.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
           {!showAddMember && (
