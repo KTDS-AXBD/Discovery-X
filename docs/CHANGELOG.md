@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 247 (2026-02-23)
+**AXIS DS 종합 감사 + score 토큰 정의 + font-mono-dx 인라인 전환**:
+- ✅ /team 2 workers 병렬 감사: W1 DS 컴포넌트+토큰 매핑, W2 인라인 var()+일관성
+- ✅ `--dx-score-high/medium/low/none` 4개 토큰 CSS 정의 (dx-custom-tokens.css :root + .dark)
+- ✅ `@theme inline`에 `--color-score-*` 4개 매핑 추가 (tailwind.css)
+- ✅ Matrix 히트맵 하드코딩 폴백 제거 (types.ts, HeatmapLegend, HeatmapGrid, ScoreTrendChart)
+- ✅ `fontFamily: "var(--dx-font-mono)"` 인라인 27건 → `font-mono-dx` Tailwind 클래스 전환 (12파일)
+- ✅ DS 감사 보고서: ui-react 활용률 4/28, 토큰 3-layer 아키텍처, 개선 방향 H1-H5 도출
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,059/1,059 PASS / build 성공
+- ✅ var() 인라인: 149건 → 122건 (93.0%), @theme inline 토큰: 100 → 104개
+
 ### 세션 246 (2026-02-23)
 **G3 소스 카테고리 필터/검색 구현**:
 - ✅ `source-type.ts` 신규: detectSourceType 유틸 (URL 휴리스틱으로 웹/유튜브/텍스트/PDF 판별)
