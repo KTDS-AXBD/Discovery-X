@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 250 (2026-02-23)
+**ideas 와이어프레임 테스트 시나리오 작성 + 테스트 209개 PASS**:
+- ✅ /team 2 workers 병렬 — Worker 1: SourceBrowser 57개, Worker 2: EditableTitle+SuggestTitle+Proposal 53개
+- ✅ Leader: IdeaCardGrid 확장 19개 (separateIdeas/sortByCreatedAt/getDotColor/getDotStates)
+- ✅ 시나리오 문서 신규: `tests/scenarios/ideas-wireframe-test-scenarios.md` (9그룹 42케이스)
+- ✅ 신규 테스트 4파일: source-browser-logic(57), editable-title-logic(17), suggest-title-logic(14), proposal-mapping-logic(22)
+- ✅ 확장: idea-card-grid-logic 16→35개
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / ideas 테스트 9파일 209/209 PASS / 전체 90파일 1,323/1,323 PASS
+
 ### 세션 249 (2026-02-23)
 **Dialog/Textarea DS 컴포넌트 전환 + Select 보류**:
 - ✅ ideas.$id.tsx: `@radix-ui/react-dialog` 직접 import → DS Dialog(`~/components/ui/Dialog`) 통일
