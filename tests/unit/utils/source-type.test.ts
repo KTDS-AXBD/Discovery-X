@@ -1,8 +1,11 @@
 import { describe, it, expect } from "vitest";
 import {
   detectSourceType,
+  detectContentCategory,
+  CONTENT_CATEGORIES,
   SOURCE_TYPE_LABELS,
   type SourceTypeFilter,
+  type ContentCategory,
 } from "~/lib/utils/source-type";
 
 describe("detectSourceType", () => {
@@ -135,5 +138,93 @@ describe("SOURCE_TYPE_LABELS", () => {
     expect(SOURCE_TYPE_LABELS.youtube).toBe("유튜브");
     expect(SOURCE_TYPE_LABELS.text).toBe("텍스트");
     expect(SOURCE_TYPE_LABELS.pdf).toBe("PDF");
+  });
+});
+
+// ── 콘텐츠 카테고리 ──────────────────────────────────────────
+
+describe("CONTENT_CATEGORIES", () => {
+  it("5개 카테고리가 정의되어 있다", () => {
+    expect(CONTENT_CATEGORIES).toHaveLength(5);
+  });
+
+  it("all이 첫 번째 항목이다", () => {
+    expect(CONTENT_CATEGORIES[0].key).toBe("all");
+  });
+
+  it("모든 항목에 key와 label이 있다", () => {
+    for (const cat of CONTENT_CATEGORIES) {
+      expect(cat.key).toBeDefined();
+      expect(cat.label).toBeDefined();
+      expect(cat.label.length).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe("detectContentCategory", () => {
+  // AI & 자동화
+  it("AI 키워드 포함 URL → ai_automation", () => {
+    expect(detectContentCategory("https://example.com/ai-trends")).toBe("ai_automation");
+  });
+
+  it("로봇 키워드 포함 → ai_automation", () => {
+    expect(detectContentCategory(null, "로봇 시장 분석")).toBe("ai_automation");
+  });
+
+  it("LLM 관련 → ai_automation", () => {
+    expect(detectContentCategory("https://openai.com/blog")).toBe("ai_automation");
+  });
+
+  it("titleKo에 자동화 → ai_automation", () => {
+    expect(detectContentCategory("https://example.com", null, "산업 자동화 전망")).toBe("ai_automation");
+  });
+
+  // 비즈니스 & 투자
+  it("시장 키워드 → biz_investment", () => {
+    expect(detectContentCategory(null, "시장 규모 분석 보고서")).toBe("biz_investment");
+  });
+
+  it("mckinsey 도메인 → biz_investment", () => {
+    expect(detectContentCategory("https://mckinsey.com/report")).toBe("biz_investment");
+  });
+
+  it("PDF URL → biz_investment", () => {
+    expect(detectContentCategory("https://example.com/report.pdf")).toBe("biz_investment");
+  });
+
+  // 개발 도구
+  it("github URL → dev_tools", () => {
+    expect(detectContentCategory("https://github.com/org/repo")).toBe("dev_tools");
+  });
+
+  it("API 키워드 → dev_tools", () => {
+    expect(detectContentCategory(null, "REST API Design Guide")).toBe("dev_tools");
+  });
+
+  // 웹 & 기술
+  it("techcrunch URL → web_tech", () => {
+    expect(detectContentCategory("https://techcrunch.com/article")).toBe("web_tech");
+  });
+
+  it("일반 URL → web_tech (기본값)", () => {
+    expect(detectContentCategory("https://example.com/article")).toBe("web_tech");
+  });
+
+  // null/undefined 처리
+  it("null URL + null title → web_tech", () => {
+    expect(detectContentCategory(null, null, null)).toBe("web_tech");
+  });
+
+  it("빈 문자열 → web_tech", () => {
+    expect(detectContentCategory("")).toBe("web_tech");
+  });
+
+  // 우선순위: AI > biz > dev > web
+  it("AI 키워드가 비즈니스 키워드보다 우선", () => {
+    expect(detectContentCategory(null, "AI 시장 투자 분석")).toBe("ai_automation");
+  });
+
+  it("비즈니스 키워드가 개발 키워드보다 우선", () => {
+    expect(detectContentCategory(null, "투자 사업 API")).toBe("biz_investment");
   });
 });
