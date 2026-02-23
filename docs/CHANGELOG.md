@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 248 (2026-02-23)
+**P1 아이디어 삭제 모달 + 분석 섹션 접기/펼치기 + 와이어프레임 비교 검증 + DS 전환**:
+- ✅ 와이어프레임(3,083줄) vs 구현(11컴포넌트) 비교 리포트 — 39기능 중 82% 구현 확인
+- ✅ ideas.$id: Radix Dialog 삭제 확인 모달 (DELETE /api/ideas 연동, 성공 시 /ideas 리다이렉트)
+- ✅ MethodologyCards: activeKey(단일) → expandedKeys(Set) 아코디언 뷰 (복수 섹션 동시 펼치기)
+- ✅ UI 컴포넌트 @axis-ds 전환: AlertBanner→DS Alert, Dialog→DS Dialog(+다크 토큰), Table→DS Table
+- ✅ 테스트 17개 추가: delete-idea-logic(6) + methodology-collapse-logic(11)
+- ✅ dx-custom-tokens.css: dialog 다크모드 토큰 3개 추가
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,194/1,194 PASS / build 성공
+
 ### 세션 247 (2026-02-23)
 **AXIS DS 종합 감사 + score 토큰 정의 + font-mono-dx 인라인 전환**:
 - ✅ /team 2 workers 병렬 감사: W1 DS 컴포넌트+토큰 매핑, W2 인라인 var()+일관성
