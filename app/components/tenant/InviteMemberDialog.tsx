@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "~/components/ui/Button";
 import { Input } from "~/components/ui/Input";
-import { Select } from "~/components/ui/Select";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/Select";
 import { FormField } from "~/components/ui/FormField";
 
 interface InviteMemberDialogProps {
@@ -59,12 +59,17 @@ export function InviteMemberDialog({ open, onClose, onInvite }: InviteMemberDial
               />
             </FormField>
             <FormField label="Role">
-              <Select value={role} onChange={(e) => setRole(e.target.value)}>
-                {ROLE_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
+              <Select value={role} onValueChange={setRole}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ROLE_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </FormField>
           </div>

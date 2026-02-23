@@ -10,7 +10,7 @@ import { PageHeader } from "~/components/layout/PageHeader";
 import { Card, CardContent } from "~/components/ui/Card";
 import { Input } from "~/components/ui/Input";
 import { Textarea } from "~/components/ui/Textarea";
-import { Select } from "~/components/ui/Select";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/Select";
 import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
@@ -206,17 +206,17 @@ export default function DecideNotNow() {
 
               {/* Trigger Type */}
               <FormField label="트리거 유형" htmlFor="notNowTriggerType" required hint="재검토를 촉발하는 조건의 종류">
-                <Select
-                  name="notNowTriggerType"
-                  id="notNowTriggerType"
-                  required
-                >
-                  <option value="">선택하세요</option>
-                  {TRIGGER_TYPES.map((trigger) => (
-                    <option key={trigger.id} value={trigger.id}>
-                      {trigger.label} - {trigger.description}
-                    </option>
-                  ))}
+                <Select name="notNowTriggerType" required>
+                  <SelectTrigger id="notNowTriggerType">
+                    <SelectValue placeholder="선택하세요" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TRIGGER_TYPES.map((trigger) => (
+                      <SelectItem key={trigger.id} value={trigger.id}>
+                        {trigger.label} - {trigger.description}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               </FormField>
 

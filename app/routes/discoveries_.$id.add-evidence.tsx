@@ -10,7 +10,7 @@ import { PageHeader } from "~/components/layout/PageHeader";
 import { Card, CardContent } from "~/components/ui/Card";
 import { Input } from "~/components/ui/Input";
 import { Textarea } from "~/components/ui/Textarea";
-import { Select } from "~/components/ui/Select";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/Select";
 import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
@@ -148,33 +148,33 @@ export default function AddEvidence() {
             <Form method="post" className="space-y-6">
               {/* Evidence Type */}
               <FormField label="근거 유형" htmlFor="type" required>
-                <Select
-                  name="type"
-                  id="type"
-                  required
-                >
-                  <option value="">선택하세요</option>
-                  {EVIDENCE_TYPES.map((evidenceType) => (
-                    <option key={evidenceType.id} value={evidenceType.id}>
-                      {evidenceType.label} - {evidenceType.description}
-                    </option>
-                  ))}
+                <Select name="type" required>
+                  <SelectTrigger id="type">
+                    <SelectValue placeholder="선택하세요" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EVIDENCE_TYPES.map((evidenceType) => (
+                      <SelectItem key={evidenceType.id} value={evidenceType.id}>
+                        {evidenceType.label} - {evidenceType.description}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               </FormField>
 
               {/* Evidence Strength */}
               <FormField label="근거 강도" htmlFor="strength" required>
-                <Select
-                  name="strength"
-                  id="strength"
-                  required
-                >
-                  <option value="">선택하세요</option>
-                  {EVIDENCE_STRENGTHS.map((str) => (
-                    <option key={str.id} value={str.id}>
-                      {str.label} - {str.description}
-                    </option>
-                  ))}
+                <Select name="strength" required>
+                  <SelectTrigger id="strength">
+                    <SelectValue placeholder="선택하세요" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EVIDENCE_STRENGTHS.map((str) => (
+                      <SelectItem key={str.id} value={str.id}>
+                        {str.label} - {str.description}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               </FormField>
 
@@ -203,17 +203,18 @@ export default function AddEvidence() {
               {/* Experiment Link */}
               {experiments.length > 0 && (
                 <FormField label="연결된 Experiment (선택)" htmlFor="experimentId">
-                  <Select
-                    name="experimentId"
-                    id="experimentId"
-                  >
-                    <option value="">없음 (Discovery 직접 연결)</option>
-                    {experiments.map((exp) => (
-                      <option key={exp.id} value={exp.id}>
-                        {exp.hypothesis.substring(0, 60)}
-                        {exp.hypothesis.length > 60 ? "..." : ""}
-                      </option>
-                    ))}
+                  <Select name="experimentId">
+                    <SelectTrigger id="experimentId">
+                      <SelectValue placeholder="없음 (Discovery 직접 연결)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {experiments.map((exp) => (
+                        <SelectItem key={exp.id} value={exp.id}>
+                          {exp.hypothesis.substring(0, 60)}
+                          {exp.hypothesis.length > 60 ? "..." : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </FormField>
               )}

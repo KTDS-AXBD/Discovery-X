@@ -15,7 +15,7 @@ import { PageHeader } from "~/components/layout/PageHeader";
 import { Card, CardContent } from "~/components/ui/Card";
 import { Button } from "~/components/ui/Button";
 import { Input } from "~/components/ui/Input";
-import { Select } from "~/components/ui/Select";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/Select";
 import { FormField } from "~/components/ui/FormField";
 import { Badge } from "~/components/ui/Badge";
 import { AlertBanner } from "~/components/ui/AlertBanner";
@@ -182,10 +182,15 @@ export default function RadarPage() {
                     />
                   </FormField>
                   <FormField label="유형" htmlFor="sourceType" required>
-                    <Select name="sourceType" id="sourceType" required>
-                      <option value="rss">RSS</option>
-                      <option value="web">Web</option>
-                      <option value="youtube">YouTube</option>
+                    <Select name="sourceType" defaultValue="rss" required>
+                      <SelectTrigger id="sourceType">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="rss">RSS</SelectItem>
+                        <SelectItem value="web">Web</SelectItem>
+                        <SelectItem value="youtube">YouTube</SelectItem>
+                      </SelectContent>
                     </Select>
                   </FormField>
                   <FormField label="URL" htmlFor="url" required>

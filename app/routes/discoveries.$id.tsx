@@ -11,7 +11,7 @@ import { StatusBadge } from "~/components/ui/StatusBadge";
 import { Badge } from "~/components/ui/Badge";
 import { Button } from "~/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
-import { Select } from "~/components/ui/Select";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/Select";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { cn } from "~/lib/utils/cn";
 import { eq, desc, inArray } from "drizzle-orm";
@@ -443,11 +443,15 @@ export default function DiscoveryDetail() {
                 <input type="hidden" name="intent" value="changeOwner" />
                 <label className="block text-sm font-medium text-fg-secondary">Owner</label>
                 <div className="mt-1 flex space-x-2">
-                  <Select name="ownerId" defaultValue={discovery.ownerId || ""}>
-                    <option value="">미지정</option>
-                    {allUsers.map((u) => (
-                      <option key={u.id} value={u.id}>{u.name}</option>
-                    ))}
+                  <Select name="ownerId" defaultValue={discovery.ownerId || undefined}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="미지정" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allUsers.map((u) => (
+                        <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                   <Button type="submit" size="sm">변경</Button>
                 </div>
@@ -469,11 +473,15 @@ export default function DiscoveryDetail() {
                 <input type="hidden" name="intent" value="changeReviewer" />
                 <label className="block text-sm font-medium text-fg-secondary">Reviewer</label>
                 <div className="mt-1 flex space-x-2">
-                  <Select name="reviewerId" defaultValue={discovery.reviewerId || ""}>
-                    <option value="">없음</option>
-                    {allUsers.map((u) => (
-                      <option key={u.id} value={u.id}>{u.name}</option>
-                    ))}
+                  <Select name="reviewerId" defaultValue={discovery.reviewerId || undefined}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="없음" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allUsers.map((u) => (
+                        <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                   <Button type="submit" size="sm">변경</Button>
                 </div>
@@ -482,11 +490,15 @@ export default function DiscoveryDetail() {
                 <input type="hidden" name="intent" value="changeGatekeeper" />
                 <label className="block text-sm font-medium text-fg-secondary">Gatekeeper</label>
                 <div className="mt-1 flex space-x-2">
-                  <Select name="gatekeeperId" defaultValue={discovery.gatekeeperId || ""}>
-                    <option value="">없음</option>
-                    {allUsers.map((u) => (
-                      <option key={u.id} value={u.id}>{u.name}</option>
-                    ))}
+                  <Select name="gatekeeperId" defaultValue={discovery.gatekeeperId || undefined}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="없음" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allUsers.map((u) => (
+                        <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                   <Button type="submit" size="sm">변경</Button>
                 </div>

@@ -8,7 +8,7 @@ import { PageHeader } from "~/components/layout/PageHeader";
 import { Card, CardContent } from "~/components/ui/Card";
 import { Input } from "~/components/ui/Input";
 import { Textarea } from "~/components/ui/Textarea";
-import { Select } from "~/components/ui/Select";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/Select";
 import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
@@ -166,18 +166,17 @@ export default function EditDiscovery() {
 
               {/* Source Type */}
               <FormField label="출처 유형" htmlFor="sourceType" required>
-                <Select
-                  name="sourceType"
-                  id="sourceType"
-                  required
-                  defaultValue={discovery.sourceType}
-                >
-                  <option value="">선택하세요</option>
-                  {Object.entries(SOURCE_TYPE_LABELS).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
+                <Select name="sourceType" required defaultValue={discovery.sourceType}>
+                  <SelectTrigger id="sourceType">
+                    <SelectValue placeholder="선택하세요" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(SOURCE_TYPE_LABELS).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               </FormField>
 

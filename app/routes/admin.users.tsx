@@ -14,7 +14,7 @@ import { AppShell } from "~/components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Button } from "~/components/ui/Button";
 import { Badge } from "~/components/ui/Badge";
-import { Select } from "~/components/ui/Select";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/Select";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { formatDate } from "~/lib/format-date";
 
@@ -207,9 +207,14 @@ export default function AdminUsers() {
                     <Form method="post" className="flex items-center gap-1">
                       <input type="hidden" name="userId" value={user.id} />
                       <Select name="role" defaultValue={user.role}>
-                        <option value="admin">Admin</option>
-                        <option value="gatekeeper">Gatekeeper</option>
-                        <option value="user">User</option>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="gatekeeper">Gatekeeper</SelectItem>
+                          <SelectItem value="user">User</SelectItem>
+                        </SelectContent>
                       </Select>
                       <Button type="submit" variant="secondary" size="sm">변경</Button>
                     </Form>

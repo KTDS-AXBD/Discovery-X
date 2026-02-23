@@ -9,7 +9,7 @@ import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Card, CardContent } from "~/components/ui/Card";
 import { Input } from "~/components/ui/Input";
-import { Select } from "~/components/ui/Select";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/Select";
 import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
@@ -160,34 +160,33 @@ export default function PromoteToOpen() {
 
               {/* Owner Selection */}
               <FormField label="Owner 지정" htmlFor="ownerId" required hint="Discovery의 책임자 (실험, 문서, 결정 담당)">
-                <Select
-                  name="ownerId"
-                  id="ownerId"
-                  required
-                  defaultValue={user.id}
-                >
-                  <option value="">선택하세요</option>
-                  {allUsers.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.name} ({u.email})
-                    </option>
-                  ))}
+                <Select name="ownerId" required defaultValue={user.id}>
+                  <SelectTrigger id="ownerId">
+                    <SelectValue placeholder="선택하세요" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allUsers.map((u) => (
+                      <SelectItem key={u.id} value={u.id}>
+                        {u.name} ({u.email})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               </FormField>
 
               {/* Reviewer Selection */}
               <FormField label="Reviewer 지정 (선택)" htmlFor="reviewerId" hint="Decision Review 시 검토를 담당할 사람 (권장)">
-                <Select
-                  name="reviewerId"
-                  id="reviewerId"
-                  defaultValue=""
-                >
-                  <option value="">없음</option>
-                  {allUsers.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.name} ({u.email})
-                    </option>
-                  ))}
+                <Select name="reviewerId">
+                  <SelectTrigger id="reviewerId">
+                    <SelectValue placeholder="없음" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allUsers.map((u) => (
+                      <SelectItem key={u.id} value={u.id}>
+                        {u.name} ({u.email})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               </FormField>
 

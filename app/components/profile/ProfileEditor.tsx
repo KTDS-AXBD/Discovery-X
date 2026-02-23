@@ -3,7 +3,7 @@ import { Form } from "@remix-run/react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Input } from "~/components/ui/Input";
 import { Button } from "~/components/ui/Button";
-import { Select } from "~/components/ui/Select";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/Select";
 import { FormField } from "~/components/ui/FormField";
 import { ExpertiseTag } from "./ExpertiseTag";
 import type { JsonLdNode } from "~/lib/graph/types";
@@ -104,13 +104,18 @@ export function ProfileEditor({
               <Select
                 name="level"
                 value={newExpertiseLevel}
-                onChange={(e) => setNewExpertiseLevel(e.target.value)}
+                onValueChange={setNewExpertiseLevel}
               >
-                {LEVEL_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {LEVEL_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </FormField>
             <Button type="submit" variant="outline" disabled={!newExpertise.trim()}>

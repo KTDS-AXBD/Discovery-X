@@ -22,7 +22,7 @@ import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Button } from "~/components/ui/Button";
 import { Badge } from "~/components/ui/Badge";
-import { Select } from "~/components/ui/Select";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/Select";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { GatePackageEditor } from "~/components/methods/GatePackageEditor";
@@ -436,21 +436,30 @@ export default function DiscoveryGatePage() {
                 <input type="hidden" name="intent" value="request-approval" />
                 <div>
                   <label className="block text-xs text-fg-tertiary">Gate 패키지</label>
-                  <Select name="gatePackageId" className="mt-1">
-                    {packages.map((pkg) => (
-                      <option key={pkg.id} value={pkg.id}>
-                        {pkg.gateType} {pkg.decision === "PENDING" ? "(대기)" : `(${pkg.decision})`}
-                      </option>
-                    ))}
+                  <Select name="gatePackageId" defaultValue={packages[0]?.id}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {packages.map((pkg) => (
+                        <SelectItem key={pkg.id} value={pkg.id}>
+                          {pkg.gateType} {pkg.decision === "PENDING" ? "(대기)" : `(${pkg.decision})`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </div>
                 <div>
                   <label className="block text-xs text-fg-tertiary">리뷰어 (Gatekeeper)</label>
-                  <Select name="reviewerId" className="mt-1">
-                    <option value="">선택...</option>
-                    {gatekeepers.map((g) => (
-                      <option key={g.id} value={g.id}>{g.name}</option>
-                    ))}
+                  <Select name="reviewerId">
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="선택..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {gatekeepers.map((g) => (
+                        <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </div>
                 <Button type="submit" size="sm" disabled={isSubmitting}>

@@ -16,7 +16,7 @@ import { Button } from "~/components/ui/Button";
 import { Input } from "~/components/ui/Input";
 import { Textarea } from "~/components/ui/Textarea";
 import { FormField } from "~/components/ui/FormField";
-import { Select } from "~/components/ui/Select";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/Select";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { Badge } from "~/components/ui/Badge";
 import { TokenUsageChart } from "~/components/settings/TokenUsageChart";
@@ -198,11 +198,16 @@ export default function Settings() {
               <CardContent>
                 <FormField label="자율도">
                   <Select name="autonomyLevel" defaultValue={String(config.autonomyLevel)}>
-                    {AUTONOMY_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AUTONOMY_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </FormField>
               </CardContent>
@@ -214,12 +219,17 @@ export default function Settings() {
               </CardHeader>
               <CardContent>
                 <FormField label="Claude 모델" hint="Agent가 사용할 Claude 모델을 선택합니다">
-                  <Select name="modelId" defaultValue={config.modelId || ""}>
-                    {MODEL_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
+                  <Select name="modelId" defaultValue={config.modelId || undefined}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="기본 (Claude Sonnet 4)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MODEL_OPTIONS.filter((opt) => opt.value !== "").map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </FormField>
               </CardContent>
