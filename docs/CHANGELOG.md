@@ -15,7 +15,7 @@
 - ✅ Select.tsx: 자체 구현 → @axis-ds re-export (compound 컴포넌트)
 - ✅ 12개 사용처 Radix Select 패턴 전환 (ProfileEditor, InviteMemberDialog, admin.users, discoveries 5개, radar, settings)
 - ✅ vite.config.ts: @radix-ui/react-select SSR noExternal 추가
-- ✅ DS 활용 9/28 → 10/28
+- ✅ DS 활용 9/28 → 11/28 (Select + SelectItem/Trigger/Value/Content)
 
 **검증 결과**:
 - ✅ typecheck 0 에러 / lint 0 에러 / 전체 90파일 1,323/1,323 PASS
