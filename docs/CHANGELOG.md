@@ -3,6 +3,16 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 253 (2026-02-26)
+**/team 3-Worker 병렬 — agentDO 활성화 + compliance-tools 분리 + Matrix P2 Agent 도구**:
+- ✅ W1 (agentDO 활성화): `wrangler.toml` `FF_AGENT_DO = "true"` + `AGENT_WORKER_URL = "https://agent-worker.dx.minu.best"` — 9/9 Feature Flag 전부 활성화
+- ✅ W2 (compliance-tools 분리): `compliance-audit.ts` (신규 221줄: generateAuditTrail + packageEvidenceForAudit) + `compliance-check.ts` (신규 228줄: checkRegulatoryCompliance + formatComplianceReport) + `compliance-tools.ts` (606줄 → 7줄 re-export barrel)
+- ✅ W3 (Matrix P2 Agent 도구): `tool-schemas/matrix-schemas.ts` (신규) + `tools/matrix-tools.ts` (신규: GraphQueryEngine + ScoringService 기반 3 핸들러) + `tool-handlers.ts` (dispatch case 3개) + `tool-registry.ts` (MATRIX_TOOLS + TOOL_MIN_AUTONOMY level 1) + `tool-schemas/index.ts` (MATRIX_TOOLS export)
+- ✅ `tests/unit/agent/matrix-tools.test.ts` (신규): 13개 테스트 PASS (queryMatrixHeatmap/getCellSignals/getTopCells)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,354/1,354 PASS (91 test files)
+
 ### 세션 252 (2026-02-26)
 **ideas 와이어프레임 v0.3 미구현 항목 완료 + deploy 스킬 수정 + 배포**:
 - ✅ `/s-start` 세션 시작 — MEMORY.md 신규 생성 (memory 디렉토리 없던 상태), SPEC.md 확인
