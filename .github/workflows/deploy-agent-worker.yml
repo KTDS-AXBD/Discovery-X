@@ -31,18 +31,23 @@ jobs:
         working-directory: agent-worker
         run: pnpm typecheck
 
-      - name: Deploy agent-worker
+      - name: Deploy agent-worker (코드만)
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: agent-worker
-          secrets: |
-            ANTHROPIC_API_KEY
-            SESSION_SECRET
+
+      - name: Set Worker Secrets
+        working-directory: agent-worker
         env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+        run: |
+          echo "$ANTHROPIC_API_KEY" | npx wrangler secret put ANTHROPIC_API_KEY --name agent-worker
+          echo "$SESSION_SECRET" | npx wrangler secret put SESSION_SECRET --name agent-worker
 
       - name: Verify health endpoint
         run: |
@@ -63,7 +68,3 @@ jobs:
           echo "- **Worker**: agent-worker" >> $GITHUB_STEP_SUMMARY
           echo "- **URL**: https://agent-worker.dx.minu.best" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "⚠️ **필수**: Cloudflare Dashboard에서 Worker Secrets 확인" >> $GITHUB_STEP_SUMMARY
-          echo "- ANTHROPIC_API_KEY" >> $GITHUB_STEP_SUMMARY
-          echo "- SESSION_SECRET" >> $GITHUB_STEP_SUMMARY
