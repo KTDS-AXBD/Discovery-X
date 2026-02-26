@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 254 (2026-02-26)
+**agent-worker 프로덕션 배포 + FF_AGENT_DO 최종 활성화**:
+- ✅ `.github/workflows/deploy-agent-worker.yml` 신규 생성 — pnpm 설치 → typecheck → wrangler deploy → secrets set → health check
+- ✅ CF API 토큰 권한 문제 해결 — "Edit Cloudflare Workers" 템플릿(Workers Scripts:Edit + Zone:Workers Routes:Edit) 신규 토큰 생성, GitHub Secret `CLOUDFLARE_API_TOKEN` 교체
+- ✅ `agent-worker/wrangler.toml` — `[[routes]] custom_domain` 제거 (Zone:Edit 권한 불필요한 방식으로 전환, 커스텀 도메인은 CF Dashboard 수동 설정)
+- ✅ agent-worker 배포 성공 — `https://agent-worker.dx.minu.best/health` 200 확인
+- ✅ 커스텀 도메인 `agent-worker.dx.minu.best` CF Dashboard에서 수동 설정 완료
+- ✅ `wrangler.toml` `FF_AGENT_DO = "true"` 활성화 → master push → 메인 앱 배포 완료 (CI/CD 2m6s)
+
+**검증 결과**:
+- ✅ agent-worker health: 200 OK / 메인앱 typecheck 0 에러 / lint 0 에러 / 테스트 1,354/1,354 PASS / build 성공
+
 ### 세션 253 (2026-02-26)
 **/team 3-Worker 병렬 — agentDO 활성화 + compliance-tools 분리 + Matrix P2 Agent 도구**:
 - ✅ W1 (agentDO 활성화): `wrangler.toml` `FF_AGENT_DO = "true"` + `AGENT_WORKER_URL = "https://agent-worker.dx.minu.best"` — 9/9 Feature Flag 전부 활성화

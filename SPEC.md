@@ -403,7 +403,7 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.19 + agentDO 활성화 + compliance-tools 분리 + Matrix P2 Agent 도구 (세션 253)
+- **프로토타입**: v6.19 + agent-worker 프로덕션 배포 완료 + FF_AGENT_DO 활성화 (세션 254)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 41개 마이그레이션 (0000~0040), 로컬 적용 완료
 
@@ -420,7 +420,7 @@ build/
 - **Feature Flag**: 9개 — **9/9 true** (agentDO 활성화 완료)
 - **@theme inline**: 104 토큰 등록, var() 1,752→122 (93.0% 감소, 163 파일)
 - **@axis-ds 컴포넌트**: 15/28 활용 (Button/Badge/Card/Input/Alert/Dialog/Table/Textarea/Select/SelectItem/SelectTrigger/Label/Skeleton/Separator/Progress)
-- **배포**: 세션 252 배포 완료 (CI/CD 2m13s) — 세션 253 배포 필요
+- **배포**: 세션 254 배포 완료 (CI/CD 2m6s) — agent-worker 별도 배포 완료 (30s)
 - **Cron 등록**: cron-job.org 13개 (vectorize 3→1 통합, lab 2→1 통합, profile-learn/shadow-analyze/briefing 삭제)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
