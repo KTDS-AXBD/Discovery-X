@@ -21,10 +21,8 @@ binding = "DB"
 database_name = "discovery-x-db"
 database_id = "1bab6138-6b2f-45eb-8285-55ba7b543957"
 
-# 커스텀 도메인 — agent-worker.dx.minu.best
-[[routes]]
-pattern = "agent-worker.dx.minu.best"
-custom_domain = true
+# 커스텀 도메인: Cloudflare Dashboard Workers > agent-worker > Settings > Domains 에서 수동 설정
+# pattern: agent-worker.dx.minu.best
 
 [vars]
 # Feature Flag 참조 — 메인 앱과 동일
