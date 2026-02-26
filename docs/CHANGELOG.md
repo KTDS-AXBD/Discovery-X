@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 261 (2026-02-26)
+**Service Layer 확장 — discoveries/$id 서브라우트 15개 (Agent Teams 2-Worker)**:
+- ✅ W1 (소형 7개): patterns/complete-experiment/graph/compliance/request-extension/add-experiment 인라인 쿼리 제거
+- ✅ W2 (대형 8개): add-evidence/decide-next/methods/promote/decide-not-now/decide-dead-end/approve/gate 인라인 쿼리 제거
+- ✅ `app/lib/services/discovery/query.ts` +131줄: getExperiment/getPatternPageData/getGraphPageData 등 신규
+- ✅ `app/lib/services/discovery/entity.ts` +296줄: gate 패키지·승인 처리, method run 추가 등 신규
+- ✅ `app/lib/services/discovery/query-extra2.ts` 신규: DiscoveryQueryExtraService (gate/methods/evidence 전용)
+- ✅ gate.tsx: 인라인 쿼리 대부분 제거 (20KB → 대폭 축소, -281줄)
+- ✅ edit.tsx: 이미 서비스 메서드 사용 중 (변경 불필요 확인)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,340/1,340 PASS (unit 853 + integration 487)
+
 ### 세션 260 (2026-02-26)
 **Service Layer 확장 — dashboard + signals + 배포**:
 - ✅ 배포: `git push origin master` → GitHub Actions CI/CD (2m9s) — 세션 258+259 코드 프로덕션 반영
