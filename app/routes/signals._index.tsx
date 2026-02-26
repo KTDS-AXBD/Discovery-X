@@ -1,29 +1,15 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, useSearchParams } from "@remix-run/react";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 import { getDb } from "~/db";
-import { sharedSignals, topics } from "~/db/schema-v2";
-import { tenantMembers, users } from "~/db/schema";
+import { tenantMembers } from "~/db/schema";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
+import { SignalService } from "~/lib/services";
 import { cn } from "~/lib/utils/cn";
 
-// ─── Types ──────────────────────────────────────────────────────────────
-interface SharedSignalRow {
-  id: number;
-  contentSummary: string;
-  score: number;
-  status: string;
-  topicId: string | null;
-  topicName: string | null;
-  sourceUserName: string | null;
-  createdAt: Date;
-}
-
-type SerializedSignal = Omit<SharedSignalRow, "createdAt"> & { createdAt: string };
-
-// ─── Helpers ────────────────────────────────────────────────────────────
+// ─── Helpers ────────────────────────────────────────────────────────────────
 function formatDate(raw: string): string {
   const date = new Date(raw);
   const y = date.getFullYear();
@@ -59,7 +45,7 @@ function getStatusColor(status: string): string {
   }
 }
 
-// ─── Loader ─────────────────────────────────────────────────────────────
+// ─── Loader ─────────────────────────────────────────────────────────────────
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const env = context.cloudflare.env;
   const db = getDb(env.DB);
@@ -79,40 +65,34 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const teamId = membership?.tenantId ?? "";
 
   if (!teamId) {
-    return json({ signals: [] as SharedSignalRow[] });
+    return json({ signals: [] });
   }
 
   const url = new URL(request.url);
   const topicId = url.searchParams.get("topicId") ?? "";
   const status = url.searchParams.get("status") ?? "";
 
-  // 조건 빌드
-  const conditions = [eq(sharedSignals.teamId, teamId)];
-  if (topicId) conditions.push(eq(sharedSignals.topicId, topicId));
-  if (status) conditions.push(eq(sharedSignals.status, status));
+  const service = new SignalService(db);
+  const signals = await service.listWithDetails(teamId, {
+    topicId: topicId || undefined,
+    status: status || undefined,
+  });
 
-  const rows = await db
-    .select({
-      id: sharedSignals.id,
-      contentSummary: sharedSignals.contentSummary,
-      score: sharedSignals.score,
-      status: sharedSignals.status,
-      topicId: sharedSignals.topicId,
-      topicName: topics.name,
-      sourceUserName: users.name,
-      createdAt: sharedSignals.createdAt,
-    })
-    .from(sharedSignals)
-    .leftJoin(topics, eq(topics.id, sharedSignals.topicId))
-    .leftJoin(users, eq(users.id, sharedSignals.sourceUserId))
-    .where(and(...conditions))
-    .orderBy(desc(sharedSignals.score), desc(sql`${sharedSignals.createdAt}`))
-    .limit(100);
-
-  return json({ signals: rows });
+  return json({ signals });
 }
 
-// ─── Components ─────────────────────────────────────────────────────────
+// ─── Components ─────────────────────────────────────────────────────────────
+type SerializedSignal = {
+  id: number;
+  contentSummary: string;
+  score: number;
+  status: string;
+  topicId: string | null;
+  topicName: string | null;
+  sourceUserName: string | null;
+  createdAt: string;
+};
+
 function StatusBadge({ status }: { status: string }) {
   return (
     <span
@@ -156,7 +136,7 @@ function SignalCard({ signal }: { signal: SerializedSignal }) {
   );
 }
 
-// ─── Page ───────────────────────────────────────────────────────────────
+// ─── Page ───────────────────────────────────────────────────────────────────
 export default function SignalsIndex() {
   const { signals } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();

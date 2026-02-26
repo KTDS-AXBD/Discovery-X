@@ -2,15 +2,14 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, users } from "~/db/schema";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "~/components/ui/Table";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { Card } from "~/components/ui/Card";
-import { eq, and, lte } from "drizzle-orm";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { DiscoveryStatus, TriggerType } from "~/db/schema";
+import { TriggerType } from "~/db/schema";
 import { formatDate } from "~/lib/format-date";
+import { DiscoveryService } from "~/lib/services";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -18,47 +17,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const ctx = await getSessionContext(request, db, secret);
   if (!ctx) return redirect("/login");
 
-  const now = new Date();
-  const notNowDiscoveries = await db
-    .select()
-    .from(discoveries)
-    .where(
-      and(
-        eq(discoveries.status, DiscoveryStatus.HOLD),
-        lte(discoveries.revisitDate, now),
-        eq(discoveries.tenantId, ctx.tenantId)
-      )
-    );
+  const service = new DiscoveryService(db);
+  const discoveries = await service.listForRecallQueue(ctx.tenantId);
 
-  const discoveryList = await Promise.all(
-    notNowDiscoveries.map(async (discovery) => {
-      const owner = discovery.ownerId
-        ? await db.query.users.findFirst({
-            where: eq(users.id, discovery.ownerId),
-          })
-        : null;
-
-      const daysSinceRevisit = discovery.revisitDate
-        ? Math.floor(
-            (Date.now() - new Date(discovery.revisitDate).getTime()) / (1000 * 60 * 60 * 24)
-          )
-        : 0;
-
-      return {
-        ...discovery,
-        ownerName: owner?.name,
-        daysSinceRevisit,
-      };
-    })
-  );
-
-  discoveryList.sort((a, b) => {
-    const dateA = a.revisitDate ? new Date(a.revisitDate).getTime() : 0;
-    const dateB = b.revisitDate ? new Date(b.revisitDate).getTime() : 0;
-    return dateA - dateB;
-  });
-
-  return json({ discoveries: discoveryList });
+  return json({ discoveries });
 }
 
 const TRIGGER_TYPE_LABELS: Record<string, string> = {

@@ -147,3 +147,19 @@ export interface ActivityLogWithActor {
   metadata: Record<string, unknown> | null;
   timestamp: string;
 }
+
+// ============================================================================
+// Weekly Review / Recall Queue
+// ============================================================================
+
+export interface WeeklyReviewItem extends Discovery {
+  ownerName: string | undefined;
+  ageInDays: number;
+  daysUntilDue: number | null;
+  isOverdue: boolean;
+}
+
+export interface RecallQueueItem extends Discovery {
+  ownerName: string | undefined;
+  daysSinceRevisit: number;
+}

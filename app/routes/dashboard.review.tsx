@@ -2,17 +2,16 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries } from "~/db/schema";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "~/components/ui/Table";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { Card } from "~/components/ui/Card";
 import { Badge } from "~/components/ui/Badge";
 import { cn } from "~/lib/utils/cn";
-import { and, eq, inArray } from "drizzle-orm";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { formatDate, daysUntilDue } from "~/lib/format-date";
-import { ACTIVE_STATUSES, STATUS_CONFIG } from "~/lib/constants/status";
+import { formatDate } from "~/lib/format-date";
+import { STATUS_CONFIG } from "~/lib/constants/status";
+import { DiscoveryService } from "~/lib/services";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -20,43 +19,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const ctx = await getSessionContext(request, db, secret);
   if (!ctx) return redirect("/login");
 
-  const openDiscoveries = await db
-    .select()
-    .from(discoveries)
-    .where(
-      and(
-        inArray(discoveries.status, [...ACTIVE_STATUSES]),
-        eq(discoveries.tenantId, ctx.tenantId),
-      )
-    );
+  const service = new DiscoveryService(db);
+  const discoveries = await service.listForWeeklyReview(ctx.tenantId);
 
-  const discoveryList = await Promise.all(
-    openDiscoveries.map(async (discovery) => {
-      const owner = discovery.ownerId
-        ? await db.query.users.findFirst({
-            where: (u, { eq }) => eq(u.id, discovery.ownerId!),
-          })
-        : null;
-
-      const ageInDays = Math.floor(
-        (Date.now() - new Date(discovery.createdAt).getTime()) / (1000 * 60 * 60 * 24)
-      );
-
-      const daysLeft = daysUntilDue(discovery.dueDate);
-
-      return {
-        ...discovery,
-        ownerName: owner?.name,
-        ageInDays,
-        daysUntilDue: daysLeft,
-        isOverdue: daysLeft !== null && daysLeft < 0,
-      };
-    })
-  );
-
-  discoveryList.sort((a, b) => b.ageInDays - a.ageInDays);
-
-  return json({ discoveries: discoveryList });
+  return json({ discoveries });
 }
 
 function getAgeColor(ageInDays: number): string {

@@ -32,6 +32,8 @@ export type {
   DiscoveryLinksResult,
   LinkWithDirection,
   ActivityLogWithActor,
+  WeeklyReviewItem,
+  RecallQueueItem,
 } from "./discovery/types";
 
 export class DiscoveryService {
@@ -68,6 +70,12 @@ export class DiscoveryService {
     ...args: Parameters<DiscoveryQueryService["getActivityLogsWithActors"]>
   ) => this.query.getActivityLogsWithActors(...args);
   getAllUsers = () => this.query.getAllUsers();
+  listForWeeklyReview = (
+    ...args: Parameters<DiscoveryQueryService["listForWeeklyReview"]>
+  ) => this.query.listForWeeklyReview(...args);
+  listForRecallQueue = (
+    ...args: Parameters<DiscoveryQueryService["listForRecallQueue"]>
+  ) => this.query.listForRecallQueue(...args);
 
   // --- Workflow delegates ---
   transition = (...args: Parameters<DiscoveryWorkflowService["transition"]>) =>

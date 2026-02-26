@@ -1,9 +1,10 @@
-import { eq, desc, inArray, count } from "drizzle-orm";
+import { eq, desc, inArray, count, and, lte } from "drizzle-orm";
 import type { DB } from "~/db";
 import { discoveries, experiments, evidence, users, eventLogs, discoveryKpis, kpiMeasurements, discoveryLinks } from "~/db/schema";
 import { DiscoveryStatus } from "~/db/schema";
 import { tenantWhere } from "~/lib/query/tenant-scope";
-import { isOverdue } from "~/lib/format-date";
+import { isOverdue, daysUntilDue } from "~/lib/format-date";
+import { ACTIVE_STATUSES } from "~/lib/constants/status";
 import type {
   Discovery,
   DiscoveryListItem,
@@ -12,6 +13,8 @@ import type {
   KpiWithMeasurements,
   DiscoveryLinksResult,
   ActivityLogWithActor,
+  WeeklyReviewItem,
+  RecallQueueItem,
 } from "./types";
 
 export class DiscoveryQueryService {
@@ -251,5 +254,95 @@ export class DiscoveryQueryService {
    */
   async getAllUsers() {
     return this.db.select().from(users);
+  }
+
+  /**
+   * Weekly Review 목록 (활성 Discovery, ageInDays 내림차순)
+   * Owner 배치 조회로 N+1 방지
+   */
+  async listForWeeklyReview(tenantId: string): Promise<WeeklyReviewItem[]> {
+    const openDiscoveries = await this.db
+      .select()
+      .from(discoveries)
+      .where(
+        and(
+          inArray(discoveries.status, [...ACTIVE_STATUSES]),
+          eq(discoveries.tenantId, tenantId),
+        ),
+      );
+
+    const ownerIds = [
+      ...new Set(openDiscoveries.map((d) => d.ownerId).filter(Boolean)),
+    ] as string[];
+    const ownerList =
+      ownerIds.length > 0
+        ? await this.db.select().from(users).where(inArray(users.id, ownerIds))
+        : [];
+    const ownerMap = new Map(ownerList.map((u) => [u.id, u.name]));
+
+    const result: WeeklyReviewItem[] = openDiscoveries.map((d) => {
+      const ageInDays = Math.floor(
+        (Date.now() - new Date(d.createdAt).getTime()) / (1000 * 60 * 60 * 24),
+      );
+      const daysLeft = daysUntilDue(d.dueDate);
+      return {
+        ...d,
+        ownerName: d.ownerId ? ownerMap.get(d.ownerId) : undefined,
+        ageInDays,
+        daysUntilDue: daysLeft,
+        isOverdue: daysLeft !== null && daysLeft < 0,
+      };
+    });
+
+    result.sort((a, b) => b.ageInDays - a.ageInDays);
+    return result;
+  }
+
+  /**
+   * Recall Queue 목록 (HOLD + revisitDate ≤ now, daysSinceRevisit 오름차순)
+   * Owner 배치 조회로 N+1 방지
+   */
+  async listForRecallQueue(tenantId: string): Promise<RecallQueueItem[]> {
+    const now = new Date();
+    const holdDiscoveries = await this.db
+      .select()
+      .from(discoveries)
+      .where(
+        and(
+          eq(discoveries.status, DiscoveryStatus.HOLD),
+          lte(discoveries.revisitDate, now),
+          eq(discoveries.tenantId, tenantId),
+        ),
+      );
+
+    const ownerIds = [
+      ...new Set(holdDiscoveries.map((d) => d.ownerId).filter(Boolean)),
+    ] as string[];
+    const ownerList =
+      ownerIds.length > 0
+        ? await this.db.select().from(users).where(inArray(users.id, ownerIds))
+        : [];
+    const ownerMap = new Map(ownerList.map((u) => [u.id, u.name]));
+
+    const result: RecallQueueItem[] = holdDiscoveries.map((d) => {
+      const daysSinceRevisit = d.revisitDate
+        ? Math.floor(
+            (Date.now() - new Date(d.revisitDate).getTime()) /
+              (1000 * 60 * 60 * 24),
+          )
+        : 0;
+      return {
+        ...d,
+        ownerName: d.ownerId ? ownerMap.get(d.ownerId) : undefined,
+        daysSinceRevisit,
+      };
+    });
+
+    result.sort((a, b) => {
+      const dateA = a.revisitDate ? new Date(a.revisitDate).getTime() : 0;
+      const dateB = b.revisitDate ? new Date(b.revisitDate).getTime() : 0;
+      return dateA - dateB;
+    });
+    return result;
   }
 }

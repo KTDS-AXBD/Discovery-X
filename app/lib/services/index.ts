@@ -1,7 +1,10 @@
 export { DiscoveryService } from "./discovery.service";
+export { DashboardService } from "./dashboard.service";
+export type { DashboardOverviewData, DashboardCollectionItem, DashboardDiscoveryItem, DashboardProposalItem } from "./dashboard.service";
 export { ProposalService } from "./proposal.service";
 export { TopicService } from "./topic.service";
 export { SignalService } from "./signal.service";
+export type { SignalWithDetails } from "./signal.service";
 export { MatrixService } from "./matrix.service";
 export { ScoringService } from "./scoring.service";
 export { FolderService } from "./folder.service";
