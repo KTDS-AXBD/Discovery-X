@@ -33,6 +33,52 @@ interface GoogleUserInfo {
   picture?: string;
 }
 
+/**
+ * 화이트리스트 사용자의 tenant 멤버십 보장.
+ * active tenant가 없으면 기본 tenant를 생성한 뒤 멤버로 추가.
+ */
+async function ensureTenantMembership(
+  db: ReturnType<typeof getDb>,
+  userId: string,
+  email: string,
+) {
+  // 이미 멤버십 있으면 스킵
+  const existing = await db.query.tenantMembers.findFirst({
+    where: eq(tenantMembers.userId, userId),
+  });
+  if (existing) return;
+
+  // active tenant 조회, 없으면 생성
+  let tenant = await db.query.tenants.findFirst({
+    where: eq(tenants.status, "active"),
+  });
+
+  if (!tenant) {
+    const tenantId = `tenant-${crypto.randomUUID().slice(0, 8)}`;
+    await db.insert(tenants).values({
+      id: tenantId,
+      name: "AX BD팀",
+      slug: "ax-bd-team",
+      ownerUserId: userId,
+      status: "active",
+      plan: "free",
+    });
+    tenant = await db.query.tenants.findFirst({
+      where: eq(tenants.id, tenantId),
+    });
+  }
+
+  if (!tenant) return;
+
+  const role = email === "sinclairseo@gmail.com" ? "admin" : "member";
+  await db.insert(tenantMembers).values({
+    id: `tm-${crypto.randomUUID().slice(0, 8)}`,
+    tenantId: tenant.id,
+    userId,
+    role,
+  });
+}
+
 export async function loader({ request, context }: LoaderFunctionArgs) {
   try {
     const url = new URL(request.url);
@@ -144,27 +190,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
         // 화이트리스트 사용자는 기본 tenant에 자동 추가
         if (isWhitelisted && user) {
-          const defaultTenant = await db.query.tenants.findFirst({
-            where: eq(tenants.status, "active"),
-          });
-
-          if (defaultTenant) {
-            const existingMember = await db.query.tenantMembers.findFirst({
-              where: and(
-                eq(tenantMembers.tenantId, defaultTenant.id),
-                eq(tenantMembers.userId, user.id)
-              ),
-            });
-
-            if (!existingMember) {
-              await db.insert(tenantMembers).values({
-                id: `tm-${crypto.randomUUID().slice(0, 8)}`,
-                tenantId: defaultTenant.id,
-                userId: user.id,
-                role: user.email === "sinclairseo@gmail.com" ? "admin" : "member",
-              });
-            }
-          }
+          await ensureTenantMembership(db, user.id, user.email);
         }
       }
     } else {
@@ -179,22 +205,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
       // 기존 사용자도 tenantMembers가 없으면 자동 추가 (마이그레이션 보정)
       if (WHITELIST_EMAILS.includes(googleUser.email.toLowerCase())) {
-        const existingMembership = await db.query.tenantMembers.findFirst({
-          where: eq(tenantMembers.userId, user.id),
-        });
-        if (!existingMembership) {
-          const defaultTenant = await db.query.tenants.findFirst({
-            where: eq(tenants.status, "active"),
-          });
-          if (defaultTenant) {
-            await db.insert(tenantMembers).values({
-              id: `tm-${crypto.randomUUID().slice(0, 8)}`,
-              tenantId: defaultTenant.id,
-              userId: user.id,
-              role: user.email === "sinclairseo@gmail.com" ? "admin" : "member",
-            });
-          }
-        }
+        await ensureTenantMembership(db, user.id, user.email);
       }
     }
 
