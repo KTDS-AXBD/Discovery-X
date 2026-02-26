@@ -1,0 +1,69 @@
+name: Deploy Agent Worker
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - 'agent-worker/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install agent-worker dependencies
+        working-directory: agent-worker
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        working-directory: agent-worker
+        run: pnpm typecheck
+
+      - name: Deploy agent-worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: agent-worker
+          secrets: |
+            ANTHROPIC_API_KEY
+            SESSION_SECRET
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+
+      - name: Verify health endpoint
+        run: |
+          sleep 5
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://agent-worker.dx.minu.best/health)
+          echo "Health check status: $STATUS"
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ agent-worker is healthy"
+          else
+            echo "⚠️ Health check returned $STATUS (domain propagation may take a moment)"
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Agent Worker Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Worker**: agent-worker" >> $GITHUB_STEP_SUMMARY
+          echo "- **URL**: https://agent-worker.dx.minu.best" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️ **필수**: Cloudflare Dashboard에서 Worker Secrets 확인" >> $GITHUB_STEP_SUMMARY
+          echo "- ANTHROPIC_API_KEY" >> $GITHUB_STEP_SUMMARY
+          echo "- SESSION_SECRET" >> $GITHUB_STEP_SUMMARY
