@@ -176,6 +176,26 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
           name: googleUser.name || user.name,
         })
         .where(eq(users.id, user.id));
+
+      // 기존 사용자도 tenantMembers가 없으면 자동 추가 (마이그레이션 보정)
+      if (WHITELIST_EMAILS.includes(googleUser.email.toLowerCase())) {
+        const existingMembership = await db.query.tenantMembers.findFirst({
+          where: eq(tenantMembers.userId, user.id),
+        });
+        if (!existingMembership) {
+          const defaultTenant = await db.query.tenants.findFirst({
+            where: eq(tenants.status, "active"),
+          });
+          if (defaultTenant) {
+            await db.insert(tenantMembers).values({
+              id: `tm-${crypto.randomUUID().slice(0, 8)}`,
+              tenantId: defaultTenant.id,
+              userId: user.id,
+              role: user.email === "sinclairseo@gmail.com" ? "admin" : "member",
+            });
+          }
+        }
+      }
     }
 
     if (!user) {
