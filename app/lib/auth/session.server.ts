@@ -1,6 +1,6 @@
 import { createCookieSessionStorage, redirect, json } from "@remix-run/cloudflare";
 import type { DB } from "~/db";
-import { users, sessions, tenantMembers, UserRole } from "~/db/schema";
+import { users, sessions, tenants, tenantMembers, UserRole } from "~/db/schema";
 import type { User } from "~/db/schema";
 import { eq, and } from "drizzle-orm";
 
@@ -142,6 +142,57 @@ export async function destroySession(
   return sessionStorage.destroySession(session);
 }
 
+// tenant membership 자동 프로비저닝 (slug conflict 안전 처리)
+async function autoProvisionTenantMembership(
+  db: DB,
+  userId: string,
+): Promise<typeof tenantMembers.$inferSelect | undefined> {
+  try {
+    let tenant = await db.query.tenants.findFirst({
+      where: eq(tenants.status, "active"),
+    });
+
+    if (!tenant) {
+      const tenantId = `tenant-${crypto.randomUUID().slice(0, 8)}`;
+      try {
+        await db.insert(tenants).values({
+          id: tenantId,
+          name: "AX BD팀",
+          slug: "ax-bd-team",
+          ownerUserId: userId,
+          status: "active",
+          plan: "free",
+        });
+      } catch {
+        // slug conflict — 이미 존재하는 테넌트 사용
+      }
+      tenant = await db.query.tenants.findFirst({
+        where: eq(tenants.status, "active"),
+      });
+    }
+
+    if (!tenant) return undefined;
+
+    try {
+      await db.insert(tenantMembers).values({
+        id: `tm-${crypto.randomUUID().slice(0, 8)}`,
+        tenantId: tenant.id,
+        userId,
+        role: "member",
+      });
+    } catch {
+      // 이미 존재하는 경우 (race condition) 무시
+    }
+
+    return db.query.tenantMembers.findFirst({
+      where: eq(tenantMembers.userId, userId),
+    });
+  } catch (e) {
+    console.error("[autoProvisionTenantMembership] error:", e);
+    return undefined;
+  }
+}
+
 // Get session context with tenant information
 export async function getSessionContext(
   request: Request,
@@ -159,9 +210,15 @@ export async function getSessionContext(
 
   if (!tenantId) {
     // tenantId 없으면 첫 번째 Tenant 멤버십 조회
-    const membership = await db.query.tenantMembers.findFirst({
+    let membership = await db.query.tenantMembers.findFirst({
       where: eq(tenantMembers.userId, user.id),
     });
+
+    // membership 없고 pending이 아닌 사용자 → 자동 프로비저닝 (세션 수정 없이 DB 보정)
+    if (!membership && user.role !== UserRole.PENDING) {
+      membership = await autoProvisionTenantMembership(db, user.id);
+    }
+
     if (!membership) return null;
     return { user, tenantId: membership.tenantId, tenantRole: membership.role };
   }

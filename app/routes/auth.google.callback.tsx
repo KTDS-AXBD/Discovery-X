@@ -55,28 +55,37 @@ async function ensureTenantMembership(
 
   if (!tenant) {
     const tenantId = `tenant-${crypto.randomUUID().slice(0, 8)}`;
-    await db.insert(tenants).values({
-      id: tenantId,
-      name: "AX BD팀",
-      slug: "ax-bd-team",
-      ownerUserId: userId,
-      status: "active",
-      plan: "free",
-    });
+    try {
+      await db.insert(tenants).values({
+        id: tenantId,
+        name: "AX BD팀",
+        slug: "ax-bd-team",
+        ownerUserId: userId,
+        status: "active",
+        plan: "free",
+      });
+    } catch {
+      // slug unique conflict — 이미 생성된 테넌트가 있음
+    }
+    // insert 성공 여부와 관계없이 active tenant 재조회
     tenant = await db.query.tenants.findFirst({
-      where: eq(tenants.id, tenantId),
+      where: eq(tenants.status, "active"),
     });
   }
 
   if (!tenant) return;
 
   const role = email === "sinclairseo@gmail.com" ? "admin" : "member";
-  await db.insert(tenantMembers).values({
-    id: `tm-${crypto.randomUUID().slice(0, 8)}`,
-    tenantId: tenant.id,
-    userId,
-    role,
-  });
+  try {
+    await db.insert(tenantMembers).values({
+      id: `tm-${crypto.randomUUID().slice(0, 8)}`,
+      tenantId: tenant.id,
+      userId,
+      role,
+    });
+  } catch {
+    // 이미 membership 존재 (race condition 또는 중복 호출)
+  }
 }
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
