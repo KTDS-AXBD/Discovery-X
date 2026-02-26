@@ -411,8 +411,8 @@ build/
 - **라우트**: 153개 (서비스 레이어 전환 완료: folders/ideas/lab/radar/proposals)
 - **테이블**: 92개 (+5: Archive 2, Token 1, Matrix 7, Worker 2, FTS 1, Proposals +2, Graph +1 — 기존 중복 제거 후)
 - **Agent 도구**: 50개 (+3 Matrix P2: query_matrix_heatmap/get_cell_signals/get_top_cells, schema: 9 도메인 파일)
-- **코드**: ~63,200줄 (392파일) — compliance-tools 2분리 + matrix tools 2신규 + test 1신규
-- **테스트**: 1,354개 (91 test files, 로컬 통과)
+- **코드**: ~63,100줄 (395파일) — Phase 6 리팩토링: briefing-builder/pipeline-bridge 제거 (signal-router 독립화)
+- **테스트**: 1,342개 (90 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공

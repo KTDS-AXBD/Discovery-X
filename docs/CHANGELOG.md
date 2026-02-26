@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 256 (2026-02-26)
+**/team 2-Worker Phase 6 리팩토링 — integration 모듈 정리 (briefing-builder + pipeline-bridge 제거)**:
+- ✅ W1 (`signal-router 정리`): `app/lib/integration/signal-router.ts` 리팩토링 — `BriefingBuilder`/`PipelineBridge` import/field/call 전체 제거, `getExpertiseScore` 로직 graph 기반 인라인(DB 직접 조회)으로 대체
+- ✅ W1: `app/lib/integration/briefing-builder.ts` 삭제 (-395줄): 브리핑 UI 아카이브(세션 228) 후 non-fatal 호출만 남아있던 파일
+- ✅ W1: `app/lib/integration/pipeline-bridge.ts` 삭제 (-291줄): signal-router에서만 사용, 의존 제거 후 불필요
+- ✅ W2 (`테스트/문서 정리`): `tests/integration/pipeline-bridge.test.ts` 삭제 (-12 테스트, -301줄)
+- ✅ W2: `SPEC.md §5` 지표 업데이트 (~63,100줄/395파일/1,342테스트 반영)
+- ✅ `app/lib/integration/` 3파일 → **1파일** (signal-router.ts만 유지)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,342/1,342 PASS (90 test files)
+
 ### 세션 255 (2026-02-26)
 **agentDO 채팅 401 완전 해결 — SESSION_SECRET HMAC 동기화 + tenant membership 자동 프로비저닝**:
 - ✅ `app/lib/auth/session.server.ts` — `autoProvisionTenantMembership()` 헬퍼 추가: non-pending 사용자에게 tenant+membership 자동 생성, `getSessionContext` 내 membership 없을 때 자동 호출
