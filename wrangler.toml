@@ -62,7 +62,7 @@ index_name = "dx-signal-embeddings"
 # 프로덕션 배포 시 단계적 활성화 (graph → acl → topic → memory → agent → vectorize)
 [vars]
 FF_GRAPH_LAYER = "true"
-FF_AGENT_DO = "false"           # agent-worker 미배포 — 배포 후 재활성화
+FF_AGENT_DO = "true"
 AGENT_WORKER_URL = "https://agent-worker.dx.minu.best"
 FF_TOPIC_COLLAB = "true"
 FF_ACL_SCOPE = "true"
