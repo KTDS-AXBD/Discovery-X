@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 255 (2026-02-26)
+**agentDO 채팅 401 완전 해결 — SESSION_SECRET HMAC 동기화 + tenant membership 자동 프로비저닝**:
+- ✅ `app/lib/auth/session.server.ts` — `autoProvisionTenantMembership()` 헬퍼 추가: non-pending 사용자에게 tenant+membership 자동 생성, `getSessionContext` 내 membership 없을 때 자동 호출
+- ✅ `app/routes/auth.google.callback.tsx` — `ensureTenantMembership()` tenant/membership insert 모두 try/catch (slug UNIQUE 충돌 + race condition 안전 처리)
+- ✅ `app/routes/api.debug.session.ts` 임시 디버그 엔드포인트 생성 → D1 상태 확인 후 삭제
+- ✅ `.github/workflows/deploy.yml` — `wrangler pages secret put SESSION_SECRET` 단계를 Pages 배포 **전**으로 이동 (시크릿은 다음 배포부터 적용되는 CF Pages 특성 반영)
+- ✅ 근본 원인 규명: main app(CF Pages)과 agent-worker의 SESSION_SECRET 불일치 → `X-DX-Auth-Token` HMAC 검증 항상 실패 → agent-worker 401 → `delegateToDO` passthrough → 클라이언트 401
+- ✅ 최종 검증: 채팅 메시지 전송 성공 (401 없음) — AgentSessionDO end-to-end 완전 작동
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,354/1,354 PASS / build 성공 / agentDO 채팅 정상
+
 ### 세션 254 (2026-02-26)
 **agent-worker 프로덕션 배포 + FF_AGENT_DO 최종 활성화**:
 - ✅ `.github/workflows/deploy-agent-worker.yml` 신규 생성 — pnpm 설치 → typecheck → wrangler deploy → secrets set → health check
