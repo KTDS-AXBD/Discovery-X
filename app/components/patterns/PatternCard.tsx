@@ -2,6 +2,7 @@
  * 추출된 패턴 카드 컴포넌트 (Strategic Evolution F3)
  */
 
+import { formatDate } from "~/lib/format-date";
 import { cn } from "~/lib/utils/cn";
 
 interface PatternData {
@@ -87,7 +88,7 @@ export default function PatternCard({ pattern, onClick }: PatternCardProps) {
       <div className="mt-3 flex items-center gap-3 text-xs text-fg-tertiary">
         <span>빈도: {pattern.frequency}회</span>
         {pattern.validatedAt && <span>검증됨</span>}
-        <span>{new Date(pattern.createdAt).toLocaleDateString("ko-KR")}</span>
+        <span>{formatDate(pattern.createdAt)}</span>
       </div>
     </div>
   );
