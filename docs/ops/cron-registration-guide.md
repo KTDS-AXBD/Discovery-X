@@ -2,7 +2,7 @@
 
 > 프로덕션 URL: **https://dx.minu.best**
 > 외부 Cron 서비스: **cron-job.org**
-> 최종 업데이트: 2026-02-19 (19개 전체 등록 완료)
+> 최종 업데이트: 2026-02-26 (13개 — Cron 통합 리팩토링 반영)
 
 ---
 
@@ -13,36 +13,30 @@
 
 | 패턴 | 헤더/파라미터 | 대상 엔드포인트 |
 |------|-------------|---------------|
-| **Query Param** | `?secret=$CRON_SECRET` | daily, agent-review, alerts, embeddings, lab-extract, lab-analyze, pattern-extract, shadow-analyze, weekly-summary, log-archive |
-| **Bearer Token** | `Authorization: Bearer $CRON_SECRET` | signal-route, memory-vectorize, signal-vectorize, graph-vectorize, memory-compact, projection-sync, profile-learn, matrix-scoring, briefing |
+| **Query Param** | `?secret=$CRON_SECRET` | daily, agent-review, embeddings, lab, weekly-summary |
+| **Bearer Token** | `Authorization: Bearer $CRON_SECRET` | signal-route, vectorize, maintenance, matrix-scoring |
 
 ---
 
-## 전체 Cron 엔드포인트 목록 (19개) — 전체 등록 완료
+## 전체 Cron 엔드포인트 목록 (13개) — 현행
 
-> 2026-02-19 cron-job.org REST API로 일괄 등록 완료 (17 OK / 0 FAIL)
+> 2026-02-26 Cron 통합 리팩토링 반영 (19→13: maintenance 신규 + alerts/log-archive/memory-compact/projection-sync/pattern-extract 통합, lab/vectorize 파라미터 방식으로 전환)
 
 | # | 엔드포인트 | HTTP | 인증 | Feature Flag | 권장 스케줄 | cron-job.org ID |
 |---|----------|------|------|-------------|-----------|----------------|
 | 1 | `/api/cron/daily` | GET | Query Param | — | 매일 09:00 KST | 7211996 |
 | 2 | `/api/cron/agent-review` | POST | Query Param | — (autonomyLevel ≥ 2) | 매일 10:00 KST | 7213910 |
-| 3 | `/api/cron/alerts` | GET | Query Param | — | 매일 09:30 KST | (기존) |
-| 4 | `/api/cron/embeddings` | GET | Query Param | — | 매 30분 | (기존) |
-| 5 | `/api/cron/lab-extract` | GET | Query Param | — | 매일 11:00 KST | 7288782 |
-| 6 | `/api/cron/lab-analyze` | GET | Query Param | — | 매일 12:00 KST | 7288783 |
-| 7 | `/api/cron/pattern-extract` | GET | Query Param | — | 매일 04:00 KST | 7288784 |
-| 8 | `/api/cron/shadow-analyze` | GET | Query Param | — | 매일 05:00 KST | 7288785 |
-| 9 | `/api/cron/weekly-summary` | GET | Query Param | — | 매주 월요일 09:00 KST | 7288786 |
-| 10 | `/api/cron/log-archive` | GET | Query Param | — | 매주 일요일 03:00 KST | 7288788 |
-| 11 | `/api/cron/signal-route` | GET | Bearer | `pipelineBridge` | 매 15분 | 7288789 |
-| 12 | `/api/cron/memory-vectorize` | GET | Bearer | `vectorizeSearch` | 매 30분 | 7288790 |
-| 13 | `/api/cron/signal-vectorize` | GET | Bearer | `vectorizeSearch` | 매 30분 | 7288792 |
-| 14 | `/api/cron/graph-vectorize` | GET | Bearer | `vectorizeSearch` | 매 30분 | 7288794 |
-| 15 | `/api/cron/memory-compact` | POST | Bearer | — | 매주 일요일 03:00 KST | 7288796 |
-| 16 | `/api/cron/projection-sync` | POST | Bearer | — | 매주 일요일 04:00 KST | 7288798 |
-| 17 | `/api/cron/profile-learn` | GET | Bearer | `profileLearner` | 매주 일요일 05:00 KST | 7288799 |
-| 18 | `/api/cron/matrix-scoring` | POST | Bearer | — | 매일 06:30 KST | 7288800 |
-| 19 | `/api/cron/briefing` | POST | Bearer | — | 매일 07:00 KST | 7288801 |
+| 3 | `/api/cron/embeddings` | GET | Query Param | — | 매 30분 | 7227104 |
+| 4 | `/api/cron/weekly-summary` | GET | Query Param | — | 매주 월요일 09:00 KST | 7288786 |
+| 5 | `/api/cron/signal-route` | GET | Bearer | `pipelineBridge` | 매 15분 | 7288789 |
+| 6 | `/api/cron/matrix-scoring` | POST | Bearer | — | 매일 06:30 KST | 7288800 |
+| 7 | `/api/cron/maintenance?task=all` | POST | Bearer | — | 매주 일요일 03:00 KST | 7319976 |
+| 8 | `/api/cron/maintenance?task=pattern-extract` | POST | Bearer | — | 매일 04:00 KST | 7319980 |
+| 9 | `/api/cron/lab?mode=extract` | GET | Query Param | — | 매일 11:00 KST | 7319981 |
+| 10 | `/api/cron/lab?mode=analyze` | GET | Query Param | — | 매일 12:00 KST | 7319982 |
+| 11 | `/api/cron/vectorize?type=graph` | GET | Bearer | `vectorizeSearch` | 매 30분 | 7319983 |
+| 12 | `/api/cron/vectorize?type=memory` | GET | Bearer | `vectorizeSearch` | 매 30분 | 7319985 |
+| 13 | `/api/cron/vectorize?type=signal` | GET | Bearer | `vectorizeSearch` | 매 30분 | 7319988 |
 
 ---
 
