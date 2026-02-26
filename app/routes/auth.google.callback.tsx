@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { redirect } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { users, tenants, tenantMembers, UserRole } from "~/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import {
   getRedirectUri,
   getGoogleCredentials,
