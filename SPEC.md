@@ -403,7 +403,7 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.19 + Cron 통합 리팩토링 (13→9 라우트) + cron-job.org 현행화 (세션 258)
+- **프로토타입**: v6.20 + Service Layer 강화 (라우트 3개 -539줄) (세션 259)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 41개 마이그레이션 (0000~0040), 로컬 적용 완료
 
@@ -411,7 +411,7 @@ build/
 - **라우트**: 149개 (Cron 통합: 9개 — maintenance 신규, alerts/log-archive/memory-compact/projection-sync/pattern-extract 통합)
 - **테이블**: 92개 (+5: Archive 2, Token 1, Matrix 7, Worker 2, FTS 1, Proposals +2, Graph +1 — 기존 중복 제거 후)
 - **Agent 도구**: 50개 (+3 Matrix P2: query_matrix_heatmap/get_cell_signals/get_top_cells, schema: 9 도메인 파일)
-- **코드**: ~63,100줄 (395파일) — Phase 6 리팩토링: briefing-builder/pipeline-bridge 제거 (signal-router 독립화)
+- **코드**: ~62,700줄 (399파일) — 세션 259 Service Layer: 라우트 3개 -539줄, 서비스/유틸/컴포넌트 4개 신규 +372줄
 - **테스트**: 1,340개 (90 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
