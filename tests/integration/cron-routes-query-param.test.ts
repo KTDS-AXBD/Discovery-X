@@ -53,6 +53,24 @@ vi.mock("~/lib/notifications/webhook", () => ({
   fireWebhooks: vi.fn().mockResolvedValue(0),
 }));
 
+vi.mock("~/lib/agent/memory-lifecycle", () => ({
+  MemoryLifecycle: class {
+    compact = vi.fn().mockResolvedValue({ archived: 0, deleted: 0 });
+  },
+}));
+
+vi.mock("~/lib/cost/token-budget", () => ({
+  TokenBudgetManager: class {
+    enforceMemoryBudget = vi.fn().mockResolvedValue(0);
+  },
+}));
+
+vi.mock("~/lib/graph/projection", () => ({
+  ProjectionBuilder: class {
+    syncProjection = vi.fn().mockResolvedValue(true);
+  },
+}));
+
 vi.mock("~/lib/agent/executor", () => ({
   executeAgentTurn: vi.fn().mockResolvedValue({
     toolCalls: [],
@@ -63,13 +81,11 @@ vi.mock("~/lib/agent/executor", () => ({
 
 // ─── Loader/Action imports (mock 설정 후 import) ────────────────────────
 import { loader as labLoader } from "~/routes/api.cron.lab";
-import { loader as patternExtractLoader } from "~/routes/api.cron.pattern-extract";
 import { loader as embeddingsLoader } from "~/routes/api.cron.embeddings";
-import { loader as logArchiveLoader } from "~/routes/api.cron.log-archive";
 import { loader as dailyLoader } from "~/routes/api.cron.daily";
-import { loader as alertsLoader } from "~/routes/api.cron.alerts";
 import { action as agentReviewAction } from "~/routes/api.cron.agent-review";
 import { loader as weeklySummaryLoader } from "~/routes/api.cron.weekly-summary";
+import { action as maintenanceAction } from "~/routes/api.cron.maintenance";
 
 // ─── 헬퍼 ──────────────────────────────────────────────────────────────
 
@@ -213,17 +229,21 @@ describe("api.cron.lab (mode=analyze)", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 3. api.cron.pattern-extract — DB만 필요 (weak auth)
+// 3. api.cron.maintenance — Bearer POST + task 파라미터
+// (log-archive + memory-compact + projection-sync + pattern-extract 통합)
 // ═══════════════════════════════════════════════════════════════════════════
-describe("api.cron.pattern-extract", () => {
+describe("api.cron.maintenance (pattern-extract)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     testDb = createTestDb();
   });
 
   it("인증 실패 → 401", async () => {
-    const r = await patternExtractLoader({
-      request: makeQPRequest("pattern-extract", "wrong"),
+    const r = await maintenanceAction({
+      request: new Request("http://localhost/api/cron/maintenance?task=pattern-extract", {
+        method: "POST",
+        headers: { Authorization: "Bearer wrong" },
+      }),
       context: ctx(),
       params: {},
     });
@@ -231,20 +251,43 @@ describe("api.cron.pattern-extract", () => {
   });
 
   it("active 테넌트 없으면 logsAnalyzed: 0", async () => {
-    const r = await patternExtractLoader({
-      request: makeQPRequest("pattern-extract", "test-secret"),
+    const r = await maintenanceAction({
+      request: new Request("http://localhost/api/cron/maintenance?task=pattern-extract", {
+        method: "POST",
+        headers: { Authorization: "Bearer test-secret" },
+      }),
       context: ctx(),
       params: {},
     });
     expect(r.status).toBe(200);
     const body = (await r.json()) as Record<string, unknown>;
-    expect(body).toMatchObject({ job: "pattern-extract", logsAnalyzed: 0 });
+    const extract = body["pattern-extract"] as Record<string, unknown>;
+    expect(extract.logsAnalyzed).toBe(0);
   });
 
-  it("정상 호출 → executedAt 포함", async () => {
+  it("task=log-archive → archived: 0, batchId 포함", async () => {
     seedTenant();
-    const r = await patternExtractLoader({
-      request: makeQPRequest("pattern-extract", "test-secret"),
+    const r = await maintenanceAction({
+      request: new Request("http://localhost/api/cron/maintenance?task=log-archive", {
+        method: "POST",
+        headers: { Authorization: "Bearer test-secret" },
+      }),
+      context: ctx(),
+      params: {},
+    });
+    expect(r.status).toBe(200);
+    const body = (await r.json()) as Record<string, unknown>;
+    const archive = body["log-archive"] as Record<string, unknown>;
+    expect(archive.archived).toBe(0);
+    expect(archive.batchId).toMatch(/^archive-/);
+  });
+
+  it("executedAt 포함", async () => {
+    const r = await maintenanceAction({
+      request: new Request("http://localhost/api/cron/maintenance?task=pattern-extract", {
+        method: "POST",
+        headers: { Authorization: "Bearer test-secret" },
+      }),
       context: ctx(),
       params: {},
     });
@@ -297,47 +340,6 @@ describe("api.cron.embeddings", () => {
   });
 });
 
-// ═══════════════════════════════════════════════════════════════════════════
-// 6. api.cron.log-archive — DB만 필요 (weak auth)
-// ═══════════════════════════════════════════════════════════════════════════
-describe("api.cron.log-archive", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    testDb = createTestDb();
-  });
-
-  it("인증 실패 → 401", async () => {
-    const r = await logArchiveLoader({
-      request: makeQPRequest("log-archive", "wrong"),
-      context: ctx(),
-      params: {},
-    });
-    expect(r.status).toBe(401);
-  });
-
-  it("active 테넌트 없으면 archived: 0", async () => {
-    const r = await logArchiveLoader({
-      request: makeQPRequest("log-archive", "test-secret"),
-      context: ctx(),
-      params: {},
-    });
-    expect(r.status).toBe(200);
-    const body = (await r.json()) as Record<string, unknown>;
-    expect(body).toMatchObject({ job: "log-archive", archived: 0 });
-  });
-
-  it("정상 호출 → batchId 포함", async () => {
-    seedTenant();
-    const r = await logArchiveLoader({
-      request: makeQPRequest("log-archive", "test-secret"),
-      context: ctx(),
-      params: {},
-    });
-    expect(r.status).toBe(200);
-    const body = (await r.json()) as Record<string, unknown>;
-    expect(body.batchId).toMatch(/^archive-/);
-  });
-});
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 7. api.cron.daily — RESEND_API_KEY 필요
@@ -369,7 +371,7 @@ describe("api.cron.daily", () => {
     expect(body.sent).toBe(0);
   });
 
-  it("정상 호출 → 200", async () => {
+  it("정상 호출 → 200, alertsFired 포함", async () => {
     const r = await dailyLoader({
       request: makeQPRequest("daily", "test-secret"),
       context: ctx({ RESEND_API_KEY: "re_test" }),
@@ -381,48 +383,8 @@ describe("api.cron.daily", () => {
     expect(body.autoClosed).toBe(0);
     expect(body.inboxExpired).toBe(0);
     expect(body.gateExpired).toBe(0);
-  });
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// 8. api.cron.alerts — DB만 필요
-// ═══════════════════════════════════════════════════════════════════════════
-describe("api.cron.alerts", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    testDb = createTestDb();
-  });
-
-  it("인증 실패 → 401", async () => {
-    const r = await alertsLoader({
-      request: makeQPRequest("alerts", "wrong"),
-      context: ctx(),
-      params: {},
-    });
-    expect(r.status).toBe(401);
-  });
-
-  it("active 테넌트 없으면 fired: 0", async () => {
-    const r = await alertsLoader({
-      request: makeQPRequest("alerts", "test-secret"),
-      context: ctx(),
-      params: {},
-    });
-    expect(r.status).toBe(200);
-    const body = (await r.json()) as Record<string, unknown>;
-    expect(body).toMatchObject({ fired: 0, webhooksSent: 0 });
-  });
-
-  it("정상 호출 → 200, errors 배열 포함", async () => {
-    seedTenant();
-    const r = await alertsLoader({
-      request: makeQPRequest("alerts", "test-secret"),
-      context: ctx(),
-      params: {},
-    });
-    expect(r.status).toBe(200);
-    const body = (await r.json()) as Record<string, unknown>;
-    expect(body.errors).toBeInstanceOf(Array);
+    expect(body.alertsFired).toBe(0);
+    expect(body.alertsWebhooksSent).toBe(0);
   });
 });
 

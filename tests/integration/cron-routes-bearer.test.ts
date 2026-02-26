@@ -1,5 +1,5 @@
 /**
- * Cron Bearer 인증 라우트 통합 테스트 (6개 엔드포인트)
+ * Cron Bearer 인증 라우트 통합 테스트 (4개 엔드포인트)
  *
  * Authorization: Bearer CRON_SECRET 방식 인증 Cron 엔드포인트의
  * 인증, CRON_SECRET 미설정, Feature Flag, 정상 응답 검증.
@@ -49,8 +49,7 @@ vi.mock("~/lib/services/scoring.service", () => ({
 
 // ─── Loader/Action imports (mock 설정 후 import) ────────────────────────
 import { loader as signalRouteLoader } from "~/routes/api.cron.signal-route";
-import { action as memoryCompactAction } from "~/routes/api.cron.memory-compact";
-import { action as projectionSyncAction } from "~/routes/api.cron.projection-sync";
+import { action as maintenanceAction } from "~/routes/api.cron.maintenance";
 import { action as matrixScoringAction } from "~/routes/api.cron.matrix-scoring";
 
 // ─── 헬퍼 ──────────────────────────────────────────────────────────────
@@ -161,17 +160,17 @@ describe("api.cron.signal-route", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 2. api.cron.memory-compact — Bearer + POST only
+// 2. api.cron.maintenance — Bearer + POST + task 파라미터
 // ═══════════════════════════════════════════════════════════════════════════
-describe("api.cron.memory-compact", () => {
+describe("api.cron.maintenance", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     testDb = createTestDb();
   });
 
-  it("POST 이외 메서드 → 405", async () => {
-    const r = await memoryCompactAction({
-      request: makeBearerRequest("memory-compact", "test-secret"),
+  it("GET → 405 (POST only)", async () => {
+    const r = await maintenanceAction({
+      request: makeBearerRequest("maintenance", "test-secret"),
       context: ctx(),
       params: {},
     });
@@ -179,8 +178,8 @@ describe("api.cron.memory-compact", () => {
   });
 
   it("인증 실패 → 401", async () => {
-    const r = await memoryCompactAction({
-      request: makePostBearerRequest("memory-compact", "wrong"),
+    const r = await maintenanceAction({
+      request: makePostBearerRequest("maintenance", "wrong"),
       context: ctx(),
       params: {},
     });
@@ -188,8 +187,8 @@ describe("api.cron.memory-compact", () => {
   });
 
   it("CRON_SECRET 미설정 → 500", async () => {
-    const r = await memoryCompactAction({
-      request: makePostBearerRequest("memory-compact"),
+    const r = await maintenanceAction({
+      request: makePostBearerRequest("maintenance"),
       context: ctxNoSecret(),
       params: {},
     });
@@ -198,62 +197,102 @@ describe("api.cron.memory-compact", () => {
     expect(body).toMatchObject({ error: "CRON_SECRET not configured" });
   });
 
-  it("정상 호출 → 200, 응답 구조 검증", async () => {
-    const r = await memoryCompactAction({
-      request: makePostBearerRequest("memory-compact", "test-secret"),
+  it("알 수 없는 task → 400", async () => {
+    const r = await maintenanceAction({
+      request: makePostBearerRequest("maintenance?task=unknown", "test-secret"),
+      context: ctx(),
+      params: {},
+    });
+    expect(r.status).toBe(400);
+    const body = (await r.json()) as Record<string, unknown>;
+    expect(typeof body.error).toBe("string");
+  });
+
+  it("task=memory-compact → 200, 응답 구조 검증", async () => {
+    const r = await maintenanceAction({
+      request: makePostBearerRequest("maintenance?task=memory-compact", "test-secret"),
       context: ctx(),
       params: {},
     });
     expect(r.status).toBe(200);
     const body = (await r.json()) as Record<string, unknown>;
-    expect(body).toHaveProperty("usersProcessed");
-    expect(body).toHaveProperty("totalArchived");
-    expect(body).toHaveProperty("totalDeleted");
-    expect(body.errors).toBeInstanceOf(Array);
-  });
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// 3. api.cron.projection-sync — Bearer + POST only
-// ═══════════════════════════════════════════════════════════════════════════
-describe("api.cron.projection-sync", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    testDb = createTestDb();
+    expect(body.task).toBe("memory-compact");
+    const compact = body["memory-compact"] as Record<string, unknown>;
+    expect(compact).toHaveProperty("usersProcessed");
+    expect(compact).toHaveProperty("totalArchived");
+    expect(compact).toHaveProperty("totalDeleted");
+    expect(compact.errors).toBeInstanceOf(Array);
   });
 
-  it("POST 이외 메서드 → 405", async () => {
-    const r = await projectionSyncAction({
-      request: makeBearerRequest("projection-sync", "test-secret"),
-      context: ctx(),
-      params: {},
-    });
-    expect(r.status).toBe(405);
-  });
-
-  it("인증 실패 → 401", async () => {
-    const r = await projectionSyncAction({
-      request: makePostBearerRequest("projection-sync", "wrong"),
-      context: ctx(),
-      params: {},
-    });
-    expect(r.status).toBe(401);
-  });
-
-  it("정상 호출 (그래프 없음) → 200", async () => {
-    const r = await projectionSyncAction({
-      request: makePostBearerRequest("projection-sync", "test-secret"),
+  it("task=projection-sync → 200 (그래프 없음)", async () => {
+    const r = await maintenanceAction({
+      request: makePostBearerRequest("maintenance?task=projection-sync", "test-secret"),
       context: ctx(),
       params: {},
     });
     expect(r.status).toBe(200);
     const body = (await r.json()) as Record<string, unknown>;
-    expect(body).toMatchObject({ synced: 0, skipped: 0, errors: 0 });
+    expect(body.task).toBe("projection-sync");
+    const sync = body["projection-sync"] as Record<string, unknown>;
+    expect(sync).toMatchObject({ synced: 0, skipped: 0, errors: 0 });
+  });
+
+  it("task=log-archive → 200, archived: 0 (데이터 없음)", async () => {
+    seedTenant();
+    const r = await maintenanceAction({
+      request: makePostBearerRequest("maintenance?task=log-archive", "test-secret"),
+      context: ctx(),
+      params: {},
+    });
+    expect(r.status).toBe(200);
+    const body = (await r.json()) as Record<string, unknown>;
+    const archive = body["log-archive"] as Record<string, unknown>;
+    expect(archive.archived).toBe(0);
+    expect(archive.batchId).toMatch(/^archive-/);
+  });
+
+  it("task=pattern-extract → 200, logsAnalyzed: 0 (데이터 없음)", async () => {
+    seedTenant();
+    const r = await maintenanceAction({
+      request: makePostBearerRequest("maintenance?task=pattern-extract", "test-secret"),
+      context: ctx(),
+      params: {},
+    });
+    expect(r.status).toBe(200);
+    const body = (await r.json()) as Record<string, unknown>;
+    const extract = body["pattern-extract"] as Record<string, unknown>;
+    expect(extract.logsAnalyzed).toBe(0);
+  });
+
+  it("task=all → 200, 4개 결과 모두 포함", async () => {
+    const r = await maintenanceAction({
+      request: makePostBearerRequest("maintenance?task=all", "test-secret"),
+      context: ctx(),
+      params: {},
+    });
+    expect(r.status).toBe(200);
+    const body = (await r.json()) as Record<string, unknown>;
+    expect(body.task).toBe("all");
+    expect(body).toHaveProperty("log-archive");
+    expect(body).toHaveProperty("memory-compact");
+    expect(body).toHaveProperty("projection-sync");
+    expect(body).toHaveProperty("pattern-extract");
+  });
+
+  it("task 누락 시 all로 동작", async () => {
+    const r = await maintenanceAction({
+      request: makePostBearerRequest("maintenance", "test-secret"),
+      context: ctx(),
+      params: {},
+    });
+    expect(r.status).toBe(200);
+    const body = (await r.json()) as Record<string, unknown>;
+    expect(body.task).toBe("all");
   });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 6. api.cron.matrix-scoring — Bearer + POST only
+// 3. api.cron.matrix-scoring — Bearer + POST only
 // ═══════════════════════════════════════════════════════════════════════════
 describe("api.cron.matrix-scoring", () => {
   beforeEach(() => {

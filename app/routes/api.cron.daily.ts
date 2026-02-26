@@ -21,8 +21,9 @@ import {
   type AutoClosedDiscovery,
   type StalledStageDiscovery,
 } from "~/lib/notifications/templates";
-import { processExpiredGateApprovals } from "~/lib/notifications/alert-engine";
-import { eventLogs } from "~/db/schema";
+import { processExpiredGateApprovals, scanAndFireAlerts, DEFAULT_ALERT_RULES } from "~/lib/notifications/alert-engine";
+import { fireWebhooks } from "~/lib/notifications/webhook";
+import { eventLogs, alertRules } from "~/db/schema";
 
 interface CronEnv {
   DB: D1Database;
@@ -30,14 +31,22 @@ interface CronEnv {
   CRON_SECRET?: string;
 }
 
-async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; errors: string[]; autoClosed: number; inboxExpired: number; gateExpired: number; gateHeld: number }> {
+async function ensureDefaultAlertRules(db: ReturnType<typeof getDb>) {
+  const existing = await db.select().from(alertRules);
+  if (existing.length > 0) return;
+  for (const rule of DEFAULT_ALERT_RULES) {
+    await db.insert(alertRules).values(rule);
+  }
+}
+
+async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; errors: string[]; autoClosed: number; inboxExpired: number; gateExpired: number; gateHeld: number; alertsFired: number; alertsWebhooksSent: number }> {
   const db = getDb(env.DB);
   const errors: string[] = [];
   let sent = 0;
 
   const apiKey = env.RESEND_API_KEY;
   if (!apiKey) {
-    return { sent: 0, errors: ["RESEND_API_KEY not configured"], autoClosed: 0, inboxExpired: 0, gateExpired: 0, gateHeld: 0 };
+    return { sent: 0, errors: ["RESEND_API_KEY not configured"], autoClosed: 0, inboxExpired: 0, gateExpired: 0, gateHeld: 0, alertsFired: 0, alertsWebhooksSent: 0 };
   }
 
   const emailClient = createEmailClient(apiKey);
@@ -345,7 +354,28 @@ async function runDailyNotifications(env: CronEnv): Promise<{ sent: number; erro
     errors.push(`gateTimeout: ${e instanceof Error ? e.message : "Unknown error"}`);
   }
 
-  return { sent, errors, autoClosed: totalAutoClosed, inboxExpired: totalInboxExpired, gateExpired, gateHeld };
+  // 8. Alert scan (KPI 임계값 + SLA 위반 감지)
+  let alertsFired = 0;
+  let alertsWebhooksSent = 0;
+  try {
+    await ensureDefaultAlertRules(db);
+    for (const tenant of activeTenants) {
+      const firedAlerts = await scanAndFireAlerts(db, tenant.id);
+      alertsFired += firedAlerts.length;
+      for (const alert of firedAlerts) {
+        try {
+          const sent = await fireWebhooks(db, alert);
+          alertsWebhooksSent += sent;
+        } catch (e) {
+          errors.push(`webhook for alert ${alert.id}: ${e instanceof Error ? e.message : "unknown error"}`);
+        }
+      }
+    }
+  } catch (e) {
+    errors.push(`alertScan: ${e instanceof Error ? e.message : "Unknown error"}`);
+  }
+
+  return { sent, errors, autoClosed: totalAutoClosed, inboxExpired: totalInboxExpired, gateExpired, gateHeld, alertsFired, alertsWebhooksSent };
 }
 
 // HTTP endpoint for manual trigger
