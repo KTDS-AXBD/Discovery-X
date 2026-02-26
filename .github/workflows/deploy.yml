@@ -49,6 +49,14 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy ./build/client --project-name=discovery-x
 
+      - name: Sync SESSION_SECRET to Pages (main app ↔ agent-worker 일치 보장)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+        run: |
+          echo "$SESSION_SECRET" | npx wrangler pages secret put SESSION_SECRET --project-name discovery-x
+
       - name: Deployment Summary
         if: always()
         run: |
