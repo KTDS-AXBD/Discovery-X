@@ -3,6 +3,14 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 257 (2026-02-26)
+**리팩토링 잔여 작업 점검 + PatternCard hydration mismatch 수정**:
+- ✅ 리팩토링 잔여 작업 전수 점검 — Phase 6 완성도 확인 (briefing-builder/pipeline-bridge 참조 0건, signal-router 정규화 완료)
+- ✅ `app/components/patterns/PatternCard.tsx` — `toLocaleDateString("ko-KR")` → `formatDate()` (기존 유틸 활용, hydration mismatch 방지)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,342/1,342 PASS
+
 ### 세션 256 (2026-02-26)
 **/team 2-Worker Phase 6 리팩토링 — integration 모듈 정리 (briefing-builder + pipeline-bridge 제거)**:
 - ✅ W1 (`signal-router 정리`): `app/lib/integration/signal-router.ts` 리팩토링 — `BriefingBuilder`/`PipelineBridge` import/field/call 전체 제거, `getExpertiseScore` 로직 graph 기반 인라인(DB 직접 조회)으로 대체
