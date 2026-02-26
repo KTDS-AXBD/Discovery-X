@@ -2,7 +2,6 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, users, discoveryKpis, kpiMeasurements, discoveryLinks } from "~/db/schema";
 import { DiscoveryStatus } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { DiscoveryService } from "~/lib/services";
@@ -14,7 +13,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/Select";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { cn } from "~/lib/utils/cn";
-import { eq, desc, inArray } from "drizzle-orm";
 import { KpiCard } from "~/components/dashboard/KpiCard";
 import { RelatedDiscoveries } from "~/components/discovery/RelatedDiscoveries";
 import { ExperimentGantt } from "~/components/charts/ExperimentGantt";
@@ -44,58 +42,16 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   }
   const { discovery, owner, reviewer, gatekeeper, experiments: discoveryExperiments, evidence: discoveryEvidence } = detail;
 
-  // All users for Owner selection
-  const allUsers = await db.select().from(users);
+  // 병렬로 부가 데이터 조회 (서비스 레이어 위임)
+  const [allUsers, kpiWithMeasurements, { allLinks, linkedDiscoveries }, activityLogs] =
+    await Promise.all([
+      service.getAllUsers(),
+      service.getKpisWithMeasurements(id),
+      service.getLinksWithDiscoveries(id),
+      service.getActivityLogsWithActors(id),
+    ]);
 
-  // KPIs + recent measurements
-  const kpis = await db
-    .select()
-    .from(discoveryKpis)
-    .where(eq(discoveryKpis.discoveryId, id));
-
-  const kpiWithMeasurements = await Promise.all(
-    kpis.map(async (kpi) => {
-      const measurements = await db
-        .select()
-        .from(kpiMeasurements)
-        .where(eq(kpiMeasurements.kpiId, kpi.id))
-        .orderBy(desc(kpiMeasurements.measuredAt))
-        .limit(5);
-      return {
-        kpi,
-        measurements: measurements.map((m) => ({
-          id: m.id,
-          value: m.value,
-          measuredAt: m.measuredAt.toISOString(),
-        })),
-      };
-    })
-  );
-
-  // Discovery links (from and to)
-  const linksFrom = await db
-    .select()
-    .from(discoveryLinks)
-    .where(eq(discoveryLinks.fromDiscoveryId, id));
-  const linksTo = await db
-    .select()
-    .from(discoveryLinks)
-    .where(eq(discoveryLinks.toDiscoveryId, id));
-
-  const linkedDiscoveryIds = [
-    ...linksFrom.map((l) => l.toDiscoveryId),
-    ...linksTo.map((l) => l.fromDiscoveryId),
-  ];
-  const linkedDiscoveries = linkedDiscoveryIds.length > 0
-    ? await db.select().from(discoveries).where(inArray(discoveries.id, linkedDiscoveryIds))
-    : [];
-
-  const allLinks = [
-    ...linksFrom.map((l) => ({ ...l, direction: "from" as const })),
-    ...linksTo.map((l) => ({ ...l, direction: "to" as const })),
-  ];
-
-  // Related discoveries via embeddings (Vectorize → fallback empty)
+  // Related discoveries via embeddings (CF env 의존 → 라우트에서 처리)
   let relatedDiscoveries: Array<{ id: string; score: number; title?: string }> = [];
   try {
     const cfEnv = context.cloudflare.env as unknown as Record<string, unknown>;
@@ -110,27 +66,6 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   } catch {
     // Vectorize 미응답 시 빈 배열 유지
   }
-
-  // Activity logs
-  const activityLogs = await service.getActivityLogs(id);
-  const actorIds = [...new Set(activityLogs.map((l) => l.actorId))];
-  const systemActors = ["system-agent", "system-radar", "system"];
-  const nonSystemActorIds = actorIds.filter((aid) => !systemActors.includes(aid));
-  const actorUsers = nonSystemActorIds.length > 0
-    ? await db.select().from(users).where(inArray(users.id, nonSystemActorIds))
-    : [];
-  const actorMap = new Map<string, string>();
-  for (const aid of systemActors) actorMap.set(aid, "시스템");
-  for (const u of actorUsers) actorMap.set(u.id, u.name);
-
-  const serializedLogs = activityLogs.map((l) => ({
-    id: l.id,
-    eventType: l.eventType,
-    actorId: l.actorId,
-    actorName: actorMap.get(l.actorId) || l.actorId,
-    metadata: l.metadata,
-    timestamp: l.timestamp?.toISOString() || new Date().toISOString(),
-  }));
 
   // isOverdue 계산 (서버에서 수행하여 hydration 불일치 방지)
   const isActive =
@@ -149,8 +84,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     allUsers,
     kpiWithMeasurements,
     allLinks,
-    linkedDiscoveries: linkedDiscoveries.filter(Boolean),
-    activityLogs: serializedLogs,
+    linkedDiscoveries,
+    activityLogs,
     isOverdue: isDiscoveryOverdue,
     relatedDiscoveries,
     serverNow: Date.now(),

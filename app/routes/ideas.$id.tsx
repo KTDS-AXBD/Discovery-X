@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, useOutletContext, useNavigate, useRevalidator } from "@remix-run/react";
@@ -7,7 +7,10 @@ import { getDb } from "~/db";
 import { IdeaService, RadarService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { usePanelLayout } from "~/lib/hooks/use-panel-layout";
-import { ALL_METHODOLOGIES, METHODOLOGY_PROMPTS } from "~/lib/constants/methodology";
+import { METHODOLOGY_PROMPTS, ALL_METHODOLOGIES } from "~/lib/constants/methodology";
+import { buildSourceContext, buildMethodologySections, detectStaleSections } from "~/lib/ideas/section-builder";
+import { EditableTitle } from "~/components/ideas/EditableTitle";
+import { SuggestTitleButton } from "~/components/ideas/SuggestTitleButton";
 import { SourceInputPanel } from "~/components/ideas/SourceInputPanel";
 import { SimilarSources } from "~/components/ideas/SimilarSources";
 import { IdeaChatWrapper } from "~/components/ideas/IdeaChatWrapper";
@@ -89,146 +92,6 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     console.error("[ideas.$id.loader] Error:", error instanceof Error ? error.message : error);
     return redirect("/login");
   }
-}
-
-// ── EditableTitle ────────────────────────────────────────────────────
-
-function EditableTitle({
-  ideaId,
-  initialTitle,
-  onTitleUpdated,
-}: {
-  ideaId: string;
-  initialTitle: string;
-  onTitleUpdated: (newTitle: string) => void;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [title, setTitle] = useState(initialTitle);
-  const [savedTitle, setSavedTitle] = useState(initialTitle);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    setTitle(initialTitle);
-    setSavedTitle(initialTitle);
-  }, [initialTitle]);
-
-  useEffect(() => {
-    if (editing && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [editing]);
-
-  const saveTitle = useCallback(async () => {
-    const trimmed = title.trim();
-    if (!trimmed || trimmed === savedTitle) {
-      setTitle(savedTitle);
-      setEditing(false);
-      return;
-    }
-    setSavedTitle(trimmed);
-    setEditing(false);
-    onTitleUpdated(trimmed);
-
-    try {
-      const res = await fetch("/api/ideas", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: ideaId, title: trimmed }),
-      });
-      if (!res.ok) {
-        setTitle(savedTitle);
-        setSavedTitle(savedTitle);
-      }
-    } catch {
-      setTitle(savedTitle);
-      setSavedTitle(savedTitle);
-    }
-  }, [title, savedTitle, ideaId, onTitleUpdated]);
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      saveTitle();
-    } else if (e.key === "Escape") {
-      setTitle(savedTitle);
-      setEditing(false);
-    }
-  };
-
-  if (editing) {
-    return (
-      <input
-        ref={inputRef}
-        type="text"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        onBlur={saveTitle}
-        onKeyDown={handleKeyDown}
-        maxLength={200}
-        className="w-full truncate rounded-md border border-line bg-surface px-2 py-1 text-lg font-semibold text-fg outline-none ring-1 ring-fg-brand/30 focus:ring-fg-brand"
-      />
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={() => setEditing(true)}
-      className="group flex min-w-0 items-center gap-1.5 truncate rounded-md px-2 py-1 text-left text-lg font-semibold text-fg transition-colors hover:bg-surface-secondary"
-      title="클릭하여 제목 편집"
-    >
-      <span className="truncate">{title || "아이디어"}</span>
-      <svg className="h-3.5 w-3.5 shrink-0 text-fg-tertiary opacity-0 transition-opacity group-hover:opacity-100" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
-      </svg>
-    </button>
-  );
-}
-
-// ── SuggestTitleButton ───────────────────────────────────────────────
-
-function SuggestTitleButton({
-  ideaId,
-  onTitleSuggested,
-}: {
-  ideaId: string;
-  onTitleSuggested: (newTitle: string) => void;
-}) {
-  const [loading, setLoading] = useState(false);
-
-  const handleSuggest = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/ideas/${ideaId}/suggest-title`, {
-        method: "POST",
-      });
-      if (!res.ok) return;
-      const data = (await res.json()) as { title?: string };
-      if (data.title) {
-        onTitleSuggested(data.title);
-      }
-    } catch {
-      // Silently fail
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <button
-      type="button"
-      onClick={handleSuggest}
-      disabled={loading}
-      className="flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-fg-brand transition-colors hover:bg-surface-brand/10 disabled:opacity-50"
-      title="AI가 소스를 분석하여 제목을 추천합니다"
-    >
-      <svg className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456Z" />
-      </svg>
-      {loading ? "추천 중..." : "AI 제목 추천"}
-    </button>
-  );
 }
 
 // ── IdeaDetail (3-Panel Workspace) ───────────────────────────────────
@@ -416,14 +279,7 @@ export default function IdeaDetail() {
     if (!ideaId) return;
 
     const selectedSources = ideaSourceItems.filter((s) => selectedSourceIds.includes(s.id));
-    const sourceContext = selectedSources
-      .map((s) => {
-        const title = s.titleKo || s.title || "제목 없음";
-        const summary = s.summaryKo || "";
-        const url = s.url && !s.url.startsWith("text://") ? s.url : "";
-        return `- **${title}**${summary ? `: ${summary}` : ""}${url ? ` (${url})` : ""}`;
-      })
-      .join("\n") || "소스 없음";
+    const sourceContext = buildSourceContext(selectedSources);
 
     const initialStates: Record<string, "pending"> = {};
     const cats = ["industry_example", "regulation", "market_research", "customer_research", "feasibility", "differentiation"];
@@ -486,14 +342,7 @@ export default function IdeaDetail() {
     setLoadingCategory(category);
 
     const selectedSources = ideaSourceItems.filter((s) => selectedSourceIds.includes(s.id));
-    const sourceSummaries = selectedSources
-      .map((s) => {
-        const title = s.titleKo || s.title || "제목 없음";
-        const summary = s.summaryKo || "";
-        const url = s.url && !s.url.startsWith("text://") ? s.url : "";
-        return `- **${title}**${summary ? `: ${summary}` : ""}${url ? ` (${url})` : ""}`;
-      })
-      .join("\n");
+    const sourceSummaries = buildSourceContext(selectedSources);
 
     const methodologyLabel = ALL_METHODOLOGIES.find((m) => m.key === category)?.label || category;
     const methodologyPrompt = METHODOLOGY_PROMPTS[category] || "";
@@ -526,70 +375,12 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
   }, [revalidator]);
 
   // ─── Build methodology sections ───
-
-  const sections: Record<string, { title: string; content: string; sources?: string[]; sourceIds?: string[] | null; analyzedAt?: string | null } | null> = {};
-  for (const m of ALL_METHODOLOGIES) {
-    sections[m.key] = null;
-  }
-
-  if (data.type === "idea" && data.idea) {
-    const analysis = data.idea.analysisData as Record<string, { title?: string; content?: string; sources?: string[]; sourceIds?: string[]; analyzedAt?: string }> | null;
-    if (analysis) {
-      for (const key of Object.keys(analysis)) {
-        if (analysis[key]?.content) {
-          sections[key] = {
-            title: analysis[key].title || key,
-            content: analysis[key].content || "",
-            sources: analysis[key].sources,
-            sourceIds: analysis[key].sourceIds || null,
-            analyzedAt: analysis[key].analyzedAt || null,
-          };
-        }
-      }
-    }
-
-    if (!analysis && data.sources.length > 0) {
-      const firstSource = data.sources[0];
-      const keyPoints = Array.isArray(firstSource.keyPoints) ? (firstSource.keyPoints as string[]) : null;
-      const summaryText = ((firstSource.summaryKo || "") as string);
-
-      if (keyPoints?.length || summaryText) {
-        sections.industry_example = {
-          title: "산업별 사례",
-          content: keyPoints?.length
-            ? keyPoints.map((p: string, i: number) => `${i + 1}. ${p}`).join("\n\n")
-            : summaryText,
-          sources: firstSource.url ? [firstSource.url] : undefined,
-        };
-      }
-    }
-  } else if (data.type === "radarItem" && data.item) {
-    const item = data.item;
-    const keyPoints = Array.isArray(item.keyPoints) ? (item.keyPoints as string[]) : null;
-    const summaryText = ((item.summaryKo || item.summary || "") as string);
-
-    if (keyPoints?.length || summaryText) {
-      sections.industry_example = {
-        title: "산업별 사례",
-        content: keyPoints?.length
-          ? keyPoints.map((p: string, i: number) => `${i + 1}. ${p}`).join("\n\n")
-          : summaryText,
-        sources: item.url ? [item.url] : undefined,
-      };
-    }
-  }
-
-  // Detect stale sections
-  const staleSections = new Set<string>();
-  for (const [key, section] of Object.entries(sections)) {
-    if (!section?.sourceIds) continue;
-    const stored = new Set(section.sourceIds);
-    const current = new Set(selectedSourceIds);
-    if (stored.size !== current.size ||
-        [...stored].some((id) => !current.has(id))) {
-      staleSections.add(key);
-    }
-  }
+  const sections = buildMethodologySections(
+    data.type === "idea"
+      ? { type: "idea", idea: data.idea!, sources: data.sources }
+      : { type: "radarItem", item: data.item! },
+  );
+  const staleSections = detectStaleSections(sections, selectedSourceIds);
 
   const isIdea = data.type === "idea" && data.idea;
 

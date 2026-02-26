@@ -1,6 +1,6 @@
 import { eq, desc, inArray, count } from "drizzle-orm";
 import type { DB } from "~/db";
-import { discoveries, experiments, evidence, users, eventLogs } from "~/db/schema";
+import { discoveries, experiments, evidence, users, eventLogs, discoveryKpis, kpiMeasurements, discoveryLinks } from "~/db/schema";
 import { DiscoveryStatus } from "~/db/schema";
 import { tenantWhere } from "~/lib/query/tenant-scope";
 import { isOverdue } from "~/lib/format-date";
@@ -9,6 +9,9 @@ import type {
   DiscoveryListItem,
   DiscoveryListParams,
   DiscoveryDetail,
+  KpiWithMeasurements,
+  DiscoveryLinksResult,
+  ActivityLogWithActor,
 } from "./types";
 
 export class DiscoveryQueryService {
@@ -159,5 +162,94 @@ export class DiscoveryQueryService {
       .from(experiments)
       .where(eq(experiments.discoveryId, discoveryId));
     return result[0]?.count || 0;
+  }
+
+  /**
+   * KPI + 최근 측정값 조회
+   */
+  async getKpisWithMeasurements(discoveryId: string): Promise<KpiWithMeasurements[]> {
+    const kpis = await this.db
+      .select()
+      .from(discoveryKpis)
+      .where(eq(discoveryKpis.discoveryId, discoveryId));
+
+    return Promise.all(
+      kpis.map(async (kpi) => {
+        const measurements = await this.db
+          .select()
+          .from(kpiMeasurements)
+          .where(eq(kpiMeasurements.kpiId, kpi.id))
+          .orderBy(desc(kpiMeasurements.measuredAt))
+          .limit(5);
+        return {
+          kpi,
+          measurements: measurements.map((m) => ({
+            id: m.id,
+            value: m.value,
+            measuredAt: m.measuredAt.toISOString(),
+          })),
+        };
+      }),
+    );
+  }
+
+  /**
+   * Discovery 연결 링크 + 연결된 Discovery 상세 조회
+   */
+  async getLinksWithDiscoveries(discoveryId: string): Promise<DiscoveryLinksResult> {
+    const [linksFrom, linksTo] = await Promise.all([
+      this.db.select().from(discoveryLinks).where(eq(discoveryLinks.fromDiscoveryId, discoveryId)),
+      this.db.select().from(discoveryLinks).where(eq(discoveryLinks.toDiscoveryId, discoveryId)),
+    ]);
+
+    const linkedDiscoveryIds = [
+      ...linksFrom.map((l) => l.toDiscoveryId),
+      ...linksTo.map((l) => l.fromDiscoveryId),
+    ];
+    const linkedDiscoveriesList =
+      linkedDiscoveryIds.length > 0
+        ? await this.db.select().from(discoveries).where(inArray(discoveries.id, linkedDiscoveryIds))
+        : [];
+
+    const allLinks = [
+      ...linksFrom.map((l) => ({ ...l, direction: "from" as const })),
+      ...linksTo.map((l) => ({ ...l, direction: "to" as const })),
+    ];
+
+    return { allLinks, linkedDiscoveries: linkedDiscoveriesList };
+  }
+
+  /**
+   * 활동 로그 + 액터 이름 해석
+   */
+  async getActivityLogsWithActors(discoveryId: string, limit = 50): Promise<ActivityLogWithActor[]> {
+    const logs = await this.getActivityLogs(discoveryId, limit);
+    const actorIds = [...new Set(logs.map((l) => l.actorId))];
+    const systemActors = ["system-agent", "system-radar", "system"];
+    const nonSystemActorIds = actorIds.filter((aid) => !systemActors.includes(aid));
+    const actorUsers =
+      nonSystemActorIds.length > 0
+        ? await this.db.select().from(users).where(inArray(users.id, nonSystemActorIds))
+        : [];
+
+    const actorMap = new Map<string, string>();
+    for (const aid of systemActors) actorMap.set(aid, "시스템");
+    for (const u of actorUsers) actorMap.set(u.id, u.name);
+
+    return logs.map((l) => ({
+      id: l.id,
+      eventType: l.eventType,
+      actorId: l.actorId,
+      actorName: actorMap.get(l.actorId) || l.actorId,
+      metadata: l.metadata as Record<string, unknown> | null,
+      timestamp: l.timestamp?.toISOString() || new Date().toISOString(),
+    }));
+  }
+
+  /**
+   * 전체 사용자 목록 (Owner/Reviewer/Gatekeeper 선택용)
+   */
+  async getAllUsers() {
+    return this.db.select().from(users);
   }
 }

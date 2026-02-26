@@ -28,6 +28,10 @@ export type {
   UpdateDiscoveryInput,
   RequestExtensionInput,
   ApproveDecisionResult,
+  KpiWithMeasurements,
+  DiscoveryLinksResult,
+  LinkWithDirection,
+  ActivityLogWithActor,
 } from "./discovery/types";
 
 export class DiscoveryService {
@@ -54,6 +58,16 @@ export class DiscoveryService {
   getExperimentCount = (
     ...args: Parameters<DiscoveryQueryService["getExperimentCount"]>
   ) => this.query.getExperimentCount(...args);
+  getKpisWithMeasurements = (
+    ...args: Parameters<DiscoveryQueryService["getKpisWithMeasurements"]>
+  ) => this.query.getKpisWithMeasurements(...args);
+  getLinksWithDiscoveries = (
+    ...args: Parameters<DiscoveryQueryService["getLinksWithDiscoveries"]>
+  ) => this.query.getLinksWithDiscoveries(...args);
+  getActivityLogsWithActors = (
+    ...args: Parameters<DiscoveryQueryService["getActivityLogsWithActors"]>
+  ) => this.query.getActivityLogsWithActors(...args);
+  getAllUsers = () => this.query.getAllUsers();
 
   // --- Workflow delegates ---
   transition = (...args: Parameters<DiscoveryWorkflowService["transition"]>) =>

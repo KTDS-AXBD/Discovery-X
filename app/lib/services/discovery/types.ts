@@ -1,4 +1,4 @@
-import type { discoveries, experiments, evidence, users } from "~/db/schema";
+import type { discoveries, experiments, evidence, users, discoveryKpis, discoveryLinks } from "~/db/schema";
 
 // ============================================================================
 // Types
@@ -116,4 +116,34 @@ export interface RequestExtensionInput {
 
 export interface ApproveDecisionResult {
   pendingDecision: string | null;
+}
+
+// ============================================================================
+// KPI / Links / Activity
+// ============================================================================
+
+export type DiscoveryKpi = typeof discoveryKpis.$inferSelect;
+export type DiscoveryLink = typeof discoveryLinks.$inferSelect;
+
+export interface KpiWithMeasurements {
+  kpi: DiscoveryKpi;
+  measurements: Array<{ id: string; value: number; measuredAt: string }>;
+}
+
+export interface LinkWithDirection extends DiscoveryLink {
+  direction: "from" | "to";
+}
+
+export interface DiscoveryLinksResult {
+  allLinks: LinkWithDirection[];
+  linkedDiscoveries: Discovery[];
+}
+
+export interface ActivityLogWithActor {
+  id: string;
+  eventType: string;
+  actorId: string;
+  actorName: string;
+  metadata: Record<string, unknown> | null;
+  timestamp: string;
 }

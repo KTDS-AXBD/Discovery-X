@@ -9,3 +9,5 @@ export { RadarService } from "./radar.service";
 export { LabService } from "./lab.service";
 export { IdeaService } from "./idea.service";
 export { RecallTrackingService } from "./recall-tracking.service";
+export { MetricsService } from "./metrics.service";
+export type { OperationalMetrics, OwnerWorkloadItem, FailurePatternItem, WeeklyDataItem } from "./metrics.service";
