@@ -1,10 +1,8 @@
-// SignalRouter — pending 시그널 자동 라우팅 + 브리핑 갱신
+// SignalRouter — pending 시그널 자동 라우팅
 import { eq, and, sql } from "drizzle-orm";
 import type { DB } from "~/db";
 import { sharedSignals, topicMembers, graphs, graphEvents } from "~/db/schema-v2";
 import { SignalService } from "~/lib/services/signal.service";
-import { PipelineBridge } from "./pipeline-bridge";
-import { BriefingBuilder } from "./briefing-builder";
 
 // ============================================================================
 // Types
@@ -39,13 +37,9 @@ export interface RoutingStats {
 
 export class SignalRouter {
   private signalService: SignalService;
-  private bridge: PipelineBridge;
-  private briefingBuilder: BriefingBuilder;
 
   constructor(private db: DB) {
     this.signalService = new SignalService(db);
-    this.bridge = new PipelineBridge(db);
-    this.briefingBuilder = new BriefingBuilder(db);
   }
 
   // ─── pending 시그널 일괄 라우팅 ──────────────────────────────────────
@@ -70,7 +64,6 @@ export class SignalRouter {
         const routed = await this.routeOneSignal(
           signal.id,
           signal.topicId,
-          signal.contentSummary,
         );
         if (routed) {
           result.routed++;
@@ -133,7 +126,6 @@ export class SignalRouter {
   private async routeOneSignal(
     signalId: number,
     topicId: string | null,
-    contentSummary: string,
   ): Promise<RoutedSignal | null> {
     // 1. topicId가 없으면 라우팅 불가 → skip
     if (!topicId) return null;
@@ -146,16 +138,23 @@ export class SignalRouter {
 
     if (members.length === 0) return null;
 
-    // 3. 각 멤버의 expertise score 산출 (domain = contentSummary 앞 50자)
-    const domain = contentSummary.slice(0, 50);
+    // 3. 각 멤버의 expertise score 산출 (user graph 존재 여부 기반)
     let bestUserId = members[0].userId;
     let bestScore = 0;
 
     for (const member of members) {
-      const score = await this.bridge.getExpertiseScore(
-        member.userId,
-        domain,
-      );
+      // expertise score: topic graph 내 userId 노드의 속성 기반 점수
+      const memberGraph = await this.db
+        .select({ id: graphs.id })
+        .from(graphs)
+        .where(
+          and(
+            eq(graphs.scopeType, "user"),
+            eq(graphs.scopeId, member.userId),
+          ),
+        )
+        .get();
+      const score = memberGraph ? 1 : 0;
       if (score > bestScore) {
         bestScore = score;
         bestUserId = member.userId;
@@ -165,14 +164,7 @@ export class SignalRouter {
     // 4. 시그널 상태를 'reviewed'로 업데이트 (CHECK: pending/reviewed/actioned/dismissed)
     await this.signalService.updateStatus(signalId, "reviewed", bestUserId);
 
-    // 5. 브리핑 갱신 (non-fatal)
-    try {
-      await this.briefingBuilder.refreshBriefingProjection(bestUserId);
-    } catch {
-      // 브리핑 갱신 실패는 라우팅 자체를 실패시키지 않음
-    }
-
-    // 6. graph_events 감사 로그 기록
+    // 5. graph_events 감사 로그 기록
     await this.recordRoutingEvent(signalId, topicId, bestUserId);
 
     return {
