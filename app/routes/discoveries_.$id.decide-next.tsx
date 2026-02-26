@@ -2,8 +2,8 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, evidence, users } from "~/db/schema";
 import { DiscoveryService } from "~/lib/services/discovery.service";
+import { DiscoveryQueryExtraService } from "~/lib/services/discovery/query-extra2";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
@@ -12,7 +12,6 @@ import { Textarea } from "~/components/ui/Textarea";
 import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
-import { eq } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { DiscoveryValidationRules, NextDecisionSchema } from "~/lib/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
@@ -35,9 +34,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   }
 
   // Get discovery
-  const discovery = await db.query.discoveries.findFirst({
-    where: eq(discoveries.id, id),
-  });
+  const service = new DiscoveryService(db);
+  const discovery = await service.getById(id);
 
   if (!discovery) {
     throw new Response("Not Found", { status: 404 });
@@ -52,14 +50,10 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   }
 
   // Get evidence for quality check
-  const allEvidence = await db
-    .select()
-    .from(evidence)
-    .where(eq(evidence.discoveryId, id));
+  const queryExtra = new DiscoveryQueryExtraService(db);
+  const { evidenceCount, strongEvidenceCount } = await queryExtra.getEvidenceSummary(id);
 
-  const strongEvidence = allEvidence.filter((e) => e.strength === "A" || e.strength === "B");
-
-  return json({ user, discovery, evidenceCount: allEvidence.length, strongEvidenceCount: strongEvidence.length });
+  return json({ user, discovery, evidenceCount, strongEvidenceCount });
 }
 
 export async function action({ request, context, params }: ActionFunctionArgs) {
@@ -78,9 +72,8 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   }
 
   // Discovery 조회 (상태 검증 + 이메일용)
-  const discovery = await db.query.discoveries.findFirst({
-    where: eq(discoveries.id, id),
-  });
+  const service = new DiscoveryService(db);
+  const discovery = await service.getById(id);
 
   if (!discovery) {
     throw new Response("Not Found", { status: 404 });
@@ -107,7 +100,6 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     // 근거 품질 경고 (차단하지 않음, 기록용)
     const validationResult = await DiscoveryValidationRules.validateNextDecision(db, id);
 
-    const service = new DiscoveryService(db);
     await service.submitForApproval(
       id,
       {
@@ -122,9 +114,10 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
 
     // 이메일 발송 (라우트 유지)
     try {
-      const reviewerUser = await db.query.users.findFirst({
-        where: eq(users.id, discovery.reviewerId!),
-      });
+      const queryExtra = new DiscoveryQueryExtraService(db);
+      const reviewerUser = discovery.reviewerId
+        ? await queryExtra.getUserById(discovery.reviewerId)
+        : null;
       if (reviewerUser) {
         const env = context.cloudflare.env as unknown as Record<string, string>;
         if (env.RESEND_API_KEY) {

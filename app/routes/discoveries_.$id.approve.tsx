@@ -2,9 +2,9 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { users } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { DiscoveryService } from "~/lib/services";
+import { DiscoveryQueryExtraService } from "~/lib/services/discovery/query-extra2";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Card, CardContent } from "~/components/ui/Card";
@@ -12,7 +12,6 @@ import { Textarea } from "~/components/ui/Textarea";
 import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
-import { eq } from "drizzle-orm";
 import { ApprovalDecisionSchema } from "~/lib/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
 import { createEmailClient } from "~/lib/notifications/email";
@@ -58,8 +57,9 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   }
 
   // Get owner name
+  const queryExtra = new DiscoveryQueryExtraService(db);
   const owner = discovery.ownerId
-    ? await db.query.users.findFirst({ where: eq(users.id, discovery.ownerId) })
+    ? await queryExtra.getUserById(discovery.ownerId)
     : null;
 
   return json({
@@ -117,9 +117,8 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     // Send email to owner
     try {
       if (discovery.ownerId) {
-        const ownerUser = await db.query.users.findFirst({
-          where: eq(users.id, discovery.ownerId),
-        });
+        const queryExtra = new DiscoveryQueryExtraService(db);
+        const ownerUser = await queryExtra.getUserById(discovery.ownerId);
         if (ownerUser) {
           const env = context.cloudflare.env as unknown as Record<string, string>;
           if (env.RESEND_API_KEY) {

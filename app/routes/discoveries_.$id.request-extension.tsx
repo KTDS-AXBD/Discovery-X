@@ -2,8 +2,9 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { users, DiscoveryStatus } from "~/db/schema";
+import { DiscoveryStatus } from "~/db/schema";
 import { DiscoveryService } from "~/lib/services";
+import { DiscoveryQueryExtraService } from "~/lib/services/discovery/query-extra2";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
@@ -12,7 +13,6 @@ import { Textarea } from "~/components/ui/Textarea";
 import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
-import { eq } from "drizzle-orm";
 import {
   DiscoveryValidationRules,
   ExtensionRequestedSchema,
@@ -117,9 +117,10 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
 
     // Send email to reviewer
     try {
-      const reviewerUser = await db.query.users.findFirst({
-        where: eq(users.id, discovery.reviewerId!),
-      });
+      const queryExtra = new DiscoveryQueryExtraService(db);
+      const reviewerUser = discovery.reviewerId
+        ? await queryExtra.getUserById(discovery.reviewerId)
+        : null;
       if (reviewerUser) {
         const env = context.cloudflare.env as unknown as Record<string, string>;
         if (env.RESEND_API_KEY) {

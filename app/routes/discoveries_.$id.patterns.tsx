@@ -5,10 +5,8 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, Link } from "@remix-run/react";
-import { eq, desc } from "drizzle-orm";
 import { getDb } from "~/db";
-import { extractedPatterns, reusableRules, decisionLogs } from "~/db/schema";
-import { DiscoveryService } from "~/lib/services";
+import { DiscoveryQueryService } from "~/lib/services/discovery/query";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
@@ -24,36 +22,17 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const { id } = params;
   if (!id) throw new Response("Not Found", { status: 404 });
 
-  const service = new DiscoveryService(db);
-  const discovery = await service.getById(id);
+  const queryService = new DiscoveryQueryService(db);
+  const discovery = await queryService.getById(id);
   if (!discovery) throw new Response("Not Found", { status: 404 });
 
-  // 관련 패턴 조회
-  const logCount = await db
-    .select({ count: decisionLogs.id })
-    .from(decisionLogs)
-    .where(eq(decisionLogs.discoveryId, id));
+  const [logCount, patterns, rules] = await Promise.all([
+    queryService.getDecisionLogCount(id),
+    queryService.getExtractedPatterns(50),
+    queryService.getActiveRules(20),
+  ]);
 
-  const patterns = await db
-    .select()
-    .from(extractedPatterns)
-    .orderBy(desc(extractedPatterns.createdAt))
-    .limit(50);
-
-  // 재사용 규칙 조회
-  const rules = await db
-    .select()
-    .from(reusableRules)
-    .where(eq(reusableRules.enabled, 1))
-    .limit(20);
-
-  return json({
-    user,
-    discovery,
-    patterns,
-    rules,
-    logCount: logCount.length,
-  });
+  return json({ user, discovery, patterns, rules, logCount });
 }
 
 export default function DiscoveryPatternsRoute() {

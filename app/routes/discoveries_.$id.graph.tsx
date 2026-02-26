@@ -1,15 +1,10 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
-import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
-import {
-  contextNodes,
-  contextEdges,
-  contextSnapshots,
-  ontologyTypes,
-} from "~/db/schema";
+import { contextSnapshots } from "~/db/schema";
 import { DiscoveryService } from "~/lib/services";
+import { DiscoveryQueryService } from "~/lib/services/discovery/query";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { Button } from "~/components/ui/Button";
@@ -31,23 +26,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const discovery = await service.getById(id);
   if (!discovery) throw new Response("Not Found", { status: 404 });
 
-  const nodes = await db
-    .select()
-    .from(contextNodes)
-    .where(eq(contextNodes.discoveryId, id));
-
-  const allEdges = await db.select().from(contextEdges);
-  const nodeIds = new Set(nodes.map((n) => n.id));
-  const edges = allEdges.filter(
-    (e) => nodeIds.has(e.fromNodeId) || nodeIds.has(e.toNodeId)
-  );
-
-  const types = await db.select().from(ontologyTypes);
-
-  const snapshots = await db
-    .select()
-    .from(contextSnapshots)
-    .where(eq(contextSnapshots.discoveryId, id));
+  const queryService = new DiscoveryQueryService(db);
+  const { nodes, edges, types, snapshots } = await queryService.getGraphData(id);
 
   return json({ user, discovery, nodes, edges, ontologyTypes: types, snapshots });
 }
@@ -70,16 +50,8 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   const intent = formData.get("intent");
 
   if (intent === "save-snapshot") {
-    const nodes = await db
-      .select()
-      .from(contextNodes)
-      .where(eq(contextNodes.discoveryId, id));
-
-    const allEdges = await db.select().from(contextEdges);
-    const nodeIds = new Set(nodes.map((n) => n.id));
-    const edges = allEdges.filter(
-      (e) => nodeIds.has(e.fromNodeId) || nodeIds.has(e.toNodeId)
-    );
+    const queryService = new DiscoveryQueryService(db);
+    const { nodes, edges } = await queryService.getGraphData(id);
 
     await db.insert(contextSnapshots).values({
       id: crypto.randomUUID(),

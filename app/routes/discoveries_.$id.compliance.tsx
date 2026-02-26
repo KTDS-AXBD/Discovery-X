@@ -5,15 +5,8 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, Link } from "@remix-run/react";
-import { eq, and, desc } from "drizzle-orm";
 import { getDb } from "~/db";
-import {
-  industryAdapters,
-  industryRules,
-  evidence,
-  eventLogs,
-} from "~/db/schema";
-import { DiscoveryService } from "~/lib/services";
+import { DiscoveryQueryService } from "~/lib/services/discovery/query";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
@@ -30,46 +23,11 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const { id } = params;
   if (!id) throw new Response("Not Found", { status: 404 });
 
-  const service = new DiscoveryService(db);
-  const discovery = await service.getById(id);
+  const queryService = new DiscoveryQueryService(db);
+  const discovery = await queryService.getById(id);
   if (!discovery) throw new Response("Not Found", { status: 404 });
 
-  // 산업 어댑터 정보
-  let adapter = null;
-  let rules: Array<{
-    id: string;
-    ruleType: string;
-    nameKo: string;
-    condition: Record<string, unknown> | null;
-    action: Record<string, unknown> | null;
-  }> = [];
-
-  if (discovery.industryAdapterId) {
-    const adapterResult = await db
-      .select()
-      .from(industryAdapters)
-      .where(eq(industryAdapters.id, discovery.industryAdapterId))
-      .limit(1);
-    adapter = adapterResult[0] || null;
-
-    if (adapter) {
-      rules = await db
-        .select()
-        .from(industryRules)
-        .where(
-          and(
-            eq(industryRules.industryAdapterId, adapter.id),
-            eq(industryRules.enabled, 1)
-          )
-        );
-    }
-  }
-
-  // 근거 조회
-  const evs = await db
-    .select()
-    .from(evidence)
-    .where(eq(evidence.discoveryId, id));
+  const { adapter, rules, evs, events } = await queryService.getComplianceData(id, discovery.industryAdapterId);
 
   // 준수 체크 수행
   const complianceReqs = (adapter?.complianceRequirements as string[]) || [];
@@ -101,14 +59,6 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 
   const passCount = checks.filter((c) => c.status === "pass").length;
   const overallCompliance = checks.length > 0 ? Math.round((passCount / checks.length) * 100) : 100;
-
-  // 이벤트 타임라인
-  const events = await db
-    .select()
-    .from(eventLogs)
-    .where(eq(eventLogs.discoveryId, id))
-    .orderBy(desc(eventLogs.timestamp))
-    .limit(30);
 
   const timeline = events.map((e) => ({
     time: e.timestamp?.toISOString() || "",

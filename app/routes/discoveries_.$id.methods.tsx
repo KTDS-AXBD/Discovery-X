@@ -1,16 +1,12 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, Form, useNavigation } from "@remix-run/react";
-import { eq, and } from "drizzle-orm";
 import { getDb } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import {
-  methodPacks,
-  methodRuns,
-  eventLogs,
-  MethodRunStatus,
-} from "~/db/schema";
+import { MethodRunStatus } from "~/db/schema";
 import { DiscoveryService } from "~/lib/services";
+import { DiscoveryEntityService } from "~/lib/services/discovery/entity";
+import { DiscoveryQueryExtraService } from "~/lib/services/discovery/query-extra2";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Card, CardContent } from "~/components/ui/Card";
@@ -32,14 +28,9 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const discovery = await service.getById(id);
   if (!discovery) throw new Response("Not Found", { status: 404 });
 
-  // Get all method packs
-  const allPacks = await db.select().from(methodPacks);
-
-  // Get runs for this discovery
-  const runs = await db
-    .select()
-    .from(methodRuns)
-    .where(eq(methodRuns.discoveryId, id));
+  // Get method packs and runs
+  const queryExtra = new DiscoveryQueryExtraService(db);
+  const { allPacks, runs } = await queryExtra.getMethodsPageData(id, discovery.status);
 
   // Build recommendations
   const currentStatus = discovery.status;
@@ -122,37 +113,13 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     const methodPackId = formData.get("methodPackId") as string;
     if (!methodPackId) return json({ error: "방법론 ID가 필요합니다." }, { status: 400 });
 
-    // Check not already running
-    const existing = await db
-      .select()
-      .from(methodRuns)
-      .where(
-        and(
-          eq(methodRuns.discoveryId, id),
-          eq(methodRuns.methodPackId, methodPackId),
-          eq(methodRuns.status, MethodRunStatus.RUNNING)
-        )
-      );
-
-    if (existing.length > 0) {
-      return json({ error: "이미 실행 중인 방법론입니다." }, { status: 400 });
+    try {
+      const entityService = new DiscoveryEntityService(db);
+      await entityService.startMethodRun(id, methodPackId, user.id);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "알 수 없는 오류";
+      return json({ error: message }, { status: 400 });
     }
-
-    await db.insert(methodRuns).values({
-      id: crypto.randomUUID(),
-      discoveryId: id,
-      methodPackId,
-      status: MethodRunStatus.RUNNING,
-      executorId: user.id,
-    });
-
-    await db.insert(eventLogs).values({
-      id: crypto.randomUUID(),
-      actorId: user.id,
-      discoveryId: id,
-      eventType: "START_METHOD_RUN",
-      metadata: { methodPackId },
-    });
 
     return redirect(`/discoveries/${id}/methods`);
   }

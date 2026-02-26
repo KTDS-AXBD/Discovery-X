@@ -2,8 +2,8 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, experiments } from "~/db/schema";
 import { DiscoveryService } from "~/lib/services/discovery.service";
+import { DiscoveryQueryExtraService } from "~/lib/services/discovery/query-extra2";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
@@ -14,7 +14,6 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~
 import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
-import { eq } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { CreateEvidenceSchema } from "~/lib/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
@@ -36,9 +35,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   }
 
   // Get discovery
-  const discovery = await db.query.discoveries.findFirst({
-    where: eq(discoveries.id, id),
-  });
+  const service = new DiscoveryService(db);
+  const discovery = await service.getById(id);
 
   if (!discovery) {
     throw new Response("Not Found", { status: 404 });
@@ -50,10 +48,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   }
 
   // Get experiments for linking
-  const discoveryExperiments = await db
-    .select()
-    .from(experiments)
-    .where(eq(experiments.discoveryId, id));
+  const queryExtra = new DiscoveryQueryExtraService(db);
+  const discoveryExperiments = await queryExtra.getExperimentsByDiscoveryId(id);
 
   return json({ user, discovery, experiments: discoveryExperiments });
 }

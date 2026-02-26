@@ -2,8 +2,8 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, experiments } from "~/db/schema";
 import { DiscoveryService } from "~/lib/services/discovery.service";
+import { DiscoveryQueryService } from "~/lib/services/discovery/query";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
@@ -12,7 +12,6 @@ import { Textarea } from "~/components/ui/Textarea";
 import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
-import { eq, and } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { CompleteExperimentSchema } from "~/lib/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
@@ -39,9 +38,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     return redirect(`/discoveries/${id}`);
   }
 
-  const discovery = await db.query.discoveries.findFirst({
-    where: eq(discoveries.id, id),
-  });
+  const queryService = new DiscoveryQueryService(db);
+  const discovery = await queryService.getById(id);
 
   if (!discovery) {
     throw new Response("Not Found", { status: 404 });
@@ -54,12 +52,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     return redirect(`/discoveries/${id}`);
   }
 
-  const experiment = await db.query.experiments.findFirst({
-    where: and(
-      eq(experiments.id, experimentId),
-      eq(experiments.discoveryId, id)
-    ),
-  });
+  const experiment = await queryService.getExperimentById(id, experimentId);
 
   if (!experiment || experiment.completedAt) {
     return redirect(`/discoveries/${id}`);

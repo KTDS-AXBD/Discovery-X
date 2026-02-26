@@ -1,6 +1,11 @@
 import { eq, desc, inArray, count, and, lte } from "drizzle-orm";
 import type { DB } from "~/db";
-import { discoveries, experiments, evidence, users, eventLogs, discoveryKpis, kpiMeasurements, discoveryLinks } from "~/db/schema";
+import {
+  discoveries, experiments, evidence, users, eventLogs, discoveryKpis, kpiMeasurements, discoveryLinks,
+  decisionLogs, extractedPatterns, reusableRules,
+  contextNodes, contextEdges, ontologyTypes, contextSnapshots,
+  industryAdapters, industryRules,
+} from "~/db/schema";
 import { DiscoveryStatus } from "~/db/schema";
 import { tenantWhere } from "~/lib/query/tenant-scope";
 import { isOverdue, daysUntilDue } from "~/lib/format-date";
@@ -344,5 +349,129 @@ export class DiscoveryQueryService {
       return dateA - dateB;
     });
     return result;
+  }
+
+  /**
+   * 사용자 단건 조회
+   */
+  async getUserById(userId: string) {
+    const result = await this.db.query.users.findFirst({
+      where: eq(users.id, userId),
+    });
+    return result ?? null;
+  }
+
+  /**
+   * 실험 단건 조회 (discovery 소속 검증 포함)
+   */
+  async getExperimentById(discoveryId: string, experimentId: string) {
+    const result = await this.db.query.experiments.findFirst({
+      where: and(
+        eq(experiments.id, experimentId),
+        eq(experiments.discoveryId, discoveryId),
+      ),
+    });
+    return result ?? null;
+  }
+
+  /**
+   * 의사결정 로그 개수 조회
+   */
+  async getDecisionLogCount(discoveryId: string): Promise<number> {
+    const result = await this.db
+      .select({ count: count() })
+      .from(decisionLogs)
+      .where(eq(decisionLogs.discoveryId, discoveryId));
+    return result[0]?.count || 0;
+  }
+
+  /**
+   * 추출된 패턴 목록 조회
+   */
+  async getExtractedPatterns(limit = 50) {
+    return this.db
+      .select()
+      .from(extractedPatterns)
+      .orderBy(desc(extractedPatterns.createdAt))
+      .limit(limit);
+  }
+
+  /**
+   * 활성화된 재사용 규칙 목록 조회
+   */
+  async getActiveRules(limit = 20) {
+    return this.db
+      .select()
+      .from(reusableRules)
+      .where(eq(reusableRules.enabled, 1))
+      .limit(limit);
+  }
+
+  /**
+   * 맥락 그래프 전체 데이터 조회 (nodes, edges, types, snapshots)
+   */
+  async getGraphData(discoveryId: string) {
+    const nodes = await this.db
+      .select()
+      .from(contextNodes)
+      .where(eq(contextNodes.discoveryId, discoveryId));
+
+    const allEdges = await this.db.select().from(contextEdges);
+    const nodeIds = new Set(nodes.map((n) => n.id));
+    const edges = allEdges.filter(
+      (e) => nodeIds.has(e.fromNodeId) || nodeIds.has(e.toNodeId),
+    );
+
+    const types = await this.db.select().from(ontologyTypes);
+
+    const snapshots = await this.db
+      .select()
+      .from(contextSnapshots)
+      .where(eq(contextSnapshots.discoveryId, discoveryId));
+
+    return { nodes, edges, types, snapshots };
+  }
+
+  /**
+   * 규제 준수 뷰용 데이터 조회 (adapter, rules, evs, events)
+   */
+  async getComplianceData(discoveryId: string, industryAdapterId: string | null | undefined) {
+    let adapter: (typeof industryAdapters.$inferSelect) | null = null;
+    let rules: (typeof industryRules.$inferSelect)[] = [];
+
+    if (industryAdapterId) {
+      const adapterResult = await this.db
+        .select()
+        .from(industryAdapters)
+        .where(eq(industryAdapters.id, industryAdapterId))
+        .limit(1);
+      adapter = adapterResult[0] ?? null;
+
+      if (adapter) {
+        rules = await this.db
+          .select()
+          .from(industryRules)
+          .where(
+            and(
+              eq(industryRules.industryAdapterId, adapter.id),
+              eq(industryRules.enabled, 1),
+            ),
+          );
+      }
+    }
+
+    const evs = await this.db
+      .select()
+      .from(evidence)
+      .where(eq(evidence.discoveryId, discoveryId));
+
+    const events = await this.db
+      .select()
+      .from(eventLogs)
+      .where(eq(eventLogs.discoveryId, discoveryId))
+      .orderBy(desc(eventLogs.timestamp))
+      .limit(30);
+
+    return { adapter, rules, evs, events };
   }
 }

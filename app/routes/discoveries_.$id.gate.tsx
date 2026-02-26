@@ -1,23 +1,11 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, Form, useNavigation, useActionData } from "@remix-run/react";
-import { eq, and } from "drizzle-orm";
 import { getDb } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import {
-  gatePackages,
-  gateApprovals,
-  users,
-  evidence,
-  experiments,
-  methodRuns,
-  assumptions,
-  MethodRunStatus,
-  GateApprovalDecision,
-  UserRole,
-  eventLogs,
-} from "~/db/schema";
 import { DiscoveryService } from "~/lib/services";
+import { DiscoveryEntityService } from "~/lib/services/discovery/entity";
+import { DiscoveryQueryExtraService } from "~/lib/services/discovery/query-extra2";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Button } from "~/components/ui/Button";
@@ -27,7 +15,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { GatePackageEditor } from "~/components/methods/GatePackageEditor";
 import { formatDate } from "~/lib/format-date";
-import { DiscoveryValidationRules } from "~/lib/validation/discovery-rules";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -43,57 +30,10 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const discovery = await service.getById(id);
   if (!discovery) throw new Response("Not Found", { status: 404 });
 
-  // Get existing gate packages
-  const packages = await db
-    .select()
-    .from(gatePackages)
-    .where(eq(gatePackages.discoveryId, id));
+  const queryExtra = new DiscoveryQueryExtraService(db);
+  const { packages, approvals, gatekeepers } = await queryExtra.getGatePageData(id);
 
-  // Get gate approvals with reviewer info
-  const approvals = [];
-  for (const pkg of packages) {
-    const pkgApprovals = await db
-      .select()
-      .from(gateApprovals)
-      .where(eq(gateApprovals.gatePackageId, pkg.id));
-
-    for (const a of pkgApprovals) {
-      const reviewer = await db.query.users.findFirst({ where: eq(users.id, a.reviewerId) });
-      approvals.push({
-        ...a,
-        requestedAt: a.requestedAt.toISOString(),
-        decidedAt: a.decidedAt?.toISOString() || null,
-        slaDeadline: a.slaDeadline?.toISOString() || null,
-        reviewerName: reviewer?.name || "알 수 없음",
-      });
-    }
-  }
-
-  // Get gatekeepers/admins for reviewer selection
-  const allUsers = await db.select().from(users);
-  const gatekeepers = allUsers.filter(
-    (u) => u.role === UserRole.ADMIN || u.role === UserRole.GATEKEEPER
-  );
-
-  return json({
-    user,
-    discovery,
-    packages: packages.map((p) => ({
-      id: p.id,
-      gateType: p.gateType,
-      decision: p.decision,
-      rationale: p.rationale,
-      autoDraftedAt: p.autoDraftedAt?.toISOString() || null,
-      submittedAt: p.submittedAt?.toISOString() || null,
-      decidedAt: p.decidedAt?.toISOString() || null,
-      scorecard: p.scorecard as Record<string, unknown> | null,
-      methodRunSummary: p.methodRunSummary as Array<Record<string, unknown>> | null,
-      evidenceSummary: p.evidenceSummary as Array<Record<string, unknown>> | null,
-      assumptions: p.assumptions as Array<Record<string, unknown>> | null,
-    })),
-    approvals,
-    gatekeepers: gatekeepers.map((u) => ({ id: u.id, name: u.name })),
-  });
+  return json({ user, discovery, packages, approvals, gatekeepers });
 }
 
 export async function action({ request, context, params }: ActionFunctionArgs) {
@@ -109,6 +49,8 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   const formData = await request.formData();
   const intent = formData.get("intent");
 
+  const entityService = new DiscoveryEntityService(db);
+
   if (intent === "draft") {
     const gateType = (formData.get("gateType") as string) || "GATE1";
 
@@ -116,127 +58,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     const discovery = await service.getById(id);
     if (!discovery) return json({ error: "Discovery를 찾을 수 없습니다." }, { status: 404 });
 
-    // Gather data
-    const allEvidence = await db
-      .select()
-      .from(evidence)
-      .where(eq(evidence.discoveryId, id));
-
-    const allExperiments = await db
-      .select()
-      .from(experiments)
-      .where(eq(experiments.discoveryId, id));
-
-    const runs = await db
-      .select()
-      .from(methodRuns)
-      .where(eq(methodRuns.discoveryId, id));
-
-    const completedRuns = runs.filter((r) => r.status === MethodRunStatus.COMPLETED);
-
-    const allAssumptions = await db
-      .select()
-      .from(assumptions)
-      .where(eq(assumptions.discoveryId, id));
-
-    // Build scorecard
-    const strongEvidence = allEvidence.filter((e) => e.strength === "A" || e.strength === "B");
-    const confirmedEvidence = allEvidence.filter((e) => e.reliabilityLabel === "confirmed");
-    const completedExperiments = allExperiments.filter((e) => e.completedAt);
-    const validatedAssumptions = allAssumptions.filter((a) => a.status === "VALIDATED");
-
-    let readinessScore = 0;
-    readinessScore += Math.min(strongEvidence.length, 2) * 15;
-    readinessScore += Math.min(confirmedEvidence.length, 2) * 5;
-    readinessScore += Math.min(completedExperiments.length, 2) * 10;
-    readinessScore += Math.min(completedRuns.length, 2) * 10;
-    if (allAssumptions.length > 0) {
-      readinessScore += Math.round((validatedAssumptions.length / allAssumptions.length) * 20);
-    } else {
-      readinessScore += 10;
-    }
-    readinessScore = Math.min(readinessScore, 100);
-
-    // 비판적 검증 4종 수행 (v1.4 §7.3)
-    const criticalChecksResult = await DiscoveryValidationRules.validateCriticalChecks(db, id);
-
-    const scorecard = {
-      evidenceCount: allEvidence.length,
-      strongEvidenceCount: strongEvidence.length,
-      confirmedEvidenceCount: confirmedEvidence.length,
-      experimentCount: allExperiments.length,
-      completedExperimentCount: completedExperiments.length,
-      methodRunCount: completedRuns.length,
-      assumptionCount: allAssumptions.length,
-      validatedAssumptionCount: validatedAssumptions.length,
-      openAssumptionCount: allAssumptions.filter((a) => a.status === "OPEN").length,
-      readinessScore,
-      criticalChecks: criticalChecksResult,
-    };
-
-    const evidenceSummary = allEvidence.map((e) => ({
-      id: e.id,
-      type: e.type,
-      strength: e.strength,
-      reliabilityLabel: e.reliabilityLabel,
-      content: e.content.slice(0, 100),
-      hasSource: !!(e.sourceUrl || e.linkOrAttachment),
-      hasDate: !!e.publishedOrObservedDate,
-    }));
-
-    const methodRunSummary = completedRuns.map((r) => ({
-      runId: r.id,
-      methodPackId: r.methodPackId,
-      completedAt: r.completedAt?.toISOString(),
-      hasOutput: !!r.structuredOutput,
-    }));
-
-    // Upsert gate package
-    const existing = await db
-      .select()
-      .from(gatePackages)
-      .where(
-        and(
-          eq(gatePackages.discoveryId, id),
-          eq(gatePackages.gateType, gateType)
-        )
-      )
-      .limit(1);
-
-    if (existing[0]) {
-      await db
-        .update(gatePackages)
-        .set({
-          autoDraftedAt: new Date(),
-          scorecard,
-          methodRunSummary,
-          evidenceSummary,
-          assumptions: allAssumptions.map((a) => ({
-            id: a.id,
-            statement: a.statement,
-            status: a.status,
-            refutationQuestions: a.refutationQuestions,
-          })),
-        })
-        .where(eq(gatePackages.id, existing[0].id));
-    } else {
-      await db.insert(gatePackages).values({
-        id: crypto.randomUUID(),
-        discoveryId: id,
-        gateType,
-        autoDraftedAt: new Date(),
-        decision: "PENDING",
-        scorecard,
-        methodRunSummary,
-        evidenceSummary,
-        assumptions: allAssumptions.map((a) => ({
-          id: a.id,
-          statement: a.statement,
-          status: a.status,
-          refutationQuestions: a.refutationQuestions,
-        })),
-      });
-    }
+    await entityService.draftGatePackage(id, gateType, user.id);
 
     return redirect(`/discoveries/${id}/gate`);
   }
@@ -250,30 +72,13 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     }
 
     // Verify reviewer is gatekeeper or admin
-    const reviewer = await db.query.users.findFirst({ where: eq(users.id, reviewerId) });
-    if (!reviewer || (reviewer.role !== UserRole.ADMIN && reviewer.role !== UserRole.GATEKEEPER)) {
+    const queryExtra = new DiscoveryQueryExtraService(db);
+    const reviewer = await queryExtra.getReviewerForGate(reviewerId);
+    if (!reviewer) {
       return json({ error: "Gatekeeper 또는 Admin만 리뷰어로 지정할 수 있습니다." }, { status: 400 });
     }
 
-    const slaDeadline = new Date();
-    slaDeadline.setDate(slaDeadline.getDate() + 3); // 3일 SLA
-
-    const approvalId = crypto.randomUUID();
-    await db.insert(gateApprovals).values({
-      id: approvalId,
-      gatePackageId,
-      reviewerId,
-      decision: GateApprovalDecision.PENDING,
-      slaDeadline,
-    });
-
-    await db.insert(eventLogs).values({
-      id: crypto.randomUUID(),
-      actorId: user.id,
-      discoveryId: id,
-      eventType: "REQUEST_GATE_APPROVAL",
-      metadata: { gatePackageId, reviewerId, approvalId },
-    });
+    await entityService.requestGateApproval(id, gatePackageId, reviewerId, user.id);
 
     return redirect(`/discoveries/${id}/gate`);
   }
@@ -281,67 +86,17 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   if (intent === "submit-approval") {
     const approvalId = formData.get("approvalId") as string;
     const decision = formData.get("decision") as string;
-    const comment = formData.get("comment") as string;
+    const comment = (formData.get("comment") as string) || null;
 
     if (!approvalId || !decision) {
       return json({ error: "결정을 선택해주세요." }, { status: 400 });
     }
 
-    // Verify current user is the reviewer
-    const approval = await db.query.gateApprovals.findFirst({
-      where: eq(gateApprovals.id, approvalId),
-    });
-    if (!approval || approval.reviewerId !== user.id) {
-      return json({ error: "본인에게 할당된 승인만 처리할 수 있습니다." }, { status: 403 });
-    }
-
-    await db
-      .update(gateApprovals)
-      .set({
-        decision,
-        comment: comment || null,
-        decidedAt: new Date(),
-      })
-      .where(eq(gateApprovals.id, approvalId));
-
-    await db.insert(eventLogs).values({
-      id: crypto.randomUUID(),
-      actorId: user.id,
-      discoveryId: id,
-      eventType: "SUBMIT_GATE_DECISION",
-      metadata: { approvalId, gatePackageId: approval.gatePackageId, decision, comment: comment || null },
-    });
-
-    // Auto-aggregate: check if all approvals for the gate package are decided
-    const allApprovals = await db
-      .select()
-      .from(gateApprovals)
-      .where(eq(gateApprovals.gatePackageId, approval.gatePackageId));
-
-    const allDecided = allApprovals.every((a) =>
-      a.id === approvalId ? true : a.decision !== GateApprovalDecision.PENDING
-    );
-
-    if (allDecided) {
-      const decisions = allApprovals.map((a) =>
-        a.id === approvalId ? decision : a.decision
-      );
-      const hasRejection = decisions.includes(GateApprovalDecision.REJECTED);
-      const hasConditional = decisions.includes(GateApprovalDecision.CONDITIONAL);
-      const aggregateDecision = hasRejection
-        ? "NO_GO"
-        : hasConditional
-          ? "CONDITIONAL"
-          : "GO";
-
-      await db
-        .update(gatePackages)
-        .set({
-          decision: aggregateDecision,
-          decidedAt: new Date(),
-          approverId: user.id,
-        })
-        .where(eq(gatePackages.id, approval.gatePackageId));
+    try {
+      await entityService.submitGateDecision(id, approvalId, decision, comment, user.id);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "알 수 없는 오류";
+      return json({ error: message }, { status: 403 });
     }
 
     return redirect(`/discoveries/${id}/gate`);

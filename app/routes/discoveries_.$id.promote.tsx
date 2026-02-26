@@ -2,7 +2,6 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { discoveries, users } from "~/db/schema";
 import { DiscoveryService } from "~/lib/services/discovery.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
@@ -14,7 +13,6 @@ import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
 import { Separator } from "~/components/ui/Separator";
 import { AlertBanner } from "~/components/ui/AlertBanner";
-import { eq } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { DiscoveryValidationRules, PromoteToOpenSchema } from "~/lib/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
@@ -36,9 +34,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   }
 
   // Get discovery
-  const discovery = await db.query.discoveries.findFirst({
-    where: eq(discoveries.id, id),
-  });
+  const service = new DiscoveryService(db);
+  const discovery = await service.getById(id);
 
   if (!discovery) {
     throw new Response("Not Found", { status: 404 });
@@ -50,7 +47,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   }
 
   // Get all users for Owner selection
-  const allUsers = await db.select().from(users);
+  const allUsers = await service.getAllUsers();
 
   // 서버에서 계산하여 hydration 불일치 방지
   const expectedDueDateStr = formatDate(DiscoveryValidationRules.calculateDueDate(discovery.createdAt));
