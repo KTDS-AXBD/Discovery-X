@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 258 (2026-02-26)
+**Cron 통합 리팩토링 (13→9 라우트) + cron-job.org 전수 현행화**:
+- ✅ `app/routes/api.cron.maintenance.ts` 신규 생성: log-archive + memory-compact + projection-sync + pattern-extract 통합 (POST Bearer, `?task=` 파라미터)
+- ✅ `app/routes/api.cron.daily.ts` — alerts.ts 흡수: `scanAndFireAlerts` + `fireWebhooks` + `ensureDefaultAlertRules` step 8로 통합
+- ✅ 5개 라우트 파일 삭제: api.cron.alerts / api.cron.log-archive / api.cron.memory-compact / api.cron.projection-sync / api.cron.pattern-extract
+- ✅ `tests/integration/cron-routes-bearer.test.ts` — maintenance 통합 테스트(7개 케이스)로 교체
+- ✅ `tests/integration/cron-routes-query-param.test.ts` — 삭제된 엔드포인트 블록 제거 + daily alertsFired/alertsWebhooksSent 검증 추가
+- ✅ cron-job.org 전수 현행화: stale 13개 삭제 + 신규 7개 등록 (maintenance×2, lab×2, vectorize×3) → 최종 13개 확정
+- ✅ `docs/ops/cron-registration-guide.md` 현행화 (19→13개 테이블, 신규 Job ID 반영)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,340/1,340 PASS (90 test files)
+
 ### 세션 257 (2026-02-26)
 **리팩토링 잔여 작업 점검 + PatternCard hydration mismatch 수정**:
 - ✅ 리팩토링 잔여 작업 전수 점검 — Phase 6 완성도 확인 (briefing-builder/pipeline-bridge 참조 0건, signal-router 정규화 완료)
