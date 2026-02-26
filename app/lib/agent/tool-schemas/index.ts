@@ -6,3 +6,4 @@ export { ONTOLOGY_TOOLS } from "./ontology-schemas";
 export { PLATFORM_TOOLS } from "./platform-schemas";
 export { STRATEGIC_TOOLS } from "./strategic-schemas";
 export { IDEA_SCHEMA_TOOLS } from "./idea-schemas";
+export { MATRIX_TOOLS } from "./matrix-schemas";

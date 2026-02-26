@@ -88,6 +88,11 @@ import {
   manageTenantMembers,
 } from "./tools/tenant-tools";
 import { updateIdeaAnalysis } from "./tools/idea-tools";
+import {
+  queryMatrixHeatmap,
+  getCellSignals,
+  getTopCells,
+} from "./tools/matrix-tools";
 
 type ToolHandler = (db: DB, input: Record<string, unknown>) => Promise<string>;
 
@@ -184,6 +189,11 @@ const TOOL_HANDLER_MAP: Record<string, ToolHandler> = {
 
   // Idea analysis 도구
   update_idea_analysis: (db, input) => updateIdeaAnalysis(db, input as unknown as Parameters<typeof updateIdeaAnalysis>[1]),
+
+  // Matrix P2 도구
+  query_matrix_heatmap: (db, input) => queryMatrixHeatmap(db, input as unknown as Parameters<typeof queryMatrixHeatmap>[1]),
+  get_cell_signals: (db, input) => getCellSignals(db, input as unknown as Parameters<typeof getCellSignals>[1]),
+  get_top_cells: (db, input) => getTopCells(db, input as unknown as Parameters<typeof getTopCells>[1]),
 };
 
 export async function executeTool(
