@@ -3,6 +3,20 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 252 (2026-02-26)
+**ideas 와이어프레임 v0.3 미구현 항목 완료 + deploy 스킬 수정 + 배포**:
+- ✅ `/s-start` 세션 시작 — MEMORY.md 신규 생성 (memory 디렉토리 없던 상태), SPEC.md 확인
+- ✅ ideas 와이어프레임 v0.3 미구현 항목 분석 — 3개 항목 확인 (SimilarSources/IdeaListDrawer/E2E 테스트)
+- ✅ `/team` 2 workers 병렬 구현:
+  - W1: `SimilarSources.tsx` 신규 — `/api/similar-sources` 기반 연관 소스 추천 패널 (최대 3개, Skeleton 로딩, +추가 버튼), `ideas.$id.tsx` 좌측 패널 하단 연결
+  - W2: `IdeaListDrawer.tsx` 삭제 (dead code — IdeaCardGrid로 대체됨), E2E 테스트 5개 추가 (새 아이디어 생성/카드 클릭/GNB 탭/테마 토글/사업 제안하기 모달)
+- ✅ deploy 스킬 파일명 수정: `skill.md` → `SKILL.md` (Claude Code 인식 규칙)
+- ✅ `scripts/dev-run.sh`, `scripts/dev-setup.sh` 커밋
+- ✅ 프로덕션 배포 완료 (CI/CD 2m13s)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,341/1,341 PASS / build 성공
+
 ### 세션 251 (2026-02-23)
 **SourceInputPanel 와이어프레임 v0.3 구조 반영 + 콘텐츠 카테고리 필터 + DS 래퍼 추가**:
 - ✅ SourceInputPanel 전면 재작성 — 와이어프레임 v0.3 레이아웃 반영 ("소스 & 방법론 센터" 헤더, 선택된 소스 섹션, 소스 추가 패널, 카테고리 pill 필터)
