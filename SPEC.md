@@ -403,7 +403,7 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.20 + Service Layer 강화 (라우트 3개 -539줄) (세션 259)
+- **프로토타입**: v6.21 + Service Layer 확장 — dashboard + signals (세션 260)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 41개 마이그레이션 (0000~0040), 로컬 적용 완료
 
@@ -411,7 +411,7 @@ build/
 - **라우트**: 149개 (Cron 통합: 9개 — maintenance 신규, alerts/log-archive/memory-compact/projection-sync/pattern-extract 통합)
 - **테이블**: 92개 (+5: Archive 2, Token 1, Matrix 7, Worker 2, FTS 1, Proposals +2, Graph +1 — 기존 중복 제거 후)
 - **Agent 도구**: 50개 (+3 Matrix P2: query_matrix_heatmap/get_cell_signals/get_top_cells, schema: 9 도메인 파일)
-- **코드**: ~62,700줄 (399파일) — 세션 259 Service Layer: 라우트 3개 -539줄, 서비스/유틸/컴포넌트 4개 신규 +372줄
+- **코드**: ~63,300줄 (396파일) — 세션 260 Service Layer 확장: DashboardService 신규 + listForWeeklyReview/listForRecallQueue/listWithDetails 추가, 라우트 4개 인라인 쿼리 제거
 - **테스트**: 1,340개 (90 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
@@ -420,7 +420,7 @@ build/
 - **Feature Flag**: 9개 — **9/9 true** (agentDO 활성화 완료)
 - **@theme inline**: 104 토큰 등록, var() 1,752→122 (93.0% 감소, 163 파일)
 - **@axis-ds 컴포넌트**: 15/28 활용 (Button/Badge/Card/Input/Alert/Dialog/Table/Textarea/Select/SelectItem/SelectTrigger/Label/Skeleton/Separator/Progress)
-- **배포**: 세션 255 배포 완료 (CI/CD) — SESSION_SECRET sync→deploy 순서 보장, agentDO HMAC 정상
+- **배포**: 세션 260 배포 완료 (CI/CD, 2m9s) — 세션 258+259 코드 반영. 세션 260 Service Layer 확장은 미배포 (1 commit ahead)
 - **Cron 등록**: cron-job.org 13개 (maintenance×2 신규, lab×2 + vectorize×3 파라미터 방식, stale 13개 삭제)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 

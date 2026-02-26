@@ -3,6 +3,23 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 260 (2026-02-26)
+**Service Layer 확장 — dashboard + signals + 배포**:
+- ✅ 배포: `git push origin master` → GitHub Actions CI/CD (2m9s) — 세션 258+259 코드 프로덕션 반영
+- ✅ `app/lib/services/discovery/types.ts`: `WeeklyReviewItem`, `RecallQueueItem` 타입 추가
+- ✅ `app/lib/services/discovery/query.ts`: `listForWeeklyReview()` + `listForRecallQueue()` 추가 — **N+1 → 배치 조회** 전환
+- ✅ `app/lib/services/discovery.service.ts`: 두 메서드 Facade 위임 + 타입 재익스포트
+- ✅ `app/lib/services/signal.service.ts`: `listWithDetails()` 추가 — topics + users LEFT JOIN
+- ✅ `app/lib/services/dashboard.service.ts` **신규**: `getOverviewData()` — radar/discoveries/proposals/adapters/reactions 통합
+- ✅ `app/lib/services/index.ts`: `DashboardService`, `SignalWithDetails` 익스포트
+- ✅ `app/routes/dashboard._index.tsx`: `DashboardService` 사용 (-120줄, 인라인 6개 쿼리 제거)
+- ✅ `app/routes/dashboard.review.tsx`: `DiscoveryService.listForWeeklyReview()` 사용
+- ✅ `app/routes/dashboard.recall.tsx`: `DiscoveryService.listForRecallQueue()` 사용
+- ✅ `app/routes/signals._index.tsx`: `SignalService.listWithDetails()` 사용
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,340/1,340 PASS / build 성공 (CI/CD 2m9s)
+
 ### 세션 258 (2026-02-26)
 **Cron 통합 리팩토링 (13→9 라우트) + cron-job.org 전수 현행화**:
 - ✅ `app/routes/api.cron.maintenance.ts` 신규 생성: log-archive + memory-compact + projection-sync + pattern-extract 통합 (POST Bearer, `?task=` 파라미터)
