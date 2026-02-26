@@ -9,6 +9,7 @@ import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { usePanelLayout } from "~/lib/hooks/use-panel-layout";
 import { ALL_METHODOLOGIES, METHODOLOGY_PROMPTS } from "~/lib/constants/methodology";
 import { SourceInputPanel } from "~/components/ideas/SourceInputPanel";
+import { SimilarSources } from "~/components/ideas/SimilarSources";
 import { IdeaChatWrapper } from "~/components/ideas/IdeaChatWrapper";
 import { PanelResizeHandle } from "~/components/ideas/PanelResizeHandle";
 import { ProposalCreationModal } from "~/components/ideas/ProposalCreationModal";
@@ -623,7 +624,7 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
       {/* Left: Source Input Panel */}
       {panel.leftOpen && (
         <>
-          <div style={{ width: panel.leftWidth }} className="group/left relative shrink-0 overflow-hidden">
+          <div style={{ width: panel.leftWidth }} className="group/left relative flex shrink-0 flex-col overflow-hidden">
             <button
               type="button"
               onClick={panel.toggleLeft}
@@ -635,16 +636,22 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
               </svg>
             </button>
-            <SourceInputPanel
-              items={ideaSourceItems}
-              collectedItems={allItems}
-              selectedItemIds={selectedSourceIds}
-              onAddSources={handleAddSources}
-              onDeleteSource={ideaId ? handleDeleteSource : undefined}
-              onToggleItem={handleToggleSource}
-              onToggleAll={handleToggleAll}
-              onSelectItem={(id) => setDetailSourceId((prev) => (prev === id ? null : id))}
-              isAdding={isAdding}
+            <div className="min-h-0 flex-1">
+              <SourceInputPanel
+                items={ideaSourceItems}
+                collectedItems={allItems}
+                selectedItemIds={selectedSourceIds}
+                onAddSources={handleAddSources}
+                onDeleteSource={ideaId ? handleDeleteSource : undefined}
+                onToggleItem={handleToggleSource}
+                onToggleAll={handleToggleAll}
+                onSelectItem={(id) => setDetailSourceId((prev) => (prev === id ? null : id))}
+                isAdding={isAdding}
+              />
+            </div>
+            <SimilarSources
+              sourceIds={selectedSourceIds}
+              onAddSource={async (url) => { await handleAddSources([url]); }}
             />
           </div>
           <PanelResizeHandle side="left" onResize={panel.resizeLeft} />
