@@ -403,7 +403,7 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.24.1 — api.ideas 500 에러 수정 (세션 265)
+- **프로토타입**: v6.24.2 — SourceInputPanel 파일 D&D/업로드 구현 (세션 266)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 41개 마이그레이션 (0000~0040), 로컬 적용 완료
 
@@ -420,7 +420,7 @@ build/
 - **Feature Flag**: 9개 — **9/9 true** (agentDO 활성화 완료)
 - **@theme inline**: 104 토큰 등록, var() 1,752→122 (93.0% 감소, 163 파일)
 - **@axis-ds 컴포넌트**: 15/28 활용 (Button/Badge/Card/Input/Alert/Dialog/Table/Textarea/Select/SelectItem/SelectTrigger/Label/Skeleton/Separator/Progress)
-- **배포**: 세션 262 배포 완료 (CF Pages API 재배포, CRON_SECRET 교체 포함)
+- **배포**: 세션 266 배포 완료 (SourceInputPanel 파일 D&D/업로드)
 - **Cron 등록**: cron-job.org 13개 (CRON_SECRET 전체 교체 완료 — 세션 262)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 

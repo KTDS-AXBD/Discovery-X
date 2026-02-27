@@ -3,6 +3,22 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 266 (2026-02-27)
+**fix: SourceInputPanel 파일 Drag & Drop + 업로드 기능 구현**:
+- ✅ `SourceInputPanel.tsx`: `handleDrop`에 `e.dataTransfer.files` 처리 추가
+  - 기존: `text/uri-list`와 `text/plain`만 처리 → 파일 드롭 시 아무 반응 없음
+  - 수정: 파일 있으면 `handleFiles()` 호출, 없으면 기존 URL/text 처리
+- ✅ `handleFiles` 신규 함수: FileReader로 텍스트 파일 내용 읽기 (5000자 제한, 최대 20파일)
+  - 텍스트 파일 (.txt/.md/.csv/.json/.html/.xml/.log): 내용 읽어서 text 소스 등록
+  - 바이너리 파일 (PDF 등): `[파일] filename` 형태로 참조 등록
+- ✅ hidden `<input type="file">` + 📎 클릭 버튼 추가 (textarea 우측)
+- ✅ textarea `pr-10` → `pr-16` (버튼 2개 공간 확보)
+- ✅ 안내 텍스트 개선: "URL·텍스트를 입력하거나, 파일을 드래그 또는 📎로 첨부하세요."
+- ✅ 프로덕션 배포 완료 (CI/CD 2m6s)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,340/1,340 PASS / build 성공
+
 ### 세션 265 (2026-02-27)
 **fix: api.ideas 500 에러 수정 — FormData/JSON 파싱 호환**:
 - ✅ `api.ideas.ts`: `parseBody()` 헬퍼 추가 — Content-Type 기반 JSON/FormData 자동 분기
