@@ -53,6 +53,7 @@ export function SourceInputPanel({
   const [showAddPanel, setShowAddPanel] = useState(false);
   const [sourceInputTab, setSourceInputTab] = useState<"upload" | "existing">("upload");
   const feedbackTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 필터 변경 시 페이지 리셋
   const setSearchQuery = useCallback((q: string) => {
@@ -97,6 +98,31 @@ export function SourceInputPanel({
     }
   };
 
+  const handleFiles = useCallback(async (files: FileList) => {
+    if (files.length === 0 || isAdding) return;
+    const textExts = new Set([".txt", ".md", ".csv", ".json", ".html", ".xml", ".log"]);
+    const inputs: string[] = [];
+
+    for (const file of Array.from(files).slice(0, 20)) {
+      const ext = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
+      if (textExts.has(ext) || file.type.startsWith("text/")) {
+        try {
+          const text = await file.text();
+          inputs.push(text.length > 5000 ? text.slice(0, 5000) : text);
+        } catch {
+          inputs.push(`[파일] ${file.name}`);
+        }
+      } else {
+        inputs.push(`[파일] ${file.name}`);
+      }
+    }
+
+    if (inputs.length > 0) {
+      const result = await onAddSources(inputs);
+      showFeedback(result);
+    }
+  }, [isAdding, onAddSources, showFeedback]);
+
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -113,13 +139,21 @@ export function SourceInputPanel({
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
+
+    // File drop
+    if (e.dataTransfer.files.length > 0) {
+      handleFiles(e.dataTransfer.files);
+      return;
+    }
+
+    // URL/text drop
     const uriList = e.dataTransfer.getData("text/uri-list");
     const plainText = e.dataTransfer.getData("text/plain");
     const dropped = uriList || plainText;
     if (dropped) {
       setInputValue((prev) => (prev.trim() ? prev + "\n" + dropped : dropped));
     }
-  }, []);
+  }, [handleFiles]);
 
   // 콘텐츠 카테고리별 필터링
   const filteredItems = useMemo(() => {
@@ -274,8 +308,19 @@ export function SourceInputPanel({
                   placeholder={isDragOver ? "여기에 놓으세요" : "PDF, 웹사이트 링크, 텍스트 입력"}
                   rows={2}
                   disabled={isAdding}
-                  className="w-full resize-none rounded-lg border-0 bg-transparent px-3 py-2 pr-10 text-xs text-fg placeholder:text-fg-tertiary focus:outline-none disabled:opacity-60"
+                  className="w-full resize-none rounded-lg border-0 bg-transparent px-3 py-2 pr-16 text-xs text-fg placeholder:text-fg-tertiary focus:outline-none disabled:opacity-60"
                 />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isAdding}
+                  className="absolute bottom-2 right-9 flex h-6 w-6 items-center justify-center rounded-md text-fg-tertiary transition-colors hover:bg-surface-secondary hover:text-fg-secondary disabled:opacity-40"
+                  aria-label="파일 업로드"
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" />
+                  </svg>
+                </button>
                 <button
                   type="button"
                   onClick={handleSubmit}
@@ -295,6 +340,17 @@ export function SourceInputPanel({
                   )}
                 </button>
               </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept=".txt,.md,.csv,.json,.html,.xml,.log,.pdf"
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files) handleFiles(e.target.files);
+                  e.target.value = "";
+                }}
+              />
               {feedback && (
                 <p className={cn(
                   "mt-1.5 text-[10px] font-medium",
@@ -304,7 +360,7 @@ export function SourceInputPanel({
                 </p>
               )}
               <p className="mt-1 text-[10px] text-fg-tertiary">
-                여러 URL을 줄 바꿈으로 구분하세요. PDF, 웹사이트, YouTube 링크 지원.
+                URL·텍스트를 입력하거나, 파일을 드래그 또는 📎로 첨부하세요.
               </p>
             </div>
           )}
