@@ -403,7 +403,7 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.24 + 코드 품질 개선 — cron/admin 라우트 구조화 (세션 264)
+- **프로토타입**: v6.24.1 — api.ideas 500 에러 수정 (세션 265)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 41개 마이그레이션 (0000~0040), 로컬 적용 완료
 

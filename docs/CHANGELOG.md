@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 265 (2026-02-27)
+**fix: api.ideas 500 에러 수정 — FormData/JSON 파싱 호환**:
+- ✅ `api.ideas.ts`: `parseBody()` 헬퍼 추가 — Content-Type 기반 JSON/FormData 자동 분기
+  - 원인: `IdeaCardGrid`의 `fetcher.Form`이 FormData(x-www-form-urlencoded)로 POST → action에서 `request.json()` 호출 시 SyntaxError → 500 → Remix ErrorBoundary 트리거
+  - `v3_fetcherPersist` future flag로 에러 상태가 컴포넌트 언마운트 후에도 유지됨
+- ✅ `api.ideas.ts` loader: try/catch 추가 — 미처리 예외 시 `json({ error, ideas: [] })` 반환으로 ErrorBoundary 트리거 방지
+- ✅ action 전체 메서드(POST/PATCH/DELETE)에서 `request.json()` → `parseBody()` 교체
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
+
 ### 세션 264 (2026-02-27)
 **코드 품질 개선 — cron/admin 라우트 구조화**:
 - ✅ `api.cron.agent-review.ts`: `runAgentReview(db, apiKey)` 추출 (maintenance.ts 패턴 적용)
