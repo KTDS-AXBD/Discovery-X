@@ -403,7 +403,7 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.22 + Service Layer 확장 — discoveries/$id 서브라우트 15개 (세션 261)
+- **프로토타입**: v6.23 + Service Layer 확장 — api/* 인라인 쿼리 제거 (세션 263)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 41개 마이그레이션 (0000~0040), 로컬 적용 완료
 
@@ -411,7 +411,7 @@ build/
 - **라우트**: 149개 (Cron 통합: 9개 — maintenance 신규, alerts/log-archive/memory-compact/projection-sync/pattern-extract 통합)
 - **테이블**: 92개 (+5: Archive 2, Token 1, Matrix 7, Worker 2, FTS 1, Proposals +2, Graph +1 — 기존 중복 제거 후)
 - **Agent 도구**: 50개 (+3 Matrix P2: query_matrix_heatmap/get_cell_signals/get_top_cells, schema: 9 도메인 파일)
-- **코드**: ~63,500줄 (397파일) — 세션 261 Service Layer 확장: discoveries/$id 서브라우트 15개 + query.ts +131줄 + entity.ts +296줄 + query-extra2.ts 신규
+- **코드**: ~63,420줄 (397파일) — 세션 263 Service Layer 확장: api/* 인라인 쿼리 제거 (+304/-384줄)
 - **테스트**: 1,340개 (90 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개

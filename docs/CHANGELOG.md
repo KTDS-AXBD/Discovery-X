@@ -3,6 +3,24 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 263 (2026-02-27)
+**Service Layer 확장 — api/* 인라인 쿼리 제거**:
+- ✅ `RadarService.findOrCreateDailyRun(tenantId)` 신규 — 오늘의 COMPLETED run 찾거나 생성
+- ✅ `RadarService.findOrCreateItemFromUrl(params)` 신규 — urlHash 중복체크 후 radarSource+radarItem 생성
+- ✅ `DiscoveryQueryService.getForExport(tenantId)` 신규 + `DiscoveryExportRow` 타입 — discoveries+users+experiments+evidence 배치 조회
+- ✅ `DiscoveryService.getForExport()` 파사드 위임 추가
+- ✅ `api.export.metrics.ts` 120줄 → 63줄: MetricsService.getOperationalMetrics() 재사용 (중복 계산 100% 제거)
+- ✅ `api.export.discoveries.ts` 210줄 → 65줄: DiscoveryService.getForExport() 사용 (배치 쿼리 캡슐화)
+- ✅ `api.similar-sources.ts`: RadarService.getItem() 교체 (인라인 radarItems 쿼리 2곳)
+- ✅ `api.similar-seeds.ts`: DiscoveryService.getById() 교체 (vectorize enrichment 루프)
+- ✅ `api.ideas.$id.sources.ts` POST: RadarService.findOrCreateDailyRun/ItemFromUrl 교체 (~50줄 중복 제거)
+- ✅ `api.ideas.seed.ts`: RadarService.findOrCreateDailyRun/ItemFromUrl 교체 (~60줄 중복 제거)
+- 검토 후 유지: cron 8개(복잡한 배치), conversations/agent.sessions(간단 CRUD) — 서비스 이전 효과 낮음
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
+- ✅ 11파일 변경 +304/-384줄 (순 -80줄)
+
 ### 세션 262 (2026-02-27)
 **프로덕션 D1 초기화 + CRON_SECRET 교체 (운영 실험 리셋)**:
 - ✅ 프로덕션 D1 데이터 초기화: 3,442행 삭제 (radar_items/runs, ideas/idea_sources, discoveries + 연관 12개 테이블, proposals 7개, conversations/messages, shared_signals, graphs 등)
