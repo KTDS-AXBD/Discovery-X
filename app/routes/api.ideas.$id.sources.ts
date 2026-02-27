@@ -1,9 +1,7 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { eq, and, gte } from "drizzle-orm";
 import { getDb } from "~/db";
-import { radarSources, radarItems, radarRuns } from "~/db/schema";
-import { IdeaService } from "~/lib/services";
+import { IdeaService, RadarService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 
 function detectSourceType(input: string): "web" | "youtube" | "text" {
@@ -94,78 +92,26 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
   }
 
   try {
-    // Find or create today's radar_run
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-
-    const existingRun = await db
-      .select({ id: radarRuns.id })
-      .from(radarRuns)
-      .where(
-        and(
-          eq(radarRuns.tenantId, ctx.tenantId),
-          eq(radarRuns.status, "COMPLETED"),
-          gte(radarRuns.startedAt, todayStart)
-        )
-      )
-      .limit(1);
-
-    let runId: string;
-    if (existingRun.length > 0) {
-      runId = existingRun[0].id;
-    } else {
-      runId = crypto.randomUUID();
-      await db.insert(radarRuns).values({
-        id: runId,
-        tenantId: ctx.tenantId,
-        status: "COMPLETED",
-        sourcesChecked: 0,
-        itemsCollected: 0,
-      });
-    }
-
+    const radarService = new RadarService(db);
+    const runId = await radarService.findOrCreateDailyRun(ctx.tenantId);
     const created: Array<{ id: string; title: string }> = [];
 
     for (const input of validInputs) {
       const type = detectSourceType(input);
       const title = deriveTitle(input, type);
       const urlHash = await hashString(input);
+      const url = type === "text" ? `text://${urlHash.slice(0, 12)}` : input;
 
-      // Check for duplicate radarItem
-      const existing = await db
-        .select({ id: radarItems.id })
-        .from(radarItems)
-        .where(eq(radarItems.urlHash, urlHash))
-        .limit(1);
-
-      let itemId: string;
-
-      if (existing.length > 0) {
-        itemId = existing[0].id;
-      } else {
-        const sourceId = crypto.randomUUID();
-        itemId = crypto.randomUUID();
-
-        await db.insert(radarSources).values({
-          id: sourceId,
-          name: title,
-          sourceType: type,
-          url: type === "text" ? `text://${urlHash.slice(0, 12)}` : input,
-          userId: ctx.user.id,
-          tenantId: ctx.tenantId,
-        });
-
-        await db.insert(radarItems).values({
-          id: itemId,
-          sourceId,
-          runId,
-          urlHash,
-          url: type === "text" ? `text://${urlHash.slice(0, 12)}` : input,
-          title,
-          status: "COLLECTED",
-          memo: type === "text" ? input : null,
-        });
-      }
+      const { itemId } = await radarService.findOrCreateItemFromUrl({
+        urlHash,
+        url,
+        title,
+        userId: ctx.user.id,
+        tenantId: ctx.tenantId,
+        runId,
+        type,
+        memo: type === "text" ? input : null,
+      });
 
       // Link to idea via service
       const linked = await service.linkSource(ideaId, itemId);

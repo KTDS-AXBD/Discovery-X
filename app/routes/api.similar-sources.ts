@@ -4,9 +4,8 @@
  */
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
-import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
-import { radarItems } from "~/db/schema";
+import { RadarService } from "~/lib/services";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { generateEmbedding, type EmbeddingEnv } from "~/lib/embeddings/embedding-service";
 
@@ -33,14 +32,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return json({ results: [], error: "itemId 필수" }, { status: 400 });
   }
 
-  // 기준 아이템 조회
-  const item = await db
-    .select()
-    .from(radarItems)
-    .where(eq(radarItems.id, itemId))
-    .limit(1);
+  const radarService = new RadarService(db);
+  const item = await radarService.getItem(itemId);
 
-  if (!item[0]) {
+  if (!item) {
     return json({ results: [] });
   }
 
@@ -49,7 +44,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Vectorize 기반 유사 검색 시도
   if (env.VECTORIZE_RADAR && env.OPENAI_API_KEY) {
     try {
-      const text = [item[0].titleKo || item[0].title, item[0].summaryKo || ""]
+      const text = [item.titleKo || item.title, item.summaryKo || ""]
         .filter(Boolean)
         .join(" ");
 
@@ -66,18 +61,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       // Enrich with full item data
       const enriched = [];
       for (const match of results) {
-        const ri = await db
-          .select()
-          .from(radarItems)
-          .where(eq(radarItems.id, match.id))
-          .limit(1);
-
-        if (ri[0]) {
+        const ri = await radarService.getItem(match.id);
+        if (ri) {
           enriched.push({
-            id: ri[0].id,
-            title: ri[0].titleKo || ri[0].title,
-            summaryKo: ri[0].summaryKo,
-            url: ri[0].url,
+            id: ri.id,
+            title: ri.titleKo || ri.title,
+            summaryKo: ri.summaryKo,
+            url: ri.url,
             score: Math.round(match.score * 100) / 100,
           });
         }

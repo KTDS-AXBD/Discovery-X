@@ -1,4 +1,4 @@
-import { eq, desc, and, or, isNull, sql } from "drizzle-orm";
+import { eq, desc, and, or, isNull, sql, gte } from "drizzle-orm";
 import type { DB } from "~/db";
 import {
   radarSources,
@@ -135,6 +135,93 @@ export class RadarService {
   }
 
   // ---------- Runs ----------
+
+  /**
+   * 오늘의 COMPLETED radar_run을 찾거나 새로 생성한다.
+   * 아이디어 소스 추가 / 샘플 데이터 시드 등에서 공통 사용.
+   */
+  async findOrCreateDailyRun(tenantId: string): Promise<string> {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const existing = await this.db
+      .select({ id: radarRuns.id })
+      .from(radarRuns)
+      .where(
+        and(
+          eq(radarRuns.tenantId, tenantId),
+          eq(radarRuns.status, "COMPLETED"),
+          gte(radarRuns.startedAt, todayStart),
+        ),
+      )
+      .limit(1);
+
+    if (existing.length > 0) return existing[0].id;
+
+    const runId = crypto.randomUUID();
+    await this.db.insert(radarRuns).values({
+      id: runId,
+      tenantId,
+      status: "COMPLETED",
+      sourcesChecked: 0,
+      itemsCollected: 0,
+    });
+    return runId;
+  }
+
+  /**
+   * urlHash 기준으로 radarItem을 찾거나 radarSource+radarItem을 새로 생성한다.
+   * 이미 존재하면 isNew=false로 기존 itemId를 반환한다.
+   */
+  async findOrCreateItemFromUrl(params: {
+    urlHash: string;
+    url: string;
+    title: string;
+    userId: string;
+    tenantId: string;
+    runId: string;
+    type?: "web" | "youtube" | "text";
+    titleKo?: string;
+    summaryKo?: string;
+    memo?: string | null;
+  }): Promise<{ itemId: string; isNew: boolean }> {
+    const existing = await this.db
+      .select({ id: radarItems.id })
+      .from(radarItems)
+      .where(eq(radarItems.urlHash, params.urlHash))
+      .limit(1);
+
+    if (existing.length > 0) {
+      return { itemId: existing[0].id, isNew: false };
+    }
+
+    const sourceId = crypto.randomUUID();
+    const itemId = crypto.randomUUID();
+
+    await this.db.insert(radarSources).values({
+      id: sourceId,
+      name: params.titleKo ?? params.title,
+      sourceType: params.type ?? "web",
+      url: params.url,
+      userId: params.userId,
+      tenantId: params.tenantId,
+    });
+
+    await this.db.insert(radarItems).values({
+      id: itemId,
+      sourceId,
+      runId: params.runId,
+      urlHash: params.urlHash,
+      url: params.url,
+      title: params.title,
+      titleKo: params.titleKo,
+      summaryKo: params.summaryKo,
+      status: "COLLECTED",
+      memo: params.memo ?? null,
+    });
+
+    return { itemId, isNew: true };
+  }
 
   /** 실행 이력 조회 */
   async listRuns(params: { limit?: number } = {}) {

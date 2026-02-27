@@ -20,6 +20,7 @@ import type {
   ActivityLogWithActor,
   WeeklyReviewItem,
   RecallQueueItem,
+  DiscoveryExportRow,
 } from "./types";
 
 export class DiscoveryQueryService {
@@ -473,5 +474,96 @@ export class DiscoveryQueryService {
       .limit(30);
 
     return { adapter, rules, evs, events };
+  }
+
+  /**
+   * CSV 내보내기용 enriched 목록 조회 (tenant-scoped)
+   * Discoveries + 관련 users/experiments/evidence를 배치 조회하여 반환한다.
+   */
+  async getForExport(tenantId: string): Promise<DiscoveryExportRow[]> {
+    const allDiscoveries = await this.db
+      .select()
+      .from(discoveries)
+      .where(tenantWhere(discoveries, tenantId));
+
+    if (allDiscoveries.length === 0) return [];
+
+    const discoveryIds = allDiscoveries.map((d) => d.id);
+    const userIds = [
+      ...new Set([
+        ...allDiscoveries.map((d) => d.ownerId).filter(Boolean),
+        ...allDiscoveries.map((d) => d.reviewerId).filter(Boolean),
+      ]),
+    ] as string[];
+
+    const [allUsers, allExperiments, allEvidence] = await Promise.all([
+      userIds.length > 0
+        ? this.db.select().from(users).where(inArray(users.id, userIds))
+        : Promise.resolve([]),
+      this.db.select().from(experiments).where(inArray(experiments.discoveryId, discoveryIds)),
+      this.db.select().from(evidence).where(inArray(evidence.discoveryId, discoveryIds)),
+    ]);
+
+    const userMap = new Map(allUsers.map((u) => [u.id, u]));
+
+    const expMap = new Map<string, typeof allExperiments>();
+    for (const exp of allExperiments) {
+      const arr = expMap.get(exp.discoveryId) ?? [];
+      arr.push(exp);
+      expMap.set(exp.discoveryId, arr);
+    }
+
+    const evidenceMap = new Map<string, typeof allEvidence>();
+    for (const ev of allEvidence) {
+      const arr = evidenceMap.get(ev.discoveryId) ?? [];
+      arr.push(ev);
+      evidenceMap.set(ev.discoveryId, arr);
+    }
+
+    return allDiscoveries.map((d) => {
+      const owner = d.ownerId ? userMap.get(d.ownerId) : null;
+      const reviewer = d.reviewerId ? userMap.get(d.reviewerId) : null;
+      const exps = expMap.get(d.id) ?? [];
+      const evs = evidenceMap.get(d.id) ?? [];
+
+      const strongEvidenceCount = evs.filter(
+        (e) => e.strength === "A" || e.strength === "B",
+      ).length;
+
+      const expSlots = Array.from({ length: 3 }, (_, i) => {
+        const exp = exps[i];
+        return {
+          hypothesis: exp?.hypothesis ?? "",
+          action: exp?.minimalAction ?? "",
+          deadline: exp?.deadline ? new Date(exp.deadline).toISOString() : "",
+          result: exp?.resultSummary ?? "",
+          completedAt: exp?.completedAt ? new Date(exp.completedAt).toISOString() : "",
+        };
+      });
+
+      return {
+        id: d.id,
+        title: d.title,
+        status: d.status,
+        sourceType: d.sourceType,
+        ownerName: owner?.name ?? "",
+        ownerEmail: owner?.email ?? "",
+        reviewerName: reviewer?.name ?? "",
+        experimentCount: exps.length,
+        evidenceCount: evs.length,
+        strongEvidenceCount,
+        createdAt: new Date(d.createdAt).toISOString(),
+        dueDate: d.dueDate ? new Date(d.dueDate).toISOString() : "",
+        decidedAt: d.decidedAt ? new Date(d.decidedAt).toISOString() : "",
+        decisionState: d.decisionState ?? "",
+        notNowTriggerType: d.notNowTriggerType ?? "",
+        revisitDate: d.revisitDate ? new Date(d.revisitDate).toISOString() : "",
+        deadEndFailurePattern: (d.deadEndFailurePattern as string[] | null)?.join("; ") ?? "",
+        seedSummary: d.seedSummary,
+        decisionRationale: d.decisionRationale ?? "",
+        expSlots,
+        evidenceSummary: evs.map((e) => `${e.type}/${e.strength}: ${e.content}`).join("; "),
+      };
+    });
   }
 }

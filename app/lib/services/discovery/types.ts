@@ -163,3 +163,37 @@ export interface RecallQueueItem extends Discovery {
   ownerName: string | undefined;
   daysSinceRevisit: number;
 }
+
+// ============================================================================
+// Export
+// ============================================================================
+
+export interface DiscoveryExportRow {
+  id: string;
+  title: string;
+  status: string;
+  sourceType: string;
+  ownerName: string;
+  ownerEmail: string;
+  reviewerName: string;
+  experimentCount: number;
+  evidenceCount: number;
+  strongEvidenceCount: number;
+  createdAt: string;
+  dueDate: string;
+  decidedAt: string;
+  decisionState: string;
+  notNowTriggerType: string;
+  revisitDate: string;
+  deadEndFailurePattern: string;
+  seedSummary: string | null;
+  decisionRationale: string;
+  expSlots: Array<{
+    hypothesis: string;
+    action: string;
+    deadline: string;
+    result: string;
+    completedAt: string;
+  }>;
+  evidenceSummary: string;
+}

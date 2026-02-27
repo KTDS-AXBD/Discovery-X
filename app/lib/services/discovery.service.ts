@@ -34,6 +34,7 @@ export type {
   ActivityLogWithActor,
   WeeklyReviewItem,
   RecallQueueItem,
+  DiscoveryExportRow,
 } from "./discovery/types";
 
 export class DiscoveryService {
@@ -76,6 +77,9 @@ export class DiscoveryService {
   listForRecallQueue = (
     ...args: Parameters<DiscoveryQueryService["listForRecallQueue"]>
   ) => this.query.listForRecallQueue(...args);
+  getForExport = (
+    ...args: Parameters<DiscoveryQueryService["getForExport"]>
+  ) => this.query.getForExport(...args);
 
   // --- Workflow delegates ---
   transition = (...args: Parameters<DiscoveryWorkflowService["transition"]>) =>

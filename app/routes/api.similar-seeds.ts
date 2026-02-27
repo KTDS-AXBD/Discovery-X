@@ -1,8 +1,7 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { discoveries } from "~/db/schema";
-import { eq } from "drizzle-orm";
+import { DiscoveryService } from "~/lib/services";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { findSimilarDiscoveries, type EmbeddingEnv } from "~/lib/embeddings/embedding-service";
 
@@ -42,24 +41,19 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       );
 
       if (semanticResults.length > 0) {
-        // Enrich with full discovery data
+        const service = new DiscoveryService(db);
         const results = [];
         for (const sr of semanticResults) {
-          const disc = await db
-            .select()
-            .from(discoveries)
-            .where(eq(discoveries.id, sr.id))
-            .limit(1);
-
-          if (disc.length > 0) {
+          const disc = await service.getById(sr.id);
+          if (disc) {
             results.push({
-              id: disc[0].id,
-              title: disc[0].title,
-              seedSummary: disc[0].seedSummary,
-              status: disc[0].status,
-              deadEndFailurePattern: disc[0].deadEndFailurePattern,
-              notNowTriggerType: disc[0].notNowTriggerType,
-              notNowTriggerCondition: disc[0].notNowTriggerCondition,
+              id: disc.id,
+              title: disc.title,
+              seedSummary: disc.seedSummary,
+              status: disc.status,
+              deadEndFailurePattern: disc.deadEndFailurePattern,
+              notNowTriggerType: disc.notNowTriggerType,
+              notNowTriggerCondition: disc.notNowTriggerCondition,
               score: sr.score,
             });
           }

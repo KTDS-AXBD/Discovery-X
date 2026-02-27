@@ -1,8 +1,7 @@
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { and, eq, gte } from "drizzle-orm";
 import { getDb } from "~/db";
-import { radarSources, radarItems, radarRuns } from "~/db/schema";
+import { RadarService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 
 /**
@@ -104,79 +103,28 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   try {
-    // Find or create today's radar_run
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-
-    const existingRun = await db
-      .select({ id: radarRuns.id })
-      .from(radarRuns)
-      .where(
-        and(
-          eq(radarRuns.tenantId, ctx.tenantId),
-          eq(radarRuns.status, "COMPLETED"),
-          gte(radarRuns.startedAt, todayStart)
-        )
-      )
-      .limit(1);
-
-    let runId: string;
-    if (existingRun.length > 0) {
-      runId = existingRun[0].id;
-    } else {
-      runId = crypto.randomUUID();
-      await db.insert(radarRuns).values({
-        id: runId,
-        tenantId: ctx.tenantId,
-        status: "COMPLETED",
-        sourcesChecked: SAMPLE_SOURCES.length,
-        itemsCollected: SAMPLE_SOURCES.length,
-      });
-    }
+    const radarService = new RadarService(db);
+    const runId = await radarService.findOrCreateDailyRun(ctx.tenantId);
 
     let created = 0;
     let skipped = 0;
 
     for (const src of SAMPLE_SOURCES) {
       const urlHash = await hashString(src.url);
-
-      // Skip duplicates
-      const existing = await db
-        .select({ id: radarItems.id })
-        .from(radarItems)
-        .where(eq(radarItems.urlHash, urlHash))
-        .limit(1);
-
-      if (existing.length > 0) {
-        skipped++;
-        continue;
-      }
-
-      const sourceId = crypto.randomUUID();
-      const itemId = crypto.randomUUID();
-
-      await db.insert(radarSources).values({
-        id: sourceId,
-        name: src.titleKo,
-        sourceType: src.type,
-        url: src.url,
-        userId: ctx.user.id,
-        tenantId: ctx.tenantId,
-      });
-
-      await db.insert(radarItems).values({
-        id: itemId,
-        sourceId,
-        runId,
+      const { isNew } = await radarService.findOrCreateItemFromUrl({
         urlHash,
         url: src.url,
         title: src.title,
+        userId: ctx.user.id,
+        tenantId: ctx.tenantId,
+        runId,
+        type: src.type,
         titleKo: src.titleKo,
         summaryKo: src.summaryKo,
-        status: "COLLECTED",
       });
 
-      created++;
+      if (isNew) created++;
+      else skipped++;
     }
 
     return json({ created, skipped, total: SAMPLE_SOURCES.length });

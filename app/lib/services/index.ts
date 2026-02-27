@@ -1,4 +1,5 @@
 export { DiscoveryService } from "./discovery.service";
+export type { DiscoveryExportRow } from "./discovery.service";
 export { DashboardService } from "./dashboard.service";
 export type { DashboardOverviewData, DashboardCollectionItem, DashboardDiscoveryItem, DashboardProposalItem } from "./dashboard.service";
 export { ProposalService } from "./proposal.service";
