@@ -3,6 +3,24 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 262 (2026-02-27)
+**프로덕션 D1 초기화 + CRON_SECRET 교체 (운영 실험 리셋)**:
+- ✅ 프로덕션 D1 데이터 초기화: 3,442행 삭제 (radar_items/runs, ideas/idea_sources, discoveries + 연관 12개 테이블, proposals 7개, conversations/messages, shared_signals, graphs 등)
+- ✅ 유지 데이터: users(14명), radar_sources(30개), method_packs, stages, ontology_types, matrix config 등 공통 설정
+- ✅ Radar 재수집: radar-worker 수동 트리거 → 30개 소스에서 219개 아이템 수집 (126.8초)
+- ✅ CRON_SECRET 점검: cron-job.org 13개 Job 전수 확인 (query-param 6개 + Bearer 헤더 7개)
+- ✅ CRON_SECRET 교체: `demian00!` → `xcsuDJMX1LSTpGR8nMih9_hOv8OZf7MhogvyWTv4oj8`
+  - CF Pages API PATCH → Pages 재배포 (15b01a1e, build→deploy 60초) → 구 시크릿 401 확인
+  - radar-worker CF API PUT → 즉시 반영
+  - cron-job.org 13개 Job 전체 업데이트 (Python urllib batch)
+- ✅ `scripts/reset-prod-data.sql` 추가 (PRAGMA foreign_keys = OFF 포함, 향후 재사용용)
+
+**검증 결과**:
+- ✅ 새 CRON_SECRET: daily/embeddings/signal-route 모두 200 OK
+- ✅ 구 CRON_SECRET: daily/signal-route 모두 401 Unauthorized
+- ✅ typecheck/lint: 코드 변경 없음 (SQL 스크립트만 추가)
+- ⚠️ GitHub Secrets CRON_SECRET 수동 업데이트 필요 (deploy.yml 직접 참조 없음, 일관성용)
+
 ### 세션 261 (2026-02-26)
 **Service Layer 확장 — discoveries/$id 서브라우트 15개 (Agent Teams 2-Worker)**:
 - ✅ W1 (소형 7개): patterns/complete-experiment/graph/compliance/request-extension/add-experiment 인라인 쿼리 제거

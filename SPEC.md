@@ -420,8 +420,8 @@ build/
 - **Feature Flag**: 9개 — **9/9 true** (agentDO 활성화 완료)
 - **@theme inline**: 104 토큰 등록, var() 1,752→122 (93.0% 감소, 163 파일)
 - **@axis-ds 컴포넌트**: 15/28 활용 (Button/Badge/Card/Input/Alert/Dialog/Table/Textarea/Select/SelectItem/SelectTrigger/Label/Skeleton/Separator/Progress)
-- **배포**: 세션 261 미배포 (3 commits ahead) — 세션 260 Service Layer 확장 포함
-- **Cron 등록**: cron-job.org 13개 (maintenance×2 신규, lab×2 + vectorize×3 파라미터 방식, stale 13개 삭제)
+- **배포**: 세션 262 배포 완료 (CF Pages API 재배포, CRON_SECRET 교체 포함)
+- **Cron 등록**: cron-job.org 13개 (CRON_SECRET 전체 교체 완료 — 세션 262)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
 ### 세션 변경 이력
