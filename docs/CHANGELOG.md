@@ -3,6 +3,24 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 264 (2026-02-27)
+**코드 품질 개선 — cron/admin 라우트 구조화**:
+- ✅ `api.cron.agent-review.ts`: `runAgentReview(db, apiKey)` 추출 (maintenance.ts 패턴 적용)
+  - `MAX_REVIEWS_PER_RUN`, `REVIEW_TIMEOUT_MS`, `Discovery` 타입 파일 최상단으로 이동
+  - `action()` → 인증 + `return runAgentReview()` 18줄로 단축 (기존 158줄 전체 인라인)
+  - 4개 섹션 주석으로 로직 구조화 (autonomy check / collect candidates / sort+batch / run review)
+- ✅ `api.admin.token-usage.ts`: 3개 독립 helper 함수 추출 + `Promise.all` 병렬화
+  - `getDailySummary(db, range, mode)` — 일별 집계 쿼리
+  - `getTodayUsage(db)` — agentConfig 오늘 사용량
+  - `getRecentLogs(db, mode)` — 최근 50건 로그
+  - 순차 실행 3쿼리 → `Promise.all` 병렬화 (응답 시간 ~1/3 감소)
+  - `loader()` → 12줄로 단축
+- **평가 대상 12개 파일** 전수 검토 후 실제 조치 2개만 진행:
+  - 유지 파일: daily/maintenance/weekly-summary/embeddings/matrix-scoring/vectorize/lab (이미 잘 구조화), conversations.$id.messages/agent.sessions/token-budget (단순 CRUD 또는 기존 매니저 사용)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / build 미실행 (코드 구조 변경만, 로직 동일)
+
 ### 세션 263 (2026-02-27)
 **Service Layer 확장 — api/* 인라인 쿼리 제거**:
 - ✅ `RadarService.findOrCreateDailyRun(tenantId)` 신규 — 오늘의 COMPLETED run 찾거나 생성
