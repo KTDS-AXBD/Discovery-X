@@ -118,6 +118,7 @@ const FF_LABELS: Record<keyof FeatureFlags, string> = {
   pipelineBridge: "Pipeline Bridge",
   collabWorker: "Collab Worker",
   profileLearner: "Profile Learner",
+  simplifiedNav: "Simplified Nav",
 };
 
 /** 타임스탬프 → 읽기 쉬운 형태 (hydration-safe) */

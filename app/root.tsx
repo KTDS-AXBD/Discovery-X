@@ -10,6 +10,7 @@ import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { discoveries, alerts, conversations, tenants, tenantMembers } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
+import { getFeatureFlags } from "~/lib/feature-flags";
 import { eq, and, desc, inArray, sql } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { ACTIVE_STATUSES } from "~/lib/constants/status";
@@ -27,8 +28,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     const secret = getSessionSecret(context.cloudflare.env);
     const ctx = await getSessionContext(request, db, secret);
 
+    const env = context.cloudflare.env as unknown as Record<string, string | undefined>;
+    const flags = getFeatureFlags(env);
+
     if (!ctx) {
-      return json({ notifications: null, conversations: [], tenant: null, tenantList: [] });
+      return json({ notifications: null, conversations: [], tenant: null, tenantList: [], simplifiedNav: flags.simplifiedNav });
     }
     const user = ctx.user;
 
@@ -108,6 +112,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       conversations: sanitizedConvs,
       tenant: currentTenant ? { id: currentTenant.id, name: currentTenant.name, slug: currentTenant.slug } : null,
       tenantList: userMemberships.map((m) => ({ id: m.tenantId, name: m.tenantName, slug: m.tenantSlug })),
+      simplifiedNav: flags.simplifiedNav,
     });
   } catch {
     return json({ notifications: null, conversations: [], tenant: null, tenantList: [] });

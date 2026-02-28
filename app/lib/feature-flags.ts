@@ -14,6 +14,7 @@ export interface FeatureFlags {
   pipelineBridge: boolean;
   collabWorker: boolean;
   profileLearner: boolean;
+  simplifiedNav: boolean;
 }
 
 /**
@@ -32,6 +33,7 @@ export function getFeatureFlags(env: Record<string, string | undefined>): Featur
     pipelineBridge: env.FF_PIPELINE_BRIDGE === "true",
     collabWorker: env.FF_COLLAB_WORKER === "true",
     profileLearner: env.FF_PROFILE_LEARNER === "true",
+    simplifiedNav: env.FF_SIMPLIFIED_NAV === "true",
   };
 }
 

@@ -1,12 +1,15 @@
 // DashboardService — /dashboard 오버뷰 통합 데이터
-import { eq, sql, desc, and, inArray } from "drizzle-orm";
+import { eq, sql, desc, and, inArray, asc } from "drizzle-orm";
 import type { DB } from "~/db";
 import {
   discoveries,
+  experiments,
+  evidence,
   radarItems,
   radarItemUserStatus,
   radarSources,
   industryAdapters,
+  DiscoveryStatus,
 } from "~/db/schema";
 import { proposals } from "~/features/proposals/db/schema";
 import { tenantWhere } from "~/lib/query/tenant-scope";
@@ -64,6 +67,17 @@ export interface DashboardOverviewData {
   serverNow: number;
 }
 
+export interface OnboardingState {
+  step: 0 | 1 | 2 | 3 | 4;
+  firstDiscoveryId: string | null;
+  firstDiscoveryStatus: string | null;
+  hasExperiment: boolean;
+  hasEvidence: boolean;
+  hasClosed: boolean;
+}
+
+const CLOSED_STATUSES = [DiscoveryStatus.HOLD, DiscoveryStatus.DROP, DiscoveryStatus.HANDOFF];
+
 const META_RE = /^(댓글\s*\d+개|댓글\s*없음|\d+\s*(comments?|points?|개))$/i;
 
 // ============================================================================
@@ -72,6 +86,56 @@ const META_RE = /^(댓글\s*\d+개|댓글\s*없음|\d+\s*(comments?|points?|개)
 
 export class DashboardService {
   constructor(private db: DB) {}
+
+  async getOnboardingState(tenantId: string): Promise<OnboardingState> {
+    // 인간 생성 Discovery만 (createdByAgent = 0)
+    const humanDiscoveries = await this.db
+      .select({
+        id: discoveries.id,
+        status: discoveries.status,
+      })
+      .from(discoveries)
+      .where(
+        and(
+          eq(discoveries.tenantId, tenantId),
+          eq(discoveries.createdByAgent, 0),
+        ),
+      )
+      .orderBy(asc(discoveries.createdAt))
+      .limit(10);
+
+    if (humanDiscoveries.length === 0) {
+      return { step: 0, firstDiscoveryId: null, firstDiscoveryStatus: null, hasExperiment: false, hasEvidence: false, hasClosed: false };
+    }
+
+    const first = humanDiscoveries[0];
+    const hasClosed = humanDiscoveries.some((d) => (CLOSED_STATUSES as string[]).includes(d.status));
+
+    if (hasClosed) {
+      return { step: 4, firstDiscoveryId: first.id, firstDiscoveryStatus: first.status, hasExperiment: true, hasEvidence: true, hasClosed: true };
+    }
+
+    // 첫 인간 Discovery의 실험/근거 확인
+    const [expResult, evResult] = await Promise.all([
+      this.db
+        .select({ count: sql<number>`count(*)` })
+        .from(experiments)
+        .where(eq(experiments.discoveryId, first.id)),
+      this.db
+        .select({ count: sql<number>`count(*)` })
+        .from(evidence)
+        .where(eq(evidence.discoveryId, first.id)),
+    ]);
+
+    const hasExperiment = (expResult[0]?.count ?? 0) > 0;
+    const hasEvidence = (evResult[0]?.count ?? 0) > 0;
+
+    let step: 0 | 1 | 2 | 3 | 4 = 1;
+    if (hasEvidence) step = 3;
+    else if (hasExperiment) step = 2;
+
+    return { step, firstDiscoveryId: first.id, firstDiscoveryStatus: first.status, hasExperiment, hasEvidence, hasClosed: false };
+  }
 
   async getOverviewData(params: {
     tenantId: string;
