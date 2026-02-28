@@ -3,6 +3,16 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 273 (2026-02-28)
+**feat: 온보딩 결정 폼 Reviewer 인라인 선택 추가**:
+- ✅ 결정 폼 3개(NOT NOW/NEXT/DEAD END)에 Reviewer 미지정 시 인라인 Select 필드 추가
+  - loader에 `allUsers` 추가, action에서 `changeReviewer()` 선행 호출, UI 조건부 배너+Select
+- ✅ `changeReviewer()` 상태 체크 DISCOVERY/IDEA_CARD → ACTIVE_STATUSES 확장
+- ✅ OnboardingGuide Step 3 desc에 "결정 전 Reviewer를 지정하세요" 힌트 추가
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,364/1,364 PASS / build 미실행
+
 ### 세션 272 (2026-02-28)
 **test: 온보딩 Step 전 구간 프로덕션 검증 + 테스트 24개 추가**:
 - ✅ 프로덕션 브라우저 검증: Step 0→1→2→3→4 전 구간 정상 작동 확인
