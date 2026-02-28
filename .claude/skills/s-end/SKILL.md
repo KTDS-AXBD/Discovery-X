@@ -52,21 +52,24 @@ SPEC.md를 읽고 §5 Current Status의 **숫자/지표만** 업데이트:
 
 **세션 히스토리는 SPEC.md에 추가하지 않는다** — Phase 4에서 CHANGELOG.md에 추가.
 
-### Phase 3: MEMORY.md 작업 컨텍스트 갱신
+### Phase 3: Auto Memory 갱신
 
-Auto Memory의 MEMORY.md를 업데이트:
+Auto Memory 디렉토리의 파일들을 업데이트:
 
-1. **현재 작업 컨텍스트** 섹션:
-   - 버전/테스트/빌드 상태 최신화
-   - "마지막 세션" → 이번 세션 내용으로 갱신
-   - "다음 작업" → 사용자가 언급한 다음 할 일 또는 "(세션 시작 시 사용자 지정)"
-
-2. **최근 세션 요약** 섹션 (sliding window):
+#### 3a. MEMORY.md (인덱스) 업데이트
+1. **현재 버전 & 상태**: 버전/테스트/빌드 상태 최신화
+2. **최근 세션 요약** (sliding window):
    - 이번 세션을 **맨 위에** 1줄 요약으로 추가
-   - 5개를 초과하면 **가장 오래된 것 제거**
-   - 형식: `- **NNN**: [1줄 요약]`
+   - 3개를 초과하면 **가장 오래된 것 제거**
+   - 형식: `- **세션 NNN** (YYYY-MM-DD): [1줄 요약]`
+3. **주요 지표**: 변경된 숫자만 업데이트
+4. **다음 작업**: 사용자가 언급한 다음 할 일 또는 "(세션 시작 시 사용자 지정)"
 
-3. **활성 결정사항**: 새 결정이 있으면 추가/수정
+#### 3b. 토픽 파일 업데이트 (해당 시에만)
+- **`service-layer.md`**: Service 메서드 추가/변경 시
+- **`operations.md`**: Cron, 시크릿, 배포, 인프라 변경 시
+- **`decisions.md`**: 새 아키텍처/운영 결정이 있을 때
+- 새 토픽이 필요하면 파일 생성 + MEMORY.md 인덱스 테이블에 추가
 
 ### Phase 4: docs/CHANGELOG.md 세션 기록 추가
 
@@ -121,6 +124,7 @@ MEMORY.md는 Git 추적 대상이 아님 (auto memory 디렉토리).
 ## 주의사항
 
 - SPEC.md에 세션 히스토리를 추가하지 않음 (CHANGELOG.md에만)
-- MEMORY.md 200줄 제한 — 초과 시 topic files로 분산
+- MEMORY.md는 간결한 인덱스 유지 (~50줄 이내) — 상세 내용은 토픽 파일로 분산
+- 토픽 파일 구조: `service-layer.md`, `operations.md`, `decisions.md` (필요 시 추가 생성)
 - CHANGELOG.md는 최신이 파일 상단에 오도록 prepend
 - `$ARGUMENTS` 추가 메모가 있으면 MEMORY.md "다음 작업"에 반영
