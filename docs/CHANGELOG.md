@@ -3,6 +3,21 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 275 (2026-02-28)
+**ops: 운영 지표 확인 + Agent Discovery NOT NOW 결정 + cron-job.org ai-pipeline 등록**:
+- ✅ 프로덕션 /metrics 운영 지표 확인 (Day 28):
+  - P0 성공 기준 달성: 닫힌 Discovery 1건 (NOT_NOW)
+  - Experiment 완료율 0% (3개 등록, 0 완료), Recall 이벤트 0건 — 미달
+  - Agent 소유 Discovery 2건 확인 (오늘 AI 파이프라인 자동 생성)
+- ✅ Agent Discovery 2건 NOT NOW 결정 제출:
+  - "AI 기반 조직 최적화 컨설팅 플랫폼" — Reviewer 김탐험 (Customer_Behavior, Revisit 2026-05-28)
+  - "기업용 AI 비서 에이전트 통합 플랫폼" — Reviewer 김탐험 (Internal_Capability, Revisit 2026-05-28)
+  - 두 건 모두 Reviewer 승인 대기 중
+- ✅ cron-job.org ai-pipeline 등록 완료 (POST, 매일 09:30 KST, 14번째 cron)
+
+**검증 결과**:
+- ✅ 코드 변경 없음 (프로덕션 브라우저 운영 작업만 수행)
+
 ### 세션 274 (2026-02-28)
 **deploy+verify: 결정 폼 Reviewer 인라인 선택 배포 + 프로덕션 검증**:
 - ✅ 세션 273 코드 프로덕션 배포 (GitHub Actions CI/CD, 2분 9초)
