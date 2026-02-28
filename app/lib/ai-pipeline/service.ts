@@ -24,6 +24,12 @@ import {
 } from "./prompts";
 
 const SYSTEM_AGENT_ID = "system-agent";
+
+/** Claude 응답에서 JSON을 추출 (마크다운 코드블록 래퍼 제거) */
+function extractJSON(text: string): string {
+  const match = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  return match ? match[1].trim() : text.trim();
+}
 const MAX_ITEMS_PER_RUN = 10;
 const MAX_IDEAS_PER_RUN = 3;
 const MAX_DISCOVERIES_PER_RUN = 2;
@@ -274,7 +280,7 @@ export class AIPipelineService {
         .map((b) => b.text || "")
         .join("");
 
-      const parsed = JSON.parse(text) as ClusterResult;
+      const parsed = JSON.parse(extractJSON(text)) as ClusterResult;
       return parsed.clusters;
     } catch {
       return null;
@@ -315,7 +321,7 @@ export class AIPipelineService {
         .map((b) => b.text || "")
         .join("");
 
-      return JSON.parse(text) as IdeaResult;
+      return JSON.parse(extractJSON(text)) as IdeaResult;
     } catch {
       return null;
     }
@@ -353,7 +359,7 @@ export class AIPipelineService {
         .map((b) => b.text || "")
         .join("");
 
-      return JSON.parse(text) as EvaluationResult;
+      return JSON.parse(extractJSON(text)) as EvaluationResult;
     } catch {
       return null;
     }
