@@ -3,6 +3,25 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 267 (2026-02-28)
+**feat: F27 AI 동료 자동 파이프라인 + 인간 워크플로우 개선**:
+- ✅ `drizzle/0041_ai_pipeline.sql`: ai_pipeline_runs 테이블 + radar_items.ai_processed_at + discoveries.source_idea_id + ideas.created_by_agent
+- ✅ `app/db/schema.ts`: radarItems/discoveries 컬럼 추가 + aiPipelineRuns 테이블 정의
+- ✅ `app/features/ideas/db/schema.ts`: ideas.createdByAgent 필드
+- ✅ `app/lib/ai-pipeline/prompts.ts`: Claude 프롬프트 3종 (클러스터링/아이디어 생성/Discovery 평가)
+- ✅ `app/lib/ai-pipeline/service.ts`: AIPipelineService — Radar→Ideas→Discovery 자동 파이프라인
+- ✅ `app/routes/api.cron.ai-pipeline.ts`: Cron 라우트 (09:30 KST, CRON_SECRET 인증)
+- ✅ `app/routes/api.ideas.$id.create-discovery.ts`: Ideas→Discovery 수동 전환 API
+- ✅ `app/routes/ideas.$id.tsx`: "Discovery 전환" 버튼 + CreateDiscoveryModal
+- ✅ `app/routes/discoveries.$id.tsx`: AI 배지 + "인수하기" CTA
+- ✅ `app/routes/discoveries._index.tsx`: AI 배지 (목록)
+- ✅ `app/components/ideas/IdeaCardGrid.tsx`: AI 배지 (아이디어 카드)
+- ✅ 서비스 확장: CreateDiscoveryInput (sourceIdeaId, createdByAgent) + IdeaService.createFromAgent()
+- ✅ 프로덕션 배포 + DB 마이그레이션 완료
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,340/1,340 PASS / build 성공
+
 ### 세션 266 (2026-02-27)
 **fix: SourceInputPanel 파일 Drag & Drop + 업로드 기능 구현**:
 - ✅ `SourceInputPanel.tsx`: `handleDrop`에 `e.dataTransfer.files` 처리 추가

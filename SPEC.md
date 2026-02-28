@@ -418,15 +418,15 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.24.2 — SourceInputPanel 파일 D&D/업로드 구현 (세션 266)
+- **프로토타입**: v6.25.0 — F27 AI 동료 파이프라인 + 인간 워크플로우 (세션 267)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 41개 마이그레이션 (0000~0040), 로컬 적용 완료
+- **DB**: 42개 마이그레이션 (0000~0041), 로컬+프로덕션 적용 완료
 
 ### 주요 지표
-- **라우트**: 149개 (Cron 통합: 9개 — maintenance 신규, alerts/log-archive/memory-compact/projection-sync/pattern-extract 통합)
-- **테이블**: 92개 (+5: Archive 2, Token 1, Matrix 7, Worker 2, FTS 1, Proposals +2, Graph +1 — 기존 중복 제거 후)
+- **라우트**: 151개 (Cron 10개: +ai-pipeline, API +1: ideas.$id.create-discovery)
+- **테이블**: 93개 (+1: ai_pipeline_runs)
 - **Agent 도구**: 50개 (+3 Matrix P2: query_matrix_heatmap/get_cell_signals/get_top_cells, schema: 9 도메인 파일)
-- **코드**: ~63,410줄 (397파일) — 세션 264 코드 품질 개선: cron/admin 구조화 (+100/-111줄)
+- **코드**: ~64,315줄 (399파일) — 세션 267 F27 구현 (+890줄)
 - **테스트**: 1,340개 (90 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
@@ -435,8 +435,8 @@ build/
 - **Feature Flag**: 9개 — **9/9 true** (agentDO 활성화 완료)
 - **@theme inline**: 104 토큰 등록, var() 1,752→122 (93.0% 감소, 163 파일)
 - **@axis-ds 컴포넌트**: 15/28 활용 (Button/Badge/Card/Input/Alert/Dialog/Table/Textarea/Select/SelectItem/SelectTrigger/Label/Skeleton/Separator/Progress)
-- **배포**: 세션 266 배포 완료 (SourceInputPanel 파일 D&D/업로드)
-- **Cron 등록**: cron-job.org 13개 (CRON_SECRET 전체 교체 완료 — 세션 262)
+- **배포**: 세션 267 배포 완료 (F27 AI 파이프라인 + 인간 워크플로우)
+- **Cron 등록**: cron-job.org 13개 + ai-pipeline 등록 필요 (09:30 KST)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
 ### 세션 변경 이력
@@ -450,7 +450,7 @@ build/
 - **배포**: Cloudflare Pages (master push → GitHub Actions CI/CD 자동 배포) — Secrets 설정 완료 ✅
 - **운영 실험**: 🚀 2026-01-31 시작 (30-60일, 최대 5명, Discovery 5-10건 목표)
 - **DB 마이그레이션**: ✅ 28개 (0000~0027) 로컬+프로덕션 적용 완료
-- **Cron 설정**: 9개 라우트 (daily/agent-review/embeddings/weekly-summary/signal-route/matrix-scoring/maintenance/vectorize/lab) + cron-job.org 13개 등록
+- **Cron 설정**: 10개 라우트 (daily/agent-review/embeddings/weekly-summary/signal-route/matrix-scoring/maintenance/vectorize/lab/ai-pipeline) + cron-job.org 14개 등록 예정
 - **Radar Worker**: 프로덕션 운영 중 (Cron 매일 9:00 KST, 10소스)
 - **이메일**: Resend (`noreply@ideaonaction.ai`), cron-job.org 자동 발송
 
