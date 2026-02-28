@@ -3,6 +3,21 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 269 (2026-02-28)
+**feat: PIVOT 핵심 루프 + 온보딩 플로우 — 사용자 참여 부재 대응**:
+- ✅ `app/lib/feature-flags.ts`: `simplifiedNav` 피처 플래그 추가 (10번째 FF)
+- ✅ `wrangler.toml`: `FF_SIMPLIFIED_NAV = "true"` 설정
+- ✅ `app/root.tsx`: loader에서 `simplifiedNav` 플래그 전달
+- ✅ `app/components/layout/TopNav.tsx`: simplifiedNav 시 GNB 5탭→2탭 (대시보드+아이디어)
+- ✅ `app/lib/services/dashboard.service.ts`: `getOnboardingState()` — 인간 Discovery 기반 4단계 상태 머신 (DB 마이그레이션 없음)
+- ✅ `app/components/dashboard/OnboardingGuide.tsx`: 4단계 가이드 (관찰→실험→근거→결정) + Step 4 축하 배너
+- ✅ `app/routes/dashboard._index.tsx`: 온보딩 상태 조건부 렌더링 (step<4: 가이드+칸반, step 4: 전체 대시보드)
+- ✅ `app/routes/admin.monitoring.tsx`: FF_LABELS에 `simplifiedNav` 추가
+- ✅ `tests/unit/api/health.test.ts`: Feature Flag 개수 9→10 업데이트
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,340/1,340 PASS / build 성공
+
 ### 세션 268 (2026-02-28)
 **fix: AI 파이프라인 E2E 검증 + 버그 수정 3건**:
 - ✅ `app/lib/ai-pipeline/service.ts`: `extractJSON()` 헬퍼 추가 — Claude 응답 마크다운 코드블록 래퍼 제거

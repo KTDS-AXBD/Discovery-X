@@ -418,7 +418,7 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.25.1 — AI 파이프라인 E2E 검증 + 3건 버그 수정 (세션 268)
+- **프로토타입**: v6.26.0 — PIVOT 핵심 루프 + 온보딩 플로우 (세션 269)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 42개 마이그레이션 (0000~0041), 로컬+프로덕션 적용 완료
 
@@ -426,16 +426,16 @@ build/
 - **라우트**: 151개 (Cron 10개: +ai-pipeline, API +1: ideas.$id.create-discovery)
 - **테이블**: 93개 (+1: ai_pipeline_runs)
 - **Agent 도구**: 50개 (+3 Matrix P2: query_matrix_heatmap/get_cell_signals/get_top_cells, schema: 9 도메인 파일)
-- **코드**: ~64,315줄 (399파일) — 세션 267 F27 구현 (+890줄)
+- **코드**: ~64,564줄 (402파일) — 세션 269 PIVOT (+249줄)
 - **테스트**: 1,340개 (90 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **부하 테스트**: Artillery v2.0.30 — 4개 시나리오 (health, api-crud, chat-stream, spike)
-- **Feature Flag**: 9개 — **9/9 true** (agentDO 활성화 완료)
+- **Feature Flag**: 10개 — **10/10 true** (+simplifiedNav 온보딩 모드)
 - **@theme inline**: 104 토큰 등록, var() 1,752→122 (93.0% 감소, 163 파일)
 - **@axis-ds 컴포넌트**: 15/28 활용 (Button/Badge/Card/Input/Alert/Dialog/Table/Textarea/Select/SelectItem/SelectTrigger/Label/Skeleton/Separator/Progress)
-- **배포**: 세션 268 배포 완료 (AI 파이프라인 버그 수정 3건 + E2E 검증 성공)
+- **배포**: 세션 269 미배포 (배포 필요: `/deploy`)
 - **Cron 등록**: cron-job.org 13개 + ai-pipeline 수동 등록 필요 (09:30 KST)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
