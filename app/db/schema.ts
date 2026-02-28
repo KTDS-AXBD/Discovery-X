@@ -241,6 +241,9 @@ export const discoveries = sqliteTable(
     // Multi-Tenant (Phase 3)
     tenantId: text("tenant_id").references(() => tenants.id),
 
+    // F27: Discovery ← Idea 역추적
+    sourceIdeaId: text("source_idea_id"),
+
     // BD팀 PoC: 아이디어 템플릿 + 후보 그룹 (FR-07, FR-09)
     targetSegment: text("target_segment", { length: 200 }),
     valueProposition: text("value_proposition", { length: 400 }),
@@ -417,6 +420,9 @@ export const radarItems = sqliteTable(
 
     // F20: 아이디어 메모
     memo: text("memo"),
+
+    // F27: AI 파이프라인 처리 추적
+    aiProcessedAt: integer("ai_processed_at", { mode: "timestamp" }),
   },
   (table) => ({
     sourceIdIdx: index("idx_radar_items_source_id").on(table.sourceId),
@@ -473,6 +479,32 @@ export const radarRuns = sqliteTable(
     startedAtIdx: index("idx_radar_runs_started_at").on(table.startedAt),
   })
 );
+
+// ============================================================================
+// AI PIPELINE TABLES (F27)
+// ============================================================================
+
+export const AIPipelineRunStatus = {
+  RUNNING: "RUNNING",
+  COMPLETED: "COMPLETED",
+  FAILED: "FAILED",
+} as const;
+
+export const aiPipelineRuns = sqliteTable("ai_pipeline_runs", {
+  id: text("id").primaryKey(),
+  tenantId: text("tenant_id").references(() => tenants.id),
+  startedAt: integer("started_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  completedAt: integer("completed_at", { mode: "timestamp" }),
+  status: text("status").notNull().default(AIPipelineRunStatus.RUNNING),
+  radarItemsProcessed: integer("radar_items_processed").default(0),
+  ideasCreated: integer("ideas_created").default(0),
+  discoveriesCreated: integer("discoveries_created").default(0),
+  errors: text("errors"),
+  tokenUsageInput: integer("token_usage_input").default(0),
+  tokenUsageOutput: integer("token_usage_output").default(0),
+});
 
 // ============================================================================
 // AGENT TABLES

@@ -28,6 +28,7 @@ export class IdeaService {
         ownerId: ideas.ownerId,
         analysisData: ideas.analysisData,
         createdAt: ideas.createdAt,
+        createdByAgent: ideas.createdByAgent,
       })
       .from(ideas)
       .where(eq(ideas.tenantId, tenantId))
@@ -51,6 +52,23 @@ export class IdeaService {
   ): Promise<string> {
     const id = crypto.randomUUID();
     await this.db.insert(ideas).values({ id, tenantId, ownerId, title });
+    return id;
+  }
+
+  /** AI 에이전트에 의한 아이디어 생성 (createdByAgent=1) */
+  async createFromAgent(
+    tenantId: string,
+    ownerId: string,
+    title: string,
+  ): Promise<string> {
+    const id = crypto.randomUUID();
+    await this.db.insert(ideas).values({
+      id,
+      tenantId,
+      ownerId,
+      title,
+      createdByAgent: 1,
+    });
     return id;
   }
 

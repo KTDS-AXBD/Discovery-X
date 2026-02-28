@@ -43,6 +43,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
   - 통계 섹션 (v6.4): 4개 핵심 지표 (소스 수집/발굴 건수/활성 파이프라인/사업 제안) — 실 DB 데이터
 - 아이디어 워크스페이스: ideas 테이블 + 멀티소스 그룹핑 + 전용 헤더 레이아웃 + 12종 방법론 카드 + 사업 제안 모달 + 소스 상세/삭제 + 분석 시작 플로우 + NotebookLM 스타일 멀티소스 선택 + 선택 기반 분석/채팅 + 좌우 패널 리사이즈/토글 + 제목 인라인 편집 + AI 제목 추천 + 방법론 카드 마크다운 렌더링 + SSE 전용 분석 API (chat agent 루프 우회, 카테고리별 직접 Claude 호출) + 분석 진행률 UI + 소스 Drag & Drop 추가/제거 + 분석 sourceIds 추적 및 stale 감지 + 아이디어→사업제안 생성 플로우 (분석 데이터 매핑, 12 카테고리→10 섹션) (v6.2→v6.14)
 - 토큰 사용량 모니터링 (관리자): token_usage_logs 테이블 + 일별 사용량 차트 (모드별 스택 바) + 최근 로그 테이블 + 관리자 API (v6.12)
+- AI 동료 파이프라인 + 인간 워크플로우 개선 (v6.25): Radar→Ideas→Discovery 자동 파이프라인 (system-agent, HYPOTHESIS까지) + Ideas→Discovery 수동 전환 + AI Discovery 인수(claim) 플로우 + ai_pipeline_runs 테이블
 - Architecture Upgrade (v3 PRD): Graph-First + Topic-Scoped + Durable Agent 기반
   - Graph Layer: JSON-LD 정본 + GraphQueryEngine + Projection (v3 P0-P1)
   - Durable Agent Runtime: AgentSession DO + SSE + Memory Lifecycle (v3 P1)
@@ -140,6 +141,19 @@ Flow I: BD 워크스페이스 (v4.2)
   → 아이디어 후보 자동 생성 (최대 3개)
   → 1개 선택 → 아이디어 템플릿 자동 채움 (가설/근거/타겟/가치 제안)
   → 수동 편집 → 팀 공유
+
+Flow J: AI 동료 파이프라인 (v6.25)
+  → Cron (09:30 KST, Radar 수집 직후) → 미처리 radar_items 로드 (최대 10개)
+  → Claude: 주제별 클러스터링 → 클러스터당 아이디어 생성 (createdByAgent=1)
+  → Claude: 아이디어 평가 (confidence ≥ 70) → Discovery 자동 생성
+  → DISCOVERY → IDEA_CARD (promote, 가설+실험) → HYPOTHESIS (transition)
+  → Owner: system-agent, sourceIdeaId 연결
+  → 인간 인수: AI Discovery 상세에서 "인수하기" → Owner 변경
+
+Flow K: Ideas → Discovery 수동 전환 (v6.25)
+  → 아이디어 상세에서 "Discovery로 전환" 클릭
+  → 가설/최소행동/기한/기대근거 입력 모달
+  → Discovery 생성 + IDEA_CARD 승격 (sourceIdeaId 연결)
 ```
 
 ### 디자인 시스템
@@ -332,12 +346,13 @@ root.tsx
 | 카테고리 | 테이블 수 | 테이블 |
 |---------|---------|--------|
 | Users & Auth | 4 | users, sessions, tenants, tenant_members |
-| Discovery Core | 6 | discoveries, experiments, evidence, event_logs, stages, signal_metadata |
+| Discovery Core | 6 | discoveries (+sourceIdeaId, +aiProcessedAt on radar_items), experiments, evidence, event_logs, stages, signal_metadata |
 | Ontology/Graph | 5 | ontology_types, context_nodes, context_edges, context_snapshots, evidence_duplicate_candidates |
 | v3 Graph Layer | 9 | graphs, graph_events, projections, topics, topic_members, shared_signals, agent_memory_v2, agent_sessions_v2, acl_audit_logs |
 | Methods & Gates | 4 | method_packs, method_runs, gate_packages, assumptions |
 | Venture Sprint | 16 | vd_sprints, vd_sprint_scopes, vd_signals, vd_problems, vd_themes, vd_opportunities, vd_evidences, vd_assumptions, vd_premortems, vd_artifacts, vd_decisions, vd_votes, vd_scores, vd_work_events, vd_analytics_snapshots, vd_task_queue |
-| Ideas | 2 | ideas, idea_sources |
+| Ideas | 2 | ideas (+createdByAgent), idea_sources |
+| AI Pipeline | 1 | ai_pipeline_runs |
 | Radar | 4 | radar_sources, radar_runs, radar_items, radar_item_user_status |
 | Chat & Agent | 3 | conversations, messages, agent_config |
 | Indicators & Alerts | 6 | discovery_kpis, kpi_measurements, discovery_links, webhook_configs, alert_rules, alerts |
@@ -352,7 +367,7 @@ root.tsx
 | Matrix | 7 | industries, functions, matrix_cells, individual_scores, consensus_scores, cell_topic_map, scoring_config |
 | Worker/Infra | 2 | notification_queue, cron_logs |
 | FTS | 1 | discoveries_fts |
-| **합계** | **92** | |
+| **합계** | **93** | |
 
 ### Agent 시스템 (52개 도구)
 
@@ -517,4 +532,5 @@ build/
 | F24 | 온톨로지 인텔리전스 Phase 1+2 (LLM 엔티티 추출 + 글로벌 매칭 + 관계 분석 엔진 + UI) | v5.3 | ✅ | 16 |
 | F25 | 온톨로지 인텔리전스 Phase 3 (BFS 영향 전파 + LLM 시나리오 + 스냅샷 비교 + 시뮬레이션 UI) | v5.3 | ✅ | 9 |
 | F26 | 아이디어 워크스페이스 리디자인 (ideas 테이블 + 전용 헤더 + 6탭 가젯 + 사업 제안 모달) | v6.2 | ✅ | 15 |
+| F27 | AI 동료 파이프라인 + 인간 워크플로우 (Radar→Ideas→Discovery 자동 + Ideas→Discovery 수동 전환 + AI 인수) | v6.25 | 🔧 | — |
 

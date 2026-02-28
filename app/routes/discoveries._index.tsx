@@ -436,6 +436,9 @@ export default function DiscoveriesIndex() {
                         >
                           {discovery.title}
                         </Link>
+                        {discovery.createdByAgent === 1 && (
+                          <Badge variant="outline" className="ml-2 border-violet-300 text-violet-600 dark:border-violet-700 dark:text-violet-400">AI</Badge>
+                        )}
                         {discovery.isInboxOverdue && (
                           <Badge variant="destructive" className="ml-2">
                             ⚠ 7일 초과 — 승격 또는 DROP 필요

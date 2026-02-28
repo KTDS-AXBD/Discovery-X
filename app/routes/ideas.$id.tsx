@@ -113,6 +113,7 @@ export default function IdeaDetail() {
   const [messagesLoaded, setMessagesLoaded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [proposalModalOpen, setProposalModalOpen] = useState(false);
+  const [discoveryModalOpen, setDiscoveryModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -487,6 +488,15 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
               </svg>
             </button>
           )}
+          {isIdea && ideaId && (
+            <button
+              type="button"
+              onClick={() => setDiscoveryModalOpen(true)}
+              className="shrink-0 rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-fg transition-colors hover:bg-surface-secondary"
+            >
+              Discovery 전환
+            </button>
+          )}
           {isIdea && (
             <button
               type="button"
@@ -614,6 +624,152 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
           navigate(`/proposals/${proposalId}`);
         }}
       />
+
+      {/* Discovery creation modal */}
+      <CreateDiscoveryModal
+        open={discoveryModalOpen}
+        onOpenChange={setDiscoveryModalOpen}
+        ideaId={ideaId}
+        ideaTitle={ideaTitle || "아이디어"}
+        onCreated={(discoveryId) => {
+          setDiscoveryModalOpen(false);
+          navigate(`/discoveries/${discoveryId}`);
+        }}
+      />
     </div>
+  );
+}
+
+// ── CreateDiscoveryModal ─────────────────────────────────────────────
+
+function CreateDiscoveryModal({
+  open,
+  onOpenChange,
+  ideaId,
+  ideaTitle,
+  onCreated,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  ideaId: string | null;
+  ideaTitle: string;
+  onCreated: (discoveryId: string) => void;
+}) {
+  const [hypothesis, setHypothesis] = useState("");
+  const [minimalAction, setMinimalAction] = useState("");
+  const [deadline, setDeadline] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 14);
+    return d.toISOString().slice(0, 10);
+  });
+  const [expectedEvidence, setExpectedEvidence] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async () => {
+    if (!ideaId || !hypothesis || !minimalAction || !deadline || !expectedEvidence) {
+      setError("모든 필드를 입력해주세요");
+      return;
+    }
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/ideas/${ideaId}/create-discovery`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hypothesis, minimalAction, deadline, expectedEvidence }),
+      });
+      const data = await res.json() as { discoveryId?: string; error?: string };
+      if (!res.ok) {
+        setError(data.error || "생성 실패");
+        return;
+      }
+      if (data.discoveryId) {
+        onCreated(data.discoveryId);
+      }
+    } catch {
+      setError("네트워크 오류");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogTitle>Discovery로 전환</DialogTitle>
+        <DialogDescription>
+          &ldquo;{ideaTitle}&rdquo;을(를) Discovery로 전환합니다. 첫 번째 실험 정보를 입력하세요.
+        </DialogDescription>
+
+        <div className="mt-4 space-y-3">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-fg-secondary">가설</label>
+            <textarea
+              value={hypothesis}
+              onChange={(e) => setHypothesis(e.target.value)}
+              className="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-fg placeholder:text-fg-tertiary focus:border-blue-500 focus:outline-none"
+              placeholder="이 가설이 맞다면..."
+              rows={2}
+              maxLength={200}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-fg-secondary">최소 행동</label>
+            <textarea
+              value={minimalAction}
+              onChange={(e) => setMinimalAction(e.target.value)}
+              className="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-fg placeholder:text-fg-tertiary focus:border-blue-500 focus:outline-none"
+              placeholder="2주 내 할 수 있는 최소 실험..."
+              rows={2}
+              maxLength={200}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-fg-secondary">기한</label>
+            <input
+              type="date"
+              value={deadline}
+              onChange={(e) => setDeadline(e.target.value)}
+              className="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-fg focus:border-blue-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-fg-secondary">기대 근거</label>
+            <textarea
+              value={expectedEvidence}
+              onChange={(e) => setExpectedEvidence(e.target.value)}
+              className="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-fg placeholder:text-fg-tertiary focus:border-blue-500 focus:outline-none"
+              placeholder="성공 시 어떤 근거가 나오는지..."
+              rows={2}
+              maxLength={200}
+            />
+          </div>
+
+          {error && (
+            <p className="text-sm text-red-500">{error}</p>
+          )}
+        </div>
+
+        <div className="mt-6 flex justify-end gap-3">
+          <DialogClose asChild>
+            <button
+              type="button"
+              className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-fg transition-colors hover:bg-surface-secondary"
+            >
+              취소
+            </button>
+          </DialogClose>
+          <button
+            type="button"
+            disabled={isSubmitting}
+            onClick={handleSubmit}
+            className="rounded-lg bg-surface-brand px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            {isSubmitting ? "생성 중..." : "Discovery 생성"}
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

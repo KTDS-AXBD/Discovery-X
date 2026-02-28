@@ -29,6 +29,7 @@ interface IdeaItem {
   ownerId: string;
   analysisData: Record<string, unknown> | null;
   createdAt: string | number | null;
+  createdByAgent?: number;
 }
 
 interface IdeaCardGridProps {
@@ -88,9 +89,16 @@ function IdeaCard({ idea, index }: { idea: IdeaItem; index: number }) {
       className="group flex flex-col gap-2 rounded-xl border border-line bg-surface-card px-4 py-3 transition-all hover:border-fg-tertiary hover:bg-surface-card-hover hover:shadow-sm"
     >
       <ProgressDots completed={completed} colorIndex={index} />
-      <span className="truncate text-sm font-medium text-fg">
-        {idea.title}
-      </span>
+      <div className="flex items-center gap-1.5">
+        <span className="truncate text-sm font-medium text-fg">
+          {idea.title}
+        </span>
+        {idea.createdByAgent === 1 && (
+          <span className="shrink-0 rounded border border-violet-300 px-1 py-0.5 text-[10px] font-medium text-violet-600 dark:border-violet-700 dark:text-violet-400">
+            AI
+          </span>
+        )}
+      </div>
       <div className="flex items-center justify-between">
         <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", BADGE_STYLES[badge.variant])}>
           {badge.label}

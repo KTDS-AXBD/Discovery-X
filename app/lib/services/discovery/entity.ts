@@ -49,6 +49,8 @@ export class DiscoveryEntityService {
       status: DiscoveryStatus.DISCOVERY,
       ownerId: data.ownerId,
       tenantId: data.tenantId,
+      sourceIdeaId: data.sourceIdeaId || null,
+      createdByAgent: data.createdByAgent ? 1 : 0,
     });
 
     await this.db.insert(eventLogs).values({

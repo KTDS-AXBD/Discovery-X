@@ -169,6 +169,8 @@ export default function DiscoveryDetail() {
   const canEdit =
     discovery.status === DiscoveryStatus.DISCOVERY || discovery.status === DiscoveryStatus.IDEA_CARD;
   const canChangeOwnership = canEdit;
+  const isAiCreated = discovery.createdByAgent === 1;
+  const canClaim = isAiCreated && discovery.ownerId !== user.id;
   const isActive =
     discovery.status === DiscoveryStatus.IDEA_CARD ||
     discovery.status === DiscoveryStatus.HYPOTHESIS;
@@ -185,6 +187,9 @@ export default function DiscoveryDetail() {
             <div className="flex items-center space-x-3">
               <h1 className="text-2xl font-bold text-fg">{discovery.title}</h1>
               <StatusBadge status={discovery.status} size="md" />
+              {discovery.createdByAgent === 1 && (
+                <Badge variant="outline" className="border-violet-300 text-violet-600 dark:border-violet-700 dark:text-violet-400">AI 생성</Badge>
+              )}
             </div>
             <div className="mt-2 flex items-center space-x-4 text-sm text-fg-tertiary">
               <span>Owner: {owner?.name || "미지정"}</span>
@@ -201,6 +206,14 @@ export default function DiscoveryDetail() {
           <div className="mt-4 flex flex-col gap-3 sm:mt-0">
             {/* 주요 액션 */}
             <div className="flex flex-wrap gap-2">
+              {canClaim && (
+                <Form method="post">
+                  <input type="hidden" name="intent" value="changeOwner" />
+                  <input type="hidden" name="ownerId" value={user.id} />
+                  <input type="hidden" name="handoverNote" value={`AI 동료가 생성한 Discovery를 ${user.name}이(가) 인수합니다.`} />
+                  <Button type="submit" variant="default">인수하기</Button>
+                </Form>
+              )}
               {canPromoteToOpen && (
                 <Button asChild>
                   <Link to={`/discoveries/${discovery.id}/promote`}>OPEN으로 승격</Link>

@@ -25,6 +25,8 @@ export const ideas = sqliteTable(
     status: text("status").notNull().default(IdeaStatus.ACTIVE),
     conversationId: text("conversation_id").references(() => conversations.id),
     analysisData: text("analysis_data", { mode: "json" }).$type<Record<string, unknown>>(),
+    // F27: AI 생성 플래그
+    createdByAgent: integer("created_by_agent").notNull().default(0),
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),

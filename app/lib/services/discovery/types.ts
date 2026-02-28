@@ -38,6 +38,8 @@ export interface CreateDiscoveryInput {
   sourceType: string;
   ownerId: string;
   tenantId: string;
+  sourceIdeaId?: string | null;
+  createdByAgent?: boolean;
 }
 
 export interface ChangeOwnerInput {
