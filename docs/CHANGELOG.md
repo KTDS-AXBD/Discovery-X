@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 268 (2026-02-28)
+**fix: AI 파이프라인 E2E 검증 + 버그 수정 3건**:
+- ✅ `app/lib/ai-pipeline/service.ts`: `extractJSON()` 헬퍼 추가 — Claude 응답 마크다운 코드블록 래퍼 제거
+- ✅ `app/lib/ai-pipeline/service.ts`: 클러스터링 모델 Sonnet→Haiku 변경 (CF 30초 제한 대응)
+- ✅ `app/lib/ai-pipeline/service.ts`: 파라미터 축소 — MAX_ITEMS 10→3, MAX_IDEAS 3→1, MAX_DISCOVERIES 2→1, DELAY 1500→0ms, TIMEOUT 25→23s
+- ✅ E2E 검증 성공: 프로덕션에서 AI Ideas 4건 + AI Discoveries 2건 (HYPOTHESIS 상태, system-agent Owner)
+- ✅ 프로덕션 DB 정리: stale RUNNING 파이프라인 기록 → FAILED로 전환
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,340/1,340 PASS / build 성공
+
 ### 세션 267 (2026-02-28)
 **feat: F27 AI 동료 자동 파이프라인 + 인간 워크플로우 개선**:
 - ✅ `drizzle/0041_ai_pipeline.sql`: ai_pipeline_runs 테이블 + radar_items.ai_processed_at + discoveries.source_idea_id + ideas.created_by_agent

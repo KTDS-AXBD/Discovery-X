@@ -143,8 +143,8 @@ Flow I: BD 워크스페이스 (v4.2)
   → 수동 편집 → 팀 공유
 
 Flow J: AI 동료 파이프라인 (v6.25)
-  → Cron (09:30 KST, Radar 수집 직후) → 미처리 radar_items 로드 (최대 10개)
-  → Claude: 주제별 클러스터링 → 클러스터당 아이디어 생성 (createdByAgent=1)
+  → Cron (09:30 KST, Radar 수집 직후) → 미처리 radar_items 로드 (최대 3개)
+  → Claude Haiku: 주제별 클러스터링 → 클러스터당 아이디어 생성 (createdByAgent=1, Sonnet)
   → Claude: 아이디어 평가 (confidence ≥ 70) → Discovery 자동 생성
   → DISCOVERY → IDEA_CARD (promote, 가설+실험) → HYPOTHESIS (transition)
   → Owner: system-agent, sourceIdeaId 연결
@@ -418,7 +418,7 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.25.0 — F27 AI 동료 파이프라인 + 인간 워크플로우 (세션 267)
+- **프로토타입**: v6.25.1 — AI 파이프라인 E2E 검증 + 3건 버그 수정 (세션 268)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 42개 마이그레이션 (0000~0041), 로컬+프로덕션 적용 완료
 
@@ -435,8 +435,8 @@ build/
 - **Feature Flag**: 9개 — **9/9 true** (agentDO 활성화 완료)
 - **@theme inline**: 104 토큰 등록, var() 1,752→122 (93.0% 감소, 163 파일)
 - **@axis-ds 컴포넌트**: 15/28 활용 (Button/Badge/Card/Input/Alert/Dialog/Table/Textarea/Select/SelectItem/SelectTrigger/Label/Skeleton/Separator/Progress)
-- **배포**: 세션 267 배포 완료 (F27 AI 파이프라인 + 인간 워크플로우)
-- **Cron 등록**: cron-job.org 13개 + ai-pipeline 등록 필요 (09:30 KST)
+- **배포**: 세션 268 배포 완료 (AI 파이프라인 버그 수정 3건 + E2E 검증 성공)
+- **Cron 등록**: cron-job.org 13개 + ai-pipeline 수동 등록 필요 (09:30 KST)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
 ### 세션 변경 이력
