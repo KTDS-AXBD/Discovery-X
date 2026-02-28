@@ -396,11 +396,12 @@ export class DiscoveryWorkflowService {
     }
 
     if (
-      discovery.status !== DiscoveryStatus.DISCOVERY &&
-      discovery.status !== DiscoveryStatus.IDEA_CARD
+      !ACTIVE_STATUSES.includes(
+        discovery.status as (typeof ACTIVE_STATUSES)[number],
+      )
     ) {
       throw new Error(
-        "INBOX/OPEN 상태에서만 Reviewer를 변경할 수 있습니다",
+        "활성 상태에서만 Reviewer를 변경할 수 있습니다",
       );
     }
 

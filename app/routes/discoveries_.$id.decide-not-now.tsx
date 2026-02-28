@@ -51,7 +51,9 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     return redirect(`/discoveries/${id}`);
   }
 
-  return json({ user, discovery });
+  const allUsers = await service.getAllUsers();
+
+  return json({ user, discovery, allUsers });
 }
 
 export async function action({ request, context, params }: ActionFunctionArgs) {
@@ -89,6 +91,23 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   const notNowTriggerType = formData.get("notNowTriggerType");
   const notNowTriggerCondition = formData.get("notNowTriggerCondition");
   const revisitDateStr = formData.get("revisitDate");
+
+  // Reviewer 선행 설정 (미지정 시 폼에서 선택)
+  const reviewerId = formData.get("reviewerId");
+  if (reviewerId && !discovery.reviewerId) {
+    try {
+      await service.changeReviewer({
+        discoveryId: id,
+        newReviewerId: String(reviewerId),
+        actorId: user.id,
+      });
+    } catch (error: unknown) {
+      return json(
+        { error: getFormErrorMessage(error) },
+        { status: 400 }
+      );
+    }
+  }
 
   try {
     const revisitDate = revisitDateStr ? new Date(String(revisitDateStr)) : null;
@@ -150,8 +169,9 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
 }
 
 export default function DecideNotNow() {
-  const { user, discovery } = useLoaderData<typeof loader>();
+  const { user, discovery, allUsers } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
+  const needsReviewer = !discovery.reviewerId;
 
   // Calculate default revisit date (3 months from now)
   const defaultRevisitDate = new Date();
@@ -187,6 +207,31 @@ export default function DecideNotNow() {
                   트리거 조건과 재검토 날짜를 명확히 지정해야 합니다.
                 </p>
               </AlertBanner>
+
+              {/* Reviewer 미지정 시 인라인 선택 */}
+              {needsReviewer && (
+                <>
+                  <AlertBanner variant="info">
+                    <p className="text-sm font-semibold">Reviewer 미지정</p>
+                    <p className="mt-1 text-sm">결정을 제출하려면 Reviewer를 지정해야 합니다. 아래에서 선택하세요.</p>
+                  </AlertBanner>
+                  <FormField label="Reviewer 지정" htmlFor="reviewerId" required>
+                    <Select name="reviewerId" required>
+                      <SelectTrigger id="reviewerId">
+                        <SelectValue placeholder="Reviewer 선택" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allUsers
+                          .filter((u) => u.id !== user.id)
+                          .map((u) => (
+                            <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                  <Separator />
+                </>
+              )}
 
               {/* Decision Rationale */}
               <FormField label="결정 근거" htmlFor="decisionRationale" required hint="400자 이내">

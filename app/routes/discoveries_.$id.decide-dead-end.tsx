@@ -10,6 +10,7 @@ import { PageHeader } from "~/components/layout/PageHeader";
 import { Card, CardContent } from "~/components/ui/Card";
 import { Input } from "~/components/ui/Input";
 import { Textarea } from "~/components/ui/Textarea";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/Select";
 import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
 import { Separator } from "~/components/ui/Separator";
@@ -50,7 +51,9 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     return redirect(`/discoveries/${id}`);
   }
 
-  return json({ user, discovery });
+  const allUsers = await service.getAllUsers();
+
+  return json({ user, discovery, allUsers });
 }
 
 export async function action({ request, context, params }: ActionFunctionArgs) {
@@ -86,6 +89,23 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   const formData = await request.formData();
   const decisionRationale = formData.get("decisionRationale");
   const deadEndEvidenceReason = formData.get("deadEndEvidenceReason");
+
+  // Reviewer 선행 설정 (미지정 시 폼에서 선택)
+  const reviewerId = formData.get("reviewerId");
+  if (reviewerId && !discovery.reviewerId) {
+    try {
+      await service.changeReviewer({
+        discoveryId: id,
+        newReviewerId: String(reviewerId),
+        actorId: user.id,
+      });
+    } catch (error: unknown) {
+      return json(
+        { error: getFormErrorMessage(error) },
+        { status: 400 }
+      );
+    }
+  }
 
   // 체크박스에서 선택된 실패 패턴 수집
   const deadEndFailurePattern: string[] = [];
@@ -148,8 +168,9 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
 }
 
 export default function DecideDeadEnd() {
-  const { user, discovery } = useLoaderData<typeof loader>();
+  const { user, discovery, allUsers } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
+  const needsReviewer = !discovery.reviewerId;
 
   return (
     <AppShell user={user}>
@@ -180,6 +201,31 @@ export default function DecideDeadEnd() {
                   왜 작동하지 않았는지, 어떤 패턴으로 실패했는지 명확히 기록해야 합니다.
                 </p>
               </AlertBanner>
+
+              {/* Reviewer 미지정 시 인라인 선택 */}
+              {needsReviewer && (
+                <>
+                  <AlertBanner variant="info">
+                    <p className="text-sm font-semibold">Reviewer 미지정</p>
+                    <p className="mt-1 text-sm">결정을 제출하려면 Reviewer를 지정해야 합니다. 아래에서 선택하세요.</p>
+                  </AlertBanner>
+                  <FormField label="Reviewer 지정" htmlFor="reviewerId" required>
+                    <Select name="reviewerId" required>
+                      <SelectTrigger id="reviewerId">
+                        <SelectValue placeholder="Reviewer 선택" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allUsers
+                          .filter((u) => u.id !== user.id)
+                          .map((u) => (
+                            <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                  <Separator />
+                </>
+              )}
 
               {/* Decision Rationale */}
               <FormField label="결정 근거" htmlFor="decisionRationale" required hint="400자 이내">

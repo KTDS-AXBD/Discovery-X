@@ -28,7 +28,7 @@ const STEPS = [
   },
   {
     title: "결정하세요",
-    desc: "NEXT / NOT NOW / DEAD END 중 하나를 선택합니다.",
+    desc: "NEXT / NOT NOW / DEAD END 중 하나를 선택합니다. 결정 전 Reviewer를 지정하세요.",
     action: "결정하기",
     getHref: (id?: string | null) => (id ? `/discoveries/${id}` : "/dashboard"),
   },

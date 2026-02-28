@@ -9,8 +9,10 @@ import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Card, CardContent } from "~/components/ui/Card";
 import { Textarea } from "~/components/ui/Textarea";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/Select";
 import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
+import { Separator } from "~/components/ui/Separator";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { DiscoveryStatus } from "~/db/schema";
 import { DiscoveryValidationRules, NextDecisionSchema } from "~/lib/validation/discovery-rules";
@@ -53,7 +55,9 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const queryExtra = new DiscoveryQueryExtraService(db);
   const { evidenceCount, strongEvidenceCount } = await queryExtra.getEvidenceSummary(id);
 
-  return json({ user, discovery, evidenceCount, strongEvidenceCount });
+  const allUsers = await service.getAllUsers();
+
+  return json({ user, discovery, evidenceCount, strongEvidenceCount, allUsers });
 }
 
 export async function action({ request, context, params }: ActionFunctionArgs) {
@@ -91,6 +95,23 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
 
   const formData = await request.formData();
   const decisionRationale = formData.get("decisionRationale");
+
+  // Reviewer 선행 설정 (미지정 시 폼에서 선택)
+  const reviewerId = formData.get("reviewerId");
+  if (reviewerId && !discovery.reviewerId) {
+    try {
+      await service.changeReviewer({
+        discoveryId: id,
+        newReviewerId: String(reviewerId),
+        actorId: user.id,
+      });
+    } catch (error: unknown) {
+      return json(
+        { error: getFormErrorMessage(error) },
+        { status: 400 }
+      );
+    }
+  }
 
   try {
     const validated = NextDecisionSchema.parse({
@@ -145,10 +166,11 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
 }
 
 export default function DecideNext() {
-  const { user, discovery, evidenceCount, strongEvidenceCount } = useLoaderData<typeof loader>();
+  const { user, discovery, evidenceCount, strongEvidenceCount, allUsers } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
 
   const hasWarning = strongEvidenceCount < 2;
+  const needsReviewer = !discovery.reviewerId;
 
   return (
     <AppShell user={user}>
@@ -214,6 +236,31 @@ export default function DecideNext() {
                   실행 계획, 예산 확보, 팀 편성 등 후속 작업으로 이어집니다.
                 </p>
               </AlertBanner>
+
+              {/* Reviewer 미지정 시 인라인 선택 */}
+              {needsReviewer && (
+                <>
+                  <AlertBanner variant="info">
+                    <p className="text-sm font-semibold">Reviewer 미지정</p>
+                    <p className="mt-1 text-sm">결정을 제출하려면 Reviewer를 지정해야 합니다. 아래에서 선택하세요.</p>
+                  </AlertBanner>
+                  <FormField label="Reviewer 지정" htmlFor="reviewerId" required>
+                    <Select name="reviewerId" required>
+                      <SelectTrigger id="reviewerId">
+                        <SelectValue placeholder="Reviewer 선택" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allUsers
+                          .filter((u) => u.id !== user.id)
+                          .map((u) => (
+                            <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                  <Separator />
+                </>
+              )}
 
               {/* Decision Rationale */}
               <FormField label="결정 근거" htmlFor="decisionRationale" required hint="400자 이내">
