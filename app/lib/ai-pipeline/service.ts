@@ -14,6 +14,9 @@ import {
 } from "~/db/schema";
 import { ideas } from "~/features/ideas/db/schema";
 import { callClaude, CLAUDE_MODEL } from "~/lib/agent/claude-client";
+
+/** 클러스터링에는 빠른 Haiku 사용 (CF 30초 제한 대응) */
+const FAST_MODEL = "claude-haiku-4-5-20251001";
 import { IdeaService } from "~/lib/services/idea.service";
 import { DiscoveryEntityService } from "~/lib/services/discovery/entity";
 import { DiscoveryWorkflowService } from "~/lib/services/discovery/workflow";
@@ -30,12 +33,12 @@ function extractJSON(text: string): string {
   const match = text.match(/```(?:json)?\s*([\s\S]*?)```/);
   return match ? match[1].trim() : text.trim();
 }
-const MAX_ITEMS_PER_RUN = 5;
-const MAX_IDEAS_PER_RUN = 2;
+const MAX_ITEMS_PER_RUN = 3;
+const MAX_IDEAS_PER_RUN = 1;
 const MAX_DISCOVERIES_PER_RUN = 1;
 const DISCOVERY_CONFIDENCE_THRESHOLD = 70;
-const INTER_CALL_DELAY_MS = 500;
-const RUN_TIMEOUT_MS = 25_000;
+const INTER_CALL_DELAY_MS = 0;
+const RUN_TIMEOUT_MS = 23_000;
 
 interface ClusterResult {
   clusters: Array<{
@@ -266,8 +269,8 @@ export class AIPipelineService {
 
     try {
       const response = await callClaude(this.apiKey, {
-        model: CLAUDE_MODEL,
-        max_tokens: 2048,
+        model: FAST_MODEL,
+        max_tokens: 1024,
         system: CLUSTER_SYSTEM_PROMPT,
         messages: [{ role: "user", content: `다음 ${items.length}개 아이템을 클러스터링하세요:\n\n${itemsContext}` }],
       });
