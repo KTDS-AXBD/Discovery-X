@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 270 (2026-02-28)
+**test: 프로덕션 온보딩 Step 진행 검증 — Discovery 생성 후 Step 0→1 전환 확인**:
+- ✅ 프로덕션(dx.minu.best)에서 "[테스트] 온보딩 Step 진행 검증용 Discovery" 생성
+- ✅ Step 0→1 전환 확인: Progress 0%→25%, "관찰" ✓done, "실험" ●active
+- ✅ CTA 동적 링크: "첫 번째 Discovery 만들기" → "실험 등록하기" (생성된 Discovery ID 반영)
+- ✅ Pipeline Kanban 연동: 아이디어 2→3건 (테스트 Discovery 표시)
+- ✅ GNB 2탭 유지 (대시보드 + 아이디어)
+
+**검증 결과**:
+- ✅ 코드 변경 없음 (프로덕션 기능 검증 세션)
+- ✅ 온보딩 상태 머신(getOnboardingState) 정상 작동 확인
+
 ### 세션 269 (2026-02-28)
 **feat: PIVOT 핵심 루프 + 온보딩 플로우 — 사용자 참여 부재 대응**:
 - ✅ `app/lib/feature-flags.ts`: `simplifiedNav` 피처 플래그 추가 (10번째 FF)
