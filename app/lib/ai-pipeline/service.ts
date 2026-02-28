@@ -30,11 +30,11 @@ function extractJSON(text: string): string {
   const match = text.match(/```(?:json)?\s*([\s\S]*?)```/);
   return match ? match[1].trim() : text.trim();
 }
-const MAX_ITEMS_PER_RUN = 10;
-const MAX_IDEAS_PER_RUN = 3;
-const MAX_DISCOVERIES_PER_RUN = 2;
+const MAX_ITEMS_PER_RUN = 5;
+const MAX_IDEAS_PER_RUN = 2;
+const MAX_DISCOVERIES_PER_RUN = 1;
 const DISCOVERY_CONFIDENCE_THRESHOLD = 70;
-const INTER_CALL_DELAY_MS = 1500;
+const INTER_CALL_DELAY_MS = 500;
 const RUN_TIMEOUT_MS = 25_000;
 
 interface ClusterResult {
