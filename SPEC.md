@@ -427,7 +427,7 @@ build/
 - **테이블**: 93개 (+1: ai_pipeline_runs)
 - **Agent 도구**: 50개 (+3 Matrix P2: query_matrix_heatmap/get_cell_signals/get_top_cells, schema: 9 도메인 파일)
 - **코드**: ~64,564줄 (402파일) — 세션 269 PIVOT (+249줄)
-- **테스트**: 1,340개 (90 test files, 로컬 통과)
+- **테스트**: 1,364개 (92 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공

@@ -3,6 +3,23 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 272 (2026-02-28)
+**test: 온보딩 Step 전 구간 프로덕션 검증 + 테스트 24개 추가**:
+- ✅ 프로덕션 브라우저 검증: Step 0→1→2→3→4 전 구간 정상 작동 확인
+  - Step 1→2: OPEN 승격 + 실험 등록 (25%→50%)
+  - Step 2→3: 근거 추가 USER/B급 (50%→75%)
+  - Step 3→4: NOT NOW 결정 + Reviewer 승인 → HOLD (75%→100%, 축하 배너)
+- ✅ Unit 테스트 10개: `getOnboardingState()` — step 0~4, AI 필터링, 엣지 케이스
+- ✅ Integration 테스트 14개: E2E 플로우, DROP/HANDOFF, 멀티 테넌트 격리
+- ✅ Team(tmux) 방식 병렬 작업: Leader(브라우저) + Worker 2명(테스트 작성)
+
+**발견한 UX 이슈**:
+- NOT NOW/DEAD END 결정 시 Reviewer 미지정이면 에러 → 온보딩 가이드에서 미안내
+- Reviewer 자기 승인 가능 (Owner→Reviewer 변경 후 자기 승인) — 프로토타입 단계 OK
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,364/1,364 PASS (92 files) / build 성공
+
 ### 세션 271 (2026-02-28)
 **chore: Auto Memory 토픽 파일 구조 적용 + 관련 스킬 갱신**:
 - ✅ Auto Memory 리팩토링: MEMORY.md 단일 파일(99줄) → 인덱스(42줄) + 토픽 3개 분리
