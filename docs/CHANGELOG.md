@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 274 (2026-02-28)
+**deploy+verify: 결정 폼 Reviewer 인라인 선택 배포 + 프로덕션 검증**:
+- ✅ 세션 273 코드 프로덕션 배포 (GitHub Actions CI/CD, 2분 9초)
+- ✅ 프로덕션 NOT NOW 결정 플로우 브라우저 검증:
+  - Reviewer 미지정 Discovery → NOT NOW 폼 → 인라인 Select 노출 확인
+  - Reviewer "김탐험" 선택 + 폼 작성 + 제출 → 에러 없이 HOLD 승인 요청 성공
+  - 활동 내역: CHANGE_REVIEWER → SUBMIT_FOR_APPROVAL 순서 정상 기록
+
+**검증 결과**:
+- ✅ CI/CD 전 단계 통과 (lint/typecheck/test/build/deploy)
+- ✅ 프로덕션 브라우저 E2E 검증 완료
+
 ### 세션 273 (2026-02-28)
 **feat: 온보딩 결정 폼 Reviewer 인라인 선택 추가**:
 - ✅ 결정 폼 3개(NOT NOW/NEXT/DEAD END)에 Reviewer 미지정 시 인라인 Select 필드 추가
