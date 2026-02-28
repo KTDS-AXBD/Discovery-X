@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 271 (2026-02-28)
+**chore: Auto Memory 토픽 파일 구조 적용 + 관련 스킬 갱신**:
+- ✅ Auto Memory 리팩토링: MEMORY.md 단일 파일(99줄) → 인덱스(42줄) + 토픽 3개 분리
+- ✅ 토픽 파일 생성: `service-layer.md`, `operations.md`, `decisions.md`
+- ✅ CLAUDE.md 중복 Gotchas 제거 (13개 항목), 고유 패턴 3개만 유지
+- ✅ CRON_SECRET 평문 제거 (보안 개선)
+- ✅ `.claude/skills/s-start/SKILL.md`: 세션 요약 5→3개, 토픽 파일 인덱스 안내 추가
+- ✅ `.claude/skills/s-end/SKILL.md`: Phase 3을 인덱스+토픽 2단계로 분리, 주의사항 갱신
+
+**검증 결과**:
+- ✅ 코드 변경 없음 (스킬 + 메모리 구조 변경만)
+
 ### 세션 270 (2026-02-28)
 **test: 프로덕션 온보딩 Step 진행 검증 — Discovery 생성 후 Step 0→1 전환 확인**:
 - ✅ 프로덕션(dx.minu.best)에서 "[테스트] 온보딩 Step 진행 검증용 Discovery" 생성
