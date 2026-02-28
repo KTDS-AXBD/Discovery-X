@@ -14,6 +14,7 @@
 **검증 결과**:
 - ✅ 코드 변경 없음 (프로덕션 기능 검증 세션)
 - ✅ 온보딩 상태 머신(getOnboardingState) 정상 작동 확인
+- ✅ CI/CD 배포 완료 (1m59s) — lint/typecheck/test/build/deploy 전 통과
 
 ### 세션 269 (2026-02-28)
 **feat: PIVOT 핵심 루프 + 온보딩 플로우 — 사용자 참여 부재 대응**:
