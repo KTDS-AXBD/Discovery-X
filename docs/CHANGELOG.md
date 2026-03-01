@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 278 (2026-03-01)
+**chore: session-toolkit 플러그인 생성 + /s-end 스킬 개선 + 크로스 프로젝트 테스트**:
+- ✅ `/s-end` → `/deploy` → `/s-end` 무한 루프 해결: `/s-end`에 Phase 6 (git push + CI/CD) 통합
+- ✅ `/deploy` 스킬 간소화: --preview/재배포 전용으로 변경
+- ✅ session-toolkit 플러그인 생성 (6 commands: s-start/s-end/team/lint/deploy/git-sync)
+- ✅ GitHub 퍼블리시: `AX-BD-Team/session-toolkit` (marketplace 등록)
+- ✅ 플러그인 user scope 설치 + 크로스 프로젝트 테스트 완료 (6/6 커맨드 인식)
+- ✅ CLAUDE.md 스킬 설명 업데이트 (s-end/deploy 역할 반영)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,395/1,395 PASS (코드 변경 없음)
+
 ### 세션 277 (2026-03-01)
 **test: approve-decision + create-discovery-from-idea 통합 테스트 + /team TUI 모드**:
 - ✅ `approve-decision.test.ts` 작성 (17 tests): ApprovalDecisionSchema, approve/reject 플로우, PENDING 가드, reviewer 권한, comment, event log, GATE1 상태 전환
