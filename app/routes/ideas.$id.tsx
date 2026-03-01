@@ -120,22 +120,7 @@ export default function IdeaDetail() {
   // ─── Panel layout ───
   const panel = usePanelLayout();
 
-  // DEBUG: comprehensive click diagnostic (remove after fixing)
-  useEffect(() => {
-    console.log("[DX-DEBUG] ideas.$id mounted", { type: data.type, isIdea: !!(data.type === "idea" && data.idea), ideaId });
-    const handler = (e: MouseEvent) => {
-      const t = e.target as HTMLElement;
-      const rect = t.getBoundingClientRect();
-      console.log("[DX-DEBUG] click @capture", {
-        tag: t.tagName,
-        cls: t.className?.toString().slice(0, 100),
-        text: t.textContent?.slice(0, 40),
-        rect: `${Math.round(rect.x)},${Math.round(rect.y)} ${Math.round(rect.width)}x${Math.round(rect.height)}`,
-      });
-    };
-    document.addEventListener("click", handler, true);
-    return () => document.removeEventListener("click", handler, true);
-  }, [data.type, data.idea, ideaId]);
+
 
   // ─── Source selection (multi-select) ───
   const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>([]);
@@ -470,7 +455,7 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
       {/* Center: Detail / Methodology Cards */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Title bar */}
-        <div className="relative z-20 flex items-center gap-2 border-b border-line px-4 py-3" onClick={() => console.log("[DX-DEBUG] title bar div clicked")}>
+        <div className="relative z-20 flex items-center gap-2 border-b border-line px-4 py-3">
           {isIdea && ideaId ? (
             <>
               <div className="min-w-0 flex-1">
@@ -508,10 +493,7 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
           {isIdea && ideaId && (
             <button
               type="button"
-              onClick={() => {
-                console.log("[DX] Discovery 전환 clicked", { ideaId, discoveryModalOpen });
-                setDiscoveryModalOpen(true);
-              }}
+              onClick={() => setDiscoveryModalOpen(true)}
               className="shrink-0 rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-fg transition-colors hover:bg-surface-secondary"
             >
               Discovery 전환
@@ -520,10 +502,7 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
           {isIdea && (
             <button
               type="button"
-              onClick={() => {
-                console.log("[DX] 사업 제안하기 clicked", { ideaId, proposalModalOpen });
-                setProposalModalOpen(true);
-              }}
+              onClick={() => setProposalModalOpen(true)}
               className="shrink-0 rounded-lg bg-surface-brand px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
             >
               사업 제안하기
