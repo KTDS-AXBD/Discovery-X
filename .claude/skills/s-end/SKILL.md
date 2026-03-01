@@ -14,7 +14,8 @@ user-invocable: true
 2. SPEC.md §5 지표 갱신 (숫자만)
 3. MEMORY.md 작업 컨텍스트 갱신 (다음 세션 복원용)
 4. docs/CHANGELOG.md 세션 기록 추가 (히스토리 보존)
-5. SPEC.md + MEMORY.md + CHANGELOG.md 커밋
+5. SPEC.md + CHANGELOG.md 커밋
+6. Git push + CI/CD 배포 확인
 ```
 
 ## Git 변경사항 확인
@@ -97,7 +98,30 @@ git commit -m "docs: update SPEC.md + CHANGELOG — 세션 NNN [요약]"
 
 MEMORY.md는 Git 추적 대상이 아님 (auto memory 디렉토리).
 
-### Phase 6: GitHub Project 동기화 (선택)
+### Phase 6: Git Push + CI/CD 배포
+
+모든 커밋을 리모트에 push하여 CI/CD 배포를 자동 트리거한다.
+
+```bash
+git push origin master
+```
+
+Push 후 배포 상태를 확인한다:
+```bash
+gh run list --limit 1
+```
+
+- CI/CD가 성공하면 SPEC.md §5 배포 항목을 갱신하고 추가 커밋+push:
+  ```bash
+  # SPEC.md 배포 상태 업데이트 (예: "세션 NNN 배포 완료")
+  git add SPEC.md && git commit -m "docs: update deployment status — 세션 NNN" && git push
+  ```
+- CI/CD 실패 시 `gh run view --log-failed`로 원인 확인 후 사용자에게 보고
+- **`gh run watch`로 실시간 모니터링은 하지 않는다** — `gh run list`로 비동기 확인
+
+> **참고**: 프리뷰 배포가 필요하면 별도로 `/deploy --preview`를 사용한다.
+
+### Phase 7: GitHub Project 동기화 (선택)
 
 §6 Implementation Log가 변경된 경우에만:
 - AskUserQuestion으로 `/sync push` / `/sync status` / 건너뛰기 선택지 제시
@@ -112,13 +136,14 @@ MEMORY.md는 Git 추적 대상이 아님 (auto memory 디렉토리).
 - `abc1234` feat: [메시지]
 - `def5678` docs: update SPEC.md + CHANGELOG — 세션 NNN
 
+### 배포
+- CI/CD: ✅ 성공 (N분 N초) / ❌ 실패 (원인)
+- 프로덕션: https://dx.minu.best
+
 ### 업데이트
 - SPEC.md §5: [변경된 지표]
 - MEMORY.md: 컨텍스트 갱신 완료
 - CHANGELOG.md: 세션 NNN 추가
-
-### 다음 단계
-- 배포 필요 시: `/deploy` 또는 `/deploy --preview`
 ```
 
 ## 주의사항
