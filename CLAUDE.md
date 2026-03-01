@@ -88,11 +88,11 @@ const db = getDb(context.DB);
 - `ALLOWED_TRANSITIONS` (app/lib/constants/status.ts) 정의된 전환만 허용
 
 ### 스키마 머지
-- `app/db/index.ts`에서 7개 스키마 머지: `schema`, `ventureSchema`, `proposalSchema`, `archiveSchema`, `ideasSchema`, `tokenUsageSchema`, `v2Schema`, `matrixSchema`
+- `app/db/index.ts`에서 7개 스키마 머지: `schema`, `proposalSchema`, `archiveSchema`, `ideasSchema`, `tokenUsageSchema`, `v2Schema`, `matrixSchema`
 
 ### SSR 외부화 (vite.config.ts)
 - `ssr.external`: `resend`, `mailparser`, `@zone-eu/mailsplit`, `libmime`
-- `ssr.noExternal`: `@axis-ds/ui-react`, `@axis-ds/theme`, `@axis-ds/tokens`, `@radix-ui/react-dialog` (이들은 반드시 번들링해야 SSR 동작)
+- `ssr.noExternal`: `@axis-ds/ui-react`, `@axis-ds/theme`, `@axis-ds/tokens`, `@radix-ui/react-dialog`, `@radix-ui/react-select` (이들은 반드시 번들링해야 SSR 동작)
 
 ### 인증 가드
 ```
@@ -115,7 +115,7 @@ requireAdmin()        → 403 (ADMIN만)
 app/
 ├── components/     # UI 컴포넌트 (charts, chat, dashboard, ideas, proposals, ui, ...)
 ├── db/             # Drizzle 스키마 + DB 연결 (index.ts에서 스키마 머지)
-├── features/       # 도메인별 모듈 (venture, proposals, ideas, archive, matrix)
+├── features/       # 도메인별 모듈 (archive, ideas, matrix, proposals)
 │   └── {feature}/  # db/schema.ts + constants + types + ui/
 ├── lib/            # 공유 유틸 (agent, auth, embeddings, notifications, ...)
 ├── routes/         # Remix 라우트 (flat-file convention)
