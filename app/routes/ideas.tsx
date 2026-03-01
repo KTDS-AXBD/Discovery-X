@@ -66,9 +66,7 @@ export default function IdeasLayout() {
 
   return (
     <AppShell user={user} hideSidebar>
-      <div className="flex-1 overflow-hidden">
-        <Outlet context={{ user, ideaList, allItems }} />
-      </div>
+      <Outlet context={{ user, ideaList, allItems }} />
     </AppShell>
   );
 }
