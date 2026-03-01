@@ -1,10 +1,10 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
-import { Outlet, useLoaderData, useLocation } from "@remix-run/react";
+import { Outlet, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { IdeaService, RadarService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { IdeaPageHeader } from "~/components/ideas/IdeaPageHeader";
+import { AppShell } from "~/components/layout/AppShell";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   try {
@@ -63,19 +63,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
 export default function IdeasLayout() {
   const { user, ideaList, allItems } = useLoaderData<typeof loader>();
-  const location = useLocation();
-  const isIndex = location.pathname === "/ideas" || location.pathname === "/ideas/";
 
   return (
-    <div className="flex h-screen flex-col bg-surface-deep">
-      <IdeaPageHeader
-        user={user}
-        showProposalButton={!isIndex}
-      />
+    <AppShell user={user} hideSidebar>
       <div className="flex-1 overflow-hidden">
         <Outlet context={{ user, ideaList, allItems }} />
       </div>
-
-    </div>
+    </AppShell>
   );
 }
