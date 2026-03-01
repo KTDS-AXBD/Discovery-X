@@ -435,7 +435,7 @@ build/
 - **Feature Flag**: 10개 — **10/10 true** (+simplifiedNav 온보딩 모드)
 - **@theme inline**: 104 토큰 등록, var() 1,752→122 (93.0% 감소, 163 파일)
 - **@axis-ds 컴포넌트**: 15/28 활용 (Button/Badge/Card/Input/Alert/Dialog/Table/Textarea/Select/SelectItem/SelectTrigger/Label/Skeleton/Separator/Progress)
-- **배포**: 세션 273 배포 완료 (결정 폼 Reviewer 인라인 선택 + 프로덕션 검증)
+- **배포**: 세션 276 배포 완료 (ontology extractor 개선 — temperature/confidence tier/retry)
 - **Cron 등록**: cron-job.org 14개 등록 완료 (ai-pipeline 09:30 KST 포함)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 

@@ -16,8 +16,10 @@
 - ✅ bkit 상태 파일 `.bkit/` 디렉토리로 마이그레이션 + `.gitignore` 등록
   - 삭제: `docs/.pdca-status.json` (13,507줄), `docs/.pdca-snapshots/` (10 files), `docs/.bkit-memory.json`
 
+- ✅ 프로덕션 배포 완료 (GitHub Actions CI/CD, 2분 15초)
+
 **검증 결과**:
-- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,372/1,372 PASS (93 files) / build 미실행
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,372/1,372 PASS (93 files) / build 성공 / deploy 성공
 
 ### 세션 275 (2026-02-28)
 **ops: 운영 지표 확인 + Agent Discovery NOT NOW 결정 + cron-job.org ai-pipeline 등록**:
