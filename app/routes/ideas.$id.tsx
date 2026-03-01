@@ -120,6 +120,23 @@ export default function IdeaDetail() {
   // ─── Panel layout ───
   const panel = usePanelLayout();
 
+  // DEBUG: comprehensive click diagnostic (remove after fixing)
+  useEffect(() => {
+    console.log("[DX-DEBUG] ideas.$id mounted", { type: data.type, isIdea: !!(data.type === "idea" && data.idea), ideaId });
+    const handler = (e: MouseEvent) => {
+      const t = e.target as HTMLElement;
+      const rect = t.getBoundingClientRect();
+      console.log("[DX-DEBUG] click @capture", {
+        tag: t.tagName,
+        cls: t.className?.toString().slice(0, 100),
+        text: t.textContent?.slice(0, 40),
+        rect: `${Math.round(rect.x)},${Math.round(rect.y)} ${Math.round(rect.width)}x${Math.round(rect.height)}`,
+      });
+    };
+    document.addEventListener("click", handler, true);
+    return () => document.removeEventListener("click", handler, true);
+  }, [data.type, data.idea, ideaId]);
+
   // ─── Source selection (multi-select) ───
   const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>([]);
   const [autoMessage, setAutoMessage] = useState<string | null>(null);
@@ -453,7 +470,7 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
       {/* Center: Detail / Methodology Cards */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Title bar */}
-        <div className="flex items-center gap-2 border-b border-line px-4 py-3">
+        <div className="flex items-center gap-2 border-b border-line px-4 py-3" onClick={() => console.log("[DX-DEBUG] title bar div clicked")}>
           {isIdea && ideaId ? (
             <>
               <div className="min-w-0 flex-1">
