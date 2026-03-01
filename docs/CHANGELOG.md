@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 279 (2026-03-01)
+**chore: 스킬 중복 정리 + Claude Code 자동화 개선 + CLAUDE.md 감사**:
+- ✅ 프로젝트 스킬 6개 삭제 (session-toolkit 플러그인으로 통합 완료)
+- ✅ 미사용 플러그인 3개 비활성화 (huggingface-skills, agent-sdk-dev, explanatory-output-style)
+- ✅ PreToolUse hook: pnpm-lock.yaml 편집 차단 추가
+- ✅ context7 MCP 서버 추가 (.mcp.json)
+- ✅ CLAUDE.md 감사 88→91점: @ 참조 수정, pnpm start 추가, bkit 섹션 압축
+- ✅ 에이전트 2개 stale 경로 수정 (venture/ → lib/services/discovery/)
+
+**검증 결과**:
+- ✅ 코드 변경 없음 (설정/문서만) — typecheck/lint/test 영향 없음
+
 ### 세션 278 (2026-03-01)
 **chore: session-toolkit 플러그인 생성 + /s-end 스킬 개선 + 크로스 프로젝트 테스트**:
 - ✅ `/s-end` → `/deploy` → `/s-end` 무한 루프 해결: `/s-end`에 Phase 6 (git push + CI/CD) 통합
