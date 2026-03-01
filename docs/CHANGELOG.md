@@ -3,6 +3,22 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 276 (2026-03-01)
+**feat: ontology-intelligence PDCA 완료 (93%) — extractor 개선 + bkit 상태 마이그레이션**:
+- ✅ `/pdca analyze ontology-intelligence` 갭 분석 실행 → 85% (5 gaps: 3 MEDIUM, 2 LOW)
+- ✅ `/pdca iterate` 자동 개선 (1회 iteration):
+  - ClaudeRequest에 `temperature?: number` 추가 + extractor에서 `temperature: 0.1` 전달
+  - confidence 0.5-0.8 검토 큐 전용 로직 구현 (nodeMap 미등록 → 엣지 미생성)
+  - retry 1→2회 (3 total attempts) 증가
+  - 통합 테스트 `ontology-extract-cron.test.ts` 작성 (8 test cases)
+- ✅ 재검증 → 93% match rate (≥ 90% PASS)
+- ✅ `/pdca report ontology-intelligence` 완료 보고서 생성
+- ✅ bkit 상태 파일 `.bkit/` 디렉토리로 마이그레이션 + `.gitignore` 등록
+  - 삭제: `docs/.pdca-status.json` (13,507줄), `docs/.pdca-snapshots/` (10 files), `docs/.bkit-memory.json`
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,372/1,372 PASS (93 files) / build 미실행
+
 ### 세션 275 (2026-02-28)
 **ops: 운영 지표 확인 + Agent Discovery NOT NOW 결정 + cron-job.org ai-pipeline 등록**:
 - ✅ 프로덕션 /metrics 운영 지표 확인 (Day 28):
