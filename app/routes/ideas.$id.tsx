@@ -470,7 +470,7 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
       {/* Center: Detail / Methodology Cards */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Title bar */}
-        <div className="flex items-center gap-2 border-b border-line px-4 py-3" onClick={() => console.log("[DX-DEBUG] title bar div clicked")}>
+        <div className="relative z-20 flex items-center gap-2 border-b border-line px-4 py-3" onClick={() => console.log("[DX-DEBUG] title bar div clicked")}>
           {isIdea && ideaId ? (
             <>
               <div className="min-w-0 flex-1">
