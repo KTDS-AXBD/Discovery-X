@@ -16,7 +16,7 @@ Agent 도구 파일(`app/lib/agent/tools/*.ts`) 및 관련 인프라 변경 시 
 - `app/lib/agent/system-prompt.ts` — 시스템 프롬프트
 - `app/lib/validation/*.ts` — 비즈니스 규칙 검증
 - `app/lib/auth/*.ts` — 인증/인가
-- `app/features/venture/repositories/*.ts` — Venture 리포지토리
+- `app/lib/services/discovery/*.ts` — Discovery 서비스 (상태 변경, 워크플로우)
 - `app/routes/api.*.ts` — API 엔드포인트
 
 ## 검토 체크리스트

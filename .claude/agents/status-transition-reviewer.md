@@ -11,7 +11,7 @@ Discovery 상태 전환 관련 코드 변경이 비즈니스 규칙을 준수하
 
 - `app/lib/constants/status.ts` — ALLOWED_TRANSITIONS 정의
 - `app/lib/validation/*.ts` — DiscoveryValidationRules
-- `app/features/venture/repositories/*.ts` — 상태 변경 실행
+- `app/lib/services/discovery/*.ts` — Discovery 서비스 (상태 변경 실행)
 - `app/routes/api.*.ts` — API 엔드포인트
 - `app/lib/agent/tools/*.ts` — Agent 도구
 

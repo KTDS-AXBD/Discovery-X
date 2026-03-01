@@ -32,7 +32,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -qE '\\.dev\\.vars|\\.env'; then echo 'BLOCKED: 민감 파일(.dev.vars/.env) 편집이 차단되었습니다'; exit 2; fi"
+            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -qE '\\.dev\\.vars|\\.env|pnpm-lock\\.yaml'; then echo 'BLOCKED: 보호 파일(.dev.vars/.env/pnpm-lock.yaml) 편집이 차단되었습니다. lock 파일은 pnpm install을 사용하세요'; exit 2; fi"
           }
         ]
       }
