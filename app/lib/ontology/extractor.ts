@@ -93,8 +93,10 @@ export async function extractFromEvidence(
     validEntities.map((e) => ({ label: e.label, ontologyTypeId: e.ontologyTypeId })),
   );
 
-  // 4. 노드 생성 (confidence ≥ 0.5 → 검토 큐, ≥ 0.8 → 자동 생성 후보)
-  const nodeMap = new Map<string, string>(); // label → nodeId
+  // 4. 노드 생성
+  //    ≥ 0.8: 자동 생성 + 검토 큐 (그래프 참여 가능 — 엣지 생성 대상)
+  //    0.5~0.8: 검토 큐에만 등록 (그래프 미참여 — 엣지 생성 제외)
+  const nodeMap = new Map<string, string>(); // label → nodeId (≥ 0.8만 등록)
   let nodesCreated = 0;
   let globalMatched = 0;
 
@@ -121,7 +123,10 @@ export async function extractFromEvidence(
       .limit(1);
 
     if (existing.length > 0) {
-      nodeMap.set(entity.label, existing[0].id);
+      // ≥ 0.8만 그래프에 참여 (엣지 생성 대상)
+      if (entity.confidence >= 0.8) {
+        nodeMap.set(entity.label, existing[0].id);
+      }
       continue;
     }
 
@@ -138,7 +143,11 @@ export async function extractFromEvidence(
       reviewed: 0,
     });
 
-    nodeMap.set(entity.label, nodeId);
+    // ≥ 0.8: 그래프에 참여 (엣지 생성 대상)
+    // 0.5~0.8: 검토 큐에만 존재 (엣지 미생성)
+    if (entity.confidence >= 0.8) {
+      nodeMap.set(entity.label, nodeId);
+    }
     nodesCreated++;
   }
 
@@ -199,46 +208,44 @@ ${existingStr}
 
 위 Evidence에서 엔티티와 관계를 추출하세요. JSON만 출력하세요.`;
 
-  try {
-    const response = await callClaude(apiKey, {
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 2048,
-      system: EXTRACTION_SYSTEM_PROMPT,
-      messages: [{ role: "user", content: userMessage }],
-    });
-
-    // 응답에서 JSON 추출
-    const textBlock = response.content.find((b) => b.type === "text");
-    if (!textBlock?.text) return null;
-
-    const jsonMatch = textBlock.text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return null;
-
-    const parsed = JSON.parse(jsonMatch[0]) as LLMExtractionResult;
-
-    // 기본 검증
-    if (!Array.isArray(parsed.entities)) parsed.entities = [];
-    if (!Array.isArray(parsed.relations)) parsed.relations = [];
-
-    return parsed;
-  } catch {
-    // JSON 파싱 실패 등 — 1회 재시도
+  // 최대 2회 재시도 (설계: §4.3 — JSON 파싱 실패 시)
+  for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const response = await callClaude(apiKey, {
         model: "claude-haiku-4-5-20251001",
         max_tokens: 2048,
-        system: EXTRACTION_SYSTEM_PROMPT + "\n\n중요: 반드시 유효한 JSON만 출력하세요. 다른 텍스트를 포함하지 마세요.",
+        temperature: 0.1,
+        system:
+          attempt === 0
+            ? EXTRACTION_SYSTEM_PROMPT
+            : EXTRACTION_SYSTEM_PROMPT + "\n\n중요: 반드시 유효한 JSON만 출력하세요. 다른 텍스트를 포함하지 마세요.",
         messages: [{ role: "user", content: userMessage }],
       });
+
       const textBlock = response.content.find((b) => b.type === "text");
-      if (!textBlock?.text) return null;
+      if (!textBlock?.text) {
+        if (attempt < 2) continue;
+        return null;
+      }
+
       const jsonMatch = textBlock.text.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) return null;
-      return JSON.parse(jsonMatch[0]) as LLMExtractionResult;
+      if (!jsonMatch) {
+        if (attempt < 2) continue;
+        return null;
+      }
+
+      const parsed = JSON.parse(jsonMatch[0]) as LLMExtractionResult;
+
+      // 기본 검증
+      if (!Array.isArray(parsed.entities)) parsed.entities = [];
+      if (!Array.isArray(parsed.relations)) parsed.relations = [];
+
+      return parsed;
     } catch {
-      return null;
+      if (attempt >= 2) return null;
     }
   }
+  return null;
 }
 
 /**

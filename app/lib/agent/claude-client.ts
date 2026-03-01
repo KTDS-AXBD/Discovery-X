@@ -41,6 +41,7 @@ export interface ClaudeRequest {
   messages: ClaudeMessage[];
   tools?: ClaudeTool[];
   stream?: boolean;
+  temperature?: number;
 }
 
 export interface ClaudeResponse {
@@ -138,6 +139,7 @@ export async function callClaude(
     messages: request.messages,
     tools: request.tools,
     stream: false,
+    ...(request.temperature !== undefined && { temperature: request.temperature }),
   });
 
   return response.json() as Promise<ClaudeResponse>;
