@@ -491,7 +491,10 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
           {isIdea && ideaId && (
             <button
               type="button"
-              onClick={() => setDiscoveryModalOpen(true)}
+              onClick={() => {
+                console.log("[DX] Discovery 전환 clicked", { ideaId, discoveryModalOpen });
+                setDiscoveryModalOpen(true);
+              }}
               className="shrink-0 rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-fg transition-colors hover:bg-surface-secondary"
             >
               Discovery 전환
@@ -500,7 +503,10 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
           {isIdea && (
             <button
               type="button"
-              onClick={() => setProposalModalOpen(true)}
+              onClick={() => {
+                console.log("[DX] 사업 제안하기 clicked", { ideaId, proposalModalOpen });
+                setProposalModalOpen(true);
+              }}
               className="shrink-0 rounded-lg bg-surface-brand px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
             >
               사업 제안하기
