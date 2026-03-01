@@ -427,7 +427,7 @@ build/
 - **테이블**: 93개 (+1: ai_pipeline_runs)
 - **Agent 도구**: 50개 (+3 Matrix P2: query_matrix_heatmap/get_cell_signals/get_top_cells, schema: 9 도메인 파일)
 - **코드**: ~64,712줄 (403파일) — 세션 276 ontology extractor 개선 (+148줄)
-- **테스트**: 1,372개 (93 test files, 로컬 통과)
+- **테스트**: 1,395개 (95 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공

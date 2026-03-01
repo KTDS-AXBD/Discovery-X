@@ -3,6 +3,16 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 277 (2026-03-01)
+**test: approve-decision + create-discovery-from-idea 통합 테스트 + /team TUI 모드**:
+- ✅ `approve-decision.test.ts` 작성 (17 tests): ApprovalDecisionSchema, approve/reject 플로우, PENDING 가드, reviewer 권한, comment, event log, GATE1 상태 전환
+- ✅ `create-discovery-from-idea.test.ts` 작성 (6 tests): idea→discovery 변환, title/seedSummary 매핑, experiment 데이터, ownerId 할당
+- ✅ `/team` 스킬 SKILL.md 업데이트: `claude -p` → `claude` (인터랙티브 TUI 모드), `| tee` 제거
+- ✅ 테스트 1,372 → 1,395 (95 files, 100% PASS)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 테스트 1,395/1,395 PASS
+
 ### 세션 276 (2026-03-01)
 **feat: ontology-intelligence PDCA 완료 (93%) — extractor 개선 + bkit 상태 마이그레이션**:
 - ✅ `/pdca analyze ontology-intelligence` 갭 분석 실행 → 85% (5 gaps: 3 MEDIUM, 2 LOW)
