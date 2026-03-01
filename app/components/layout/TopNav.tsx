@@ -25,7 +25,6 @@ interface RootLoaderData {
   } | null;
   tenant: TenantInfo | null;
   tenantList: TenantInfo[];
-  simplifiedNav?: boolean;
 }
 
 const NAV_TABS = [
@@ -222,10 +221,7 @@ export function TopNav({ user }: TopNavProps) {
 
           {/* Desktop tab navigation */}
           <div className="hidden items-center gap-1 sm:flex">
-            {(rootData?.simplifiedNav
-              ? NAV_TABS.filter((t) => ["/dashboard", "/ideas"].includes(t.to))
-              : NAV_TABS
-            ).map((tab) => {
+            {NAV_TABS.map((tab) => {
               const isActive = location.pathname === tab.to || location.pathname.startsWith(tab.to + "/");
               return (
                 <Link
