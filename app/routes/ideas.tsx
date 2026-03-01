@@ -4,7 +4,8 @@ import { Outlet, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { IdeaService, RadarService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { AppShell } from "~/components/layout/AppShell";
+import { SidebarProvider } from "~/lib/context/sidebar-context";
+import { TopNav } from "~/components/layout/TopNav";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   try {
@@ -65,8 +66,13 @@ export default function IdeasLayout() {
   const { user, ideaList, allItems } = useLoaderData<typeof loader>();
 
   return (
-    <AppShell user={user} hideSidebar>
-      <Outlet context={{ user, ideaList, allItems }} />
-    </AppShell>
+    <SidebarProvider>
+      <div className="flex h-screen flex-col bg-surface-deep">
+        <TopNav user={user} />
+        <div className="flex-1 overflow-hidden">
+          <Outlet context={{ user, ideaList, allItems }} />
+        </div>
+      </div>
+    </SidebarProvider>
   );
 }
