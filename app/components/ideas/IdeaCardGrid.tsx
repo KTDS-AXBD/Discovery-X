@@ -11,15 +11,26 @@ const ANALYSIS_CATEGORIES = [
   "feasibility",
 ] as const;
 
-const DOT_COLORS = [
-  "bg-violet-500",
-  "bg-orange-500",
-  "bg-blue-500",
-  "bg-emerald-500",
-  "bg-rose-500",
-  "bg-amber-500",
-  "bg-cyan-500",
-  "bg-pink-500",
+// 단계별 색상 매핑 (와이어프레임 기준)
+const STAGE_COLORS: Record<number, { bg: string; text: string; dot: string; border: string }> = {
+  0: { bg: "bg-surface-secondary", text: "text-fg-tertiary", dot: "bg-fg-tertiary", border: "border-line" },
+  1: { bg: "bg-blue-50 dark:bg-blue-950/40", text: "text-blue-700 dark:text-blue-300", dot: "bg-blue-500", border: "border-blue-200 dark:border-blue-800" },
+  2: { bg: "bg-indigo-50 dark:bg-indigo-950/40", text: "text-indigo-700 dark:text-indigo-300", dot: "bg-indigo-500", border: "border-indigo-200 dark:border-indigo-800" },
+  3: { bg: "bg-purple-50 dark:bg-purple-950/40", text: "text-purple-700 dark:text-purple-300", dot: "bg-purple-500", border: "border-purple-200 dark:border-purple-800" },
+  4: { bg: "bg-amber-50 dark:bg-amber-950/40", text: "text-amber-700 dark:text-amber-300", dot: "bg-amber-500", border: "border-amber-200 dark:border-amber-800" },
+  5: { bg: "bg-teal-50 dark:bg-teal-950/40", text: "text-teal-700 dark:text-teal-300", dot: "bg-teal-500", border: "border-teal-200 dark:border-teal-800" },
+  6: { bg: "bg-green-50 dark:bg-green-950/40", text: "text-green-700 dark:text-green-300", dot: "bg-green-500", border: "border-green-200 dark:border-green-800" },
+  7: { bg: "bg-emerald-50 dark:bg-emerald-950/40", text: "text-emerald-700 dark:text-emerald-300", dot: "bg-emerald-500", border: "border-emerald-200 dark:border-emerald-800" },
+};
+
+const STAGE_LABELS = [
+  "소스 선택",
+  "AI 분석",
+  "아이디어 초안",
+  "상세 작성",
+  "검토",
+  "협업",
+  "완료",
 ] as const;
 
 interface IdeaItem {
@@ -50,28 +61,42 @@ function getCompletedCount(analysisData: Record<string, unknown> | null): number
   return count;
 }
 
-function getStatusBadge(completed: number): { label: string; variant: "success" | "warning" | "info" } {
-  if (completed >= 7) return { label: `완료 ${completed}/7`, variant: "success" };
-  if (completed >= 5) return { label: `검토 ${completed}/7`, variant: "warning" };
-  return { label: `초안 ${completed}/7`, variant: "info" };
+function getStageLabel(completed: number): string {
+  if (completed >= 7) return STAGE_LABELS[6];
+  if (completed >= 5) return STAGE_LABELS[4];
+  if (completed >= 3) return STAGE_LABELS[3];
+  if (completed >= 1) return STAGE_LABELS[2];
+  return STAGE_LABELS[0];
 }
 
-const BADGE_STYLES = {
-  success: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-  warning: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-  info: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-} as const;
+function getTimeAgo(createdAt: string | number | null): string {
+  if (!createdAt) return "";
+  const now = Date.now();
+  const ts = typeof createdAt === "number" ? createdAt * 1000 : new Date(createdAt).getTime();
+  if (isNaN(ts)) return "";
+  const diffMs = now - ts;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  const diffMonths = Math.floor(diffMs / 2592000000);
 
-function ProgressDots({ completed, colorIndex }: { completed: number; colorIndex: number }) {
-  const color = DOT_COLORS[colorIndex % DOT_COLORS.length];
+  if (diffMins < 1) return "방금";
+  if (diffMins < 60) return `${diffMins}분 전`;
+  if (diffHours < 24) return `${diffHours}시간 전`;
+  if (diffDays < 30) return `${diffDays}일 전`;
+  return `${diffMonths}개월 전`;
+}
+
+function ProgressDots({ completed }: { completed: number }) {
+  const sc = STAGE_COLORS[Math.min(completed, 7)] || STAGE_COLORS[0];
   return (
-    <div className="flex items-center gap-0.5">
+    <div className="flex shrink-0 items-center gap-0.5">
       {Array.from({ length: 7 }).map((_, i) => (
         <div
           key={i}
           className={cn(
-            "h-1.5 w-1.5 rounded-full transition-colors",
-            i < completed ? color : "bg-line"
+            "h-1.5 w-1.5 rounded-full",
+            i < completed ? sc.dot : "bg-line"
           )}
         />
       ))}
@@ -79,31 +104,53 @@ function ProgressDots({ completed, colorIndex }: { completed: number; colorIndex
   );
 }
 
-function IdeaCard({ idea, index }: { idea: IdeaItem; index: number }) {
+function IdeaRow({ idea }: { idea: IdeaItem }) {
   const completed = getCompletedCount(idea.analysisData);
-  const badge = getStatusBadge(completed);
+  const stageLabel = getStageLabel(completed);
+  const sc = STAGE_COLORS[Math.min(completed, 7)] || STAGE_COLORS[0];
+  const timeAgo = getTimeAgo(idea.createdAt);
 
   return (
     <Link
       to={`/ideas/${idea.id}`}
-      className="group flex flex-col gap-2 rounded-xl border border-line bg-surface-card px-4 py-3 transition-all hover:border-fg-tertiary hover:bg-surface-card-hover hover:shadow-sm"
+      className="group flex h-[42px] items-center gap-3 rounded-lg border border-line bg-surface-card px-4 transition-colors hover:border-fg-tertiary hover:bg-surface-card-hover"
     >
-      <ProgressDots completed={completed} colorIndex={index} />
-      <div className="flex items-center gap-1.5">
-        <span className="truncate text-sm font-medium text-fg">
-          {idea.title}
+      {/* 진행도 dots */}
+      <ProgressDots completed={completed} />
+
+      {/* 제목 */}
+      <span className="flex-1 truncate text-sm text-fg">
+        {idea.title}
+      </span>
+
+      {/* AI 배지 */}
+      {idea.createdByAgent === 1 && (
+        <span className="shrink-0 rounded border border-violet-300 px-1 py-0.5 text-[10px] font-medium text-violet-600 dark:border-violet-700 dark:text-violet-400">
+          AI
         </span>
-        {idea.createdByAgent === 1 && (
-          <span className="shrink-0 rounded border border-violet-300 px-1 py-0.5 text-[10px] font-medium text-violet-600 dark:border-violet-700 dark:text-violet-400">
-            AI
-          </span>
+      )}
+
+      {/* 단계 배지 */}
+      <span
+        className={cn(
+          "inline-flex shrink-0 items-center gap-1.5 rounded border px-2 py-0.5 text-[10px]",
+          sc.bg, sc.text, sc.border
         )}
-      </div>
-      <div className="flex items-center justify-between">
-        <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", BADGE_STYLES[badge.variant])}>
-          {badge.label}
+      >
+        <span className={cn("h-1.5 w-1.5 rounded-full", sc.dot)} />
+        {stageLabel}
+        <span className="opacity-60">{completed}/7</span>
+      </span>
+
+      {/* 시간 */}
+      {timeAgo && (
+        <span className="flex shrink-0 items-center gap-0.5 text-[10px] text-fg-tertiary">
+          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          {timeAgo}
         </span>
-      </div>
+      )}
     </Link>
   );
 }
@@ -118,32 +165,29 @@ function NewIdeaButton() {
       <button
         type="submit"
         disabled={isCreating}
-        className="flex h-full min-h-[88px] w-full flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-line bg-transparent px-4 py-3 text-fg-tertiary transition-colors hover:border-fg-tertiary hover:bg-surface-secondary hover:text-fg-secondary disabled:opacity-50"
+        className="flex items-center gap-1.5 rounded bg-fg px-3 py-1.5 text-xs font-medium text-surface-deep transition-opacity hover:opacity-80 disabled:opacity-50"
       >
-        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
         </svg>
-        <span className="text-xs font-medium">{isCreating ? "생성 중..." : "새 아이디어"}</span>
+        {isCreating ? "생성 중..." : "새 아이디어"}
       </button>
     </fetcher.Form>
   );
 }
 
-export function IdeaCardGrid({ myIdeas, teamIdeas, userName }: IdeaCardGridProps) {
+export function IdeaCardGrid({ myIdeas, teamIdeas }: IdeaCardGridProps) {
   return (
-    <div className="grid gap-6 md:grid-cols-2">
-      {/* 내 아이디어 */}
-      <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-fg">내 아이디어</h2>
-          {userName && (
-            <span className="text-xs text-fg-tertiary">{userName}</span>
-          )}
-        </div>
-        <div className="grid gap-2">
+    <div className="flex gap-8">
+      {/* 내 아이디어 Column */}
+      <section className="min-w-0 flex-1">
+        <div className="mb-3 flex items-center justify-between border-b border-line-muted pb-3">
+          <h2 className="text-base font-bold text-fg">내 아이디어</h2>
           <NewIdeaButton />
-          {myIdeas.map((idea, i) => (
-            <IdeaCard key={idea.id} idea={idea} index={i} />
+        </div>
+        <div className="space-y-2">
+          {myIdeas.map((idea) => (
+            <IdeaRow key={idea.id} idea={idea} />
           ))}
           {myIdeas.length === 0 && (
             <p className="py-4 text-center text-xs text-fg-tertiary">
@@ -153,15 +197,15 @@ export function IdeaCardGrid({ myIdeas, teamIdeas, userName }: IdeaCardGridProps
         </div>
       </section>
 
-      {/* 팀 아이디어 */}
-      <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-fg">팀 아이디어</h2>
+      {/* 팀 아이디어 Column */}
+      <section className="min-w-0 flex-1">
+        <div className="mb-3 flex items-center justify-between border-b border-line-muted pb-3">
+          <h2 className="text-base font-bold text-fg">팀 아이디어</h2>
           <span className="text-xs text-fg-tertiary">{teamIdeas.length}개</span>
         </div>
-        <div className="grid gap-2">
-          {teamIdeas.map((idea, i) => (
-            <IdeaCard key={idea.id} idea={idea} index={i + myIdeas.length} />
+        <div className="space-y-2">
+          {teamIdeas.map((idea) => (
+            <IdeaRow key={idea.id} idea={idea} />
           ))}
           {teamIdeas.length === 0 && (
             <p className="py-4 text-center text-xs text-fg-tertiary">

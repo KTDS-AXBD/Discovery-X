@@ -33,7 +33,7 @@ export default function ProposalsLayout() {
     <AppShell user={user} hideSidebar>
       <div className="flex h-full flex-col">
         {!isDetailPage && <ProposalTabNav />}
-        <div className="flex-1 overflow-y-auto">
+        <div className={`flex-1 ${isDetailPage ? "overflow-hidden" : "overflow-y-auto"}`}>
           <Outlet />
         </div>
       </div>

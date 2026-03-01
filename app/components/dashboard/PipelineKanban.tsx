@@ -33,10 +33,10 @@ function daysSince(dateStr: string | null): number | null {
 }
 
 const COLUMNS = [
-  { key: "ideas", label: "아이디어", color: "var(--axis-chart-bar)" },
-  { key: "proposal", label: "사업 제안", color: "var(--axis-badge-secondary-text, #374151)" },
-  { key: "formalization", label: "형상화", color: "var(--axis-badge-warning-text, #92400E)" },
-  { key: "validation", label: "검증", color: "var(--axis-badge-purple-text, #6B21A8)" },
+  { key: "ideas", label: "아이디어" },
+  { key: "proposal", label: "사업 제안" },
+  { key: "formalization", label: "형상화" },
+  { key: "validation", label: "검증" },
 ] as const;
 
 type ColumnItem = {
@@ -83,7 +83,7 @@ export function PipelineKanban({ discoveries, proposals }: PipelineKanbanProps) 
     });
   }
 
-  const columns: { key: string; label: string; color: string; items: ColumnItem[] }[] = [
+  const columns: { key: string; label: string; items: ColumnItem[] }[] = [
     { ...COLUMNS[0], items: mapDiscoveries(activeDiscoveries) },
     { ...COLUMNS[1], items: mapProposals(proposalItems) },
     { ...COLUMNS[2], items: mapProposals(formalizationItems) },
@@ -91,56 +91,38 @@ export function PipelineKanban({ discoveries, proposals }: PipelineKanbanProps) 
   ];
 
   return (
-    <div className="dx-panel p-5">
-      <h3 className="mb-4 text-base font-bold text-fg">
-        파이프라인
-      </h3>
+    <div className="dx-panel px-6 py-6">
+      <h2 className="mb-4 text-base font-semibold text-fg">파이프라인</h2>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-4 gap-6">
         {columns.map((col) => (
-          <div key={col.key} className="flex flex-col">
-            {/* Header */}
-            <div className="mb-3 flex items-center gap-2">
-              <span
-                className="inline-block h-2 w-2 rounded-full"
-                style={{ backgroundColor: col.color }}
-              />
-              <span className="text-sm font-semibold text-fg">
-                {col.label}
+          <div key={col.key}>
+            {/* Column Header */}
+            <h3 className="mb-3 text-sm font-semibold text-fg">
+              {col.label}{" "}
+              <span className="font-normal text-fg-tertiary">
+                ({col.items.length})
               </span>
-              <span className="rounded-full bg-surface-secondary px-2 py-0.5 text-xs font-medium text-fg-secondary">
-                {col.items.length}
-              </span>
-            </div>
+            </h3>
 
-            {/* Items */}
-            <div className="space-y-1">
+            {/* Column Items */}
+            <div>
               {col.items.length === 0 ? (
-                <p className="py-3 text-center text-xs text-fg-tertiary">
-                  항목 없음
-                </p>
+                <div className="py-2 text-xs text-fg-tertiary">
+                  진행 중인 항목 없음
+                </div>
               ) : (
                 col.items.map((item) => (
                   <Link
                     key={item.id}
                     to={item.link}
                     className={cn(
-                      "flex items-center gap-2 rounded px-2.5 py-2 text-sm transition-colors",
-                      "text-fg hover:bg-surface-secondary/50",
-                      "border border-transparent",
-                      item.isDelayed && "border-badge-destructive-bg",
+                      "block border-b border-line py-2 text-xs last:border-b-0",
+                      "text-fg-secondary transition-colors hover:text-fg",
+                      item.isDelayed && "text-badge-destructive-text",
                     )}
                   >
-                    <span
-                      className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: col.color }}
-                    />
-                    <span className="min-w-0 flex-1 truncate">{item.title}</span>
-                    {item.isDelayed && item.delayDays !== null && (
-                      <span className="shrink-0 rounded bg-badge-destructive-bg px-1.5 py-0.5 text-[10px] font-medium text-badge-destructive-text">
-                        {item.delayDays}d
-                      </span>
-                    )}
+                    {item.title}
                   </Link>
                 ))
               )}

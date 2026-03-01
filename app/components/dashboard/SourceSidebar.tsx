@@ -14,58 +14,53 @@ interface SourceSidebarProps {
 
 export function SourceSidebar({ items, selectedItemId, viewedItemIds, onSelect }: SourceSidebarProps) {
   return (
-    <div className="dx-panel flex flex-col overflow-hidden" style={{ height: "calc(100vh - var(--dx-nav-height) - 7rem)" }}>
-      <div className="shrink-0 border-b border-line px-4 py-3">
-        <h3 className="text-sm font-semibold text-fg">
+    <aside className="flex w-96 shrink-0 flex-col overflow-hidden border-r border-line bg-surface">
+      <div className="shrink-0 border-b border-line px-6 py-4">
+        <h2 className="text-sm font-semibold text-fg">
           최근 수집 소스
           <span className="ml-1.5 text-xs font-normal text-fg-tertiary">
             ({items.length})
           </span>
-        </h3>
+        </h2>
       </div>
-      <div className="flex-1 overflow-y-auto">
-        {items.map((item) => {
-          const isSelected = selectedItemId === item.id;
-          const isViewed = viewedItemIds.has(item.id);
-          return (
-            <div
-              key={item.id}
-              role="button"
-              tabIndex={0}
-              onClick={() => onSelect(item.id)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  onSelect(item.id);
-                }
-              }}
-              className={cn(
-                "cursor-pointer border-b border-line px-4 py-2.5 last:border-b-0",
-                "border-l-2 transition-colors",
-                isSelected
-                  ? "border-l-fg-brand bg-surface-secondary"
-                  : "border-l-transparent hover:bg-surface-secondary/50",
-              )}
-            >
-              <p
+      <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+        <div>
+          {items.map((item) => {
+            const isSelected = selectedItemId === item.id;
+            const isViewed = viewedItemIds.has(item.id);
+            return (
+              <div
+                key={item.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => onSelect(item.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onSelect(item.id);
+                  }
+                }}
                 className={cn(
-                  "truncate text-sm",
-                  isViewed
-                    ? "font-normal text-fg-tertiary"
+                  "cursor-pointer border-b border-line py-3 text-xs leading-relaxed transition-colors last:border-b-0",
+                  isSelected
+                    ? "border-l-2 border-l-fg-brand bg-surface-secondary pl-3"
+                    : "pl-0 hover:text-fg",
+                  isViewed && !isSelected
+                    ? "text-fg-tertiary"
                     : "font-medium text-fg",
                 )}
               >
                 {displayTitle(item.titleKo, item.title)}
-              </p>
-            </div>
-          );
-        })}
-        {items.length === 0 && (
-          <p className="py-4 text-center text-xs text-fg-tertiary">
-            수집 항목 없음
-          </p>
-        )}
+              </div>
+            );
+          })}
+          {items.length === 0 && (
+            <p className="py-4 text-center text-xs text-fg-tertiary">
+              수집 항목 없음
+            </p>
+          )}
+        </div>
       </div>
-    </div>
+    </aside>
   );
 }

@@ -75,6 +75,7 @@ export default function IdeasLayout() {
       <div className="flex-1 overflow-hidden">
         <Outlet context={{ user, ideaList, allItems }} />
       </div>
+
     </div>
   );
 }

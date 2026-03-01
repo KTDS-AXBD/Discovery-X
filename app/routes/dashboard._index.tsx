@@ -97,7 +97,7 @@ export default function DashboardOverview() {
       <OnboardingGuide state={typedOnboarding} />
 
       {!showOnboarding && (
-        <div className="grid grid-cols-[280px_1fr] gap-4">
+        <div className="flex h-[500px] gap-0 overflow-hidden rounded-lg border border-line">
           {/* Left: Source sidebar */}
           <SourceSidebar
             items={recentCollections.items}
@@ -107,10 +107,12 @@ export default function DashboardOverview() {
           />
 
           {/* Right: Summary */}
-          <SummaryCard
-            item={selectedItem}
-            reaction={selectedItemId ? (reactions[selectedItemId] ?? null) : null}
-          />
+          <div className="flex-1 overflow-hidden">
+            <SummaryCard
+              item={selectedItem}
+              reaction={selectedItemId ? (reactions[selectedItemId] ?? null) : null}
+            />
+          </div>
         </div>
       )}
 

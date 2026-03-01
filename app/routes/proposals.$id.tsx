@@ -53,10 +53,10 @@ export default function ProposalDetailPage() {
         ownerName={ownerName}
       />
 
-      {/* Body: Sidebar + Content */}
+      {/* Body: Sidebar + Content — wireframe 2-column layout */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left sidebar (TOC + Reviews) - hidden on mobile */}
-        <div className="hidden lg:block">
+        <div className="hidden lg:flex">
           <ProposalDetailSidebar
             proposalId={proposal.id}
             sections={sections}
@@ -70,7 +70,7 @@ export default function ProposalDetailPage() {
         </div>
 
         {/* Main content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto bg-surface">
           <ProposalContentView
             proposal={proposal}
             sections={sections}
