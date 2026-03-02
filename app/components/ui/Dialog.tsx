@@ -77,26 +77,47 @@ const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
     const { open, onOpenChange } = useContext(DialogContext);
     const contentRef = useRef<HTMLDivElement>(null);
 
-    // Escape key handler
-    useEffect(() => {
-      if (!open) return;
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === "Escape") onOpenChange(false);
-      };
-      document.addEventListener("keydown", handleKeyDown);
-      return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [open, onOpenChange]);
-
-    // Focus trap — focus content on open
+    // Focus trap — Escape, Tab/Shift+Tab cycling, restore focus on close
     useEffect(() => {
       if (!open || !contentRef.current) return;
       const el = contentRef.current;
       const prev = document.activeElement as HTMLElement | null;
       el.focus();
+
+      const FOCUSABLE =
+        'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          onOpenChange(false);
+          return;
+        }
+        if (e.key === "Tab") {
+          const focusable = Array.from(
+            el.querySelectorAll<HTMLElement>(FOCUSABLE),
+          );
+          if (focusable.length === 0) {
+            e.preventDefault();
+            return;
+          }
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      };
+
+      document.addEventListener("keydown", handleKeyDown);
       return () => {
+        document.removeEventListener("keydown", handleKeyDown);
         prev?.focus?.();
       };
-    }, [open]);
+    }, [open, onOpenChange]);
 
     // Prevent body scroll when open
     useEffect(() => {
