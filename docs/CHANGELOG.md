@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 281 (2026-03-02)
+**fix: Radix Dialog SSR 버그 수정 + 사업제안 마크다운 렌더링**:
+- ✅ Radix Dialog Portal SSR 버그 근본 원인 규명 (`useLayoutEffect` 모듈 로드 시점 평가)
+- ✅ Dialog.tsx를 custom `createPortal` 구현으로 교체 — 모달 정상 동작
+- ✅ DialogContent에 `max-h-[85vh] overflow-y-auto` 추가 — 뷰포트 오버플로 수정
+- ✅ ProposalContentView에 ReactMarkdown 적용 — 마크다운 정상 렌더링
+- ✅ 프로덕션 배포 3회, 모두 사용자 확인 완료
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / CI/CD 배포 성공
+
 ### 세션 280 (2026-03-02)
 **fix: 아이디어 상세 페이지 버튼 디버깅 완료 + 진단 코드 정리**:
 - ✅ "사업 제안하기" / "Discovery 전환" 버튼 Playwright 실제 테스트 — 정상 작동 확인
