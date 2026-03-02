@@ -3,6 +3,16 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 280 (2026-03-02)
+**fix: 아이디어 상세 페이지 버튼 디버깅 완료 + 진단 코드 정리**:
+- ✅ "사업 제안하기" / "Discovery 전환" 버튼 Playwright 실제 테스트 — 정상 작동 확인
+- ✅ 진단 코드 전체 정리: createPortal, useRef, renderCountRef, console.log, state tracking useEffect 제거
+- ✅ test-dialog.tsx, dev-login.tsx, .dev.vars 삭제
+- ✅ CreateDiscoveryModal 원래 Radix Dialog 버전 복원
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러
+
 ### 세션 279 (2026-03-01)
 **chore: 스킬 중복 정리 + Claude Code 자동화 개선 + CLAUDE.md 감사**:
 - ✅ 프로젝트 스킬 6개 삭제 (session-toolkit 플러그인으로 통합 완료)
