@@ -93,7 +93,7 @@ const db = getDb(context.DB);
 
 ### SSR 외부화 (vite.config.ts)
 - `ssr.external`: `resend`, `mailparser`, `@zone-eu/mailsplit`, `libmime`
-- `ssr.noExternal`: `@axis-ds/ui-react`, `@axis-ds/theme`, `@axis-ds/tokens`, `@radix-ui/react-dialog`, `@radix-ui/react-select` (이들은 반드시 번들링해야 SSR 동작)
+- `ssr.noExternal`: `@axis-ds/ui-react`, `@axis-ds/theme`, `@axis-ds/tokens`, `@radix-ui/react-select` (이들은 반드시 번들링해야 SSR 동작)
 
 ### 인증 가드
 ```

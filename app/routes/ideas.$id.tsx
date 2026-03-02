@@ -274,8 +274,6 @@ export default function IdeaDetail() {
     );
   }, [ideaSourceItems]);
 
-  const [_detailSourceId, setDetailSourceId] = useState<string | null>(null);
-
   const handleStartAnalysis = useCallback(async () => {
     if (!ideaId) return;
 
@@ -437,7 +435,6 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
                 onDeleteSource={ideaId ? handleDeleteSource : undefined}
                 onToggleItem={handleToggleSource}
                 onToggleAll={handleToggleAll}
-                onSelectItem={(id) => setDetailSourceId((prev) => (prev === id ? null : id))}
                 isAdding={isAdding}
               />
             </div>

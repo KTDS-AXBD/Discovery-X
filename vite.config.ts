@@ -29,7 +29,6 @@ export default defineConfig({
       "@axis-ds/ui-react",
       "@axis-ds/theme",
       "@axis-ds/tokens",
-      "@radix-ui/react-dialog",
       "@radix-ui/react-select",
     ],
   },
