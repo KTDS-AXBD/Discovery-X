@@ -129,7 +129,7 @@ const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
           aria-modal="true"
           tabIndex={-1}
           className={cn(
-            "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border p-6 shadow-lg duration-200",
+            "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg max-h-[85vh] translate-x-[-50%] translate-y-[-50%] gap-4 border p-6 shadow-lg duration-200 overflow-y-auto",
             "bg-[var(--axis-dialog-content-bg)] border-[var(--axis-dialog-content-border)]",
             "animate-in fade-in-0 zoom-in-95 slide-in-from-left-1/2 slide-in-from-top-[48%]",
             "sm:rounded-lg",
