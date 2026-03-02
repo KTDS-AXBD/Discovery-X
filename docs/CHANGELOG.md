@@ -3,6 +3,15 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 282 (2026-03-02)
+**chore: Dialog focus trap 완성 + Radix 잔존 정리 + dead state 제거**:
+- ✅ Dialog.tsx focus trap 완성 — Tab/Shift+Tab 순환 + Escape/focus useEffect 통합
+- ✅ @radix-ui/react-dialog 패키지 제거 (package.json, vite.config.ts, CLAUDE.md)
+- ✅ ideas.$id.tsx `_detailSourceId` dead state 제거 (getter 미사용)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
+
 ### 세션 281 (2026-03-02)
 **fix: Radix Dialog SSR 버그 수정 + 사업제안 마크다운 렌더링**:
 - ✅ Radix Dialog Portal SSR 버그 근본 원인 규명 (`useLayoutEffect` 모듈 로드 시점 평가)
