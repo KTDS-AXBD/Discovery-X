@@ -1,3 +1,4 @@
+import ReactMarkdown from "react-markdown";
 import { SECTION_LABELS, SECTION_GROUPS, SECTION_ICONS, resolveSection } from "~/features/proposals/constants";
 
 interface Section {
@@ -61,9 +62,13 @@ export function ProposalContentView({ proposal, sections }: ProposalContentViewP
                       {SECTION_LABELS[type] || type}
                     </h3>
                     <div className="rounded-lg border border-line bg-surface-card p-4">
-                      <p className="whitespace-pre-wrap text-sm leading-relaxed text-fg-secondary">
-                        {content || "내용이 아직 작성되지 않았습니다."}
-                      </p>
+                      {content ? (
+                        <div className="prose prose-sm max-w-none text-fg-secondary prose-headings:text-fg prose-strong:text-fg prose-li:text-fg-secondary">
+                          <ReactMarkdown>{content}</ReactMarkdown>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-fg-tertiary">내용이 아직 작성되지 않았습니다.</p>
+                      )}
                     </div>
                   </section>
                 ))}
