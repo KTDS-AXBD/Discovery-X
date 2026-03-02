@@ -120,8 +120,6 @@ export default function IdeaDetail() {
   // ─── Panel layout ───
   const panel = usePanelLayout();
 
-
-
   // ─── Source selection (multi-select) ───
   const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>([]);
   const [autoMessage, setAutoMessage] = useState<string | null>(null);
