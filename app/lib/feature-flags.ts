@@ -15,6 +15,7 @@ export interface FeatureFlags {
   collabWorker: boolean;
   profileLearner: boolean;
   simplifiedNav: boolean;
+  aiFallback: boolean;
 }
 
 /**
@@ -34,6 +35,7 @@ export function getFeatureFlags(env: Record<string, string | undefined>): Featur
     collabWorker: env.FF_COLLAB_WORKER === "true",
     profileLearner: env.FF_PROFILE_LEARNER === "true",
     simplifiedNav: env.FF_SIMPLIFIED_NAV === "true",
+    aiFallback: env.FF_AI_FALLBACK === "true",
   };
 }
 

@@ -1,0 +1,58 @@
+/**
+ * 크로스 프로바이더 모델 매핑.
+ * Anthropic 모델 ID를 각 프로바이더 대응 모델로 변환한다.
+ */
+
+import type { ProviderId } from "./types";
+
+interface ModelMapping {
+  openai: string;
+  google: string;
+  "workers-ai": string;
+}
+
+/**
+ * Anthropic 모델 → 타 프로바이더 모델 매핑 테이블.
+ * sonnet/haiku 계열을 각각 동급 모델로 대응.
+ */
+const MODEL_MAP: Record<string, ModelMapping> = {
+  // Sonnet 4 계열 → 고성능 모델
+  "claude-sonnet-4-20250514": {
+    openai: "gpt-4o",
+    google: "gemini-2.0-flash",
+    "workers-ai": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+  },
+  // Haiku 계열 → 경량 모델
+  "claude-haiku-4-5-20251001": {
+    openai: "gpt-4o-mini",
+    google: "gemini-2.0-flash-lite",
+    "workers-ai": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+  },
+  // Haiku 3.5 (레거시)
+  "claude-haiku-3-5-20241022": {
+    openai: "gpt-4o-mini",
+    google: "gemini-2.0-flash-lite",
+    "workers-ai": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+  },
+  // Opus 4 → 최고급 모델
+  "claude-opus-4-20250514": {
+    openai: "gpt-4o",
+    google: "gemini-2.0-flash",
+    "workers-ai": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+  },
+};
+
+/** 기본 매핑 (매핑 테이블에 없는 모델의 폴백) */
+const DEFAULT_MAPPING: ModelMapping = {
+  openai: "gpt-4o",
+  google: "gemini-2.0-flash",
+  "workers-ai": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+};
+
+/**
+ * Anthropic 모델 ID를 대상 프로바이더의 모델 ID로 변환.
+ */
+export function mapModel(anthropicModel: string, targetProvider: Exclude<ProviderId, "anthropic">): string {
+  const mapping = MODEL_MAP[anthropicModel] ?? DEFAULT_MAPPING;
+  return mapping[targetProvider];
+}

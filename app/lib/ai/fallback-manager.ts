@@ -1,0 +1,161 @@
+/**
+ * AI Provider Fallback Manager — 체인 로직 + 크레딧 감지 + 상태 관리.
+ *
+ * 호출 흐름:
+ *   getActiveProvider(request) → provider.call(request)
+ *     └─ 실패 시: isCreditExhausted?
+ *          ├─ Yes → markFailed → 다음 프로바이더로 재시도
+ *          └─ No  → 에러 re-throw
+ */
+
+import type { ClaudeRequest, ClaudeResponse, FallbackContext, ProviderId, LLMProvider } from "./types";
+import { anthropicProvider } from "./providers/anthropic";
+import { openaiProvider } from "./providers/openai";
+import { googleProvider } from "./providers/google";
+import { workersAIProvider } from "./providers/workers-ai";
+
+/** 프로바이더 체인 순서 */
+const PROVIDER_CHAIN: ProviderId[] = ["anthropic", "openai", "google", "workers-ai"];
+
+/** 프로바이더 인스턴스 맵 */
+const PROVIDERS: Record<ProviderId, LLMProvider> = {
+  anthropic: anthropicProvider,
+  openai: openaiProvider,
+  google: googleProvider,
+  "workers-ai": workersAIProvider,
+};
+
+/** 프로바이더별 API 키 환경변수 이름 */
+const API_KEY_MAP: Record<ProviderId, string> = {
+  anthropic: "ANTHROPIC_API_KEY",
+  openai: "OPENAI_API_KEY",
+  google: "GOOGLE_AI_API_KEY",
+  "workers-ai": "", // Workers AI는 바인딩 사용
+};
+
+interface FailedProvider {
+  id: ProviderId;
+  failedAt: string;
+  reason: string;
+}
+
+export class FallbackManager {
+  private ctx: FallbackContext;
+  private failedProviders: FailedProvider[] = [];
+
+  constructor(ctx: FallbackContext) {
+    this.ctx = ctx;
+  }
+
+  /**
+   * 비스트리밍 호출 — fallback 체인 적용.
+   */
+  async call(apiKey: string, request: ClaudeRequest): Promise<ClaudeResponse> {
+    const needsTools = !!request.tools && request.tools.length > 0;
+
+    for (const providerId of PROVIDER_CHAIN) {
+      if (this.isProviderFailed(providerId)) continue;
+
+      const provider = PROVIDERS[providerId];
+
+      // 도구 필요 시 미지원 프로바이더 건너뛰기
+      if (needsTools && !provider.capabilities.supportsTools) continue;
+
+      // API 키 확인 (Workers AI 제외)
+      const providerApiKey = this.getApiKey(providerId, apiKey);
+      if (!providerApiKey && providerId !== "workers-ai") continue;
+
+      try {
+        const response = await provider.call(providerApiKey, request);
+
+        // 프로바이더 정보를 응답에 포함 (디버깅/로깅용)
+        if (providerId !== "anthropic") {
+          (response as unknown as Record<string, unknown>)._provider = providerId;
+        }
+
+        return response;
+      } catch (error) {
+        if (!(error instanceof Error)) throw error;
+
+        if (provider.isCreditExhausted(error)) {
+          this.markFailed(providerId, error.message);
+          continue; // 다음 프로바이더로
+        }
+
+        // 크레딧 소진이 아닌 에러 → re-throw
+        throw error;
+      }
+    }
+
+    // 모든 프로바이더 소진
+    const failedList = this.failedProviders.map((f) => `${f.id}: ${f.reason}`).join("; ");
+    throw new Error(
+      `모든 AI 프로바이더의 크레딧이 소진되었습니다. [${failedList}]`
+    );
+  }
+
+  /**
+   * 스트리밍 호출 — fallback 체인 적용.
+   */
+  async callStream(apiKey: string, request: ClaudeRequest): Promise<ReadableStream<Uint8Array>> {
+    const needsTools = !!request.tools && request.tools.length > 0;
+
+    for (const providerId of PROVIDER_CHAIN) {
+      if (this.isProviderFailed(providerId)) continue;
+
+      const provider = PROVIDERS[providerId];
+
+      // 도구/스트리밍 미지원 건너뛰기
+      if (needsTools && !provider.capabilities.supportsTools) continue;
+      if (!provider.capabilities.supportsStreaming) continue;
+
+      const providerApiKey = this.getApiKey(providerId, apiKey);
+      if (!providerApiKey && providerId !== "workers-ai") continue;
+
+      try {
+        return await provider.callStream(providerApiKey, request);
+      } catch (error) {
+        if (!(error instanceof Error)) throw error;
+
+        if (provider.isCreditExhausted(error)) {
+          this.markFailed(providerId, error.message);
+          continue;
+        }
+
+        throw error;
+      }
+    }
+
+    const failedList = this.failedProviders.map((f) => `${f.id}: ${f.reason}`).join("; ");
+    throw new Error(
+      `스트리밍 가능한 AI 프로바이더가 없습니다. [${failedList}]`
+    );
+  }
+
+  // --- Private ---
+
+  private isProviderFailed(id: ProviderId): boolean {
+    return this.failedProviders.some((f) => f.id === id);
+  }
+
+  private markFailed(id: ProviderId, reason: string): void {
+    this.failedProviders.push({
+      id,
+      failedAt: new Date().toISOString(),
+      reason: reason.slice(0, 200),
+    });
+    console.warn(`[AI Fallback] ${id} 크레딧 소진: ${reason.slice(0, 100)}`);
+  }
+
+  /**
+   * 프로바이더별 API 키 조회.
+   * Anthropic은 전달받은 apiKey 사용, 나머지는 환경변수에서 조회.
+   */
+  private getApiKey(providerId: ProviderId, defaultApiKey: string): string {
+    if (providerId === "anthropic") return defaultApiKey;
+    if (providerId === "workers-ai") return ""; // 바인딩 사용
+
+    const envKey = API_KEY_MAP[providerId];
+    return (this.ctx.env?.[envKey] as string) || "";
+  }
+}

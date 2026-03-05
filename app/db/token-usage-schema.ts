@@ -16,6 +16,7 @@ export const tokenUsageLogs = sqliteTable(
     costUsd: real("cost_usd").notNull().default(0.0),
     purpose: text("purpose"),
     toolRounds: integer("tool_rounds").notNull().default(0),
+    provider: text("provider").default("anthropic"),
     tenantId: text("tenant_id").references(() => tenants.id),
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()

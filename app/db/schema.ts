@@ -583,6 +583,7 @@ export const agentConfig = sqliteTable("agent_config", {
   tokensUsedToday: integer("tokens_used_today").notNull().default(0),
   tokenResetDate: text("token_reset_date"), // YYYY-MM-DD
   modelId: text("model_id"), // nullable — defaults to CLAUDE_MODEL
+  aiProviderState: text("ai_provider_state"), // JSON: FallbackState
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),
