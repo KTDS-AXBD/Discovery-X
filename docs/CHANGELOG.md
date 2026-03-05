@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 285 (2026-03-05)
+**feat: PRD v3.1 — 3개 기능 병렬 구현 (F28/F29/F30)**:
+- ✅ F28 AI Agent 응답 품질 고도화 — SOUL 불확실성 처리 규칙 + Evidence 인용 후처리 + Memory 결정 중심 요약 + SOUL 커스터마이징 UI
+- ✅ F29 요구사항 수집/관리 — 마이그레이션 0043 (feature_requests) + Drizzle 스키마 + API 2개 + 카드 뷰 UI + TopNav 탭
+- ✅ F30 앱 내 온보딩 튜토리얼 — 마이그레이션 0044 (users 온보딩 컬럼) + 3단계 모달 + API + root.tsx 연결
+- ✅ SPEC.md v3.1 반영 (In-scope, 페이지 맵, 데이터 모델, 미래 작업)
+- ✅ 3-worker 병렬 구현 (/team 스킬) — 파일 충돌 없이 통합
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
+
 ### 세션 284 (2026-03-05)
 **chore: AI Fallback 프로덕션 활성화**:
 - ✅ DB 마이그레이션 0042 프로덕션 적용 (ai_provider_state, provider 컬럼)

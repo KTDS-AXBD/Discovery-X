@@ -44,6 +44,10 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 - 아이디어 워크스페이스: ideas 테이블 + 멀티소스 그룹핑 + 전용 헤더 레이아웃 + 12종 방법론 카드 + 사업 제안 모달 + 소스 상세/삭제 + 분석 시작 플로우 + NotebookLM 스타일 멀티소스 선택 + 선택 기반 분석/채팅 + 좌우 패널 리사이즈/토글 + 제목 인라인 편집 + AI 제목 추천 + 방법론 카드 마크다운 렌더링 + SSE 전용 분석 API (chat agent 루프 우회, 카테고리별 직접 Claude 호출) + 분석 진행률 UI + 소스 Drag & Drop 추가/제거 + 분석 sourceIds 추적 및 stale 감지 + 아이디어→사업제안 생성 플로우 (분석 데이터 매핑, 12 카테고리→10 섹션) (v6.2→v6.14)
 - 토큰 사용량 모니터링 (관리자): token_usage_logs 테이블 + 일별 사용량 차트 (모드별 스택 바) + 최근 로그 테이블 + 관리자 API (v6.12)
 - AI 동료 파이프라인 + 인간 워크플로우 개선 (v6.25): Radar→Ideas→Discovery 자동 파이프라인 (system-agent, HYPOTHESIS까지) + Ideas→Discovery 수동 전환 + AI Discovery 인수(claim) 플로우 + ai_pipeline_runs 테이블
+- v3.1 소규모 업데이트 (PRD v3.1):
+  - 앱 내 온보딩 튜토리얼: 최초 접속 감지 → 3단계 spotlight 모달 (파이프라인/아이디어→제안/협업) + Skip/재실행 지원
+  - 요구사항 수집/관리: feature_requests 테이블 + 4단계 상태(OPEN→IN_REVIEW→ACCEPTED/REJECTED) + 카드 뷰 + 필터
+  - AI Agent 응답 품질 고도화: Evidence 자동 인용 + '모름' 명시 강화 + Memory 결정 중심 요약 + SOUL 커스터마이징 UI
 - Architecture Upgrade (v3 PRD): Graph-First + Topic-Scoped + Durable Agent 기반
   - Graph Layer: JSON-LD 정본 + GraphQueryEngine + Projection (v3 P0-P1)
   - Durable Agent Runtime: AgentSession DO + SSE + Memory Lifecycle (v3 P1)
@@ -235,8 +239,16 @@ Flow K: Ideas → Discovery 수동 전환 (v6.25)
 - `/api/agent/sessions` — 세션 CRUD API (GET 목록 + POST 생성)
 
 **Profile (1 page + 1 API)**
-- `/profile` — Graph 기반 프로필 편집 (기본정보/전문분야/관심분야 + USER.md Projection 미리보기)
+- `/profile` — Graph 기반 프로필 편집 (기본정보/전문분야/관심분야 + USER.md Projection 미리보기 + 나의 Agent 설정)
 - `/api/profile/graph` — 프로필 Graph API (GET/PUT/PATCH)
+
+**Requests (1 page + 2 API)** *(v3.1)*
+- `/requests` — 요구사항 목록 (카드 뷰, 상태/우선순위 필터, 생성 폼)
+- `/api/requests` — 요구사항 API (GET 목록 + POST 생성)
+- `/api/requests/:id` — 요구사항 상세 API (GET + PATCH 상태변경 + DELETE)
+
+**Onboarding API (1 API)** *(v3.1)*
+- `/api/onboarding` — 온보딩 완료/재시작 API (PATCH)
 
 **Topics (3 pages + 9 API)**
 - `/topics` — Topic 목록 레이아웃 (280px 사이드바 + Outlet)
@@ -367,7 +379,8 @@ root.tsx
 | Matrix | 7 | industries, functions, matrix_cells, individual_scores, consensus_scores, cell_topic_map, scoring_config |
 | Worker/Infra | 2 | notification_queue, cron_logs |
 | FTS | 1 | discoveries_fts |
-| **합계** | **93** | |
+| Requests | 1 | feature_requests *(v3.1)* |
+| **합계** | **94** | |
 
 ### Agent 시스템 (52개 도구)
 
@@ -420,13 +433,13 @@ build/
 ### 버전
 - **프로토타입**: v6.26.0 — PIVOT 핵심 루프 + 온보딩 플로우 (세션 269)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 43개 마이그레이션 (0000~0042), 로컬+프로덕션 적용 완료
+- **DB**: 45개 마이그레이션 (0000~0044), 로컬 적용 대기 (0043~0044 신규)
 
 ### 주요 지표
-- **라우트**: 151개 (Cron 10개: +ai-pipeline, API +1: ideas.$id.create-discovery)
-- **테이블**: 93개 (+1: ai_pipeline_runs)
+- **라우트**: 155개 (+4: requests, api.requests, api.requests.$id, api.onboarding)
+- **테이블**: 94개 (+1: feature_requests)
 - **Agent 도구**: 50개 (+3 Matrix P2: query_matrix_heatmap/get_cell_signals/get_top_cells, schema: 9 도메인 파일)
-- **코드**: ~64,712줄 (403파일) — 세션 276 ontology extractor 개선 (+148줄)
+- **코드**: ~67,822줄 (419파일) — 세션 285 PRD v3.1 3개 기능 구현 (+3,110줄)
 - **테스트**: 1,433개 (101 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
@@ -533,4 +546,7 @@ build/
 | F25 | 온톨로지 인텔리전스 Phase 3 (BFS 영향 전파 + LLM 시나리오 + 스냅샷 비교 + 시뮬레이션 UI) | v5.3 | ✅ | 9 |
 | F26 | 아이디어 워크스페이스 리디자인 (ideas 테이블 + 전용 헤더 + 6탭 가젯 + 사업 제안 모달) | v6.2 | ✅ | 15 |
 | F27 | AI 동료 파이프라인 + 인간 워크플로우 (Radar→Ideas→Discovery 자동 + Ideas→Discovery 수동 전환 + AI 인수) | v6.25 | 🔧 | — |
+| F28 | AI Agent 응답 품질 고도화 (Evidence 인용 + '모름' 명시 + Memory 요약 개선 + SOUL 커스터마이징 UI) | v3.1 | 🔧 | 5 |
+| F29 | 요구사항 수집/관리 (feature_requests 테이블 + API 3개 + 카드 뷰 UI) | v3.1 | 🔧 | 7 |
+| F30 | 앱 내 온보딩 튜토리얼 (3단계 spotlight 모달 + 최초 접속 감지 + Skip/재실행) | v3.1 | 🔧 | 6 |
 
