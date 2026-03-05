@@ -420,7 +420,7 @@ build/
 ### 버전
 - **프로토타입**: v6.26.0 — PIVOT 핵심 루프 + 온보딩 플로우 (세션 269)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 42개 마이그레이션 (0000~0041), 로컬+프로덕션 적용 완료
+- **DB**: 43개 마이그레이션 (0000~0042), 로컬+프로덕션 적용 완료
 
 ### 주요 지표
 - **라우트**: 151개 (Cron 10개: +ai-pipeline, API +1: ideas.$id.create-discovery)
@@ -432,10 +432,10 @@ build/
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **부하 테스트**: Artillery v2.0.30 — 4개 시나리오 (health, api-crud, chat-stream, spike)
-- **Feature Flag**: 11개 — **10/11 true** (+aiFallback off by default)
+- **Feature Flag**: 11개 — **11/11 true** (전체 활성화)
 - **@theme inline**: 104 토큰 등록, var() 1,752→122 (93.0% 감소, 163 파일)
 - **@axis-ds 컴포넌트**: 15/28 활용 (Button/Badge/Card/Input/Alert/Dialog/Table/Textarea/Select/SelectItem/SelectTrigger/Label/Skeleton/Separator/Progress)
-- **배포**: 세션 283 배포 완료 (AI Provider Fallback System — FF_AI_FALLBACK=false 안전 배포)
+- **배포**: 세션 284 배포 완료 (AI Fallback 프로덕션 활성화 — FF_AI_FALLBACK=true + 마이그레이션 0042 + GOOGLE_AI_API_KEY)
 - **Cron 등록**: cron-job.org 14개 등록 완료 (ai-pipeline 09:30 KST 포함)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 

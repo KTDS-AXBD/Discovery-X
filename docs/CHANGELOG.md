@@ -3,6 +3,15 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 284 (2026-03-05)
+**chore: AI Fallback 프로덕션 활성화**:
+- ✅ DB 마이그레이션 0042 프로덕션 적용 (ai_provider_state, provider 컬럼)
+- ✅ GOOGLE_AI_API_KEY 프로덕션 시크릿 설정 (wrangler pages secret put)
+- ✅ FF_AI_FALLBACK = "true" 전환 + 프로덕션 배포 완료
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러
+
 ### 세션 283 (2026-03-05)
 **feat: AI Provider Fallback System 전체 구현 (Anthropic → OpenAI → Google → Workers AI)**:
 - ✅ 4개 프로바이더 체인 구축 — 크레딧 소진 시 자동 전환 + isCreditExhausted 감지
