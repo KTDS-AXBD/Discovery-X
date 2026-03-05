@@ -22,6 +22,7 @@ import {
   DialogDescription,
   DialogClose,
 } from "~/components/ui/Dialog";
+import { MarkdownViewer } from "~/components/docs/MarkdownViewer";
 
 const STATUS_LABELS: Record<string, string> = {
   OPEN: "접수",
@@ -308,7 +309,9 @@ export default function RequestsPage() {
                       {STATUS_LABELS[detailItem.status] ?? detailItem.status}
                     </Badge>
                   </div>
-                  <p className="whitespace-pre-wrap text-sm text-fg-secondary">{detailItem.description}</p>
+                  <div className="text-sm text-fg-secondary">
+                    <MarkdownViewer content={detailItem.description} className="prose-xs" />
+                  </div>
                   {detailItem.reason && (
                     <div className="rounded-md bg-surface-secondary p-3 text-sm">
                       <span className="font-medium text-fg">보류 사유: </span>

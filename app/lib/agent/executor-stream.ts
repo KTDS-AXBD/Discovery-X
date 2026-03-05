@@ -209,13 +209,26 @@ export function createAgentStreamResponse(
           if (toolUseBlocks.length === 0 || stopReason !== "tool_use") {
             // 인용 블록 후처리: 도구 결과에서 참조 엔티티 추출
             let finalText = assistantText;
+            const hasGeneralLabel = assistantText.includes("일반 지식 기반 답변");
+            let needsGeneralLabel = false;
+
             if (allToolResults.length > 0) {
               const citations = extractCitationsFromToolResults(allToolResults);
               const citationBlock = buildCitationBlock(citations);
               if (citationBlock) {
                 send(controller, { type: "text_delta", content: citationBlock });
                 finalText += citationBlock;
+              } else if (!hasGeneralLabel) {
+                needsGeneralLabel = true;
               }
+            } else if (!hasGeneralLabel) {
+              needsGeneralLabel = true;
+            }
+
+            if (needsGeneralLabel) {
+              const label = "\n\n> [일반 지식 기반 답변 — Discovery 데이터 미참조]\n";
+              send(controller, { type: "text_delta", content: label });
+              finalText += label;
             }
 
             // No tool calls — save and finish

@@ -3,7 +3,7 @@ import { json } from "@remix-run/cloudflare";
 import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
 import { featureRequests } from "~/features/requests/db/schema";
-import { users } from "~/db/schema";
+import { users, alerts } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 
 function isReviewer(role: string) {
@@ -108,6 +108,16 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
         .update(featureRequests)
         .set(updates)
         .where(eq(featureRequests.id, id));
+
+      // 제출자에게 상태 변경 알림
+      if (existing.submitterId !== ctx.user.id) {
+        await db.insert(alerts).values({
+          id: crypto.randomUUID(),
+          severity: "info",
+          message: `요구사항 "${existing.title}"의 상태가 ${body.status}(으)로 변경되었습니다.`,
+          discoveryId: existing.linkedDiscoveryId,
+        });
+      }
 
       return json({ success: true });
     }
