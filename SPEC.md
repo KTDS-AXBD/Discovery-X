@@ -448,7 +448,7 @@ build/
 - **Feature Flag**: 11개 — **11/11 true** (전체 활성화)
 - **@theme inline**: 104 토큰 등록, var() 1,752→122 (93.0% 감소, 163 파일)
 - **@axis-ds 컴포넌트**: 15/28 활용 (Button/Badge/Card/Input/Alert/Dialog/Table/Textarea/Select/SelectItem/SelectTrigger/Label/Skeleton/Separator/Progress)
-- **배포**: 세션 285 CI/CD 성공 (PRD v3.1 — F28 Agent 품질 + F29 요구사항 관리 + F30 온보딩 튜토리얼)
+- **배포**: 세션 287 — PRD v3.1 Gap 수정 (온보딩 Spotlight + 재실행 + 알림 + 마크다운 + 모름 레이블)
 - **Cron 등록**: cron-job.org 14개 등록 완료 (ai-pipeline 09:30 KST 포함)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 

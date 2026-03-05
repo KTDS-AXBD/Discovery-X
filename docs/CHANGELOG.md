@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 287 (2026-03-06)
+**fix: PRD v3.1 Gap 분석 + 5개 항목 수정**:
+- ✅ F-01 온보딩 Spotlight UI — Dialog → SVG mask spotlight 전환 + TopNav data-onboarding 마커
+- ✅ F-01 /profile 재실행 버튼 — "튜토리얼 다시 보기" + onboardingCompleted 상태 표시
+- ✅ F-02 상태 변경 알림 — api.requests.$id PATCH 후 alerts INSERT
+- ✅ F-02 마크다운 렌더링 — requests.tsx MarkdownViewer 적용
+- ✅ F-03 '모름' 레이블 후처리 — executor-stream 도구 미사용/인용 없음 시 자동 레이블
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
+
 ### 세션 286 (2026-03-06)
 **chore: 마이그레이션 0043~0044 프로덕션 적용 + F29/F30 시각 검증**:
 - ✅ DB 마이그레이션 0043 (feature_requests) + 0044 (user_onboarding) 프로덕션 적용
