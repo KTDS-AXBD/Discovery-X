@@ -427,12 +427,12 @@ build/
 - **테이블**: 93개 (+1: ai_pipeline_runs)
 - **Agent 도구**: 50개 (+3 Matrix P2: query_matrix_heatmap/get_cell_signals/get_top_cells, schema: 9 도메인 파일)
 - **코드**: ~64,712줄 (403파일) — 세션 276 ontology extractor 개선 (+148줄)
-- **테스트**: 1,395개 (95 test files, 로컬 통과)
+- **테스트**: 1,433개 (101 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **부하 테스트**: Artillery v2.0.30 — 4개 시나리오 (health, api-crud, chat-stream, spike)
-- **Feature Flag**: 10개 — **10/10 true** (+simplifiedNav 온보딩 모드)
+- **Feature Flag**: 11개 — **10/11 true** (+aiFallback off by default)
 - **@theme inline**: 104 토큰 등록, var() 1,752→122 (93.0% 감소, 163 파일)
 - **@axis-ds 컴포넌트**: 15/28 활용 (Button/Badge/Card/Input/Alert/Dialog/Table/Textarea/Select/SelectItem/SelectTrigger/Label/Skeleton/Separator/Progress)
 - **배포**: 세션 276 배포 완료 (ontology extractor 개선 — temperature/confidence tier/retry)
