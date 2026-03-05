@@ -8,7 +8,7 @@
 import { eq, and, sql, or, isNull } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { evidence, contextNodes, contextEdges, ontologyTypes, discoveries } from "~/db/schema";
-import { callClaude } from "~/lib/agent/claude-client";
+import { callLLM } from "~/lib/ai";
 import { matchGlobalEntitiesBatch } from "./matcher";
 
 // --- Types ---
@@ -211,7 +211,7 @@ ${existingStr}
   // 최대 2회 재시도 (설계: §4.3 — JSON 파싱 실패 시)
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const response = await callClaude(apiKey, {
+      const response = await callLLM(apiKey, {
         model: "claude-haiku-4-5-20251001",
         max_tokens: 2048,
         temperature: 0.1,

@@ -8,7 +8,9 @@ import type { DB } from "~/db";
 import { ideas } from "~/features/ideas/db/schema";
 import { tokenUsageLogs } from "~/db/token-usage-schema";
 import { agentConfig } from "~/db/schema";
-import { callClaude, CLAUDE_MODEL } from "~/lib/agent/claude-client";
+import { CLAUDE_MODEL } from "~/lib/agent/claude-client";
+import { callLLM } from "~/lib/ai";
+import type { FallbackContext } from "~/lib/ai";
 import { ANALYSIS_CATEGORIES } from "./analysis-prompts";
 
 const INTER_CATEGORY_DELAY_MS = 1500;
@@ -32,6 +34,7 @@ interface AnalyzerOptions {
   categories?: string[];
   sourceIds?: string[];
   onProgress?: (event: AnalysisProgress) => void;
+  env?: Record<string, string | undefined>;
 }
 
 export async function runIdeaAnalysis({
@@ -43,7 +46,9 @@ export async function runIdeaAnalysis({
   categories,
   sourceIds,
   onProgress,
+  env,
 }: AnalyzerOptions): Promise<{ completed: string[]; failed: string[] }> {
+  const aiCtx: FallbackContext | undefined = env ? { env } : undefined;
   // Determine which categories to run
   const targetCategories = categories
     ? ANALYSIS_CATEGORIES.filter((c) => categories.includes(c.category))
@@ -80,7 +85,7 @@ export async function runIdeaAnalysis({
     });
 
     try {
-      const response = await callClaude(apiKey, {
+      const response = await callLLM(apiKey, {
         model: modelId,
         max_tokens: 2048,
         system: cat.systemPrompt,
@@ -90,7 +95,7 @@ export async function runIdeaAnalysis({
             content: `다음 소스를 바탕으로 분석해주세요.\n\n${sourceContext}`,
           },
         ],
-      });
+      }, aiCtx);
 
       const textContent = response.content
         .filter((b) => b.type === "text")

@@ -3,7 +3,7 @@ import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { IdeaService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { callClaude } from "~/lib/agent/claude-client";
+import { callLLM } from "~/lib/ai";
 
 export async function action({ params, request, context }: ActionFunctionArgs) {
   if (request.method !== "POST") {
@@ -48,7 +48,8 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
   }
 
   try {
-    const response = await callClaude(apiKey, {
+    const env = context.cloudflare.env as unknown as Record<string, string | undefined>;
+    const response = await callLLM(apiKey, {
       max_tokens: 100,
       system: "당신은 비즈니스 아이디어 제목 전문가입니다. 주어진 소스들을 분석하여 핵심을 담은 간결한 한국어 제목을 생성합니다.",
       messages: [
@@ -68,7 +69,7 @@ ${analysisKeys.length > 0 ? `## 완료된 분석: ${analysisKeys.join(", ")}` : 
 - 제목만 출력 (설명, 따옴표, 번호 없이)`,
         },
       ],
-    });
+    }, { env });
 
     const textBlock = response.content.find((b) => b.type === "text");
     const suggestedTitle = textBlock?.text?.trim().replace(/^["']|["']$/g, "").slice(0, 200) || "";

@@ -13,7 +13,8 @@ import {
   DiscoveryStatus,
 } from "~/db/schema";
 import { ideas } from "~/features/ideas/db/schema";
-import { callClaude, CLAUDE_MODEL } from "~/lib/agent/claude-client";
+import { CLAUDE_MODEL } from "~/lib/agent/claude-client";
+import { callLLM } from "~/lib/ai";
 
 /** 클러스터링에는 빠른 Haiku 사용 (CF 30초 제한 대응) */
 const FAST_MODEL = "claude-haiku-4-5-20251001";
@@ -268,7 +269,7 @@ export class AIPipelineService {
       .join("\n---\n");
 
     try {
-      const response = await callClaude(this.apiKey, {
+      const response = await callLLM(this.apiKey, {
         model: FAST_MODEL,
         max_tokens: 1024,
         system: CLUSTER_SYSTEM_PROMPT,
@@ -304,7 +305,7 @@ export class AIPipelineService {
       .join("\n");
 
     try {
-      const response = await callClaude(this.apiKey, {
+      const response = await callLLM(this.apiKey, {
         model: CLAUDE_MODEL,
         max_tokens: 1024,
         system: IDEA_GENERATION_SYSTEM_PROMPT,
@@ -342,7 +343,7 @@ export class AIPipelineService {
       .join(", ");
 
     try {
-      const response = await callClaude(this.apiKey, {
+      const response = await callLLM(this.apiKey, {
         model: CLAUDE_MODEL,
         max_tokens: 1024,
         system: DISCOVERY_EVALUATION_SYSTEM_PROMPT,

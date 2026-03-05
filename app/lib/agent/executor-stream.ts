@@ -5,7 +5,9 @@
 
 import type { DB } from "~/db";
 import type { ClaudeContentBlock } from "./claude-client";
-import { callClaudeStream, parseSSEStream } from "./claude-client";
+import { parseSSEStream } from "./claude-client";
+import { callLLMStream } from "~/lib/ai";
+import type { FallbackContext } from "~/lib/ai";
 import { buildConversationContext } from "./context-builder";
 import { buildSystemPrompt, buildIdeaSystemPrompt } from "./system-prompt";
 import { getToolsForAutonomyLevel, IDEA_TOOLS } from "./tool-registry";
@@ -188,13 +190,14 @@ export function createAgentStreamResponse(
         for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
           const contextMessages = await buildConversationContext(db, conversationId, ctx.modelId);
 
-          const rawStream = await callClaudeStream(apiKey, {
+          const aiCtx: FallbackContext | undefined = streamOptions?.env ? { env: streamOptions.env } : undefined;
+          const rawStream = await callLLMStream(apiKey, {
             model: ctx.modelId,
             max_tokens: 4096,
             system: systemPrompt,
             messages: contextMessages,
             tools: filteredTools.length > 0 ? filteredTools : undefined,
-          });
+          }, aiCtx);
 
           const streamResult = await consumeClaudeStream(rawStream, controller, send);
           totalInputTokens += streamResult.inputTokensDelta;

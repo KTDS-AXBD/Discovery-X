@@ -61,6 +61,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
           categories,
           sourceIds,
           onProgress: send,
+          env: context.cloudflare.env as unknown as Record<string, string | undefined>,
         });
 
         send({

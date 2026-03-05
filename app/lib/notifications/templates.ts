@@ -383,3 +383,42 @@ export function buildWeeklySummaryEmail(data: WeeklySummaryData): { subject: str
     `),
   };
 }
+
+// ============================================================================
+// AI CREDIT EXHAUSTION EMAIL
+// ============================================================================
+
+export interface CreditExhaustionData {
+  exhaustedProvider: string;
+  switchedToProvider: string;
+  remainingChain: string[];
+  timestamp: string;
+}
+
+export function buildCreditExhaustionEmail(data: CreditExhaustionData): { subject: string; html: string } {
+  const remainingList = data.remainingChain.length > 0
+    ? data.remainingChain.map((p) => `<li>${p}</li>`).join("")
+    : "<li>없음 (모든 프로바이더 소진)</li>";
+
+  return {
+    subject: `[Discovery-X] AI 크레딧 소진 — 자동 전환: ${data.exhaustedProvider} → ${data.switchedToProvider}`,
+    html: layout(`
+      <h2 style="color: #dc2626;">AI 프로바이더 크레딧 소진</h2>
+      <div class="card">
+        <p><strong>${data.exhaustedProvider}</strong> 프로바이더의 API 크레딧이 소진되어
+        <span class="badge badge-blue">${data.switchedToProvider}</span>으로 자동 전환되었습니다.</p>
+        <p style="font-size: 14px; color: #6b7280;">전환 시각: ${data.timestamp}</p>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-top: 0; font-size: 14px;">남은 폴백 체인</h3>
+        <ul style="margin: 0; padding-left: 20px; font-size: 14px;">${remainingList}</ul>
+      </div>
+
+      <p style="font-size: 14px; color: #6b7280;">
+        소진된 프로바이더의 크레딧을 충전한 후 /settings에서 수동 전환할 수 있습니다.
+      </p>
+      <p><a href="${BASE_URL}/settings" class="btn" style="color: white;">설정 페이지 열기</a></p>
+    `),
+  };
+}

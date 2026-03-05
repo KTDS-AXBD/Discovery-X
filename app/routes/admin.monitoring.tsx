@@ -119,6 +119,7 @@ const FF_LABELS: Record<keyof FeatureFlags, string> = {
   collabWorker: "Collab Worker",
   profileLearner: "Profile Learner",
   simplifiedNav: "Simplified Nav",
+  aiFallback: "AI Fallback",
 };
 
 /** 타임스탬프 → 읽기 쉬운 형태 (hydration-safe) */

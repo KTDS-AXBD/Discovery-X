@@ -10,7 +10,7 @@
 import { eq, and, inArray, ne } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { contextNodes, contextEdges, contextSnapshots, discoveries, ontologyTypes } from "~/db/schema";
-import { callClaude } from "~/lib/agent/claude-client";
+import { callLLM } from "~/lib/ai";
 
 // --- Result Types ---
 
@@ -308,7 +308,7 @@ ${question}`;
 
   // 1차 시도
   try {
-    const response = await callClaude(apiKey, {
+    const response = await callLLM(apiKey, {
       model: "claude-haiku-4-5-20251001",
       max_tokens: 2048,
       system: SCENARIO_SYSTEM_PROMPT,
@@ -324,7 +324,7 @@ ${question}`;
   } catch {
     // 1회 재시도
     try {
-      const response = await callClaude(apiKey, {
+      const response = await callLLM(apiKey, {
         model: "claude-haiku-4-5-20251001",
         max_tokens: 2048,
         system: SCENARIO_SYSTEM_PROMPT + "\n\n중요: 반드시 유효한 JSON만 출력하세요.",

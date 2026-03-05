@@ -4,7 +4,8 @@
  */
 
 import type { DB } from "~/db";
-import { callClaude } from "./claude-client";
+import { callLLM } from "~/lib/ai";
+import type { FallbackContext } from "~/lib/ai";
 import { buildConversationContext } from "./context-builder";
 import { buildSystemPrompt } from "./system-prompt";
 import { getToolsForAutonomyLevel } from "./tool-registry";
@@ -36,8 +37,10 @@ export async function executeAgentTurn(
   conversationId: string,
   userMessage: string,
   onEvent?: (event: AgentEvent) => void,
-  tenantId?: string
+  tenantId?: string,
+  env?: Record<string, string | undefined>,
 ): Promise<ExecuteResult> {
+  const aiCtx: FallbackContext | undefined = env ? { env } : undefined;
   const ctx = await prepareAgentPipeline(db, conversationId, userMessage);
   const systemPrompt = buildSystemPrompt(ctx.agentCfg, ctx.sourceContext);
   const filteredTools = getToolsForAutonomyLevel(ctx.autonomyLevel);
@@ -48,13 +51,13 @@ export async function executeAgentTurn(
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
     const contextMessages = await buildConversationContext(db, conversationId, ctx.modelId);
 
-    const response = await callClaude(apiKey, {
+    const response = await callLLM(apiKey, {
       model: ctx.modelId,
       max_tokens: 4096,
       system: systemPrompt,
       messages: contextMessages,
       tools: filteredTools.length > 0 ? filteredTools : undefined,
-    });
+    }, aiCtx);
 
     totalInputTokens += response.usage.input_tokens;
     totalOutputTokens += response.usage.output_tokens;
