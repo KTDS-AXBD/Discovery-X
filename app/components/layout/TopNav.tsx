@@ -27,10 +27,11 @@ interface RootLoaderData {
   tenantList: TenantInfo[];
 }
 
-const NAV_TABS = [
+const NAV_TABS: { to: string; label: string; icon: React.ReactNode; onboarding?: string }[] = [
   {
     to: "/dashboard",
     label: "대시보드",
+    onboarding: "pipeline",
     icon: (
       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
@@ -40,6 +41,7 @@ const NAV_TABS = [
   {
     to: "/ideas",
     label: "아이디어",
+    onboarding: "idea-to-proposal",
     icon: (
       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
@@ -58,6 +60,7 @@ const NAV_TABS = [
   {
     to: "/lab",
     label: "실험실",
+    onboarding: "collaboration",
     icon: (
       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 0 1-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 0 1 4.5 0m0 0v5.714a2.25 2.25 0 0 0 .659 1.591L19 14.5M14.25 3.104c.251.023.501.05.75.082M19 14.5l-1.46 4.015A2.25 2.25 0 0 1 15.426 20H8.574a2.25 2.25 0 0 1-2.114-1.485L5 14.5m14 0H5" />
@@ -236,6 +239,7 @@ export function TopNav({ user }: TopNavProps) {
                 <Link
                   key={tab.to}
                   to={tab.to}
+                  data-onboarding={tab.onboarding}
                   className={cn(
                     "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-normal",
                     isActive

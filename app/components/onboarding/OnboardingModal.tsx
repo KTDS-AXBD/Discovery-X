@@ -1,12 +1,5 @@
-import { useState, useCallback } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "~/components/ui/Dialog";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "~/components/ui/Button";
 import { OnboardingStep } from "./OnboardingStep";
 
@@ -18,8 +11,49 @@ interface OnboardingModalProps {
 
 const TOTAL_STEPS = 3;
 
+/** 각 step이 spotlight할 대상의 data-onboarding 값 */
+const STEP_TARGETS = ["pipeline", "idea-to-proposal", "collaboration"] as const;
+
+interface SpotlightRect {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+}
+
 export function OnboardingModal({ open, onComplete, onSkip }: OnboardingModalProps) {
   const [step, setStep] = useState(1);
+  const [spotlight, setSpotlight] = useState<SpotlightRect | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // spotlight 대상 요소의 위치를 계산
+  useEffect(() => {
+    if (!open) return;
+
+    function updateSpotlight() {
+      const target = STEP_TARGETS[step - 1];
+      const el = document.querySelector(`[data-onboarding="${target}"]`);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        setSpotlight({
+          top: rect.top - 4,
+          left: rect.left - 4,
+          width: rect.width + 8,
+          height: rect.height + 8,
+        });
+      } else {
+        setSpotlight(null);
+      }
+    }
+
+    updateSpotlight();
+    window.addEventListener("resize", updateSpotlight);
+    window.addEventListener("scroll", updateSpotlight);
+    return () => {
+      window.removeEventListener("resize", updateSpotlight);
+      window.removeEventListener("scroll", updateSpotlight);
+    };
+  }, [open, step]);
 
   const handleNext = useCallback(() => {
     if (step < TOTAL_STEPS) {
@@ -33,40 +67,118 @@ export function OnboardingModal({ open, onComplete, onSkip }: OnboardingModalPro
     if (step > 1) setStep((s) => s - 1);
   }, [step]);
 
-  return (
-    <Dialog open={open} onOpenChange={(v) => !v && onSkip()}>
-      <DialogContent className="max-w-xl">
-        <DialogHeader>
-          <DialogTitle>Discovery-X 시작 가이드</DialogTitle>
-          <DialogDescription>
-            핵심 워크플로우를 {TOTAL_STEPS}단계로 안내합니다.
-          </DialogDescription>
-        </DialogHeader>
+  // 키보드: Esc → skip
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onSkip();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onSkip]);
+
+  if (!open) return null;
+
+  // 카드 위치: spotlight 아래에 배치 (없으면 중앙)
+  const cardStyle: React.CSSProperties = spotlight
+    ? {
+        position: "fixed",
+        top: Math.min(spotlight.top + spotlight.height + 12, window.innerHeight - 400),
+        left: Math.max(8, Math.min(spotlight.left, window.innerWidth - 480)),
+        zIndex: 10001,
+      }
+    : {
+        position: "fixed",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        zIndex: 10001,
+      };
+
+  return createPortal(
+    <>
+      {/* 오버레이 배경 — spotlight 구멍 */}
+      <div className="fixed inset-0 z-[10000]" onClick={onSkip}>
+        <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <mask id="spotlight-mask">
+              <rect x="0" y="0" width="100%" height="100%" fill="white" />
+              {spotlight && (
+                <rect
+                  x={spotlight.left}
+                  y={spotlight.top}
+                  width={spotlight.width}
+                  height={spotlight.height}
+                  rx="6"
+                  fill="black"
+                />
+              )}
+            </mask>
+          </defs>
+          <rect
+            x="0"
+            y="0"
+            width="100%"
+            height="100%"
+            fill="rgba(0,0,0,0.55)"
+            mask="url(#spotlight-mask)"
+          />
+        </svg>
+      </div>
+
+      {/* spotlight 링 — 대상 요소 주변에 하이라이트 */}
+      {spotlight && (
+        <div
+          className="pointer-events-none fixed z-[10000] rounded-md ring-2 ring-[var(--axis-color-primary)] ring-offset-2"
+          style={{
+            top: spotlight.top,
+            left: spotlight.left,
+            width: spotlight.width,
+            height: spotlight.height,
+          }}
+        />
+      )}
+
+      {/* 콘텐츠 카드 */}
+      <div
+        ref={cardRef}
+        className="w-[460px] rounded-xl border border-line bg-surface p-5 shadow-2xl"
+        style={cardStyle}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* 헤더 */}
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-base font-bold text-fg">Discovery-X 시작 가이드</h2>
+          <span className="text-xs text-fg-tertiary">
+            {step} / {TOTAL_STEPS}
+          </span>
+        </div>
 
         {/* Step indicator */}
-        <div className="flex items-center justify-center gap-2 py-2">
+        <div className="mb-4 flex items-center gap-2">
           {Array.from({ length: TOTAL_STEPS }, (_, i) => (
             <div
               key={i}
-              className={`h-2 rounded-full transition-all ${
+              className={`h-1.5 rounded-full transition-all ${
                 i + 1 === step
-                  ? "w-6 bg-[var(--axis-color-primary)]"
+                  ? "w-8 bg-[var(--axis-color-primary)]"
                   : i + 1 < step
-                    ? "w-2 bg-[var(--axis-color-primary)] opacity-50"
-                    : "w-2 bg-[var(--axis-border-default)]"
+                    ? "w-4 bg-[var(--axis-color-primary)] opacity-50"
+                    : "w-4 bg-[var(--axis-border-default)]"
               }`}
             />
           ))}
         </div>
 
         {/* Step content */}
-        <div className="min-h-[240px]">
+        <div className="min-h-[200px]">
           {step === 1 && <StepPipeline />}
           {step === 2 && <StepIdeaToProposal />}
           {step === 3 && <StepCollaboration />}
         </div>
 
-        <DialogFooter className="flex-row justify-between sm:justify-between">
+        {/* 버튼 */}
+        <div className="mt-4 flex items-center justify-between border-t border-line pt-3">
           <div>
             {step > 1 ? (
               <Button variant="ghost" size="sm" onClick={handlePrev}>
@@ -81,9 +193,10 @@ export function OnboardingModal({ open, onComplete, onSkip }: OnboardingModalPro
           <Button size="sm" onClick={handleNext}>
             {step === TOTAL_STEPS ? "시작하기" : "다음"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </div>
+    </>,
+    document.body,
   );
 }
 

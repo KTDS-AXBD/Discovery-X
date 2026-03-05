@@ -85,6 +85,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       name: user.name,
       role: user.role ?? undefined,
     },
+    onboardingCompleted: user.onboardingCompleted === 1,
     graph: graph
       ? {
           id: graph.id,
@@ -338,6 +339,30 @@ export default function Profile() {
             style={data.agentSettings.style}
             customInstructions={data.agentSettings.customInstructions}
           />
+
+          {/* 온보딩 튜토리얼 재실행 */}
+          <div className="rounded-lg border border-line bg-surface p-4">
+            <h3 className="text-sm font-semibold text-fg">온보딩 튜토리얼</h3>
+            <p className="mt-1 text-xs text-fg-secondary">
+              {data.onboardingCompleted
+                ? "튜토리얼을 이미 완료했습니다. 다시 보려면 아래 버튼을 클릭하세요."
+                : "아직 튜토리얼을 완료하지 않았습니다."}
+            </p>
+            <button
+              type="button"
+              className="mt-3 rounded-md border border-line px-3 py-1.5 text-xs font-medium text-fg hover:bg-surface-secondary"
+              onClick={async () => {
+                await fetch("/api/onboarding", {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ action: "restart" }),
+                });
+                window.location.reload();
+              }}
+            >
+              튜토리얼 다시 보기
+            </button>
+          </div>
         </div>
 
         {/* 우측: Projection 미리보기 */}
