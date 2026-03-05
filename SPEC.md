@@ -435,7 +435,7 @@ build/
 - **Feature Flag**: 11개 — **10/11 true** (+aiFallback off by default)
 - **@theme inline**: 104 토큰 등록, var() 1,752→122 (93.0% 감소, 163 파일)
 - **@axis-ds 컴포넌트**: 15/28 활용 (Button/Badge/Card/Input/Alert/Dialog/Table/Textarea/Select/SelectItem/SelectTrigger/Label/Skeleton/Separator/Progress)
-- **배포**: 세션 276 배포 완료 (ontology extractor 개선 — temperature/confidence tier/retry)
+- **배포**: 세션 283 배포 완료 (AI Provider Fallback System — FF_AI_FALLBACK=false 안전 배포)
 - **Cron 등록**: cron-job.org 14개 등록 완료 (ai-pipeline 09:30 KST 포함)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 
