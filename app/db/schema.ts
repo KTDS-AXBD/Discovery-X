@@ -85,6 +85,8 @@ export const users = sqliteTable("users", {
   googleId: text("google_id").unique(),
   avatarUrl: text("avatar_url"),
   role: text("role").notNull().default(UserRole.USER),
+  onboardingCompleted: integer("onboarding_completed").notNull().default(0),
+  onboardingCompletedAt: integer("onboarding_completed_at", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),

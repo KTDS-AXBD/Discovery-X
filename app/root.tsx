@@ -4,7 +4,9 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useRouteLoaderData,
 } from "@remix-run/react";
+import { useState, useCallback } from "react";
 import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
@@ -15,6 +17,7 @@ import { eq, and, desc, inArray, sql } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { ACTIVE_STATUSES } from "~/lib/constants/status";
 import { ThemeProvider } from "@axis-ds/theme";
+import { OnboardingModal } from "~/components/onboarding/OnboardingModal";
 import stylesheet from "~/styles/tailwind.css?url";
 
 export const links: LinksFunction = () => [
@@ -32,7 +35,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     const flags = getFeatureFlags(env);
 
     if (!ctx) {
-      return json({ notifications: null, conversations: [], tenant: null, tenantList: [], simplifiedNav: flags.simplifiedNav });
+      return json({ notifications: null, conversations: [], tenant: null, tenantList: [], simplifiedNav: flags.simplifiedNav, onboardingCompleted: null });
     }
     const user = ctx.user;
 
@@ -113,9 +116,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       tenant: currentTenant ? { id: currentTenant.id, name: currentTenant.name, slug: currentTenant.slug } : null,
       tenantList: userMemberships.map((m) => ({ id: m.tenantId, name: m.tenantName, slug: m.tenantSlug })),
       simplifiedNav: flags.simplifiedNav,
+      onboardingCompleted: user.onboardingCompleted === 1,
     });
   } catch {
-    return json({ notifications: null, conversations: [], tenant: null, tenantList: [] });
+    return json({ notifications: null, conversations: [], tenant: null, tenantList: [], onboardingCompleted: null });
   }
 }
 
@@ -148,9 +152,39 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const data = useRouteLoaderData<typeof loader>("root");
+  const [showOnboarding, setShowOnboarding] = useState(
+    data?.onboardingCompleted === false
+  );
+
+  const handleOnboardingDone = useCallback(async () => {
+    setShowOnboarding(false);
+    await fetch("/api/onboarding", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "complete" }),
+    });
+  }, []);
+
+  const handleOnboardingSkip = useCallback(async () => {
+    setShowOnboarding(false);
+    await fetch("/api/onboarding", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "complete" }),
+    });
+  }, []);
+
   return (
     <ThemeProvider defaultTheme="system" storageKey="dx-theme">
       <Outlet />
+      {showOnboarding && (
+        <OnboardingModal
+          open={showOnboarding}
+          onComplete={handleOnboardingDone}
+          onSkip={handleOnboardingSkip}
+        />
+      )}
     </ThemeProvider>
   );
 }
