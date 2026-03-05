@@ -64,6 +64,15 @@ const NAV_TABS = [
       </svg>
     ),
   },
+  {
+    to: "/requests",
+    label: "요구사항",
+    icon: (
+      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 1 1 0-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38a.75.75 0 0 1-1.003-.275 16.45 16.45 0 0 1-1.442-3.145m2.58-7.254c-.253-.962-.584-1.892-.985-2.783a1.125 1.125 0 0 1 .463-1.511l.657-.38a.75.75 0 0 1 1.003.275 16.45 16.45 0 0 1 1.442 3.145M12 12h.01" />
+      </svg>
+    ),
+  },
 ];
 
 function UserDropdown({ user }: TopNavProps) {
