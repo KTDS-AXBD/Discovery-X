@@ -23,6 +23,7 @@ import {
   MAX_TOOL_ROUNDS,
   type ToolCallResult,
 } from "./agent-pipeline";
+import { extractCitationsFromToolResults, buildCitationBlock } from "./citation-builder";
 
 /** SoulEngine + SessionManager 통합 옵션 (Graph Layer 활성화 시 사용) */
 export interface StreamOptions {
@@ -186,6 +187,7 @@ export function createAgentStreamResponse(
         let totalInputTokens = 0;
         let totalOutputTokens = 0;
         const executedToolNames: string[] = [];
+        const allToolResults: ToolCallResult[] = [];
 
         for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
           const contextMessages = await buildConversationContext(db, conversationId, ctx.modelId);
@@ -205,8 +207,19 @@ export function createAgentStreamResponse(
           const { assistantText, toolUseBlocks, stopReason } = streamResult;
 
           if (toolUseBlocks.length === 0 || stopReason !== "tool_use") {
+            // 인용 블록 후처리: 도구 결과에서 참조 엔티티 추출
+            let finalText = assistantText;
+            if (allToolResults.length > 0) {
+              const citations = extractCitationsFromToolResults(allToolResults);
+              const citationBlock = buildCitationBlock(citations);
+              if (citationBlock) {
+                send(controller, { type: "text_delta", content: citationBlock });
+                finalText += citationBlock;
+              }
+            }
+
             // No tool calls — save and finish
-            await saveAndFinalize(db, conversationId, addSummaryHeader(assistantText), {
+            await saveAndFinalize(db, conversationId, addSummaryHeader(finalText), {
               mode: isIdeasMode ? "ideas" : "default",
               model: ctx.modelId,
               inputTokens: totalInputTokens,
@@ -214,7 +227,7 @@ export function createAgentStreamResponse(
               toolRounds: round,
               tenantId,
             });
-            await flushSessionMemory(db, streamOptions, totalInputTokens, totalOutputTokens, assistantText);
+            await flushSessionMemory(db, streamOptions, totalInputTokens, totalOutputTokens, finalText);
             await sendBudgetWarning(db, controller, send);
             send(controller, { type: "done", tokensUsed: { input: totalInputTokens, output: totalOutputTokens } });
             controller.close();
@@ -226,6 +239,7 @@ export function createAgentStreamResponse(
             db, conversationId, toolUseBlocks, assistantText, ctx.autonomyLevel, tenantId
           );
           sendToolResults(results, controller, send, executedToolNames);
+          allToolResults.push(...results);
 
           // Rate limit mitigation: wait between tool rounds in ideas mode
           if (isIdeasMode && round < MAX_TOOL_ROUNDS - 1) {

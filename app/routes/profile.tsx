@@ -16,6 +16,7 @@ import { ProjectionBuilder } from "~/lib/graph/projection";
 import type { JsonLdGraph, JsonLdNode } from "~/lib/graph/types";
 import { AppShell } from "~/components/layout/AppShell";
 import { ProfileEditor } from "~/components/profile/ProfileEditor";
+import { AgentSettingsEditor } from "~/components/profile/AgentSettingsEditor";
 import { ProjectionPreview } from "~/components/profile/ProjectionPreview";
 
 // ─── 유틸 ──────────────────────────────────────────────────────────────
@@ -64,6 +65,19 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const builder = new ProjectionBuilder(db);
   const projection = await builder.getProjection("user", scopeId, "USER.md");
 
+  // Agent 설정 추출
+  const graphNodes = graph?.jsonld?.["@graph"] ?? [];
+  const agentSettingsNode = graphNodes.find(
+    (n: import("~/lib/graph/types").JsonLdNode) => n["@type"] === "dx:AgentSettings",
+  );
+  const agentSettings = agentSettingsNode
+    ? {
+        language: String(agentSettingsNode["dx:language"] ?? "auto"),
+        style: String(agentSettingsNode["dx:style"] ?? "concise"),
+        customInstructions: String(agentSettingsNode["dx:customInstructions"] ?? ""),
+      }
+    : { language: "auto", style: "concise", customInstructions: "" };
+
   return json({
     user: {
       id: String(user.id),
@@ -89,6 +103,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
             : null,
         }
       : null,
+    agentSettings,
   });
 }
 
@@ -193,6 +208,32 @@ export async function action({ request, context }: ActionFunctionArgs) {
       break;
     }
 
+    case "update-agent-settings": {
+      const language = (formData.get("agentLanguage") as string) ?? "auto";
+      const style = (formData.get("agentStyle") as string) ?? "concise";
+      const customInstructions = (formData.get("customInstructions") as string)?.slice(0, 500) ?? "";
+
+      // dx:AgentSettings 노드 찾기 또는 생성
+      const settingsIdx = graphNodes.findIndex((n) => n["@type"] === "dx:AgentSettings");
+      const settingsNode: import("~/lib/graph/types").JsonLdNode = {
+        "@id": "agent-settings:default",
+        "@type": "dx:AgentSettings",
+        "dx:language": language,
+        "dx:style": style,
+        "dx:customInstructions": customInstructions,
+      };
+
+      if (settingsIdx >= 0) {
+        graphNodes[settingsIdx] = settingsNode;
+      } else {
+        graphNodes.push(settingsNode);
+      }
+
+      await store.update(graphRecord.id, jsonld, "Agent 설정 업데이트", audit);
+      await builder.syncProjection("user", scopeId);
+      break;
+    }
+
     case "sync-projection": {
       await builder.syncProjection("user", scopeId);
       break;
@@ -285,12 +326,17 @@ export default function Profile() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         {/* 좌측: 편집 폼 */}
-        <div>
+        <div className="space-y-6">
           <ProfileEditor
             userName={userName}
             userRole={userRole}
             expertiseNodes={expertiseNodes}
             preferenceNodes={preferenceNodes}
+          />
+          <AgentSettingsEditor
+            language={data.agentSettings.language}
+            style={data.agentSettings.style}
+            customInstructions={data.agentSettings.customInstructions}
           />
         </div>
 

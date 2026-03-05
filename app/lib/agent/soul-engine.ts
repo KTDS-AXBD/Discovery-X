@@ -8,6 +8,7 @@
 
 import type { DB } from "~/db";
 import { ProjectionBuilder } from "~/lib/graph/projection";
+import { GraphStore } from "~/lib/graph/store";
 import { buildSystemPrompt } from "~/lib/agent/system-prompt";
 
 // ─── Autonomy Level 라벨 (v2 호환) ────────────────────────────────────
@@ -54,6 +55,10 @@ const BASE_SOUL_TEMPLATE = `# Discovery-X Agent — SOUL
 - 확신 없는 예측이나 추천
 - 개인정보 유추
 - 외부 시스템 접근 가정
+
+## 불확실성 처리
+- 확인된 데이터나 명시적 지시가 없는 사항에 대해서는 "확실하지 않습니다" 또는 "데이터가 없어 판단하기 어렵습니다"라고 명시하고 추측성 답변을 제공하지 않는다.
+- Discovery 데이터 없이 일반 지식으로 답변할 때는 응답 앞에 [일반 지식 기반 답변 — Discovery 데이터 미참조] 레이블을 표시한다.
 
 ## 응답 형식
 - 마크다운(볼드, 리스트, 코드블록) 적극 활용
@@ -144,7 +149,13 @@ export class SoulEngine {
       sections.push(`${MATRIX_CONTEXT_TEMPLATE}\n\n${matrixMd}`);
     }
 
-    // 6. Autonomy Level 섹션
+    // 6. 사용자 Agent 커스텀 설정
+    const agentSettings = await this.loadAgentSettings();
+    if (agentSettings) {
+      sections.push(agentSettings);
+    }
+
+    // 7. Autonomy Level 섹션
     const autonomySection = this.buildAutonomySection();
     sections.push(autonomySection);
 
@@ -210,6 +221,44 @@ export class SoulEngine {
     }
 
     return result;
+  }
+
+  /** User Graph에서 dx:AgentSettings 노드를 읽어 프롬프트 섹션 생성 */
+  private async loadAgentSettings(): Promise<string | null> {
+    try {
+      const store = new GraphStore(this.db);
+      const graph = await store.getByScopeId("user", this.userId);
+      if (!graph) return null;
+
+      const nodes = graph.jsonld["@graph"];
+      const settings = nodes.find((n) => n["@type"] === "dx:AgentSettings");
+      if (!settings) return null;
+
+      const lang = String(settings["dx:language"] ?? "auto");
+      const style = String(settings["dx:style"] ?? "concise");
+      const custom = String(settings["dx:customInstructions"] ?? "");
+
+      const lines: string[] = ["## 사용자 맞춤 설정"];
+
+      if (lang !== "auto") {
+        lines.push(`- 응답 언어: ${lang === "ko" ? "한국어" : "영어"}`);
+      }
+
+      const styleLabels: Record<string, string> = {
+        concise: "간결하게 핵심만 전달",
+        detailed: "상세한 분석과 설명 포함",
+        "evidence-focused": "근거와 출처를 강조하여 답변",
+      };
+      lines.push(`- 응답 스타일: ${styleLabels[style] ?? styleLabels.concise}`);
+
+      if (custom.trim()) {
+        lines.push(`- 추가 지시사항: ${custom.trim()}`);
+      }
+
+      return lines.join("\n");
+    } catch {
+      return null;
+    }
   }
 
   /** Autonomy Level 섹션 생성 */

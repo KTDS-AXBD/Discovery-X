@@ -17,6 +17,7 @@ import { sql, lte, gte, and, isNull, eq, inArray } from "drizzle-orm";
 import { MemoryLifecycle } from "~/lib/agent/memory-lifecycle";
 import { TokenBudgetManager } from "~/lib/cost/token-budget";
 import { ProjectionBuilder } from "~/lib/graph/projection";
+import { callLLM } from "~/lib/ai";
 import type { DB } from "~/db";
 
 // ============================================================================
@@ -34,6 +35,7 @@ interface CompactResult {
   totalArchived: number;
   totalDeleted: number;
   totalBudgetEnforced: number;
+  merged?: number;
   errors: string[];
 }
 
@@ -107,9 +109,30 @@ async function runLogArchive(db: DB): Promise<LogArchiveResult> {
 // Task: memory-compact — Memory Compaction + 토큰 예산 강제 적용
 // ============================================================================
 
-async function runMemoryCompact(db: DB): Promise<CompactResult> {
+async function runMemoryCompact(db: DB, env: Record<string, string>): Promise<CompactResult> {
   const lifecycle = new MemoryLifecycle(db);
   const budgetManager = new TokenBudgetManager(db);
+  const apiKey = env.ANTHROPIC_API_KEY;
+
+  // 결정 중심 요약 summarizer — API key가 있을 때만 활성
+  const summarizer = apiKey
+    ? async (contents: string[]): Promise<string> => {
+        const joined = contents.join("\n---\n");
+        const res = await callLLM(apiKey, {
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 300,
+          system: "당신은 메모리 요약 전문가입니다.",
+          messages: [
+            {
+              role: "user",
+              content: `다음 대화 기록을 읽고, 대화에서 내려진 결정, 변경된 방향, 식별된 리스크를 중심으로 3문장 이내로 요약하세요.\n\n${joined}`,
+            },
+          ],
+        }, { env });
+        const block = res.content?.[0];
+        return block && "text" in block && block.text ? block.text : joined.slice(0, 200);
+      }
+    : undefined;
 
   const activeUsers = await db
     .select({ id: users.id })
@@ -126,10 +149,11 @@ async function runMemoryCompact(db: DB): Promise<CompactResult> {
 
   for (const user of activeUsers) {
     try {
-      const compacted = await lifecycle.compact(user.id);
+      const compacted = await lifecycle.compact(user.id, summarizer);
       result.usersProcessed++;
       result.totalArchived += compacted.archived;
       result.totalDeleted += compacted.deleted;
+      result.merged = (result.merged ?? 0) + compacted.merged;
 
       const budgetDeleted = await budgetManager.enforceMemoryBudget(user.id);
       result.totalBudgetEnforced += budgetDeleted;
@@ -340,7 +364,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     result["log-archive"] = await runLogArchive(db);
   }
   if (task === "memory-compact" || task === "all") {
-    result["memory-compact"] = await runMemoryCompact(db);
+    result["memory-compact"] = await runMemoryCompact(db, env);
   }
   if (task === "projection-sync" || task === "all") {
     result["projection-sync"] = await runProjectionSync(db);

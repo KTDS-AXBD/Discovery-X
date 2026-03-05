@@ -29,6 +29,12 @@ export class MemoryLifecycle {
     return Math.ceil(content.length / 3.5);
   }
 
+  // ─── 결정/액션 키워드 포함 여부 ────────────────────────────────
+  private containsDecisionKeywords(content: string): boolean {
+    const keywords = ["결정", "변경", "승인", "반려", "중단", "진행", "확정", "철회", "보류"];
+    return keywords.some((kw) => content.includes(kw));
+  }
+
   // ─── 사용자 전체 토큰 합계 ────────────────────────────────────────
   private async sumTokens(userId: string): Promise<number> {
     const [row] = await this.db
@@ -78,10 +84,10 @@ export class MemoryLifecycle {
       )
       .returning({ id: agentMemoryV2.id });
 
-    // 3) 고중요도(≥0.7) 아카이브된 daily_log → LLM 요약 → long_term 승격
+    // 3) 고중요도(≥0.7) + 결정/액션 키워드 포함 아카이브 daily_log → LLM 요약 → long_term 승격
     let merged = 0;
     if (summarizer) {
-      const highImportanceLogs = await this.db
+      const candidateLogs = await this.db
         .select()
         .from(agentMemoryV2)
         .where(
@@ -93,7 +99,12 @@ export class MemoryLifecycle {
           ),
         )
         .orderBy(asc(agentMemoryV2.createdAt))
-        .limit(10);
+        .limit(20);
+
+      // 결정/액션 키워드 포함 시 우선 승격 대상
+      const highImportanceLogs = candidateLogs.filter(
+        (log) => this.containsDecisionKeywords(log.content),
+      );
 
       if (highImportanceLogs.length >= 3) {
         try {
