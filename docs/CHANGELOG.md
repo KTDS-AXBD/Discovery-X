@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 298 (2026-03-06)
+**feat: 사업제안 댓글 수정/삭제 + commentCount 동기화 + 3도메인 CRUD 점검**:
+- ✅ 아이디어/Radar 아이템/사업제안 3개 도메인 CRUD 전수 점검
+- ✅ Service: updateComment(), deleteComment() 추가 (본인 소유권 검증)
+- ✅ addComment() commentCount +1 동기화 (기존 버그 수정)
+- ✅ API: PATCH/DELETE 메서드 추가 (api.proposals.$id.comments)
+- ✅ UI: TeamDiscussion CommentItem 분리 — 본인 댓글 hover 시 수정/삭제 버튼
+- ✅ 테스트 33개 추가 (서비스 12개 + UI 로직 21개)
+
+**검증 결과**:
+- ✅ typecheck / lint / 1,644 tests (111 files, 100% PASS)
+
 ### 세션 297 (2026-03-06)
 **요구사항 Agent 서비스 TDD 테스트 88개 추가**:
 - ✅ CLAUDE.md 환경 변수 목록 수정 (GOOGLE_AI_API_KEY 추가, RESEND_API_KEY 제거)
