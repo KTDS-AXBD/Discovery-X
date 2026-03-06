@@ -34,6 +34,7 @@ export class RequirementsQueryService {
         reviewFeasibilityScore: requestReviews.feasibilityScore,
         reviewRationale: requestReviews.rationale,
         reviewHumanVerdict: requestReviews.humanVerdict,
+        reviewWorkPlanDraft: requestReviews.workPlanDraft,
       })
       .from(featureRequests)
       .leftJoin(users, eq(featureRequests.submitterId, users.id))
@@ -60,6 +61,7 @@ export class RequirementsQueryService {
             feasibilityScore: r.reviewFeasibilityScore ?? 0,
             rationale: r.reviewRationale ?? "",
             humanVerdict: (r.reviewHumanVerdict ?? null) as HumanVerdictValue | null,
+            workPlanDraft: r.reviewWorkPlanDraft ?? null,
           }
         : null,
     }));

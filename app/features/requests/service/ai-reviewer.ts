@@ -250,7 +250,12 @@ export class RequirementsAiReviewerService {
       .join("");
 
     const jsonMatch = text.match(/```json\s*([\s\S]*?)```/) || text.match(/(\{[\s\S]*\})/);
-    const analysis: LLMAnalysisResult = JSON.parse(jsonMatch?.[1] ?? text);
+    let analysis: LLMAnalysisResult;
+    try {
+      analysis = JSON.parse(jsonMatch?.[1] ?? text);
+    } catch {
+      throw new Error(`AI 응답 파싱 실패: ${text.slice(0, 200)}`);
+    }
 
     return {
       classification: analysis.classification as AnalyzeRequestOutput["classification"],

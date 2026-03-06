@@ -7,7 +7,7 @@ import { useFetcher } from "@remix-run/react";
 import type { RequestWithReview } from "../types";
 import { KanbanColumn } from "./KanbanColumn";
 import { ReviewPanel } from "./ReviewPanel";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 interface KanbanBoardProps {
   requests: RequestWithReview[];
@@ -25,10 +25,23 @@ const COLUMNS: { key: ColumnKey; title: string; statuses: string[] }[] = [
   { key: "rejected", title: "보류", statuses: ["REJECTED"] },
 ];
 
+const PRIORITY_OPTIONS = [
+  { value: "", label: "전체" },
+  { value: "high", label: "높음" },
+  { value: "medium", label: "보통" },
+  { value: "low", label: "낮음" },
+];
+
 export function KanbanBoard({ requests, isReviewer, canTriggerAiReview }: KanbanBoardProps) {
   const [selectedRequest, setSelectedRequest] = useState<RequestWithReview | null>(null);
+  const [priorityFilter, setPriorityFilter] = useState("");
   const reviewFetcher = useFetcher();
   const statusFetcher = useFetcher();
+
+  const filtered = useMemo(
+    () => priorityFilter ? requests.filter((r) => r.priority === priorityFilter) : requests,
+    [requests, priorityFilter],
+  );
 
   // 칸반별 요구사항 분류
   const grouped: Record<ColumnKey, RequestWithReview[]> = {
@@ -39,7 +52,7 @@ export function KanbanBoard({ requests, isReviewer, canTriggerAiReview }: Kanban
     rejected: [],
   };
 
-  for (const r of requests) {
+  for (const r of filtered) {
     const col = COLUMNS.find((c) => c.statuses.includes(r.status));
     if (col) grouped[col.key].push(r);
     else grouped.open.push(r); // fallback (IN_REVIEW 등 레거시)
@@ -79,6 +92,24 @@ export function KanbanBoard({ requests, isReviewer, canTriggerAiReview }: Kanban
 
   return (
     <>
+      {/* 우선순위 필터 */}
+      <div className="mb-3 flex items-center gap-2">
+        <span className="text-xs text-fg-tertiary">우선순위:</span>
+        {PRIORITY_OPTIONS.map((opt) => (
+          <button
+            key={opt.value}
+            onClick={() => setPriorityFilter(opt.value)}
+            className={`rounded-full px-2.5 py-0.5 text-xs transition-colors ${
+              priorityFilter === opt.value
+                ? "bg-accent text-white"
+                : "bg-surface-secondary text-fg-secondary hover:bg-surface-tertiary"
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
       <div className="flex gap-3 overflow-x-auto pb-4">
         {/* 접수: 드래그 가능 (→ AI검토) */}
         <KanbanColumn

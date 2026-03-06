@@ -104,6 +104,16 @@ export function ReviewPanel({ request, open, onClose, isReviewer, canTriggerAiRe
                 <MarkdownViewer content={review.rationale} className="prose-xs" />
               </div>
 
+              {/* 작업계획 초안 (NEW_VALUABLE) */}
+              {review.workPlanDraft && (
+                <div className="space-y-1">
+                  <span className="text-xs font-medium text-fg-tertiary">작업계획 초안</span>
+                  <div className="rounded-md border border-line bg-surface p-2 text-xs text-fg-secondary">
+                    <MarkdownViewer content={review.workPlanDraft} className="prose-xs" />
+                  </div>
+                </div>
+              )}
+
               {/* HITL 판정 */}
               {review.humanVerdict && (
                 <div className="rounded-md bg-surface p-2 text-xs">

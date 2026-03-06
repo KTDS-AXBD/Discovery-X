@@ -96,6 +96,7 @@ export interface RequestWithReview {
     feasibilityScore: number;
     rationale: string;
     humanVerdict: HumanVerdictValue | null;
+    workPlanDraft: string | null;
   } | null;
   linkedDiscoveryId: string | null;
 }

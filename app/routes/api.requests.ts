@@ -77,6 +77,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: "제목과 설명은 필수입니다." }, { status: 400 });
     }
 
+    if (body.title.trim().length > 100) {
+      return json({ error: "제목은 100자 이내로 입력해 주세요." }, { status: 400 });
+    }
+
     const priority = body.priority || "medium";
     if (!["high", "medium", "low"].includes(priority)) {
       return json({ error: "잘못된 우선순위입니다." }, { status: 400 });
