@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 288 (2026-03-06)
+**feat: 요구사항 검토 Agent + Modular Monolith 설계 (5 Phase 전체 구현)**:
+- ✅ Phase 1: 마이그레이션 0045 (request_reviews, request_events, work_plans) + Bounded Context 서비스 레이어 (query/entity/workflow/ai-reviewer)
+- ✅ Phase 2: AI Reviewer 서비스 — callLLM 기반 분류(4종)+점수+근거 분석, import.meta.glob Edge 호환 라우트 매니페스트
+- ✅ Phase 3: Agent Tool 3개 등록 — classify/review/plan_feature_request + env 파이프라인 확장
+- ✅ Phase 4: 5칸반 UI (접수/AI검토/사람검토/반영/보류) + HTML5 DnD + HITL 승인 패널 + 뷰 토글(칸반/리스트)
+- ✅ Phase 5: Discovery 파이프라인 연결 — ACCEPTED+NEW_VALUABLE 시 Discovery 자동 생성 + 작업계획 CRUD API
+- ✅ constants.ts/types.ts 도메인 모델 + FF_REQUIREMENTS_AGENT 피처 플래그
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공
+
 ### 세션 287 (2026-03-06)
 **fix: PRD v3.1 Gap 분석 + 5개 항목 수정**:
 - ✅ F-01 온보딩 Spotlight UI — Dialog → SVG mask spotlight 전환 + TopNav data-onboarding 마커

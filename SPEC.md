@@ -436,16 +436,16 @@ build/
 - **DB**: 45개 마이그레이션 (0000~0044), 로컬 적용 대기 (0043~0044 신규)
 
 ### 주요 지표
-- **라우트**: 155개 (+4: requests, api.requests, api.requests.$id, api.onboarding)
-- **테이블**: 94개 (+1: feature_requests)
-- **Agent 도구**: 50개 (+3 Matrix P2: query_matrix_heatmap/get_cell_signals/get_top_cells, schema: 9 도메인 파일)
-- **코드**: ~67,822줄 (419파일) — 세션 285 PRD v3.1 3개 기능 구현 (+3,110줄)
+- **라우트**: 157개 (+2: api.requests.$id.review, api.requests.$id.plan)
+- **테이블**: 97개 (+3: request_reviews, request_events, work_plans)
+- **Agent 도구**: 53개 (+3: classify/review/plan_feature_request, schema: 10 도메인 파일)
+- **코드**: ~69,945줄 (~436파일) — 세션 288 요구사항 Agent + Modular Monolith (+2,123줄)
 - **테스트**: 1,433개 (101 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **부하 테스트**: Artillery v2.0.30 — 4개 시나리오 (health, api-crud, chat-stream, spike)
-- **Feature Flag**: 11개 — **11/11 true** (전체 활성화)
+- **Feature Flag**: 12개 — **11/12 true** (FF_REQUIREMENTS_AGENT 신규 추가, 프로덕션 활성화 필요)
 - **@theme inline**: 104 토큰 등록, var() 1,752→122 (93.0% 감소, 163 파일)
 - **@axis-ds 컴포넌트**: 15/28 활용 (Button/Badge/Card/Input/Alert/Dialog/Table/Textarea/Select/SelectItem/SelectTrigger/Label/Skeleton/Separator/Progress)
 - **배포**: 세션 287 — PRD v3.1 Gap 수정 (온보딩 Spotlight + 재실행 + 알림 + 마크다운 + 모름 레이블)
