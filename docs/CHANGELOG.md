@@ -3,6 +3,14 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 293 (2026-03-06)
+**docs: CLAUDE.md Improver 점검 + load-test 명령어 추가**:
+- ✅ CLAUDE.md Quality Audit — 93/100 (Grade A), 코드베이스와 교차 검증 통과
+- ✅ load-test 4개 명령어 CLAUDE.md에 추가 (artillery 기반)
+
+**검증 결과**:
+- ✅ CLAUDE.md 내용-코드 일치 검증 (스키마 머지 8개, SSR 설정, future flags, 컴포넌트 21개)
+
 ### 세션 291 (2026-03-06)
 **fix: radar-worker scorer fallback 체인 복구 + OpenAI 키 갱신**:
 - ✅ scorer 4단계 fallback: Anthropic → OpenAI → Gemini → Workers AI
