@@ -450,7 +450,7 @@ build/
 - **@theme inline**: 104 토큰 등록, var() 1,752→122 (93.0% 감소, 163 파일)
 - **@axis-ds 컴포넌트**: 15/28 활용
 - **radar-worker**: scorer 4단계 fallback (Anthropic→OpenAI→Gemini→Workers AI) + failedProviders 스킵
-- **배포**: 세션 291 — radar-worker scorer fallback 체인 + OpenAI 키 갱신
+- **배포**: 세션 295 — OnboardingModal SSR crash 수정 + dashboard loader 방어 코드
 - **Cron 등록**: cron-job.org 14개 등록 완료 (ai-pipeline 09:30 KST 포함)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 

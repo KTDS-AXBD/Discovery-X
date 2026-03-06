@@ -3,6 +3,16 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 295 (2026-03-06)
+**fix: OnboardingModal SSR crash 수정 — /dashboard 500 에러 해결**:
+- ✅ 원인: `createPortal(document.body)` SSR 시 `document` undefined → 500 에러 (onboarding_completed=0 사용자만)
+- ✅ 수정: `useSyncExternalStore`로 mounted 가드 추가 — SSR 시 렌더링 건너뜀
+- ✅ dashboard loader 3개(overview/review/recall)에 try-catch 방어 코드 추가
+- ✅ 프로덕션 배포 완료, 서민원 계정 대시보드 정상 확인
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공 / Playwright 프로덕션 확인
+
 ### 세션 294 (2026-03-06)
 **feat: 사이트 메뉴 정비 — GNB 3탭 + 실험실 탭 재구성**:
 - ✅ GNB: 대시보드/요구사항 탭 제거 → 아이디어/사업제안/실험실 3탭
