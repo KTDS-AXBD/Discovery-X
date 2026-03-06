@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 296 (2026-03-06)
+**feat: 온보딩 모달 GNB 3탭 연동 + 사용법 가이드 재열기**:
+- ✅ OnboardingModal 3 step을 GNB 3탭(아이디어/사업제안/실험실)에 맞게 재작성
+- ✅ spotlight 대상을 ideas/proposals/lab으로 통일 (TopNav data-onboarding 동기화)
+- ✅ UserDropdown에 "사용법 가이드" 버튼 추가 (dx:open-guide custom event)
+- ✅ root.tsx에서 이벤트 리스너로 모달 재열기 + 이미 완료 유저는 API 호출 스킵
+- ✅ 온보딩 로직 + 가이드 트리거 유닛 테스트 57개 추가 (33 + 24)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공 / 테스트 1,527개 (105 files)
+
 ### 세션 295 (2026-03-06)
 **fix: OnboardingModal SSR crash 수정 — /dashboard 500 에러 해결**:
 - ✅ 원인: `createPortal(document.body)` SSR 시 `document` undefined → 500 에러 (onboarding_completed=0 사용자만)

@@ -73,7 +73,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 | P3 협업+통합 | 2~3주 | collab-worker, Pipeline Bridge, Cron, TokenBudget |
 | P4 고도화 | 2주 | ProfileLearner, Graph 롤백 UI, Vectorize, E2E 테스트 |
 
-현재: **P1 운영 기능 완료** (Failure Replay + Recall 추적 + 운영 지표 대시보드 + 테스트 1,470개) — v3 Architecture P0~P4 전체 완료, v1.4 운영 미팅/지표 기능 구현
+현재: **P1 운영 기능 완료** (Failure Replay + Recall 추적 + 운영 지표 대시보드 + 테스트 1,527개) — v3 Architecture P0~P4 전체 완료, v1.4 운영 미팅/지표 기능 구현
 - Phase 5A (보안·무결성): **완료** — Agent Graph 수정 제한, @id 네이밍 강화, SOUL 역할 템플릿, JSON Schema, ACL policies 분리, 403 메시지 개선
 - Phase 5B (agent-worker DO): **완료** — AgentSessionDO 클래스, Worker 라우팅, HMAC 인증, SSE 스트리밍, alarm flush, 429 동시성, api.chat.ts DO 위임
 - Phase 5C (collab-worker + 스키마): **완료** — collab-worker Cron/fetch 핸들러, notification_queue, tenants 확장(profile_ld/rules_md), cron_logs
@@ -343,7 +343,7 @@ Flow K: Ideas → Discovery 수동 전환 (v6.25)
 
 ```
 root.tsx
-├─ TopNav (4탭: 대시보드/아이디어/사업제안/실험실 + 테마토글/설정/유저)
+├─ TopNav (3탭: 아이디어/사업제안/실험실 + 테마토글/설정/유저 + 사용법 가이드)
 ├─ AppShell (SidebarPanel + Surface + ContextPanel)
 │  ├─ SidebarPanel (보관함 폴더 + 대화 히스토리) — mode: "chat" | "proposals"
 │  │  └─ ArchiveFolderList (1depth 폴더: 중요/리서치/완료)
@@ -441,7 +441,7 @@ build/
 - **테이블**: 97개
 - **Agent 도구**: 53개
 - **코드**: ~70,700줄 (~427파일)
-- **테스트**: 1,470개 (103 test files, 로컬 통과)
+- **테스트**: 1,527개 (105 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
