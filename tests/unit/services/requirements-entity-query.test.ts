@@ -208,7 +208,11 @@ describe("RequirementsEntityService", () => {
       expect(plan.id).toBeTruthy();
       expect(plan.title).toBe("구현 계획");
       expect(plan.status).toBe("DRAFT");
-      expect(plan.steps).toEqual(["1. UI", "2. API", "3. 테스트"]);
+      expect(plan.steps).toEqual([
+        { id: "step-0", title: "1. UI", status: "todo" },
+        { id: "step-1", title: "2. API", status: "todo" },
+        { id: "step-2", title: "3. 테스트", status: "todo" },
+      ]);
 
       // 상태 업데이트
       await entity.updateWorkPlan(plan.id, { status: "APPROVED" });
