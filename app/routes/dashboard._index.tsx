@@ -16,36 +16,48 @@ import { PipelineKanban } from "~/components/dashboard/PipelineKanban";
 import { StatisticsPanel } from "~/components/dashboard/StatisticsPanel";
 import { OnboardingGuide } from "~/components/dashboard/OnboardingGuide";
 
+const EMPTY_DATA = {
+  recentCollections: { total: 0, items: [] as DashboardCollectionItem[] },
+  totalDiscoveries: { total: 0, items: [] as DashboardDiscoveryItem[] },
+  strategyProposals: { total: 0, items: [] as DashboardProposalItem[] },
+  reactions: {} as Record<string, string | null>,
+  viewedItemIds: [] as string[],
+  timestamp: "",
+  industryAdapterList: [] as DashboardAdapterItem[],
+  sourceStats: [] as DashboardSourceStat[],
+  serverNow: Date.now(),
+  onboardingState: {
+    step: 0 as const,
+    firstDiscoveryId: null,
+    firstDiscoveryStatus: null,
+    hasExperiment: false,
+    hasEvidence: false,
+    hasClosed: false,
+  },
+};
+
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const db = getDb(context.cloudflare.env.DB);
-  const secret = getSessionSecret(context.cloudflare.env);
-  const ctx = await getSessionContext(request, db, secret);
+  try {
+    const db = getDb(context.cloudflare.env.DB);
+    const secret = getSessionSecret(context.cloudflare.env);
+    const ctx = await getSessionContext(request, db, secret);
 
-  if (!ctx) {
-    return json({
-      recentCollections: { total: 0, items: [] as DashboardCollectionItem[] },
-      totalDiscoveries: { total: 0, items: [] as DashboardDiscoveryItem[] },
-      strategyProposals: { total: 0, items: [] as DashboardProposalItem[] },
-      reactions: {} as Record<string, string | null>,
-      viewedItemIds: [] as string[],
-      timestamp: "",
-      industryAdapterList: [] as DashboardAdapterItem[],
-      sourceStats: [] as DashboardSourceStat[],
-      serverNow: Date.now(),
-      onboardingState: { step: 0 as const, firstDiscoveryId: null, firstDiscoveryStatus: null, hasExperiment: false, hasEvidence: false, hasClosed: false },
-    });
+    if (!ctx) return json(EMPTY_DATA);
+
+    const now = new Date();
+    const timestamp = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, "0")}.${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+
+    const service = new DashboardService(db);
+    const [data, onboardingState] = await Promise.all([
+      service.getOverviewData({ tenantId: ctx.tenantId, userId: ctx.user?.id }),
+      service.getOnboardingState(ctx.tenantId),
+    ]);
+
+    return json({ ...data, timestamp, onboardingState });
+  } catch (error) {
+    console.error("[dashboard._index.loader] Error:", error instanceof Error ? error.message : error);
+    return json(EMPTY_DATA);
   }
-
-  const now = new Date();
-  const timestamp = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, "0")}.${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-
-  const service = new DashboardService(db);
-  const [data, onboardingState] = await Promise.all([
-    service.getOverviewData({ tenantId: ctx.tenantId, userId: ctx.user?.id }),
-    service.getOnboardingState(ctx.tenantId),
-  ]);
-
-  return json({ ...data, timestamp, onboardingState });
 }
 
 export default function DashboardOverview() {

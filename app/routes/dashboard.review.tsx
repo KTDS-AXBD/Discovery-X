@@ -14,15 +14,20 @@ import { STATUS_CONFIG } from "~/lib/constants/status";
 import { DiscoveryService } from "~/lib/services";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const db = getDb(context.cloudflare.env.DB);
-  const secret = getSessionSecret(context.cloudflare.env);
-  const ctx = await getSessionContext(request, db, secret);
-  if (!ctx) return redirect("/login");
+  try {
+    const db = getDb(context.cloudflare.env.DB);
+    const secret = getSessionSecret(context.cloudflare.env);
+    const ctx = await getSessionContext(request, db, secret);
+    if (!ctx) return redirect("/login");
 
-  const service = new DiscoveryService(db);
-  const discoveries = await service.listForWeeklyReview(ctx.tenantId);
+    const service = new DiscoveryService(db);
+    const discoveries = await service.listForWeeklyReview(ctx.tenantId);
 
-  return json({ discoveries });
+    return json({ discoveries });
+  } catch (error) {
+    console.error("[dashboard.review.loader] Error:", error instanceof Error ? error.message : error);
+    return json({ discoveries: [] });
+  }
 }
 
 function getAgeColor(ageInDays: number): string {
