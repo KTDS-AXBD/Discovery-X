@@ -441,7 +441,7 @@ build/
 - **테이블**: 97개
 - **Agent 도구**: 53개
 - **코드**: ~70,700줄 (~427파일)
-- **테스트**: 1,527개 (105 test files, 로컬 통과)
+- **테스트**: 1,615개 (110 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
@@ -450,7 +450,7 @@ build/
 - **@theme inline**: 104 토큰 등록, var() 1,752→122 (93.0% 감소, 163 파일)
 - **@axis-ds 컴포넌트**: 15/28 활용
 - **radar-worker**: scorer 4단계 fallback (Anthropic→OpenAI→Gemini→Workers AI) + failedProviders 스킵
-- **배포**: 세션 295 — OnboardingModal SSR crash 수정 + dashboard loader 방어 코드
+- **배포**: 세션 297 — 요구사항 Agent 서비스 테스트 88개 추가
 - **Cron 등록**: cron-job.org 14개 등록 완료 (ai-pipeline 09:30 KST 포함)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 

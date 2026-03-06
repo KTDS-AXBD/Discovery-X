@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 297 (2026-03-06)
+**요구사항 Agent 서비스 TDD 테스트 88개 추가**:
+- ✅ CLAUDE.md 환경 변수 목록 수정 (GOOGLE_AI_API_KEY 추가, RESEND_API_KEY 제거)
+- ✅ WorkflowService 테스트 28개 (상태 전환, HITL 판정, OUT_OF_SCOPE 자동 보류, Discovery 자동 생성)
+- ✅ EntityService 테스트 15개 (CRUD, AI 리뷰 저장, 이벤트 로깅)
+- ✅ WorkPlan 테스트 18개 (작업계획 CRUD, 단계 상태 변경, progress 자동 계산)
+- ✅ API 통합 테스트 27개 (요구사항/HITL/작업계획 API)
+- ✅ Agent Teams(/team) 2-worker 병렬 TDD 진행
+
+**검증 결과**:
+- ✅ typecheck / lint / 1,615 tests (110 files, 100% PASS)
+
 ### 세션 296 (2026-03-06)
 **feat: 온보딩 모달 GNB 3탭 연동 + 사용법 가이드 재열기**:
 - ✅ OnboardingModal 3 step을 GNB 3탭(아이디어/사업제안/실험실)에 맞게 재작성
