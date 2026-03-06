@@ -83,10 +83,13 @@ export const workPlans = sqliteTable("work_plans", {
   reviewId: text("review_id").references(() => requestReviews.id),
   title: text("title").notNull(),
   description: text("description").notNull(),
-  steps: text("steps", { mode: "json" }).$type<string[]>(),
+  steps: text("steps", { mode: "json" }).$type<WorkPlanStepData[]>(),
   estimatedEffort: text("estimated_effort"),
   linkedDiscoveryId: text("linked_discovery_id"),
   status: text("status").notNull().default("DRAFT"),
+  progress: integer("progress").notNull().default(0),
+  startedAt: integer("started_at", { mode: "timestamp" }),
+  completedAt: integer("completed_at", { mode: "timestamp" }),
   createdBy: text("created_by").references(() => users.id),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
@@ -94,3 +97,32 @@ export const workPlans = sqliteTable("work_plans", {
   requestIdx: index("idx_work_plans_request").on(t.requestId),
   statusIdx: index("idx_work_plans_status").on(t.status),
 }));
+
+// ─── work_plan_runs: Agent 실행 이력 ───
+export const workPlanRuns = sqliteTable("work_plan_runs", {
+  id: text("id").primaryKey().default(sql`(lower(hex(randomblob(16))))`),
+  workPlanId: text("work_plan_id").notNull().references(() => workPlans.id, { onDelete: "cascade" }),
+  stepIndex: integer("step_index").notNull().default(0),
+  status: text("status").notNull().default("pending"),
+  agentInput: text("agent_input"),
+  agentOutput: text("agent_output"),
+  modelId: text("model_id"),
+  tokenUsage: integer("token_usage").default(0),
+  errorMessage: text("error_message"),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+  completedAt: integer("completed_at", { mode: "timestamp" }),
+}, (t) => ({
+  planIdx: index("idx_work_plan_runs_plan").on(t.workPlanId),
+  statusIdx: index("idx_work_plan_runs_status").on(t.status),
+}));
+
+/** 구조화된 작업 단계 (JSON 컬럼 타입) */
+export interface WorkPlanStepData {
+  id: string;
+  title: string;
+  description?: string;
+  status: "todo" | "doing" | "done" | "blocked";
+  agentRunId?: string;
+  startedAt?: number;
+  completedAt?: number;
+}

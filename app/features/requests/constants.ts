@@ -44,6 +44,24 @@ export const WorkPlanStatus = {
 } as const;
 export type WorkPlanStatusValue = (typeof WorkPlanStatus)[keyof typeof WorkPlanStatus];
 
+/** 작업 단계 상태 */
+export const StepStatus = {
+  TODO: "todo",
+  DOING: "doing",
+  DONE: "done",
+  BLOCKED: "blocked",
+} as const;
+export type StepStatusValue = (typeof StepStatus)[keyof typeof StepStatus];
+
+/** Agent 실행 상태 */
+export const RunStatus = {
+  PENDING: "pending",
+  RUNNING: "running",
+  COMPLETED: "completed",
+  FAILED: "failed",
+} as const;
+export type RunStatusValue = (typeof RunStatus)[keyof typeof RunStatus];
+
 /** 우선순위 */
 export const RequestPriority = {
   HIGH: "high",
@@ -60,6 +78,10 @@ export const RequestEventType = {
   AI_REVIEW_COMPLETED: "ai_review_completed",
   HUMAN_VERDICT: "human_verdict",
   WORK_PLAN_CREATED: "work_plan_created",
+  WORK_PLAN_STEP_STARTED: "work_plan_step_started",
+  WORK_PLAN_STEP_COMPLETED: "work_plan_step_completed",
+  AGENT_RUN_STARTED: "agent_run_started",
+  AGENT_RUN_COMPLETED: "agent_run_completed",
   DISCOVERY_LINKED: "discovery_linked",
 } as const;
 
@@ -89,4 +111,21 @@ export const STATUS_LABELS: Record<string, string> = {
   HUMAN_REVIEW: "담당자 검토",
   ACCEPTED: "반영",
   REJECTED: "보류",
+};
+
+/** 작업계획 상태 라벨 */
+export const WORK_PLAN_STATUS_LABELS: Record<string, string> = {
+  DRAFT: "초안",
+  APPROVED: "승인",
+  IN_PROGRESS: "진행 중",
+  COMPLETED: "완료",
+  CANCELLED: "취소",
+};
+
+/** 단계 상태 라벨 */
+export const STEP_STATUS_LABELS: Record<string, string> = {
+  todo: "대기",
+  doing: "진행 중",
+  done: "완료",
+  blocked: "차단",
 };

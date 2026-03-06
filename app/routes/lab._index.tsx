@@ -1,262 +1,415 @@
+import { useState } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
-import { json } from "@remix-run/cloudflare";
-import { useLoaderData } from "@remix-run/react";
+import { json, redirect } from "@remix-run/cloudflare";
+import { useFetcher, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { getSessionContext } from "~/lib/auth/session.server";
-import { LabService } from "~/lib/services";
-import { Card, CardContent } from "~/components/ui/Card";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
+import { isFeatureEnabled } from "~/lib/feature-flags";
+import { RequirementsQueryService } from "~/features/requests/service";
+import { Button } from "~/components/ui/Button";
 import { Badge } from "~/components/ui/Badge";
-import { GraphViewer } from "~/components/graph/GraphViewer";
+import { Input } from "~/components/ui/Input";
+import { Textarea } from "~/components/ui/Textarea";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/Select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from "~/components/ui/Dialog";
+import { MarkdownViewer } from "~/components/docs/MarkdownViewer";
+import { KanbanBoard } from "~/features/requests/ui/KanbanBoard";
+import type { RequestWithReview } from "~/features/requests/types";
+
+const STATUS_LABELS: Record<string, string> = {
+  OPEN: "접수",
+  IN_REVIEW: "검토 중",
+  AI_REVIEWING: "AI 검토 중",
+  CLASSIFIED: "분류 완료",
+  HUMAN_REVIEW: "담당자 검토",
+  ACCEPTED: "반영",
+  REJECTED: "보류",
+};
+
+const PRIORITY_LABELS: Record<string, string> = {
+  high: "높음",
+  medium: "보통",
+  low: "낮음",
+};
+
+const STATUS_BADGE_VARIANT: Record<string, "default" | "secondary" | "success" | "destructive"> = {
+  OPEN: "default",
+  IN_REVIEW: "secondary",
+  AI_REVIEWING: "secondary",
+  CLASSIFIED: "secondary",
+  HUMAN_REVIEW: "default",
+  ACCEPTED: "success",
+  REJECTED: "destructive",
+};
+
+const PRIORITY_BADGE_VARIANT: Record<string, "destructive" | "warning" | "subtle"> = {
+  high: "destructive",
+  medium: "warning",
+  low: "subtle",
+};
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const env = context.cloudflare.env as unknown as {
-    DB: D1Database;
-    SESSION_SECRET: string;
-  };
-  const db = getDb(env.DB);
-  const ctx = await getSessionContext(request, db, env.SESSION_SECRET);
-  if (!ctx) throw new Response("Unauthorized", { status: 401 });
+  const db = getDb(context.cloudflare.env.DB);
+  const secret = getSessionSecret(context.cloudflare.env);
+  const ctx = await getSessionContext(request, db, secret);
 
-  const service = new LabService(db);
-  const data = await service.getOverviewData({ tenantId: ctx.tenantId });
+  if (!ctx) {
+    return redirect("/login");
+  }
 
-  return json(data);
+  const env = context.cloudflare.env as unknown as Record<string, string>;
+  const agentEnabled = isFeatureEnabled(env, "requirementsAgent");
+
+  // Agent 활성 시 리뷰 정보 포함 조회
+  let requests: RequestWithReview[];
+  if (agentEnabled) {
+    const queryService = new RequirementsQueryService(db);
+    requests = await queryService.listWithReviews();
+  } else {
+    // 레거시: 기존 쿼리
+    const { eq, desc } = await import("drizzle-orm");
+    const { featureRequests } = await import("~/features/requests/db/schema");
+    const { users } = await import("~/db/schema");
+
+    const rows = await db
+      .select({
+        id: featureRequests.id,
+        title: featureRequests.title,
+        description: featureRequests.description,
+        priority: featureRequests.priority,
+        status: featureRequests.status,
+        reason: featureRequests.reason,
+        submitterId: featureRequests.submitterId,
+        submitterName: users.name,
+        createdAt: featureRequests.createdAt,
+        reviewedAt: featureRequests.reviewedAt,
+        linkedDiscoveryId: featureRequests.linkedDiscoveryId,
+      })
+      .from(featureRequests)
+      .leftJoin(users, eq(featureRequests.submitterId, users.id))
+      .orderBy(desc(featureRequests.createdAt));
+
+    requests = rows.map((r) => ({
+      ...r,
+      status: r.status as RequestWithReview["status"],
+      submitterName: r.submitterName,
+      createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt),
+      reviewedAt: r.reviewedAt instanceof Date ? r.reviewedAt.toISOString() : r.reviewedAt ? String(r.reviewedAt) : null,
+      aiReviewId: null,
+      review: null,
+    }));
+  }
+
+  return json({
+    requests,
+    user: ctx.user,
+    tenantRole: ctx.tenantRole,
+    agentEnabled,
+  });
 }
 
-export default function LabOverview() {
-  const { stats, graphNodes, graphEdges, recentNodes, types } = useLoaderData<typeof loader>();
-  const typeMap = new Map(types.map((t) => [t.id, t]));
+function daysAgo(dateStr: string): string {
+  const created = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - created.getTime();
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (days === 0) return "오늘";
+  return `${days}일 전`;
+}
 
-  const preparedNodes = graphNodes.map((n) => ({
-    id: n.id,
-    label: n.label,
-    ontologyTypeId: n.ontologyTypeId,
-    sourceEvidenceId: n.sourceEvidenceId,
-    metadata: n.metadata as Record<string, unknown> | null,
-  }));
+export default function LabRequestsPage() {
+  const { requests, user, tenantRole, agentEnabled } = useLoaderData<typeof loader>();
+  const createFetcher = useFetcher();
+  const statusFetcher = useFetcher();
 
-  const preparedEdges = graphEdges.map((e) => ({
-    id: e.id,
-    fromNodeId: e.fromNodeId,
-    toNodeId: e.toNodeId,
-    relationType: e.relationType,
-    strength: (e.strength ?? 100) / 100,
-    sourceEvidenceId: e.sourceEvidenceId,
-  }));
+  const [viewMode, setViewMode] = useState<"kanban" | "list">(agentEnabled ? "kanban" : "list");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [createOpen, setCreateOpen] = useState(false);
+  const [detailItem, setDetailItem] = useState<RequestWithReview | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
 
-  const hasGraphData = graphNodes.length > 0;
+  const isReviewer = tenantRole === "admin" || tenantRole === "gatekeeper" || tenantRole === "owner";
+  const typedRequests = requests as RequestWithReview[];
+
+  const filtered = typedRequests.filter((r) => {
+    if (statusFilter !== "all" && r.status !== statusFilter) return false;
+    if (priorityFilter !== "all" && r.priority !== priorityFilter) return false;
+    return true;
+  });
+
+  function handleCreate(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    const title = form.get("title") as string;
+    const description = form.get("description") as string;
+    const priority = form.get("priority") as string;
+
+    if (!title?.trim() || !description?.trim()) return;
+
+    createFetcher.submit(
+      JSON.stringify({ title: title.trim(), description: description.trim(), priority }),
+      { method: "POST", action: "/api/requests", encType: "application/json" },
+    );
+    setCreateOpen(false);
+  }
+
+  function handleStatusChange(id: string, newStatus: string) {
+    const payload: Record<string, string> = { status: newStatus };
+    if (newStatus === "REJECTED" && rejectReason.trim()) {
+      payload.reason = rejectReason.trim();
+    }
+    statusFetcher.submit(JSON.stringify(payload), {
+      method: "PATCH",
+      action: `/api/requests/${id}`,
+      encType: "application/json",
+    });
+    setDetailItem(null);
+    setRejectReason("");
+  }
+
+  function handleDelete(id: string) {
+    statusFetcher.submit(null, {
+      method: "DELETE",
+      action: `/api/requests/${id}`,
+    });
+    setDetailItem(null);
+  }
 
   return (
-    <div className="flex gap-0 -mx-6 -mt-0">
-      {/* Left Panel — Control sidebar */}
-      <aside className="w-[300px] shrink-0 border-r border-line bg-surface-panel p-6 self-start sticky top-0">
-        {/* Title + description */}
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-fg">Ontology 분석</h2>
-          <p className="mt-1 text-xs text-fg-tertiary">
-            문서에서 개념과 관계를 추출하여 온톨로지를 구성합니다.
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          {/* File Upload area */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-fg-secondary">소스 선택</label>
-            <div className="cursor-pointer rounded-lg border-2 border-dashed border-line p-6 text-center transition-colors hover:border-fg-tertiary">
-              <svg className="mx-auto mb-2 h-8 w-8 text-fg-tertiary" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
-              </svg>
-              <p className="text-xs text-fg-tertiary">
-                파일을 드래그하거나 클릭하여 업로드
-              </p>
-              <p className="mt-1 text-[10px] text-fg-quaternary">
-                PDF, TXT, DOCX 지원
-              </p>
-            </div>
-          </div>
-
-          {/* Source dropdown */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-fg-secondary">또는 기존 소스 선택</label>
-            <select className="w-full rounded border border-line bg-surface p-2 text-sm text-fg-secondary">
-              <option value="">소스를 선택하세요</option>
-            </select>
-          </div>
-
-          {/* Analysis options */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-fg-secondary">분석 옵션</label>
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-xs text-fg-secondary">
-                <input type="checkbox" defaultChecked className="rounded" />
-                개념 추출
-              </label>
-              <label className="flex items-center gap-2 text-xs text-fg-secondary">
-                <input type="checkbox" defaultChecked className="rounded" />
-                관계 분석
-              </label>
-              <label className="flex items-center gap-2 text-xs text-fg-secondary">
-                <input type="checkbox" className="rounded" />
-                계층 구조 생성
-              </label>
-              <label className="flex items-center gap-2 text-xs text-fg-secondary">
-                <input type="checkbox" className="rounded" />
-                유사 개념 그룹핑
-              </label>
-            </div>
-          </div>
-
-          {/* Analyze button */}
-          <button
-            type="button"
-            className="flex w-full items-center justify-center gap-2 rounded bg-surface-brand py-3 text-sm font-medium text-white transition-opacity hover:opacity-90"
-          >
-            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-            분석 시작
-          </button>
-
-          {/* Info box */}
-          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
-            <p className="text-xs leading-relaxed text-blue-800 dark:text-blue-300">
-              <strong>Ontology란?</strong><br />
-              도메인 내 개념과 그들 간의 관계를 형식화한 지식 표현 방법입니다.
-              사업 아이디어의 핵심 요소를 구조화하여 이해도를 높일 수 있습니다.
-            </p>
-          </div>
-        </div>
-      </aside>
-
-      {/* Right Panel — Main content */}
-      <main className="flex-1 overflow-auto">
-        {!hasGraphData ? (
-          /* Empty state — centered icon + text */
-          <div className="flex h-full min-h-[500px] flex-col items-center justify-center p-8 text-center">
-            <svg className="mb-4 h-16 w-16 text-fg-tertiary" fill="none" viewBox="0 0 24 24" strokeWidth="1" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-9.86a4.5 4.5 0 00-6.364 0l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
-            </svg>
-            <h3 className="mb-2 text-lg font-semibold text-fg">Ontology 분석을 시작해보세요</h3>
-            <p className="max-w-md text-sm text-fg-tertiary">
-              문서나 소스를 선택하고 분석을 시작하면, 개념과 관계가 시각화됩니다.
-            </p>
-          </div>
-        ) : (
-          /* Has data — show stats + graph + extraction log */
-          <div className="space-y-6 p-6">
-            {/* Instrument Panel — Stats */}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-              {[
-                { key: "nodes" as const, label: "NODES" },
-                { key: "edges" as const, label: "EDGES" },
-                { key: "globalEntities" as const, label: "GLOBAL" },
-                { key: "unreviewedNodes" as const, label: "UNREV.N", warn: true },
-                { key: "unreviewedEdges" as const, label: "UNREV.E", warn: true },
-              ].map(({ key, label, warn }) => {
-                const value = stats[key];
-                const isWarning = warn && value > 0;
-                return (
-                  <Card key={key} className={isWarning ? "lab-instrument-active" : ""}>
-                    <CardContent className="p-4">
-                      <p className="lab-stat-terminal">{label}</p>
-                      <p
-                        className={`mt-1 text-[30px] font-bold tabular-nums ${
-                          isWarning
-                            ? "text-lab-accent"
-                            : "text-fg"
-                        } font-mono-dx`}
-                      >
-                        {value.toLocaleString()}
-                      </p>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-
-            {/* Graph Card */}
-            <Card>
-              <CardContent className="p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <p className="lab-stat-terminal">KNOWLEDGE GRAPH</p>
-                  <span className="text-xs text-fg-tertiary font-mono-dx">
-                    {graphNodes.length}N / {graphEdges.length}E
-                  </span>
-                </div>
-                <GraphViewer
-                  nodes={preparedNodes}
-                  edges={preparedEdges}
-                  ontologyTypes={types}
-                />
-                {/* Legend */}
-                <div className="mt-3 flex flex-wrap gap-4 text-xs text-fg-secondary">
-                  <span className="flex items-center gap-1">
-                    <span className="inline-block h-0.5 w-6 bg-badge-success-text" /> supports
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <span className="inline-block h-0.5 w-6 border-t-2 border-dashed border-btn-destructive-bg" /> contradicts
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <span className="inline-block h-0.5 w-6 bg-badge-purple-text" /> causes
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <span className="inline-block h-0.5 w-6 border-t-2 border-dashed border-fg-tertiary" /> relates_to
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <span className="inline-block h-0.5 w-6 border-t-2 border-dashed border-fg-info" /> depends_on
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Extraction Log — Recent auto-generated nodes */}
-            <div>
-              <p className="lab-stat-terminal mb-3">EXTRACTION LOG</p>
-              {recentNodes.length === 0 ? (
-                <p className="text-sm text-fg-tertiary font-mono-dx">
-                  &gt; No extractions found. Run entity extraction from Agent chat.
-                </p>
-              ) : (
-                <div className="space-y-1.5">
-                  {recentNodes.map((node) => {
-                    const typeInfo = typeMap.get(node.ontologyTypeId ?? "");
-                    return (
-                      <Card key={node.id}>
-                        <CardContent className="flex items-center gap-3 p-3">
-                          {typeInfo && (
-                            <span
-                              className="flex h-8 w-8 items-center justify-center rounded-full text-sm"
-                              style={{ backgroundColor: typeInfo.color + "20", color: typeInfo.color }}
-                            >
-                              {typeInfo.icon}
-                            </span>
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium text-fg">
-                                {node.label}
-                              </span>
-                              {typeInfo && (
-                                <Badge variant="secondary" className="text-[10px]">
-                                  {typeInfo.nameKo}
-                                </Badge>
-                              )}
-                            </div>
-                            <div className="mt-0.5 flex items-center gap-2 text-[10px] text-fg-tertiary font-mono-dx">
-                              <span>CONF {((node.confidence ?? 1) * 100).toFixed(0)}%</span>
-                              {node.globalEntityId && <span>GLOBAL</span>}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+    <div className={viewMode === "kanban" ? "max-w-full" : "max-w-4xl"}>
+      {/* Header — 등록 버튼 + 뷰 토글 */}
+      <div className="mb-4 flex items-center justify-end gap-3">
+        {/* 뷰 토글 */}
+        {agentEnabled && (
+          <div className="flex rounded-md border border-line">
+            <button
+              type="button"
+              onClick={() => setViewMode("kanban")}
+              className={`px-3 py-1.5 text-xs ${viewMode === "kanban" ? "bg-surface-card font-medium text-fg" : "text-fg-tertiary hover:text-fg"}`}
+            >
+              칸반
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("list")}
+              className={`px-3 py-1.5 text-xs ${viewMode === "list" ? "bg-surface-card font-medium text-fg" : "text-fg-tertiary hover:text-fg"}`}
+            >
+              리스트
+            </button>
           </div>
         )}
-      </main>
+
+        <Button size="sm" onClick={() => setCreateOpen(true)}>
+          <svg className="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          요구사항 등록
+        </Button>
+      </div>
+
+      {/* 칸반 뷰 */}
+      {viewMode === "kanban" ? (
+        <KanbanBoard
+          requests={typedRequests}
+          isReviewer={isReviewer}
+          canTriggerAiReview={agentEnabled}
+        />
+      ) : (
+        <>
+          {/* 필터 (리스트 뷰만) */}
+          <div className="mb-4 flex flex-wrap gap-3">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder="상태" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">전체 상태</SelectItem>
+                <SelectItem value="OPEN">접수</SelectItem>
+                {agentEnabled && <SelectItem value="AI_REVIEWING">AI 검토 중</SelectItem>}
+                {agentEnabled && <SelectItem value="HUMAN_REVIEW">사람 검토</SelectItem>}
+                {!agentEnabled && <SelectItem value="IN_REVIEW">검토 중</SelectItem>}
+                <SelectItem value="ACCEPTED">반영</SelectItem>
+                <SelectItem value="REJECTED">보류</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder="우선순위" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">전체 우선순위</SelectItem>
+                <SelectItem value="high">높음</SelectItem>
+                <SelectItem value="medium">보통</SelectItem>
+                <SelectItem value="low">낮음</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* 리스트 뷰 */}
+          {filtered.length === 0 ? (
+            <div className="py-12 text-center text-fg-tertiary">
+              {typedRequests.length === 0 ? "등록된 요구사항이 없습니다." : "필터 조건에 맞는 요구사항이 없습니다."}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filtered.map((r) => (
+                <button
+                  key={r.id}
+                  type="button"
+                  onClick={() => setDetailItem(r)}
+                  className="w-full rounded-lg border border-line bg-surface-card p-4 text-left transition-colors hover:bg-surface-card-hover"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="truncate font-medium text-fg">{r.title}</span>
+                        <Badge variant={PRIORITY_BADGE_VARIANT[r.priority] ?? "subtle"} className="shrink-0 text-[10px]">
+                          {PRIORITY_LABELS[r.priority] ?? r.priority}
+                        </Badge>
+                      </div>
+                      <p className="mt-1 line-clamp-1 text-sm text-fg-secondary">{r.description}</p>
+                      <div className="mt-2 flex items-center gap-3 text-xs text-fg-tertiary">
+                        <span>{r.submitterName ?? "알 수 없음"}</span>
+                        <span>{daysAgo(r.createdAt)}</span>
+                      </div>
+                    </div>
+                    <Badge variant={STATUS_BADGE_VARIANT[r.status] ?? "default"} className="shrink-0">
+                      {STATUS_LABELS[r.status] ?? r.status}
+                    </Badge>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Create Dialog */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>요구사항 등록</DialogTitle>
+            <DialogDescription>기능 개선 요청을 등록합니다.</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreate} className="space-y-4">
+            <div>
+              <label htmlFor="req-title" className="mb-1 block text-sm font-medium text-fg">제목</label>
+              <Input id="req-title" name="title" placeholder="요구사항 제목" required />
+            </div>
+            <div>
+              <label htmlFor="req-desc" className="mb-1 block text-sm font-medium text-fg">설명</label>
+              <Textarea id="req-desc" name="description" rows={4} placeholder="상세 설명을 작성하세요" required />
+            </div>
+            <div>
+              <label htmlFor="req-priority" className="mb-1 block text-sm font-medium text-fg">우선순위</label>
+              <select
+                id="req-priority"
+                name="priority"
+                defaultValue="medium"
+                className="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-fg"
+              >
+                <option value="high">높음</option>
+                <option value="medium">보통</option>
+                <option value="low">낮음</option>
+              </select>
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline" type="button">취소</Button>
+              </DialogClose>
+              <Button type="submit" disabled={createFetcher.state !== "idle"}>
+                {createFetcher.state !== "idle" ? "등록 중..." : "등록"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Detail Dialog (리스트 뷰용) */}
+      {viewMode === "list" && (
+        <Dialog open={!!detailItem} onOpenChange={(open) => { if (!open) { setDetailItem(null); setRejectReason(""); } }}>
+          <DialogContent>
+            {detailItem && (
+              <>
+                <DialogHeader>
+                  <DialogTitle>{detailItem.title}</DialogTitle>
+                  <DialogDescription>
+                    <span className="mr-2">{detailItem.submitterName ?? "알 수 없음"}</span>
+                    <span>{daysAgo(detailItem.createdAt)}</span>
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <Badge variant={PRIORITY_BADGE_VARIANT[detailItem.priority] ?? "subtle"}>
+                      {PRIORITY_LABELS[detailItem.priority] ?? detailItem.priority}
+                    </Badge>
+                    <Badge variant={STATUS_BADGE_VARIANT[detailItem.status] ?? "default"}>
+                      {STATUS_LABELS[detailItem.status] ?? detailItem.status}
+                    </Badge>
+                  </div>
+                  <div className="text-sm text-fg-secondary">
+                    <MarkdownViewer content={detailItem.description} className="prose-xs" />
+                  </div>
+                  {detailItem.reason && (
+                    <div className="rounded-md bg-surface-secondary p-3 text-sm">
+                      <span className="font-medium text-fg">보류 사유: </span>
+                      <span className="text-fg-secondary">{detailItem.reason}</span>
+                    </div>
+                  )}
+
+                  {/* Reviewer actions */}
+                  {isReviewer && detailItem.status !== "ACCEPTED" && detailItem.status !== "REJECTED" && (
+                    <div className="space-y-3 border-t border-line pt-3">
+                      <p className="text-xs font-medium text-fg-tertiary">상태 변경</p>
+                      <div className="flex flex-wrap gap-2">
+                        {detailItem.status === "OPEN" && (
+                          <Button size="sm" variant="outline" onClick={() => handleStatusChange(detailItem.id, "IN_REVIEW")}>
+                            검토 시작
+                          </Button>
+                        )}
+                        <Button size="sm" variant="success" onClick={() => handleStatusChange(detailItem.id, "ACCEPTED")}>
+                          반영
+                        </Button>
+                        <div className="flex w-full items-end gap-2">
+                          <div className="flex-1">
+                            <Input
+                              placeholder="보류 사유 (선택)"
+                              value={rejectReason}
+                              onChange={(e) => setRejectReason(e.target.value)}
+                            />
+                          </div>
+                          <Button size="sm" variant="destructive" onClick={() => handleStatusChange(detailItem.id, "REJECTED")}>
+                            보류
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Delete (submitter only, OPEN status) */}
+                  {detailItem.submitterId === user.id && detailItem.status === "OPEN" && (
+                    <div className="border-t border-line pt-3">
+                      <Button size="sm" variant="ghost" className="text-fg-danger" onClick={() => handleDelete(detailItem.id)}>
+                        삭제
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

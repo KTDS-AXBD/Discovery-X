@@ -6,11 +6,9 @@ import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server"
 import { AppShell } from "~/components/layout/AppShell";
 
 const TABS = [
-  { to: "/lab", label: "개요", end: true },
-  { to: "/lab/analysis", label: "분석", end: false },
-  { to: "/lab/review", label: "검토 큐", end: false },
+  { to: "/lab", label: "요구사항", end: true },
+  { to: "/lab/work-status", label: "작업 현황", end: false },
   { to: "/lab/methods", label: "방법론", end: false },
-  { to: "/lab/matrix", label: "매트릭스", end: false },
 ];
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -43,7 +41,7 @@ export default function LabLayout() {
               실험실
             </h1>
             <p className="mt-1 text-xs tracking-wide text-lab-accent font-mono-dx">
-              Knowledge Graph Intelligence Laboratory
+              Feature Requests & Work Management
             </p>
           </div>
 

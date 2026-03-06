@@ -3,7 +3,8 @@
  * Bounded Context: requests
  */
 
-import type { RequestClassificationValue, HumanVerdictValue, WorkPlanStatusValue, RequestStatusValue } from "./constants";
+import type { RequestClassificationValue, HumanVerdictValue, WorkPlanStatusValue, RequestStatusValue, RunStatusValue } from "./constants";
+import type { WorkPlanStepData } from "./db/schema";
 
 /** AI 리뷰 결과 */
 export interface RequestReview {
@@ -43,13 +44,31 @@ export interface WorkPlan {
   reviewId: string | null;
   title: string;
   description: string;
-  steps: string[] | null;
+  steps: WorkPlanStepData[] | null;
   estimatedEffort: string | null;
   linkedDiscoveryId: string | null;
   status: WorkPlanStatusValue;
+  progress: number;
+  startedAt: Date | null;
+  completedAt: Date | null;
   createdBy: string | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+/** Agent 실행 기록 */
+export interface WorkPlanRun {
+  id: string;
+  workPlanId: string;
+  stepIndex: number;
+  status: RunStatusValue;
+  agentInput: string | null;
+  agentOutput: string | null;
+  modelId: string | null;
+  tokenUsage: number;
+  errorMessage: string | null;
+  createdAt: string;
+  completedAt: string | null;
 }
 
 /** AI 분석 요청 입력 */
@@ -99,4 +118,25 @@ export interface RequestWithReview {
     workPlanDraft: string | null;
   } | null;
   linkedDiscoveryId: string | null;
+}
+
+/** 작업 현황 대시보드용 (요구사항 + 작업계획 + 실행 이력) */
+export interface WorkPlanWithContext {
+  id: string;
+  requestId: string;
+  requestTitle: string;
+  requestPriority: string;
+  title: string;
+  description: string;
+  steps: WorkPlanStepData[] | null;
+  estimatedEffort: string | null;
+  status: WorkPlanStatusValue;
+  progress: number;
+  startedAt: string | null;
+  completedAt: string | null;
+  createdBy: string | null;
+  createdByName: string | null;
+  createdAt: string;
+  updatedAt: string;
+  runs: WorkPlanRun[];
 }

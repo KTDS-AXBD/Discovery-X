@@ -5,7 +5,8 @@
 
 import { eq } from "drizzle-orm";
 import type { DB } from "~/db";
-import { featureRequests, requestReviews, requestEvents, workPlans } from "../db/schema";
+import { featureRequests, requestReviews, requestEvents, workPlans, workPlanRuns } from "../db/schema";
+import type { WorkPlanStepData } from "../db/schema";
 
 export class RequirementsEntityService {
   constructor(private db: DB) {}
@@ -114,16 +115,30 @@ export class RequirementsEntityService {
     });
   }
 
-  /** 작업계획 생성 */
+  /** 작업계획 생성 (구조화된 steps 지원) */
   async createWorkPlan(input: {
     requestId: string;
     reviewId?: string;
     title: string;
     description: string;
-    steps?: string[];
+    steps?: WorkPlanStepData[] | string[];
     estimatedEffort?: string;
     createdBy?: string;
   }) {
+    // string[] → WorkPlanStepData[] 변환 (레거시 호환)
+    let structuredSteps: WorkPlanStepData[] | null = null;
+    if (input.steps && input.steps.length > 0) {
+      if (typeof input.steps[0] === "string") {
+        structuredSteps = (input.steps as string[]).map((title, i) => ({
+          id: `step-${i}`,
+          title,
+          status: "todo" as const,
+        }));
+      } else {
+        structuredSteps = input.steps as WorkPlanStepData[];
+      }
+    }
+
     const [plan] = await this.db
       .insert(workPlans)
       .values({
@@ -131,7 +146,7 @@ export class RequirementsEntityService {
         reviewId: input.reviewId ?? null,
         title: input.title,
         description: input.description,
-        steps: input.steps ?? null,
+        steps: structuredSteps,
         estimatedEffort: input.estimatedEffort ?? null,
         createdBy: input.createdBy ?? null,
       })
@@ -142,12 +157,94 @@ export class RequirementsEntityService {
   /** 작업계획 업데이트 */
   async updateWorkPlan(id: string, updates: Partial<{
     status: string;
+    progress: number;
+    steps: WorkPlanStepData[];
     linkedDiscoveryId: string;
+    startedAt: Date;
+    completedAt: Date;
     updatedAt: Date;
   }>) {
     await this.db
       .update(workPlans)
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(workPlans.id, id));
+  }
+
+  /** 작업계획 단계 상태 변경 */
+  async updateStepStatus(planId: string, stepIndex: number, status: WorkPlanStepData["status"]) {
+    const [plan] = await this.db.select().from(workPlans).where(eq(workPlans.id, planId));
+    if (!plan || !plan.steps) throw new Error("작업계획 또는 단계를 찾을 수 없어요.");
+
+    const steps = plan.steps as WorkPlanStepData[];
+    if (stepIndex < 0 || stepIndex >= steps.length) throw new Error("유효하지 않은 단계 인덱스예요.");
+
+    const now = Math.floor(Date.now() / 1000);
+    steps[stepIndex].status = status;
+
+    if (status === "doing" && !steps[stepIndex].startedAt) {
+      steps[stepIndex].startedAt = now;
+    }
+    if (status === "done" && !steps[stepIndex].completedAt) {
+      steps[stepIndex].completedAt = now;
+    }
+
+    // 진행률 계산
+    const doneCount = steps.filter((s) => s.status === "done").length;
+    const progress = Math.round((doneCount / steps.length) * 100);
+
+    // 전체 상태 자동 업데이트
+    const allDone = steps.every((s) => s.status === "done");
+    const anyDoing = steps.some((s) => s.status === "doing");
+
+    const planUpdates: Record<string, unknown> = {
+      steps,
+      progress,
+      updatedAt: new Date(),
+    };
+
+    if (allDone) {
+      planUpdates.status = "COMPLETED";
+      planUpdates.completedAt = new Date();
+    } else if (anyDoing || doneCount > 0) {
+      planUpdates.status = "IN_PROGRESS";
+      if (!plan.startedAt) planUpdates.startedAt = new Date();
+    }
+
+    await this.db.update(workPlans).set(planUpdates).where(eq(workPlans.id, planId));
+
+    return { steps, progress };
+  }
+
+  /** Agent 실행 기록 생성 */
+  async createRun(input: {
+    workPlanId: string;
+    stepIndex: number;
+    agentInput?: string;
+  }) {
+    const [run] = await this.db
+      .insert(workPlanRuns)
+      .values({
+        workPlanId: input.workPlanId,
+        stepIndex: input.stepIndex,
+        status: "pending",
+        agentInput: input.agentInput ?? null,
+      })
+      .returning();
+    return run;
+  }
+
+  /** Agent 실행 상태 업데이트 */
+  async updateRun(id: string, updates: Partial<{
+    status: string;
+    agentOutput: string;
+    modelId: string;
+    tokenUsage: number;
+    errorMessage: string;
+    completedAt: Date;
+  }>) {
+    await this.db
+      .update(workPlanRuns)
+      .set(updates)
+      .where(eq(workPlanRuns.id, id));
   }
 }
