@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 294 (2026-03-06)
+**feat: 사이트 메뉴 정비 — GNB 3탭 + 실험실 탭 재구성**:
+- ✅ GNB: 대시보드/요구사항 탭 제거 → 아이디어/사업제안/실험실 3탭
+- ✅ 실험실 탭: 요구사항(기본)/작업 현황/방법론 3탭 구성
+- ✅ 기존 실험실 탭(개요/분석/검토 큐/매트릭스) hidden 보관 (라우트 유지)
+- ✅ /requests → /lab redirect 처리
+- ✅ 작업 현황 페이지: WorkPlan 진행률 + 단계별 체크리스트 UI
+- ✅ work_plan_runs 테이블 + work_plans 확장 마이그레이션 (0047)
+- ✅ RequirementsQueryService 확장 (listWorkPlansWithContext, countWorkPlansByStatus)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / build 성공 / 라우트 점검 통과
+
 ### 세션 293 (2026-03-06)
 **docs: CLAUDE.md Improver 점검 + load-test 명령어 추가**:
 - ✅ CLAUDE.md Quality Audit — 93/100 (Grade A), 코드베이스와 교차 검증 통과
