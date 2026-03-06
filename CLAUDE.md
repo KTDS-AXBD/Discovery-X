@@ -108,7 +108,7 @@ requireAdmin()        → 403 (ADMIN만)
 ```
 
 ### 환경 변수
-- `.dev.vars` 파일에 설정 (gitignored): ANTHROPIC_API_KEY, OPENAI_API_KEY, GOOGLE_CLIENT_ID/SECRET, SESSION_SECRET, RESEND_API_KEY, CRON_SECRET
+- `.dev.vars` 파일에 설정 (gitignored): ANTHROPIC_API_KEY, OPENAI_API_KEY, GOOGLE_AI_API_KEY, GOOGLE_CLIENT_ID/SECRET, SESSION_SECRET, CRON_SECRET
 
 ### Vite 빌드
 - `chunkSizeWarningLimit: 1000` 설정됨 (기본 500보다 높음)
