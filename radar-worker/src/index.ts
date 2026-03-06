@@ -26,7 +26,7 @@ export default {
         return new Response("Unauthorized", { status: 401 });
       }
 
-      // Run pipeline synchronously (HTTP requests have longer timeout than waitUntil)
+      // Run pipeline synchronously — Workers have no wall-time limit on fetch
       const result = await executePipeline(env);
 
       return new Response(

@@ -1,6 +1,9 @@
 export interface Env {
   DB: D1Database;
-  OPENAI_API_KEY: string;
+  AI: Ai; // Workers AI binding
+  ANTHROPIC_API_KEY?: string; // 1st priority
+  OPENAI_API_KEY?: string; // 2nd fallback
+  GOOGLE_AI_API_KEY?: string; // 3rd fallback (Gemini)
   CRON_SECRET?: string;
   RELEVANCE_THRESHOLD: string;
   MAX_SEEDS_PER_RUN: string;

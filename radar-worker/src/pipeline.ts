@@ -90,8 +90,15 @@ export async function runPipeline(env: Env): Promise<RunStats> {
       return stats;
     }
 
-    // 5. AI scoring
-    const scored = await scoreItems(ftsUnique, env.OPENAI_API_KEY);
+    // 5. AI scoring (fallback chain: OpenAI → Anthropic → Workers AI)
+    const scoreResult = await scoreItems(ftsUnique, {
+      ANTHROPIC_API_KEY: env.ANTHROPIC_API_KEY,
+      OPENAI_API_KEY: env.OPENAI_API_KEY,
+      GOOGLE_AI_API_KEY: env.GOOGLE_AI_API_KEY,
+      AI: env.AI,
+    });
+    const scored = scoreResult.items;
+    stats.errors.push(...scoreResult.errors);
 
     // 6. Create seeds from high-scoring items
     stats.seedsCreated = await createSeeds(db, scored, runId, threshold, maxSeeds);
