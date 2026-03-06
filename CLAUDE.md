@@ -89,7 +89,7 @@ const db = getDb(context.DB);
 - `ALLOWED_TRANSITIONS` (app/lib/constants/status.ts) 정의된 전환만 허용
 
 ### 스키마 머지
-- `app/db/index.ts`에서 7개 스키마 머지: `schema`, `proposalSchema`, `archiveSchema`, `ideasSchema`, `tokenUsageSchema`, `v2Schema`, `matrixSchema`
+- `app/db/index.ts`에서 8개 스키마 머지: `schema`, `proposalSchema`, `archiveSchema`, `ideasSchema`, `tokenUsageSchema`, `v2Schema`, `matrixSchema`, `requestsSchema`
 
 ### SSR 외부화 (vite.config.ts)
 - `ssr.external`: `resend`, `mailparser`, `@zone-eu/mailsplit`, `libmime`
@@ -114,9 +114,9 @@ requireAdmin()        → 403 (ADMIN만)
 
 ```
 app/
-├── components/     # UI 컴포넌트 (charts, chat, dashboard, ideas, proposals, ui, ...)
+├── components/     # UI 컴포넌트 (21개 — agent, charts, chat, discovery, layout, onboarding, ontology, ui, ...)
 ├── db/             # Drizzle 스키마 + DB 연결 (index.ts에서 스키마 머지)
-├── features/       # 도메인별 모듈 (archive, ideas, matrix, proposals)
+├── features/       # 도메인별 모듈 (archive, ideas, matrix, proposals, requests)
 │   └── {feature}/  # db/schema.ts + constants + types + ui/
 ├── lib/            # 공유 유틸 (agent, auth, embeddings, notifications, ...)
 ├── routes/         # Remix 라우트 (flat-file convention)

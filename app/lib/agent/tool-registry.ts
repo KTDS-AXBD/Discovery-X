@@ -14,6 +14,7 @@ import {
   STRATEGIC_TOOLS,
   IDEA_SCHEMA_TOOLS,
   MATRIX_TOOLS,
+  REQUIREMENTS_TOOLS,
 } from "./tool-schemas";
 
 // Minimum autonomy level required to use each tool
@@ -94,6 +95,10 @@ export const TOOL_MIN_AUTONOMY: Record<string, number> = {
   query_matrix_heatmap: 1,
   get_cell_signals: 1,
   get_top_cells: 1,
+  // Requirements: 요구사항 검토
+  classify_feature_request: 1,
+  review_feature_request: 2,
+  plan_feature_request: 2,
   // Level 3: full autonomy
   add_experiment: 3,
   complete_experiment: 3,
@@ -125,6 +130,7 @@ export const AGENT_TOOLS: ClaudeTool[] = [
   ...STRATEGIC_TOOLS,
   ...IDEA_SCHEMA_TOOLS,
   ...MATRIX_TOOLS,
+  ...REQUIREMENTS_TOOLS,
 ];
 
 /** Ideas 모드 전용 도구 (경량) — update_idea_analysis만 포함 */

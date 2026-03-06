@@ -120,6 +120,7 @@ export async function processToolBlocks(
   assistantText: string,
   autonomyLevel: number,
   tenantId?: string,
+  env?: Record<string, string>,
 ): Promise<ToolCallResult[]> {
   const results: ToolCallResult[] = [];
 
@@ -142,7 +143,7 @@ export async function processToolBlocks(
     // 도구 실행
     let toolResult: string;
     try {
-      toolResult = await executeTool(db, toolName, toolInput, autonomyLevel, tenantId);
+      toolResult = await executeTool(db, toolName, toolInput, autonomyLevel, tenantId, env);
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : "도구 실행 오류";
       toolResult = JSON.stringify({

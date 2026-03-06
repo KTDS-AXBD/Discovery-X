@@ -249,7 +249,8 @@ export function createAgentStreamResponse(
 
           // Process tool calls via shared pipeline
           const results = await processToolBlocks(
-            db, conversationId, toolUseBlocks, assistantText, ctx.autonomyLevel, tenantId
+            db, conversationId, toolUseBlocks, assistantText, ctx.autonomyLevel, tenantId,
+            streamOptions?.env as Record<string, string> | undefined,
           );
           sendToolResults(results, controller, send, executedToolNames);
           allToolResults.push(...results);

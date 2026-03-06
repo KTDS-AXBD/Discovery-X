@@ -3,6 +3,7 @@ import { drizzle } from "drizzle-orm/better-sqlite3";
 import * as schema from "~/db/schema";
 import * as v2Schema from "~/db/schema-v2";
 import * as matrixSchema from "~/features/matrix/db/schema";
+import * as requestsSchema from "~/features/requests/db/schema";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 
@@ -69,8 +70,9 @@ export function createTestDb() {
   runMigrationSQL(sqlite, resolve(migrationsDir, "0042_ai_provider_fallback.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0043_feature_requests.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0044_user_onboarding.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0045_requirements_review.sql"));
 
-  return drizzle(sqlite, { schema: { ...schema, ...v2Schema, ...matrixSchema } });
+  return drizzle(sqlite, { schema: { ...schema, ...v2Schema, ...matrixSchema, ...requestsSchema } });
 }
 
 export type TestDB = ReturnType<typeof createTestDb>;

@@ -2,11 +2,10 @@ import { useState } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { useFetcher, useLoaderData } from "@remix-run/react";
-import { eq, desc } from "drizzle-orm";
 import { getDb } from "~/db";
-import { featureRequests } from "~/features/requests/db/schema";
-import { users } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
+import { isFeatureEnabled } from "~/lib/feature-flags";
+import { RequirementsQueryService } from "~/features/requests/service";
 import { AppShell } from "~/components/layout/AppShell";
 import { Button } from "~/components/ui/Button";
 import { Badge } from "~/components/ui/Badge";
@@ -23,10 +22,15 @@ import {
   DialogClose,
 } from "~/components/ui/Dialog";
 import { MarkdownViewer } from "~/components/docs/MarkdownViewer";
+import { KanbanBoard } from "~/features/requests/ui/KanbanBoard";
+import type { RequestWithReview } from "~/features/requests/types";
 
 const STATUS_LABELS: Record<string, string> = {
   OPEN: "접수",
   IN_REVIEW: "검토 중",
+  AI_REVIEWING: "AI 검토 중",
+  CLASSIFIED: "분류 완료",
+  HUMAN_REVIEW: "사람 검토",
   ACCEPTED: "반영",
   REJECTED: "보류",
 };
@@ -40,6 +44,9 @@ const PRIORITY_LABELS: Record<string, string> = {
 const STATUS_BADGE_VARIANT: Record<string, "default" | "secondary" | "success" | "destructive"> = {
   OPEN: "default",
   IN_REVIEW: "secondary",
+  AI_REVIEWING: "secondary",
+  CLASSIFIED: "secondary",
+  HUMAN_REVIEW: "default",
   ACCEPTED: "success",
   REJECTED: "destructive",
 };
@@ -50,22 +57,6 @@ const PRIORITY_BADGE_VARIANT: Record<string, "destructive" | "warning" | "subtle
   low: "subtle",
 };
 
-interface FeatureRequestRow {
-  id: string;
-  title: string;
-  description: string;
-  priority: string;
-  status: string;
-  reason: string | null;
-  submitterId: string;
-  reviewerId: string | null;
-  linkedDiscoveryId: string | null;
-  linkedIdeaId: string | null;
-  createdAt: string;
-  reviewedAt: string | null;
-  submitterName: string | null;
-}
-
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
@@ -75,30 +66,54 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return redirect("/login");
   }
 
-  const rows = await db
-    .select({
-      id: featureRequests.id,
-      title: featureRequests.title,
-      description: featureRequests.description,
-      priority: featureRequests.priority,
-      status: featureRequests.status,
-      reason: featureRequests.reason,
-      submitterId: featureRequests.submitterId,
-      reviewerId: featureRequests.reviewerId,
-      linkedDiscoveryId: featureRequests.linkedDiscoveryId,
-      linkedIdeaId: featureRequests.linkedIdeaId,
-      createdAt: featureRequests.createdAt,
-      reviewedAt: featureRequests.reviewedAt,
-      submitterName: users.name,
-    })
-    .from(featureRequests)
-    .leftJoin(users, eq(featureRequests.submitterId, users.id))
-    .orderBy(desc(featureRequests.createdAt));
+  const env = context.cloudflare.env as unknown as Record<string, string>;
+  const agentEnabled = isFeatureEnabled(env, "requirementsAgent");
+
+  // Agent 활성 시 리뷰 정보 포함 조회
+  let requests: RequestWithReview[];
+  if (agentEnabled) {
+    const queryService = new RequirementsQueryService(db);
+    requests = await queryService.listWithReviews();
+  } else {
+    // 레거시: 기존 쿼리
+    const { eq, desc } = await import("drizzle-orm");
+    const { featureRequests } = await import("~/features/requests/db/schema");
+    const { users } = await import("~/db/schema");
+
+    const rows = await db
+      .select({
+        id: featureRequests.id,
+        title: featureRequests.title,
+        description: featureRequests.description,
+        priority: featureRequests.priority,
+        status: featureRequests.status,
+        reason: featureRequests.reason,
+        submitterId: featureRequests.submitterId,
+        submitterName: users.name,
+        createdAt: featureRequests.createdAt,
+        reviewedAt: featureRequests.reviewedAt,
+        linkedDiscoveryId: featureRequests.linkedDiscoveryId,
+      })
+      .from(featureRequests)
+      .leftJoin(users, eq(featureRequests.submitterId, users.id))
+      .orderBy(desc(featureRequests.createdAt));
+
+    requests = rows.map((r) => ({
+      ...r,
+      status: r.status as RequestWithReview["status"],
+      submitterName: r.submitterName,
+      createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt),
+      reviewedAt: r.reviewedAt instanceof Date ? r.reviewedAt.toISOString() : r.reviewedAt ? String(r.reviewedAt) : null,
+      aiReviewId: null,
+      review: null,
+    }));
+  }
 
   return json({
-    requests: rows,
+    requests,
     user: ctx.user,
     tenantRole: ctx.tenantRole,
+    agentEnabled,
   });
 }
 
@@ -112,19 +127,21 @@ function daysAgo(dateStr: string): string {
 }
 
 export default function RequestsPage() {
-  const { requests, user, tenantRole } = useLoaderData<typeof loader>();
+  const { requests, user, tenantRole, agentEnabled } = useLoaderData<typeof loader>();
   const createFetcher = useFetcher();
   const statusFetcher = useFetcher();
 
+  const [viewMode, setViewMode] = useState<"kanban" | "list">(agentEnabled ? "kanban" : "list");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [createOpen, setCreateOpen] = useState(false);
-  const [detailItem, setDetailItem] = useState<FeatureRequestRow | null>(null);
+  const [detailItem, setDetailItem] = useState<RequestWithReview | null>(null);
   const [rejectReason, setRejectReason] = useState("");
 
   const isReviewer = tenantRole === "admin" || tenantRole === "gatekeeper" || tenantRole === "owner";
+  const typedRequests = requests as RequestWithReview[];
 
-  const filtered = (requests as FeatureRequestRow[]).filter((r) => {
+  const filtered = typedRequests.filter((r) => {
     if (statusFilter !== "all" && r.status !== statusFilter) return false;
     if (priorityFilter !== "all" && r.priority !== priorityFilter) return false;
     return true;
@@ -170,81 +187,116 @@ export default function RequestsPage() {
 
   return (
     <AppShell user={user} hideSidebar>
-      <div className="mx-auto max-w-4xl px-4 py-6">
+      <div className={`mx-auto px-4 py-6 ${viewMode === "kanban" ? "max-w-full" : "max-w-4xl"}`}>
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-xl font-bold text-fg">요구사항</h1>
-          <Button size="sm" onClick={() => setCreateOpen(true)}>
-            <svg className="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            요구사항 등록
-          </Button>
-        </div>
+          <div className="flex items-center gap-3">
+            {/* 뷰 토글 */}
+            {agentEnabled && (
+              <div className="flex rounded-md border border-line">
+                <button
+                  type="button"
+                  onClick={() => setViewMode("kanban")}
+                  className={`px-3 py-1.5 text-xs ${viewMode === "kanban" ? "bg-surface-card font-medium text-fg" : "text-fg-tertiary hover:text-fg"}`}
+                >
+                  칸반
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("list")}
+                  className={`px-3 py-1.5 text-xs ${viewMode === "list" ? "bg-surface-card font-medium text-fg" : "text-fg-tertiary hover:text-fg"}`}
+                >
+                  리스트
+                </button>
+              </div>
+            )}
 
-        {/* Filters */}
-        <div className="mb-4 flex flex-wrap gap-3">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-36">
-              <SelectValue placeholder="상태" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">전체 상태</SelectItem>
-              <SelectItem value="OPEN">접수</SelectItem>
-              <SelectItem value="IN_REVIEW">검토 중</SelectItem>
-              <SelectItem value="ACCEPTED">반영</SelectItem>
-              <SelectItem value="REJECTED">보류</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-            <SelectTrigger className="w-36">
-              <SelectValue placeholder="우선순위" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">전체 우선순위</SelectItem>
-              <SelectItem value="high">높음</SelectItem>
-              <SelectItem value="medium">보통</SelectItem>
-              <SelectItem value="low">낮음</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* List */}
-        {filtered.length === 0 ? (
-          <div className="py-12 text-center text-fg-tertiary">
-            {requests.length === 0 ? "등록된 요구사항이 없습니다." : "필터 조건에 맞는 요구사항이 없습니다."}
+            <Button size="sm" onClick={() => setCreateOpen(true)}>
+              <svg className="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              요구사항 등록
+            </Button>
           </div>
+        </div>
+
+        {/* 칸반 뷰 */}
+        {viewMode === "kanban" ? (
+          <KanbanBoard
+            requests={typedRequests}
+            isReviewer={isReviewer}
+            canTriggerAiReview={agentEnabled}
+          />
         ) : (
-          <div className="space-y-3">
-            {filtered.map((r) => (
-              <button
-                key={r.id}
-                type="button"
-                onClick={() => setDetailItem(r)}
-                className="w-full rounded-lg border border-line bg-surface-card p-4 text-left transition-colors hover:bg-surface-card-hover"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="truncate font-medium text-fg">{r.title}</span>
-                      <Badge variant={PRIORITY_BADGE_VARIANT[r.priority] ?? "subtle"} className="shrink-0 text-[10px]">
-                        {PRIORITY_LABELS[r.priority] ?? r.priority}
+          <>
+            {/* 필터 (리스트 뷰만) */}
+            <div className="mb-4 flex flex-wrap gap-3">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-36">
+                  <SelectValue placeholder="상태" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">전체 상태</SelectItem>
+                  <SelectItem value="OPEN">접수</SelectItem>
+                  {agentEnabled && <SelectItem value="AI_REVIEWING">AI 검토 중</SelectItem>}
+                  {agentEnabled && <SelectItem value="HUMAN_REVIEW">사람 검토</SelectItem>}
+                  {!agentEnabled && <SelectItem value="IN_REVIEW">검토 중</SelectItem>}
+                  <SelectItem value="ACCEPTED">반영</SelectItem>
+                  <SelectItem value="REJECTED">보류</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                <SelectTrigger className="w-36">
+                  <SelectValue placeholder="우선순위" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">전체 우선순위</SelectItem>
+                  <SelectItem value="high">높음</SelectItem>
+                  <SelectItem value="medium">보통</SelectItem>
+                  <SelectItem value="low">낮음</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* 리스트 뷰 */}
+            {filtered.length === 0 ? (
+              <div className="py-12 text-center text-fg-tertiary">
+                {typedRequests.length === 0 ? "등록된 요구사항이 없습니다." : "필터 조건에 맞는 요구사항이 없습니다."}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filtered.map((r) => (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() => setDetailItem(r)}
+                    className="w-full rounded-lg border border-line bg-surface-card p-4 text-left transition-colors hover:bg-surface-card-hover"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="truncate font-medium text-fg">{r.title}</span>
+                          <Badge variant={PRIORITY_BADGE_VARIANT[r.priority] ?? "subtle"} className="shrink-0 text-[10px]">
+                            {PRIORITY_LABELS[r.priority] ?? r.priority}
+                          </Badge>
+                        </div>
+                        <p className="mt-1 line-clamp-1 text-sm text-fg-secondary">{r.description}</p>
+                        <div className="mt-2 flex items-center gap-3 text-xs text-fg-tertiary">
+                          <span>{r.submitterName ?? "알 수 없음"}</span>
+                          <span>{daysAgo(r.createdAt)}</span>
+                        </div>
+                      </div>
+                      <Badge variant={STATUS_BADGE_VARIANT[r.status] ?? "default"} className="shrink-0">
+                        {STATUS_LABELS[r.status] ?? r.status}
                       </Badge>
                     </div>
-                    <p className="mt-1 line-clamp-1 text-sm text-fg-secondary">{r.description}</p>
-                    <div className="mt-2 flex items-center gap-3 text-xs text-fg-tertiary">
-                      <span>{r.submitterName ?? "알 수 없음"}</span>
-                      <span>{daysAgo(r.createdAt)}</span>
-                    </div>
-                  </div>
-                  <Badge variant={STATUS_BADGE_VARIANT[r.status] ?? "default"} className="shrink-0">
-                    {STATUS_LABELS[r.status] ?? r.status}
-                  </Badge>
-                </div>
-              </button>
-            ))}
-          </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
         )}
 
         {/* Create Dialog */}
@@ -288,79 +340,81 @@ export default function RequestsPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Detail Dialog */}
-        <Dialog open={!!detailItem} onOpenChange={(open) => { if (!open) { setDetailItem(null); setRejectReason(""); } }}>
-          <DialogContent>
-            {detailItem && (
-              <>
-                <DialogHeader>
-                  <DialogTitle>{detailItem.title}</DialogTitle>
-                  <DialogDescription>
-                    <span className="mr-2">{detailItem.submitterName ?? "알 수 없음"}</span>
-                    <span>{daysAgo(detailItem.createdAt)}</span>
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-3">
-                  <div className="flex gap-2">
-                    <Badge variant={PRIORITY_BADGE_VARIANT[detailItem.priority] ?? "subtle"}>
-                      {PRIORITY_LABELS[detailItem.priority] ?? detailItem.priority}
-                    </Badge>
-                    <Badge variant={STATUS_BADGE_VARIANT[detailItem.status] ?? "default"}>
-                      {STATUS_LABELS[detailItem.status] ?? detailItem.status}
-                    </Badge>
-                  </div>
-                  <div className="text-sm text-fg-secondary">
-                    <MarkdownViewer content={detailItem.description} className="prose-xs" />
-                  </div>
-                  {detailItem.reason && (
-                    <div className="rounded-md bg-surface-secondary p-3 text-sm">
-                      <span className="font-medium text-fg">보류 사유: </span>
-                      <span className="text-fg-secondary">{detailItem.reason}</span>
+        {/* Detail Dialog (리스트 뷰용) */}
+        {viewMode === "list" && (
+          <Dialog open={!!detailItem} onOpenChange={(open) => { if (!open) { setDetailItem(null); setRejectReason(""); } }}>
+            <DialogContent>
+              {detailItem && (
+                <>
+                  <DialogHeader>
+                    <DialogTitle>{detailItem.title}</DialogTitle>
+                    <DialogDescription>
+                      <span className="mr-2">{detailItem.submitterName ?? "알 수 없음"}</span>
+                      <span>{daysAgo(detailItem.createdAt)}</span>
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <Badge variant={PRIORITY_BADGE_VARIANT[detailItem.priority] ?? "subtle"}>
+                        {PRIORITY_LABELS[detailItem.priority] ?? detailItem.priority}
+                      </Badge>
+                      <Badge variant={STATUS_BADGE_VARIANT[detailItem.status] ?? "default"}>
+                        {STATUS_LABELS[detailItem.status] ?? detailItem.status}
+                      </Badge>
                     </div>
-                  )}
+                    <div className="text-sm text-fg-secondary">
+                      <MarkdownViewer content={detailItem.description} className="prose-xs" />
+                    </div>
+                    {detailItem.reason && (
+                      <div className="rounded-md bg-surface-secondary p-3 text-sm">
+                        <span className="font-medium text-fg">보류 사유: </span>
+                        <span className="text-fg-secondary">{detailItem.reason}</span>
+                      </div>
+                    )}
 
-                  {/* Reviewer actions */}
-                  {isReviewer && detailItem.status !== "ACCEPTED" && detailItem.status !== "REJECTED" && (
-                    <div className="space-y-3 border-t border-line pt-3">
-                      <p className="text-xs font-medium text-fg-tertiary">상태 변경</p>
-                      <div className="flex flex-wrap gap-2">
-                        {detailItem.status === "OPEN" && (
-                          <Button size="sm" variant="outline" onClick={() => handleStatusChange(detailItem.id, "IN_REVIEW")}>
-                            검토 시작
+                    {/* Reviewer actions */}
+                    {isReviewer && detailItem.status !== "ACCEPTED" && detailItem.status !== "REJECTED" && (
+                      <div className="space-y-3 border-t border-line pt-3">
+                        <p className="text-xs font-medium text-fg-tertiary">상태 변경</p>
+                        <div className="flex flex-wrap gap-2">
+                          {detailItem.status === "OPEN" && (
+                            <Button size="sm" variant="outline" onClick={() => handleStatusChange(detailItem.id, "IN_REVIEW")}>
+                              검토 시작
+                            </Button>
+                          )}
+                          <Button size="sm" variant="success" onClick={() => handleStatusChange(detailItem.id, "ACCEPTED")}>
+                            반영
                           </Button>
-                        )}
-                        <Button size="sm" variant="success" onClick={() => handleStatusChange(detailItem.id, "ACCEPTED")}>
-                          반영
-                        </Button>
-                        <div className="flex w-full items-end gap-2">
-                          <div className="flex-1">
-                            <Input
-                              placeholder="보류 사유 (선택)"
-                              value={rejectReason}
-                              onChange={(e) => setRejectReason(e.target.value)}
-                            />
+                          <div className="flex w-full items-end gap-2">
+                            <div className="flex-1">
+                              <Input
+                                placeholder="보류 사유 (선택)"
+                                value={rejectReason}
+                                onChange={(e) => setRejectReason(e.target.value)}
+                              />
+                            </div>
+                            <Button size="sm" variant="destructive" onClick={() => handleStatusChange(detailItem.id, "REJECTED")}>
+                              보류
+                            </Button>
                           </div>
-                          <Button size="sm" variant="destructive" onClick={() => handleStatusChange(detailItem.id, "REJECTED")}>
-                            보류
-                          </Button>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Delete (submitter only, OPEN status) */}
-                  {detailItem.submitterId === user.id && detailItem.status === "OPEN" && (
-                    <div className="border-t border-line pt-3">
-                      <Button size="sm" variant="ghost" className="text-fg-danger" onClick={() => handleDelete(detailItem.id)}>
-                        삭제
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-          </DialogContent>
-        </Dialog>
+                    {/* Delete (submitter only, OPEN status) */}
+                    {detailItem.submitterId === user.id && detailItem.status === "OPEN" && (
+                      <div className="border-t border-line pt-3">
+                        <Button size="sm" variant="ghost" className="text-fg-danger" onClick={() => handleDelete(detailItem.id)}>
+                          삭제
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </AppShell>
   );

@@ -84,7 +84,8 @@ export async function executeAgentTurn(
 
     // Process tool calls via shared pipeline
     const results = await processToolBlocks(
-      db, conversationId, toolUseBlocks, assistantText, ctx.autonomyLevel, tenantId
+      db, conversationId, toolUseBlocks, assistantText, ctx.autonomyLevel, tenantId,
+      env as Record<string, string> | undefined,
     );
     for (const tc of results) {
       allToolCalls.push(tc);

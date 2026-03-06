@@ -7,3 +7,4 @@ export { PLATFORM_TOOLS } from "./platform-schemas";
 export { STRATEGIC_TOOLS } from "./strategic-schemas";
 export { IDEA_SCHEMA_TOOLS } from "./idea-schemas";
 export { MATRIX_TOOLS } from "./matrix-schemas";
+export { REQUIREMENTS_TOOLS } from "./requirements-schemas";

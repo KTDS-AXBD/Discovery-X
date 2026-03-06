@@ -5,6 +5,8 @@ import { getDb } from "~/db";
 import { featureRequests } from "~/features/requests/db/schema";
 import { users, alerts } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
+import { RequirementsWorkflowService } from "~/features/requests/service";
+import { isFeatureEnabled } from "~/lib/feature-flags";
 
 function isReviewer(role: string) {
   return role === "admin" || role === "gatekeeper" || role === "owner";
@@ -74,7 +76,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       return json({ error: "Not found" }, { status: 404 });
     }
 
-    // PATCH: status change
+    // PATCH: status change or HITL verdict
     if (request.method === "PATCH") {
       if (!isReviewer(ctx.tenantRole)) {
         return json({ error: "권한이 없습니다." }, { status: 403 });
@@ -83,8 +85,24 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       const body = await request.json() as {
         status?: string;
         reason?: string;
+        humanVerdict?: string;
+        humanComment?: string;
       };
 
+      // HITL 판정 (Requirements Agent 활성 시)
+      const env = context.cloudflare.env as unknown as Record<string, string>;
+      if (body.humanVerdict && isFeatureEnabled(env, "requirementsAgent")) {
+        const workflow = new RequirementsWorkflowService(db);
+        const result = await workflow.submitHumanVerdict({
+          requestId: id,
+          verdict: body.humanVerdict as "APPROVED" | "REJECTED" | "NEEDS_REVISION",
+          comment: body.humanComment,
+          reviewerId: ctx.user.id,
+        });
+        return json({ success: true, status: result.status });
+      }
+
+      // 레거시 상태 변경
       if (!body.status) {
         return json({ error: "상태 값은 필수입니다." }, { status: 400 });
       }
@@ -145,7 +163,8 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     return json({ error: "Method not allowed" }, { status: 405 });
   } catch (error) {
     if (error instanceof Response) throw error;
+    const message = error instanceof Error ? error.message : "Internal server error";
     console.error("[api.requests.$id] action error:", error);
-    return json({ error: "Internal server error" }, { status: 500 });
+    return json({ error: message }, { status: 500 });
   }
 }

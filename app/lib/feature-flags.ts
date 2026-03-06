@@ -16,6 +16,7 @@ export interface FeatureFlags {
   profileLearner: boolean;
   simplifiedNav: boolean;
   aiFallback: boolean;
+  requirementsAgent: boolean;
 }
 
 /**
@@ -36,6 +37,7 @@ export function getFeatureFlags(env: Record<string, string | undefined>): Featur
     profileLearner: env.FF_PROFILE_LEARNER === "true",
     simplifiedNav: env.FF_SIMPLIFIED_NAV === "true",
     aiFallback: env.FF_AI_FALLBACK === "true",
+    requirementsAgent: env.FF_REQUIREMENTS_AGENT === "true",
   };
 }
 

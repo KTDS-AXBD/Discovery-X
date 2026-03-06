@@ -93,8 +93,13 @@ import {
   getCellSignals,
   getTopCells,
 } from "./tools/matrix-tools";
+import {
+  classifyFeatureRequest,
+  reviewFeatureRequest,
+  planFeatureRequest,
+} from "./tools/requirements-tools";
 
-type ToolHandler = (db: DB, input: Record<string, unknown>) => Promise<string>;
+type ToolHandler = (db: DB, input: Record<string, unknown>, env?: Record<string, string>) => Promise<string>;
 
 // tool name → handler 매핑 (alias 포함)
 const TOOL_HANDLER_MAP: Record<string, ToolHandler> = {
@@ -194,6 +199,11 @@ const TOOL_HANDLER_MAP: Record<string, ToolHandler> = {
   query_matrix_heatmap: (db, input) => queryMatrixHeatmap(db, input as unknown as Parameters<typeof queryMatrixHeatmap>[1]),
   get_cell_signals: (db, input) => getCellSignals(db, input as unknown as Parameters<typeof getCellSignals>[1]),
   get_top_cells: (db, input) => getTopCells(db, input as unknown as Parameters<typeof getTopCells>[1]),
+
+  // Requirements 도구
+  classify_feature_request: (db, input, env) => classifyFeatureRequest(db, input as Parameters<typeof classifyFeatureRequest>[1], env),
+  review_feature_request: (db, input, env) => reviewFeatureRequest(db, input as Parameters<typeof reviewFeatureRequest>[1], env),
+  plan_feature_request: (db, input) => planFeatureRequest(db, input as Parameters<typeof planFeatureRequest>[1]),
 };
 
 export async function executeTool(
@@ -201,7 +211,8 @@ export async function executeTool(
   toolName: string,
   toolInput: Record<string, unknown>,
   autonomyLevel?: number,
-  tenantId?: string
+  tenantId?: string,
+  env?: Record<string, string>,
 ): Promise<string> {
   // 자율도 레벨 검증
   if (autonomyLevel !== undefined) {
@@ -223,5 +234,5 @@ export async function executeTool(
   if (!handler) {
     return JSON.stringify({ error: `알 수 없는 도구: ${toolName}` });
   }
-  return handler(db, toolInput);
+  return handler(db, toolInput, env);
 }
