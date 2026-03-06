@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "~/components/ui/Button";
 import { OnboardingStep } from "./OnboardingStep";
@@ -21,7 +21,10 @@ interface SpotlightRect {
   height: number;
 }
 
+const subscribe = () => () => {};
+
 export function OnboardingModal({ open, onComplete, onSkip }: OnboardingModalProps) {
+  const mounted = useSyncExternalStore(subscribe, () => true, () => false);
   const [step, setStep] = useState(1);
   const [spotlight, setSpotlight] = useState<SpotlightRect | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -77,7 +80,7 @@ export function OnboardingModal({ open, onComplete, onSkip }: OnboardingModalPro
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onSkip]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
   // 카드 위치: spotlight 아래에 배치 (없으면 중앙)
   const cardStyle: React.CSSProperties = spotlight
