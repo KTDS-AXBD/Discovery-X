@@ -78,6 +78,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 - Phase 5B (agent-worker DO): **완료** — AgentSessionDO 클래스, Worker 라우팅, HMAC 인증, SSE 스트리밍, alarm flush, 429 동시성, api.chat.ts DO 위임
 - Phase 5C (collab-worker + 스키마): **완료** — collab-worker Cron/fetch 핸들러, notification_queue, tenants 확장(profile_ld/rules_md), cron_logs
 - Phase 5D (품질 고도화): **완료** — Vectorize memory+signals namespace, 토큰 예산 초과 UI, Topics 검색/필터, Feature Flag 정리(5개 true 전환)
+- 요구사항 Agent 개선: **완료** — 등록 시 AI 자동 검토, OUT_OF_SCOPE 자동 보류, 보류→접수 DnD, 드래그 시각 피드백
 
 ### 성공 기준
 - **P0**: "닫힌 Discovery"(Next/Not Now/Dead End)가 최소 1건 이상 발생
@@ -433,22 +434,23 @@ build/
 ### 버전
 - **프로토타입**: v6.26.0 — PIVOT 핵심 루프 + 온보딩 플로우 (세션 269)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 45개 마이그레이션 (0000~0044), 로컬 적용 대기 (0043~0044 신규)
+- **DB**: 47개 마이그레이션 (0000~0046), 전체 적용 완료 (로컬+프로덕션)
 
 ### 주요 지표
-- **라우트**: 157개 (+2: api.requests.$id.review, api.requests.$id.plan)
-- **테이블**: 97개 (+3: request_reviews, request_events, work_plans)
-- **Agent 도구**: 53개 (+3: classify/review/plan_feature_request, schema: 10 도메인 파일)
-- **코드**: ~69,945줄 (~436파일) — 세션 288 요구사항 Agent + Modular Monolith (+2,123줄)
-- **테스트**: 1,433개 (101 test files, 로컬 통과)
+- **라우트**: 157개
+- **테이블**: 97개
+- **Agent 도구**: 53개
+- **코드**: ~70,700줄 (~427파일)
+- **테스트**: 1,470개 (103 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **부하 테스트**: Artillery v2.0.30 — 4개 시나리오 (health, api-crud, chat-stream, spike)
-- **Feature Flag**: 12개 — **11/12 true** (FF_REQUIREMENTS_AGENT 신규 추가, 프로덕션 활성화 필요)
+- **Feature Flag**: 12개 — **12/12 true** (전체 활성화)
 - **@theme inline**: 104 토큰 등록, var() 1,752→122 (93.0% 감소, 163 파일)
-- **@axis-ds 컴포넌트**: 15/28 활용 (Button/Badge/Card/Input/Alert/Dialog/Table/Textarea/Select/SelectItem/SelectTrigger/Label/Skeleton/Separator/Progress)
-- **배포**: 세션 287 — PRD v3.1 Gap 수정 (온보딩 Spotlight + 재실행 + 알림 + 마크다운 + 모름 레이블)
+- **@axis-ds 컴포넌트**: 15/28 활용
+- **radar-worker**: scorer 4단계 fallback (Anthropic→OpenAI→Gemini→Workers AI) + failedProviders 스킵
+- **배포**: 세션 291 — radar-worker scorer fallback 체인 + OpenAI 키 갱신
 - **Cron 등록**: cron-job.org 14개 등록 완료 (ai-pipeline 09:30 KST 포함)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
 

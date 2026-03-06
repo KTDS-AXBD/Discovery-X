@@ -3,6 +3,31 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 291 (2026-03-06)
+**fix: radar-worker scorer fallback 체인 복구 + OpenAI 키 갱신**:
+- ✅ scorer 4단계 fallback: Anthropic → OpenAI → Gemini → Workers AI
+- ✅ failedProviders Set — 배치 간 실패 프로바이더 자동 스킵 (121s→99s 단축)
+- ✅ 에러 전파: scorer 에러를 stats.errors에 기록 (사일런트 실패 방지)
+- ✅ Gemini 429 재시도 제거 (쿼터 소진은 백오프 복구 불가)
+- ✅ Workers AI binding 추가 (`[ai] binding = "AI"`, Llama 3.1 8B)
+- ✅ OpenAI API 키 갱신 → 수동 트리거 seeds=4 생성 확인
+- ✅ 깨진 한국어 씨앗 정리 (Workers AI 품질 부적합)
+- ℹ️ Anthropic 크레딧 부족 / Gemini 무료 쿼터 소진 (미해결)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / radar-worker 프로덕션 수동 트리거 성공
+
+### 세션 292 (2026-03-06)
+**feat: 요구사항 자동 AI 검토 + OUT_OF_SCOPE 자동 보류 + DnD 개선**:
+- ✅ 요구사항 등록 시 AI 검토 자동 트리거 (`waitUntil` 백그라운드 실행)
+- ✅ OUT_OF_SCOPE 분류 시 자동 보류 (HUMAN_REVIEW 생략, CLASSIFIED→REJECTED)
+- ✅ 보류→접수 DnD 재오픈 지원 + 드래그 오버 시각 피드백 (ring-2 accent)
+- ✅ "사람 검토" → "담당자 검토" 텍스트 변경 (칸반/리스트/상수)
+- ✅ 프로덕션 요구사항 7건 등록 + AI 검토 완료 (5건 HUMAN_REVIEW, 2건 자동 보류)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 프로덕션 E2E 수동 검증
+
 ### 세션 290 (2026-03-06)
 **fix: 요구사항 Agent Gap 분석 + 10건 해소**:
 - ✅ GAP-5: workflow + entity/query 단위 테스트 37개 추가 (1433→1470)
