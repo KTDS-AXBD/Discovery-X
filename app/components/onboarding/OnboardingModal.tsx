@@ -12,7 +12,7 @@ interface OnboardingModalProps {
 const TOTAL_STEPS = 3;
 
 /** 각 step이 spotlight할 대상의 data-onboarding 값 */
-const STEP_TARGETS = ["pipeline", "idea-to-proposal", "collaboration"] as const;
+const STEP_TARGETS = ["ideas", "proposals", "lab"] as const;
 
 interface SpotlightRect {
   top: number;
@@ -151,7 +151,7 @@ export function OnboardingModal({ open, onComplete, onSkip }: OnboardingModalPro
       >
         {/* 헤더 */}
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-base font-bold text-fg">Discovery-X 시작 가이드</h2>
+          <h2 className="text-base font-bold text-fg">Discovery-X 사용법 가이드</h2>
           <span className="text-xs text-fg-tertiary">
             {step} / {TOTAL_STEPS}
           </span>
@@ -175,9 +175,9 @@ export function OnboardingModal({ open, onComplete, onSkip }: OnboardingModalPro
 
         {/* Step content */}
         <div className="min-h-[200px]">
-          {step === 1 && <StepPipeline />}
-          {step === 2 && <StepIdeaToProposal />}
-          {step === 3 && <StepCollaboration />}
+          {step === 1 && <StepIdeas />}
+          {step === 2 && <StepProposals />}
+          {step === 3 && <StepLab />}
         </div>
 
         {/* 버튼 */}
@@ -203,64 +203,23 @@ export function OnboardingModal({ open, onComplete, onSkip }: OnboardingModalPro
   );
 }
 
-// ── Step 1: Discovery 파이프라인 ──────────────────────────────────────
+// ── Step 1: 아이디어 ──────────────────────────────────────────────────
 
-function StepPipeline() {
-  const stages = [
-    { label: "DISCOVERY", desc: "관찰에서 시작" },
-    { label: "IDEA_CARD", desc: "아이디어 정리" },
-    { label: "HYPOTHESIS", desc: "가설 수립" },
-    { label: "EXPERIMENT", desc: "실험 설계/실행" },
-    { label: "EVIDENCE", desc: "근거 수집" },
-    { label: "GATE 1", desc: "사업제안 판단" },
-    { label: "SPRINT", desc: "빠른 검증" },
-    { label: "GATE 2", desc: "최종 판단" },
-    { label: "HANDOFF", desc: "이관/보류/중단" },
+function StepIdeas() {
+  const items = [
+    { icon: "📡", title: "소스 수집", desc: "Radar가 시장 신호와 트렌드를 자동 수집해요." },
+    { icon: "💡", title: "아이디어 정리", desc: "수집된 소스를 묶어 아이디어 카드로 만들어요." },
+    { icon: "🔬", title: "AI 분석", desc: "멀티소스 선택 후 AI가 시장·경쟁·기회를 분석해요." },
+    { icon: "📋", title: "사업제안 전환", desc: "분석 결과를 바탕으로 사업제안으로 승격해요." },
   ];
 
   return (
-    <OnboardingStep stepNumber={1} title="Discovery 파이프라인">
+    <OnboardingStep stepNumber={1} title="아이디어">
       <p className="mb-3">
-        관찰에서 시작해 근거 기반으로 사업 아이디어를 검증하는 11단계 흐름입니다.
-      </p>
-      <div className="flex flex-wrap items-center gap-1">
-        {stages.map((s, i) => (
-          <div key={s.label} className="flex items-center gap-1">
-            <span className="inline-flex items-center rounded bg-[var(--axis-surface-raised)] px-2 py-1 text-xs font-medium text-[var(--axis-text-primary)]">
-              {s.label}
-            </span>
-            {i < stages.length - 1 && (
-              <svg className="h-3 w-3 text-[var(--axis-text-tertiary)]" viewBox="0 0 12 12" fill="none">
-                <path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            )}
-          </div>
-        ))}
-      </div>
-      <p className="mt-3 text-xs text-[var(--axis-text-tertiary)]">
-        각 단계마다 명확한 전환 조건이 있으며, 최대 4주 또는 실험 2회의 타임박스가 적용됩니다.
-      </p>
-    </OnboardingStep>
-  );
-}
-
-// ── Step 2: 아이디어 → 사업제안 전환 ──────────────────────────────────
-
-function StepIdeaToProposal() {
-  const flow = [
-    { icon: "💡", title: "아이디어 카드", desc: "자유롭게 아이디어를 메모하고 태그합니다." },
-    { icon: "🔬", title: "가설 수립", desc: "검증 가능한 가설로 정제합니다." },
-    { icon: "📡", title: "Radar 연동", desc: "시장 신호와 트렌드를 자동으로 수집합니다." },
-    { icon: "📋", title: "사업제안 승격", desc: "Gate 통과 후 공식 사업제안으로 전환합니다." },
-  ];
-
-  return (
-    <OnboardingStep stepNumber={2} title="아이디어에서 사업제안까지">
-      <p className="mb-3">
-        아이디어를 체계적으로 검증하여 사업제안으로 승격하는 경로입니다.
+        시장 신호 수집부터 아이디어 정리, AI 분석, 사업제안 전환까지의 흐름이에요.
       </p>
       <div className="grid grid-cols-2 gap-3">
-        {flow.map((item) => (
+        {items.map((item) => (
           <div
             key={item.title}
             className="rounded-lg border border-[var(--axis-border-default)] p-3"
@@ -277,20 +236,20 @@ function StepIdeaToProposal() {
   );
 }
 
-// ── Step 3: 팀 협업 / Topic ──────────────────────────────────────────
+// ── Step 2: 사업제안 ──────────────────────────────────────────────────
 
-function StepCollaboration() {
+function StepProposals() {
   const features = [
-    { title: "Topic 생성", desc: "주제별 워크스페이스를 만들어 Discovery를 그룹핑합니다." },
-    { title: "멤버 초대", desc: "Owner / Editor / Viewer 역할로 팀원을 초대합니다." },
-    { title: "브리핑 자동 생성", desc: "AI가 Discovery 진행 현황을 자동으로 요약합니다." },
-    { title: "팀 지식 베이스", desc: "축적된 근거와 실험 결과를 팀 전체가 활용합니다." },
+    { title: "제안서 작성", desc: "아이디어에서 전환하거나 직접 새 사업제안을 작성해요." },
+    { title: "마일스톤 관리", desc: "검증 단계별 마일스톤을 설정하고 진행률을 추적해요." },
+    { title: "액션 & 댓글", desc: "팀원과 액션 아이템을 공유하고 피드백을 주고받아요." },
+    { title: "진행상황 패널", desc: "제안 전체의 진행 현황을 한눈에 파악할 수 있어요." },
   ];
 
   return (
-    <OnboardingStep stepNumber={3} title="팀 협업과 Topic">
+    <OnboardingStep stepNumber={2} title="사업제안">
       <p className="mb-3">
-        Topic을 중심으로 팀이 함께 Discovery를 운영합니다.
+        검증된 아이디어를 공식 사업제안으로 발전시키고 팀과 함께 관리하는 공간이에요.
       </p>
       <div className="space-y-2">
         {features.map((f) => (
@@ -305,6 +264,40 @@ function StepCollaboration() {
           </div>
         ))}
       </div>
+    </OnboardingStep>
+  );
+}
+
+// ── Step 3: 실험실 ──────────────────────────────────────────────────
+
+function StepLab() {
+  const tabs = [
+    { title: "요구사항", desc: "팀원들이 기능 요청을 등록하고 AI가 자동 검토해요." },
+    { title: "작업 현황", desc: "Discovery 11단계 파이프라인의 진행 상태를 추적해요." },
+    { title: "방법론", desc: "12종 Method Pack으로 체계적인 검증 방법을 제공해요." },
+  ];
+
+  return (
+    <OnboardingStep stepNumber={3} title="실험실">
+      <p className="mb-3">
+        팀 운영에 필요한 요구사항 관리, 작업 추적, 검증 방법론을 모은 공간이에요.
+      </p>
+      <div className="space-y-2">
+        {tabs.map((t, i) => (
+          <div key={t.title} className="flex gap-3 rounded-lg border border-[var(--axis-border-default)] p-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[var(--axis-surface-raised)] text-xs font-bold text-[var(--axis-color-primary)]">
+              {i + 1}
+            </div>
+            <div>
+              <div className="text-xs font-medium text-[var(--axis-text-primary)]">{t.title}</div>
+              <div className="text-xs text-[var(--axis-text-tertiary)]">{t.desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="mt-3 text-xs text-[var(--axis-text-tertiary)]">
+        실험실에서 팀의 학습 루프를 체계적으로 관리할 수 있어요.
+      </p>
     </OnboardingStep>
   );
 }

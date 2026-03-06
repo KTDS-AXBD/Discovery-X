@@ -6,7 +6,7 @@ import {
   ScrollRestoration,
   useRouteLoaderData,
 } from "@remix-run/react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
@@ -159,20 +159,33 @@ export default function App() {
 
   const handleOnboardingDone = useCallback(async () => {
     setShowOnboarding(false);
-    await fetch("/api/onboarding", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "complete" }),
-    });
-  }, []);
+    if (!data?.onboardingCompleted) {
+      await fetch("/api/onboarding", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "complete" }),
+      });
+    }
+  }, [data?.onboardingCompleted]);
 
   const handleOnboardingSkip = useCallback(async () => {
     setShowOnboarding(false);
-    await fetch("/api/onboarding", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "complete" }),
-    });
+    if (!data?.onboardingCompleted) {
+      await fetch("/api/onboarding", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "complete" }),
+      });
+    }
+  }, [data?.onboardingCompleted]);
+
+  // "사용법 가이드" 재열기 이벤트 리스너
+  useEffect(() => {
+    function handleOpenGuide() {
+      setShowOnboarding(true);
+    }
+    window.addEventListener("dx:open-guide", handleOpenGuide);
+    return () => window.removeEventListener("dx:open-guide", handleOpenGuide);
   }, []);
 
   return (
