@@ -59,8 +59,8 @@ export class RequirementsWorkflowService {
     return this.transition(requestId, RequestStatus.AI_REVIEWING, actorId);
   }
 
-  /** AI 검토 완료: AI_REVIEWING → CLASSIFIED */
-  async completeAiReview(requestId: string, reviewId: string) {
+  /** AI 검토 완료: AI_REVIEWING → CLASSIFIED → (HUMAN_REVIEW | REJECTED) */
+  async completeAiReview(requestId: string, reviewId: string, classification?: string) {
     await this.entity.updateRequest(requestId, {
       status: RequestStatus.CLASSIFIED,
       aiReviewId: reviewId,
@@ -69,10 +69,25 @@ export class RequirementsWorkflowService {
       requestId,
       eventType: RequestEventType.AI_REVIEW_COMPLETED,
       actorType: "agent",
-      payload: { reviewId },
+      payload: { reviewId, classification },
     });
 
-    // 자동 전환: CLASSIFIED → HUMAN_REVIEW
+    // OUT_OF_SCOPE → 자동 보류 (사람 검토 생략)
+    if (classification === RequestClassification.OUT_OF_SCOPE) {
+      await this.entity.updateRequest(requestId, {
+        status: RequestStatus.REJECTED,
+        reason: "AI 분류: 프로젝트 범위 밖 (OUT_OF_SCOPE)",
+      });
+      await this.entity.logEvent({
+        requestId,
+        eventType: RequestEventType.STATUS_CHANGED,
+        actorType: "system",
+        payload: { from: RequestStatus.CLASSIFIED, to: RequestStatus.REJECTED, autoRejected: true },
+      });
+      return;
+    }
+
+    // 그 외: CLASSIFIED → HUMAN_REVIEW
     await this.entity.updateRequest(requestId, { status: RequestStatus.HUMAN_REVIEW });
     await this.entity.logEvent({
       requestId,

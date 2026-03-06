@@ -199,8 +199,8 @@ export class RequirementsAiReviewerService {
       tokenUsage: (response.usage?.input_tokens ?? 0) + (response.usage?.output_tokens ?? 0),
     });
 
-    // 7. AI_REVIEWING → CLASSIFIED → HUMAN_REVIEW
-    await this.workflow.completeAiReview(requestId, review.id);
+    // 7. AI_REVIEWING → CLASSIFIED → HUMAN_REVIEW (또는 OUT_OF_SCOPE → REJECTED)
+    await this.workflow.completeAiReview(requestId, review.id, analysis.classification);
 
     return {
       reviewId: review.id,

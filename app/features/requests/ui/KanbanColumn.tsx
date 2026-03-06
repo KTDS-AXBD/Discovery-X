@@ -1,7 +1,8 @@
 /**
- * 칸반 단일 열 + 드롭존
+ * 칸반 단일 열 + 드롭존 (드래그 오버 시각 피드백)
  */
 
+import { useState } from "react";
 import type { RequestWithReview } from "../types";
 import { RequestCard } from "./RequestCard";
 
@@ -26,25 +27,36 @@ export function KanbanColumn({
   draggableCards,
   onDragStart,
 }: KanbanColumnProps) {
+  const [dragOver, setDragOver] = useState(false);
+
   function handleDragOver(e: React.DragEvent) {
     if (!droppable) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
+    setDragOver(true);
+  }
+
+  function handleDragLeave() {
+    setDragOver(false);
   }
 
   function handleDrop(e: React.DragEvent) {
     if (!droppable || !onDrop) return;
     e.preventDefault();
+    setDragOver(false);
     const requestId = e.dataTransfer.getData("text/plain");
     if (requestId) onDrop(requestId);
   }
 
   return (
     <div
-      className={`flex w-56 shrink-0 flex-col rounded-lg bg-surface-secondary ${
-        droppable ? "ring-accent/30 ring-2 ring-inset" : ""
+      className={`flex w-56 shrink-0 flex-col rounded-lg transition-colors ${
+        dragOver
+          ? "bg-accent/10 ring-accent ring-2 ring-inset"
+          : "bg-surface-secondary"
       }`}
       onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       {/* Column header */}

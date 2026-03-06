@@ -30,7 +30,7 @@ const STATUS_LABELS: Record<string, string> = {
   IN_REVIEW: "검토 중",
   AI_REVIEWING: "AI 검토 중",
   CLASSIFIED: "분류 완료",
-  HUMAN_REVIEW: "사람 검토",
+  HUMAN_REVIEW: "담당자 검토",
   ACCEPTED: "반영",
   REJECTED: "보류",
 };

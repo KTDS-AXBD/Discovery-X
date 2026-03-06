@@ -67,7 +67,7 @@ export const RequestEventType = {
 export const ALLOWED_TRANSITIONS: Record<string, string[]> = {
   OPEN: ["AI_REVIEWING"],
   AI_REVIEWING: ["CLASSIFIED"],
-  CLASSIFIED: ["HUMAN_REVIEW"],
+  CLASSIFIED: ["HUMAN_REVIEW", "REJECTED"],
   HUMAN_REVIEW: ["ACCEPTED", "REJECTED", "CLASSIFIED"],
   ACCEPTED: [],
   REJECTED: ["OPEN"],
@@ -86,7 +86,7 @@ export const STATUS_LABELS: Record<string, string> = {
   OPEN: "접수",
   AI_REVIEWING: "AI 검토 중",
   CLASSIFIED: "분류 완료",
-  HUMAN_REVIEW: "사람 검토",
+  HUMAN_REVIEW: "담당자 검토",
   ACCEPTED: "반영",
   REJECTED: "보류",
 };

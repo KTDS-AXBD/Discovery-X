@@ -5,6 +5,8 @@ import { getDb } from "~/db";
 import { featureRequests } from "~/features/requests/db/schema";
 import { users } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
+import { isFeatureEnabled } from "~/lib/feature-flags";
+import { RequirementsAiReviewerService } from "~/features/requests/service";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   try {
@@ -95,6 +97,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
         submitterId: ctx.user.id,
       })
       .returning();
+
+    // 요구사항 Agent 활성 시 AI 검토 자동 트리거 (백그라운드)
+    const env = context.cloudflare.env as unknown as Record<string, string>;
+    if (isFeatureEnabled(env, "requirementsAgent")) {
+      const reviewer = new RequirementsAiReviewerService(db);
+      const reviewPromise = reviewer.analyzeRequest(created.id, env, ctx.user.id)
+        .catch((err) => console.error("[api.requests] auto-review failed:", err));
+      // waitUntil로 백그라운드 실행 — 응답은 즉시 반환
+      context.cloudflare.ctx.waitUntil(reviewPromise);
+    }
 
     return json({ request: created }, { status: 201 });
   } catch (error) {
