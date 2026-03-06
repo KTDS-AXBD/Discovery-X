@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 289 (2026-03-06)
+**chore: 요구사항 Agent 프로덕션 배포 + E2E 검증**:
+- ✅ 마이그레이션 0045 프로덕션 적용 (request_reviews, request_events, work_plans)
+- ✅ 마이그레이션 0046 프로덕션 적용 — feature_requests status CHECK 확장 (SQLite 테이블 재생성)
+- ✅ FF_REQUIREMENTS_AGENT=true 프로덕션 활성화
+- ✅ E2E 검증: 칸반 UI → AI 검토 (NEW_VALUABLE 4/5) → HITL 승인 → 반영 + Discovery 자동 생성
+- ✅ 리스트 뷰 토글 정상 동작 확인
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 901 tests PASS / 프로덕션 E2E 수동 검증
+
 ### 세션 288 (2026-03-06)
 **feat: 요구사항 검토 Agent + Modular Monolith 설계 (5 Phase 전체 구현)**:
 - ✅ Phase 1: 마이그레이션 0045 (request_reviews, request_events, work_plans) + Bounded Context 서비스 레이어 (query/entity/workflow/ai-reviewer)
