@@ -3,6 +3,20 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 290 (2026-03-06)
+**fix: 요구사항 Agent Gap 분석 + 10건 해소**:
+- ✅ GAP-5: workflow + entity/query 단위 테스트 37개 추가 (1433→1470)
+- ✅ GAP-8: ReviewPanel workPlanDraft 마크다운 렌더링 추가 (타입+쿼리+UI)
+- ✅ GAP-6: wrangler.toml FF_REQUIREMENTS_AGENT 등록 (로컬 dev 칸반 활성화)
+- ✅ GAP-2: title 100자 길이 검증 추가 (api.requests.ts)
+- ✅ GAP-9: 칸반 보드 우선순위 필터 추가 (전체/높음/보통/낮음)
+- ✅ classifyOnly() JSON.parse try/catch 에러 핸들링 추가
+- ℹ️ GAP-4: linked_idea_id FK — Bounded Context cross-context FK 의도적 미적용
+- ℹ️ GAP-1/3/7/10: 설계 검토 후 현상 유지 (레거시 호환, 의도적 확장)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 1,470 tests PASS
+
 ### 세션 289 (2026-03-06)
 **chore: 요구사항 Agent 프로덕션 배포 + E2E 검증**:
 - ✅ 마이그레이션 0045 프로덕션 적용 (request_reviews, request_events, work_plans)
