@@ -29,6 +29,10 @@ pnpm db:migrate:prod  # D1 원격 마이그레이션 적용
 pnpm db:studio        # Drizzle Studio (DB GUI)
 pnpm start            # 빌드 결과물 로컬 실행 (wrangler pages dev)
 pnpm run deploy       # 빌드 + Cloudflare Pages 배포 (pnpm deploy 아님, run 필수)
+pnpm load-test        # 부하 테스트 — health (artillery)
+pnpm load-test:api    # 부하 테스트 — API CRUD
+pnpm load-test:chat   # 부하 테스트 — chat stream
+pnpm load-test:spike  # 부하 테스트 — spike
 ```
 
 ## IMPORTANT: 검증 워크플로우
