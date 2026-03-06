@@ -37,7 +37,186 @@ function formatRelativeTime(ts: string | number | null): string {
   return `${y}.${m}.${day}`;
 }
 
-export function TeamDiscussion({ proposalId, comments, currentUserId: _currentUserId, compact }: TeamDiscussionProps) {
+function CommentItem({
+  comment,
+  proposalId,
+  currentUserId,
+  compact,
+}: {
+  comment: Comment;
+  proposalId: string;
+  currentUserId: string;
+  compact?: boolean;
+}) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(comment.content);
+  const editFetcher = useFetcher();
+  const deleteFetcher = useFetcher();
+  const isMine = comment.authorId === currentUserId;
+  const isDeleting = deleteFetcher.state === "submitting";
+
+  const handleEdit = () => {
+    if (!editContent.trim()) return;
+    editFetcher.submit(
+      JSON.stringify({ commentId: comment.id, content: editContent.trim() }),
+      {
+        method: "PATCH",
+        action: `/api/proposals/${proposalId}/comments`,
+        encType: "application/json",
+      },
+    );
+    setIsEditing(false);
+  };
+
+  const handleDelete = () => {
+    deleteFetcher.submit(
+      JSON.stringify({ commentId: comment.id }),
+      {
+        method: "DELETE",
+        action: `/api/proposals/${proposalId}/comments`,
+        encType: "application/json",
+      },
+    );
+  };
+
+  if (isDeleting) return null;
+
+  if (compact) {
+    return (
+      <div className="group">
+        <div className="flex items-center gap-1.5">
+          <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-surface-secondary text-[8px] font-bold text-fg-secondary">
+            {(comment.authorName || "U").charAt(0).toUpperCase()}
+          </div>
+          <span className="text-[10px] font-medium text-fg">
+            {comment.authorName || "사용자"}
+          </span>
+          {comment.createdAt && (
+            <span className="text-[8px] text-fg-tertiary">
+              {formatRelativeTime(comment.createdAt)}
+            </span>
+          )}
+          {isMine && !isEditing && (
+            <span className="ml-auto hidden gap-1 group-hover:flex">
+              <button
+                type="button"
+                onClick={() => { setEditContent(comment.content); setIsEditing(true); }}
+                className="text-[8px] text-fg-tertiary hover:text-fg-brand"
+              >
+                수정
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="text-[8px] text-fg-tertiary hover:text-fg-error"
+              >
+                삭제
+              </button>
+            </span>
+          )}
+        </div>
+        {isEditing ? (
+          <div className="ml-6 mt-1 space-y-1">
+            <textarea
+              rows={2}
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              className="w-full resize-none rounded border border-line bg-surface-secondary px-2 py-1 text-xs text-fg focus:border-line-brand focus:outline-none"
+            />
+            <div className="flex gap-1">
+              <button
+                type="button"
+                onClick={handleEdit}
+                disabled={!editContent.trim()}
+                className="rounded bg-btn-bg px-2 py-0.5 text-[10px] text-btn-text hover:bg-btn-bg-hover disabled:opacity-50"
+              >
+                저장
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="rounded px-2 py-0.5 text-[10px] text-fg-tertiary hover:text-fg"
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p className="ml-6 mt-0.5 text-xs text-fg-secondary">{comment.content}</p>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="group flex gap-3">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-secondary text-xs font-bold text-fg-secondary">
+        {(comment.authorName || "U").charAt(0).toUpperCase()}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-fg">
+            {comment.authorName || "사용자"}
+          </span>
+          {comment.createdAt && (
+            <span className="text-[10px] text-fg-tertiary">
+              {formatRelativeTime(comment.createdAt)}
+            </span>
+          )}
+          {isMine && !isEditing && (
+            <span className="ml-auto hidden gap-1.5 group-hover:flex">
+              <button
+                type="button"
+                onClick={() => { setEditContent(comment.content); setIsEditing(true); }}
+                className="text-[10px] text-fg-tertiary hover:text-fg-brand"
+              >
+                수정
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="text-[10px] text-fg-tertiary hover:text-fg-error"
+              >
+                삭제
+              </button>
+            </span>
+          )}
+        </div>
+        {isEditing ? (
+          <div className="mt-1 space-y-1.5">
+            <textarea
+              rows={3}
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              className="w-full resize-none rounded-lg border border-line bg-surface-secondary px-3 py-2 text-sm text-fg focus:border-line-brand focus:outline-none"
+            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleEdit}
+                disabled={!editContent.trim()}
+                className="rounded-lg bg-btn-bg px-3 py-1.5 text-xs font-medium text-btn-text hover:bg-btn-bg-hover disabled:opacity-50"
+              >
+                저장
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="rounded-lg px-3 py-1.5 text-xs text-fg-tertiary hover:text-fg"
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p className="mt-0.5 text-sm text-fg-secondary">{comment.content}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function TeamDiscussion({ proposalId, comments, currentUserId, compact }: TeamDiscussionProps) {
   const [content, setContent] = useState("");
   const fetcher = useFetcher();
   const isSubmitting = fetcher.state === "submitting";
@@ -59,22 +238,13 @@ export function TeamDiscussion({ proposalId, comments, currentUserId: _currentUs
         {/* Comment list */}
         <div className="mb-3 space-y-3">
           {comments.map((comment) => (
-            <div key={comment.id}>
-              <div className="flex items-center gap-1.5">
-                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-surface-secondary text-[8px] font-bold text-fg-secondary">
-                  {(comment.authorName || "U").charAt(0).toUpperCase()}
-                </div>
-                <span className="text-[10px] font-medium text-fg">
-                  {comment.authorName || "사용자"}
-                </span>
-                {comment.createdAt && (
-                  <span className="text-[8px] text-fg-tertiary">
-                    {formatRelativeTime(comment.createdAt)}
-                  </span>
-                )}
-              </div>
-              <p className="ml-6 mt-0.5 text-xs text-fg-secondary">{comment.content}</p>
-            </div>
+            <CommentItem
+              key={comment.id}
+              comment={comment}
+              proposalId={proposalId}
+              currentUserId={currentUserId}
+              compact
+            />
           ))}
           {comments.length === 0 && (
             <p className="text-xs text-fg-tertiary">아직 검토 의견이 없습니다.</p>
@@ -111,24 +281,12 @@ export function TeamDiscussion({ proposalId, comments, currentUserId: _currentUs
       {/* Comment list */}
       <div className="mb-4 space-y-4">
         {comments.map((comment) => (
-          <div key={comment.id} className="flex gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-secondary text-xs font-bold text-fg-secondary">
-              {(comment.authorName || "U").charAt(0).toUpperCase()}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-fg">
-                  {comment.authorName || "사용자"}
-                </span>
-                {comment.createdAt && (
-                  <span className="text-[10px] text-fg-tertiary">
-                    {formatRelativeTime(comment.createdAt)}
-                  </span>
-                )}
-              </div>
-              <p className="mt-0.5 text-sm text-fg-secondary">{comment.content}</p>
-            </div>
-          </div>
+          <CommentItem
+            key={comment.id}
+            comment={comment}
+            proposalId={proposalId}
+            currentUserId={currentUserId}
+          />
         ))}
         {comments.length === 0 && (
           <p className="text-sm text-fg-tertiary">아직 댓글이 없습니다.</p>

@@ -96,6 +96,14 @@ export class ProposalService {
   addComment = (...args: Parameters<ProposalCollabService["addComment"]>) =>
     this.collab.addComment(...args);
 
+  updateComment = (
+    ...args: Parameters<ProposalCollabService["updateComment"]>
+  ) => this.collab.updateComment(...args);
+
+  deleteComment = (
+    ...args: Parameters<ProposalCollabService["deleteComment"]>
+  ) => this.collab.deleteComment(...args);
+
   toggleLike = (...args: Parameters<ProposalCollabService["toggleLike"]>) =>
     this.collab.toggleLike(...args);
 

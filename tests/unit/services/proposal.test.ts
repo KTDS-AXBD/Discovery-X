@@ -13,6 +13,7 @@ import {
   proposals,
   proposalSections,
   proposalCategories,
+  proposalComments,
 } from "~/features/proposals/db/schema";
 import { eq } from "drizzle-orm";
 
@@ -300,6 +301,136 @@ describe("ProposalService", () => {
         .all();
       const content = sections.find((s) => s.type === "content");
       expect(content!.content).toBe("완전히 새로운 내용");
+    });
+  });
+
+  // ============================================================================
+  // 댓글 CRUD + commentCount 동기화
+  // ============================================================================
+
+  describe("comments", () => {
+    const COMMENT_PROPOSAL = "prop-comment-test";
+
+    beforeAll(() => {
+      db.insert(proposals)
+        .values({
+          id: COMMENT_PROPOSAL,
+          tenantId: TENANT_ID,
+          ownerId: USER_ID,
+          title: "댓글 테스트 제안",
+          status: "PROPOSAL",
+          commentCount: 0,
+        })
+        .run();
+    });
+
+    describe("addComment", () => {
+      it("댓글 추가 + commentCount 증가", async () => {
+        await service.addComment(COMMENT_PROPOSAL, USER_ID, "첫 번째 댓글");
+
+        const comments = await service.listComments(COMMENT_PROPOSAL);
+        expect(comments).toHaveLength(1);
+        expect(comments[0].content).toBe("첫 번째 댓글");
+
+        const proposal = db
+          .select({ commentCount: proposals.commentCount })
+          .from(proposals)
+          .where(eq(proposals.id, COMMENT_PROPOSAL))
+          .get();
+        expect(proposal!.commentCount).toBe(1);
+      });
+
+      it("두 번째 댓글 추가 시 commentCount 2", async () => {
+        await service.addComment(COMMENT_PROPOSAL, OTHER_USER_ID, "두 번째 댓글");
+
+        const proposal = db
+          .select({ commentCount: proposals.commentCount })
+          .from(proposals)
+          .where(eq(proposals.id, COMMENT_PROPOSAL))
+          .get();
+        expect(proposal!.commentCount).toBe(2);
+      });
+    });
+
+    describe("updateComment", () => {
+      it("본인 댓글 수정 성공", async () => {
+        const comments = await service.listComments(COMMENT_PROPOSAL);
+        const myComment = comments.find((c) => c.authorId === USER_ID)!;
+
+        await service.updateComment(
+          myComment.id,
+          COMMENT_PROPOSAL,
+          USER_ID,
+          "수정된 댓글",
+        );
+
+        const updated = await service.listComments(COMMENT_PROPOSAL);
+        const found = updated.find((c) => c.id === myComment.id)!;
+        expect(found.content).toBe("수정된 댓글");
+      });
+
+      it("타인 댓글 수정 시 Forbidden", async () => {
+        const comments = await service.listComments(COMMENT_PROPOSAL);
+        const otherComment = comments.find(
+          (c) => c.authorId === OTHER_USER_ID,
+        )!;
+
+        await expect(
+          service.updateComment(
+            otherComment.id,
+            COMMENT_PROPOSAL,
+            USER_ID,
+            "해킹",
+          ),
+        ).rejects.toThrow("Forbidden");
+      });
+
+      it("존재하지 않는 댓글 수정 시 Not found", async () => {
+        await expect(
+          service.updateComment(
+            "no-such-comment",
+            COMMENT_PROPOSAL,
+            USER_ID,
+            "내용",
+          ),
+        ).rejects.toThrow("Comment not found");
+      });
+    });
+
+    describe("deleteComment", () => {
+      it("타인 댓글 삭제 시 Forbidden", async () => {
+        const comments = await service.listComments(COMMENT_PROPOSAL);
+        const otherComment = comments.find(
+          (c) => c.authorId === OTHER_USER_ID,
+        )!;
+
+        await expect(
+          service.deleteComment(otherComment.id, COMMENT_PROPOSAL, USER_ID),
+        ).rejects.toThrow("Forbidden");
+      });
+
+      it("본인 댓글 삭제 + commentCount 감소", async () => {
+        const comments = await service.listComments(COMMENT_PROPOSAL);
+        const myComment = comments.find((c) => c.authorId === USER_ID)!;
+
+        await service.deleteComment(myComment.id, COMMENT_PROPOSAL, USER_ID);
+
+        const remaining = await service.listComments(COMMENT_PROPOSAL);
+        expect(remaining.find((c) => c.id === myComment.id)).toBeUndefined();
+
+        const proposal = db
+          .select({ commentCount: proposals.commentCount })
+          .from(proposals)
+          .where(eq(proposals.id, COMMENT_PROPOSAL))
+          .get();
+        expect(proposal!.commentCount).toBe(1);
+      });
+
+      it("존재하지 않는 댓글 삭제 시 Not found", async () => {
+        await expect(
+          service.deleteComment("no-such-comment", COMMENT_PROPOSAL, USER_ID),
+        ).rejects.toThrow("Comment not found");
+      });
     });
   });
 });

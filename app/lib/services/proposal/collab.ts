@@ -39,7 +39,7 @@ export class ProposalCollabService {
       .where(eq(proposalComments.proposalId, proposalId));
   }
 
-  /** 댓글 추가 */
+  /** 댓글 추가 (commentCount 동기화) */
   async addComment(
     proposalId: string,
     authorId: string,
@@ -50,6 +50,70 @@ export class ProposalCollabService {
       authorId,
       content,
     });
+    await this.db
+      .update(proposals)
+      .set({ commentCount: sql`${proposals.commentCount} + 1` })
+      .where(eq(proposals.id, proposalId));
+  }
+
+  /** 댓글 수정 (본인만) */
+  async updateComment(
+    commentId: string,
+    proposalId: string,
+    authorId: string,
+    content: string,
+  ): Promise<void> {
+    const comment = await this.db
+      .select({ id: proposalComments.id, authorId: proposalComments.authorId })
+      .from(proposalComments)
+      .where(
+        and(
+          eq(proposalComments.id, commentId),
+          eq(proposalComments.proposalId, proposalId),
+        ),
+      )
+      .get();
+    if (!comment) {
+      throw new Error("Comment not found");
+    }
+    if (comment.authorId !== authorId) {
+      throw new Error("Forbidden");
+    }
+    await this.db
+      .update(proposalComments)
+      .set({ content })
+      .where(eq(proposalComments.id, commentId));
+  }
+
+  /** 댓글 삭제 (본인만, commentCount 동기화) */
+  async deleteComment(
+    commentId: string,
+    proposalId: string,
+    authorId: string,
+  ): Promise<void> {
+    const comment = await this.db
+      .select({ id: proposalComments.id, authorId: proposalComments.authorId })
+      .from(proposalComments)
+      .where(
+        and(
+          eq(proposalComments.id, commentId),
+          eq(proposalComments.proposalId, proposalId),
+        ),
+      )
+      .get();
+    if (!comment) {
+      throw new Error("Comment not found");
+    }
+    if (comment.authorId !== authorId) {
+      throw new Error("Forbidden");
+    }
+    await this.db
+      .delete(proposalComments)
+      .where(eq(proposalComments.id, commentId));
+    await this.db
+      .update(proposals)
+      .set({ commentCount: sql`MAX(0, ${proposals.commentCount} - 1)` })
+      .where(eq(proposals.id, proposalId));
   }
 
   // --------------------------------------------------------------------------

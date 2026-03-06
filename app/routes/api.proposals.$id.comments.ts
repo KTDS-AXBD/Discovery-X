@@ -61,6 +61,55 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
       return json({ success: true });
     }
 
+    if (request.method === "PATCH") {
+      const body = (await request.json()) as {
+        commentId: string;
+        content: string;
+      };
+
+      if (!body.commentId || !body.content?.trim()) {
+        return json(
+          { error: "commentId and content are required" },
+          { status: 400 },
+        );
+      }
+
+      try {
+        await service.updateComment(
+          body.commentId,
+          params.id!,
+          ctx.user.id,
+          body.content.trim(),
+        );
+        return json({ success: true });
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : "Unknown error";
+        if (msg === "Forbidden") {
+          return json({ error: msg }, { status: 403 });
+        }
+        return json({ error: msg }, { status: 404 });
+      }
+    }
+
+    if (request.method === "DELETE") {
+      const body = (await request.json()) as { commentId: string };
+
+      if (!body.commentId) {
+        return json({ error: "commentId is required" }, { status: 400 });
+      }
+
+      try {
+        await service.deleteComment(body.commentId, params.id!, ctx.user.id);
+        return json({ success: true });
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : "Unknown error";
+        if (msg === "Forbidden") {
+          return json({ error: msg }, { status: 403 });
+        }
+        return json({ error: msg }, { status: 404 });
+      }
+    }
+
     return json({ error: "Method not allowed" }, { status: 405 });
   } catch (error) {
     if (error instanceof Response) throw error;
