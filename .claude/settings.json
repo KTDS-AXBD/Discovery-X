@@ -21,7 +21,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pnpm typecheck 2>&1 | tail -20; pnpm lint 2>&1 | tail -20"
+            "command": "bash .claude/hooks/post-edit-lint.sh",
+            "timeout": 10000
           }
         ]
       }
