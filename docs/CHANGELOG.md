@@ -3,6 +3,16 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 313 (2026-03-07)
+**docs: 문서 버전 표준체계 일치 + Gap 분석**:
+- ✅ `/ax-08-ver check`: 5/5 PASS + 불일치 3건 수정
+- ✅ SPEC.md §5: 레거시 v6.26.0 제거 → SemVer SSOT `0.5.0` 통일
+- ✅ SPEC.md §5: 코드 통계 갱신 (LOC 71,600/448파일, 테스트 117파일, DB 51 SQL)
+- ✅ SPEC.md §3: 테이블 카운트 명확화 (Drizzle 72 + 마이그레이션 전용 25)
+- ✅ CLAUDE.md: 스키마 머지 8→12개 현행화
+- ✅ DX-DSGN-100: system-version 예시 SemVer 통일
+- ✅ MEMORY.md: 코드 통계 전체 갱신
+
 ### 세션 311 (2026-03-07)
 **chore: 거버넌스 점검 + BC 통일 Phase D 커밋**:
 - ✅ bkit 플러그인 복원 (`~/.claude-work` → `~/.claude` 환경 분리 해결)
