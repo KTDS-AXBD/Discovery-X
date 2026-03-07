@@ -3,6 +3,13 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 311 (2026-03-07)
+**chore: bkit 플러그인 복원 + 버전 상태 확인**:
+- ✅ `/pdca` 스킬 미로딩 원인 분석: `~/.claude` vs `~/.claude-work` 환경 분리
+- ✅ bkit-marketplace 복사 + `known_marketplaces.json` 등록
+- ✅ `/ax-08-ver status`: v0.5.0, tag 일치, 태그 이후 21커밋
+- ✅ SPEC.md 지표 동기화 커밋 (라우트 158, 테이블 97, Agent 도구 72, 마이그레이션 50)
+
 ### 세션 310 (2026-03-07)
 **refactor: S10 BC 통일 — Phase C-3 완료 (남은 8개 서비스)**:
 - ✅ 기존 BC 3건: scoring→matrix, recall-tracking→discovery, folder→archive
