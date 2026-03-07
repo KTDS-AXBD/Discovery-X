@@ -3,6 +3,20 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 320 (2026-03-07)
+**feat: 요구사항↔개발계획 전체 프로세스 연동 — DB 통합 + 스킬 자동화 + 작업현황 개선**:
+- ✅ 프로덕션 DB CHECK 제약 확장: PLANNED/IN_PROGRESS/DONE 허용 (테이블 재생성, 0051)
+- ✅ HUMAN_REVIEW 5건 일괄 ACCEPTED → PLANNED 전환 (DX-REQ-002~006, F32~F36 매핑)
+- ✅ F6~F30 히스토리 역주입: 25건 앱 DB 삽입 (24 DONE + 1 IN_PROGRESS)
+- ✅ 스킬 3개 자동화 연동: ax-01-start(F항목→IN_PROGRESS), ax-02-end(→DONE), ax-10-req(SPEC+DB 동시 갱신)
+- ✅ 작업 현황 UI 개선: 활성/완료 분리, 완료 항목 접기 토글 (기본 접힘, 컴팩트 4칼럼)
+- ✅ SPEC.md F31~F36 항목 추가 + 프로덕션 마이그레이션 0050~0051 적용
+- ✅ E2E 검증: PLANNED→IN_PROGRESS→DONE wrangler 연동 테스트 통과
+
+**검증 결과**:
+- ✅ typecheck / lint / build 통과
+- ✅ 프로덕션 DB: 33건 (DONE 24 + IN_PROGRESS 1 + PLANNED 6 + REJECTED 2)
+
 ### 세션 319 (2026-03-07)
 **chore: Cloudflare MCP 에러 수정 + 리소스 정리**:
 - ✅ 로컬 cloudflare MCP 서버 제거 — run 서브커맨드 누락 에러, claude.ai 커넥터로 대체
