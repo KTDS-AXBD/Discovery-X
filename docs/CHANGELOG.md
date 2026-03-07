@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 310 (2026-03-07)
+**refactor: S10 BC 통일 — Phase C-3 완료 (남은 8개 서비스)**:
+- ✅ 기존 BC 3건: scoring→matrix, recall-tracking→discovery, folder→archive
+- ✅ 신규 BC 4건: dashboard(+metrics), lab, topic(+signal 합류)
+- ✅ `lib/services/` 순수 re-export 허브화 (index.ts만 잔류)
+- ✅ 9개 BC 모두 `features/{bc}/service/` 보유 완료
+- ✅ `/team` 3-worker 병렬 + 리더 검증 (55파일, 2886줄 이동)
+- ✅ `/team` 스킬 버그 수정: TUI→print mode 전환으로 DONE 마커 정상 기록
+
+**검증 결과**:
+- ✅ typecheck / lint 통과
+
 ### 세션 309 (2026-03-07)
 **feat: ax 플러그인 구현 + S9 BC 통일**:
 
