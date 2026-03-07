@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 309 (2026-03-07)
+**refactor: S9 BC 통일 — Chat/Proposals/Matrix 서비스 레이어 이동 (Phase C-2)**:
+- ✅ Chat BC: `lib/agent/` → `features/chat/agent/` (50파일) + `components/chat/` → `features/chat/ui/` (12파일)
+- ✅ Proposals BC: `lib/services/proposal*` → `features/proposals/service/` (6파일, facade+서브모듈)
+- ✅ Matrix BC: `lib/services/matrix.service.ts` → `features/matrix/service/` (1파일+index)
+- ✅ 125파일 변경, import 경로 업데이트 (routes + tests + lib/ai + lib/cost)
+- ✅ 하위 호환 re-export 허브 유지 (`lib/agent/index.ts`, `lib/services/index.ts`)
+- ✅ `/team` 병렬 작업 — Worker 1(Chat BC) + Worker 2(Proposals+Matrix BC)
+
+**검증 결과**:
+- ✅ typecheck / lint / 1,697 tests (unit 1,139 + integration 558, 100% PASS)
+
 ### 세션 308 (2026-03-07)
 **chore: 거버넌스 표준 재구성 + ax 플러그인 네이밍 확정**:
 - ✅ 거버넌스 표준 15개→10개 통합 (GOV-001~010, `~/.claude/standards/`)
