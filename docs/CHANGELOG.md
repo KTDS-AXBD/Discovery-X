@@ -3,6 +3,15 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 319 (2026-03-07)
+**chore: Cloudflare MCP 에러 수정 + 리소스 정리**:
+- ✅ 로컬 cloudflare MCP 서버 제거 — run 서브커맨드 누락 에러, claude.ai 커넥터로 대체
+- ✅ `ax-discovery-db` D1 삭제 — 구버전 프로토타입 DB (120KB, 5테이블)
+- ✅ `venture-worker` Worker 삭제 — 리팩토링 Phase 3에서 아카이브 완료된 모듈
+
+**검증 결과**:
+- ✅ Cloudflare MCP 정상 동작 확인 (accounts, d1, workers, kv, r2)
+
 ### 세션 318 (2026-03-07)
 **refactor: gap 분석 + 5개 갭 수정 — Flag 정리 + settings 서비스화 + IdeaService 테스트**:
 - ✅ SPEC.md vs 실측 갭 분석: 라우트/테이블/코드/테스트/BC/서비스/Flag 5개 영역 병렬 점검
