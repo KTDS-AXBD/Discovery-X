@@ -3,6 +3,16 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 325 (2026-03-08)
+**chore: 프로덕션 DB 테스트 데이터 전체 리셋**:
+- ✅ ideas(14) + idea_sources(20) + discoveries(17) + experiments(6) + evidence(1) 삭제
+- ✅ proposals(1) + proposal_sections(10) 삭제
+- ✅ conversations(55) + radar_items(999) + radar_runs(19) 삭제
+- ✅ ai_pipeline_runs(14) + token_usage_logs(33) + event_logs(35) + vd_*(~176) 삭제
+- ✅ 공통 리소스 보존: method_packs(12), ontology_types(10), industries(8), radar_sources(37), feature_requests(35), users(15) 등
+
+**검증**: 삭제 대상 30개 테이블 0건 확인 ✅ / 보존 대상 13개 테이블 정상 ✅
+
 ### 세션 324 (2026-03-07)
 **feat: F28 AI Agent 응답 품질 고도화 완료 — 4개 FR 검증 + P1 테스트 9파일 123개 추가**:
 - ✅ FR-03-1 Evidence 자동 인용: citation-builder.ts + executor-stream.ts 연동 확인
