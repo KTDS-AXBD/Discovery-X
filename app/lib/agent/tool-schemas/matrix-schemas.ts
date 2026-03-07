@@ -2,7 +2,7 @@
  * Matrix Agent 도구 스키마 (P2)
  * 3개 도구: query_matrix_heatmap, get_cell_signals, get_top_cells
  */
-import type { ClaudeTool } from "../claude-client";
+import type { ClaudeTool } from "~/lib/ai";
 
 export const MATRIX_TOOLS: ClaudeTool[] = [
   {

@@ -3,7 +3,7 @@
  * classify: 읽기 전용 분류 / review: 분류+저장 / plan: 작업계획 생성
  */
 
-import type { ClaudeTool } from "../claude-client";
+import type { ClaudeTool } from "~/lib/ai";
 
 export const REQUIREMENTS_TOOLS: ClaudeTool[] = [
   {

@@ -10,7 +10,7 @@ import type { DB } from "~/db";
 import { ideas } from "~/features/ideas/db/schema";
 import { tokenUsageLogs } from "~/db/token-usage-schema";
 import { agentConfig } from "~/db/schema";
-import { CLAUDE_MODEL } from "~/lib/agent/claude-client";
+import { CLAUDE_MODEL } from "~/lib/ai";
 import { callLLM } from "~/lib/ai";
 import type { FallbackContext } from "~/lib/ai";
 import { PIPELINE_ORDER, CATEGORY_MAP } from "./analysis-prompts";

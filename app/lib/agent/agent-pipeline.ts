@@ -10,8 +10,8 @@
 import { eq } from "drizzle-orm";
 import type { DB } from "~/db";
 import { messages, agentConfig, conversations, radarItems } from "~/db/schema";
-import type { ClaudeContentBlock } from "./claude-client";
-import { CLAUDE_MODEL } from "./claude-client";
+import type { ClaudeContentBlock } from "~/lib/ai";
+import { CLAUDE_MODEL } from "~/lib/ai";
 import { executeTool } from "./tool-handlers";
 import { generateId, updateTokenUsage, type TokenUsageMeta } from "./agent-utils";
 

@@ -14,7 +14,7 @@ import {
   evidence,
 } from "~/db/schema";
 import { ideas } from "~/features/ideas/db/schema";
-import { CLAUDE_MODEL } from "~/lib/agent/claude-client";
+import { CLAUDE_MODEL } from "~/lib/ai";
 import { callLLM } from "~/lib/ai";
 
 /** 클러스터링에는 빠른 Haiku 사용 (CF 30초 제한 대응) */

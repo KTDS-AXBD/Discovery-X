@@ -4,8 +4,8 @@
  */
 
 import type { DB } from "~/db";
-import type { ClaudeContentBlock } from "./claude-client";
-import { parseSSEStream } from "./claude-client";
+import type { ClaudeContentBlock } from "~/lib/ai";
+import { parseSSEStream } from "~/lib/ai";
 import { callLLMStream } from "~/lib/ai";
 import type { FallbackContext } from "~/lib/ai";
 import { buildConversationContext } from "./context-builder";

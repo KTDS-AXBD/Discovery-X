@@ -2,7 +2,7 @@
  * Discovery Management tool schemas
  * Discovery CRUD, 실험 추가/완료, 근거 추가 등 핵심 생명주기 도구
  */
-import type { ClaudeTool } from "../claude-client";
+import type { ClaudeTool } from "~/lib/ai";
 import { ALL_STATUSES } from "~/lib/constants/status";
 
 export const DISCOVERY_TOOLS: ClaudeTool[] = [

@@ -2,7 +2,7 @@
  * Platform tool schemas
  * KPI 지표(Indicator), Discovery 연결(Connector), Gate 승인(Governance), 알림(Alert) 도구
  */
-import type { ClaudeTool } from "../claude-client";
+import type { ClaudeTool } from "~/lib/ai";
 
 export const PLATFORM_TOOLS: ClaudeTool[] = [
   // === Indicator Tools (v3 R3) ===

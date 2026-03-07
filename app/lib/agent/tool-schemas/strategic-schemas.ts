@@ -2,7 +2,7 @@
  * Strategic Evolution tool schemas
  * 산업 어댑터(Industry), 의사결정 자산(Asset), 규제 준수(Compliance), 멀티 테넌트 도구
  */
-import type { ClaudeTool } from "../claude-client";
+import type { ClaudeTool } from "~/lib/ai";
 
 export const STRATEGIC_TOOLS: ClaudeTool[] = [
   // === Industry Adapter Tools (Strategic Evolution F1) ===

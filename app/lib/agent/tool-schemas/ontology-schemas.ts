@@ -2,7 +2,7 @@
  * Ontology Graph tool schemas
  * 엔티티 추출/연결, 그래프 조회, 중복 검토, 패턴/모순/클러스터/중심성 분석, 시나리오 시뮬레이션
  */
-import type { ClaudeTool } from "../claude-client";
+import type { ClaudeTool } from "~/lib/ai";
 
 export const ONTOLOGY_TOOLS: ClaudeTool[] = [
   // === Ontology Graph Tools (v3 R2) ===

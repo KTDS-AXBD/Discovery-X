@@ -2,7 +2,7 @@
  * Decision tool schemas
  * Gate/Hold/Drop 의사결정 및 연장 요청 도구
  */
-import type { ClaudeTool } from "../claude-client";
+import type { ClaudeTool } from "~/lib/ai";
 
 export const DECISION_TOOLS: ClaudeTool[] = [
   // === Decision Tools ===

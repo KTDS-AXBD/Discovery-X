@@ -5,11 +5,11 @@
  * 컨텍스트 없으면 기존 Anthropic 직통 호출.
  */
 
-import type { ClaudeRequest, ClaudeResponse, ClaudeStreamEvent, FallbackContext } from "./types";
+import type { ClaudeRequest, ClaudeResponse, ClaudeStreamEvent, FallbackContext, ClaudeMessage, ClaudeContentBlock, ClaudeTool } from "./types";
 import { callClaude, callClaudeStream } from "~/lib/agent/claude-client";
 import { FallbackManager } from "./fallback-manager";
 
-export type { ClaudeRequest, ClaudeResponse, ClaudeStreamEvent, FallbackContext };
+export type { ClaudeRequest, ClaudeResponse, ClaudeStreamEvent, FallbackContext, ClaudeMessage, ClaudeContentBlock, ClaudeTool };
 
 /**
  * LLM 호출 — fallback 체인 적용.
@@ -49,4 +49,4 @@ export async function callLLMStream(
  * SSE 스트림 파싱 — 프로바이더별 어댑터가 Anthropic SSE로 변환하므로
  * 기존 parseSSEStream 그대로 사용 가능.
  */
-export { parseSSEStream } from "~/lib/agent/claude-client";
+export { parseSSEStream, CLAUDE_MODEL } from "~/lib/agent/claude-client";

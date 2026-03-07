@@ -2,7 +2,7 @@
  * Method Pack tool schemas
  * 방법론 팩 목록/추천/실행/완료 및 Gate 패키지 도구
  */
-import type { ClaudeTool } from "../claude-client";
+import type { ClaudeTool } from "~/lib/ai";
 import { ALL_STATUSES } from "~/lib/constants/status";
 
 export const METHOD_TOOLS: ClaudeTool[] = [

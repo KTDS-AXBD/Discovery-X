@@ -13,7 +13,7 @@ import type { AnalyzeRequestOutput } from "../types";
 import { RequirementsEntityService } from "./entity";
 import { RequirementsWorkflowService } from "./workflow";
 import { callLLM } from "~/lib/ai";
-import type { ClaudeRequest } from "~/lib/agent/claude-client";
+import type { ClaudeRequest } from "~/lib/ai";
 
 /** 라우트 매니페스트 캐시 */
 let routeManifestCache: string[] | null = null;

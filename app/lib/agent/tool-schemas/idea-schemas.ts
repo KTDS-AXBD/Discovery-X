@@ -2,7 +2,7 @@
  * Idea tool schemas
  * BD팀 PoC 아이디어 후보 생성/선택/템플릿 + 아이디어 분석 도구
  */
-import type { ClaudeTool } from "../claude-client";
+import type { ClaudeTool } from "~/lib/ai";
 
 export const IDEA_SCHEMA_TOOLS: ClaudeTool[] = [
   // === BD팀 PoC: 아이디어 후보 & 템플릿 도구 ===

@@ -13,7 +13,7 @@ import { agentConfig } from "~/db/schema";
 import { ProposalSectionType } from "~/features/proposals/db/schema";
 import { IdeaService, ProposalService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { CLAUDE_MODEL } from "~/lib/agent/claude-client";
+import { CLAUDE_MODEL } from "~/lib/ai";
 import type { AnalysisEntry } from "~/lib/ideas/proposal-mapper";
 import { synthesizeProposalSections, mapAnalysisToSections } from "~/lib/ideas/proposal-mapper";
 

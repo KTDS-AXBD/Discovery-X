@@ -3,7 +3,7 @@
  * v3: 11-stage pipeline + domain-split architecture
  */
 
-import type { ClaudeTool } from "./claude-client";
+import type { ClaudeTool } from "~/lib/ai";
 import {
   DISCOVERY_TOOLS,
   DECISION_TOOLS,

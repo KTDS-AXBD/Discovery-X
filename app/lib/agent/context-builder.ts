@@ -6,7 +6,7 @@
 import { desc, eq, sql } from "drizzle-orm";
 import type { DB } from "~/db";
 import { messages } from "~/db/schema";
-import type { ClaudeMessage, ClaudeContentBlock } from "./claude-client";
+import type { ClaudeMessage, ClaudeContentBlock } from "~/lib/ai";
 
 interface ContextConfig {
   maxMessages: number;

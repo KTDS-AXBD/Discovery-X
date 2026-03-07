@@ -2,7 +2,7 @@
  * Query tool schemas
  * Discovery 조회, 검색, 지표, 비교, 태그 등 읽기/경량 쓰기 도구
  */
-import type { ClaudeTool } from "../claude-client";
+import type { ClaudeTool } from "~/lib/ai";
 import { ALL_STATUSES } from "~/lib/constants/status";
 
 export const QUERY_TOOLS: ClaudeTool[] = [
