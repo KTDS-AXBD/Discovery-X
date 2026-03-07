@@ -557,7 +557,7 @@ build/
 | F25 | 온톨로지 인텔리전스 Phase 3 (BFS 영향 전파 + LLM 시나리오 + 스냅샷 비교 + 시뮬레이션 UI) | v5.3 | ✅ | 9 |
 | F26 | 아이디어 워크스페이스 리디자인 (ideas 테이블 + 전용 헤더 + 6탭 가젯 + 사업 제안 모달) | v6.2 | ✅ | 15 |
 | F27 | AI 동료 파이프라인 + 인간 워크플로우 (Radar→Ideas→Discovery 자동 + Ideas→Discovery 수동 전환 + AI 인수) | v6.25 | ✅ | 5 |
-| F28 | AI Agent 응답 품질 고도화 (Evidence 인용 + '모름' 명시 + Memory 요약 개선 + SOUL 커스터마이징 UI) | v3.1 | 🔧 | 5 |
+| F28 | AI Agent 응답 품질 고도화 (Evidence 인용 + '모름' 명시 + Memory 요약 개선 + SOUL 커스터마이징 UI) | v3.1 | ✅ | 5 |
 | F29 | 요구사항 수집/관리 (feature_requests 등 5 테이블 + API 4개 + 카드 뷰 UI + AI 자동 검토) | v3.1 | ✅ | 9 |
 | F30 | 앱 내 온보딩 튜토리얼 (3단계 spotlight 모달 + 최초 접속 감지 + Skip/재실행) | v3.1 | ✅ | 6 |
 | F31 | 대시보드 통계 기간 필터 추가 (DX-REQ-001, P3) | v0.6.0 | 📋 | - |

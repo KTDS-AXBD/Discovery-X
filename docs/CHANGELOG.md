@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 324 (2026-03-07)
+**feat: F28 AI Agent 응답 품질 고도화 완료 — 4개 FR 검증 + P1 테스트 9파일 123개 추가**:
+- ✅ FR-03-1 Evidence 자동 인용: citation-builder.ts + executor-stream.ts 연동 확인
+- ✅ FR-03-2 '모름' 명시 강화: soul-engine.ts BASE_SOUL_TEMPLATE 불확실성 처리 확인
+- ✅ FR-03-3 Memory 결정 중심 요약: api.cron.maintenance.ts summarizer 프롬프트 PRD 일치 확인
+- ✅ FR-03-4 SOUL 커스터마이징 UI: profile.tsx AgentSettingsEditor + soul-engine loadAgentSettings 확인
+- ✅ P1 테스트 9파일 검증: Agent Teams 3-worker 병렬 실행 → 전체 PASS
+- ✅ F28 DONE 처리 (SPEC.md 🔧→✅ + 앱 DB 동기화)
+- 테스트: 1,916개 (132 files, 100% PASS)
+
+**검증**: typecheck ✅ lint ✅ tests ✅ (1,916개)
+
 ### 세션 323 (2026-03-07)
 **test: P1/P2 Gap 해소 — 서비스 3개 + Agent 모듈 6개 테스트 추가 (+123개)**:
 - ✅ Gap 분석 수행: SPEC 불일치(마이그레이션 52→53), 테스트 미커버 서비스 3개 + Agent 7개 식별
