@@ -3,6 +3,15 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 316 (2026-03-07)
+**chore: ax-13-selfcheck 스킬 신규 + ax-12-retro 참조 수정**:
+- ✅ `/ax-13-selfcheck` 스킬 신규 — ax plugin 6항목 자율점검 (frontmatter/동기화/standards/참조/hook/skills)
+- ✅ 첫 실행으로 `ax-12-retro` 깨진 참조 1건 발견 + 즉시 수정 (`GOV-004_project.md` → `project-governance.md`)
+- ✅ CLAUDE.md 스킬 테이블에 ax-13-selfcheck 등록
+
+**검증 결과**:
+- ✅ `/ax-13-selfcheck`: 6/6 PASS
+
 ### 세션 315 (2026-03-07)
 **refactor: BC 구조/서비스 레이어 점검 + 강화**:
 - ✅ topic schema 귀속: `db/schema-v2.ts` → `features/topic/db/schema.ts` (topics, topicMembers, sharedSignals 3테이블)
