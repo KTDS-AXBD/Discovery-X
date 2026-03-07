@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 315 (2026-03-07)
+**refactor: BC 구조/서비스 레이어 점검 + 강화**:
+- ✅ topic schema 귀속: `db/schema-v2.ts` → `features/topic/db/schema.ts` (topics, topicMembers, sharedSignals 3테이블)
+- ✅ `db/index.ts` 스키마 머지 12→13개 (topicSchema 추가)
+- ✅ profile 컴포넌트(4): `components/profile/` → `features/profile/ui/` 이동
+- ✅ settings 컴포넌트(5): `components/tenant/`(3) + `components/settings/`(2) → `features/settings/ui/` 이동
+- ✅ 16개 파일 import 경로 갱신 (app 8 + tests 8)
+- ✅ BC 11→13개 (profile, settings 추가), service 11/11 전 BC 완비, db/schema 10/11
+- ✅ MEMORY.md + CLAUDE.md 스키마 머지 수 갱신
+
+**검증 결과**:
+- ✅ typecheck / lint / tests 1,697개 전부 통과
+
 ### 세션 314 (2026-03-07)
 **chore: ax plugin 전체 점검 + hook/team 개선**:
 - ✅ 13개 스킬 정적 분석 — frontmatter, 참조, allowed-tools 일관성 점검
