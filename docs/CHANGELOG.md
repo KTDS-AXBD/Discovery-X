@@ -4,16 +4,24 @@
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
 ### 세션 309 (2026-03-07)
-**refactor: S9 BC 통일 — Chat/Proposals/Matrix 서비스 레이어 이동 (Phase C-2)**:
-- ✅ Chat BC: `lib/agent/` → `features/chat/agent/` (50파일) + `components/chat/` → `features/chat/ui/` (12파일)
-- ✅ Proposals BC: `lib/services/proposal*` → `features/proposals/service/` (6파일, facade+서브모듈)
-- ✅ Matrix BC: `lib/services/matrix.service.ts` → `features/matrix/service/` (1파일+index)
-- ✅ 125파일 변경, import 경로 업데이트 (routes + tests + lib/ai + lib/cost)
-- ✅ 하위 호환 re-export 허브 유지 (`lib/agent/index.ts`, `lib/services/index.ts`)
-- ✅ `/team` 병렬 작업 — Worker 1(Chat BC) + Worker 2(Proposals+Matrix BC)
+**feat: ax 플러그인 구현 + S9 BC 통일**:
 
-**검증 결과**:
-- ✅ typecheck / lint / 1,697 tests (unit 1,139 + integration 558, 100% PASS)
+**ax 플러그인** (`~/.claude/plugins/ax/`):
+- ✅ 플러그인 스캐폴딩 (plugin.json + 디렉토리 구조)
+- ✅ session-toolkit 6개 커맨드 이관 (ax-01~06)
+- ✅ 신규 커맨드 3개 (ax-07-gov, ax-08-ver, ax-09-doc)
+- ✅ 독립 스킬 3개 흡수 (ax-10-req, ax-11-risk, ax-12-retro)
+- ✅ 에이전트 3개 신규 (ax-a04 gov-audit, ax-a05 std-review, ax-a06 onboard)
+- ✅ 훅 5개 구성 (h01 session-init, h02 doc-meta, h03 protect, h04 secret-scan, h05 quality-gate)
+- ✅ 프로젝트 에이전트/스킬 리네이밍 (a01~a03, p1-migrate)
+- ✅ session-toolkit 비활성화, 독립 스킬 제거, settings.json 인라인 훅 정리
+- ✅ CLAUDE.md + MEMORY.md 참조 업데이트
+
+**S9 BC 통일 (Phase C-2)**:
+- ✅ Chat BC: `lib/agent/` → `features/chat/agent/` (50파일) + `components/chat/` → `features/chat/ui/` (12파일)
+- ✅ Proposals BC: `lib/services/proposal*` → `features/proposals/service/` (6파일)
+- ✅ Matrix BC: `lib/services/matrix.service.ts` → `features/matrix/service/`
+- ✅ `/team` 병렬 작업 — 총 5 worker (BC 2 + ax 플러그인 3)
 
 ### 세션 308 (2026-03-07)
 **chore: 거버넌스 표준 재구성 + ax 플러그인 네이밍 확정**:
