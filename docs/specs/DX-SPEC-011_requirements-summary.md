@@ -7,7 +7,7 @@ category: SPEC
 created: 2026-03-07
 updated: 2026-03-07
 author: Sinclair Seo
-system-version: ">=6.27"
+system-version: ">=0.1.0"
 ---
 
 # Discovery-X 요구사항 정리

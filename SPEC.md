@@ -18,42 +18,42 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 - Recall Queue 뷰 (Revisit 도래 HOLD 목록)
 - Monthly Failure Replay 뷰 (Dead End 큐레이션 + HOLD 재검토 + Failure Pattern 분포)
 - Recall 이벤트 추적 서비스 + API (5종 이벤트: HOLD/DROP/RECALL_TRIGGERED/REVIEWED/PATTERN_REUSED)
-- 운영 지표 대시보드 (v1.4 §10 성공 기준 추적: 28일 종결율, 실험 완료율, Recall 이벤트)
+- 운영 지표 대시보드 (PRD §10 성공 기준 추적: 28일 종결율, 실험 완료율, Recall 이벤트)
 - 최소 지표 집계/Export
 - Method Pack 12종 라이브러리 + 추천 + 실행 + Gate 패키지 자동 초안 (R1)
-- `/venture/*` sub-app 라우팅 (v4)
-- 5일 부트캠프 템플릿 기반 스프린트 운영 (v4)
-- AI Agent 오토파일럿 + HITL Gate 의사결정 (v4)
-- Decision Center (블라인드 투표/집계/재투표) (v4)
-- Analytics (Depth Score, Effort, Next-ROI 추천) (v4)
-- venture-worker (D1 폴링 큐 기반) (v4)
-- Epic 구조 티켓 분해 (A~F: 라우팅/스키마/서비스/API/워커/Analytics) (v4 DevSpec)
-- BD 워크스페이스 (v4.2): 키워드 구독 → 소스 수집/요약 → Agent 채팅 → 아이디어 생성/편집 → 팀 공유
-- `_index.tsx`, `/radar` 통합 3-Pane 레이아웃 (v4.2)
-- 1개 신규 + 6개 기존 테이블 확장 (v4.2)
-- 3탭 GNB (아이디어/사업제안/실험실) + 대시보드는 홈(로고) 매핑 + ContextPanel + 보관함 사이드바 레이아웃 재구성 (v5.0+ → v6.27)
-- 아이디어 페이지: Radar 아이템 재활용 + 메모 패널 (v5.0)
-- 사업제안: DB 6테이블 + CRUD API + 마일스톤/액션/댓글 + 진행상황 패널 (v5.0)
-- 실험실 (Lab): 3탭 구조 (요구사항/작업 현황/방법론) + 기존 탭(개요/분석/검토 큐/매트릭스) hidden 보관 + LLM 자동 엔티티 추출 + 글로벌 엔티티 매칭 + 관계 분석 엔진 + 시뮬레이션 + 인터랙티브 그래프 (드래그/줌/팬) + Method Pack 라이브러리 통합 + 과학 Lab 미학 (v5.3 → v6.27)
-- 대시보드 리디자인 (v6.0+):
+- `/venture/*` sub-app 라우팅
+- 5일 부트캠프 템플릿 기반 스프린트 운영
+- AI Agent 오토파일럿 + HITL Gate 의사결정
+- Decision Center (블라인드 투표/집계/재투표)
+- Analytics (Depth Score, Effort, Next-ROI 추천)
+- venture-worker (D1 폴링 큐 기반)
+- Epic 구조 티켓 분해 (A~F: 라우팅/스키마/서비스/API/워커/Analytics)
+- BD 워크스페이스: 키워드 구독 → 소스 수집/요약 → Agent 채팅 → 아이디어 생성/편집 → 팀 공유
+- `_index.tsx`, `/radar` 통합 3-Pane 레이아웃
+- 1개 신규 + 6개 기존 테이블 확장
+- 3탭 GNB (아이디어/사업제안/실험실) + 대시보드는 홈(로고) 매핑 + ContextPanel + 보관함 사이드바 레이아웃 재구성
+- 아이디어 페이지: Radar 아이템 재활용 + 메모 패널
+- 사업제안: DB 6테이블 + CRUD API + 마일스톤/액션/댓글 + 진행상황 패널
+- 실험실 (Lab): 3탭 구조 (요구사항/작업 현황/방법론) + 기존 탭(개요/분석/검토 큐/매트릭스) hidden 보관 + LLM 자동 엔티티 추출 + 글로벌 엔티티 매칭 + 관계 분석 엔진 + 시뮬레이션 + 인터랙티브 그래프 (드래그/줌/팬) + Method Pack 라이브러리 통합 + 과학 Lab 미학
+- 대시보드 리디자인:
   - 2컬럼 레이아웃: SourceSidebar (280px, 읽음/안읽음 시각 구분) + SummaryCard + PeerBriefing
   - SummaryCard: "핵심 요약" 배지 + 요약 텍스트 + "키워드" 배지 + "원본 링크" 배지 + 반응(like/dislike) + "소스 수집 관리"/"아이디어 생성" 액션 버튼
   - 아이템 선택 시 자동 viewed 처리 (radarItemUserStatus.status → "viewed")
-  - 파이프라인 섹션 (v6.4): Discovery 11단계 현황 (PIPELINE_COLUMNS 기반, 카테고리별 그룹핑, 실 DB 데이터) — 별도 패널, 왼쪽 맞춤
-  - 통계 섹션 (v6.4): 4개 핵심 지표 (소스 수집/발굴 건수/활성 파이프라인/사업 제안) — 실 DB 데이터
-- 아이디어 워크스페이스: ideas 테이블 + 멀티소스 그룹핑 + 전용 헤더 레이아웃 + 12종 방법론 카드 + 사업 제안 모달 + 소스 상세/삭제 + 분석 시작 플로우 + NotebookLM 스타일 멀티소스 선택 + 선택 기반 분석/채팅 + 좌우 패널 리사이즈/토글 + 제목 인라인 편집 + AI 제목 추천 + 방법론 카드 마크다운 렌더링 + SSE 전용 분석 API (chat agent 루프 우회, 카테고리별 직접 Claude 호출) + 분석 진행률 UI + 소스 Drag & Drop 추가/제거 + 분석 sourceIds 추적 및 stale 감지 + 아이디어→사업제안 생성 플로우 (분석 데이터 매핑, 12 카테고리→10 섹션) (v6.2→v6.14)
-- 토큰 사용량 모니터링 (관리자): token_usage_logs 테이블 + 일별 사용량 차트 (모드별 스택 바) + 최근 로그 테이블 + 관리자 API (v6.12)
-- AI 동료 파이프라인 + 인간 워크플로우 개선 (v6.25): Radar→Ideas→Discovery 자동 파이프라인 (system-agent, HYPOTHESIS까지) + Ideas→Discovery 수동 전환 + AI Discovery 인수(claim) 플로우 + ai_pipeline_runs 테이블
-- v3.1 소규모 업데이트 (PRD v3.1):
+  - 파이프라인 섹션: Discovery 11단계 현황 (PIPELINE_COLUMNS 기반, 카테고리별 그룹핑, 실 DB 데이터) — 별도 패널, 왼쪽 맞춤
+  - 통계 섹션: 4개 핵심 지표 (소스 수집/발굴 건수/활성 파이프라인/사업 제안) — 실 DB 데이터
+- 아이디어 워크스페이스: ideas 테이블 + 멀티소스 그룹핑 + 전용 헤더 레이아웃 + 12종 방법론 카드 + 사업 제안 모달 + 소스 상세/삭제 + 분석 시작 플로우 + NotebookLM 스타일 멀티소스 선택 + 선택 기반 분석/채팅 + 좌우 패널 리사이즈/토글 + 제목 인라인 편집 + AI 제목 추천 + 방법론 카드 마크다운 렌더링 + SSE 전용 분석 API (chat agent 루프 우회, 카테고리별 직접 Claude 호출) + 분석 진행률 UI + 소스 Drag & Drop 추가/제거 + 분석 sourceIds 추적 및 stale 감지 + 아이디어→사업제안 생성 플로우 (분석 데이터 매핑, 12 카테고리→10 섹션)
+- 토큰 사용량 모니터링 (관리자): token_usage_logs 테이블 + 일별 사용량 차트 (모드별 스택 바) + 최근 로그 테이블 + 관리자 API
+- AI 동료 파이프라인 + 인간 워크플로우 개선: Radar→Ideas→Discovery 자동 파이프라인 (system-agent, HYPOTHESIS까지) + Ideas→Discovery 수동 전환 + AI Discovery 인수(claim) 플로우 + ai_pipeline_runs 테이블
+- PRD v3.1 소규모 업데이트:
   - 앱 내 온보딩 튜토리얼: 최초 접속 감지 → 3단계 spotlight 모달 (파이프라인/아이디어→제안/협업) + Skip/재실행 지원
   - 요구사항 수집/관리: feature_requests 테이블 + 4단계 상태(OPEN→IN_REVIEW→ACCEPTED/REJECTED) + 카드 뷰 + 필터
   - AI Agent 응답 품질 고도화: Evidence 자동 인용 + '모름' 명시 강화 + Memory 결정 중심 요약 + SOUL 커스터마이징 UI
-- Architecture Upgrade (v3 PRD): Graph-First + Topic-Scoped + Durable Agent 기반
-  - Graph Layer: JSON-LD 정본 + GraphQueryEngine + Projection (v3 P0-P1)
-  - Durable Agent Runtime: AgentSession DO + SSE + Memory Lifecycle (v3 P1)
-  - Topic 협업: Team→Topic 세분화 + Scope-based ACL (v3 P2)
-  - 파이프라인 통합: Radar/Venture/Lab 양방향 연동 + Cron (v3 P3)
-  - Vectorize 시맨틱 검색 + 검색 UI (Discovery 목록 텍스트/시맨틱 모드, 유사 패널 고도화) + ProfileLearner + Graph 롤백 + SignalRouter Cron + 비용 대시보드 + 팀 지식 베이스 + v3 E2E 테스트 (v3 P4)
+- Architecture Upgrade (PRD v3): Graph-First + Topic-Scoped + Durable Agent 기반
+  - Graph Layer: JSON-LD 정본 + GraphQueryEngine + Projection (Phase 0-1)
+  - Durable Agent Runtime: AgentSession DO + SSE + Memory Lifecycle (Phase 1)
+  - Topic 협업: Team→Topic 세분화 + Scope-based ACL (Phase 2)
+  - 파이프라인 통합: Radar/Venture/Lab 양방향 연동 + Cron (Phase 3)
+  - Vectorize 시맨틱 검색 + 검색 UI + ProfileLearner + Graph 롤백 + SignalRouter Cron + 비용 대시보드 + 팀 지식 베이스 + E2E 테스트 (Phase 4)
 
 **Out-of-scope (PRD §2.2, §7.3)**
 - 전사 공식 포털/플랫폼
@@ -73,7 +73,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 | P3 협업+통합 | 2~3주 | collab-worker, Pipeline Bridge, Cron, TokenBudget |
 | P4 고도화 | 2주 | ProfileLearner, Graph 롤백 UI, Vectorize, E2E 테스트 |
 
-현재: **P1 운영 기능 완료** (Failure Replay + Recall 추적 + 운영 지표 대시보드 + 테스트 1,644개) — v3 Architecture P0~P4 전체 완료, v1.4 운영 미팅/지표 기능 구현
+현재: **P1 운영 기능 완료** (Failure Replay + Recall 추적 + 운영 지표 대시보드 + 테스트 1,644개) — Architecture P0~P4 전체 완료, 운영 미팅/지표 기능 구현
 - Phase 5A (보안·무결성): **완료** — Agent Graph 수정 제한, @id 네이밍 강화, SOUL 역할 템플릿, JSON Schema, ACL policies 분리, 403 메시지 개선
 - Phase 5B (agent-worker DO): **완료** — AgentSessionDO 클래스, Worker 라우팅, HMAC 인증, SSE 스트리밍, alarm flush, 429 동시성, api.chat.ts DO 위임
 - Phase 5C (collab-worker + 스키마): **완료** — collab-worker Cron/fetch 핸들러, notification_queue, tenants 확장(profile_ld/rules_md), cron_logs
@@ -128,7 +128,7 @@ Flow G: 방법론 실행 (R1)
   → Method Pack 추천 → 실행 시작 → structured output 저장
   → Gate 패키지 자동 초안 생성
 
-Flow H: Venture Discovery Sprint (v4)
+Flow H: Venture Discovery Sprint
   → 스프린트 생성 (산업/범위 선택) → status=DRAFT
   → Day 1: Scope 확정 (HITL) → Signal/Problem 수집 → Long List v1
   → Day 2: 카드 정제 → Gate1 준비 (블라인드 점수)
@@ -138,7 +138,7 @@ Flow H: Venture Discovery Sprint (v4)
   → Day 5: Packaging (피치/요약문서) + 리허설 (Q&A 레드팀)
   → status=COMPLETED → ARCHIVED
 
-Flow I: BD 워크스페이스 (v4.2)
+Flow I: BD 워크스페이스
   → 키워드/태그 구독 등록 → 소스 자동 수집 (RSS/URL)
   → 소스 클릭 → 즉시 요약 (한줄 + 핵심 포인트 3~5개)
   → "대화 시작" → 소스 컨텍스트 Agent 채팅
@@ -147,7 +147,7 @@ Flow I: BD 워크스페이스 (v4.2)
   → 1개 선택 → 아이디어 템플릿 자동 채움 (가설/근거/타겟/가치 제안)
   → 수동 편집 → 팀 공유
 
-Flow J: AI 동료 파이프라인 (v6.25)
+Flow J: AI 동료 파이프라인
   → Cron (09:30 KST, Radar 수집 직후) → 미처리 radar_items 로드 (최대 3개)
   → Claude Haiku: 주제별 클러스터링 → 클러스터당 아이디어 생성 (createdByAgent=1, Sonnet)
   → Claude: 아이디어 평가 (confidence ≥ 70) → Discovery 자동 생성
@@ -155,7 +155,7 @@ Flow J: AI 동료 파이프라인 (v6.25)
   → Owner: system-agent, sourceIdeaId 연결
   → 인간 인수: AI Discovery 상세에서 "인수하기" → Owner 변경
 
-Flow K: Ideas → Discovery 수동 전환 (v6.25)
+Flow K: Ideas → Discovery 수동 전환
   → 아이디어 상세에서 "Discovery로 전환" 클릭
   → 가설/최소행동/기한/기대근거 입력 모달
   → Discovery 생성 + IDEA_CARD 승격 (sourceIdeaId 연결)
@@ -243,13 +243,11 @@ Flow K: Ideas → Discovery 수동 전환 (v6.25)
 - `/profile` — Graph 기반 프로필 편집 (기본정보/전문분야/관심분야 + USER.md Projection 미리보기 + 나의 Agent 설정)
 - `/api/profile/graph` — 프로필 Graph API (GET/PUT/PATCH)
 
-**Requests (1 page + 2 API)** *(v3.1)*
-- `/requests` — 요구사항 목록 (카드 뷰, 상태/우선순위 필터, 생성 폼)
+**Requests (1 page + 2 API)**- `/requests` — 요구사항 목록 (카드 뷰, 상태/우선순위 필터, 생성 폼)
 - `/api/requests` — 요구사항 API (GET 목록 + POST 생성)
 - `/api/requests/:id` — 요구사항 상세 API (GET + PATCH 상태변경 + DELETE)
 
-**Onboarding API (1 API)** *(v3.1)*
-- `/api/onboarding` — 온보딩 완료/재시작 API (PATCH)
+**Onboarding API (1 API)**- `/api/onboarding` — 온보딩 완료/재시작 API (PATCH)
 
 **Topics (3 pages + 9 API)**
 - `/topics` — Topic 목록 레이아웃 (280px 사이드바 + Outlet)
@@ -380,7 +378,7 @@ root.tsx
 | Matrix | 7 | industries, functions, matrix_cells, individual_scores, consensus_scores, cell_topic_map, scoring_config |
 | Worker/Infra | 2 | notification_queue, cron_logs |
 | FTS | 1 | discoveries_fts |
-| Requests | 1 | feature_requests *(v3.1)* |
+| Requests | 1 | feature_requests |
 | **합계** | **94** | |
 
 ### Agent 시스템 (52개 도구)

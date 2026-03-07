@@ -7,7 +7,7 @@ category: SPEC
 created: 2026-03-07
 updated: 2026-03-07
 author: Sinclair Seo
-system-version: ">=4.0"
+system-version: ">=0.1.0"
 ---
 
 # Discovery-X 통합 기획서(업데이트판): Venture Discovery Sprint (AI Agent 주도 + HITL 게이트 + 도메인/토픽 분석)

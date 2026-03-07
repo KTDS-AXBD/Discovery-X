@@ -7,7 +7,7 @@ category: SPEC
 created: 2026-03-07
 updated: 2026-03-07
 author: Sinclair Seo
-system-version: ">=1.0"
+system-version: ">=0.1.0"
 ---
 
 # Discovery‑X v1 Prototype PRD & 개발계획서 (v0.1)

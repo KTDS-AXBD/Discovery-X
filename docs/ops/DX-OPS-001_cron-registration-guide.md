@@ -7,7 +7,7 @@ category: OPS
 created: 2026-03-07
 updated: 2026-03-07
 author: Sinclair Seo
-system-version: ">=6.20"
+system-version: ">=0.1.0"
 ---
 
 # Discovery-X Cron 엔드포인트 등록 가이드

@@ -7,7 +7,7 @@ category: SPEC
 created: 2026-03-07
 updated: 2026-03-07
 author: Sinclair Seo
-system-version: ">=3.0"
+system-version: ">=0.1.0"
 ---
 
 # Discovery-X Framework Porting — PRD v3 아키텍처 매핑 문서
