@@ -4,15 +4,16 @@
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
 ### 세션 326 (2026-03-08)
-**test: Phase 1 Gap 해소 — executor-stream + radar.service + lab.service 테스트 66개 추가**:
-- ✅ Gap 분석 수행: API 라우트(15%), Feature 서비스(73%), Agent 모듈(80%), Graph 모듈(14%) 현황 파악
+**test: 전체 파이프라인 점검 + P1 Gap 해소 — AI Pipeline + Radar + Lab + Executor 테스트 94개 추가**:
+- ✅ 전체 파이프라인 점검 시나리오 문서 작성 (120+ 시나리오, 14개 영역)
 - ✅ executor-stream.test.ts (19개): SSE 스트리밍 코어, 도구 루프, 인용/라벨, 모드 분기, 세션 flush, 에러 처리
 - ✅ radar-service.test.ts (25개): Sources CRUD, Runs, Items, User Status, 통합 데이터 — 17개 메서드 전체 커버
 - ✅ lab-service.test.ts (22개): Stats, Graph, Nodes, Review Actions, Types, 통합 데이터 — 14개 메서드 전체 커버
-- ✅ Agent Team 시도 (3-worker 병렬) → worker 포맷 보정 이슈로 수동 전환, 교훈 MEMORY 기록
-- 테스트: 1,982개 (135 files, 100% PASS)
+- ✅ ai-pipeline/service.test.ts (28개): AIPipelineService 전체 — 클러스터링, 아이디어 생성, Discovery 평가, 통합 파이프라인
+- ✅ Agent Team 병렬 실행 (2-worker): AI Pipeline + Radar Service 동시 작성
+- 테스트: 2,010개 (136 files, 100% PASS)
 
-**검증**: typecheck ✅ lint ✅ tests ✅ (1,982개)
+**검증**: typecheck ✅ lint ✅ tests ✅ (2,010개)
 
 ### 세션 325 (2026-03-08)
 **chore: 프로덕션 DB 테스트 데이터 전체 리셋**:
