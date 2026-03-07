@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 314 (2026-03-07)
+**chore: ax plugin 전체 점검 + hook/team 개선**:
+- ✅ 13개 스킬 정적 분석 — frontmatter, 참조, allowed-tools 일관성 점검
+- ✅ `~/.claude/standards/INDEX.md` 신규 — GOV-001~015 코드 ↔ 파일 매핑 인덱스
+- ✅ `ax-07-gov.md` apply 로직 수정 — INDEX.md 경유 탐색으로 변경
+- ✅ `ax-04-lint.md` argument-hint 추가, `ax-10-req.md`/`ax-11-risk.md` description 경로 수정
+- ✅ `ax-06-team.md` 개선 — `claude -p` → 인터랙티브 모드 (실시간 도구 사용 현황 표시)
+- ✅ PostToolUse hook 성능 개선 — 전체 typecheck+lint(23초) → 단일 파일 eslint(0.8초)
+- ✅ bkit hooks 12개 + agents 16개 점검 — 전체 정상, ax 충돌 없음
+
+**검증 결과**:
+- ✅ typecheck / lint 통과
+
 ### 세션 313 (2026-03-07)
 **docs: 문서 버전 표준체계 일치 + Gap 분석**:
 - ✅ `/ax-08-ver check`: 5/5 PASS + 불일치 3건 수정
