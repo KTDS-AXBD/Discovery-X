@@ -2,7 +2,7 @@ import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
-import { ScoringService } from "~/lib/services/scoring.service";
+import { ScoringService } from "~/features/matrix/service/scoring.service";
 
 // POST: 합의 스코어 계산 또는 확정
 export async function action({

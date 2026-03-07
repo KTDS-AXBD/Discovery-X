@@ -5,7 +5,7 @@ import { eq, and, desc } from "drizzle-orm";
 import { getDb } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { MatrixService } from "~/features/matrix/service/matrix.service";
-import { ScoringService } from "~/lib/services/scoring.service";
+import { ScoringService } from "~/features/matrix/service/scoring.service";
 import { consensusScores } from "~/features/matrix/db/schema";
 import type { ConsensusScoreView, ScoreTrendEntry, LinkedTopic } from "~/features/matrix/types";
 import { CellDetailPanel } from "~/components/matrix/CellDetailPanel";

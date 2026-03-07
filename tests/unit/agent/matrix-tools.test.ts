@@ -28,7 +28,7 @@ vi.mock("~/lib/graph/query", () => ({
   }),
 }));
 
-vi.mock("~/lib/services/scoring.service", () => ({
+vi.mock("~/features/matrix/service/scoring.service", () => ({
   ScoringService: vi.fn(function (
     this: Record<string, unknown>,
   ) {

@@ -4,7 +4,7 @@ import { json } from "@remix-run/cloudflare";
 import { useLoaderData, useFetcher } from "@remix-run/react";
 import { getDb } from "~/db";
 import { getSessionContext } from "~/lib/auth/session.server";
-import { LabService } from "~/lib/services";
+import { LabService } from "~/features/lab/service";
 import { Card, CardContent } from "~/components/ui/Card";
 import { Badge } from "~/components/ui/Badge";
 import {

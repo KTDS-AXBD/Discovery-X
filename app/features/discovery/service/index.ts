@@ -11,6 +11,8 @@ export { DiscoveryQueryService } from "./query";
 export { DiscoveryWorkflowService } from "./workflow";
 export { DiscoveryEntityService } from "./entity";
 export { DiscoveryQueryExtraService } from "./query-extra2";
+export { RecallTrackingService } from "./recall-tracking";
+export type { RecallStats, MonthlyBreakdown } from "./recall-tracking";
 export type {
   Discovery,
   Experiment,

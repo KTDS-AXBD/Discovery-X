@@ -9,7 +9,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { createTestDb } from "tests/helpers/db";
 import type { DB } from "~/db";
-import { SignalService } from "~/lib/services/signal.service";
+import { SignalService } from "~/features/topic/service/signal.service";
 import { sharedSignals } from "~/db/schema-v2";
 import { eq } from "drizzle-orm";
 

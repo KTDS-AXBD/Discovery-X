@@ -3,7 +3,7 @@ import { createTestDb, type TestDB } from "../helpers/db";
 import { users } from "~/db/schema";
 import { topics } from "~/db/schema-v2";
 import { MatrixService } from "~/features/matrix/service/matrix.service";
-import { ScoringService } from "~/lib/services/scoring.service";
+import { ScoringService } from "~/features/matrix/service/scoring.service";
 import type { IndividualScoreInput } from "~/features/matrix/types";
 
 // ─── 테스트용 상수 ──────────────────────────────────────────────────────

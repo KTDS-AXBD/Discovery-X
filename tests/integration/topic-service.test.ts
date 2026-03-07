@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { createTestDb, type TestDB } from "../helpers/db";
 import { users } from "~/db/schema";
 import { topics, topicMembers } from "~/db/schema-v2";
-import { TopicService } from "~/lib/services/topic.service";
+import { TopicService } from "~/features/topic/service/topic.service";
 
 describe("TopicService", () => {
   let db: TestDB;

@@ -4,7 +4,7 @@ import { json } from "@remix-run/cloudflare";
 import { useLoaderData, useSearchParams } from "@remix-run/react";
 import type { MethodPack } from "~/db/schema";
 import { getDb } from "~/db";
-import { LabService } from "~/lib/services";
+import { LabService } from "~/features/lab/service";
 import { MethodPackCard } from "~/components/methods/MethodPackCard";
 import { MethodPackDetailDialog } from "~/components/methods/MethodPackDetailDialog";
 

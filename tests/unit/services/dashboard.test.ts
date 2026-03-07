@@ -12,7 +12,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { createTestDb } from "tests/helpers/db";
 import type { DB } from "~/db";
-import { DashboardService } from "~/lib/services/dashboard.service";
+import { DashboardService } from "~/features/dashboard/service/dashboard.service";
 import {
   discoveries,
   experiments,

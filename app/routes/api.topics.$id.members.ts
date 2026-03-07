@@ -9,7 +9,7 @@ import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/cloudfla
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { TopicService } from "~/lib/services/topic.service";
+import { TopicService } from "~/features/topic/service/topic.service";
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
   try {

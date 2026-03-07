@@ -5,7 +5,7 @@ import { Button } from "~/components/ui/Button";
 import { Badge } from "~/components/ui/Badge";
 import { Progress } from "~/components/ui/Progress";
 import { cn } from "~/lib/utils/cn";
-import type { OnboardingState } from "~/lib/services/dashboard.service";
+import type { OnboardingState } from "~/features/dashboard/service/dashboard.service";
 
 const STEPS = [
   {

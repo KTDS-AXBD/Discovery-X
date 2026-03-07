@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
 import { tenantMembers } from "~/db/schema";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
-import { SignalService } from "~/lib/services";
+import { SignalService } from "~/features/topic/service";
 import { cn } from "~/lib/utils/cn";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────

@@ -7,7 +7,7 @@ import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
-import { TopicService } from "~/lib/services";
+import { TopicService } from "~/features/topic/service";
 
 export async function action({
   request,

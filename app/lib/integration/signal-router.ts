@@ -2,7 +2,7 @@
 import { eq, and, sql } from "drizzle-orm";
 import type { DB } from "~/db";
 import { sharedSignals, topicMembers, graphs, graphEvents } from "~/db/schema-v2";
-import { SignalService } from "~/lib/services/signal.service";
+import { SignalService } from "~/features/topic/service/signal.service";
 
 // ============================================================================
 // Types

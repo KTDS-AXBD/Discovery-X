@@ -5,7 +5,7 @@ import type {
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
-import { ScoringService } from "~/lib/services/scoring.service";
+import { ScoringService } from "~/features/matrix/service/scoring.service";
 import type { IndividualScoreInput } from "~/features/matrix/types";
 
 // GET: 셀의 개별 스코어 목록

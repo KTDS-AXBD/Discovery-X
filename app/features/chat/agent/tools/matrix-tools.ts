@@ -4,7 +4,7 @@
  */
 import type { DB } from "~/db";
 import { GraphQueryEngine } from "~/lib/graph/query";
-import { ScoringService } from "~/lib/services/scoring.service";
+import { ScoringService } from "~/features/matrix/service/scoring.service";
 
 // ─── query_matrix_heatmap ─────────────────────────────────────────────────
 

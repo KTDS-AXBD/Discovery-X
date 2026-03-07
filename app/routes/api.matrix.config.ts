@@ -6,7 +6,7 @@ import { json } from "@remix-run/cloudflare";
 import { eq } from "drizzle-orm";
 import { getDb, tenantMembers } from "~/db";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
-import { ScoringService } from "~/lib/services/scoring.service";
+import { ScoringService } from "~/features/matrix/service/scoring.service";
 
 // GET: 현재 스코어링 설정
 export async function loader({ request, context }: LoaderFunctionArgs) {

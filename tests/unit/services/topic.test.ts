@@ -16,7 +16,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { createTestDb } from "tests/helpers/db";
 import type { DB } from "~/db";
-import { TopicService } from "~/lib/services/topic.service";
+import { TopicService } from "~/features/topic/service/topic.service";
 import { users, tenants } from "~/db/schema";
 import { topics, topicMembers } from "~/db/schema-v2";
 

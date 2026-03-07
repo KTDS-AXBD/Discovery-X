@@ -1,7 +1,7 @@
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { FolderService } from "~/lib/services";
+import { FolderService } from "~/features/archive/service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 
 export async function action({ request, context }: ActionFunctionArgs) {

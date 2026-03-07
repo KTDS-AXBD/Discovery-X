@@ -13,7 +13,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { createTestDb, type TestDB } from "tests/helpers/db";
 import type { DB } from "~/db";
-import { ScoringService } from "~/lib/services/scoring.service";
+import { ScoringService } from "~/features/matrix/service/scoring.service";
 import {
   industries,
   functions,

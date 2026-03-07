@@ -24,7 +24,7 @@ describe("api.cron.matrix-scoring 엔드포인트", () => {
     vi.doMock("~/db", () => ({
       getDb: () => mockDb,
     }));
-    vi.doMock("~/lib/services/scoring.service", () => ({
+    vi.doMock("~/features/matrix/service/scoring.service", () => ({
       ScoringService: class {
         // recalculateAll이 아직 없는 상태를 시뮬레이션
       },

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { createTestDb, type TestDB } from "../helpers/db";
-import { DashboardService } from "~/lib/services/dashboard.service";
+import { DashboardService } from "~/features/dashboard/service/dashboard.service";
 import {
   discoveries,
   experiments,

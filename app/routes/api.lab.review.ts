@@ -2,7 +2,7 @@ import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { getSessionContext } from "~/lib/auth/session.server";
-import { LabService } from "~/lib/services";
+import { LabService } from "~/features/lab/service";
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const env = context.cloudflare.env as unknown as {

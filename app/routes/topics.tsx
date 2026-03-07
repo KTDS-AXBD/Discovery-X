@@ -5,7 +5,7 @@ import { useState, useMemo } from "react";
 
 import { getDb } from "~/db";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
-import { TopicService } from "~/lib/services";
+import { TopicService } from "~/features/topic/service";
 import { AppShell } from "~/components/layout/AppShell";
 import { TopicCard } from "~/components/topic/TopicCard";
 

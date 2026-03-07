@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 
 import { getDb } from "~/db";
 import { tenants } from "~/db/schema";
-import { ScoringService } from "~/lib/services/scoring.service";
+import { ScoringService } from "~/features/matrix/service/scoring.service";
 
 // POST: Matrix 시그널 보정 일괄 재계산 (매일 06:30 KST)
 export async function action({ request, context }: ActionFunctionArgs) {

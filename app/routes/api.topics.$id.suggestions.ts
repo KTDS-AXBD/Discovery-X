@@ -7,7 +7,7 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { TopicService } from "~/lib/services";
+import { TopicService } from "~/features/topic/service";
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
   try {

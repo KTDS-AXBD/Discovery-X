@@ -8,7 +8,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { RecallTrackingService } from "~/lib/services/recall-tracking.service";
+import { RecallTrackingService } from "~/features/discovery/service/recall-tracking";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   try {

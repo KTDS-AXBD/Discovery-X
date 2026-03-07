@@ -1,7 +1,7 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { FolderService } from "~/lib/services";
+import { FolderService } from "~/features/archive/service";
 import type { FolderItemTypeValue } from "~/features/archive/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 

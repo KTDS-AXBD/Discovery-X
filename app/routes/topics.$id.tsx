@@ -6,7 +6,7 @@ import { useState } from "react";
 import { getDb } from "~/db";
 import { requireScopeAccess } from "~/lib/acl/middleware";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
-import { TopicService } from "~/lib/services";
+import { TopicService } from "~/features/topic/service";
 import { Button } from "~/components/ui/Button";
 import { TopicStatusBadge } from "~/components/topic/TopicStatusBadge";
 import { TopicMemberList } from "~/components/topic/MemberList";
