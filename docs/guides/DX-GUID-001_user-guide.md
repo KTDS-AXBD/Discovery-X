@@ -7,7 +7,7 @@ category: GUID
 created: 2026-03-07
 updated: 2026-03-07
 author: Sinclair Seo
-system-version: ">=0.1.0"
+system-version: ">=0.5.0"
 ---
 
 # Discovery-X 사용자 가이드

@@ -78,7 +78,7 @@ tags: [user, onboarding]
 created: 2026-02-20
 updated: 2026-03-07
 author: Sinclair Seo
-system-version: ">=0.1.0"
+system-version: ">=0.5.0"
 related: [DX-SPEC-001]
 ---
 ```
