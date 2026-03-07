@@ -1,5 +1,5 @@
 ---
-name: status-transition-reviewer
+name: ax-a01-transition
 description: Discovery 상태 전환 코드가 비즈니스 규칙(ALLOWED_TRANSITIONS, validateTransition)을 준수하는지 검증하는 에이전트
 ---
 

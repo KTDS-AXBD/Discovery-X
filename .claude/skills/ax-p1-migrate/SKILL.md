@@ -1,5 +1,5 @@
 ---
-name: db-migrate
+name: ax-p1-migrate
 description: Drizzle 마이그레이션 생성 → 로컬 적용 → test helper 동기화를 한 번에 수행. 스키마 변경 후 사용.
 ---
 

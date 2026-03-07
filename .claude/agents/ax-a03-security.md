@@ -1,5 +1,5 @@
 ---
-name: security-reviewer
+name: ax-a03-security
 description: Agent 도구 및 인프라 변경 시 보안 검토를 수행하는 서브에이전트
 ---
 

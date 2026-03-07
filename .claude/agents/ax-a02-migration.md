@@ -1,5 +1,5 @@
 ---
-name: migration-checker
+name: ax-a02-migration
 description: Drizzle 마이그레이션 파일과 tests/helpers/db.ts의 동기화 여부를 검증하는 에이전트. 마이그레이션 추가/수정 시 자동 호출.
 ---
 
