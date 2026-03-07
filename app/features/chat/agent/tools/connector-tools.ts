@@ -5,7 +5,7 @@
 
 import { eq, or } from "drizzle-orm";
 import type { DB } from "~/db";
-import { discoveryLinks, discoveries } from "~/db/schema";
+import { discoveryLinks, discoveries } from "~/db";
 
 function generateId(): string {
   return crypto.randomUUID();

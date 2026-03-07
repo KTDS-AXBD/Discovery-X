@@ -7,7 +7,7 @@ import { getDb } from "~/db";
 import {
   RadarSourceType,
   RadarRunStatus,
-} from "~/db/schema";
+} from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { RadarService } from "~/lib/services";
 import { AppShell } from "~/components/layout/AppShell";

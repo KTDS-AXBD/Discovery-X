@@ -18,7 +18,7 @@ import {
   AlertType,
   AlertSeverity,
   DiscoveryStatus,
-} from "~/db/schema";
+} from "~/db";
 
 interface FiredAlert {
   id: string;

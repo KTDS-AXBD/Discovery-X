@@ -7,7 +7,7 @@ import {
   type NewSharedSignal,
   topics,
 } from "~/db/schema-v2";
-import { users } from "~/db/schema";
+import { users } from "~/db";
 
 export interface SignalWithDetails {
   id: number;

@@ -1,6 +1,6 @@
 import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
-import { users } from "~/db/schema";
+import { users } from "~/db";
 
 // ─── 기존: RequestStatus/Priority (레거시 호환) ───
 export const RequestStatus = {

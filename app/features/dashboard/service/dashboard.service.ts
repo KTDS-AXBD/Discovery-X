@@ -10,7 +10,7 @@ import {
   radarSources,
   industryAdapters,
   DiscoveryStatus,
-} from "~/db/schema";
+} from "~/db";
 import { proposals } from "~/features/proposals/db/schema";
 import { tenantWhere } from "~/lib/query/tenant-scope";
 

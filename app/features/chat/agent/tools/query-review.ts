@@ -10,7 +10,7 @@ import {
   experiments,
   users,
   DiscoveryStatus,
-} from "~/db/schema";
+} from "~/db";
 
 export async function getWeeklyReview(db: DB): Promise<string> {
   // Active = all non-terminal statuses except DISCOVERY

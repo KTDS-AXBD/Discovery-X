@@ -6,7 +6,7 @@
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { conversations } from "~/db/schema";
+import { conversations } from "~/db";
 import { eq } from "drizzle-orm";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { createAgentStreamResponse } from "~/features/chat/agent/executor-stream";

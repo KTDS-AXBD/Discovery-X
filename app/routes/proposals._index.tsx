@@ -4,11 +4,11 @@ import { useLoaderData, Link } from "@remix-run/react";
 import { getDb } from "~/db";
 import { ProposalService } from "~/features/proposals/service/proposal.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { PipelineView } from "~/components/proposals/PipelineView";
-import { CategoryCardRow } from "~/components/proposals/CategoryCardRow";
-import { DelayedProposalsRow } from "~/components/proposals/DelayedProposalsRow";
+import { PipelineView } from "~/features/proposals/ui/PipelineView";
+import { CategoryCardRow } from "~/features/proposals/ui/CategoryCardRow";
+import { DelayedProposalsRow } from "~/features/proposals/ui/DelayedProposalsRow";
 import { DELAY_THRESHOLDS } from "~/features/proposals/constants";
-import type { ProposalCardData } from "~/components/proposals/ProposalCard";
+import type { ProposalCardData } from "~/features/proposals/ui/ProposalCard";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);

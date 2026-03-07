@@ -9,7 +9,7 @@ import { eq } from "drizzle-orm";
 import type { DB } from "~/db";
 import { ideas } from "~/features/ideas/db/schema";
 import { tokenUsageLogs } from "~/db/token-usage-schema";
-import { agentConfig } from "~/db/schema";
+import { agentConfig } from "~/db";
 import { CLAUDE_MODEL } from "~/lib/ai";
 import { callLLM } from "~/lib/ai";
 import type { FallbackContext } from "~/lib/ai";

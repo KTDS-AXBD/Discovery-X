@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { redirect } from "@remix-run/cloudflare";
 import { Form, Link, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { UserRole } from "~/db/schema";
+import { UserRole } from "~/db";
 import {
   getUserFromSession,
   getSessionSecret,

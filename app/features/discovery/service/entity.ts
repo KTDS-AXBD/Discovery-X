@@ -11,8 +11,8 @@ import {
   assumptions,
   MethodRunStatus,
   GateApprovalDecision,
-} from "~/db/schema";
-import { DiscoveryStatus } from "~/db/schema";
+} from "~/db";
+import { DiscoveryStatus } from "~/db";
 import { DiscoveryValidationRules } from "~/features/discovery/validation/discovery-rules";
 import type {
   Discovery,

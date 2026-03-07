@@ -9,7 +9,7 @@ import {
   proposalMilestones,
   proposalCategories,
 } from "~/features/proposals/db/schema";
-import { users } from "~/db/schema";
+import { users } from "~/db";
 import type {
   CommentWithAuthor,
   CreateActionInput,

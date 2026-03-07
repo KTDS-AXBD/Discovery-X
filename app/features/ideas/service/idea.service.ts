@@ -1,6 +1,6 @@
 import { eq, desc, and, sql } from "drizzle-orm";
 import type { DB } from "~/db";
-import { radarItems } from "~/db/schema";
+import { radarItems } from "~/db";
 import { ideas, ideaSources } from "~/features/ideas/db/schema";
 
 // ============================================================================

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { DB } from "~/db";
 import { eq, count } from "drizzle-orm";
-import { experiments, evidence, assumptions } from "~/db/schema";
+import { experiments, evidence, assumptions } from "~/db";
 import { ALLOWED_TRANSITIONS } from "~/lib/constants/status";
 
 // ============================================================================

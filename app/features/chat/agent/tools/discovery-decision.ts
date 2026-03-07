@@ -5,7 +5,7 @@
 import { eq } from "drizzle-orm";
 
 import type { DB } from "~/db";
-import { discoveries, DiscoveryStatus } from "~/db/schema";
+import { discoveries, DiscoveryStatus } from "~/db";
 import {
   DiscoveryValidationRules,
   ValidationError,

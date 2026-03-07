@@ -4,10 +4,10 @@ import { useLoaderData } from "@remix-run/react";
 import { eq, inArray } from "drizzle-orm";
 import { getDb } from "~/db";
 import { proposals, proposalLikes } from "~/features/proposals/db/schema";
-import { users } from "~/db/schema";
+import { users } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { ProposalGrid } from "~/components/proposals/ProposalGrid";
-import type { ProposalCardData } from "~/components/proposals/ProposalCard";
+import { ProposalGrid } from "~/features/proposals/ui/ProposalGrid";
+import type { ProposalCardData } from "~/features/proposals/ui/ProposalCard";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);

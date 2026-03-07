@@ -5,7 +5,7 @@
 
 import { eq } from "drizzle-orm";
 import type { DB } from "~/db";
-import { webhookConfigs } from "~/db/schema";
+import { webhookConfigs } from "~/db";
 
 interface AlertPayload {
   id: string;

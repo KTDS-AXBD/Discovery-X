@@ -1,6 +1,6 @@
 import { eq, and, gte, lte, sql, count } from "drizzle-orm";
 import type { DB } from "~/db";
-import { eventLogs, discoveries } from "~/db/schema";
+import { eventLogs, discoveries } from "~/db";
 
 // ============================================================================
 // Types

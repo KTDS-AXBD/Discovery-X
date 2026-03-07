@@ -1,7 +1,7 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
-import { tenants } from "~/db/schema";
+import { tenants } from "~/db";
 import { syncEmbeddings } from "~/lib/embeddings/sync";
 import type { EmbeddingEnv } from "~/lib/embeddings/embedding-service";
 

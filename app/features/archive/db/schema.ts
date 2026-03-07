@@ -1,6 +1,6 @@
 import { sqliteTable, text, integer, index, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
-import { users, tenants } from "~/db/schema";
+import { users, tenants } from "~/db";
 
 // ============================================================================
 // ARCHIVE FOLDER ENUMS

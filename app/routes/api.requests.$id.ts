@@ -3,9 +3,10 @@ import { json } from "@remix-run/cloudflare";
 import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
 import { featureRequests } from "~/features/requests/db/schema";
-import { users, alerts } from "~/db/schema";
+import { users } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { RequirementsWorkflowService } from "~/features/requests/service";
+import { RequirementsEntityService } from "~/features/requests/service/entity";
 import { isFeatureEnabled } from "~/lib/feature-flags";
 
 function isReviewer(role: string) {
@@ -112,30 +113,15 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
         return json({ error: "잘못된 상태 값입니다." }, { status: 400 });
       }
 
-      const updates: Record<string, unknown> = {
+      const entity = new RequirementsEntityService(db);
+      await entity.changeStatus(id, {
         status: body.status,
         reviewerId: ctx.user.id,
-        reviewedAt: new Date(),
-      };
-
-      if (body.status === "REJECTED" && body.reason) {
-        updates.reason = body.reason;
-      }
-
-      await db
-        .update(featureRequests)
-        .set(updates)
-        .where(eq(featureRequests.id, id));
-
-      // 제출자에게 상태 변경 알림
-      if (existing.submitterId !== ctx.user.id) {
-        await db.insert(alerts).values({
-          id: crypto.randomUUID(),
-          severity: "info",
-          message: `요구사항 "${existing.title}"의 상태가 ${body.status}(으)로 변경되었습니다.`,
-          discoveryId: existing.linkedDiscoveryId,
-        });
-      }
+        reason: body.status === "REJECTED" ? body.reason : undefined,
+        existingTitle: existing.title,
+        existingSubmitterId: existing.submitterId,
+        existingLinkedDiscoveryId: existing.linkedDiscoveryId,
+      });
 
       return json({ success: true });
     }
@@ -153,9 +139,8 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
         return json({ error: "OPEN 상태에서만 삭제할 수 있습니다." }, { status: 400 });
       }
 
-      await db
-        .delete(featureRequests)
-        .where(eq(featureRequests.id, id));
+      const entity = new RequirementsEntityService(db);
+      await entity.deleteRequest(id);
 
       return json({ success: true });
     }

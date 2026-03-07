@@ -8,7 +8,7 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { eq, sql } from "drizzle-orm";
 import { getDb } from "~/db";
-import { tenants, evidence, discoveries } from "~/db/schema";
+import { tenants, evidence, discoveries } from "~/db";
 import { extractOntologyBatch } from "~/lib/ontology/extractor";
 import {
   detectPatterns,

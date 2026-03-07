@@ -1,7 +1,7 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { redirect } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { users, tenants, tenantMembers, UserRole } from "~/db/schema";
+import { users, tenants, tenantMembers, UserRole } from "~/db";
 import { eq } from "drizzle-orm";
 import {
   getRedirectUri,

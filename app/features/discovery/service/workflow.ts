@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import type { DB } from "~/db";
-import { discoveries, experiments, eventLogs } from "~/db/schema";
-import { DiscoveryStatus } from "~/db/schema";
+import { discoveries, experiments, eventLogs } from "~/db";
+import { DiscoveryStatus } from "~/db";
 import { DiscoveryValidationRules } from "~/features/discovery/validation/discovery-rules";
 import { ALLOWED_TRANSITIONS, ACTIVE_STATUSES } from "~/lib/constants/status";
 import type {

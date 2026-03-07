@@ -9,7 +9,7 @@ import type { InferSelectModel } from "drizzle-orm";
 import { json } from "@remix-run/cloudflare";
 import type { DB } from "~/db";
 import { getDb } from "~/db";
-import { discoveries, agentConfig, conversations, tenants } from "~/db/schema";
+import { discoveries, agentConfig, conversations, tenants } from "~/db";
 import { eq, inArray, and } from "drizzle-orm";
 import { ACTIVE_STATUSES } from "~/lib/constants/status";
 import { executeAgentTurn } from "~/features/chat/agent/executor";

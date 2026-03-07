@@ -1,7 +1,7 @@
 import { createCookieSessionStorage, redirect, json } from "@remix-run/cloudflare";
 import type { DB } from "~/db";
-import { users, sessions, tenants, tenantMembers, UserRole } from "~/db/schema";
-import type { User } from "~/db/schema";
+import { users, sessions, tenants, tenantMembers, UserRole } from "~/db";
+import type { User } from "~/db";
 import { eq, and } from "drizzle-orm";
 
 // Session context with tenant information

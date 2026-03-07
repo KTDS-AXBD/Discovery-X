@@ -3,7 +3,7 @@ import { Button } from "~/components/ui/Button";
 import { Input } from "~/components/ui/Input";
 import { FormField } from "~/components/ui/FormField";
 import { Badge } from "~/components/ui/Badge";
-import type { TenantSettings } from "~/db/schema";
+import type { TenantSettings } from "~/db";
 
 interface TenantSettingsFormProps {
   tenant: {

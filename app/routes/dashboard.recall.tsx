@@ -7,7 +7,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "~
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { Card } from "~/components/ui/Card";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { TriggerType } from "~/db/schema";
+import { TriggerType } from "~/db";
 import { formatDate } from "~/lib/format-date";
 import { DiscoveryService } from "~/features/discovery/service";
 

@@ -12,7 +12,7 @@ import {
   evidence,
   ontologyTypes,
   discoveries,
-} from "~/db/schema";
+} from "~/db";
 import { matchGlobalEntity } from "~/lib/ontology/matcher";
 import {
   detectPatterns,

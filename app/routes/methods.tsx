@@ -4,7 +4,7 @@ import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, useSearchParams } from "@remix-run/react";
 import { getDb } from "~/db";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
-import { methodPacks, type MethodPack } from "~/db/schema";
+import { methodPacks, type MethodPack } from "~/db";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { MethodPackCard } from "~/components/methods/MethodPackCard";

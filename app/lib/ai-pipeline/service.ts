@@ -12,7 +12,7 @@ import {
   AIPipelineRunStatus,
   DiscoveryStatus,
   evidence,
-} from "~/db/schema";
+} from "~/db";
 import { ideas } from "~/features/ideas/db/schema";
 import { CLAUDE_MODEL } from "~/lib/ai";
 import { callLLM } from "~/lib/ai";

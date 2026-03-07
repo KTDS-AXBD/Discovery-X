@@ -7,7 +7,7 @@
 
 import { eq, and, isNotNull } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { contextNodes } from "~/db/schema";
+import { contextNodes } from "~/db";
 
 /** 레이블 정규화 — 대소문자, 공백, 특수문자 통일 */
 export function normalizeLabel(label: string): string {

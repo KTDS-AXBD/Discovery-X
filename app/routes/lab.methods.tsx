@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { useLoaderData, useSearchParams } from "@remix-run/react";
-import type { MethodPack } from "~/db/schema";
+import type { MethodPack } from "~/db";
 import { getDb } from "~/db";
 import { LabService } from "~/features/lab/service";
 import { MethodPackCard } from "~/components/methods/MethodPackCard";

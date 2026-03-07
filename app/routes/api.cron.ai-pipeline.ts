@@ -7,7 +7,7 @@
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { tenants } from "~/db/schema";
+import { tenants } from "~/db";
 import { eq } from "drizzle-orm";
 import { AIPipelineService } from "~/lib/ai-pipeline/service";
 import type { PipelineRunResult } from "~/lib/ai-pipeline/service";

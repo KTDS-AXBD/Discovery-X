@@ -10,7 +10,7 @@ import {
   extractedPatterns,
   reusableRules,
   discoveries,
-} from "~/db/schema";
+} from "~/db";
 
 // ── extract_decision_pattern ──────────────────────────────────────────────
 

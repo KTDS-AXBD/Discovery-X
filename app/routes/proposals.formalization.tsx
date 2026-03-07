@@ -4,7 +4,7 @@ import { useLoaderData } from "@remix-run/react";
 import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
 import { proposals, proposalLikes } from "~/features/proposals/db/schema";
-import { users } from "~/db/schema";
+import { users } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { ProposalGrid } from "~/components/proposals/ProposalGrid";
 import type { ProposalCardData } from "~/components/proposals/ProposalCard";

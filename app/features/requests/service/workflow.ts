@@ -4,7 +4,7 @@
  */
 
 import type { DB } from "~/db";
-import { alerts, discoveries } from "~/db/schema";
+import { alerts, discoveries } from "~/db";
 import { ALLOWED_TRANSITIONS, RequestStatus, RequestEventType, RequestClassification } from "../constants";
 import type { HumanVerdictInput } from "../types";
 import { RequirementsEntityService } from "./entity";

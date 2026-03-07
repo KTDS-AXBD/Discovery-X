@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { discoveries, users, tenants, tenantMembers } from "~/db/schema";
+import { discoveries, users, tenants, tenantMembers } from "~/db";
 import { eq } from "drizzle-orm";
 import { createEmailClient } from "~/lib/notifications/email";
 import { buildWeeklySummaryEmail } from "~/lib/notifications/templates";

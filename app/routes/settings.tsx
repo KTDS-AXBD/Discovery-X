@@ -7,7 +7,7 @@ import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/cloudfla
 import { json } from "@remix-run/cloudflare";
 import { Form, useLoaderData, useActionData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { agentConfig, UserRole } from "~/db/schema";
+import { agentConfig, UserRole } from "~/db";
 import { eq } from "drizzle-orm";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
 import { isFeatureEnabled } from "~/lib/feature-flags";

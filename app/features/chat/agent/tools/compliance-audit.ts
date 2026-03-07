@@ -12,7 +12,7 @@ import {
   eventLogs,
   gatePackages,
   messages,
-} from "~/db/schema";
+} from "~/db";
 
 // ── generate_audit_trail ──────────────────────────────────────────────────
 

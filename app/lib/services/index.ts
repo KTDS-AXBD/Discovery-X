@@ -14,5 +14,6 @@ export { LabService } from "~/features/lab/service/lab.service";
 export { IdeaService } from "~/features/ideas/service";
 export { RecallTrackingService } from "~/features/discovery/service/recall-tracking";
 export { MetricsService } from "~/features/dashboard/service/metrics.service";
+export { ChatSessionService } from "~/features/chat/service";
 export { AIPipelineService } from "~/lib/ai-pipeline/service";
 export type { OperationalMetrics, OwnerWorkloadItem, FailurePatternItem, WeeklyDataItem } from "~/features/dashboard/service/metrics.service";

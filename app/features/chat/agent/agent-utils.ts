@@ -5,7 +5,7 @@
 
 import { eq } from "drizzle-orm";
 import type { DB } from "~/db";
-import { agentConfig } from "~/db/schema";
+import { agentConfig } from "~/db";
 import { tokenUsageLogs } from "~/db/token-usage-schema";
 import { CLAUDE_MODEL } from "~/lib/ai";
 

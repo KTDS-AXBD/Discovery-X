@@ -5,7 +5,7 @@
 
 import { desc, eq, sql } from "drizzle-orm";
 import type { DB } from "~/db";
-import { messages } from "~/db/schema";
+import { messages } from "~/db";
 import type { ClaudeMessage, ClaudeContentBlock } from "~/lib/ai";
 
 interface ContextConfig {

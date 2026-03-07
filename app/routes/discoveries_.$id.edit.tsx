@@ -12,7 +12,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~
 import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
-import { DiscoveryStatus, SourceType } from "~/db/schema";
+import { DiscoveryStatus, SourceType } from "~/db";
 import { CreateDiscoverySchema } from "~/features/discovery/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
 import { DiscoveryService } from "~/features/discovery/service";

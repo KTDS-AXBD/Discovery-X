@@ -4,78 +4,78 @@
 
 ## SPEC — 사양
 
-| 코드 | 제목 | 버전 | 상태 |
-|------|------|------|------|
-| DX-SPEC-001 | Discovery-X 비즈니스 기획서 v1.4 | 1.4 | Active |
-| DX-SPEC-002 | Discovery-X Prototype PRD | 0.1 | Active |
-| DX-SPEC-003 | Discovery-X PRD v3 | 3.0 | Superseded |
-| DX-SPEC-004 | Discovery-X PRD v3.1 | 3.1 | Active |
-| DX-SPEC-005 | 벤처 스프린트 PRD v0.2 | 0.2 | Superseded |
-| DX-SPEC-006 | 벤처 스프린트 PRD v0.3 DevSpec | 0.3 | Active |
-| DX-SPEC-007 | 프레임워크 아키텍처 매핑 v1 | 1.0 | Active |
-| DX-SPEC-008 | 프레임워크 DB 스키마 v1 | 1.0 | Active |
-| DX-SPEC-009 | 프레임워크 개발 계획 | 1.0 | Active |
-| DX-SPEC-010 | AX BD 요구사항 v0.2 | 0.2 | Active |
-| DX-SPEC-011 | 요구사항 정리 | 1.0 | Active |
+| 코드 | 제목 | 버전 | 상태 | 파일 |
+|------|------|:----:|:----:|------|
+| DX-SPEC-001 | Discovery-X 비즈니스 기획서 v1.4 | 1.4 | Active | specs/DX-SPEC-001_discovery-x-v1.4.md |
+| DX-SPEC-002 | Discovery-X 프로토타입 PRD | 0.1 | Active | specs/DX-SPEC-002_discovery-x-prototype-prd.md |
+| DX-SPEC-003 | Discovery-X PRD v3 | 3.0 | Active | specs/DX-SPEC-003_discovery-x-prd-v3.md |
+| DX-SPEC-004 | Discovery-X PRD v3.1 | 3.1 | Active | specs/DX-SPEC-004_discovery-x-prd-v3.1.md |
+| DX-SPEC-005 | Venture Discovery Sprint PRD v0.2 | 0.2 | Active | specs/DX-SPEC-005_venture-sprint-prd-v0.2.md |
+| DX-SPEC-006 | Venture Sprint PRD v0.3 DevSpec | 0.3 | Active | specs/DX-SPEC-006_venture-sprint-prd-v0.3-devspec.md |
+| DX-SPEC-007 | Framework Architecture Mapping v1 | 1.0 | Active | specs/DX-SPEC-007_framework-arch-mapping-v1.md |
+| DX-SPEC-008 | Framework DB Schema v1 | 1.0 | Active | specs/DX-SPEC-008_framework-db-schema-v1.md |
+| DX-SPEC-009 | Framework 개발 계획 | 1.0 | Active | specs/DX-SPEC-009_framework-devplan.md |
+| DX-SPEC-010 | AX BD팀 요구사항 v0.2 | 0.2 | Active | specs/DX-SPEC-010_ax-bd-requirements-v0.2.md |
+| DX-SPEC-011 | 요구사항 정리 | 1.0 | Active | specs/DX-SPEC-011_requirements-summary.md |
 
 ## PLAN — 계획
 
-| 코드 | 제목 | 버전 | 상태 |
-|------|------|------|------|
-| DX-PLAN-001 | 아이디어 기능 개선 계획 | 1.0 | Active |
-| DX-PLAN-002 | 대시보드 차트 계획 | 1.0 | Active |
-| DX-PLAN-003 | 아카이브 폴더 계획 | 1.0 | Active |
-| DX-PLAN-004 | 온톨로지 인텔리전스 계획 | 1.0 | Active |
-| DX-PLAN-005 | 통합 실행 계획 | 1.0 | Active |
+| 코드 | 제목 | 버전 | 상태 | 파일 |
+|------|------|:----:|:----:|------|
+| DX-PLAN-001 | 아이디어 기능 개선 계획 | 1.0 | Active | 01-plan/DX-PLAN-001_ideas-enhancement.md |
+| DX-PLAN-002 | 대시보드 차트 계획 | 1.0 | Active | 01-plan/DX-PLAN-002_dashboard-charts.md |
+| DX-PLAN-003 | 보관함 폴더 계획 | 1.0 | Active | 01-plan/DX-PLAN-003_archive-folders.md |
+| DX-PLAN-004 | 온톨로지 인텔리전스 계획 | 1.0 | Active | 01-plan/DX-PLAN-004_ontology-intelligence.md |
+| DX-PLAN-005 | 통합 실행 계획서 | 2.0 | Active | 01-plan/DX-PLAN-005_integrated-execution-plan.md |
 
 ## DSGN — 설계
 
-| 코드 | 제목 | 버전 | 상태 |
-|------|------|------|------|
-| DX-DSGN-001 | 아이디어 기능 개선 설계 | 1.0 | Active |
-| DX-DSGN-002 | 대시보드 차트 설계 | 1.0 | Active |
-| DX-DSGN-003 | 아카이브 폴더 설계 | 1.0 | Active |
-| DX-DSGN-004 | 온톨로지 인텔리전스 설계 | 1.0 | Active |
-| DX-DSGN-005 | 아이디어 분석 파이프라인 v2 설계 | 1.0 | Active |
-| DX-DSGN-006 | MSA 리팩토링 계획 | 1.0 | Draft |
-| DX-DSGN-007 | 온톨로지 활성화 계획 | 1.0 | Draft |
-| DX-DSGN-008 | Radar 스코어링 전략 | 1.0 | Active |
-| DX-DSGN-100 | 문서 관리 표준 및 적용 계획 | 1.0 | Draft |
+| 코드 | 제목 | 버전 | 상태 | 파일 |
+|------|------|:----:|:----:|------|
+| DX-DSGN-001 | 아이디어 기능 개선 설계 | 1.0 | Active | 02-design/DX-DSGN-001_ideas-enhancement.md |
+| DX-DSGN-002 | 대시보드 차트 설계 | 1.0 | Active | 02-design/DX-DSGN-002_dashboard-charts.md |
+| DX-DSGN-003 | 보관함 폴더 설계 | 1.0 | Active | 02-design/DX-DSGN-003_archive-folders.md |
+| DX-DSGN-004 | 온톨로지 인텔리전스 설계 | 1.0 | Active | 02-design/DX-DSGN-004_ontology-intelligence.md |
+| DX-DSGN-005 | 아이디어 분석 파이프라인 v2 설계 | 1.0 | Active | 02-design/DX-DSGN-005_idea-analysis-pipeline-v2.md |
+| DX-DSGN-006 | MSA 리팩토링 설계 | 1.0 | Draft | 02-design/DX-DSGN-006_msa-refactoring-plan.md |
+| DX-DSGN-007 | 온톨로지 활성화 설계 | 1.0 | Draft | 02-design/DX-DSGN-007_ontology-activation-plan.md |
+| DX-DSGN-008 | Radar 스코어링 전략 | 1.0 | Active | 02-design/DX-DSGN-008_radar-scoring-strategy.md |
+| DX-DSGN-100 | 문서 관리 표준 및 적용 계획 | 1.0 | Draft | 02-design/DX-DSGN-100_doc-governance-plan.md |
 
 ## ANLS — 분석
 
-| 코드 | 제목 | 버전 | 상태 |
-|------|------|------|------|
-| DX-ANLS-001 | 아이디어 기능 개선 분석 | 1.0 | Active |
-| DX-ANLS-002 | 아카이브 폴더 분석 | 1.0 | Active |
-| DX-ANLS-003 | 레이아웃/제안 분석 | 1.0 | Active |
-| DX-ANLS-004 | 온톨로지 인텔리전스 분석 | 1.0 | Active |
+| 코드 | 제목 | 버전 | 상태 | 파일 |
+|------|------|:----:|:----:|------|
+| DX-ANLS-001 | 아이디어 기능 개선 갭 분석 | 1.0 | Active | 03-analysis/DX-ANLS-001_ideas-enhancement.md |
+| DX-ANLS-002 | 보관함 폴더 갭 분석 | 1.0 | Active | 03-analysis/DX-ANLS-002_archive-folders.md |
+| DX-ANLS-003 | 레이아웃 제안 갭 분석 | 1.0 | Active | 03-analysis/DX-ANLS-003_layout-proposals.md |
+| DX-ANLS-004 | 온톨로지 인텔리전스 갭 분석 | 1.0 | Active | 03-analysis/DX-ANLS-004_ontology-intelligence.md |
 
 ## RPRT — 보고
 
-| 코드 | 제목 | 버전 | 상태 |
-|------|------|------|------|
-| DX-RPRT-001 | 아이디어 기능 개선 완료 보고 | 1.0 | Active |
-| DX-RPRT-002 | 아카이브 폴더 완료 보고 | 1.0 | Active |
-| DX-RPRT-003 | 레이아웃/제안 완료 보고 | 1.0 | Active |
-| DX-RPRT-004 | 온톨로지 인텔리전스 보고 | 1.0 | Active |
+| 코드 | 제목 | 버전 | 상태 | 파일 |
+|------|------|:----:|:----:|------|
+| DX-RPRT-001 | 아이디어 기능 개선 완료 보고 | 1.0 | Active | 04-report/DX-RPRT-001_ideas-enhancement.md |
+| DX-RPRT-002 | 보관함 폴더 완료 보고 | 1.0 | Active | 04-report/DX-RPRT-002_archive-folders.md |
+| DX-RPRT-003 | 레이아웃 제안 완료 보고 | 1.0 | Active | 04-report/DX-RPRT-003_layout-proposals.md |
+| DX-RPRT-004 | 온톨로지 인텔리전스 완료 보고 | 1.0 | Active | 04-report/DX-RPRT-004_ontology-intelligence.md |
 
 ## GUID — 가이드
 
-| 코드 | 제목 | 버전 | 상태 |
-|------|------|------|------|
-| DX-GUID-001 | 사용자 가이드 | 1.0 | Active |
-| DX-GUID-002 | 운영 런북 | 1.0 | Active |
-| DX-GUID-003 | 사용자 치트시트 | 1.0 | Active |
-| DX-GUID-004 | 킥오프 템플릿 | 1.0 | Active |
-| DX-GUID-005 | QA 체크리스트 | 1.0 | Active |
+| 코드 | 제목 | 버전 | 상태 | 파일 |
+|------|------|:----:|:----:|------|
+| DX-GUID-001 | 사용자 가이드 | 1.0 | Active | guides/DX-GUID-001_user-guide.md |
+| DX-GUID-002 | 운영 런북 | 1.0 | Active | guides/DX-GUID-002_operational-runbook.md |
+| DX-GUID-003 | 사용자 치트시트 | 1.0 | Active | guides/DX-GUID-003_user-cheat-sheet.md |
+| DX-GUID-004 | 킥오프 프레젠테이션 템플릿 | 1.0 | Active | guides/DX-GUID-004_kickoff-template.md |
+| DX-GUID-005 | QA 체크리스트 | 1.0 | Active | guides/DX-GUID-005_qa-checklist.md |
 
 ## OPS — 운영
 
-| 코드 | 제목 | 버전 | 상태 |
-|------|------|------|------|
-| DX-OPS-001 | Cron 엔드포인트 등록 가이드 | 1.0 | Active |
+| 코드 | 제목 | 버전 | 상태 | 파일 |
+|------|------|:----:|:----:|------|
+| DX-OPS-001 | Cron 엔드포인트 등록 가이드 | 1.0 | Active | ops/DX-OPS-001_cron-registration-guide.md |
 
 ---
 
-*총 39개 문서 | Active: 34 | Draft: 3 | Superseded: 2*
+*총 39개 문서 | Active: 34 | Draft: 3 | Archived: 0*

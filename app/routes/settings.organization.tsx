@@ -9,7 +9,7 @@ import { useLoaderData, useActionData } from "@remix-run/react";
 import { useState } from "react";
 import { eq, and } from "drizzle-orm";
 import { getDb } from "~/db";
-import { tenants, tenantMembers, users } from "~/db/schema";
+import { tenants, tenantMembers, users } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";

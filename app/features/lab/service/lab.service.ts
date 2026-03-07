@@ -6,7 +6,7 @@ import {
   ontologyTypes,
   discoveries,
   methodPacks,
-} from "~/db/schema";
+} from "~/db";
 import {
   detectPatterns,
   detectContradictions,

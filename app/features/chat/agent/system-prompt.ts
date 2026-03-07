@@ -3,7 +3,7 @@
  * v3: 11-stage pipeline with evidence validation rules.
  */
 
-import type { AgentConfig } from "~/db/schema";
+import type { AgentConfig } from "~/db";
 
 const AUTONOMY_LABELS: Record<number, string> = {
   0: "Passive — 사용자 메시지에만 응답",

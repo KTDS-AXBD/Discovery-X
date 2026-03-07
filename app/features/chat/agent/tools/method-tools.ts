@@ -14,7 +14,7 @@ import {
   evidence,
   experiments,
   MethodRunStatus,
-} from "~/db/schema";
+} from "~/db";
 
 function generateId(): string {
   return crypto.randomUUID();

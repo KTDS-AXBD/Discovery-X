@@ -11,7 +11,7 @@ import { Input } from "~/components/ui/Input";
 import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
-import { DiscoveryStatus } from "~/db/schema";
+import { DiscoveryStatus } from "~/db";
 import { CreateExperimentSchema } from "~/features/discovery/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
 import { formatDate, getDefaultDeadline } from "~/lib/format-date";

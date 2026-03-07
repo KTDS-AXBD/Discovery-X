@@ -3,10 +3,11 @@ import { json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { eq, and, desc } from "drizzle-orm";
 import { sql } from "drizzle-orm";
-import { getDb, agentSessionsV2, conversations, messages, projections } from "~/db";
+import { getDb, agentSessionsV2, messages, projections } from "~/db";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
 import { ChatPanel } from "~/features/chat/ui/ChatPanel";
-import { ProjectionStatus } from "~/components/agent/ProjectionStatus";
+import { ProjectionStatus } from "~/features/chat/ui/ProjectionStatus";
+import { ChatSessionService } from "~/features/chat/service";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -30,31 +31,9 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     throw json({ error: "세션을 찾을 수 없습니다" }, { status: 404 });
   }
 
-  // 세션에 연결된 conversation 조회 (title 패턴으로 매칭)
-  const agentTitle = `[agent:${sessionId}]`;
-  const conversation = await db.query.conversations.findFirst({
-    where: and(
-      eq(conversations.userId, user.id),
-      eq(conversations.title, agentTitle),
-    ),
-  });
-
-  let conversationId: string;
-
-  if (conversation) {
-    conversationId = conversation.id;
-  } else {
-    // conversation이 없으면 새로 생성
-    conversationId = crypto.randomUUID();
-    const now = new Date();
-    await db.insert(conversations).values({
-      id: conversationId,
-      userId: user.id,
-      title: agentTitle,
-      createdAt: now,
-      updatedAt: now,
-    });
-  }
+  // 세션에 연결된 conversation 조회/생성
+  const service = new ChatSessionService(db);
+  const conversationId = await service.findOrCreateConversation(user.id, sessionId);
 
   // 메시지 로드
   const messageList = await db

@@ -10,7 +10,7 @@ import {
   radarItems,
   industryAdapters,
   industryRules,
-} from "~/db/schema";
+} from "~/db";
 
 export async function searchSimilar(
   db: DB,

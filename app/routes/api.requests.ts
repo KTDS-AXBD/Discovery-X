@@ -3,7 +3,7 @@ import { json } from "@remix-run/cloudflare";
 import { eq, desc, and } from "drizzle-orm";
 import { getDb } from "~/db";
 import { featureRequests } from "~/features/requests/db/schema";
-import { users } from "~/db/schema";
+import { users } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { isFeatureEnabled } from "~/lib/feature-flags";
 import { RequirementsAiReviewerService } from "~/features/requests/service";

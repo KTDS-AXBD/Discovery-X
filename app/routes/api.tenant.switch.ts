@@ -7,7 +7,7 @@ import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { eq, and } from "drizzle-orm";
 import { getDb } from "~/db";
-import { tenantMembers } from "~/db/schema";
+import { tenantMembers } from "~/db";
 import {
   getUserFromSession,
   createSessionStorage,

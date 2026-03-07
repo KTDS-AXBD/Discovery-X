@@ -9,7 +9,7 @@ import {
   experiments,
   evidence,
   stages,
-} from "~/db/schema";
+} from "~/db";
 import {
   DiscoveryValidationRules,
   ValidationError,

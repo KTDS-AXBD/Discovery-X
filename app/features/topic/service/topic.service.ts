@@ -2,7 +2,7 @@ import { eq, and, like, sql } from "drizzle-orm";
 import type { DB } from "~/db";
 import { topics, topicMembers } from "~/db/schema-v2";
 import type { Topic, TopicMember } from "~/db/schema-v2";
-import { users } from "~/db/schema";
+import { users } from "~/db";
 import { GraphStore } from "~/lib/graph/store";
 import { GraphQueryEngine } from "~/lib/graph/query";
 import type { JsonLdNode, JsonLdGraph, PendingSuggestion } from "~/lib/graph/types";

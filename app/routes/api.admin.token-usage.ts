@@ -7,7 +7,7 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import type { DB } from "~/db";
 import { getDb } from "~/db";
-import { agentConfig } from "~/db/schema";
+import { agentConfig } from "~/db";
 import { tokenUsageLogs } from "~/db/token-usage-schema";
 import { eq, desc, sql, and, gte } from "drizzle-orm";
 import { requireAdmin, getSessionSecret } from "~/lib/auth/session.server";

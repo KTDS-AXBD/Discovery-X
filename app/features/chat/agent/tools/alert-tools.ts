@@ -4,7 +4,7 @@
 
 import { eq, and, desc } from "drizzle-orm";
 import type { DB } from "~/db";
-import { alerts, webhookConfigs } from "~/db/schema";
+import { alerts, webhookConfigs } from "~/db";
 
 // ── get_alerts ──────────────────────────────────────────────────────────────
 

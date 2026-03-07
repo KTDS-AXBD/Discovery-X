@@ -14,7 +14,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~
 import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
-import { DiscoveryStatus } from "~/db/schema";
+import { DiscoveryStatus } from "~/db";
 import { CreateEvidenceSchema } from "~/features/discovery/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
 import { EVIDENCE_TYPES, EVIDENCE_STRENGTHS } from "~/lib/constants/failure-patterns";

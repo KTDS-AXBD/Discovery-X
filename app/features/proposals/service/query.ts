@@ -6,7 +6,7 @@ import {
   proposalComments,
   proposalLikes,
 } from "~/features/proposals/db/schema";
-import { users } from "~/db/schema";
+import { users } from "~/db";
 import type {
   Proposal,
   ProposalWithOwner,

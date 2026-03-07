@@ -1,8 +1,8 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { discoveries, users, tenants, tenantMembers } from "~/db/schema";
+import { discoveries, users, tenants, tenantMembers } from "~/db";
 import { eq, inArray, and, lt } from "drizzle-orm";
-import { DiscoveryStatus } from "~/db/schema";
+import { DiscoveryStatus } from "~/db";
 import { ACTIVE_STATUSES } from "~/lib/constants/status";
 import { DiscoveryValidationRules, ValidationError } from "~/features/discovery/validation/discovery-rules";
 import { formatDate } from "~/lib/format-date";
@@ -23,7 +23,7 @@ import {
 } from "~/lib/notifications/templates";
 import { processExpiredGateApprovals, scanAndFireAlerts, DEFAULT_ALERT_RULES } from "~/lib/notifications/alert-engine";
 import { fireWebhooks } from "~/lib/notifications/webhook";
-import { eventLogs, alertRules } from "~/db/schema";
+import { eventLogs, alertRules } from "~/db";
 
 interface CronEnv {
   DB: D1Database;

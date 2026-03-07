@@ -2,7 +2,7 @@ import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
-import { users } from "~/db/schema";
+import { users } from "~/db";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
 
 export async function action({ request, context }: ActionFunctionArgs) {

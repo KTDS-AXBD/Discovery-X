@@ -1,6 +1,6 @@
 import { eq, and, gte, sql } from "drizzle-orm";
 import type { DB } from "~/db";
-import { conversations } from "~/db/schema";
+import { conversations } from "~/db";
 import { agentMemoryV2 } from "~/db/schema-v2";
 import { tokenUsageLogs } from "~/db/token-usage-schema";
 import { MemoryLifecycle } from "~/features/chat/agent/memory-lifecycle";

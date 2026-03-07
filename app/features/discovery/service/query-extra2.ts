@@ -13,7 +13,7 @@ import {
   methodPacks,
   methodRuns,
   UserRole,
-} from "~/db/schema";
+} from "~/db";
 
 export class DiscoveryQueryExtraService {
   constructor(private db: DB) {}

@@ -5,7 +5,7 @@ import {
   radarRuns,
   radarItems,
   radarItemUserStatus,
-} from "~/db/schema";
+} from "~/db";
 
 // ============================================================================
 // Types

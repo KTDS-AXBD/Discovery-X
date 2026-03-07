@@ -9,7 +9,7 @@ import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { eq } from "drizzle-orm";
 import { getDb } from "~/db";
-import { agentConfig } from "~/db/schema";
+import { agentConfig } from "~/db";
 import { ProposalSectionType } from "~/features/proposals/db/schema";
 import { IdeaService, ProposalService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";

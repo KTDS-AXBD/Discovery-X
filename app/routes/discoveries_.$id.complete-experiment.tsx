@@ -12,7 +12,7 @@ import { Textarea } from "~/components/ui/Textarea";
 import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
-import { DiscoveryStatus } from "~/db/schema";
+import { DiscoveryStatus } from "~/db";
 import { CompleteExperimentSchema } from "~/features/discovery/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
 import { formatDate } from "~/lib/format-date";

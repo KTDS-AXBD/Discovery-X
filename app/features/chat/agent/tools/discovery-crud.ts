@@ -10,7 +10,7 @@ import {
   experiments,
   industryAdapters,
   DiscoveryStatus,
-} from "~/db/schema";
+} from "~/db";
 import {
   DiscoveryValidationRules,
   ValidationError,

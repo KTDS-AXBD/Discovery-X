@@ -1,6 +1,6 @@
 import { sqliteTable, text, integer, real, index } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
-import { conversations, tenants } from "./schema";
+import { conversations, tenants } from "~/db";
 
 export const tokenUsageLogs = sqliteTable(
   "token_usage_logs",

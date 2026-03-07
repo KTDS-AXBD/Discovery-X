@@ -8,7 +8,7 @@ import type { ClaudeContentBlock } from "~/lib/ai";
 import { parseSSEStream, callLLM } from "~/lib/ai";
 import { callLLMStream } from "~/lib/ai";
 import type { FallbackContext } from "~/lib/ai";
-import { messages as messagesTable, evidence } from "~/db/schema";
+import { messages as messagesTable, evidence } from "~/db";
 import { eq, and } from "drizzle-orm";
 import { buildConversationContext } from "./context-builder";
 import { buildSystemPrompt, buildIdeaSystemPrompt } from "./system-prompt";

@@ -11,7 +11,7 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { eq, like, or } from "drizzle-orm";
 import { getDb } from "~/db";
-import { discoveries, radarItems } from "~/db/schema";
+import { discoveries, radarItems } from "~/db";
 import { ideas } from "~/features/ideas/db/schema";
 import { proposals } from "~/features/proposals/db/schema";
 import {

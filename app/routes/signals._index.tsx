@@ -4,7 +4,7 @@ import { useLoaderData, useSearchParams } from "@remix-run/react";
 import { eq } from "drizzle-orm";
 
 import { getDb } from "~/db";
-import { tenantMembers } from "~/db/schema";
+import { tenantMembers } from "~/db";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
 import { SignalService } from "~/features/topic/service";
 import { cn } from "~/lib/utils/cn";

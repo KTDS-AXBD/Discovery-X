@@ -7,7 +7,7 @@ import { getDb } from "~/db";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
 import { TopicService } from "~/features/topic/service";
 import { AppShell } from "~/components/layout/AppShell";
-import { TopicCard } from "~/components/topic/TopicCard";
+import { TopicCard } from "~/features/topic/ui/TopicCard";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const env = context.cloudflare.env;

@@ -11,7 +11,7 @@
 
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { decisionLogs, extractedPatterns, reusableRules, tenants, users } from "~/db/schema";
+import { decisionLogs, extractedPatterns, reusableRules, tenants, users } from "~/db";
 import { graphs, projections } from "~/db/schema-v2";
 import { sql, lte, gte, and, isNull, eq, inArray } from "drizzle-orm";
 import { MemoryLifecycle } from "~/features/chat/agent/memory-lifecycle";

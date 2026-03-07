@@ -5,6 +5,7 @@
 
 import { eq } from "drizzle-orm";
 import type { DB } from "~/db";
+import { alerts } from "~/db";
 import { featureRequests, requestReviews, requestEvents, workPlans, workPlanRuns } from "../db/schema";
 import type { WorkPlanStepData } from "../db/schema";
 
@@ -48,6 +49,37 @@ export class RequirementsEntityService {
   /** 요구사항 삭제 */
   async deleteRequest(id: string) {
     await this.db.delete(featureRequests).where(eq(featureRequests.id, id));
+  }
+
+  /** 상태 변경 + 알림 생성 */
+  async changeStatus(id: string, input: {
+    status: string;
+    reviewerId: string;
+    reason?: string;
+    existingTitle?: string;
+    existingSubmitterId?: string;
+    existingLinkedDiscoveryId?: string | null;
+  }) {
+    const updates: Record<string, unknown> = {
+      status: input.status,
+      reviewerId: input.reviewerId,
+      reviewedAt: new Date(),
+    };
+    if (input.reason) updates.reason = input.reason;
+
+    await this.db
+      .update(featureRequests)
+      .set(updates)
+      .where(eq(featureRequests.id, id));
+
+    if (input.existingSubmitterId && input.existingSubmitterId !== input.reviewerId) {
+      await this.db.insert(alerts).values({
+        id: crypto.randomUUID(),
+        severity: "info",
+        message: `요구사항 "${input.existingTitle}"의 상태가 ${input.status}(으)로 변경되었습니다.`,
+        discoveryId: input.existingLinkedDiscoveryId,
+      });
+    }
   }
 
   /** AI 리뷰 저장 */

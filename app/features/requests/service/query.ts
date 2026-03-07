@@ -5,7 +5,7 @@
 
 import { eq, desc, inArray } from "drizzle-orm";
 import type { DB } from "~/db";
-import { users } from "~/db/schema";
+import { users } from "~/db";
 import { featureRequests, requestReviews, requestEvents, workPlans, workPlanRuns } from "../db/schema";
 import type { RequestWithReview, WorkPlanWithContext, WorkPlanRun } from "../types";
 import type { RequestClassificationValue, HumanVerdictValue } from "../constants";

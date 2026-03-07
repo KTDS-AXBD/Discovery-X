@@ -14,7 +14,7 @@ import {
   methodPacks,
   assumptions,
   AssumptionStatus,
-} from "~/db/schema";
+} from "~/db";
 
 export async function listDiscoveries(
   db: DB,

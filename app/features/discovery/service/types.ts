@@ -1,4 +1,4 @@
-import type { discoveries, experiments, evidence, users, discoveryKpis, discoveryLinks } from "~/db/schema";
+import type { discoveries, experiments, evidence, users, discoveryKpis, discoveryLinks } from "~/db";
 
 // ============================================================================
 // Types

@@ -13,7 +13,7 @@ import {
   gatePackages,
   industryAdapters,
   industryRules,
-} from "~/db/schema";
+} from "~/db";
 
 // ── check_regulatory_compliance ───────────────────────────────────────────
 

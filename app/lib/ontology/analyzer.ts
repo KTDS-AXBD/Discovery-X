@@ -10,7 +10,7 @@
 
 import { eq, and, inArray, ne } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { contextNodes, contextEdges, discoveries, ontologyTypes } from "~/db/schema";
+import { contextNodes, contextEdges, discoveries, ontologyTypes } from "~/db";
 
 // --- Result Types ---
 

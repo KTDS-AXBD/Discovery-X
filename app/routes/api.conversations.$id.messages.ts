@@ -5,7 +5,7 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { conversations, messages } from "~/db/schema";
+import { conversations, messages } from "~/db";
 import { eq, and, asc } from "drizzle-orm";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 

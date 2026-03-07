@@ -10,7 +10,7 @@ import {
   gatePackages,
   users,
   GateApprovalDecision,
-} from "~/db/schema";
+} from "~/db";
 
 function generateId(): string {
   return crypto.randomUUID();

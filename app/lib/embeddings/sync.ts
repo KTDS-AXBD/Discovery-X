@@ -5,7 +5,7 @@
 
 import { eq, sql, and, or, isNull, lt } from "drizzle-orm";
 import type { DB } from "~/db";
-import { discoveries, evidence, evidenceDuplicateCandidates, radarItems } from "~/db/schema";
+import { discoveries, evidence, evidenceDuplicateCandidates, radarItems } from "~/db";
 import {
   generateEmbedding,
   upsertDiscoveryEmbedding,

@@ -1,6 +1,6 @@
 import { sqliteTable, text, integer, index, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
-import { users, tenants, conversations, radarItems } from "~/db/schema";
+import { users, tenants, conversations, radarItems } from "~/db";
 
 // ============================================================================
 // IDEAS WORKSPACE TABLES

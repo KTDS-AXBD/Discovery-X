@@ -3,7 +3,7 @@ import type {
   ActionFunctionArgs,
 } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { users } from "~/db/schema";
+import { users } from "~/db";
 import { requireAdmin, getSessionSecret } from "~/lib/auth/session.server";
 import {
   TokenBudgetManager,

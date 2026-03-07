@@ -2,7 +2,6 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { contextSnapshots } from "~/db/schema";
 import { DiscoveryService } from "~/features/discovery/service";
 import { DiscoveryQueryService } from "~/features/discovery/service/query";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
@@ -53,14 +52,9 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
     const queryService = new DiscoveryQueryService(db);
     const { nodes, edges } = await queryService.getGraphData(id);
 
-    await db.insert(contextSnapshots).values({
-      id: crypto.randomUUID(),
-      discoveryId: id,
-      stage: discovery.status,
-      snapshotData: {
-        nodes: nodes.map((n) => ({ ...n })),
-        edges: edges.map((e) => ({ ...e })),
-      },
+    await queryService.saveSnapshot(id, discovery.status, {
+      nodes: nodes.map((n) => ({ ...n })),
+      edges: edges.map((e) => ({ ...e })),
     });
 
     return json({ success: true, message: "스냅샷이 저장되었습니다." });

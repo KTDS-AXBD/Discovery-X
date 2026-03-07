@@ -1,6 +1,6 @@
 import type { DB } from "~/db";
-import { discoveries, experiments, evidence, eventLogs, users } from "~/db/schema";
-import { DiscoveryStatus } from "~/db/schema";
+import { discoveries, experiments, evidence, eventLogs, users } from "~/db";
+import { DiscoveryStatus } from "~/db";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 

@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/cloudfla
 import { json } from "@remix-run/cloudflare";
 import { Form, useLoaderData, useActionData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { users, tenantMembers, UserRole } from "~/db/schema";
+import { users, tenantMembers, UserRole } from "~/db";
 import { eq, and } from "drizzle-orm";
 import {
   requireAdmin,

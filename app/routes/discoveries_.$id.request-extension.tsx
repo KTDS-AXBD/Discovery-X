@@ -2,7 +2,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { DiscoveryStatus } from "~/db/schema";
+import { DiscoveryStatus } from "~/db";
 import { DiscoveryService } from "~/features/discovery/service";
 import { DiscoveryQueryExtraService } from "~/features/discovery/service/query-extra2";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";

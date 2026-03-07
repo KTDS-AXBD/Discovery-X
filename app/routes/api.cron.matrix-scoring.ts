@@ -2,7 +2,7 @@ import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { eq } from "drizzle-orm";
 
 import { getDb } from "~/db";
-import { tenants } from "~/db/schema";
+import { tenants } from "~/db";
 import { ScoringService } from "~/features/matrix/service/scoring.service";
 
 // POST: Matrix 시그널 보정 일괄 재계산 (매일 06:30 KST)

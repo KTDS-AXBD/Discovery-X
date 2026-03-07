@@ -9,7 +9,7 @@
 
 import { eq, and, inArray, ne } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { contextNodes, contextEdges, contextSnapshots, discoveries, ontologyTypes } from "~/db/schema";
+import { contextNodes, contextEdges, contextSnapshots, discoveries, ontologyTypes } from "~/db";
 import { callLLM } from "~/lib/ai";
 
 // --- Result Types ---

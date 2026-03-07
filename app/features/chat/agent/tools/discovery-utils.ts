@@ -3,7 +3,7 @@
  */
 
 import type { DB } from "~/db";
-import { eventLogs } from "~/db/schema";
+import { eventLogs } from "~/db";
 
 export function generateId(): string {
   return crypto.randomUUID();

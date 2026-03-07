@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { discoveries, users, experiments, evidence } from "~/db/schema";
+import { discoveries, users, experiments, evidence } from "~/db";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { inArray } from "drizzle-orm";
 

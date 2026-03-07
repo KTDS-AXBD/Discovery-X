@@ -7,7 +7,7 @@
 
 import { eq, and, sql, or, isNull } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { evidence, contextNodes, contextEdges, ontologyTypes, discoveries } from "~/db/schema";
+import { evidence, contextNodes, contextEdges, ontologyTypes, discoveries } from "~/db";
 import { callLLM } from "~/lib/ai";
 import { matchGlobalEntitiesBatch } from "./matcher";
 

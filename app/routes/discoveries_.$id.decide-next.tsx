@@ -14,7 +14,7 @@ import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
 import { Separator } from "~/components/ui/Separator";
 import { AlertBanner } from "~/components/ui/AlertBanner";
-import { DiscoveryStatus } from "~/db/schema";
+import { DiscoveryStatus } from "~/db";
 import { DiscoveryValidationRules, NextDecisionSchema } from "~/features/discovery/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
 import { createEmailClient } from "~/lib/notifications/email";

@@ -5,8 +5,8 @@ import {
   decisionLogs, extractedPatterns, reusableRules,
   contextNodes, contextEdges, ontologyTypes, contextSnapshots,
   industryAdapters, industryRules,
-} from "~/db/schema";
-import { DiscoveryStatus } from "~/db/schema";
+} from "~/db";
+import { DiscoveryStatus } from "~/db";
 import { tenantWhere } from "~/lib/query/tenant-scope";
 import { isOverdue, daysUntilDue } from "~/lib/format-date";
 import { ACTIVE_STATUSES } from "~/lib/constants/status";
@@ -474,6 +474,21 @@ export class DiscoveryQueryService {
       .limit(30);
 
     return { adapter, rules, evs, events };
+  }
+
+  /**
+   * 맥락 그래프 스냅샷 저장
+   */
+  async saveSnapshot(discoveryId: string, stage: string, snapshotData: {
+    nodes: Array<Record<string, unknown>>;
+    edges: Array<Record<string, unknown>>;
+  }) {
+    await this.db.insert(contextSnapshots).values({
+      id: crypto.randomUUID(),
+      discoveryId,
+      stage,
+      snapshotData,
+    });
   }
 
   /**

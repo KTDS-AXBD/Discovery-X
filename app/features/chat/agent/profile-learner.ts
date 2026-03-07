@@ -15,7 +15,7 @@
 import { eq, and, gte, inArray } from "drizzle-orm";
 import type { DB } from "~/db";
 import { agentMemoryV2 } from "~/db/schema-v2";
-import { users } from "~/db/schema";
+import { users } from "~/db";
 import { GraphStore } from "~/lib/graph/store";
 import { ProjectionBuilder } from "~/lib/graph/projection";
 import { MemoryType, ActorType } from "~/lib/types/enums";

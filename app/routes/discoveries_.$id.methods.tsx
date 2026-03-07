@@ -3,7 +3,7 @@ import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, Form, useNavigation } from "@remix-run/react";
 import { getDb } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { MethodRunStatus } from "~/db/schema";
+import { MethodRunStatus } from "~/db";
 import { DiscoveryService } from "~/features/discovery/service";
 import { DiscoveryEntityService } from "~/features/discovery/service/entity";
 import { DiscoveryQueryExtraService } from "~/features/discovery/service/query-extra2";

@@ -8,12 +8,12 @@ import { requireScopeAccess } from "~/lib/acl/middleware";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
 import { TopicService } from "~/features/topic/service";
 import { Button } from "~/components/ui/Button";
-import { TopicStatusBadge } from "~/components/topic/TopicStatusBadge";
-import { TopicMemberList } from "~/components/topic/MemberList";
-import { DecisionList } from "~/components/topic/DecisionList";
-import { GlossaryList } from "~/components/topic/GlossaryList";
-import { GraphEventLog } from "~/components/topic/GraphEventLog";
-import { SuggestionList } from "~/components/topic/SuggestionList";
+import { TopicStatusBadge } from "~/features/topic/ui/TopicStatusBadge";
+import { TopicMemberList } from "~/features/topic/ui/MemberList";
+import { DecisionList } from "~/features/topic/ui/DecisionList";
+import { GlossaryList } from "~/features/topic/ui/GlossaryList";
+import { GraphEventLog } from "~/features/topic/ui/GraphEventLog";
+import { SuggestionList } from "~/features/topic/ui/SuggestionList";
 
 type TabKey = "overview" | "decisions" | "glossary" | "suggestions" | "events";
 

@@ -9,7 +9,7 @@
 
 import { eq } from "drizzle-orm";
 import type { DB } from "~/db";
-import { messages, agentConfig, conversations, radarItems, evidence } from "~/db/schema";
+import { messages, agentConfig, conversations, radarItems, evidence } from "~/db";
 import type { ClaudeContentBlock } from "~/lib/ai";
 import { CLAUDE_MODEL } from "~/lib/ai";
 import { executeTool } from "./tool-handlers";

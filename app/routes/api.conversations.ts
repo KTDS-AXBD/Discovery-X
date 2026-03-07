@@ -8,10 +8,8 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { conversations } from "~/db/schema";
-import { eq, desc, and } from "drizzle-orm";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { tenantWhere } from "~/lib/query/tenant-scope";
+import { ChatSessionService } from "~/features/chat/service";
 
 function sanitizeTitle(raw: string | null): string {
   if (!raw) return "새 대화";
@@ -28,12 +26,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const convs = await db
-    .select()
-    .from(conversations)
-    .where(tenantWhere(conversations, ctx.tenantId, eq(conversations.userId, ctx.user.id)))
-    .orderBy(desc(conversations.updatedAt))
-    .limit(50);
+  const service = new ChatSessionService(db);
+  const convs = await service.listConversations(ctx.user.id, ctx.tenantId, 50);
 
   return json({
     conversations: convs.map((c) => ({
@@ -54,6 +48,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const service = new ChatSessionService(db);
+
   if (request.method === "POST") {
     // BD팀 PoC: sourceItemId로 소스 연결 대화 생성
     let title = "새 대화";
@@ -70,15 +66,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
     }
 
-    const id = crypto.randomUUID();
-    await db.insert(conversations).values({
-      id,
-      userId: ctx.user.id,
-      tenantId: ctx.tenantId,
-      title,
-      sourceItemId,
-    });
-    return json({ id, title });
+    return json(
+      await service.createConversation({
+        userId: ctx.user.id,
+        tenantId: ctx.tenantId,
+        title,
+        sourceItemId,
+      }),
+    );
   }
 
   if (request.method === "DELETE") {
@@ -89,25 +84,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: "conversationId required" }, { status: 400 });
     }
 
-    // Verify ownership + tenant
-    const conv = await db
-      .select()
-      .from(conversations)
-      .where(
-        and(
-          eq(conversations.id, conversationId),
-          eq(conversations.userId, ctx.user.id),
-          eq(conversations.tenantId, ctx.tenantId)
-        )
-      )
-      .limit(1);
+    const result = await service.deleteConversation(
+      conversationId,
+      ctx.user.id,
+      ctx.tenantId,
+    );
 
-    if (!conv[0]) {
+    if (!result) {
       return json({ error: "Not found" }, { status: 404 });
     }
 
-    await db.delete(conversations).where(eq(conversations.id, conversationId));
-    return json({ success: true });
+    return json(result);
   }
 
   return json({ error: "Method not allowed" }, { status: 405 });
