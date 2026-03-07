@@ -310,6 +310,9 @@ export const evidence = sqliteTable("evidence", {
   // Ontology extraction tracking
   ontologyExtractedAt: integer("ontology_extracted_at", { mode: "timestamp" }),
 
+  // Agent conversation link
+  conversationId: text("conversation_id").references(() => conversations.id),
+
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),

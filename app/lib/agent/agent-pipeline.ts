@@ -9,7 +9,7 @@
 
 import { eq } from "drizzle-orm";
 import type { DB } from "~/db";
-import { messages, agentConfig, conversations, radarItems } from "~/db/schema";
+import { messages, agentConfig, conversations, radarItems, evidence } from "~/db/schema";
 import type { ClaudeContentBlock } from "~/lib/ai";
 import { CLAUDE_MODEL } from "~/lib/ai";
 import { executeTool } from "./tool-handlers";
@@ -161,6 +161,18 @@ export async function processToolBlocks(
       content: toolResult,
       toolName: toolUseId,
     });
+
+    // add_evidence / complete_experiment 후처리: conversationId 연결
+    if (toolName === "add_evidence" || toolName === "complete_experiment") {
+      try {
+        const parsed = JSON.parse(toolResult);
+        if (parsed.evidenceId) {
+          await db.update(evidence)
+            .set({ conversationId })
+            .where(eq(evidence.id, parsed.evidenceId));
+        }
+      } catch { /* 파싱 실패는 무시 */ }
+    }
 
     results.push({ name: toolName, input: toolInput, result: toolResult });
   }
