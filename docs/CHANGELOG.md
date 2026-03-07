@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 299 (2026-03-07)
+**docs: 통합 실행 계획서 v2.0 + 문서 거버넌스 체계 도입**:
+- ✅ DX-PLAN-005: 3개 설계문서(Ideas Pipeline v2, MSA Refactoring, Ontology Activation) 통합 실행 계획
+  - 24 세션 기반 실행 로드맵 (Phase B: 7, Phase C: 17)
+  - 14개 리스크 관리 + 배포 전략 + Evidence Ingestion Policy + 성공 지표/텔레메트리
+- ✅ 문서 거버넌스: 38개 문서 DX-{CATEGORY}-{NNN} 코드 체계 + YAML frontmatter
+- ✅ docs/INDEX.md 인덱스 생성 + CLAUDE.md 경로 반영
+- ✅ Ideas Pipeline v2 코드 커밋 (이전 세션 미커밋 분 정리)
+
+**검증 결과**:
+- ✅ typecheck / lint 통과
+
 ### 세션 298 (2026-03-06)
 **feat: 사업제안 댓글 수정/삭제 + commentCount 동기화 + 3도메인 CRUD 점검**:
 - ✅ 아이디어/Radar 아이템/사업제안 3개 도메인 CRUD 전수 점검
