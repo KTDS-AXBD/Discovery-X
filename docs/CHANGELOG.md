@@ -3,6 +3,16 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 322 (2026-03-07)
+**test: P0 보안 모듈 테스트 추가 + Gap 분석 수행**:
+- ✅ auth 테스트 30개: getUserFromSession, requireUser/Admin/Gatekeeper, createSession, destroySession, getSessionContext, isSecureCookie
+- ✅ acl 테스트 23개: ScopeResolver(extractScope/getRole/resolve), PERMISSION_MATRIX, AGENT_ALLOWED_ACTIONS, MATRIX_POLICIES
+- ✅ notifications 테스트 25개: 11개 이메일 템플릿 + Slack/Teams/custom webhook + Resend email client mock
+- ✅ 품질/테스트 Gap 분석: BC 서비스 75%, lib 모듈 52% 커버리지 산출, P0~P3 우선순위 도출
+- ✅ SPEC vs 구현 Gap 분석: 라우트 158=158(100%), Agent 도구 72=72(100%), 구조적 Gap 0
+
+**검증**: typecheck ✅ lint ✅ tests 1,793/1,793 ✅ (123 files)
+
 ### 세션 321 (2026-03-07)
 **feat: 작업 현황 Signal Board 리디자인 — 카드 그리드→컴팩트 리스트 뷰**:
 - ✅ 카드 그리드 레이아웃을 상태별 수직 그룹 컴팩트 리스트로 전환 (lab.work-status.tsx)
