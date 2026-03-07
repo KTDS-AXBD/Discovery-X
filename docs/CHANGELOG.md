@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 329 (2026-03-08)
+**test: GAP 분석 + Agent Team 테스트 111개 추가 (2,037→2,148)**:
+- ✅ 종합 GAP 분석 수행: 테스트 커버리지, 서비스 레이어, 기술부채, F항목 점검
+- ✅ Agent Team (2-worker 병렬): W1 API 통합(66개) + W2 서비스 단위(45개) = 111개
+- ✅ API 통합 테스트 3개: api-ideas(20), api-folders(21), api-topics-crud(25)
+- ✅ 서비스 단위 테스트 3개: idea-service(19), session-service(14), signal-service(12)
+- ✅ Worker 후처리: 범위 초과 파일 3개 삭제, tenantMembers id PK 누락 2건 수정
+- ✅ 미커버 서비스 0개로 감소: idea/session/signal 전체 커버
+- 테스트: 2,148개 (143 files, 100% PASS)
+
+**검증 결과**:
+- ✅ typecheck 0 errors / lint 0 errors / tests 2,148/2,148 PASS
+
 ### 세션 328 (2026-03-08)
 **feat: MWC 2026 파이프라인 시나리오 — PDF 분석→Radar→Ideas→Proposals 풀 파이프라인 + 검증 원칙 20개 테스트**:
 - ✅ 삼정KPMG MWC 2026 보고서(51p) PDF 분석 — 5대 트렌드, 25+ 아이템 추출
