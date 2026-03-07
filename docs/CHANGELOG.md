@@ -4,18 +4,16 @@
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
 ### 세션 323 (2026-03-07)
-**style: Lab 페이지 가독성 개선 + 칸반 전면 리디자인**:
-- ✅ 최소 텍스트 크기 9px→11px 상향 (7개 파일, 전 서브페이지 적용)
-- ✅ 모노스페이스 폰트를 코드/숫자에만 선택적 적용 (산문/라벨에서 제거)
-- ✅ 칸반 빈 열 자동 축소 (40px 세로 스트립, 드래그 오버 시 확장)
-- ✅ 활성 열 flex-grow: min-w-[240px] flex-1로 공간 자동 채움
-- ✅ 카드 좌측 우선순위 스트라이프 (P0빨강/P1앰버/P2스카이/P3슬레이트)
-- ✅ 카드 호버 애니메이션: shadow-md + translate-y 상승 효과
-- ✅ REQ 코드 독립 배지, 위상 구분 그라데이션, 위상 요약 카운터 추가
-- ✅ 열 헤더 색상 도트 (계획=파랑, 진행=앰버, 완료=초록)
-- ✅ 요구사항 DB 등록 (DONE)
+**test: P1/P2 Gap 해소 — 서비스 3개 + Agent 모듈 6개 테스트 추가 (+123개)**:
+- ✅ Gap 분석 수행: SPEC 불일치(마이그레이션 52→53), 테스트 미커버 서비스 3개 + Agent 7개 식별
+- ✅ SPEC §5 마이그레이션 수 현행화 (52→53개, 0051 반영)
+- ✅ 서비스 테스트: folder(15) + settings(12) + metrics(12) = 39개
+- ✅ Agent 모듈 테스트: claude-client(20) + context-builder(9) + citation-builder(16) + tool-handlers(12) + memory-lifecycle(14) + soul-engine(13) = 84개
+- ✅ Lab UI 가독성 개선 (폰트 10→11px, 간격, 색상 대비 — 4파일)
+- ✅ Agent Teams 병렬 작업 (3 worker tmux split)
+- 테스트: 1,793 → 1,916개 (132 files, 100% PASS)
 
-**검증**: typecheck ✅ lint ✅
+**검증**: typecheck ✅ lint ✅ tests ✅ (1,916개)
 
 ### 세션 322 (2026-03-07)
 **test: P0 보안 모듈 테스트 추가 + Gap 분석 수행**:
