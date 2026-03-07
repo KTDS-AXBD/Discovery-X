@@ -13,31 +13,51 @@ import {
   DOMAIN_LABELS,
 } from "~/features/requests/constants";
 import type { WorkPlanWithContext, RequestWithReview } from "~/features/requests/types";
-import { Card, CardContent } from "~/components/ui/Card";
-import { Badge } from "~/components/ui/Badge";
 
 const LIFECYCLE_STATUSES = ["PLANNED", "IN_PROGRESS", "DONE"] as const;
 const PLAN_STATUSES = ["DRAFT", "APPROVED", "IN_PROGRESS", "COMPLETED", "CANCELLED"] as const;
 
-const LIFECYCLE_BADGE_VARIANT: Record<string, "default" | "secondary" | "success" | "destructive"> = {
-  PLANNED: "secondary",
-  IN_PROGRESS: "default",
-  DONE: "success",
+/** Status display order: in-progress first (most actionable) */
+const STATUS_DISPLAY_ORDER = ["IN_PROGRESS", "PLANNED", "DONE"] as const;
+
+const STATUS_DOT_COLOR: Record<string, string> = {
+  PLANNED: "bg-amber-400",
+  IN_PROGRESS: "bg-lab-accent animate-pulse",
+  DONE: "bg-emerald-500",
 };
 
-const PLAN_BADGE_VARIANT: Record<string, "default" | "secondary" | "success" | "destructive"> = {
-  DRAFT: "secondary",
-  APPROVED: "default",
-  IN_PROGRESS: "default",
-  COMPLETED: "success",
-  CANCELLED: "destructive",
+const STATUS_LANE_BORDER: Record<string, string> = {
+  PLANNED: "border-l-amber-400/60",
+  IN_PROGRESS: "border-l-lab-accent/80",
+  DONE: "border-l-emerald-500/40",
 };
 
-const STEP_STATUS_ICON: Record<string, string> = {
-  todo: "[ ]",
-  doing: "[~]",
-  done: "[x]",
-  blocked: "[!]",
+const STATUS_LANE_BG: Record<string, string> = {
+  PLANNED: "bg-amber-400/5",
+  IN_PROGRESS: "bg-lab-accent/5",
+  DONE: "bg-emerald-500/5",
+};
+
+const PRIORITY_STYLE: Record<string, string> = {
+  P0: "text-red-400 bg-red-400/10 border-red-400/30",
+  P1: "text-amber-400 bg-amber-400/10 border-amber-400/30",
+  P2: "text-sky-400 bg-sky-400/10 border-sky-400/30",
+  P3: "text-fg-quaternary bg-surface-secondary border-line-subtle",
+};
+
+const PLAN_STATUS_DOT: Record<string, string> = {
+  DRAFT: "bg-fg-quaternary",
+  APPROVED: "bg-sky-400",
+  IN_PROGRESS: "bg-lab-accent animate-pulse",
+  COMPLETED: "bg-emerald-500",
+  CANCELLED: "bg-red-400/50",
+};
+
+const STEP_STATUS_DOT: Record<string, string> = {
+  todo: "border-fg-quaternary bg-transparent",
+  doing: "bg-lab-accent animate-pulse",
+  done: "bg-emerald-500",
+  blocked: "bg-red-400",
 };
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -53,7 +73,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     queryService.listWithReviews(),
   ]);
 
-  // 표준 라이프사이클 상태 요구사항 (PLANNED/IN_PROGRESS/DONE)
   const lifecycleRequests = allRequests.filter(
     (r) => LIFECYCLE_STATUSES.includes(r.status as typeof LIFECYCLE_STATUSES[number]),
   );
@@ -65,221 +84,382 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   return json({ workPlans, planStatusCounts, lifecycleRequests, lifecycleCounts });
 }
 
+/* ── Summary Counter ── */
+function SummaryCounter({
+  label,
+  count,
+  dotColor,
+  active,
+}: {
+  label: string;
+  count: number;
+  dotColor: string;
+  active?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center gap-2.5 rounded-md border px-3.5 py-2 transition-colors ${
+        active
+          ? "border-lab-accent/40 bg-lab-accent/8"
+          : "border-line-subtle bg-surface-card/60"
+      }`}
+    >
+      <span className={`h-2 w-2 rounded-full shrink-0 ${dotColor}`} />
+      <span className="text-[11px] text-fg-tertiary font-mono-dx">{label}</span>
+      <span className={`text-sm font-bold font-mono-dx tabular-nums ${
+        active ? "text-lab-accent" : "text-fg"
+      }`}>
+        {count}
+      </span>
+    </div>
+  );
+}
+
+/* ── Collapsible Status Lane ── */
+function StatusLane({
+  status,
+  items,
+  defaultOpen = true,
+}: {
+  status: string;
+  items: RequestWithReview[];
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  if (items.length === 0) return null;
+
+  return (
+    <div className={`rounded-lg border border-line-subtle/60 overflow-hidden ${STATUS_LANE_BG[status] ?? ""}`}>
+      {/* Lane header */}
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left hover:bg-surface-card-hover/40 transition-colors"
+      >
+        <svg
+          className={`h-3 w-3 shrink-0 text-fg-tertiary transition-transform duration-200 ${open ? "rotate-90" : ""}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth="2.5"
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+        <span className={`h-2 w-2 rounded-full shrink-0 ${STATUS_DOT_COLOR[status] ?? "bg-fg-quaternary"}`} />
+        <span className="text-xs font-semibold text-fg font-mono-dx">
+          {STATUS_LABELS[status] ?? status}
+        </span>
+        <span className="text-[10px] text-fg-quaternary font-mono-dx tabular-nums">
+          {items.length}
+        </span>
+        <div className="flex-1" />
+        {/* Domain breakdown mini-tags */}
+        <DomainBreakdown items={items} />
+      </button>
+
+      {/* Lane items */}
+      {open && (
+        <div className={`border-l-2 ml-3 ${STATUS_LANE_BORDER[status] ?? "border-l-line-subtle"}`}>
+          {items.map((r, i) => (
+            <LifecycleRow key={r.id} item={r} isLast={i === items.length - 1} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Domain breakdown mini-badges ── */
+function DomainBreakdown({ items }: { items: RequestWithReview[] }) {
+  const domainCounts: Record<string, number> = {};
+  for (const r of items) {
+    const d = r.domain ?? "etc";
+    domainCounts[d] = (domainCounts[d] ?? 0) + 1;
+  }
+  const entries = Object.entries(domainCounts).sort((a, b) => b[1] - a[1]);
+  if (entries.length === 0) return null;
+
+  return (
+    <div className="hidden sm:flex items-center gap-1">
+      {entries.slice(0, 3).map(([domain, count]) => (
+        <span
+          key={domain}
+          className="rounded bg-surface-secondary/80 px-1.5 py-0.5 text-[9px] text-fg-quaternary font-mono-dx tabular-nums"
+        >
+          {DOMAIN_LABELS[domain] ?? domain} {count}
+        </span>
+      ))}
+      {entries.length > 3 && (
+        <span className="text-[9px] text-fg-quaternary font-mono-dx">
+          +{entries.length - 3}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/* ── Single lifecycle item row ── */
+function LifecycleRow({ item: r, isLast }: { item: RequestWithReview; isLast: boolean }) {
+  return (
+    <div
+      className={`group flex items-center gap-2 px-3 py-1.5 hover:bg-surface-card-hover/50 transition-colors ${
+        !isLast ? "border-b border-line-subtle/30" : ""
+      }`}
+    >
+      {/* Req code */}
+      {r.reqCode ? (
+        <span className="shrink-0 w-[3.5rem] text-[10px] font-medium text-lab-accent font-mono-dx truncate">
+          {r.reqCode}
+        </span>
+      ) : (
+        <span className="shrink-0 w-[3.5rem] text-[10px] text-fg-quaternary font-mono-dx">--</span>
+      )}
+
+      {/* Type + Domain compact tags */}
+      <div className="hidden sm:flex shrink-0 items-center gap-1">
+        {r.type && (
+          <span className="rounded bg-surface-secondary/80 px-1 py-0.5 text-[9px] text-fg-tertiary font-mono-dx">
+            {TYPE_LABELS[r.type] ?? r.type}
+          </span>
+        )}
+        {r.domain && (
+          <span className="rounded bg-surface-secondary/80 px-1 py-0.5 text-[9px] text-fg-tertiary font-mono-dx">
+            {DOMAIN_LABELS[r.domain] ?? r.domain}
+          </span>
+        )}
+      </div>
+
+      {/* Priority badge */}
+      {r.priorityLevel ? (
+        <span
+          className={`shrink-0 rounded border px-1.5 py-0.5 text-[9px] font-bold font-mono-dx tabular-nums ${
+            PRIORITY_STYLE[r.priorityLevel] ?? PRIORITY_STYLE.P3
+          }`}
+        >
+          {r.priorityLevel}
+        </span>
+      ) : (
+        <span className="shrink-0 w-6" />
+      )}
+
+      {/* Title */}
+      <span className="min-w-0 flex-1 truncate text-xs text-fg-secondary group-hover:text-fg transition-colors">
+        {r.title}
+      </span>
+
+      {/* SPEC + milestone (right-aligned, subtle) */}
+      <div className="hidden lg:flex shrink-0 items-center gap-2 text-[9px] text-fg-quaternary font-mono-dx">
+        {r.specItemId && <span>{r.specItemId}</span>}
+        {r.milestoneVersion && <span>v{r.milestoneVersion}</span>}
+      </div>
+    </div>
+  );
+}
+
+/* ── Work Plan compact row ── */
+function WorkPlanRow({ plan, isLast }: { plan: WorkPlanWithContext; isLast: boolean }) {
+  const [expanded, setExpanded] = useState(false);
+  const doneSteps = plan.steps?.filter((s) => s.status === "done") ?? [];
+  const totalSteps = (plan.steps ?? []).length;
+
+  return (
+    <div className={!isLast ? "border-b border-line-subtle/30" : ""}>
+      <button
+        type="button"
+        onClick={() => totalSteps > 0 && setExpanded(!expanded)}
+        className="group flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-surface-card-hover/50 transition-colors"
+      >
+        {/* Status dot */}
+        <span className={`h-2 w-2 rounded-full shrink-0 ${PLAN_STATUS_DOT[plan.status] ?? "bg-fg-quaternary"}`} />
+
+        {/* Status label */}
+        <span className="shrink-0 w-12 text-[10px] text-fg-tertiary font-mono-dx">
+          {WORK_PLAN_STATUS_LABELS[plan.status] ?? plan.status}
+        </span>
+
+        {/* Title */}
+        <span className="min-w-0 flex-1 truncate text-xs text-fg-secondary group-hover:text-fg transition-colors">
+          {plan.title}
+        </span>
+
+        {/* Inline progress bar */}
+        <div className="hidden sm:flex shrink-0 items-center gap-2 w-28">
+          <div className="flex-1 h-1.5 rounded-full bg-surface-secondary overflow-hidden">
+            <div
+              className="h-full rounded-full bg-lab-accent transition-all duration-500"
+              style={{ width: `${Math.min(plan.progress, 100)}%` }}
+            />
+          </div>
+          <span className="text-[10px] font-mono-dx tabular-nums text-fg-tertiary w-8 text-right">
+            {plan.progress}%
+          </span>
+        </div>
+
+        {/* Steps count */}
+        {totalSteps > 0 && (
+          <span className="shrink-0 text-[9px] text-fg-quaternary font-mono-dx tabular-nums">
+            {doneSteps.length}/{totalSteps}
+          </span>
+        )}
+
+        {/* Expand chevron */}
+        {totalSteps > 0 && (
+          <svg
+            className={`h-3 w-3 shrink-0 text-fg-quaternary transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="2"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+        )}
+      </button>
+
+      {/* Expanded steps */}
+      {expanded && plan.steps && plan.steps.length > 0 && (
+        <div className="ml-6 mr-3 mb-2 border-l border-line-subtle/50 pl-3">
+          {plan.steps.map((step) => (
+            <div
+              key={step.id}
+              className="flex items-center gap-2 py-1 text-[11px]"
+            >
+              <span
+                className={`h-1.5 w-1.5 rounded-full shrink-0 border ${
+                  STEP_STATUS_DOT[step.status] ?? "border-fg-quaternary bg-transparent"
+                }`}
+              />
+              <span
+                className={`flex-1 truncate ${
+                  step.status === "done"
+                    ? "text-fg-quaternary line-through"
+                    : step.status === "blocked"
+                      ? "text-red-400"
+                      : "text-fg-secondary"
+                }`}
+              >
+                {step.title}
+              </span>
+              <span className="shrink-0 text-[9px] text-fg-quaternary font-mono-dx">
+                {STEP_STATUS_LABELS[step.status] ?? step.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Main Page ── */
 export default function WorkStatusPage() {
   const { workPlans, planStatusCounts, lifecycleRequests, lifecycleCounts } =
     useLoaderData<typeof loader>();
   const typedPlans = workPlans as WorkPlanWithContext[];
   const typedLifecycle = lifecycleRequests as RequestWithReview[];
-  const [showDone, setShowDone] = useState(false);
 
-  const activeItems = typedLifecycle.filter((r) => r.status !== "DONE");
-  const doneItems = typedLifecycle.filter((r) => r.status === "DONE");
+  // Group by status
+  const grouped: Record<string, RequestWithReview[]> = {};
+  for (const r of typedLifecycle) {
+    (grouped[r.status] ??= []).push(r);
+  }
+
+  // Sort work plans: IN_PROGRESS first, then by progress desc
+  const planOrder: Record<string, number> = {
+    IN_PROGRESS: 0,
+    APPROVED: 1,
+    DRAFT: 2,
+    COMPLETED: 3,
+    CANCELLED: 4,
+  };
+  const sortedPlans = [...typedPlans].sort(
+    (a, b) => (planOrder[a.status] ?? 9) - (planOrder[b.status] ?? 9) || b.progress - a.progress,
+  );
+
+  const totalLifecycle = typedLifecycle.length;
 
   return (
-    <div className="space-y-8">
-      {/* ── 표준 라이프사이클 현황 ── */}
+    <div className="space-y-6">
+      {/* ── Section: 개발 라이프사이클 ── */}
       <section>
-        <h2 className="mb-3 text-sm font-semibold text-fg font-mono-dx">
-          개발 라이프사이클
-        </h2>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-fg font-mono-dx">
+            개발 라이프사이클
+          </h2>
+          <span className="text-[10px] text-fg-quaternary font-mono-dx tabular-nums">
+            {totalLifecycle}건
+          </span>
+        </div>
 
-        {/* 상태 카운트 */}
+        {/* Summary counters */}
         <div className="mb-4 flex flex-wrap gap-2">
           {LIFECYCLE_STATUSES.map((s) => (
-            <div
+            <SummaryCounter
               key={s}
-              className="flex items-center gap-2 rounded-md border border-line bg-surface-card px-3 py-2"
-            >
-              <span className="text-xs text-fg-tertiary font-mono-dx">{STATUS_LABELS[s]}</span>
-              <Badge variant={LIFECYCLE_BADGE_VARIANT[s]} className="font-mono-dx">
-                {lifecycleCounts[s] ?? 0}
-              </Badge>
-            </div>
+              label={STATUS_LABELS[s]}
+              count={lifecycleCounts[s] ?? 0}
+              dotColor={STATUS_DOT_COLOR[s]}
+              active={s === "IN_PROGRESS" && (lifecycleCounts[s] ?? 0) > 0}
+            />
           ))}
         </div>
 
-        {/* 활성 항목 (PLANNED + IN_PROGRESS) */}
-        {activeItems.length === 0 && doneItems.length === 0 ? (
+        {/* Status lanes */}
+        {totalLifecycle === 0 ? (
           <div className="py-8 text-center text-xs text-fg-tertiary font-mono-dx">
-            계획/진행/완료된 요구사항이 없어요. 칸반에서 반영→계획으로 전환해 보세요.
+            계획/진행/완료된 요구사항이 없어요. 칸반에서 반영 → 계획으로 전환해 보세요.
           </div>
         ) : (
-          <>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {activeItems.map((r) => (
-              <Card key={r.id}>
-                <CardContent className="p-4">
-                  {/* REQ 코드 + 상태 */}
-                  <div className="mb-2 flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      {r.reqCode && (
-                        <span className="mr-1.5 text-[10px] font-medium text-lab-accent font-mono-dx">
-                          {r.reqCode}
-                        </span>
-                      )}
-                      <h3 className="text-sm font-semibold text-fg line-clamp-2">{r.title}</h3>
-                    </div>
-                    <Badge variant={LIFECYCLE_BADGE_VARIANT[r.status]} className="shrink-0 text-[10px] font-mono-dx">
-                      {STATUS_LABELS[r.status]}
-                    </Badge>
-                  </div>
-
-                  {/* 분류 태그 */}
-                  <div className="mb-2 flex flex-wrap gap-1">
-                    {r.type && (
-                      <span className="rounded bg-surface-secondary px-1.5 py-0.5 text-[10px] text-fg-tertiary font-mono-dx">
-                        {TYPE_LABELS[r.type] ?? r.type}
-                      </span>
-                    )}
-                    {r.domain && (
-                      <span className="rounded bg-surface-secondary px-1.5 py-0.5 text-[10px] text-fg-tertiary font-mono-dx">
-                        {DOMAIN_LABELS[r.domain] ?? r.domain}
-                      </span>
-                    )}
-                    {r.priorityLevel && (
-                      <span className="rounded bg-accent/10 px-1.5 py-0.5 text-[10px] font-bold text-accent font-mono-dx">
-                        {r.priorityLevel}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* SPEC + 마일스톤 */}
-                  <div className="flex items-center gap-3 text-[10px] text-fg-tertiary font-mono-dx">
-                    {r.specItemId && <span>SPEC: {r.specItemId}</span>}
-                    {r.milestoneVersion && <span>v{r.milestoneVersion}</span>}
-                  </div>
-                </CardContent>
-              </Card>
+          <div className="space-y-2">
+            {STATUS_DISPLAY_ORDER.map((status) => (
+              <StatusLane
+                key={status}
+                status={status}
+                items={grouped[status] ?? []}
+                defaultOpen={status !== "DONE"}
+              />
             ))}
           </div>
-
-          {/* 완료 항목 접기 토글 */}
-          {doneItems.length > 0 && (
-            <div className="mt-4">
-              <button
-                type="button"
-                onClick={() => setShowDone(!showDone)}
-                className="flex items-center gap-2 text-xs text-fg-tertiary hover:text-fg-secondary transition-colors font-mono-dx"
-              >
-                <svg className={`h-3 w-3 transition-transform ${showDone ? "rotate-90" : ""}`} fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                </svg>
-                완료 항목 ({doneItems.length}건) {showDone ? "접기" : "펼치기"}
-              </button>
-
-              {showDone && (
-                <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {doneItems.map((r) => (
-                    <div key={r.id} className="rounded-lg border border-line bg-surface-card/50 p-3 opacity-70">
-                      <div className="mb-1 flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <span className="text-[10px] text-fg-tertiary font-mono-dx">{r.specItemId}</span>
-                          <h4 className="text-xs text-fg-secondary line-clamp-1">{r.title}</h4>
-                        </div>
-                        <Badge variant="success" className="shrink-0 text-[9px] font-mono-dx">완료</Badge>
-                      </div>
-                      <div className="flex flex-wrap gap-1">
-                        {r.type && (
-                          <span className="rounded bg-surface-secondary px-1 py-0.5 text-[9px] text-fg-tertiary font-mono-dx">
-                            {TYPE_LABELS[r.type] ?? r.type}
-                          </span>
-                        )}
-                        {r.domain && (
-                          <span className="rounded bg-surface-secondary px-1 py-0.5 text-[9px] text-fg-tertiary font-mono-dx">
-                            {DOMAIN_LABELS[r.domain] ?? r.domain}
-                          </span>
-                        )}
-                        {r.milestoneVersion && (
-                          <span className="text-[9px] text-fg-quaternary font-mono-dx">v{r.milestoneVersion}</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-          </>
         )}
       </section>
 
-      {/* ── 작업계획 (기존) ── */}
+      {/* ── Section: 작업계획 ── */}
       <section>
-        <h2 className="mb-3 text-sm font-semibold text-fg font-mono-dx">
-          작업계획
-        </h2>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-fg font-mono-dx">
+            작업계획
+          </h2>
+          <span className="text-[10px] text-fg-quaternary font-mono-dx tabular-nums">
+            {typedPlans.length}건
+          </span>
+        </div>
 
+        {/* Plan summary counters */}
         <div className="mb-4 flex flex-wrap gap-2">
           {PLAN_STATUSES.map((s) => (
-            <div
+            <SummaryCounter
               key={s}
-              className="flex items-center gap-2 rounded-md border border-line bg-surface-card px-3 py-2"
-            >
-              <span className="text-xs text-fg-tertiary font-mono-dx">{WORK_PLAN_STATUS_LABELS[s]}</span>
-              <Badge variant={PLAN_BADGE_VARIANT[s]} className="font-mono-dx">
-                {planStatusCounts[s] ?? 0}
-              </Badge>
-            </div>
+              label={WORK_PLAN_STATUS_LABELS[s]}
+              count={planStatusCounts[s] ?? 0}
+              dotColor={PLAN_STATUS_DOT[s]}
+              active={s === "IN_PROGRESS" && (planStatusCounts[s] ?? 0) > 0}
+            />
           ))}
         </div>
 
-        {typedPlans.length === 0 ? (
+        {sortedPlans.length === 0 ? (
           <div className="py-8 text-center text-xs text-fg-tertiary font-mono-dx">
             등록된 작업 계획이 없어요.
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {typedPlans.map((plan) => (
-              <Card key={plan.id}>
-                <CardContent className="p-4">
-                  <div className="mb-2 flex items-start justify-between gap-2">
-                    <h3 className="text-sm font-semibold text-fg line-clamp-2">{plan.title}</h3>
-                    <Badge variant={PLAN_BADGE_VARIANT[plan.status]} className="shrink-0 text-[10px] font-mono-dx">
-                      {WORK_PLAN_STATUS_LABELS[plan.status] ?? plan.status}
-                    </Badge>
-                  </div>
-
-                  <p className="mb-3 text-xs text-fg-tertiary line-clamp-1">
-                    <span className="text-fg-quaternary">요구사항:</span> {plan.requestTitle}
-                  </p>
-
-                  <div className="mb-3">
-                    <div className="mb-1 flex items-center justify-between text-[10px] text-fg-tertiary font-mono-dx">
-                      <span>진행률</span>
-                      <span>{plan.progress}%</span>
-                    </div>
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-secondary">
-                      <div
-                        className="h-full rounded-full bg-lab-accent transition-all"
-                        style={{ width: `${Math.min(plan.progress, 100)}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {plan.steps && plan.steps.length > 0 && (
-                    <div className="space-y-1 border-t border-line pt-2">
-                      {plan.steps.map((step) => (
-                        <div key={step.id} className="flex items-center gap-2 text-xs">
-                          <span className={`font-mono-dx text-[10px] ${
-                            step.status === "done" ? "text-badge-success-text" :
-                            step.status === "doing" ? "text-lab-accent" :
-                            step.status === "blocked" ? "text-btn-destructive-bg" :
-                            "text-fg-tertiary"
-                          }`}>
-                            {STEP_STATUS_ICON[step.status] ?? "[ ]"}
-                          </span>
-                          <span className={`truncate ${step.status === "done" ? "text-fg-tertiary line-through" : "text-fg-secondary"}`}>
-                            {step.title}
-                          </span>
-                          <span className="ml-auto shrink-0 text-[10px] text-fg-quaternary font-mono-dx">
-                            {STEP_STATUS_LABELS[step.status] ?? step.status}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+          <div className="rounded-lg border border-line-subtle/60 overflow-hidden bg-surface-card/30">
+            {sortedPlans.map((plan, i) => (
+              <WorkPlanRow
+                key={plan.id}
+                plan={plan}
+                isLast={i === sortedPlans.length - 1}
+              />
             ))}
           </div>
         )}
