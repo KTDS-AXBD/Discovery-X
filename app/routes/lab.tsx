@@ -40,7 +40,7 @@ export default function LabLayout() {
             <h1 className="text-xl font-bold text-fg font-mono-dx">
               실험실
             </h1>
-            <p className="mt-1 text-xs tracking-wide text-lab-accent font-mono-dx">
+            <p className="mt-1.5 text-xs tracking-wide text-lab-accent font-mono-dx">
               Feature Requests & Work Management
             </p>
           </div>
@@ -53,7 +53,7 @@ export default function LabLayout() {
                 to={tab.to}
                 end={tab.end}
                 className={({ isActive }) =>
-                  `px-4 py-2 text-xs font-medium uppercase tracking-wider transition-colors font-mono-dx ${
+                  `px-4 py-2.5 text-sm font-medium tracking-wide transition-colors ${
                     isActive
                       ? "border-b-2 border-lab-accent text-lab-accent"
                       : "text-fg-tertiary hover:text-fg-secondary"

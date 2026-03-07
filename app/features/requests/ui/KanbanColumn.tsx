@@ -52,7 +52,7 @@ export function KanbanColumn({
 
   return (
     <div
-      className={`flex w-56 shrink-0 flex-col rounded-lg transition-colors ${
+      className={`flex w-64 shrink-0 flex-col rounded-lg transition-colors ${
         dragOver
           ? "bg-accent/10 ring-accent ring-2 ring-inset"
           : "bg-surface-secondary"
@@ -63,8 +63,8 @@ export function KanbanColumn({
     >
       {/* Column header */}
       <div className="flex items-center justify-between px-3 py-2">
-        <span className="text-sm font-medium text-fg">{title}</span>
-        <span className="rounded-full bg-surface px-2 py-0.5 text-xs text-fg-tertiary">{count}</span>
+        <span className="text-sm font-semibold text-fg">{title}</span>
+        <span className="rounded-full bg-surface px-2 py-0.5 text-xs tabular-nums text-fg-secondary">{count}</span>
       </div>
 
       {/* Cards */}

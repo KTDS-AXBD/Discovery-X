@@ -275,7 +275,7 @@ export default function LabRequestsPage() {
               {typedRequests.length === 0 ? "등록된 요구사항이 없습니다." : "필터 조건에 맞는 요구사항이 없습니다."}
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {filtered.map((r) => (
                 <button
                   key={r.id}
@@ -285,15 +285,16 @@ export default function LabRequestsPage() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="truncate font-medium text-fg">{r.title}</span>
-                        <Badge variant={PRIORITY_BADGE_VARIANT[r.priority] ?? "subtle"} className="shrink-0 text-[10px]">
+                      <div className="flex items-center gap-2.5">
+                        <span className="truncate text-sm font-medium text-fg leading-snug">{r.title}</span>
+                        <Badge variant={PRIORITY_BADGE_VARIANT[r.priority] ?? "subtle"} className="shrink-0 text-[11px]">
                           {PRIORITY_LABELS[r.priority] ?? r.priority}
                         </Badge>
                       </div>
-                      <p className="mt-1 line-clamp-1 text-sm text-fg-secondary">{r.description}</p>
-                      <div className="mt-2 flex items-center gap-3 text-xs text-fg-tertiary">
+                      <p className="mt-1.5 line-clamp-1 text-sm text-fg-secondary leading-relaxed">{r.description}</p>
+                      <div className="mt-2.5 flex items-center gap-2 text-xs text-fg-tertiary">
                         <span>{r.submitterName ?? "알 수 없음"}</span>
+                        <span className="text-fg-quaternary">·</span>
                         <span>{daysAgo(r.createdAt)}</span>
                       </div>
                     </div>

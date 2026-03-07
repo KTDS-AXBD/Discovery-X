@@ -46,7 +46,7 @@ export default function LabMethodsPage() {
         >
           Method Pack Library
         </h2>
-        <p className="mt-1 text-xs text-fg-tertiary">
+        <p className="mt-1.5 text-sm text-fg-secondary leading-relaxed">
           12종 방법론 팩 — 단계별 실험 도구. 각 Discovery 상태에 맞는 방법론을 선택하세요.
         </p>
       </div>
@@ -54,15 +54,15 @@ export default function LabMethodsPage() {
       {/* Tier filter */}
       <div className="mb-5 flex items-center gap-2">
         <span
-          className="mr-1 text-[10px] uppercase tracking-widest text-fg-tertiary font-mono-dx"
+          className="mr-1 text-[11px] uppercase tracking-widest text-fg-tertiary font-mono-dx"
         >
           Filter
         </span>
         <button
-          className={`rounded px-2.5 py-1 text-[11px] font-medium tracking-wide transition-colors ${
+          className={`rounded px-3 py-1.5 text-xs font-medium tracking-wide transition-colors ${
             !tierFilter
               ? "bg-lab-accent text-white"
-              : "border border-line-subtle text-fg-tertiary hover:text-fg-secondary"
+              : "border border-line-subtle text-fg-secondary hover:text-fg"
           } font-mono-dx`}
           onClick={() => setSearchParams({})}
         >
@@ -73,10 +73,10 @@ export default function LabMethodsPage() {
           return (
             <button
               key={tier.value}
-              className={`rounded px-2.5 py-1 text-[11px] font-medium tracking-wide transition-colors ${
+              className={`rounded px-3 py-1.5 text-xs font-medium tracking-wide transition-colors ${
                 tierFilter === tier.value
                   ? "bg-lab-accent text-white"
-                  : "border border-line-subtle text-fg-tertiary hover:text-fg-secondary"
+                  : "border border-line-subtle text-fg-secondary hover:text-fg"
               } font-mono-dx`}
               onClick={() => setSearchParams({ tier: tier.value })}
             >
@@ -115,11 +115,11 @@ export default function LabMethodsPage() {
             </svg>
           </div>
           <p
-            className="mt-3 text-xs uppercase tracking-wider text-fg-tertiary font-mono-dx"
+            className="mt-3 text-sm uppercase tracking-wider text-fg-tertiary font-mono-dx"
           >
             No packs found
           </p>
-          <p className="mt-1 text-xs text-fg-tertiary">
+          <p className="mt-1.5 text-sm text-fg-secondary">
             해당 티어에 등록된 방법론이 없습니다.
           </p>
         </div>

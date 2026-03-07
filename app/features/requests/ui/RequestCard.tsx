@@ -59,14 +59,14 @@ export function RequestCard({ request, onClick, draggable, onDragStart }: Reques
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           {r.reqCode && (
-            <span className="mr-1.5 text-[10px] font-medium text-lab-accent font-mono-dx">{r.reqCode}</span>
+            <span className="mr-1.5 text-[11px] font-semibold text-lab-accent font-mono-dx">{r.reqCode}</span>
           )}
-          <span className="truncate text-sm font-medium text-fg">{r.title}</span>
+          <span className="truncate text-sm font-medium text-fg leading-snug">{r.title}</span>
         </div>
         {r.priorityLevel ? (
-          <span className="shrink-0 text-[10px] font-bold text-fg-secondary font-mono-dx">{r.priorityLevel}</span>
+          <span className="shrink-0 text-[11px] font-bold text-fg-secondary font-mono-dx">{r.priorityLevel}</span>
         ) : (
-          <Badge variant={PRIORITY_VARIANT[r.priority] ?? "subtle"} className="shrink-0 text-[10px]">
+          <Badge variant={PRIORITY_VARIANT[r.priority] ?? "subtle"} className="shrink-0 text-[11px]">
             {PRIORITY_LABELS[r.priority] ?? r.priority}
           </Badge>
         )}
@@ -74,19 +74,19 @@ export function RequestCard({ request, onClick, draggable, onDragStart }: Reques
 
       {/* 유형 x 도메인 태그 (계획 이후) */}
       {(r.type || r.domain) && (
-        <div className="mt-1 flex flex-wrap gap-1">
+        <div className="mt-1.5 flex flex-wrap gap-1">
           {r.type && (
-            <span className="rounded bg-surface-secondary px-1.5 py-0.5 text-[10px] text-fg-tertiary font-mono-dx">
+            <span className="rounded bg-surface-secondary px-1.5 py-0.5 text-[11px] text-fg-secondary">
               {TYPE_LABELS[r.type] ?? r.type}
             </span>
           )}
           {r.domain && (
-            <span className="rounded bg-surface-secondary px-1.5 py-0.5 text-[10px] text-fg-tertiary font-mono-dx">
+            <span className="rounded bg-surface-secondary px-1.5 py-0.5 text-[11px] text-fg-secondary">
               {DOMAIN_LABELS[r.domain] ?? r.domain}
             </span>
           )}
           {r.specItemId && (
-            <span className="rounded bg-accent/10 px-1.5 py-0.5 text-[10px] font-medium text-accent font-mono-dx">
+            <span className="rounded bg-accent/10 px-1.5 py-0.5 text-[11px] font-medium text-accent font-mono-dx">
               {r.specItemId}
             </span>
           )}
@@ -96,10 +96,10 @@ export function RequestCard({ request, onClick, draggable, onDragStart }: Reques
       {/* AI 분류 배지 (리뷰 있을 때) */}
       {r.review && (
         <div className="mt-2 flex items-center gap-2">
-          <Badge variant={CLASSIFICATION_VARIANT[r.review.classification] ?? "default"} className="text-[10px]">
+          <Badge variant={CLASSIFICATION_VARIANT[r.review.classification] ?? "default"} className="text-[11px]">
             {CLASSIFICATION_LABELS[r.review.classification] ?? r.review.classification}
           </Badge>
-          <span className="text-xs text-fg-tertiary">
+          <span className="text-xs text-fg-secondary font-mono-dx">
             {r.review.impactScore}/{r.review.feasibilityScore}
           </span>
         </div>
@@ -107,7 +107,7 @@ export function RequestCard({ request, onClick, draggable, onDragStart }: Reques
 
       {/* 보류 사유 */}
       {r.status === "REJECTED" && r.reason && (
-        <p className="mt-2 line-clamp-2 text-xs text-fg-tertiary">{r.reason}</p>
+        <p className="mt-2 line-clamp-2 text-xs text-fg-secondary leading-relaxed">{r.reason}</p>
       )}
 
       {/* Discovery 연결 / 마일스톤 */}
@@ -115,12 +115,13 @@ export function RequestCard({ request, onClick, draggable, onDragStart }: Reques
         <p className="mt-2 text-xs text-accent">Discovery 연결됨</p>
       )}
       {r.milestoneVersion && (
-        <p className="mt-1 text-[10px] text-fg-tertiary font-mono-dx">v{r.milestoneVersion}</p>
+        <p className="mt-1 text-[11px] text-fg-tertiary font-mono-dx">v{r.milestoneVersion}</p>
       )}
 
       {/* 메타 */}
-      <div className="mt-2 flex items-center gap-2 text-[11px] text-fg-tertiary">
+      <div className="mt-2.5 flex items-center gap-2 text-xs text-fg-tertiary">
         <span>{r.submitterName ?? "알 수 없음"}</span>
+        <span className="text-fg-quaternary">·</span>
         <span>{daysAgo(r.createdAt)}</span>
       </div>
     </div>

@@ -98,14 +98,14 @@ function SummaryCounter({
 }) {
   return (
     <div
-      className={`flex items-center gap-2.5 rounded-md border px-3.5 py-2 transition-colors ${
+      className={`flex items-center gap-2.5 rounded-md border px-3.5 py-2.5 transition-colors ${
         active
           ? "border-lab-accent/40 bg-lab-accent/8"
           : "border-line-subtle bg-surface-card/60"
       }`}
     >
       <span className={`h-2 w-2 rounded-full shrink-0 ${dotColor}`} />
-      <span className="text-[11px] text-fg-tertiary font-mono-dx">{label}</span>
+      <span className="text-xs text-fg-secondary">{label}</span>
       <span className={`text-sm font-bold font-mono-dx tabular-nums ${
         active ? "text-lab-accent" : "text-fg"
       }`}>
@@ -135,10 +135,10 @@ function StatusLane({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left hover:bg-surface-card-hover/40 transition-colors"
+        className="flex w-full items-center gap-2.5 px-3.5 py-3 text-left hover:bg-surface-card-hover/40 transition-colors"
       >
         <svg
-          className={`h-3 w-3 shrink-0 text-fg-tertiary transition-transform duration-200 ${open ? "rotate-90" : ""}`}
+          className={`h-3.5 w-3.5 shrink-0 text-fg-tertiary transition-transform duration-200 ${open ? "rotate-90" : ""}`}
           fill="none"
           viewBox="0 0 24 24"
           strokeWidth="2.5"
@@ -146,11 +146,11 @@ function StatusLane({
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
         </svg>
-        <span className={`h-2 w-2 rounded-full shrink-0 ${STATUS_DOT_COLOR[status] ?? "bg-fg-quaternary"}`} />
-        <span className="text-xs font-semibold text-fg font-mono-dx">
+        <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${STATUS_DOT_COLOR[status] ?? "bg-fg-quaternary"}`} />
+        <span className="text-sm font-semibold text-fg">
           {STATUS_LABELS[status] ?? status}
         </span>
-        <span className="text-[10px] text-fg-quaternary font-mono-dx tabular-nums">
+        <span className="text-xs text-fg-tertiary font-mono-dx tabular-nums">
           {items.length}
         </span>
         <div className="flex-1" />
@@ -181,17 +181,17 @@ function DomainBreakdown({ items }: { items: RequestWithReview[] }) {
   if (entries.length === 0) return null;
 
   return (
-    <div className="hidden sm:flex items-center gap-1">
+    <div className="hidden sm:flex items-center gap-1.5">
       {entries.slice(0, 3).map(([domain, count]) => (
         <span
           key={domain}
-          className="rounded bg-surface-secondary/80 px-1.5 py-0.5 text-[9px] text-fg-quaternary font-mono-dx tabular-nums"
+          className="rounded bg-surface-secondary/80 px-1.5 py-0.5 text-[11px] text-fg-tertiary tabular-nums"
         >
           {DOMAIN_LABELS[domain] ?? domain} {count}
         </span>
       ))}
       {entries.length > 3 && (
-        <span className="text-[9px] text-fg-quaternary font-mono-dx">
+        <span className="text-[11px] text-fg-tertiary">
           +{entries.length - 3}
         </span>
       )}
@@ -203,28 +203,28 @@ function DomainBreakdown({ items }: { items: RequestWithReview[] }) {
 function LifecycleRow({ item: r, isLast }: { item: RequestWithReview; isLast: boolean }) {
   return (
     <div
-      className={`group flex items-center gap-2 px-3 py-1.5 hover:bg-surface-card-hover/50 transition-colors ${
+      className={`group flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-surface-card-hover/50 transition-colors ${
         !isLast ? "border-b border-line-subtle/30" : ""
       }`}
     >
       {/* Req code */}
       {r.reqCode ? (
-        <span className="shrink-0 w-[3.5rem] text-[10px] font-medium text-lab-accent font-mono-dx truncate">
+        <span className="shrink-0 w-[4rem] text-[11px] font-semibold text-lab-accent font-mono-dx truncate">
           {r.reqCode}
         </span>
       ) : (
-        <span className="shrink-0 w-[3.5rem] text-[10px] text-fg-quaternary font-mono-dx">--</span>
+        <span className="shrink-0 w-[4rem] text-[11px] text-fg-quaternary font-mono-dx">--</span>
       )}
 
       {/* Type + Domain compact tags */}
       <div className="hidden sm:flex shrink-0 items-center gap-1">
         {r.type && (
-          <span className="rounded bg-surface-secondary/80 px-1 py-0.5 text-[9px] text-fg-tertiary font-mono-dx">
+          <span className="rounded bg-surface-secondary/80 px-1.5 py-0.5 text-[11px] text-fg-secondary">
             {TYPE_LABELS[r.type] ?? r.type}
           </span>
         )}
         {r.domain && (
-          <span className="rounded bg-surface-secondary/80 px-1 py-0.5 text-[9px] text-fg-tertiary font-mono-dx">
+          <span className="rounded bg-surface-secondary/80 px-1.5 py-0.5 text-[11px] text-fg-secondary">
             {DOMAIN_LABELS[r.domain] ?? r.domain}
           </span>
         )}
@@ -233,7 +233,7 @@ function LifecycleRow({ item: r, isLast }: { item: RequestWithReview; isLast: bo
       {/* Priority badge */}
       {r.priorityLevel ? (
         <span
-          className={`shrink-0 rounded border px-1.5 py-0.5 text-[9px] font-bold font-mono-dx tabular-nums ${
+          className={`shrink-0 rounded border px-1.5 py-0.5 text-[11px] font-bold font-mono-dx tabular-nums ${
             PRIORITY_STYLE[r.priorityLevel] ?? PRIORITY_STYLE.P3
           }`}
         >
@@ -244,12 +244,12 @@ function LifecycleRow({ item: r, isLast }: { item: RequestWithReview; isLast: bo
       )}
 
       {/* Title */}
-      <span className="min-w-0 flex-1 truncate text-xs text-fg-secondary group-hover:text-fg transition-colors">
+      <span className="min-w-0 flex-1 truncate text-sm text-fg-secondary group-hover:text-fg transition-colors">
         {r.title}
       </span>
 
       {/* SPEC + milestone (right-aligned, subtle) */}
-      <div className="hidden lg:flex shrink-0 items-center gap-2 text-[9px] text-fg-quaternary font-mono-dx">
+      <div className="hidden lg:flex shrink-0 items-center gap-2 text-[11px] text-fg-tertiary font-mono-dx">
         {r.specItemId && <span>{r.specItemId}</span>}
         {r.milestoneVersion && <span>v{r.milestoneVersion}</span>}
       </div>
@@ -268,37 +268,37 @@ function WorkPlanRow({ plan, isLast }: { plan: WorkPlanWithContext; isLast: bool
       <button
         type="button"
         onClick={() => totalSteps > 0 && setExpanded(!expanded)}
-        className="group flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-surface-card-hover/50 transition-colors"
+        className="group flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left hover:bg-surface-card-hover/50 transition-colors"
       >
         {/* Status dot */}
-        <span className={`h-2 w-2 rounded-full shrink-0 ${PLAN_STATUS_DOT[plan.status] ?? "bg-fg-quaternary"}`} />
+        <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${PLAN_STATUS_DOT[plan.status] ?? "bg-fg-quaternary"}`} />
 
         {/* Status label */}
-        <span className="shrink-0 w-12 text-[10px] text-fg-tertiary font-mono-dx">
+        <span className="shrink-0 w-14 text-xs text-fg-secondary">
           {WORK_PLAN_STATUS_LABELS[plan.status] ?? plan.status}
         </span>
 
         {/* Title */}
-        <span className="min-w-0 flex-1 truncate text-xs text-fg-secondary group-hover:text-fg transition-colors">
+        <span className="min-w-0 flex-1 truncate text-sm text-fg-secondary group-hover:text-fg transition-colors">
           {plan.title}
         </span>
 
         {/* Inline progress bar */}
-        <div className="hidden sm:flex shrink-0 items-center gap-2 w-28">
+        <div className="hidden sm:flex shrink-0 items-center gap-2 w-32">
           <div className="flex-1 h-1.5 rounded-full bg-surface-secondary overflow-hidden">
             <div
               className="h-full rounded-full bg-lab-accent transition-all duration-500"
               style={{ width: `${Math.min(plan.progress, 100)}%` }}
             />
           </div>
-          <span className="text-[10px] font-mono-dx tabular-nums text-fg-tertiary w-8 text-right">
+          <span className="text-xs font-mono-dx tabular-nums text-fg-secondary w-9 text-right">
             {plan.progress}%
           </span>
         </div>
 
         {/* Steps count */}
         {totalSteps > 0 && (
-          <span className="shrink-0 text-[9px] text-fg-quaternary font-mono-dx tabular-nums">
+          <span className="shrink-0 text-[11px] text-fg-tertiary font-mono-dx tabular-nums">
             {doneSteps.length}/{totalSteps}
           </span>
         )}
@@ -306,7 +306,7 @@ function WorkPlanRow({ plan, isLast }: { plan: WorkPlanWithContext; isLast: bool
         {/* Expand chevron */}
         {totalSteps > 0 && (
           <svg
-            className={`h-3 w-3 shrink-0 text-fg-quaternary transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}
+            className={`h-3.5 w-3.5 shrink-0 text-fg-tertiary transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth="2"
@@ -319,14 +319,14 @@ function WorkPlanRow({ plan, isLast }: { plan: WorkPlanWithContext; isLast: bool
 
       {/* Expanded steps */}
       {expanded && plan.steps && plan.steps.length > 0 && (
-        <div className="ml-6 mr-3 mb-2 border-l border-line-subtle/50 pl-3">
+        <div className="ml-7 mr-3 mb-2.5 border-l border-line-subtle/50 pl-3">
           {plan.steps.map((step) => (
             <div
               key={step.id}
-              className="flex items-center gap-2 py-1 text-[11px]"
+              className="flex items-center gap-2.5 py-1.5 text-xs"
             >
               <span
-                className={`h-1.5 w-1.5 rounded-full shrink-0 border ${
+                className={`h-2 w-2 rounded-full shrink-0 border ${
                   STEP_STATUS_DOT[step.status] ?? "border-fg-quaternary bg-transparent"
                 }`}
               />
@@ -341,7 +341,7 @@ function WorkPlanRow({ plan, isLast }: { plan: WorkPlanWithContext; isLast: bool
               >
                 {step.title}
               </span>
-              <span className="shrink-0 text-[9px] text-fg-quaternary font-mono-dx">
+              <span className="shrink-0 text-[11px] text-fg-tertiary font-mono-dx">
                 {STEP_STATUS_LABELS[step.status] ?? step.status}
               </span>
             </div>
@@ -384,10 +384,10 @@ export default function WorkStatusPage() {
       {/* ── Section: 개발 라이프사이클 ── */}
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-fg font-mono-dx">
+          <h2 className="text-sm font-semibold text-fg">
             개발 라이프사이클
           </h2>
-          <span className="text-[10px] text-fg-quaternary font-mono-dx tabular-nums">
+          <span className="text-xs text-fg-tertiary font-mono-dx tabular-nums">
             {totalLifecycle}건
           </span>
         </div>
@@ -427,10 +427,10 @@ export default function WorkStatusPage() {
       {/* ── Section: 작업계획 ── */}
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-fg font-mono-dx">
+          <h2 className="text-sm font-semibold text-fg">
             작업계획
           </h2>
-          <span className="text-[10px] text-fg-quaternary font-mono-dx tabular-nums">
+          <span className="text-xs text-fg-tertiary font-mono-dx tabular-nums">
             {typedPlans.length}건
           </span>
         </div>

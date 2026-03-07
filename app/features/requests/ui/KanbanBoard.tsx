@@ -153,10 +153,10 @@ export function KanbanBoard({ requests, isReviewer, canTriggerAiReview }: Kanban
       </div>
 
       {/* 구분선 라벨 */}
-      <div className="mb-2 flex items-center gap-4">
-        <span className="text-[10px] font-medium uppercase tracking-widest text-fg-tertiary font-mono-dx">검토 파이프라인</span>
+      <div className="mb-3 flex items-center gap-4">
+        <span className="text-[11px] font-medium uppercase tracking-widest text-fg-secondary font-mono-dx">검토 파이프라인</span>
         <div className="flex-1 border-b border-line-subtle" />
-        <span className="text-[10px] font-medium uppercase tracking-widest text-lab-accent font-mono-dx">개발 라이프사이클</span>
+        <span className="text-[11px] font-medium uppercase tracking-widest text-lab-accent font-mono-dx">개발 라이프사이클</span>
         <div className="flex-1 border-b border-line-subtle" />
       </div>
 
