@@ -1,5 +1,5 @@
 /**
- * 요구사항 칸반 카드 — 상태별 다른 정보 표시
+ * 요구사항 칸반 카드 — 좌측 우선순위 스트라이프 + 글래스 카드
  */
 
 import { Badge } from "~/components/ui/Badge";
@@ -25,6 +25,17 @@ const CLASSIFICATION_VARIANT: Record<string, "success" | "secondary" | "default"
   OUT_OF_SCOPE: "destructive",
 };
 
+/** 좌측 스트라이프 색상 (priorityLevel 또는 legacy priority) */
+const PRIORITY_STRIPE: Record<string, string> = {
+  P0: "border-l-red-500",
+  P1: "border-l-amber-400",
+  P2: "border-l-sky-400",
+  P3: "border-l-slate-500",
+  high: "border-l-red-500",
+  medium: "border-l-amber-400",
+  low: "border-l-slate-500",
+};
+
 function daysAgo(dateStr: string): string {
   const created = new Date(dateStr);
   const now = new Date();
@@ -42,6 +53,8 @@ interface RequestCardProps {
 
 export function RequestCard({ request, onClick, draggable, onDragStart }: RequestCardProps) {
   const r = request;
+  const stripeKey = r.priorityLevel ?? r.priority;
+  const stripeColor = PRIORITY_STRIPE[stripeKey] ?? "border-l-slate-600";
 
   return (
     <div
@@ -51,18 +64,29 @@ export function RequestCard({ request, onClick, draggable, onDragStart }: Reques
       onDragStart={draggable ? (e) => onDragStart?.(e, r) : undefined}
       onClick={() => onClick(r)}
       onKeyDown={(e) => { if (e.key === "Enter") onClick(r); }}
-      className={`rounded-lg border border-line bg-surface-card p-3 text-left transition-colors hover:bg-surface-card-hover ${
-        draggable ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
-      }`}
+      className={`
+        group relative rounded-lg border-l-[3px] ${stripeColor}
+        bg-surface-card shadow-sm
+        p-3.5 text-left
+        transition-all duration-200
+        hover:shadow-md hover:-translate-y-0.5
+        ${draggable ? "cursor-grab active:cursor-grabbing active:shadow-lg" : "cursor-pointer"}
+      `}
     >
-      {/* REQ 코드 + 제목 */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          {r.reqCode && (
-            <span className="mr-1.5 text-[11px] font-semibold text-lab-accent font-mono-dx">{r.reqCode}</span>
-          )}
-          <span className="truncate text-sm font-medium text-fg leading-snug">{r.title}</span>
+      {/* REQ 코드 */}
+      {r.reqCode && (
+        <div className="mb-1.5">
+          <span className="inline-block rounded bg-lab-accent/10 px-1.5 py-0.5 text-[11px] font-semibold text-lab-accent font-mono-dx">
+            {r.reqCode}
+          </span>
         </div>
+      )}
+
+      {/* 제목 + 우선순위 */}
+      <div className="flex items-start justify-between gap-2">
+        <span className="min-w-0 text-sm font-medium text-fg leading-snug line-clamp-2">
+          {r.title}
+        </span>
         {r.priorityLevel ? (
           <span className="shrink-0 text-[11px] font-bold text-fg-secondary font-mono-dx">{r.priorityLevel}</span>
         ) : (
@@ -72,9 +96,9 @@ export function RequestCard({ request, onClick, draggable, onDragStart }: Reques
         )}
       </div>
 
-      {/* 유형 x 도메인 태그 (계획 이후) */}
+      {/* 유형 x 도메인 태그 */}
       {(r.type || r.domain) && (
-        <div className="mt-1.5 flex flex-wrap gap-1">
+        <div className="mt-2 flex flex-wrap gap-1">
           {r.type && (
             <span className="rounded bg-surface-secondary px-1.5 py-0.5 text-[11px] text-fg-secondary">
               {TYPE_LABELS[r.type] ?? r.type}
@@ -93,7 +117,7 @@ export function RequestCard({ request, onClick, draggable, onDragStart }: Reques
         </div>
       )}
 
-      {/* AI 분류 배지 (리뷰 있을 때) */}
+      {/* AI 분류 배지 */}
       {r.review && (
         <div className="mt-2 flex items-center gap-2">
           <Badge variant={CLASSIFICATION_VARIANT[r.review.classification] ?? "default"} className="text-[11px]">

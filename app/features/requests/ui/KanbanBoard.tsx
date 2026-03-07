@@ -1,6 +1,6 @@
 /**
  * 8칸반 레이아웃 + DnD 로직 (표준 개발 라이프사이클 통합)
- * 접수 | AI검토 | 담당자검토 | 반영 | 계획 | 진행중 | 완료 | 보류
+ * 빈 열 자동 축소 + 활성 열 flex-grow + 요약 바
  */
 
 import { useFetcher } from "@remix-run/react";
@@ -18,15 +18,15 @@ interface KanbanBoardProps {
 
 type ColumnKey = "open" | "aiReview" | "humanReview" | "accepted" | "planned" | "inProgress" | "done" | "rejected";
 
-const COLUMNS: { key: ColumnKey; title: string; statuses: string[]; color?: string }[] = [
-  { key: "open", title: "접수", statuses: ["OPEN"] },
-  { key: "aiReview", title: "AI 검토", statuses: ["AI_REVIEWING", "CLASSIFIED"] },
-  { key: "humanReview", title: "담당자 검토", statuses: ["HUMAN_REVIEW"] },
-  { key: "accepted", title: "반영", statuses: ["ACCEPTED"] },
-  { key: "planned", title: "계획", statuses: ["PLANNED"], color: "border-t-2 border-t-blue-500" },
-  { key: "inProgress", title: "진행 중", statuses: ["IN_PROGRESS"], color: "border-t-2 border-t-amber-500" },
-  { key: "done", title: "완료", statuses: ["DONE"], color: "border-t-2 border-t-green-500" },
-  { key: "rejected", title: "보류", statuses: ["REJECTED"] },
+const COLUMNS: { key: ColumnKey; title: string; statuses: string[]; phase: "review" | "dev"; accentColor?: string }[] = [
+  { key: "open", title: "접수", statuses: ["OPEN"], phase: "review" },
+  { key: "aiReview", title: "AI 검토", statuses: ["AI_REVIEWING", "CLASSIFIED"], phase: "review" },
+  { key: "humanReview", title: "담당자 검토", statuses: ["HUMAN_REVIEW"], phase: "review" },
+  { key: "accepted", title: "반영", statuses: ["ACCEPTED"], phase: "review" },
+  { key: "planned", title: "계획", statuses: ["PLANNED"], phase: "dev", accentColor: "bg-blue-500" },
+  { key: "inProgress", title: "진행 중", statuses: ["IN_PROGRESS"], phase: "dev", accentColor: "bg-amber-500" },
+  { key: "done", title: "완료", statuses: ["DONE"], phase: "dev", accentColor: "bg-emerald-500" },
+  { key: "rejected", title: "보류", statuses: ["REJECTED"], phase: "review" },
 ];
 
 const PRIORITY_OPTIONS = [
@@ -63,10 +63,14 @@ export function KanbanBoard({ requests, isReviewer, canTriggerAiReview }: Kanban
   for (const r of filtered) {
     const col = COLUMNS.find((c) => c.statuses.includes(r.status));
     if (col) grouped[col.key].push(r);
-    else grouped.open.push(r); // fallback (IN_REVIEW 등 레거시)
+    else grouped.open.push(r);
   }
 
-  // DnD: 접수 → AI검토 (AI 리뷰 트리거)
+  // 위상별 카운트
+  const reviewCount = grouped.open.length + grouped.aiReview.length + grouped.humanReview.length + grouped.accepted.length;
+  const devCount = grouped.planned.length + grouped.inProgress.length + grouped.done.length;
+
+  // DnD handlers
   function handleDropToAiReview(requestId: string) {
     if (!isReviewer || !canTriggerAiReview) return;
     reviewFetcher.submit(null, {
@@ -75,7 +79,6 @@ export function KanbanBoard({ requests, isReviewer, canTriggerAiReview }: Kanban
     });
   }
 
-  // DnD: 담당자검토 → 반영
   function handleDropToAccepted(requestId: string) {
     if (!isReviewer) return;
     statusFetcher.submit(
@@ -84,7 +87,6 @@ export function KanbanBoard({ requests, isReviewer, canTriggerAiReview }: Kanban
     );
   }
 
-  // DnD: 담당자검토 → 보류
   function handleDropToRejected(requestId: string) {
     if (!isReviewer) return;
     statusFetcher.submit(
@@ -93,7 +95,6 @@ export function KanbanBoard({ requests, isReviewer, canTriggerAiReview }: Kanban
     );
   }
 
-  // DnD: 보류 → 접수 (재오픈)
   function handleDropToOpen(requestId: string) {
     if (!isReviewer) return;
     statusFetcher.submit(
@@ -102,14 +103,12 @@ export function KanbanBoard({ requests, isReviewer, canTriggerAiReview }: Kanban
     );
   }
 
-  // DnD: 반영 → 계획 (PlanDialog 오픈)
   function handleDropToPlanned(requestId: string) {
     if (!isReviewer) return;
     const target = requests.find((r) => r.id === requestId);
     if (target) setPlanTarget(target);
   }
 
-  // DnD: 계획 → 진행중
   function handleDropToInProgress(requestId: string) {
     if (!isReviewer) return;
     statusFetcher.submit(
@@ -118,7 +117,6 @@ export function KanbanBoard({ requests, isReviewer, canTriggerAiReview }: Kanban
     );
   }
 
-  // DnD: 진행중 → 완료
   function handleDropToDone(requestId: string) {
     if (!isReviewer) return;
     statusFetcher.submit(
@@ -134,34 +132,65 @@ export function KanbanBoard({ requests, isReviewer, canTriggerAiReview }: Kanban
 
   return (
     <>
-      {/* 우선순위 필터 */}
-      <div className="mb-3 flex items-center gap-2">
-        <span className="text-xs text-fg-tertiary">우선순위:</span>
-        {PRIORITY_OPTIONS.map((opt) => (
-          <button
-            key={opt.value}
-            onClick={() => setPriorityFilter(opt.value)}
-            className={`rounded-full px-2.5 py-0.5 text-xs transition-colors ${
-              priorityFilter === opt.value
-                ? "bg-accent text-white"
-                : "bg-surface-secondary text-fg-secondary hover:bg-surface-tertiary"
-            }`}
-          >
-            {opt.label}
-          </button>
-        ))}
+      {/* 필터 + 요약 바 */}
+      <div className="mb-4 flex flex-wrap items-center gap-4">
+        {/* 우선순위 필터 */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-fg-tertiary mr-1">우선순위:</span>
+          {PRIORITY_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setPriorityFilter(opt.value)}
+              className={`rounded-full px-2.5 py-1 text-xs transition-colors ${
+                priorityFilter === opt.value
+                  ? "bg-accent text-white"
+                  : "bg-surface-secondary text-fg-secondary hover:bg-surface-tertiary"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex-1" />
+
+        {/* 위상 요약 카운터 */}
+        <div className="flex items-center gap-3 text-xs">
+          <span className="flex items-center gap-1.5 text-fg-secondary">
+            <span className="h-1.5 w-1.5 rounded-full bg-fg-tertiary" />
+            검토 <span className="font-semibold text-fg font-mono-dx tabular-nums">{reviewCount}</span>
+          </span>
+          <span className="text-fg-quaternary">|</span>
+          <span className="flex items-center gap-1.5 text-lab-accent">
+            <span className="h-1.5 w-1.5 rounded-full bg-lab-accent" />
+            개발 <span className="font-semibold font-mono-dx tabular-nums">{devCount}</span>
+          </span>
+          {grouped.rejected.length > 0 && (
+            <>
+              <span className="text-fg-quaternary">|</span>
+              <span className="flex items-center gap-1.5 text-fg-tertiary">
+                보류 <span className="font-semibold text-fg font-mono-dx tabular-nums">{grouped.rejected.length}</span>
+              </span>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* 구분선 라벨 */}
-      <div className="mb-3 flex items-center gap-4">
-        <span className="text-[11px] font-medium uppercase tracking-widest text-fg-secondary font-mono-dx">검토 파이프라인</span>
+      {/* 위상 라벨 */}
+      <div className="mb-2 flex items-center gap-3">
+        <span className="text-[11px] font-medium uppercase tracking-widest text-fg-secondary font-mono-dx">
+          Review Pipeline
+        </span>
         <div className="flex-1 border-b border-line-subtle" />
-        <span className="text-[11px] font-medium uppercase tracking-widest text-lab-accent font-mono-dx">개발 라이프사이클</span>
+        <span className="text-[11px] font-medium uppercase tracking-widest text-lab-accent font-mono-dx">
+          Dev Lifecycle
+        </span>
         <div className="flex-1 border-b border-line-subtle" />
       </div>
 
-      <div className="flex gap-3 overflow-x-auto pb-4">
-        {/* 접수: 드래그 가능 (→ AI검토) + 드롭 가능 (← 보류) */}
+      {/* 칸반 보드 */}
+      <div className="flex gap-2 pb-4" style={{ minHeight: "400px" }}>
+        {/* ── 검토 파이프라인 ── */}
         <KanbanColumn
           title="접수"
           count={grouped.open.length}
@@ -172,8 +201,6 @@ export function KanbanBoard({ requests, isReviewer, canTriggerAiReview }: Kanban
           onDragStart={handleDragStart}
           onCardClick={setSelectedRequest}
         />
-
-        {/* AI 검토: 드롭 가능 (← 접수) */}
         <KanbanColumn
           title="AI 검토"
           count={grouped.aiReview.length}
@@ -182,8 +209,6 @@ export function KanbanBoard({ requests, isReviewer, canTriggerAiReview }: Kanban
           onDrop={handleDropToAiReview}
           onCardClick={setSelectedRequest}
         />
-
-        {/* 담당자 검토: 드래그 가능 (→ 반영/보류) */}
         <KanbanColumn
           title="담당자 검토"
           count={grouped.humanReview.length}
@@ -192,8 +217,6 @@ export function KanbanBoard({ requests, isReviewer, canTriggerAiReview }: Kanban
           onDragStart={handleDragStart}
           onCardClick={setSelectedRequest}
         />
-
-        {/* 반영: 드롭 가능 (← 담당자검토) + 드래그 가능 (→ 계획) */}
         <KanbanColumn
           title="반영"
           count={grouped.accepted.length}
@@ -205,10 +228,12 @@ export function KanbanBoard({ requests, isReviewer, canTriggerAiReview }: Kanban
           onCardClick={setSelectedRequest}
         />
 
-        {/* 구분 바 */}
-        <div className="flex w-px shrink-0 items-stretch bg-line-subtle" />
+        {/* ── 위상 구분선 ── */}
+        <div className="flex shrink-0 flex-col items-center justify-center px-0.5">
+          <div className="h-full w-px bg-gradient-to-b from-transparent via-lab-accent/40 to-transparent" />
+        </div>
 
-        {/* 계획: 드롭 가능 (← 반영) + 드래그 가능 (→ 진행중) */}
+        {/* ── 개발 라이프사이클 ── */}
         <KanbanColumn
           title="계획"
           count={grouped.planned.length}
@@ -218,10 +243,8 @@ export function KanbanBoard({ requests, isReviewer, canTriggerAiReview }: Kanban
           draggableCards={isReviewer}
           onDragStart={handleDragStart}
           onCardClick={setSelectedRequest}
-          className="border-t-2 border-t-blue-500"
+          accentColor="bg-blue-500"
         />
-
-        {/* 진행중: 드롭 가능 (← 계획) + 드래그 가능 (→ 완료) */}
         <KanbanColumn
           title="진행 중"
           count={grouped.inProgress.length}
@@ -231,10 +254,8 @@ export function KanbanBoard({ requests, isReviewer, canTriggerAiReview }: Kanban
           draggableCards={isReviewer}
           onDragStart={handleDragStart}
           onCardClick={setSelectedRequest}
-          className="border-t-2 border-t-amber-500"
+          accentColor="bg-amber-500"
         />
-
-        {/* 완료: 드롭 가능 (← 진행중) */}
         <KanbanColumn
           title="완료"
           count={grouped.done.length}
@@ -242,10 +263,10 @@ export function KanbanBoard({ requests, isReviewer, canTriggerAiReview }: Kanban
           droppable={isReviewer}
           onDrop={handleDropToDone}
           onCardClick={setSelectedRequest}
-          className="border-t-2 border-t-green-500"
+          accentColor="bg-emerald-500"
         />
 
-        {/* 보류: 드롭 가능 (← 담당자검토/계획) + 드래그 가능 (→ 접수) */}
+        {/* ── 보류 ── */}
         <KanbanColumn
           title="보류"
           count={grouped.rejected.length}
@@ -267,7 +288,7 @@ export function KanbanBoard({ requests, isReviewer, canTriggerAiReview }: Kanban
         canTriggerAiReview={canTriggerAiReview}
       />
 
-      {/* 계획 다이얼로그 (반영→계획 전환 시) */}
+      {/* 계획 다이얼로그 */}
       <PlanDialog
         request={planTarget}
         open={!!planTarget}
