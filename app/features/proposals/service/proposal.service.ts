@@ -3,10 +3,10 @@
  * 실제 구현은 proposal/ 서브모듈 참조.
  */
 import type { DB } from "~/db";
-import { ProposalQueryService } from "./proposal/query";
-import { ProposalMutationService } from "./proposal/mutation";
-import { ProposalCollabService } from "./proposal/collab";
-import type { UpdateProposalInput } from "./proposal/types";
+import { ProposalQueryService } from "./query";
+import { ProposalMutationService } from "./mutation";
+import { ProposalCollabService } from "./collab";
+import type { UpdateProposalInput } from "./types";
 
 // backward-compat re-export
 export type {
@@ -20,7 +20,7 @@ export type {
   CreateActionInput,
   CreateMilestoneInput,
   UpdateMilestoneInput,
-} from "./proposal/types";
+} from "./types";
 
 export class ProposalService {
   private query: ProposalQueryService;

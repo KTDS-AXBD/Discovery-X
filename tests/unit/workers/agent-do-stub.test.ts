@@ -6,8 +6,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { isAgentDOAvailable, delegateToDO } from "~/lib/agent/agent-do.stub";
-import type { AgentDOChatPayload } from "~/lib/agent/agent-do.stub";
+import { isAgentDOAvailable, delegateToDO } from "~/features/chat/agent/agent-do.stub";
+import type { AgentDOChatPayload } from "~/features/chat/agent/agent-do.stub";
 
 // ─── 테스트: isAgentDOAvailable ──────────────────────────────────────
 

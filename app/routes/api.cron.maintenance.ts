@@ -14,7 +14,7 @@ import { getDb } from "~/db";
 import { decisionLogs, extractedPatterns, reusableRules, tenants, users } from "~/db/schema";
 import { graphs, projections } from "~/db/schema-v2";
 import { sql, lte, gte, and, isNull, eq, inArray } from "drizzle-orm";
-import { MemoryLifecycle } from "~/lib/agent/memory-lifecycle";
+import { MemoryLifecycle } from "~/features/chat/agent/memory-lifecycle";
 import { TokenBudgetManager } from "~/lib/cost/token-budget";
 import { ProjectionBuilder } from "~/lib/graph/projection";
 import { callLLM } from "~/lib/ai";

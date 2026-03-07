@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { MatrixService } from "~/lib/services/matrix.service";
+import { MatrixService } from "~/features/matrix/service/matrix.service";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   try {

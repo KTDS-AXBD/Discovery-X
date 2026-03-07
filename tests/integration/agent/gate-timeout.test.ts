@@ -17,7 +17,7 @@ import {
 } from "~/db/schema";
 import { eq } from "drizzle-orm";
 import { processExpiredGateApprovals } from "~/lib/notifications/alert-engine";
-import { requestGateApproval } from "~/lib/agent/tools/governance-tools";
+import { requestGateApproval } from "~/features/chat/agent/tools/governance-tools";
 
 function asDB(db: TestDB) {
   return db as unknown as Parameters<typeof processExpiredGateApprovals>[0];

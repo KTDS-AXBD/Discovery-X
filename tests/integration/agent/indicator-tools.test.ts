@@ -23,7 +23,7 @@ import {
   recordKpiMeasurement,
   getKpiStatus,
   getPipelineHealth,
-} from "~/lib/agent/tools/indicator-tools";
+} from "~/features/chat/agent/tools/indicator-tools";
 
 function asDB(db: TestDB) {
   return db as unknown as Parameters<typeof registerKpi>[0];

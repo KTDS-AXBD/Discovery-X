@@ -24,7 +24,7 @@ import {
   completeMethodRun,
   draftGatePackage,
   getGatePackage,
-} from "~/lib/agent/tools/method-tools";
+} from "~/features/chat/agent/tools/method-tools";
 
 // method-tools expects DB (D1-based drizzle) but TestDB is better-sqlite3 based
 // The drizzle API surface is compatible, so we cast

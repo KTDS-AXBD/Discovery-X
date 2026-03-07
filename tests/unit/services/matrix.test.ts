@@ -31,7 +31,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { createTestDb } from "tests/helpers/db";
 import type { DB } from "~/db";
-import { MatrixService } from "~/lib/services/matrix.service";
+import { MatrixService } from "~/features/matrix/service/matrix.service";
 import {
   industries,
   functions,

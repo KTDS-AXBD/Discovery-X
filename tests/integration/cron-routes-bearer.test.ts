@@ -23,7 +23,7 @@ vi.mock("~/lib/integration/signal-router", () => ({
   },
 }));
 
-vi.mock("~/lib/agent/memory-lifecycle", () => ({
+vi.mock("~/features/chat/agent/memory-lifecycle", () => ({
   MemoryLifecycle: class {
     compact = vi.fn().mockResolvedValue({ archived: 0, deleted: 0 });
   },

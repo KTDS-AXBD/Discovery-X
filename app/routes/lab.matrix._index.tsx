@@ -3,7 +3,7 @@ import { json } from "@remix-run/cloudflare";
 import { useLoaderData, useNavigate, useSearchParams } from "@remix-run/react";
 import { getDb } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { MatrixService } from "~/lib/services/matrix.service";
+import { MatrixService } from "~/features/matrix/service/matrix.service";
 import type { HeatmapData } from "~/features/matrix/types";
 import { HeatmapGrid } from "~/components/matrix/HeatmapGrid";
 import { HeatmapLegend } from "~/components/matrix/HeatmapLegend";

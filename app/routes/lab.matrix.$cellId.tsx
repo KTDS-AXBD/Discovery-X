@@ -4,7 +4,7 @@ import { useLoaderData, Link } from "@remix-run/react";
 import { eq, and, desc } from "drizzle-orm";
 import { getDb } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { MatrixService } from "~/lib/services/matrix.service";
+import { MatrixService } from "~/features/matrix/service/matrix.service";
 import { ScoringService } from "~/lib/services/scoring.service";
 import { consensusScores } from "~/features/matrix/db/schema";
 import type { ConsensusScoreView, ScoreTrendEntry, LinkedTopic } from "~/features/matrix/types";

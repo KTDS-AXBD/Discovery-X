@@ -7,7 +7,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { createTestDb } from "tests/helpers/db";
 import type { DB } from "~/db";
-import { ProposalService } from "~/lib/services/proposal.service";
+import { ProposalService } from "~/features/proposals/service/proposal.service";
 import { users, tenants, tenantMembers } from "~/db/schema";
 import {
   proposals,

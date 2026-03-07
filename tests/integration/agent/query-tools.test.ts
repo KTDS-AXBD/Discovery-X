@@ -21,7 +21,7 @@ import {
   getExperimentContext,
   searchSimilar,
   getMetrics,
-} from "~/lib/agent/tools/query-tools";
+} from "~/features/chat/agent/tools/query-tools";
 
 // query-tools expects DB (D1-based drizzle) but TestDB is better-sqlite3 based
 // The drizzle API surface is compatible, so we cast

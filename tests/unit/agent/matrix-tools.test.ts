@@ -40,7 +40,7 @@ import {
   queryMatrixHeatmap,
   getCellSignals,
   getTopCells,
-} from "~/lib/agent/tools/matrix-tools";
+} from "~/features/chat/agent/tools/matrix-tools";
 
 const fakeDb = {} as unknown as DB;
 

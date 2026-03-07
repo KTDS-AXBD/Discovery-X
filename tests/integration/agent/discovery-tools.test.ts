@@ -23,7 +23,7 @@ import {
   requestExtension,
   getStageInfo,
   validateEvidence,
-} from "~/lib/agent/tools/discovery-tools";
+} from "~/features/chat/agent/tools/discovery-tools";
 
 // discovery-tools expects DB (D1-based drizzle) but TestDB is better-sqlite3 based
 // The drizzle API surface is compatible, so we cast

@@ -2,7 +2,7 @@ import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { ProposalSectionType } from "~/features/proposals/db/schema";
-import { ProposalService } from "~/lib/services/proposal.service";
+import { ProposalService } from "~/features/proposals/service/proposal.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { ProposalForm } from "~/components/proposals/ProposalForm";
 

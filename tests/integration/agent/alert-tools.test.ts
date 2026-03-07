@@ -13,7 +13,7 @@ import {
   getAlerts,
   acknowledgeAlert,
   manageWebhook,
-} from "~/lib/agent/tools/alert-tools";
+} from "~/features/chat/agent/tools/alert-tools";
 
 function asDB(db: TestDB) {
   return db as unknown as Parameters<typeof getAlerts>[0];

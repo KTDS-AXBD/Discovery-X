@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getToolsForAutonomyLevel, TOOL_MIN_AUTONOMY } from "~/lib/agent/tool-registry";
+import { getToolsForAutonomyLevel, TOOL_MIN_AUTONOMY } from "~/features/chat/agent/tool-registry";
 
 const ALL_TOOLS = getToolsForAutonomyLevel(3);
 

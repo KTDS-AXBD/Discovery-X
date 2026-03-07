@@ -10,7 +10,7 @@ import { users, discoveries, discoveryLinks } from "~/db/schema";
 import {
   linkDiscoveries,
   getLinkedDiscoveries,
-} from "~/lib/agent/tools/connector-tools";
+} from "~/features/chat/agent/tools/connector-tools";
 
 function asDB(db: TestDB) {
   return db as unknown as Parameters<typeof linkDiscoveries>[0];

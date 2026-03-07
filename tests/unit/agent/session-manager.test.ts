@@ -12,7 +12,7 @@
 
 import { describe, it, expect, beforeEach } from "vitest";
 import { createTestDb, type TestDB } from "../../helpers/db";
-import { SessionManager } from "~/lib/agent/session-manager";
+import { SessionManager } from "~/features/chat/agent/session-manager";
 import { agentSessionsV2 } from "~/db/schema-v2";
 import { eq } from "drizzle-orm";
 import type { DB } from "~/db";

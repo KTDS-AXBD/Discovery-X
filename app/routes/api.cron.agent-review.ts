@@ -12,7 +12,7 @@ import { getDb } from "~/db";
 import { discoveries, agentConfig, conversations, tenants } from "~/db/schema";
 import { eq, inArray, and } from "drizzle-orm";
 import { ACTIVE_STATUSES } from "~/lib/constants/status";
-import { executeAgentTurn } from "~/lib/agent/executor";
+import { executeAgentTurn } from "~/features/chat/agent/executor";
 import { formatDate } from "~/lib/format-date";
 
 type Discovery = InferSelectModel<typeof discoveries>;

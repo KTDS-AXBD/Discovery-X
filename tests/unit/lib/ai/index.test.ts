@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { callLLM, callLLMStream } from "~/lib/ai";
 
 // Mock claude-client
-vi.mock("~/lib/agent/claude-client", () => ({
+vi.mock("~/features/chat/agent/claude-client", () => ({
   callClaude: vi.fn().mockResolvedValue({
     id: "test",
     type: "message",
@@ -38,7 +38,7 @@ vi.mock("~/lib/ai/fallback-manager", () => {
   };
 });
 
-import { callClaude, callClaudeStream } from "~/lib/agent/claude-client";
+import { callClaude, callClaudeStream } from "~/features/chat/agent/claude-client";
 
 const baseRequest = {
   max_tokens: 1024,

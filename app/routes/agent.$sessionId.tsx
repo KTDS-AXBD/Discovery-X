@@ -5,7 +5,7 @@ import { eq, and, desc } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import { getDb, agentSessionsV2, conversations, messages, projections } from "~/db";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
-import { ChatPanel } from "~/components/chat/ChatPanel";
+import { ChatPanel } from "~/features/chat/ui/ChatPanel";
 import { ProjectionStatus } from "~/components/agent/ProjectionStatus";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {

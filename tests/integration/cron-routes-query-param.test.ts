@@ -53,7 +53,7 @@ vi.mock("~/lib/notifications/webhook", () => ({
   fireWebhooks: vi.fn().mockResolvedValue(0),
 }));
 
-vi.mock("~/lib/agent/memory-lifecycle", () => ({
+vi.mock("~/features/chat/agent/memory-lifecycle", () => ({
   MemoryLifecycle: class {
     compact = vi.fn().mockResolvedValue({ archived: 0, deleted: 0 });
   },
@@ -71,7 +71,7 @@ vi.mock("~/lib/graph/projection", () => ({
   },
 }));
 
-vi.mock("~/lib/agent/executor", () => ({
+vi.mock("~/features/chat/agent/executor", () => ({
   executeAgentTurn: vi.fn().mockResolvedValue({
     toolCalls: [],
     tokensUsed: { input: 100, output: 50 },

@@ -6,7 +6,7 @@ import type {
   ClaudeRequest,
   ClaudeResponse,
   ClaudeStreamEvent,
-} from "~/lib/agent/claude-client";
+} from "~/features/chat/agent/claude-client";
 
 export type ProviderId = "anthropic" | "openai" | "google" | "workers-ai";
 
@@ -56,4 +56,4 @@ export type {
   ClaudeMessage,
   ClaudeContentBlock,
   ClaudeTool,
-} from "~/lib/agent/claude-client";
+} from "~/features/chat/agent/claude-client";

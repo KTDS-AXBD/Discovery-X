@@ -26,7 +26,7 @@ import {
 } from "~/db/schema";
 
 // ─── LLM Mock ─────────────────────────────────────────────────────────────
-vi.mock("~/lib/agent/claude-client", () => ({
+vi.mock("~/features/chat/agent/claude-client", () => ({
   callClaude: vi.fn().mockResolvedValue({
     content: [
       {

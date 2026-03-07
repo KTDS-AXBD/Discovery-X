@@ -14,9 +14,9 @@ import { buildConversationContext } from "./context-builder";
 import { buildSystemPrompt, buildIdeaSystemPrompt } from "./system-prompt";
 import { getToolsForAutonomyLevel, IDEA_TOOLS } from "./tool-registry";
 import { sendBudgetWarning, addSummaryHeader } from "./agent-utils";
-import { SoulEngine } from "~/lib/agent/soul-engine";
-import { SessionManager } from "~/lib/agent/session-manager";
-import { MemoryLifecycle } from "~/lib/agent/memory-lifecycle";
+import { SoulEngine } from "~/features/chat/agent/soul-engine";
+import { SessionManager } from "~/features/chat/agent/session-manager";
+import { MemoryLifecycle } from "~/features/chat/agent/memory-lifecycle";
 import {
   prepareAgentPipeline,
   processToolBlocks,

@@ -9,7 +9,7 @@
 import type { DB } from "~/db";
 import { ProjectionBuilder } from "~/lib/graph/projection";
 import { GraphStore } from "~/lib/graph/store";
-import { buildSystemPrompt } from "~/lib/agent/system-prompt";
+import { buildSystemPrompt } from "~/features/chat/agent/system-prompt";
 
 // ─── Autonomy Level 라벨 (v2 호환) ────────────────────────────────────
 const AUTONOMY_LABELS: Record<number, string> = {

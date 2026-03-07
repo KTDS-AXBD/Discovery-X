@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildSystemPrompt } from "~/lib/agent/system-prompt";
+import { buildSystemPrompt } from "~/features/chat/agent/system-prompt";
 
 describe("BD PoC system-prompt sourceContext", () => {
   // U-04

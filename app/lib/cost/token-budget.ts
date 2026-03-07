@@ -3,7 +3,7 @@ import type { DB } from "~/db";
 import { conversations } from "~/db/schema";
 import { agentMemoryV2 } from "~/db/schema-v2";
 import { tokenUsageLogs } from "~/db/token-usage-schema";
-import { MemoryLifecycle } from "~/lib/agent/memory-lifecycle";
+import { MemoryLifecycle } from "~/features/chat/agent/memory-lifecycle";
 
 // ─── 상수 ──────────────────────────────────────────────────────────────
 /** 사용자별 메모리 토큰 예산 (활성 레코드 합계 상한) */

@@ -13,11 +13,11 @@ import type { DB } from "~/db";
 
 // executeTool 모킹 — 도구 실행 결과를 제어
 const mockExecuteTool = vi.hoisted(() => vi.fn());
-vi.mock("~/lib/agent/tool-handlers", () => ({
+vi.mock("~/features/chat/agent/tool-handlers", () => ({
   executeTool: mockExecuteTool,
 }));
 
-import { processToolBlocks } from "~/lib/agent/agent-pipeline";
+import { processToolBlocks } from "~/features/chat/agent/agent-pipeline";
 
 function asDB(db: TestDB) {
   return db as unknown as DB;

@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { ProposalService } from "~/lib/services/proposal.service";
+import { ProposalService } from "~/features/proposals/service/proposal.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { ProposalDetailHeader } from "~/components/proposals/ProposalDetailHeader";
 import { ProposalDetailSidebar } from "~/components/proposals/ProposalDetailSidebar";

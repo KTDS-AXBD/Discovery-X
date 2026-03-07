@@ -3,8 +3,8 @@
  */
 
 import type { LLMProvider } from "../types";
-import type { ClaudeRequest, ClaudeResponse, ClaudeStreamEvent } from "~/lib/agent/claude-client";
-import { callClaude, callClaudeStream, parseSSEStream } from "~/lib/agent/claude-client";
+import type { ClaudeRequest, ClaudeResponse, ClaudeStreamEvent } from "~/features/chat/agent/claude-client";
+import { callClaude, callClaudeStream, parseSSEStream } from "~/features/chat/agent/claude-client";
 
 /** 크레딧 소진 판별용 패턴 */
 const CREDIT_EXHAUSTION_PATTERNS = [

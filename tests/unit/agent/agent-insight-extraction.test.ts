@@ -11,7 +11,7 @@ import { createTestDb, type TestDB } from "../../helpers/db";
 import {
   findDiscoveryIdFromConversation,
   extractAndSaveInsights,
-} from "~/lib/agent/executor-stream";
+} from "~/features/chat/agent/executor-stream";
 import {
   users,
   discoveries,

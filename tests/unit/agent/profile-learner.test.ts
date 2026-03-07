@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { createTestDb, type TestDB } from "../../helpers/db";
 import { users } from "~/db/schema";
 import { agentMemoryV2 } from "~/db/schema-v2";
-import { ProfileLearner } from "~/lib/agent/profile-learner";
+import { ProfileLearner } from "~/features/chat/agent/profile-learner";
 
 describe("ProfileLearner", () => {
   let db: TestDB;
