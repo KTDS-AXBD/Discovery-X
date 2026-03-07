@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 308 (2026-03-07)
+**chore: 거버넌스 표준 재구성 + ax 플러그인 네이밍 확정**:
+- ✅ 거버넌스 표준 15개→10개 통합 (GOV-001~010, `~/.claude/standards/`)
+- ✅ 누락 상세 파일 10개 생성 (code-quality, security, data-schema, infra-ops, onboarding 등)
+- ✅ 네이밍 통일: `{GOV-NNN}_{주제}.md` 포맷 + INDEX.md 메타관리 + frontmatter 표준화
+- ✅ CLAUDE.md 거버넌스 섹션 40% 축소 (15섹션→10섹션)
+- ✅ `ax` 플러그인 네이밍 체계 확정: 스킬 12개(ax-01~12) + 에이전트 6개(ax-a01~06) + 훅 5개(ax-h01~05)
+- ✅ 기존 스킬 10개 판정: 전부 유지(0 삭제), 9개 ax 합침 + 1개 프로젝트 유지
+
+**변경 범위**: user-scope 파일만 (`~/.claude/standards/`, `~/.claude/CLAUDE.md`, MEMORY.md)
+
 ### 세션 307 (2026-03-07)
 **refactor: S8 BC 통일 — Discovery/Ideas/Radar 서비스 레이어 이동 (Phase C-1)**:
 - ✅ Discovery BC: `lib/services/discovery/` → `features/discovery/service/` (6파일) + validation 이동
