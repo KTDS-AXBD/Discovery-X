@@ -4,7 +4,7 @@
 
 import { Badge } from "~/components/ui/Badge";
 import type { RequestWithReview } from "../types";
-import { CLASSIFICATION_LABELS } from "../constants";
+import { CLASSIFICATION_LABELS, TYPE_LABELS, DOMAIN_LABELS } from "../constants";
 
 const PRIORITY_LABELS: Record<string, string> = {
   high: "높음",
@@ -55,13 +55,43 @@ export function RequestCard({ request, onClick, draggable, onDragStart }: Reques
         draggable ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
       }`}
     >
-      {/* 제목 + 우선순위 */}
+      {/* REQ 코드 + 제목 */}
       <div className="flex items-start justify-between gap-2">
-        <span className="truncate text-sm font-medium text-fg">{r.title}</span>
-        <Badge variant={PRIORITY_VARIANT[r.priority] ?? "subtle"} className="shrink-0 text-[10px]">
-          {PRIORITY_LABELS[r.priority] ?? r.priority}
-        </Badge>
+        <div className="min-w-0">
+          {r.reqCode && (
+            <span className="mr-1.5 text-[10px] font-medium text-lab-accent font-mono-dx">{r.reqCode}</span>
+          )}
+          <span className="truncate text-sm font-medium text-fg">{r.title}</span>
+        </div>
+        {r.priorityLevel ? (
+          <span className="shrink-0 text-[10px] font-bold text-fg-secondary font-mono-dx">{r.priorityLevel}</span>
+        ) : (
+          <Badge variant={PRIORITY_VARIANT[r.priority] ?? "subtle"} className="shrink-0 text-[10px]">
+            {PRIORITY_LABELS[r.priority] ?? r.priority}
+          </Badge>
+        )}
       </div>
+
+      {/* 유형 x 도메인 태그 (계획 이후) */}
+      {(r.type || r.domain) && (
+        <div className="mt-1 flex flex-wrap gap-1">
+          {r.type && (
+            <span className="rounded bg-surface-secondary px-1.5 py-0.5 text-[10px] text-fg-tertiary font-mono-dx">
+              {TYPE_LABELS[r.type] ?? r.type}
+            </span>
+          )}
+          {r.domain && (
+            <span className="rounded bg-surface-secondary px-1.5 py-0.5 text-[10px] text-fg-tertiary font-mono-dx">
+              {DOMAIN_LABELS[r.domain] ?? r.domain}
+            </span>
+          )}
+          {r.specItemId && (
+            <span className="rounded bg-accent/10 px-1.5 py-0.5 text-[10px] font-medium text-accent font-mono-dx">
+              {r.specItemId}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* AI 분류 배지 (리뷰 있을 때) */}
       {r.review && (
@@ -80,11 +110,12 @@ export function RequestCard({ request, onClick, draggable, onDragStart }: Reques
         <p className="mt-2 line-clamp-2 text-xs text-fg-tertiary">{r.reason}</p>
       )}
 
-      {/* Discovery 연결 */}
-      {r.status === "ACCEPTED" && r.linkedDiscoveryId && (
-        <p className="mt-2 text-xs text-accent">
-          Discovery 연결됨
-        </p>
+      {/* Discovery 연결 / 마일스톤 */}
+      {r.linkedDiscoveryId && (
+        <p className="mt-2 text-xs text-accent">Discovery 연결됨</p>
+      )}
+      {r.milestoneVersion && (
+        <p className="mt-1 text-[10px] text-fg-tertiary font-mono-dx">v{r.milestoneVersion}</p>
       )}
 
       {/* 메타 */}

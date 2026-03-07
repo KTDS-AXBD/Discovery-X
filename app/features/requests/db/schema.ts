@@ -2,12 +2,16 @@ import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 import { users } from "~/db";
 
-// ─── 기존: RequestStatus/Priority (레거시 호환) ───
+// ─── RequestStatus (AI 검토 + 표준 개발 라이프사이클 통합) ───
 export const RequestStatus = {
   OPEN: "OPEN",
   IN_REVIEW: "IN_REVIEW",
   ACCEPTED: "ACCEPTED",
   REJECTED: "REJECTED",
+  // 표준 개발 라이프사이클 (ACCEPTED 이후)
+  PLANNED: "PLANNED",
+  IN_PROGRESS: "IN_PROGRESS",
+  DONE: "DONE",
 } as const;
 export type RequestStatusValue = (typeof RequestStatus)[keyof typeof RequestStatus];
 
@@ -17,6 +21,35 @@ export const RequestPriority = {
   LOW: "low",
 } as const;
 export type RequestPriorityValue = (typeof RequestPriority)[keyof typeof RequestPriority];
+
+// ─── 요구사항 유형 (표준 분류 체계) ───
+export const RequestType = {
+  FEATURE: "feature",
+  BUG: "bug",
+  IMPROVEMENT: "improvement",
+  CHORE: "chore",
+} as const;
+export type RequestTypeValue = (typeof RequestType)[keyof typeof RequestType];
+
+export const RequestDomain = {
+  DISCOVERY: "discovery",
+  IDEAS: "ideas",
+  PROPOSALS: "proposals",
+  LAB: "lab",
+  AGENT: "agent",
+  INFRA: "infra",
+} as const;
+export type RequestDomainValue = (typeof RequestDomain)[keyof typeof RequestDomain];
+
+export const ImpactLevel = {
+  HIGH: "high",
+  LOW: "low",
+} as const;
+
+export const UrgencyLevel = {
+  HIGH: "high",
+  LOW: "low",
+} as const;
 
 // ─── feature_requests 테이블 ───
 export const featureRequests = sqliteTable("feature_requests", {
@@ -31,12 +64,21 @@ export const featureRequests = sqliteTable("feature_requests", {
   linkedDiscoveryId: text("linked_discovery_id"),
   linkedIdeaId: text("linked_idea_id"),
   aiReviewId: text("ai_review_id"),
+  // 표준체계 확장 필드
+  reqCode: text("req_code"),
+  type: text("type").default("feature"),
+  domain: text("domain"),
+  impactLevel: text("impact_level"),
+  urgencyLevel: text("urgency_level"),
+  specItemId: text("spec_item_id"),
+  milestoneVersion: text("milestone_version"),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
   reviewedAt: integer("reviewed_at", { mode: "timestamp" }),
 }, (t) => ({
   statusIdx: index("idx_feature_requests_status").on(t.status),
   submitterIdx: index("idx_feature_requests_submitter").on(t.submitterId),
   priorityIdx: index("idx_feature_requests_priority").on(t.priority),
+  reqCodeIdx: index("idx_feature_requests_req_code").on(t.reqCode),
 }));
 
 // ─── request_reviews: AI 분석 결과 ───

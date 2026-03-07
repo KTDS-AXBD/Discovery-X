@@ -8,7 +8,8 @@ import type { DB } from "~/db";
 import { users } from "~/db";
 import { featureRequests, requestReviews, requestEvents, workPlans, workPlanRuns } from "../db/schema";
 import type { RequestWithReview, WorkPlanWithContext, WorkPlanRun } from "../types";
-import type { RequestClassificationValue, HumanVerdictValue } from "../constants";
+import type { RequestClassificationValue, HumanVerdictValue, PriorityLevelValue } from "../constants";
+import { computePriorityLevel } from "../constants";
 
 export class RequirementsQueryService {
   constructor(private db: DB) {}
@@ -29,6 +30,15 @@ export class RequirementsQueryService {
         reviewedAt: featureRequests.reviewedAt,
         aiReviewId: featureRequests.aiReviewId,
         linkedDiscoveryId: featureRequests.linkedDiscoveryId,
+        // 표준체계 필드
+        reqCode: featureRequests.reqCode,
+        type: featureRequests.type,
+        domain: featureRequests.domain,
+        impactLevel: featureRequests.impactLevel,
+        urgencyLevel: featureRequests.urgencyLevel,
+        specItemId: featureRequests.specItemId,
+        milestoneVersion: featureRequests.milestoneVersion,
+        // 리뷰
         reviewClassification: requestReviews.classification,
         reviewImpactScore: requestReviews.impactScore,
         reviewFeasibilityScore: requestReviews.feasibilityScore,
@@ -54,6 +64,14 @@ export class RequirementsQueryService {
       reviewedAt: r.reviewedAt instanceof Date ? r.reviewedAt.toISOString() : r.reviewedAt ? String(r.reviewedAt) : null,
       aiReviewId: r.aiReviewId,
       linkedDiscoveryId: r.linkedDiscoveryId,
+      reqCode: r.reqCode ?? null,
+      type: r.type as RequestWithReview["type"],
+      domain: r.domain as RequestWithReview["domain"],
+      impactLevel: r.impactLevel ?? null,
+      urgencyLevel: r.urgencyLevel ?? null,
+      priorityLevel: computePriorityLevel(r.impactLevel, r.urgencyLevel) as PriorityLevelValue | null,
+      specItemId: r.specItemId ?? null,
+      milestoneVersion: r.milestoneVersion ?? null,
       review: r.reviewClassification
         ? {
             classification: r.reviewClassification as RequestClassificationValue,

@@ -121,11 +121,19 @@ export class RequirementsWorkflowService {
       newStatus = RequestStatus.CLASSIFIED;
     }
 
+    // ACCEPTED 시 REQ 코드 자동 부여
+    const extraUpdates: Record<string, unknown> = {};
+    if (newStatus === RequestStatus.ACCEPTED) {
+      const reqCode = await this.entity.generateReqCode();
+      extraUpdates.reqCode = reqCode;
+    }
+
     await this.entity.updateRequest(input.requestId, {
       status: newStatus,
       reviewerId: input.reviewerId,
       reviewedAt: new Date(),
       ...(input.verdict === "REJECTED" && input.comment ? { reason: input.comment } : {}),
+      ...extraUpdates,
     });
 
     await this.entity.logEvent({
@@ -153,6 +161,51 @@ export class RequirementsWorkflowService {
     }
 
     return { status: newStatus };
+  }
+
+  /** 표준 라이프사이클: ACCEPTED → PLANNED (분류 메타 설정) */
+  async planRequest(requestId: string, input: {
+    actorId: string;
+    type?: string;
+    domain?: string;
+    impactLevel?: string;
+    urgencyLevel?: string;
+    specItemId?: string;
+    milestoneVersion?: string;
+  }) {
+    const result = await this.transition(requestId, RequestStatus.PLANNED, input.actorId);
+
+    const updates: Record<string, unknown> = {};
+    if (input.type) updates.type = input.type;
+    if (input.domain) updates.domain = input.domain;
+    if (input.impactLevel) updates.impactLevel = input.impactLevel;
+    if (input.urgencyLevel) updates.urgencyLevel = input.urgencyLevel;
+    if (input.specItemId) updates.specItemId = input.specItemId;
+    if (input.milestoneVersion) updates.milestoneVersion = input.milestoneVersion;
+
+    if (Object.keys(updates).length > 0) {
+      await this.entity.updateRequest(requestId, updates);
+    }
+
+    await this.entity.logEvent({
+      requestId,
+      eventType: RequestEventType.PLANNED,
+      actorId: input.actorId,
+      actorType: "user",
+      payload: { ...updates, specItemId: input.specItemId, milestoneVersion: input.milestoneVersion },
+    });
+
+    return result;
+  }
+
+  /** 표준 라이프사이클: PLANNED → IN_PROGRESS */
+  async startProgress(requestId: string, actorId: string) {
+    return this.transition(requestId, RequestStatus.IN_PROGRESS, actorId);
+  }
+
+  /** 표준 라이프사이클: IN_PROGRESS → DONE */
+  async markDone(requestId: string, actorId: string) {
+    return this.transition(requestId, RequestStatus.DONE, actorId);
   }
 
   /** ACCEPTED + NEW_VALUABLE: Discovery 자동 생성 + 연결 */

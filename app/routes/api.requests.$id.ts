@@ -77,7 +77,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       return json({ error: "Not found" }, { status: 404 });
     }
 
-    // PATCH: status change or HITL verdict
+    // PATCH: status change or HITL verdict or lifecycle action
     if (request.method === "PATCH") {
       if (!isReviewer(ctx.tenantRole)) {
         return json({ error: "권한이 없습니다." }, { status: 403 });
@@ -88,7 +88,44 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
         reason?: string;
         humanVerdict?: string;
         humanComment?: string;
+        lifecycleAction?: string;
+        type?: string;
+        domain?: string;
+        impactLevel?: string;
+        urgencyLevel?: string;
+        specItemId?: string;
+        milestoneVersion?: string;
       };
+
+      // 표준 라이프사이클 액션
+      if (body.lifecycleAction) {
+        const workflow = new RequirementsWorkflowService(db);
+
+        switch (body.lifecycleAction) {
+          case "plan":
+            await workflow.planRequest(id, {
+              actorId: ctx.user.id,
+              type: body.type,
+              domain: body.domain,
+              impactLevel: body.impactLevel,
+              urgencyLevel: body.urgencyLevel,
+              specItemId: body.specItemId,
+              milestoneVersion: body.milestoneVersion,
+            });
+            return json({ success: true });
+
+          case "start_progress":
+            await workflow.startProgress(id, ctx.user.id);
+            return json({ success: true });
+
+          case "mark_done":
+            await workflow.markDone(id, ctx.user.id);
+            return json({ success: true });
+
+          default:
+            return json({ error: `알 수 없는 라이프사이클 액션: ${body.lifecycleAction}` }, { status: 400 });
+        }
+      }
 
       // HITL 판정 (Requirements Agent 활성 시)
       const env = context.cloudflare.env as unknown as Record<string, string>;

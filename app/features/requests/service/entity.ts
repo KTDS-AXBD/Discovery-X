@@ -3,7 +3,7 @@
  * Bounded Context: requests
  */
 
-import { eq } from "drizzle-orm";
+import { eq, sql, desc } from "drizzle-orm";
 import type { DB } from "~/db";
 import { alerts } from "~/db";
 import { featureRequests, requestReviews, requestEvents, workPlans, workPlanRuns } from "../db/schema";
@@ -39,11 +39,36 @@ export class RequirementsEntityService {
     reviewedAt: Date;
     aiReviewId: string;
     linkedDiscoveryId: string;
+    reqCode: string;
+    type: string;
+    domain: string;
+    impactLevel: string;
+    urgencyLevel: string;
+    specItemId: string;
+    milestoneVersion: string;
   }>) {
     await this.db
       .update(featureRequests)
       .set(updates)
       .where(eq(featureRequests.id, id));
+  }
+
+  /** DX-REQ-{NNN} 코드 자동 생성 */
+  async generateReqCode(): Promise<string> {
+    const [row] = await this.db
+      .select({ reqCode: featureRequests.reqCode })
+      .from(featureRequests)
+      .where(sql`${featureRequests.reqCode} IS NOT NULL`)
+      .orderBy(desc(featureRequests.reqCode))
+      .limit(1);
+
+    let nextNum = 1;
+    if (row?.reqCode) {
+      const match = row.reqCode.match(/DX-REQ-(\d+)/);
+      if (match) nextNum = parseInt(match[1], 10) + 1;
+    }
+
+    return `DX-REQ-${String(nextNum).padStart(3, "0")}`;
   }
 
   /** 요구사항 삭제 */

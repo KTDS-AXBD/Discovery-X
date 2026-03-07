@@ -32,6 +32,9 @@ const STATUS_LABELS: Record<string, string> = {
   HUMAN_REVIEW: "담당자 검토",
   ACCEPTED: "반영",
   REJECTED: "보류",
+  PLANNED: "계획",
+  IN_PROGRESS: "진행 중",
+  DONE: "완료",
 };
 
 const PRIORITY_LABELS: Record<string, string> = {
@@ -48,6 +51,9 @@ const STATUS_BADGE_VARIANT: Record<string, "default" | "secondary" | "success" |
   HUMAN_REVIEW: "default",
   ACCEPTED: "success",
   REJECTED: "destructive",
+  PLANNED: "secondary",
+  IN_PROGRESS: "default",
+  DONE: "success",
 };
 
 const PRIORITY_BADGE_VARIANT: Record<string, "destructive" | "warning" | "subtle"> = {
@@ -105,6 +111,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       reviewedAt: r.reviewedAt instanceof Date ? r.reviewedAt.toISOString() : r.reviewedAt ? String(r.reviewedAt) : null,
       aiReviewId: null,
       review: null,
+      reqCode: null,
+      type: null,
+      domain: null,
+      impactLevel: null,
+      urgencyLevel: null,
+      priorityLevel: null,
+      specItemId: null,
+      milestoneVersion: null,
     }));
   }
 

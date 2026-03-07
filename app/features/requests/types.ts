@@ -3,7 +3,7 @@
  * Bounded Context: requests
  */
 
-import type { RequestClassificationValue, HumanVerdictValue, WorkPlanStatusValue, RequestStatusValue, RunStatusValue } from "./constants";
+import type { RequestClassificationValue, HumanVerdictValue, WorkPlanStatusValue, RequestStatusValue, RunStatusValue, RequestTypeValue, RequestDomainValue, PriorityLevelValue } from "./constants";
 import type { WorkPlanStepData } from "./db/schema";
 
 /** AI 리뷰 결과 */
@@ -96,7 +96,7 @@ export interface HumanVerdictInput {
   reviewerId: string;
 }
 
-/** 칸반 보드용 요구사항 (리뷰 정보 포함) */
+/** 칸반 보드용 요구사항 (리뷰 정보 + 표준 분류 포함) */
 export interface RequestWithReview {
   id: string;
   title: string;
@@ -118,6 +118,15 @@ export interface RequestWithReview {
     workPlanDraft: string | null;
   } | null;
   linkedDiscoveryId: string | null;
+  // 표준체계 확장
+  reqCode: string | null;
+  type: RequestTypeValue | null;
+  domain: RequestDomainValue | null;
+  impactLevel: string | null;
+  urgencyLevel: string | null;
+  priorityLevel: PriorityLevelValue | null;
+  specItemId: string | null;
+  milestoneVersion: string | null;
 }
 
 /** 작업 현황 대시보드용 (요구사항 + 작업계획 + 실행 이력) */

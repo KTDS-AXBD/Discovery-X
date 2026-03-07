@@ -15,6 +15,7 @@ interface KanbanColumnProps {
   onCardClick: (request: RequestWithReview) => void;
   draggableCards?: boolean;
   onDragStart?: (e: React.DragEvent, request: RequestWithReview) => void;
+  className?: string;
 }
 
 export function KanbanColumn({
@@ -26,6 +27,7 @@ export function KanbanColumn({
   onCardClick,
   draggableCards,
   onDragStart,
+  className,
 }: KanbanColumnProps) {
   const [dragOver, setDragOver] = useState(false);
 
@@ -54,7 +56,7 @@ export function KanbanColumn({
         dragOver
           ? "bg-accent/10 ring-accent ring-2 ring-inset"
           : "bg-surface-secondary"
-      }`}
+      } ${className ?? ""}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
