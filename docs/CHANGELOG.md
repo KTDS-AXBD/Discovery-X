@@ -3,6 +3,12 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 327 (2026-03-08)
+**chore: Agent Team worker pane 인프라 점검 + 버그 수정**:
+- ✅ worker pane 인터랙티브 모드(`claude "prompt"`) 동작 확인 — 풀 UI 실시간 표시 정상
+- ✅ DONE 마커 생성 메커니즘 정상 동작 확인
+- 🐛 `--no-session-persistence` 플래그 버그 수정 — 인터랙티브 모드에서 `--print` 전용 옵션 에러 발생 → ax-06-team.md 템플릿에서 제거
+
 ### 세션 326 (2026-03-08)
 **test: 전체 파이프라인 점검 + P1 Gap 해소 — AI Pipeline + Radar + Lab + Executor 테스트 94개 추가**:
 - ✅ 전체 파이프라인 점검 시나리오 문서 작성 (120+ 시나리오, 14개 영역)
