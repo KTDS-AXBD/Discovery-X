@@ -8,14 +8,14 @@ import { IdeaService, RadarService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { usePanelLayout } from "~/lib/hooks/use-panel-layout";
 import { buildSourceContext, buildMethodologySections, detectStaleSections } from "~/features/ideas/lib/section-builder";
-import { EditableTitle } from "~/components/ideas/EditableTitle";
-import { SuggestTitleButton } from "~/components/ideas/SuggestTitleButton";
-import { SourceInputPanel } from "~/components/ideas/SourceInputPanel";
-import { SimilarSources } from "~/components/ideas/SimilarSources";
-import { IdeaChatWrapper } from "~/components/ideas/IdeaChatWrapper";
-import { PanelResizeHandle } from "~/components/ideas/PanelResizeHandle";
-import { ProposalCreationModal } from "~/components/ideas/ProposalCreationModal";
-import { MethodologyCards } from "~/components/ideas/MethodologyCards";
+import { EditableTitle } from "~/features/ideas/ui/EditableTitle";
+import { SuggestTitleButton } from "~/features/ideas/ui/SuggestTitleButton";
+import { SourceInputPanel } from "~/features/ideas/ui/SourceInputPanel";
+import { SimilarSources } from "~/features/ideas/ui/SimilarSources";
+import { IdeaChatWrapper } from "~/features/ideas/ui/IdeaChatWrapper";
+import { PanelResizeHandle } from "~/features/ideas/ui/PanelResizeHandle";
+import { ProposalCreationModal } from "~/features/ideas/ui/ProposalCreationModal";
+import { MethodologyCards } from "~/features/ideas/ui/MethodologyCards";
 
 // ── Types ─────────────────────────────────────────────────────────────
 

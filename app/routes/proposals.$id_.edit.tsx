@@ -5,7 +5,7 @@ import { getDb } from "~/db";
 import { ProposalSectionType } from "~/features/proposals/db/schema";
 import { ProposalService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { ProposalForm } from "~/components/proposals/ProposalForm";
+import { ProposalForm } from "~/features/proposals/ui/ProposalForm";
 import { resolveSection } from "~/features/proposals/constants";
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {

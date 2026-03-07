@@ -6,7 +6,7 @@ import { eq, desc } from "drizzle-orm";
 import { getDb, agentSessionsV2 } from "~/db";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
-import { SessionList } from "~/components/agent/SessionList";
+import { SessionList } from "~/features/chat/ui/SessionList";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);

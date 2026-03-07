@@ -8,10 +8,10 @@ import { MatrixService } from "~/features/matrix/service/matrix.service";
 import { ScoringService } from "~/features/matrix/service/scoring.service";
 import { consensusScores } from "~/features/matrix/db/schema";
 import type { ConsensusScoreView, ScoreTrendEntry, LinkedTopic } from "~/features/matrix/types";
-import { CellDetailPanel } from "~/components/matrix/CellDetailPanel";
-import { ScoreInputForm } from "~/components/matrix/ScoreInputForm";
-import { ScoreTrendChart } from "~/components/matrix/ScoreTrendChart";
-import { PipelineStageSelector } from "~/components/matrix/PipelineStageSelector";
+import { CellDetailPanel } from "~/features/matrix/ui/CellDetailPanel";
+import { ScoreInputForm } from "~/features/matrix/ui/ScoreInputForm";
+import { ScoreTrendChart } from "~/features/matrix/ui/ScoreTrendChart";
+import { PipelineStageSelector } from "~/features/matrix/ui/PipelineStageSelector";
 
 // ─── 현재 기간 (YYYY-MM) ───
 function getCurrentPeriod(): string {

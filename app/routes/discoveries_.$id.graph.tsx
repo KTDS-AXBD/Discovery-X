@@ -8,7 +8,7 @@ import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { Button } from "~/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
-import { GraphViewer } from "~/components/graph/GraphViewer";
+import { GraphViewer } from "~/features/lab/ui/GraphViewer";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);

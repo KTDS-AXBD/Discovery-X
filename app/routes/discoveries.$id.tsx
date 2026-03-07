@@ -13,8 +13,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/Select";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { cn } from "~/lib/utils/cn";
-import { KpiCard } from "~/components/dashboard/KpiCard";
-import { RelatedDiscoveries } from "~/components/discovery/RelatedDiscoveries";
+import { KpiCard } from "~/features/dashboard/ui/KpiCard";
+import { RelatedDiscoveries } from "~/features/discovery/ui/RelatedDiscoveries";
 import { ExperimentGantt } from "~/components/charts/ExperimentGantt";
 import { formatDate, formatDateTime, isOverdue as checkOverdue } from "~/lib/format-date";
 

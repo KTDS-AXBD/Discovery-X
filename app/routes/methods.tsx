@@ -7,8 +7,8 @@ import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server"
 import { methodPacks, type MethodPack } from "~/db";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
-import { MethodPackCard } from "~/components/methods/MethodPackCard";
-import { MethodPackDetailDialog } from "~/components/methods/MethodPackDetailDialog";
+import { MethodPackCard } from "~/features/discovery/ui/MethodPackCard";
+import { MethodPackDetailDialog } from "~/features/discovery/ui/MethodPackDetailDialog";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);

@@ -4,7 +4,7 @@ import { getDb } from "~/db";
 import { ProposalSectionType } from "~/features/proposals/db/schema";
 import { ProposalService } from "~/features/proposals/service/proposal.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { ProposalForm } from "~/components/proposals/ProposalForm";
+import { ProposalForm } from "~/features/proposals/ui/ProposalForm";
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);

@@ -10,11 +10,11 @@ import { getDb } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { DashboardService } from "~/features/dashboard/service";
 import type { OnboardingState, DashboardCollectionItem, DashboardDiscoveryItem, DashboardProposalItem, DashboardAdapterItem, DashboardSourceStat } from "~/features/dashboard/service/dashboard.service";
-import { SourceSidebar } from "~/components/dashboard/SourceSidebar";
-import { SummaryCard } from "~/components/dashboard/SummaryCard";
-import { PipelineKanban } from "~/components/dashboard/PipelineKanban";
-import { StatisticsPanel } from "~/components/dashboard/StatisticsPanel";
-import { OnboardingGuide } from "~/components/dashboard/OnboardingGuide";
+import { SourceSidebar } from "~/features/dashboard/ui/SourceSidebar";
+import { SummaryCard } from "~/features/dashboard/ui/SummaryCard";
+import { PipelineKanban } from "~/features/dashboard/ui/PipelineKanban";
+import { StatisticsPanel } from "~/features/dashboard/ui/StatisticsPanel";
+import { OnboardingGuide } from "~/features/dashboard/ui/OnboardingGuide";
 
 const EMPTY_DATA = {
   recentCollections: { total: 0, items: [] as DashboardCollectionItem[] },

@@ -10,8 +10,8 @@ import { DiscoveryQueryService } from "~/features/discovery/service/query";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
-import ComplianceChecklist from "~/components/compliance/ComplianceChecklist";
-import AuditTimeline from "~/components/compliance/AuditTimeline";
+import ComplianceChecklist from "~/features/discovery/ui/ComplianceChecklist";
+import AuditTimeline from "~/features/discovery/ui/AuditTimeline";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);

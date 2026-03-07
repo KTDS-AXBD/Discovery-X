@@ -10,7 +10,7 @@ import { DiscoveryQueryService } from "~/features/discovery/service/query";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
-import PatternCard from "~/components/patterns/PatternCard";
+import PatternCard from "~/features/discovery/ui/PatternCard";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);

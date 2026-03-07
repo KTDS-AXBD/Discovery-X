@@ -5,8 +5,8 @@ import { useLoaderData, useSearchParams } from "@remix-run/react";
 import type { MethodPack } from "~/db";
 import { getDb } from "~/db";
 import { LabService } from "~/features/lab/service";
-import { MethodPackCard } from "~/components/methods/MethodPackCard";
-import { MethodPackDetailDialog } from "~/components/methods/MethodPackDetailDialog";
+import { MethodPackCard } from "~/features/discovery/ui/MethodPackCard";
+import { MethodPackDetailDialog } from "~/features/discovery/ui/MethodPackDetailDialog";
 
 export async function loader({ context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);

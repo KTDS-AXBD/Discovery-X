@@ -4,9 +4,9 @@ import { useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { ProposalService } from "~/features/proposals/service/proposal.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { ProposalDetailHeader } from "~/components/proposals/ProposalDetailHeader";
-import { ProposalDetailSidebar } from "~/components/proposals/ProposalDetailSidebar";
-import { ProposalContentView } from "~/components/proposals/ProposalContentView";
+import { ProposalDetailHeader } from "~/features/proposals/ui/ProposalDetailHeader";
+import { ProposalDetailSidebar } from "~/features/proposals/ui/ProposalDetailSidebar";
+import { ProposalContentView } from "~/features/proposals/ui/ProposalContentView";
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);

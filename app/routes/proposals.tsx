@@ -4,7 +4,7 @@ import { Outlet, useLoaderData, useLocation } from "@remix-run/react";
 import { getDb } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
-import { ProposalTabNav } from "~/components/proposals/ProposalTabNav";
+import { ProposalTabNav } from "~/features/proposals/ui/ProposalTabNav";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);

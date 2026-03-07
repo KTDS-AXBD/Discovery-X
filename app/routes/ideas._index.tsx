@@ -1,6 +1,6 @@
 import { useOutletContext } from "@remix-run/react";
-import { IdeaCardGrid } from "~/components/ideas/IdeaCardGrid";
-import { SourceBrowser } from "~/components/ideas/SourceBrowser";
+import { IdeaCardGrid } from "~/features/ideas/ui/IdeaCardGrid";
+import { SourceBrowser } from "~/features/ideas/ui/SourceBrowser";
 
 interface IdeaItem {
   id: string;

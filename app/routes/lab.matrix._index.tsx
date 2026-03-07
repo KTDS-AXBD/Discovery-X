@@ -5,8 +5,8 @@ import { getDb } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { MatrixService } from "~/features/matrix/service/matrix.service";
 import type { HeatmapData } from "~/features/matrix/types";
-import { HeatmapGrid } from "~/components/matrix/HeatmapGrid";
-import { HeatmapLegend } from "~/components/matrix/HeatmapLegend";
+import { HeatmapGrid } from "~/features/matrix/ui/HeatmapGrid";
+import { HeatmapLegend } from "~/features/matrix/ui/HeatmapLegend";
 import {
   Select,
   SelectContent,
