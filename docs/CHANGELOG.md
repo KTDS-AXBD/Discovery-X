@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 300 (2026-03-07)
+**docs: SemVer 버전 관리 체계 도입 + Feature Flag 정리**:
+- ✅ SemVer 버전 관리 원칙 수립 — v0.1.0 리셋 (프로토타입 단계)
+- ✅ SPEC.md 레거시 버전 마커 24개 전부 제거
+- ✅ docs 18개 파일 system-version → `">=0.1.0"` SemVer 통일
+- ✅ 글로벌 설정: version-governance.md + check-version.sh (SessionStart Hook) + /version 스킬
+- ✅ Feature Flag 가드 전면 제거 — 5개 FF(ACL_SCOPE, AGENT_DO, AI_FALLBACK, VECTORIZE_SEARCH, pipelineBridge) 상시 활성화
+- ✅ Evidence 자동 생성 파이프라인 — analyzer 매핑 + ai-pipeline 자동 생성 + 테스트
+
+**검증 결과**:
+- ✅ typecheck / lint / 1,678 tests (114 files, 100% PASS)
+
 ### 세션 299 (2026-03-07)
 **docs: 통합 실행 계획서 v2.0 + 문서 거버넌스 체계 도입 + 자동 정리**:
 - ✅ DX-PLAN-005: 3개 설계문서(Ideas Pipeline v2, MSA Refactoring, Ontology Activation) 통합 실행 계획
