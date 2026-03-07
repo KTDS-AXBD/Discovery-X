@@ -2,7 +2,6 @@
  * AgentSession Durable Object — 클라이언트 인터페이스.
  *
  * agent-worker/에 배포된 AgentSessionDO와 통신하기 위한 타입 및 헬퍼.
- * Feature Flag: FF_AGENT_DO — true일 때 DO로 위임, false면 기존 Remix Action.
  *
  * @see agent-worker/src/agent-session.ts (DO 구현체)
  */
@@ -34,10 +33,9 @@ export interface AgentDOChatPayload {
 
 /**
  * DO 사용 가능 여부 확인.
- * FF_AGENT_DO Feature Flag가 "true"이면 DO 위임.
  */
-export function isAgentDOAvailable(env: Record<string, unknown>): boolean {
-  return env.FF_AGENT_DO === "true";
+export function isAgentDOAvailable(_env: Record<string, unknown>): boolean {
+  return true;
 }
 
 // ─── DO 위임 헬퍼 ──────────────────────────────────────────────────

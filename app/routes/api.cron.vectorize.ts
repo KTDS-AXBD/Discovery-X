@@ -2,7 +2,6 @@
  * GET /api/cron/vectorize?type=graph|memory|signal — Vectorize 동기화 통합 Cron
  *
  * 3개 Vectorize 인덱스(Graph, Memory, Signal)를 하나의 엔드포인트로 통합.
- * FF_VECTORIZE_SEARCH 활성 시에만 동작.
  */
 
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";

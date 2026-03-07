@@ -7,7 +7,6 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { sql } from "drizzle-orm";
 import { getDb } from "~/db";
-import { getFeatureFlags } from "~/lib/feature-flags";
 
 interface HealthCheck {
   status: "healthy" | "degraded" | "unhealthy";
@@ -16,14 +15,12 @@ interface HealthCheck {
   checks: {
     database: { status: "ok" | "error"; latencyMs: number; error?: string };
     vectorize: { status: "ok" | "unavailable" };
-    featureFlags: Record<string, boolean>;
     cronEndpoints: number;
   };
 }
 
 export async function loader({ context }: LoaderFunctionArgs) {
   const env = context.cloudflare.env;
-  const envRecord = env as unknown as Record<string, string | undefined>;
 
   // DB 연결 확인
   let dbStatus: HealthCheck["checks"]["database"];
@@ -46,9 +43,6 @@ export async function loader({ context }: LoaderFunctionArgs) {
     status: hasVectorize ? "ok" : "unavailable",
   };
 
-  // Feature Flag 상태
-  const featureFlags = getFeatureFlags(envRecord);
-
   // 전체 상태 판정
   const overallStatus: HealthCheck["status"] =
     dbStatus.status === "error" ? "degraded" : "healthy";
@@ -60,7 +54,6 @@ export async function loader({ context }: LoaderFunctionArgs) {
     checks: {
       database: dbStatus,
       vectorize: vectorizeStatus,
-      featureFlags: featureFlags as unknown as Record<string, boolean>,
       cronEndpoints: 19,
     },
   };

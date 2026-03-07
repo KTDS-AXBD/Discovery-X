@@ -107,21 +107,7 @@ describe("admin.monitoring loader", () => {
     ).rejects.toBeInstanceOf(Response);
   });
 
-  it("Feature Flag 상태를 반환한다", async () => {
-    const ctx = createMockContext({
-      ffEnv: { FF_GRAPH_LAYER: "true", FF_AGENT_DO: "false" },
-    });
-
-    const response = await loader({
-      request: createRequest(),
-      context: ctx,
-      params: {},
-    } as never);
-
-    const data = await response.json();
-    expect(data.featureFlags.graphLayer).toBe(true);
-    expect(data.featureFlags.agentDO).toBe(false);
-  });
+  // Feature Flag 테스트 제거 — FF 시스템 삭제됨 (S3)
 
   it("cron_logs 데이터를 조회한다", async () => {
     const cronRows = [

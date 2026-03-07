@@ -12,29 +12,10 @@ import type { AgentDOChatPayload } from "~/lib/agent/agent-do.stub";
 // ─── 테스트: isAgentDOAvailable ──────────────────────────────────────
 
 describe("isAgentDOAvailable", () => {
-  it('FF_AGENT_DO "true" → true', () => {
-    const env = { FF_AGENT_DO: "true" };
-    expect(isAgentDOAvailable(env)).toBe(true);
-  });
-
-  it('FF_AGENT_DO "false" → false', () => {
-    const env = { FF_AGENT_DO: "false" };
-    expect(isAgentDOAvailable(env)).toBe(false);
-  });
-
-  it("FF_AGENT_DO 키 없음 → false", () => {
-    const env = {};
-    expect(isAgentDOAvailable(env)).toBe(false);
-  });
-
-  it('FF_AGENT_DO "TRUE" (대문자) → false (strict equality)', () => {
-    const env = { FF_AGENT_DO: "TRUE" };
-    expect(isAgentDOAvailable(env)).toBe(false);
-  });
-
-  it("FF_AGENT_DO undefined → false", () => {
-    const env = { FF_AGENT_DO: undefined };
-    expect(isAgentDOAvailable(env)).toBe(false);
+  it("항상 true를 반환한다 (FF 제거됨)", () => {
+    expect(isAgentDOAvailable({})).toBe(true);
+    expect(isAgentDOAvailable({ FF_AGENT_DO: "false" })).toBe(true);
+    expect(isAgentDOAvailable({ FF_AGENT_DO: undefined })).toBe(true);
   });
 });
 

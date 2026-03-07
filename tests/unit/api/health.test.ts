@@ -87,17 +87,7 @@ describe("GET /api/health", () => {
     expect(body.checks.database.latencyMs).toBe(-1);
   });
 
-  it("Feature Flag 상태 12개 반환", async () => {
-    const args = makeContext({});
-    const response = await loader(args);
-    const body = await response.json();
-    const ff = body.checks.featureFlags;
-
-    expect(Object.keys(ff)).toHaveLength(12);
-    expect(ff.graphLayer).toBe(true);
-    expect(ff.agentDO).toBe(false);
-    expect(ff.collabWorker).toBe(true);
-  });
+  // Feature Flag 테스트 제거 — FF 시스템 삭제됨 (S3)
 
   it("타임스탬프 ISO8601 형식 검증", async () => {
     const args = makeContext({});

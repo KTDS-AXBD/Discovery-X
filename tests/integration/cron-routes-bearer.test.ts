@@ -136,21 +136,12 @@ describe("api.cron.signal-route", () => {
     expect(body).toMatchObject({ error: "CRON_SECRET not configured" });
   });
 
-  it("Feature Flag 비활성 → skipped", async () => {
-    const r = await signalRouteLoader({
-      request: makeBearerRequest("signal-route", "test-secret"),
-      context: ctx({ FF_PIPELINE_BRIDGE: "false" }),
-      params: {},
-    });
-    expect(r.status).toBe(200);
-    const body = (await r.json()) as Record<string, unknown>;
-    expect(body).toMatchObject({ skipped: true });
-  });
+  // Feature Flag 테스트 제거 — FF 시스템 삭제됨 (S3)
 
   it("정상 호출 → 200", async () => {
     const r = await signalRouteLoader({
       request: makeBearerRequest("signal-route", "test-secret"),
-      context: ctx({ FF_PIPELINE_BRIDGE: "true" }),
+      context: ctx({}),
       params: {},
     });
     expect(r.status).toBe(200);

@@ -15,7 +15,6 @@ import { sendBudgetWarning, addSummaryHeader } from "./agent-utils";
 import { SoulEngine } from "~/lib/agent/soul-engine";
 import { SessionManager } from "~/lib/agent/session-manager";
 import { MemoryLifecycle } from "~/lib/agent/memory-lifecycle";
-import { isFeatureEnabled } from "~/lib/feature-flags";
 import {
   prepareAgentPipeline,
   processToolBlocks,
@@ -129,7 +128,7 @@ async function flushSessionMemory(
       await sm.updateTokenCount(streamOptions.sessionId, totalInput, totalOutput);
     } catch { /* 세션 집계 실패는 비치명적 */ }
   }
-  if (streamOptions?.userId && streamOptions?.env && isFeatureEnabled(streamOptions.env, "memoryLifecycle")) {
+  if (streamOptions?.userId && streamOptions?.env) {
     try {
       const ml = new MemoryLifecycle(db);
       await ml.addDailyLog(streamOptions.userId, text.slice(0, 500), "conversation");
@@ -163,7 +162,7 @@ export function createAgentStreamResponse(
           !isIdeasMode &&
           !!streamOptions?.env &&
           !!streamOptions?.userId &&
-          isFeatureEnabled(streamOptions.env, "graphLayer");
+          true;
 
         let systemPrompt: string;
         if (isIdeasMode) {

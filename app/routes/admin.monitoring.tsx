@@ -1,7 +1,7 @@
 /**
  * 시스템 모니터링 대시보드 — /admin/monitoring
  *
- * 시스템 전반 상태 요약, Feature Flag 현황, Cron 실행 이력을 보여준다.
+ * 시스템 전반 상태 요약, Cron 실행 이력을 보여준다.
  * cron_logs 테이블(raw SQL)에서 직접 조회한다.
  */
 
@@ -10,10 +10,6 @@ import { json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { requireAdmin, getSessionSecret } from "~/lib/auth/session.server";
-import {
-  getFeatureFlags,
-  type FeatureFlags,
-} from "~/lib/feature-flags";
 import { AppShell } from "~/components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Badge } from "~/components/ui/Badge";
@@ -51,7 +47,6 @@ interface SystemStats {
 interface LoaderData {
   currentUser: { id: string; email: string; role: string; name: string | null };
   cronLogs: CronLogEntry[];
-  featureFlags: FeatureFlags;
   stats: SystemStats;
 }
 
@@ -61,11 +56,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
   const currentUser = await requireAdmin(request, db, secret);
-
-  // Feature Flags
-  const featureFlags = getFeatureFlags(
-    context.cloudflare.env as unknown as Record<string, string | undefined>,
-  );
 
   // cron_logs: raw SQL 조회 (Drizzle 스키마 없음)
   let cronLogs: CronLogEntry[] = [];
@@ -103,25 +93,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     tests: 925,
   };
 
-  return json<LoaderData>({ currentUser, cronLogs, featureFlags, stats });
+  return json<LoaderData>({ currentUser, cronLogs, stats });
 }
 
 // ─── 유틸 ──────────────────────────────────────────────────────────────
-
-const FF_LABELS: Record<keyof FeatureFlags, string> = {
-  graphLayer: "Graph Layer",
-  agentDO: "Agent DO",
-  topicCollab: "Topic Collab",
-  aclScope: "ACL Scope",
-  memoryLifecycle: "Memory Lifecycle",
-  vectorizeSearch: "Vectorize Search",
-  pipelineBridge: "Pipeline Bridge",
-  collabWorker: "Collab Worker",
-  profileLearner: "Profile Learner",
-  simplifiedNav: "Simplified Nav",
-  aiFallback: "AI Fallback",
-  requirementsAgent: "Requirements Agent",
-};
 
 /** 타임스탬프 → 읽기 쉬운 형태 (hydration-safe) */
 function formatTimestamp(ts: number): string {
@@ -174,14 +149,8 @@ function StatCard({
 // ─── 메인 페이지 ──────────────────────────────────────────────────────
 
 export default function AdminMonitoring() {
-  const { currentUser, cronLogs, featureFlags, stats } =
+  const { currentUser, cronLogs, stats } =
     useLoaderData<typeof loader>();
-
-  const flagEntries = Object.entries(featureFlags) as [
-    keyof FeatureFlags,
-    boolean,
-  ][];
-  const enabledCount = flagEntries.filter(([, v]) => v).length;
 
   return (
     <AppShell user={{ ...currentUser, name: currentUser.name ?? "" }}>
@@ -191,7 +160,7 @@ export default function AdminMonitoring() {
           시스템 모니터링
         </h1>
         <p className="mt-1 text-sm text-fg-secondary">
-          시스템 상태, Feature Flag, Cron 실행 이력을 확인합니다.
+          시스템 상태와 Cron 실행 이력을 확인합니다.
         </p>
       </div>
 
@@ -202,35 +171,6 @@ export default function AdminMonitoring() {
         <StatCard label="Agent 도구" value={stats.agentTools} unit="개" />
         <StatCard label="테스트" value={stats.tests} unit="개" />
       </div>
-
-      {/* Feature Flags */}
-      <Card className="mt-6">
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm">Feature Flags</CardTitle>
-            <span className="text-xs text-fg-tertiary">
-              {enabledCount}/{flagEntries.length} 활성
-            </span>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-            {flagEntries.map(([key, enabled]) => (
-              <div
-                key={key}
-                className="flex items-center justify-between py-2 px-3 rounded-lg bg-surface-tertiary"
-              >
-                <span className="text-sm text-fg">
-                  {FF_LABELS[key] ?? key}
-                </span>
-                <Badge variant={enabled ? "default" : "secondary"}>
-                  {enabled ? "ON" : "OFF"}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Cron 실행 로그 */}
       <Card className="mt-6">

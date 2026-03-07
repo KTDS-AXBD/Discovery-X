@@ -3,12 +3,10 @@ import { eq, and } from "drizzle-orm";
 import { getDb } from "~/db";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import type { Action } from "./types";
-import { isFeatureEnabled } from "~/lib/feature-flags";
 import { ScopeResolver } from "./resolver";
 
 /**
  * Remix loader/action에서 ACL을 검사하는 미들웨어.
- * Feature Flag FF_ACL_SCOPE가 꺼져있으면 항상 허용한다.
  *
  * 사용 예:
  *   export async function loader(args: LoaderFunctionArgs) {
@@ -21,12 +19,6 @@ export async function requireScopeAccess(
   action: Action,
 ): Promise<void> {
   const env = args.context.cloudflare.env as unknown as Record<string, string>;
-
-  // Feature Flag 비활성화 시 패스
-  if (!isFeatureEnabled(env, "aclScope")) {
-    return;
-  }
-
   const db = getDb(args.context.cloudflare.env.DB);
   const secret = getSessionSecret(env);
   const user = await getUserFromSession(args.request, db, secret);

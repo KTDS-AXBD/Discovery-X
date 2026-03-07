@@ -5,7 +5,6 @@
  * 시맨틱 검색을 수행한다.
  *
  * 의존: OPENAI_API_KEY (text-embedding-3-small), VECTORIZE_GRAPHS 바인딩
- * Phase 4: FF_VECTORIZE_SEARCH Feature Flag로 점진 활성화
  */
 
 import type { JsonLdGraph, JsonLdNode } from "./types";

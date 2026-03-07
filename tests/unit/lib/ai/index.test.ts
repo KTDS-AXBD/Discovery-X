@@ -50,21 +50,15 @@ describe("callLLM", () => {
     vi.clearAllMocks();
   });
 
-  it("uses callClaude directly when FF is off (no context)", async () => {
+  it("uses callClaude directly when no context", async () => {
     const result = await callLLM("sk-test", baseRequest);
     expect(callClaude).toHaveBeenCalledOnce();
     expect(mockCall).not.toHaveBeenCalled();
     expect(result.content[0].text).toBe("Hello");
   });
 
-  it("uses callClaude directly when FF is off (explicit false)", async () => {
-    await callLLM("sk-test", baseRequest, { env: { FF_AI_FALLBACK: "false" } });
-    expect(callClaude).toHaveBeenCalledOnce();
-    expect(mockCall).not.toHaveBeenCalled();
-  });
-
-  it("uses FallbackManager when FF is on", async () => {
-    const result = await callLLM("sk-test", baseRequest, { env: { FF_AI_FALLBACK: "true" } });
+  it("uses FallbackManager when context provided", async () => {
+    const result = await callLLM("sk-test", baseRequest, { env: {} });
     expect(mockCall).toHaveBeenCalledOnce();
     expect(callClaude).not.toHaveBeenCalled();
     expect(result.content[0].text).toBe("Fallback Hello");

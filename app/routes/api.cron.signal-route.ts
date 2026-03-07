@@ -1,7 +1,6 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { SignalRouter } from "~/lib/integration/signal-router";
-import { getFeatureFlags } from "~/lib/feature-flags";
 
 // GET: 시그널 자동 라우팅 Cron
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -19,15 +18,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
   if (token !== cronSecret) {
     return new Response("Unauthorized", { status: 401 });
-  }
-
-  // Feature Flag 체크
-  const flags = getFeatureFlags(env);
-  if (!flags.pipelineBridge) {
-    return Response.json(
-      { skipped: true, reason: "pipelineBridge feature flag disabled" },
-      { status: 200 },
-    );
   }
 
   const db = getDb(env.DB as unknown as D1Database);
