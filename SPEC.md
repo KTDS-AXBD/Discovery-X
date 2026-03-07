@@ -443,7 +443,7 @@ build/
 ### 버전
 - **시스템 (SemVer SSOT)**: 0.5.0 (package.json)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 52개 마이그레이션 SQL (0000~0050), 전체 적용 완료 (로컬+프로덕션)
+- **DB**: 53개 마이그레이션 SQL (0000~0051), 전체 적용 완료 (로컬+프로덕션)
 
 ### 주요 지표
 - **라우트**: 158개
@@ -473,7 +473,7 @@ build/
 - **브랜치 전략**: master 단일 브랜치 (Prototype 기간)
 - **배포**: Cloudflare Pages (master push → GitHub Actions CI/CD 자동 배포) — Secrets 설정 완료 ✅
 - **운영 실험**: 🚀 2026-01-31 시작 (30-60일, 최대 5명, Discovery 5-10건 목표)
-- **DB 마이그레이션**: ✅ 52개 SQL (0000~0050) 로컬+프로덕션 적용 완료
+- **DB 마이그레이션**: ✅ 53개 SQL (0000~0051) 로컬+프로덕션 적용 완료
 - **Cron 설정**: 10개 라우트 (daily/agent-review/embeddings/weekly-summary/signal-route/matrix-scoring/maintenance/vectorize/lab/ai-pipeline) + cron-job.org 14개 등록 완료
 - **Radar Worker**: 프로덕션 운영 중 (Cron 매일 9:00 KST, 10소스)
 - **이메일**: Resend (`noreply@ideaonaction.ai`), cron-job.org 자동 발송
