@@ -1,3 +1,15 @@
+---
+code: DX-SPEC-006
+title: Venture Sprint PRD v0.3 DevSpec
+version: 0.3
+status: Active
+category: SPEC
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+system-version: ">=4.0"
+---
+
 # Discovery-X 통합 기획서 v0.3 (Dev Spec): Venture Discovery Sprint
 - 문서 버전: **v0.3 (개발 티켓화 수준)**
 - 기준 문서: `Venture_Discovery_Sprint_PRD_v0.2.md`

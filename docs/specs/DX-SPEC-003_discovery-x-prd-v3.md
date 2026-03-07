@@ -1,3 +1,15 @@
+---
+code: DX-SPEC-003
+title: Discovery-X PRD v3
+version: 3.0
+status: Active
+category: SPEC
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+system-version: ">=6.0"
+---
+
 # Discovery-X Architecture Upgrade PRD v3
 
 **Graph-First · Topic-Scoped · Durable Agent 기반 설계**

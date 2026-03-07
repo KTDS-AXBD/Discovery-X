@@ -1,3 +1,14 @@
+---
+code: DX-ANLS-001
+title: 아이디어 기능 개선 갭 분석
+version: 1.0
+status: Active
+category: ANLS
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+---
+
 # Gap Analysis: f20-ideas-enhancement
 
 > **Feature**: f20-ideas-enhancement (아이디어 메모 + 필터/검색 + 유사 소스)

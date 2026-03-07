@@ -1,3 +1,14 @@
+---
+code: DX-RPRT-001
+title: 아이디어 기능 개선 완료 보고
+version: 1.0
+status: Active
+category: RPRT
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+---
+
 # F20 아이디어 고도화 PDCA 완료 보고서
 
 > **Feature**: f20-ideas-enhancement (아이디어 메모 + 필터/검색 + 유사 소스)

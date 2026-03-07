@@ -1,3 +1,14 @@
+---
+code: DX-PLAN-002
+title: 대시보드 차트 계획
+version: 1.0
+status: Active
+category: PLAN
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+---
+
 # F21: 대시보드 차트 실제 데이터 연결
 
 > **Summary**: `/dashboard/metrics` 탭에 StatusDonut/WeeklyBar 차트를 실제 DB 데이터와 연결하고, ExperimentGantt를 대시보드에서도 활용할 수 있도록 구현

@@ -1,3 +1,15 @@
+---
+code: DX-GUID-002
+title: 운영 런북
+version: 1.0
+status: Active
+category: GUID
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+system-version: ">=6.0"
+---
+
 # Discovery-X 운영 런북
 
 ## 1. 운영 개요

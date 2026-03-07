@@ -1,3 +1,15 @@
+---
+code: DX-SPEC-005
+title: Venture Discovery Sprint PRD v0.2
+version: 0.2
+status: Active
+category: SPEC
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+system-version: ">=4.0"
+---
+
 # Discovery-X 통합 기획서(업데이트판): Venture Discovery Sprint (AI Agent 주도 + HITL 게이트 + 도메인/토픽 분석)
 - 문서 버전: v0.2 (통합 방식 확정 반영)
 - 작성일: 2026-02-03

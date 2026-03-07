@@ -1,3 +1,14 @@
+---
+code: DX-PLAN-003
+title: 보관함 폴더 계획
+version: 1.0
+status: Active
+category: PLAN
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+---
+
 # F22: 보관함 폴더 CRUD 구현 (DB 스키마 + API + 아이템 드래그)
 
 > **Summary**: 하드코딩된 보관함 폴더를 DB 기반 CRUD로 전환하고, Discovery/RadarItem 등 다양한 엔티티를 폴더에 드래그하여 정리할 수 있는 기능 구현

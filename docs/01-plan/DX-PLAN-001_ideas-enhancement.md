@@ -1,3 +1,14 @@
+---
+code: DX-PLAN-001
+title: 아이디어 기능 개선 계획
+version: 1.0
+status: Active
+category: PLAN
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+---
+
 # F20: 아이디어 페이지 고도화 (Radar 연동 심화 + 메모 저장)
 
 > **Summary**: 아이디어 페이지에 메모 영속 저장, 스코어 필터링, 상태 그룹핑, 검색, 유사 소스 추천 기능 추가

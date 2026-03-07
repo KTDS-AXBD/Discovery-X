@@ -1,3 +1,15 @@
+---
+code: DX-GUID-003
+title: 사용자 치트시트
+version: 1.0
+status: Active
+category: GUID
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+system-version: ">=6.0"
+---
+
 # Discovery-X 사용자 치트시트
 
 > 관찰 → 실험 → 근거 → 결정. 더 잘 틀리고, 더 빨리 배우는 시스템.

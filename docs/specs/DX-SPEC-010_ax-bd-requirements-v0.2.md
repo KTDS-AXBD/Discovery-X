@@ -1,3 +1,15 @@
+---
+code: DX-SPEC-010
+title: AX BD팀 요구사항 v0.2
+version: 0.2
+status: Active
+category: SPEC
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+system-version: ">=1.0"
+---
+
 
 # 개발 티켓 단위 요구사항 (v0.2)
 

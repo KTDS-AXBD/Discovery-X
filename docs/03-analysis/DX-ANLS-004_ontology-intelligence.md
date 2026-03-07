@@ -1,3 +1,14 @@
+---
+code: DX-ANLS-004
+title: 온톨로지 인텔리전스 갭 분석
+version: 1.0
+status: Active
+category: ANLS
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+---
+
 # Design-Implementation Gap Analysis Report -- ontology-intelligence
 
 > **Summary**: Phase 1 (Data Formation Automation) design vs actual implementation comparison

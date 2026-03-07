@@ -1,3 +1,15 @@
+---
+code: DX-SPEC-011
+title: 요구사항 정리
+version: 1.0
+status: Active
+category: SPEC
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+system-version: ">=6.27"
+---
+
 # Discovery-X 요구사항 정리
 
 > 작성 기준: 2026-03-06 | 대상: AX BD팀 Discovery-X (세션 257 이후 상태 기준)

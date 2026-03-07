@@ -1,3 +1,15 @@
+---
+code: DX-SPEC-001
+title: Discovery-X 비즈니스 기획서 v1.4
+version: 1.4
+status: Active
+category: SPEC
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+system-version: ">=6.0"
+---
+
 # Discovery‑X 최종 기획서 (v1.4 – Prototype‑first, 30~60일 운영 실험)
 
 > v1.3의 뾰족함(내부 실험 + 근거 문서 루프)과 3대 실행 리스크 봉인(Owner/Time‑box/Recall)은 유지합니다.

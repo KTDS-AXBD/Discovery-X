@@ -1,3 +1,15 @@
+---
+code: DX-GUID-004
+title: 킥오프 프레젠테이션 템플릿
+version: 1.0
+status: Active
+category: GUID
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+system-version: ">=6.0"
+---
+
 # Discovery-X 킥오프 프레젠테이션 템플릿
 
 > 30-60일 운영 실험 시작을 위한 킥오프 미팅 가이드 (총 35분)

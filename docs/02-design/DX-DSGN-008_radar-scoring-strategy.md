@@ -1,3 +1,14 @@
+---
+code: DX-DSGN-008
+title: Radar 스코어링 전략
+version: 1.0
+status: Active
+category: DSGN
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+---
+
 # Radar Scoring Strategy
 
 > radar-worker AI 스코어링 아키텍처 개선 전략

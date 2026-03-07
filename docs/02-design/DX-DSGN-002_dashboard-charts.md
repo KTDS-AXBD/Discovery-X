@@ -1,3 +1,14 @@
+---
+code: DX-DSGN-002
+title: 대시보드 차트 설계
+version: 1.0
+status: Active
+category: DSGN
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+---
+
 # F21: 대시보드 차트 실제 데이터 연결 — Design Document
 
 > **Summary**: `/dashboard/metrics` 탭의 기존 loader 데이터를 JS 집계하여 StatusDonut/WeeklyBar/ExperimentGantt 차트를 연결하는 상세 설계. 추가 DB 쿼리 0건, 수정 파일 1개.

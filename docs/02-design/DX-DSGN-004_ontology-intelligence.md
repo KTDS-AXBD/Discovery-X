@@ -1,3 +1,14 @@
+---
+code: DX-DSGN-004
+title: 온톨로지 인텔리전스 설계
+version: 1.0
+status: Active
+category: DSGN
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+---
+
 # Design: ontology-intelligence (Phase 1 — 데이터 형성 자동화)
 
 > **Feature**: 온톨로지 기반 관계 분석 + 미래 예측 시스템

@@ -1,3 +1,14 @@
+---
+code: DX-DSGN-001
+title: 아이디어 기능 개선 설계
+version: 1.0
+status: Active
+category: DSGN
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+---
+
 # F20: 아이디어 페이지 고도화 Design Document
 
 > **Summary**: 아이디어 페이지의 메모 영속 저장, 스코어 필터링, 상태 그룹핑, 텍스트 검색, 유사 소스 추천 기능에 대한 상세 설계

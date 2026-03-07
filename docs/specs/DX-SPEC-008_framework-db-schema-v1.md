@@ -1,3 +1,15 @@
+---
+code: DX-SPEC-008
+title: Framework DB Schema v1
+version: 1.0
+status: Active
+category: SPEC
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+system-version: ">=3.0"
+---
+
 # Discovery-X Framework Porting — DB 스키마 구체화 문서
 
 **PRD v3 Graph-First 아키텍처 위의 산업×기능 매트릭스 데이터 계층 설계**

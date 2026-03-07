@@ -1,3 +1,15 @@
+---
+code: DX-SPEC-004
+title: Discovery-X PRD v3.1
+version: 3.1
+status: Active
+category: SPEC
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+system-version: ">=6.27"
+---
+
 # Discovery-X PRD v3.1
 
 > **버전**: v3.1 | **작성일**: 2026-03-05 | **상태**: 초안(Draft)

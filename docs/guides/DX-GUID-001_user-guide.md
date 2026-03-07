@@ -1,3 +1,15 @@
+---
+code: DX-GUID-001
+title: 사용자 가이드
+version: 1.0
+status: Active
+category: GUID
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+system-version: ">=6.0"
+---
+
 # Discovery-X 사용자 가이드
 
 > 버전: v0.3.0 | 작성일: 2026-01-31

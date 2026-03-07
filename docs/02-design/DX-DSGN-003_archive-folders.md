@@ -1,3 +1,14 @@
+---
+code: DX-DSGN-003
+title: 보관함 폴더 설계
+version: 1.0
+status: Active
+category: DSGN
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+---
+
 # F22: 보관함 폴더 CRUD — 상세 설계
 
 > **Summary**: 하드코딩된 보관함 폴더를 DB 기반 CRUD로 전환하고, Discovery/RadarItem/Conversation/Proposal 등 다양한 엔티티를 폴더에 드래그하여 정리할 수 있는 기능의 상세 설계 문서

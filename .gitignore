@@ -5,10 +5,15 @@ build
 .dev.vars
 .team-tmp
 *.local
-screenshot.png
-.claude/backup-*/
 nul
+
+# Artifacts & temp files
+screenshot.png
+*.tmp
+*.bak
+*Zone.Identifier
 .playwright-mcp/
+.claude/backup-*/
 
 # Claude Code local settings
 .claude/settings.local.json

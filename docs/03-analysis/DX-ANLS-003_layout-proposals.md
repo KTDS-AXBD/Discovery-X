@@ -1,3 +1,14 @@
+---
+code: DX-ANLS-003
+title: 레이아웃 제안 갭 분석
+version: 1.0
+status: Active
+category: ANLS
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+---
+
 # Gap Analysis: layout-proposals
 
 > **Feature**: layout-proposals (3탭 GNB + 컨텍스트 패널 + 사업제안)

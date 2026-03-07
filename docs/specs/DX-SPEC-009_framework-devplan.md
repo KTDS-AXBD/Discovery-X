@@ -1,3 +1,15 @@
+---
+code: DX-SPEC-009
+title: Framework 개발 계획
+version: 1.0
+status: Active
+category: SPEC
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+system-version: ">=3.0"
+---
+
 # KT DS AX Business Development Framework
 
 ## Discovery X Porting Development Plan

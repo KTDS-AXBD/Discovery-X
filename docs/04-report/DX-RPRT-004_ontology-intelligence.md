@@ -1,3 +1,14 @@
+---
+code: DX-RPRT-004
+title: 온톨로지 인텔리전스 완료 보고
+version: 1.0
+status: Active
+category: RPRT
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+---
+
 # PDCA Completion Report: ontology-intelligence (Phase 1)
 
 > **Feature**: Ontology-based entity extraction + relationship inference — Data Formation Automation

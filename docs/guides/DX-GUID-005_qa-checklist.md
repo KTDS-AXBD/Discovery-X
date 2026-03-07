@@ -1,3 +1,15 @@
+---
+code: DX-GUID-005
+title: QA 체크리스트
+version: 1.0
+status: Active
+category: GUID
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+system-version: ">=6.0"
+---
+
 # Discovery-X QA 체크리스트 (수동 테스트)
 
 > 작성일: 2026-01-31

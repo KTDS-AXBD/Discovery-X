@@ -1,3 +1,14 @@
+---
+code: DX-PLAN-004
+title: 온톨로지 인텔리전스 계획
+version: 1.0
+status: Active
+category: PLAN
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+---
+
 # Plan: ontology-intelligence
 
 > **Feature**: 온톨로지 기반 관계 분석 + 미래 예측 시스템

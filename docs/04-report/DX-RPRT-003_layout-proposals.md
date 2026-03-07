@@ -1,3 +1,14 @@
+---
+code: DX-RPRT-003
+title: 레이아웃 제안 완료 보고
+version: 1.0
+status: Active
+category: RPRT
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+---
+
 # Layout Restructure + Proposals 완료 보고서
 
 > **Feature**: layout-proposals (3탭 GNB + 컨텍스트 패널 + 사업제안 기능)

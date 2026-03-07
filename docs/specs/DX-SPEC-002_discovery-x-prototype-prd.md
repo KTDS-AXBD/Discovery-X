@@ -1,3 +1,15 @@
+---
+code: DX-SPEC-002
+title: Discovery-X 프로토타입 PRD
+version: 0.1
+status: Active
+category: SPEC
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+system-version: ">=1.0"
+---
+
 # Discovery‑X v1 Prototype PRD & 개발계획서 (v0.1)
 
 - 문서 목적: **30~60일 운영 실험용 Discovery‑X Prototype**을 실제로 개발/운영하기 위한 요구사항(PRD) + 개발 계획을 한 문서로 고정

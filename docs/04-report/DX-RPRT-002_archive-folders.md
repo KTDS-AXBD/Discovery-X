@@ -1,3 +1,14 @@
+---
+code: DX-RPRT-002
+title: 보관함 폴더 완료 보고
+version: 1.0
+status: Active
+category: RPRT
+created: 2026-03-07
+updated: 2026-03-07
+author: Sinclair Seo
+---
+
 # F22 보관함 폴더 PDCA 완료 보고서
 
 > **Feature**: f22-archive-folders (보관함 폴더 CRUD + 드래그앤드롭)
