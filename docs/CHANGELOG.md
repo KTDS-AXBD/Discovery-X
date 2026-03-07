@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 302 (2026-03-07)
+**docs: 요구사항/프로젝트/리스크 관리 표준 + 자동화 스킬/훅**:
+- 요구사항 관리 표준 (`requirements-governance.md`) — 전체 백로그 통합, 유형x도메인 교차 분류, 영향도x긴급도 우선순위, 8단계 상태
+- 프로젝트 관리 표준 (`project-governance.md`) — 세션 단위 운영, 마일스톤=SemVer Minor, DoD 전체 파이프라인
+- 리스크 관리 표준 (`risk-governance.md`) — Blocker/Dependency/Tech Debt/Constraint 4유형, 에스컬레이션
+- `/req` 스킬 — 요구사항 등록/분류/상태변경/목록/SPEC 동기화
+- `/retro` 스킬 — 마일스톤 회고 (지표 수집 + CHANGELOG 기록)
+- `/risk` 스킬 — 리스크 등록/목록/해소 처리
+- `check-risks.sh` 훅 — SessionStart/Stop 시 MEMORY.md [긴급]/[블로커] 알림
+- 글로벌 CLAUDE.md 거버넌스 스킬/훅 참조 추가
+- 테스트 11개 시나리오 전체 통과 (버그 3건 발견→수정: HOME 경로, grep -c, 디렉토리 동기화)
+
 ### 세션 301 (2026-03-07)
 **refactor: S4 레거시 정리 + callClaude→callLLM import 표준화**:
 - ✅ signalMetadata 테이블 DROP — 미사용 레거시 테이블 제거 + 마이그레이션 0048
