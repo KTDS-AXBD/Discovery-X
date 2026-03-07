@@ -3,7 +3,7 @@ import { useNavigate } from "@remix-run/react";
 import { cn } from "~/lib/utils/cn";
 import { displayTitle } from "~/lib/utils/display-title";
 import { useSourceFilter } from "~/lib/hooks/use-source-filter";
-import { SourceFilterBar } from "~/components/ideas/SourceFilterBar";
+import { SourceFilterBar } from "~/features/ideas/ui/SourceFilterBar";
 
 interface SourceItem {
   id: string;

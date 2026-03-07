@@ -1,7 +1,7 @@
 import { ChatPanel } from "~/features/chat/ui/ChatPanel";
 import { PRIMARY_METHODOLOGIES } from "~/lib/constants/methodology";
-import { AnalysisProgress } from "~/components/ideas/AnalysisProgress";
-import type { CategoryState } from "~/components/ideas/AnalysisProgress";
+import { AnalysisProgress } from "~/features/ideas/ui/AnalysisProgress";
+import type { CategoryState } from "~/features/ideas/ui/AnalysisProgress";
 
 interface ChatMessage {
   id: string;
