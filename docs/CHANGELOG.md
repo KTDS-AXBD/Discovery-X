@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 330 (2026-03-08)
+**chore: CLAUDE.md 감사 + ax selfcheck + v0.5.1 태그 + v0.6.0 마일스톤 설정**:
+- ✅ CLAUDE.md 품질 감사 (3파일, 평균 84/100) — 디렉토리 구조 outdated 2건 수정 (→91점 Grade A)
+- ✅ ax-13-selfcheck 자율점검 6/6 PASS (commands/standards/hooks/skills 전체 정합)
+- ✅ ax-08-ver status — 3소스(package.json/git tag/MEMORY.md) 0.5.0 일치 확인
+- ✅ v0.5.1 patch bump + annotated tag 생성 (73 커밋 축적분 공식화)
+- ✅ v0.6.0 마일스톤 설정: F35(PPT Agent) + F36(MVP Agent) P1 집중, F31~F34 → v0.7.0 재배정
+- ✅ SPEC.md F항목 마일스톤 재배정 + MEMORY.md 마일스톤 계획 섹션 추가
+
+**검증 결과**:
+- ✅ 코드 변경 없음 (문서/설정만) — typecheck/lint/test 기존 상태 유지
+
 ### 세션 329 (2026-03-08)
 **test: GAP 분석 + Agent Team 테스트 111개 추가 (2,037→2,148)**:
 - ✅ 종합 GAP 분석 수행: 테스트 커버리지, 서비스 레이어, 기술부채, F항목 점검
