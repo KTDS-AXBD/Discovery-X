@@ -1,0 +1,6 @@
+packages:
+  - "packages/*"
+  - "agent-worker"
+  - "collab-worker"
+  - "venture-worker"
+  - "radar-worker"
