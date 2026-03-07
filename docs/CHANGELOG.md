@@ -4,10 +4,19 @@
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
 ### 세션 311 (2026-03-07)
-**chore: bkit 플러그인 복원 + 버전 상태 확인**:
-- ✅ `/pdca` 스킬 미로딩 원인 분석: `~/.claude` vs `~/.claude-work` 환경 분리
-- ✅ bkit-marketplace 복사 + `known_marketplaces.json` 등록
-- ✅ `/ax-08-ver status`: v0.5.0, tag 일치, 태그 이후 21커밋
+**chore: 거버넌스 점검 + BC 통일 Phase D 커밋**:
+- ✅ bkit 플러그인 복원 (`~/.claude-work` → `~/.claude` 환경 분리 해결)
+- ✅ `/ax-08-ver check`: 5/5 PASS (MEMORY.md 버전 SemVer 통일)
+- ✅ `/ax-09-doc check`: 39/39 PASS + CRLF→LF 5파일 수정
+- ✅ `/ax-09-doc index`: INDEX.md 재생성 (4건 불일치 수정 + 파일 경로 컬럼 추가)
+- ✅ `/ax-07-gov check`: 10/10 적합 (.env.example 추가로 GOV-007/010 해소)
+- ✅ `/ax-11-risk list`: Blocker 0, Tech Debt 3, Constraint 4
+- ✅ `/ax-10-req list`: F6~F30 중 24완료, 1진행중(F28)
+- ✅ BC 통일 Phase D 커밋: DB 스키마 분산(5 BC) + UI 컴포넌트 BC 귀속(8 BC) + import 경로 갱신 (250파일)
+- ✅ SPEC.md 지표 동기화 (라우트 158, 테이블 97, Agent 72, 마이그레이션 50)
+
+**검증 결과**:
+- ✅ typecheck / lint 통과
 - ✅ SPEC.md 지표 동기화 커밋 (라우트 158, 테이블 97, Agent 도구 72, 마이그레이션 50)
 
 ### 세션 310 (2026-03-07)
