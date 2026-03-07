@@ -4,10 +4,15 @@
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
 ### 세션 327 (2026-03-08)
-**chore: Agent Team worker pane 인프라 점검 + 버그 수정**:
-- ✅ worker pane 인터랙티브 모드(`claude "prompt"`) 동작 확인 — 풀 UI 실시간 표시 정상
-- ✅ DONE 마커 생성 메커니즘 정상 동작 확인
-- 🐛 `--no-session-persistence` 플래그 버그 수정 — 인터랙티브 모드에서 `--print` 전용 옵션 에러 발생 → ax-06-team.md 템플릿에서 제거
+**test: GAP 분석 + P1 잔여 해소 — alert-engine(27) + ai-pipeline(28) 테스트 추가 (2,010→2,037)**:
+- ✅ 테스트 커버리지 GAP 분석: ai-pipeline(이미 완료 발견), graph(138개 완비 확인), alert-engine(0→27), templates(기존 16)
+- ✅ alert-engine.test.ts (27개): scanAndFireAlerts 5종 알림 (KPI/SLA/Overdue/Gate/InboxTTL) + processExpiredGateApprovals (자동 거부/HOLD 전환/리마인더)
+- ✅ Agent Team (2-worker): W2 templates 성공, W1 alert-engine 실패 → 리더 직접 수행
+- ✅ FK 이슈 발견: alert-engine L202 gatePackageId→alerts.discoveryId (D1 FK 미강제로 동작, 테스트 workaround 적용)
+- ✅ MEMORY.md 정정: ai-pipeline 테스트 28개 이미 존재 (미기록), Graph 138개 완비, P1 잔여 0개
+- 테스트: 2,037개 (137 files, 100% PASS)
+
+**검증**: typecheck ✅ lint ✅ tests ✅ (2,037개)
 
 ### 세션 326 (2026-03-08)
 **test: 전체 파이프라인 점검 + P1 Gap 해소 — AI Pipeline + Radar + Lab + Executor 테스트 94개 추가**:
