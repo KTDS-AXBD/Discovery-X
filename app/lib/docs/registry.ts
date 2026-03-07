@@ -2,13 +2,13 @@
  * Document registry — imports docs/*.md at build time via Vite ?raw.
  */
 
-import prdRaw from "../../../docs/specs/Discovery-X_Prototype_PRD_v0.1.md?raw";
-import v14Raw from "../../../docs/specs/Discovery-X_v1.4.md?raw";
-import kickoffRaw from "../../../docs/guides/KICKOFF_TEMPLATE.md?raw";
-import runbookRaw from "../../../docs/guides/OPERATIONAL_RUNBOOK.md?raw";
-import qaRaw from "../../../docs/guides/qa-checklist.md?raw";
-import cheatSheetRaw from "../../../docs/guides/USER_CHEAT_SHEET.md?raw";
-import userGuideRaw from "../../../docs/guides/user-guide.md?raw";
+import prdRaw from "../../../docs/specs/DX-SPEC-002_discovery-x-prototype-prd.md?raw";
+import v14Raw from "../../../docs/specs/DX-SPEC-001_discovery-x-v1.4.md?raw";
+import kickoffRaw from "../../../docs/guides/DX-GUID-004_kickoff-template.md?raw";
+import runbookRaw from "../../../docs/guides/DX-GUID-002_operational-runbook.md?raw";
+import qaRaw from "../../../docs/guides/DX-GUID-005_qa-checklist.md?raw";
+import cheatSheetRaw from "../../../docs/guides/DX-GUID-003_user-cheat-sheet.md?raw";
+import userGuideRaw from "../../../docs/guides/DX-GUID-001_user-guide.md?raw";
 
 export type DocCategory = "planning" | "operations" | "guides";
 
