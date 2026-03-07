@@ -9,7 +9,7 @@ import { describe, it, expect, beforeAll, beforeEach } from "vitest";
 import { createTestDb } from "tests/helpers/db";
 import type { DB } from "~/db";
 import { IdeaService } from "~/features/ideas/service/idea.service";
-import { users, tenants, tenantMembers, radarSources, radarRuns, radarItems } from "~/db";
+import { users, tenants, tenantMembers, radarSources, radarItems } from "~/db";
 import { ideas, ideaSources } from "~/features/ideas/db/schema";
 import { eq } from "drizzle-orm";
 
@@ -40,36 +40,27 @@ function seedFixtures() {
 
   // radarItems에 필요한 radarSources + radarRuns 먼저 삽입
   db.insert(radarSources)
-    .values({ id: "rs-idea-1", tenantId: TENANT_ID, name: "Test Source", url: "https://example.com/feed", type: "rss", sourceType: "rss" })
-    .run();
-
-  db.insert(radarRuns)
-    .values({ id: "rr-idea-1", sourceId: "rs-idea-1", tenantId: TENANT_ID, status: "completed", itemCount: 2 })
+    .values({ id: "rs-idea-1", tenantId: TENANT_ID, name: "Test Source", url: "https://example.com/feed", sourceType: "rss" })
     .run();
 
   db.insert(radarItems)
-    .values([
-      {
-        id: RADAR_ITEM_ID,
-        runId: "rr-idea-1",
-        sourceId: "rs-idea-1",
-        tenantId: TENANT_ID,
-        title: "Test Article 1",
-        url: "https://example.com/1",
-        urlHash: "hash-idea-1",
-        status: "new",
-      },
-      {
-        id: RADAR_ITEM_ID_2,
-        runId: "rr-idea-1",
-        sourceId: "rs-idea-1",
-        tenantId: TENANT_ID,
-        title: "Test Article 2",
-        url: "https://example.com/2",
-        urlHash: "hash-idea-2",
-        status: "new",
-      },
-    ])
+    .values({
+      id: RADAR_ITEM_ID,
+      sourceId: "rs-idea-1",
+      urlHash: "hash-idea-1",
+      url: "https://example.com/1",
+      title: "Test Article 1",
+    })
+    .run();
+
+  db.insert(radarItems)
+    .values({
+      id: RADAR_ITEM_ID_2,
+      sourceId: "rs-idea-1",
+      urlHash: "hash-idea-2",
+      url: "https://example.com/2",
+      title: "Test Article 2",
+    })
     .run();
 }
 
