@@ -73,6 +73,7 @@ export function createTestDb() {
   runMigrationSQL(sqlite, resolve(migrationsDir, "0045_requirements_review.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0046_feature_requests_status_check.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0047_work_plan_automation.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0048_drop_signal_metadata.sql"));
 
   return drizzle(sqlite, { schema: { ...schema, ...v2Schema, ...matrixSchema, ...requestsSchema } });
 }

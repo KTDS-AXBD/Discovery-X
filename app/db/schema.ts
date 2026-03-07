@@ -608,16 +608,6 @@ export const stages = sqliteTable("stages", {
   color: text("color").notNull(),
 });
 
-export const signalMetadata = sqliteTable("signal_metadata", {
-  discoveryId: text("discovery_id")
-    .primaryKey()
-    .references(() => discoveries.id, { onDelete: "cascade" }),
-  signalType: text("signal_type"),
-  timeSensitivity: text("time_sensitivity"),
-  actors: text("actors", { mode: "json" }).$type<string[]>(),
-  assumptions: text("assumptions", { mode: "json" }).$type<string[]>(),
-});
-
 // ============================================================================
 // METHOD PACK TABLES (v3 R1)
 // ============================================================================
@@ -1325,9 +1315,6 @@ export type NewAgentConfig = typeof agentConfig.$inferInsert;
 
 export type Stage = typeof stages.$inferSelect;
 export type NewStage = typeof stages.$inferInsert;
-
-export type SignalMetadata = typeof signalMetadata.$inferSelect;
-export type NewSignalMetadata = typeof signalMetadata.$inferInsert;
 
 export type MethodPack = typeof methodPacks.$inferSelect;
 export type NewMethodPack = typeof methodPacks.$inferInsert;
