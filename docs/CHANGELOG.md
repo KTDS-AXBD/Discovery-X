@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 323 (2026-03-07)
+**style: Lab 페이지 가독성 개선 — 텍스트 크기·대비·간격 전면 상향**:
+- ✅ 최소 텍스트 크기 9px→11px 상향 (7개 파일, 전 서브페이지 적용)
+- ✅ 모노스페이스 폰트를 코드/숫자에만 선택적 적용 (산문/라벨에서 제거)
+- ✅ 칸반 열 폭 w-56→w-64 확대 + 카운트 색상 대비 향상
+- ✅ 작업 현황 행 패딩 py-1.5→py-2.5, 제목 text-xs→text-sm, 상태 도트 확대
+- ✅ 탭 내비게이션 text-xs→text-sm, uppercase 제거
+- ✅ 방법론 설명 text-xs→text-sm + leading-relaxed
+- ✅ 요구사항 DB 등록 (DONE)
+
+**검증**: typecheck ✅ lint ✅
+
 ### 세션 322 (2026-03-07)
 **test: P0 보안 모듈 테스트 추가 + Gap 분석 수행**:
 - ✅ auth 테스트 30개: getUserFromSession, requireUser/Admin/Gatekeeper, createSession, destroySession, getSessionContext, isSecureCookie
