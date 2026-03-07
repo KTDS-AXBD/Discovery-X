@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 306 (2026-03-07)
+**feat: Cron 임계치(Evidence 30건) + Lab 인사이트 요약 위젯 — Phase B S7 완료**:
+- ✅ `api.cron.lab.ts`: EVIDENCE_THRESHOLD=30 상수 + `getEvidenceCount()` + 테넌트별 skip 로직
+- ✅ `lab.service.ts`: `getInsightSummary()` — 패턴 top3/모순 top3/핵심 엔티티 top5 자동 분석
+- ✅ `lab.analysis.tsx`: loader 병렬 호출 + 상단 인사이트 요약 위젯 (3컬럼 그리드, InsightPanel 재활용)
+- ✅ `/team` 병렬 작업 — Worker 1(백엔드 Cron) + Worker 2(프론트엔드 위젯) 동시 수행
+- ✅ **M3 마일스톤 달성**: Ontology 전체 가동 (3경로 Evidence 생성 + Cron 임계치 동작)
+
+**검증 결과**:
+- ✅ typecheck / lint / 1,697 tests (117 files, 100% PASS, +5)
+
 ### 세션 305 (2026-03-07)
 **docs: 범용 거버넌스 표준 10개 신규 구축 — 인터뷰 기반 표준화**:
 - ✅ 코딩 컨벤션 (`coding-convention.md`) — 네이밍, import 정렬, 함수 크기, 에러 처리, AI 협업
