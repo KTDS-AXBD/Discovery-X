@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 301 (2026-03-07)
+**refactor: S4 레거시 정리 + callClaude→callLLM import 표준화**:
+- ✅ signalMetadata 테이블 DROP — 미사용 레거시 테이블 제거 + 마이그레이션 0048
+- ✅ callClaude import 표준화 — 19개 소비자 파일의 claude-client 직접 참조를 ~/lib/ai 경유로 전환
+- ✅ ~/lib/ai/index.ts에 ClaudeMessage, ClaudeContentBlock, ClaudeTool, CLAUDE_MODEL re-export 추가
+- ⏭️ agentMemory v1 제거 — N/A (v1 테이블 자체가 존재하지 않음)
+- ⏭️ Worker 공통 유틸 추출 — 별도 세션으로 이관
+
+**검증 결과**:
+- ✅ typecheck / lint / 1,678 tests (114 files, 100% PASS)
+
 ### 세션 300 (2026-03-07)
 **docs: SemVer 버전 관리 체계 도입 + Feature Flag 정리**:
 - ✅ SemVer 버전 관리 원칙 수립 — v0.1.0 리셋 (프로토타입 단계)
