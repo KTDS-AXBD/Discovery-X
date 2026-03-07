@@ -4,13 +4,17 @@
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
 ### 세션 299 (2026-03-07)
-**docs: 통합 실행 계획서 v2.0 + 문서 거버넌스 체계 도입**:
+**docs: 통합 실행 계획서 v2.0 + 문서 거버넌스 체계 도입 + 자동 정리**:
 - ✅ DX-PLAN-005: 3개 설계문서(Ideas Pipeline v2, MSA Refactoring, Ontology Activation) 통합 실행 계획
   - 24 세션 기반 실행 로드맵 (Phase B: 7, Phase C: 17)
   - 14개 리스크 관리 + 배포 전략 + Evidence Ingestion Policy + 성공 지표/텔레메트리
-- ✅ 문서 거버넌스: 38개 문서 DX-{CATEGORY}-{NNN} 코드 체계 + YAML frontmatter
+- ✅ 문서 거버넌스: 39개 문서 DX-{CATEGORY}-{NNN} 코드 체계 + YAML frontmatter
 - ✅ docs/INDEX.md 인덱스 생성 + CLAUDE.md 경로 반영
 - ✅ Ideas Pipeline v2 코드 커밋 (이전 세션 미커밋 분 정리)
+- ✅ 글로벌 자동 정리 Hook: SessionStart 시 불필요 파일(*.tmp, *.bak, *Zone.Identifier, 루트 PNG, .playwright-mcp/) 자동 삭제
+- ✅ .gitignore 패턴 보강 (*.tmp, *.bak, *Zone.Identifier)
+- ✅ 루트 스크린샷 7개 + .playwright-mcp/ 캐시 정리
+- ✅ 문서 관리 체계 테스트 17개 시나리오 전체 PASS (자동 정리, frontmatter 검증, 전체 문서 일괄 검증, .gitignore 패턴, INDEX 정합성)
 
 **검증 결과**:
 - ✅ typecheck / lint 통과
