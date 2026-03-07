@@ -93,7 +93,7 @@ const db = getDb(context.DB);
 - `ALLOWED_TRANSITIONS` (app/lib/constants/status.ts) 정의된 전환만 허용
 
 ### 스키마 머지
-- `app/db/index.ts`에서 8개 스키마 머지: `schema`, `proposalSchema`, `archiveSchema`, `ideasSchema`, `tokenUsageSchema`, `v2Schema`, `matrixSchema`, `requestsSchema`
+- `app/db/index.ts`에서 12개 스키마 머지: `schema`, `discoverySchema`, `radarSchema`, `chatSchema`, `labSchema`, `proposalSchema`, `archiveSchema`, `ideasSchema`, `tokenUsageSchema`, `v2Schema`, `matrixSchema`, `requestsSchema`
 
 ### SSR 외부화 (vite.config.ts)
 - `ssr.external`: `resend`, `mailparser`, `@zone-eu/mailsplit`, `libmime`

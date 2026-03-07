@@ -355,7 +355,7 @@ root.tsx
 └─ Outlet (하위 라우트)
 ```
 
-### 데이터 모델 (97개 테이블)
+### 데이터 모델 (97개 테이블 — Drizzle 72 + 마이그레이션 전용 25)
 
 | 카테고리 | 테이블 수 | 테이블 |
 |---------|---------|--------|
@@ -364,7 +364,7 @@ root.tsx
 | Ontology/Graph | 5 | ontology_types, context_nodes, context_edges, context_snapshots, evidence_duplicate_candidates |
 | v3 Graph Layer | 9 | graphs, graph_events, projections, topics, topic_members, shared_signals, agent_memory_v2, agent_sessions_v2, acl_audit_logs |
 | Methods & Gates | 4 | method_packs, method_runs, gate_packages, assumptions |
-| Venture Sprint | 16 | vd_sprints, vd_sprint_scopes, vd_signals, vd_problems, vd_themes, vd_opportunities, vd_evidences, vd_assumptions, vd_premortems, vd_artifacts, vd_decisions, vd_votes, vd_scores, vd_work_events, vd_analytics_snapshots, vd_task_queue |
+| Venture Sprint (아카이브) | 16 | vd_sprints, vd_sprint_scopes, vd_signals, vd_problems, vd_themes, vd_opportunities, vd_evidences, vd_assumptions, vd_premortems, vd_artifacts, vd_decisions, vd_votes, vd_scores, vd_work_events, vd_analytics_snapshots, vd_task_queue |
 | Ideas | 2 | ideas (+createdByAgent), idea_sources |
 | AI Pipeline | 1 | ai_pipeline_runs |
 | Radar | 4 | radar_sources, radar_runs, radar_items, radar_item_user_status |
@@ -383,6 +383,8 @@ root.tsx
 | FTS | 1 | discoveries_fts |
 | Requests | 5 | feature_requests, request_reviews, request_events, work_plans, work_plan_runs |
 | **합계** | **97** | |
+
+> Drizzle 스키마 미정의 25개: Venture Sprint 16 (아카이브) + Shadow Mode 2 + Value-up Engine 4 + Worker/Infra 2 + FTS 1 — 마이그레이션 SQL에만 존재
 
 ### Agent 시스템 (72개 도구)
 
@@ -438,16 +440,16 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **프로토타입**: v6.26.0 — PIVOT 핵심 루프 + 온보딩 플로우 (세션 269)
+- **시스템 (SemVer SSOT)**: 0.5.0 (package.json)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 50개 마이그레이션 (0000~0049), 전체 적용 완료 (로컬+프로덕션)
+- **DB**: 51개 마이그레이션 SQL (0000~0049), 전체 적용 완료 (로컬+프로덕션)
 
 ### 주요 지표
 - **라우트**: 158개
 - **테이블**: 97개
 - **Agent 도구**: 72개
-- **코드**: ~70,700줄 (~427파일)
-- **테스트**: 1,697개 (128 test files, 로컬 통과)
+- **코드**: ~71,600줄 (~448파일)
+- **테스트**: 1,697개 (117 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
@@ -470,7 +472,7 @@ build/
 - **브랜치 전략**: master 단일 브랜치 (Prototype 기간)
 - **배포**: Cloudflare Pages (master push → GitHub Actions CI/CD 자동 배포) — Secrets 설정 완료 ✅
 - **운영 실험**: 🚀 2026-01-31 시작 (30-60일, 최대 5명, Discovery 5-10건 목표)
-- **DB 마이그레이션**: ✅ 50개 (0000~0049) 로컬+프로덕션 적용 완료
+- **DB 마이그레이션**: ✅ 51개 SQL (0000~0049) 로컬+프로덕션 적용 완료
 - **Cron 설정**: 10개 라우트 (daily/agent-review/embeddings/weekly-summary/signal-route/matrix-scoring/maintenance/vectorize/lab/ai-pipeline) + cron-job.org 14개 등록 완료
 - **Radar Worker**: 프로덕션 운영 중 (Cron 매일 9:00 KST, 10소스)
 - **이메일**: Resend (`noreply@ideaonaction.ai`), cron-job.org 자동 발송
