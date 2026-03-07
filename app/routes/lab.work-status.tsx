@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
@@ -69,6 +70,10 @@ export default function WorkStatusPage() {
     useLoaderData<typeof loader>();
   const typedPlans = workPlans as WorkPlanWithContext[];
   const typedLifecycle = lifecycleRequests as RequestWithReview[];
+  const [showDone, setShowDone] = useState(false);
+
+  const activeItems = typedLifecycle.filter((r) => r.status !== "DONE");
+  const doneItems = typedLifecycle.filter((r) => r.status === "DONE");
 
   return (
     <div className="space-y-8">
@@ -93,13 +98,15 @@ export default function WorkStatusPage() {
           ))}
         </div>
 
-        {typedLifecycle.length === 0 ? (
+        {/* 활성 항목 (PLANNED + IN_PROGRESS) */}
+        {activeItems.length === 0 && doneItems.length === 0 ? (
           <div className="py-8 text-center text-xs text-fg-tertiary font-mono-dx">
             계획/진행/완료된 요구사항이 없어요. 칸반에서 반영→계획으로 전환해 보세요.
           </div>
         ) : (
+          <>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {typedLifecycle.map((r) => (
+            {activeItems.map((r) => (
               <Card key={r.id}>
                 <CardContent className="p-4">
                   {/* REQ 코드 + 상태 */}
@@ -145,6 +152,54 @@ export default function WorkStatusPage() {
               </Card>
             ))}
           </div>
+
+          {/* 완료 항목 접기 토글 */}
+          {doneItems.length > 0 && (
+            <div className="mt-4">
+              <button
+                type="button"
+                onClick={() => setShowDone(!showDone)}
+                className="flex items-center gap-2 text-xs text-fg-tertiary hover:text-fg-secondary transition-colors font-mono-dx"
+              >
+                <svg className={`h-3 w-3 transition-transform ${showDone ? "rotate-90" : ""}`} fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
+                완료 항목 ({doneItems.length}건) {showDone ? "접기" : "펼치기"}
+              </button>
+
+              {showDone && (
+                <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {doneItems.map((r) => (
+                    <div key={r.id} className="rounded-lg border border-line bg-surface-card/50 p-3 opacity-70">
+                      <div className="mb-1 flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <span className="text-[10px] text-fg-tertiary font-mono-dx">{r.specItemId}</span>
+                          <h4 className="text-xs text-fg-secondary line-clamp-1">{r.title}</h4>
+                        </div>
+                        <Badge variant="success" className="shrink-0 text-[9px] font-mono-dx">완료</Badge>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {r.type && (
+                          <span className="rounded bg-surface-secondary px-1 py-0.5 text-[9px] text-fg-tertiary font-mono-dx">
+                            {TYPE_LABELS[r.type] ?? r.type}
+                          </span>
+                        )}
+                        {r.domain && (
+                          <span className="rounded bg-surface-secondary px-1 py-0.5 text-[9px] text-fg-tertiary font-mono-dx">
+                            {DOMAIN_LABELS[r.domain] ?? r.domain}
+                          </span>
+                        )}
+                        {r.milestoneVersion && (
+                          <span className="text-[9px] text-fg-quaternary font-mono-dx">v{r.milestoneVersion}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          </>
         )}
       </section>
 
