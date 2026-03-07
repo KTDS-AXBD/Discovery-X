@@ -6,7 +6,8 @@
 
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { graphs, agentMemoryV2, sharedSignals } from "~/db/schema-v2";
+import { graphs, agentMemoryV2 } from "~/db/schema-v2";
+import { sharedSignals } from "~/db";
 import { getFeatureFlags } from "~/lib/feature-flags";
 import { GraphVectorizeAdapter } from "~/lib/graph/vectorize-adapter";
 import type { VectorizeIndex } from "~/lib/graph/vectorize-adapter";

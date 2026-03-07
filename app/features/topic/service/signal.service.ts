@@ -6,7 +6,7 @@ import {
   type SharedSignal,
   type NewSharedSignal,
   topics,
-} from "~/db/schema-v2";
+} from "~/features/topic/db/schema";
 import { users } from "~/db";
 
 export interface SignalWithDetails {

@@ -7,7 +7,8 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createTestDb, type TestDB } from "../helpers/db";
-import { agentMemoryV2, sharedSignals, graphs } from "~/db/schema-v2";
+import { agentMemoryV2, graphs } from "~/db/schema-v2";
+import { sharedSignals } from "~/db";
 import type { VectorizeIndex } from "~/lib/graph/vectorize-adapter";
 
 // getDb를 모킹 — 라우트에서 getDb(env.DB) 호출 시 TestDB를 반환

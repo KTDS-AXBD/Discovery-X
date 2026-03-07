@@ -1,7 +1,7 @@
 import { eq, and, like, sql } from "drizzle-orm";
 import type { DB } from "~/db";
-import { topics, topicMembers } from "~/db/schema-v2";
-import type { Topic, TopicMember } from "~/db/schema-v2";
+import { topics, topicMembers } from "~/features/topic/db/schema";
+import type { Topic, TopicMember } from "~/features/topic/db/schema";
 import { users } from "~/db";
 import { GraphStore } from "~/lib/graph/store";
 import { GraphQueryEngine } from "~/lib/graph/query";

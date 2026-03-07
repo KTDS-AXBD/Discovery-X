@@ -15,9 +15,9 @@ import { AppShell } from "~/components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
-import { MemberList } from "~/components/tenant/MemberList";
-import { InviteMemberDialog } from "~/components/tenant/InviteMemberDialog";
-import { TenantSettingsForm } from "~/components/tenant/TenantSettingsForm";
+import { MemberList } from "~/features/settings/ui/MemberList";
+import { InviteMemberDialog } from "~/features/settings/ui/InviteMemberDialog";
+import { TenantSettingsForm } from "~/features/settings/ui/TenantSettingsForm";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);

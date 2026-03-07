@@ -8,7 +8,7 @@ import {
   primaryKey,
 } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
-import { topics } from "~/db/schema-v2";
+import { topics } from "~/db";
 
 // ============================================================================
 // FRAMEWORK MATRIX ENUMS

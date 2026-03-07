@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { createTestDb, type TestDB } from "../helpers/db";
-import { users } from "~/db";
-import { topics } from "~/db/schema-v2";
+import { users, topics } from "~/db";
 import { MatrixService } from "~/features/matrix/service/matrix.service";
 import { ScoringService } from "~/features/matrix/service/scoring.service";
 import type { IndividualScoreInput } from "~/features/matrix/types";

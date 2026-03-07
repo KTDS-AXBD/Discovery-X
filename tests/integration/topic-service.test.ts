@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { createTestDb, type TestDB } from "../helpers/db";
-import { users } from "~/db";
-import { topics, topicMembers } from "~/db/schema-v2";
+import { users, topics, topicMembers } from "~/db";
 import { TopicService } from "~/features/topic/service/topic.service";
 
 describe("TopicService", () => {

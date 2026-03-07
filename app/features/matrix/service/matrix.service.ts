@@ -13,7 +13,7 @@ import type {
   MatrixCell,
   CellTopicLink,
 } from "~/features/matrix/db/schema";
-import { topics } from "~/db/schema-v2";
+import { topics } from "~/db";
 import type { HeatmapData, HeatmapCell } from "~/features/matrix/types";
 
 // ============================================================================

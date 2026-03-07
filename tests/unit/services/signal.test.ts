@@ -10,7 +10,7 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { createTestDb } from "tests/helpers/db";
 import type { DB } from "~/db";
 import { SignalService } from "~/features/topic/service/signal.service";
-import { sharedSignals } from "~/db/schema-v2";
+import { sharedSignals } from "~/db";
 import { eq } from "drizzle-orm";
 
 let db: ReturnType<typeof createTestDb>;

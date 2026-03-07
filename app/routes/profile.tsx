@@ -15,9 +15,9 @@ import { GraphStore } from "~/lib/graph/store";
 import { ProjectionBuilder } from "~/lib/graph/projection";
 import type { JsonLdGraph, JsonLdNode } from "~/lib/graph/types";
 import { AppShell } from "~/components/layout/AppShell";
-import { ProfileEditor } from "~/components/profile/ProfileEditor";
-import { AgentSettingsEditor } from "~/components/profile/AgentSettingsEditor";
-import { ProjectionPreview } from "~/components/profile/ProjectionPreview";
+import { ProfileEditor } from "~/features/profile/ui/ProfileEditor";
+import { AgentSettingsEditor } from "~/features/profile/ui/AgentSettingsEditor";
+import { ProjectionPreview } from "~/features/profile/ui/ProjectionPreview";
 
 // ─── 유틸 ──────────────────────────────────────────────────────────────
 

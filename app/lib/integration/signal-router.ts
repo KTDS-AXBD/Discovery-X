@@ -1,7 +1,8 @@
 // SignalRouter — pending 시그널 자동 라우팅
 import { eq, and, sql } from "drizzle-orm";
 import type { DB } from "~/db";
-import { sharedSignals, topicMembers, graphs, graphEvents } from "~/db/schema-v2";
+import { graphs, graphEvents } from "~/db/schema-v2";
+import { sharedSignals, topicMembers } from "~/db";
 import { SignalService } from "~/features/topic/service/signal.service";
 
 // ============================================================================

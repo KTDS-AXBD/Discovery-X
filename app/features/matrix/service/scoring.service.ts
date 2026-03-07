@@ -13,7 +13,7 @@ import {
   type ConsensusScore,
   type ScoringConfig,
 } from "~/features/matrix/db/schema";
-import { sharedSignals } from "~/db/schema-v2";
+import { sharedSignals } from "~/db";
 import type {
   IndividualScoreInput,
   ScoringWeights,

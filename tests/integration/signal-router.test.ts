@@ -1,12 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { createTestDb, type TestDB } from "../helpers/db";
-import { users } from "~/db";
-import {
-  sharedSignals,
-  topics,
-  topicMembers,
-  graphs,
-} from "~/db/schema-v2";
+import { users, sharedSignals, topics, topicMembers } from "~/db";
+import { graphs } from "~/db/schema-v2";
 import { SignalRouter } from "~/lib/integration/signal-router";
 
 describe("SignalRouter", () => {

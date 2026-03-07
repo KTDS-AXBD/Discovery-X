@@ -11,8 +11,9 @@ import * as tokenUsageSchema from "./token-usage-schema";
 import * as v2Schema from "./schema-v2";
 import * as matrixSchema from "~/features/matrix/db/schema";
 import * as requestsSchema from "~/features/requests/db/schema";
+import * as topicSchema from "~/features/topic/db/schema";
 
-const allSchema = { ...schema, ...discoverySchema, ...radarSchema, ...chatSchema, ...labSchema, ...proposalSchema, ...archiveSchema, ...ideasSchema, ...tokenUsageSchema, ...v2Schema, ...matrixSchema, ...requestsSchema };
+const allSchema = { ...schema, ...discoverySchema, ...radarSchema, ...chatSchema, ...labSchema, ...proposalSchema, ...archiveSchema, ...ideasSchema, ...tokenUsageSchema, ...v2Schema, ...matrixSchema, ...requestsSchema, ...topicSchema };
 
 export function getDb(d1: D1Database) {
   return drizzle(d1, { schema: allSchema });
@@ -32,3 +33,4 @@ export * from "./token-usage-schema";
 export * from "./schema-v2";
 export * from "~/features/matrix/db/schema";
 export * from "~/features/requests/db/schema";
+export * from "~/features/topic/db/schema";

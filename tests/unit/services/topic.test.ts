@@ -17,8 +17,7 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { createTestDb } from "tests/helpers/db";
 import type { DB } from "~/db";
 import { TopicService } from "~/features/topic/service/topic.service";
-import { users, tenants } from "~/db";
-import { topics, topicMembers } from "~/db/schema-v2";
+import { users, tenants, topics, topicMembers } from "~/db";
 
 let db: ReturnType<typeof createTestDb>;
 let service: TopicService;

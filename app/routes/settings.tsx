@@ -21,8 +21,8 @@ import { FormField } from "~/components/ui/FormField";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/Select";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { Badge } from "~/components/ui/Badge";
-import { TokenUsageChart } from "~/components/settings/TokenUsageChart";
-import { TokenUsageTable } from "~/components/settings/TokenUsageTable";
+import { TokenUsageChart } from "~/features/settings/ui/TokenUsageChart";
+import { TokenUsageTable } from "~/features/settings/ui/TokenUsageTable";
 
 const AUTONOMY_OPTIONS = [
   { value: "0", label: "Passive — 응답만" },

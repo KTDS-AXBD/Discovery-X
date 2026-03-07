@@ -9,7 +9,8 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createTestDb, type TestDB } from "../helpers/db";
-import { agentMemoryV2, sharedSignals } from "~/db/schema-v2";
+import { agentMemoryV2 } from "~/db/schema-v2";
+import { sharedSignals } from "~/db";
 import {
   GraphVectorizeAdapter,
   type VectorizeIndex,

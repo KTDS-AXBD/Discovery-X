@@ -4,6 +4,7 @@ import * as schema from "~/db";
 import * as v2Schema from "~/db/schema-v2";
 import * as matrixSchema from "~/features/matrix/db/schema";
 import * as requestsSchema from "~/features/requests/db/schema";
+import * as topicSchema from "~/features/topic/db/schema";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 
@@ -76,7 +77,7 @@ export function createTestDb() {
   runMigrationSQL(sqlite, resolve(migrationsDir, "0048_drop_signal_metadata.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0049_evidence_conversation_id.sql"));
 
-  return drizzle(sqlite, { schema: { ...schema, ...v2Schema, ...matrixSchema, ...requestsSchema } });
+  return drizzle(sqlite, { schema: { ...schema, ...v2Schema, ...matrixSchema, ...requestsSchema, ...topicSchema } });
 }
 
 export type TestDB = ReturnType<typeof createTestDb>;

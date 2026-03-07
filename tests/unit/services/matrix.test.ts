@@ -37,8 +37,7 @@ import {
   functions,
   consensusScores,
 } from "~/features/matrix/db/schema";
-import { topics } from "~/db/schema-v2";
-import { users, tenants, tenantMembers } from "~/db";
+import { users, tenants, tenantMembers, topics } from "~/db";
 
 let db: ReturnType<typeof createTestDb>;
 let service: MatrixService;

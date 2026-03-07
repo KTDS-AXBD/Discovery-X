@@ -4,8 +4,7 @@ import { Outlet, useLoaderData, Link, useSearchParams, useNavigation } from "@re
 import { eq, sql, and } from "drizzle-orm";
 
 import { getDb } from "~/db";
-import { sharedSignals, topics, topicMembers } from "~/db/schema-v2";
-import { tenantMembers } from "~/db";
+import { sharedSignals, topics, topicMembers, tenantMembers } from "~/db";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { cn } from "~/lib/utils/cn";
