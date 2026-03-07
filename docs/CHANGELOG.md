@@ -3,6 +3,20 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 328 (2026-03-08)
+**feat: MWC 2026 파이프라인 시나리오 — PDF 분석→Radar→Ideas→Proposals 풀 파이프라인 + 검증 원칙 20개 테스트**:
+- ✅ 삼정KPMG MWC 2026 보고서(51p) PDF 분석 — 5대 트렌드, 25+ 아이템 추출
+- ✅ Agent Team 3-worker 병렬: 웹 리서치 A(41건) + B(44건) + SQL 시드 스크립트
+- ✅ 프로덕션 D1 시드: radar_runs(1) + sources(5) + items(20) + ideas(5) + idea_sources(20) + proposals(2) + sections(20) + analysis_data(4 ideas)
+- ✅ 단계별 시나리오: Stage 1(소스만) / 2(분석중 4/12) / 3(분석완료) / 4(Proposal 완료)
+- ✅ PipelineIntegrityValidator 서비스 + 14개 정합성 테스트 + 6개 단계별 테스트 = 20개
+- ✅ 5대 검증 원칙: 참조무결성, 필수필드, 균등분배, 전구간연결, 콘텐츠품질
+- ✅ F38 DX-REQ-008 요구사항 등록 (SPEC.md + DB)
+- ✅ CLAUDE.md에 파이프라인 검증 원칙 섹션 추가
+
+**검증 결과**:
+- ✅ typecheck 0 errors / lint 0 errors / pipeline tests 20/20 PASS
+
 ### 세션 327 (2026-03-08)
 **test: GAP 분석 + P1 잔여 해소 — alert-engine(27) + ai-pipeline(28) 테스트 추가 (2,010→2,037)**:
 - ✅ 테스트 커버리지 GAP 분석: ai-pipeline(이미 완료 발견), graph(138개 완비 확인), alert-engine(0→27), templates(기존 16)
