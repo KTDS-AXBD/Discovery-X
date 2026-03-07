@@ -3,6 +3,16 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 304 (2026-03-07)
+**feat: Agent Evidence 자동 연결 + 인사이트 추출 파이프라인 (Phase B S5+S6)**:
+- ✅ S5: Evidence에 `conversationId` 컬럼 추가 (마이그레이션 0049) + processToolBlocks에서 `add_evidence` 실행 시 대화 컨텍스트 자동 연결
+- ✅ S6: `flushSessionMemory`에 LLM(Haiku) 기반 인사이트 추출 파이프라인 — 대화 종료 시 Discovery 관련 인사이트를 Evidence 후보(reviewed=0, hypothesis)로 자동 저장
+- ✅ `findDiscoveryIdFromConversation`: tool_use 메시지에서 discoveryId 자동 추출
+- ✅ `/team` 스킬 TUI 모드 원칙 저장 (`claude -p` → `claude "prompt"`)
+
+**검증 결과**:
+- ✅ typecheck / lint / 1,692 tests (116 files, 100% PASS, +14)
+
 ### 세션 303 (2026-03-07)
 **feat: Worker 공통 유틸 추출 — `@discovery-x/worker-utils` 패키지**:
 - ✅ `packages/worker-utils/` 신설 — 7개 모듈 (error-classifier, backoff, fetch-retry, health, cron-log, auth, types)
