@@ -2,7 +2,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { DiscoveryService } from "~/lib/services/discovery.service";
+import { DiscoveryService } from "~/features/discovery/service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
@@ -14,7 +14,7 @@ import { Button } from "~/components/ui/Button";
 import { Separator } from "~/components/ui/Separator";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { DiscoveryStatus } from "~/db/schema";
-import { DiscoveryValidationRules, PromoteToOpenSchema } from "~/lib/validation/discovery-rules";
+import { DiscoveryValidationRules, PromoteToOpenSchema } from "~/features/discovery/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
 import { formatDate, getDefaultDeadline } from "~/lib/format-date";
 

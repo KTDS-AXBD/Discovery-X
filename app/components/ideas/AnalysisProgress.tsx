@@ -3,7 +3,7 @@
  * States: pending (gray), running (blue pulse), complete (green), failed (red)
  */
 
-import { ANALYSIS_CATEGORIES } from "~/lib/ideas/analysis-prompts";
+import { ANALYSIS_CATEGORIES } from "~/features/ideas/lib/analysis-prompts";
 import { Progress } from "~/components/ui/Progress";
 
 export type CategoryState = "pending" | "running" | "complete" | "failed";

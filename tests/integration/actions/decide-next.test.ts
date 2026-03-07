@@ -6,7 +6,7 @@ import { users, discoveries, evidence, eventLogs } from "~/db/schema";
 import {
   NextDecisionSchema,
   DiscoveryValidationRules,
-} from "~/lib/validation/discovery-rules";
+} from "~/features/discovery/validation/discovery-rules";
 
 describe("Decide OPEN → NEXT", () => {
   let db: TestDB;

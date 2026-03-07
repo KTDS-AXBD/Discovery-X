@@ -7,7 +7,7 @@ import {
   PromoteToOpenSchema,
   DiscoveryValidationRules,
   ValidationError,
-} from "~/lib/validation/discovery-rules";
+} from "~/features/discovery/validation/discovery-rules";
 
 describe("Promote INBOX → OPEN", () => {
   let db: TestDB;

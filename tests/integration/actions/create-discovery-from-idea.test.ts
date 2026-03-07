@@ -5,9 +5,9 @@ import { makeUser, resetFixtureCounter } from "../../helpers/fixtures";
 import { users, discoveries, experiments, tenants, tenantMembers } from "~/db/schema";
 import { ideas } from "~/features/ideas/db/schema";
 import type { DB } from "~/db";
-import { IdeaService } from "~/lib/services/idea.service";
-import { DiscoveryEntityService } from "~/lib/services/discovery/entity";
-import { DiscoveryWorkflowService } from "~/lib/services/discovery/workflow";
+import { IdeaService } from "~/features/ideas/service";
+import { DiscoveryEntityService } from "~/features/discovery/service/entity";
+import { DiscoveryWorkflowService } from "~/features/discovery/service/workflow";
 
 const TENANT_ID = "tenant-1";
 

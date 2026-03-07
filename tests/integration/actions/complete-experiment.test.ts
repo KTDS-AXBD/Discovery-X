@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { createTestDb, type TestDB } from "../../helpers/db";
 import { makeUser, makeDiscovery, makeExperiment, resetFixtureCounter } from "../../helpers/fixtures";
 import { users, discoveries, experiments } from "~/db/schema";
-import { CompleteExperimentSchema } from "~/lib/validation/discovery-rules";
+import { CompleteExperimentSchema } from "~/features/discovery/validation/discovery-rules";
 
 describe("Complete Experiment", () => {
   let db: TestDB;

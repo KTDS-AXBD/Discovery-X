@@ -7,7 +7,7 @@ import { getDb } from "~/db";
 import { IdeaService, RadarService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { usePanelLayout } from "~/lib/hooks/use-panel-layout";
-import { buildSourceContext, buildMethodologySections, detectStaleSections } from "~/lib/ideas/section-builder";
+import { buildSourceContext, buildMethodologySections, detectStaleSections } from "~/features/ideas/lib/section-builder";
 import { EditableTitle } from "~/components/ideas/EditableTitle";
 import { SuggestTitleButton } from "~/components/ideas/SuggestTitleButton";
 import { SourceInputPanel } from "~/components/ideas/SourceInputPanel";

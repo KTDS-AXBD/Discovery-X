@@ -3,7 +3,7 @@ import { createTestDb, type TestDB } from "../../helpers/db";
 import {
   DiscoveryValidationRules,
   type CriticalCheckResult,
-} from "~/lib/validation/discovery-rules";
+} from "~/features/discovery/validation/discovery-rules";
 import { users, discoveries, experiments, evidence, assumptions } from "~/db/schema";
 
 // ============================================================================

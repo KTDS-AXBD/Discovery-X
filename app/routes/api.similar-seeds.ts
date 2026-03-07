@@ -1,7 +1,7 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { DiscoveryService } from "~/lib/services";
+import { DiscoveryService } from "~/features/discovery/service";
 import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
 import { findSimilarDiscoveries, type EmbeddingEnv } from "~/lib/embeddings/embedding-service";
 

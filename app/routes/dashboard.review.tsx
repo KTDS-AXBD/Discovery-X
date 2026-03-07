@@ -11,7 +11,7 @@ import { cn } from "~/lib/utils/cn";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { formatDate } from "~/lib/format-date";
 import { STATUS_CONFIG } from "~/lib/constants/status";
-import { DiscoveryService } from "~/lib/services";
+import { DiscoveryService } from "~/features/discovery/service";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   try {

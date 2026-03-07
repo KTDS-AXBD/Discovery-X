@@ -4,7 +4,7 @@ import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { DiscoveryStatus } from "~/db/schema";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { DiscoveryService } from "~/lib/services";
+import { DiscoveryService } from "~/features/discovery/service";
 import { AppShell } from "~/components/layout/AppShell";
 import { StatusBadge } from "~/components/ui/StatusBadge";
 import { Badge } from "~/components/ui/Badge";

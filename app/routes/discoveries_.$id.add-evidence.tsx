@@ -2,8 +2,8 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
-import { DiscoveryService } from "~/lib/services/discovery.service";
-import { DiscoveryQueryExtraService } from "~/lib/services/discovery/query-extra2";
+import { DiscoveryService } from "~/features/discovery/service";
+import { DiscoveryQueryExtraService } from "~/features/discovery/service/query-extra2";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
@@ -15,7 +15,7 @@ import { FormField } from "~/components/ui/FormField";
 import { Button } from "~/components/ui/Button";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { DiscoveryStatus } from "~/db/schema";
-import { CreateEvidenceSchema } from "~/lib/validation/discovery-rules";
+import { CreateEvidenceSchema } from "~/features/discovery/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
 import { EVIDENCE_TYPES, EVIDENCE_STRENGTHS } from "~/lib/constants/failure-patterns";
 

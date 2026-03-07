@@ -8,8 +8,8 @@ import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { IdeaService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { runIdeaAnalysis } from "~/lib/ideas/analyzer";
-import type { AnalysisProgress } from "~/lib/ideas/analyzer";
+import { runIdeaAnalysis } from "~/features/ideas/lib/analyzer";
+import type { AnalysisProgress } from "~/features/ideas/lib/analyzer";
 
 export async function action({ request, context, params }: ActionFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);

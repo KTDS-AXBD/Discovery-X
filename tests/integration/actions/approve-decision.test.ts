@@ -3,8 +3,8 @@ import { eq } from "drizzle-orm";
 import { createTestDb, type TestDB } from "../../helpers/db";
 import { makeUser, makeDiscovery, resetFixtureCounter } from "../../helpers/fixtures";
 import { users, discoveries, eventLogs } from "~/db/schema";
-import { ApprovalDecisionSchema } from "~/lib/validation/discovery-rules";
-import { DiscoveryService } from "~/lib/services/discovery.service";
+import { ApprovalDecisionSchema } from "~/features/discovery/validation/discovery-rules";
+import { DiscoveryService } from "~/features/discovery/service";
 
 describe("Approve Decision (approve.tsx)", () => {
   let db: TestDB;

@@ -14,8 +14,8 @@ import { ProposalSectionType } from "~/features/proposals/db/schema";
 import { IdeaService, ProposalService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { CLAUDE_MODEL } from "~/lib/ai";
-import type { AnalysisEntry } from "~/lib/ideas/proposal-mapper";
-import { synthesizeProposalSections, mapAnalysisToSections } from "~/lib/ideas/proposal-mapper";
+import type { AnalysisEntry } from "~/features/ideas/lib/proposal-mapper";
+import { synthesizeProposalSections, mapAnalysisToSections } from "~/features/ideas/lib/proposal-mapper";
 
 export async function action({ params, request, context }: ActionFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);

@@ -9,7 +9,7 @@ import { Card } from "~/components/ui/Card";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { TriggerType } from "~/db/schema";
 import { formatDate } from "~/lib/format-date";
-import { DiscoveryService } from "~/lib/services";
+import { DiscoveryService } from "~/features/discovery/service";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   try {

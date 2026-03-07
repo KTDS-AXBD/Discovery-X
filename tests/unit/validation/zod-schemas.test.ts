@@ -9,7 +9,7 @@ import {
   CreateExperimentSchema,
   CompleteExperimentSchema,
   CreateEvidenceSchema,
-} from "~/lib/validation/discovery-rules";
+} from "~/features/discovery/validation/discovery-rules";
 
 // ============================================================================
 // CreateDiscoverySchema

@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   DiscoveryValidationRules,
   ValidationError,
-} from "~/lib/validation/discovery-rules";
+} from "~/features/discovery/validation/discovery-rules";
 
 // ============================================================================
 // validateOwnerRequired

@@ -7,7 +7,7 @@ import {
   ExtensionRequestedSchema,
   DiscoveryValidationRules,
   ValidationError,
-} from "~/lib/validation/discovery-rules";
+} from "~/features/discovery/validation/discovery-rules";
 
 describe("Request Extension (OPEN → EXTENSION_REQUESTED)", () => {
   let db: TestDB;

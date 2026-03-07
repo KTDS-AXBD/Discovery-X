@@ -8,7 +8,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { createTestDb } from "tests/helpers/db";
 import type { DB } from "~/db";
-import { DiscoveryService } from "~/lib/services/discovery.service";
+import { DiscoveryService } from "~/features/discovery/service";
 import {
   discoveries,
   experiments,

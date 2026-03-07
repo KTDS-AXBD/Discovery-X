@@ -1,7 +1,7 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
-import { DiscoveryService } from "~/lib/services";
+import { DiscoveryService } from "~/features/discovery/service";
 
 // CSV 셀 이스케이프: 따옴표로 감싸고, 수식 인젝션 방지 (=, +, -, @, tab, CR)
 function esc(val: string | number | null | undefined): string {

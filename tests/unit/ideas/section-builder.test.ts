@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildSourceContext, buildMethodologySections, detectStaleSections } from "~/lib/ideas/section-builder";
+import { buildSourceContext, buildMethodologySections, detectStaleSections } from "~/features/ideas/lib/section-builder";
 
 describe("buildSourceContext", () => {
   it("returns '소스 없음' for empty array", () => {

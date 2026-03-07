@@ -7,7 +7,7 @@ import {
   DeadEndDecisionSchema,
   DiscoveryValidationRules,
   ValidationError,
-} from "~/lib/validation/discovery-rules";
+} from "~/features/discovery/validation/discovery-rules";
 
 describe("Decide OPEN → DEAD_END", () => {
   let db: TestDB;

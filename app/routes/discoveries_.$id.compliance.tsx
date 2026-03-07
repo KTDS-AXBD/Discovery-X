@@ -6,7 +6,7 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, Link } from "@remix-run/react";
 import { getDb } from "~/db";
-import { DiscoveryQueryService } from "~/lib/services/discovery/query";
+import { DiscoveryQueryService } from "~/features/discovery/service/query";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";

@@ -9,7 +9,7 @@ import { mapConfidenceToStrength } from "~/lib/ai-pipeline/service";
 import {
   mapCategoryToEvidenceType,
   mapPhaseToEvidenceStrength,
-} from "~/lib/ideas/analyzer";
+} from "~/features/ideas/lib/analyzer";
 
 // ============================================================================
 // S1: confidence → EvidenceStrength

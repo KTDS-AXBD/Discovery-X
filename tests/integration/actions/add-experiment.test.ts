@@ -7,7 +7,7 @@ import {
   CreateExperimentSchema,
   DiscoveryValidationRules,
   ValidationError,
-} from "~/lib/validation/discovery-rules";
+} from "~/features/discovery/validation/discovery-rules";
 
 describe("Add Experiment", () => {
   let db: TestDB;

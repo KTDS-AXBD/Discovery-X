@@ -3,8 +3,8 @@ import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getDb } from "~/db";
 import { DiscoveryStatus } from "~/db/schema";
-import { DiscoveryService } from "~/lib/services";
-import { DiscoveryQueryExtraService } from "~/lib/services/discovery/query-extra2";
+import { DiscoveryService } from "~/features/discovery/service";
+import { DiscoveryQueryExtraService } from "~/features/discovery/service/query-extra2";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
@@ -16,7 +16,7 @@ import { AlertBanner } from "~/components/ui/AlertBanner";
 import {
   DiscoveryValidationRules,
   ExtensionRequestedSchema,
-} from "~/lib/validation/discovery-rules";
+} from "~/features/discovery/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
 import { createEmailClient } from "~/lib/notifications/email";
 import { buildApprovalRequestEmail } from "~/lib/notifications/templates";

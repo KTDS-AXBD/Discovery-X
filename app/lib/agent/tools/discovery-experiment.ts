@@ -13,7 +13,7 @@ import {
 import {
   DiscoveryValidationRules,
   ValidationError,
-} from "~/lib/validation/discovery-rules";
+} from "~/features/discovery/validation/discovery-rules";
 import { ALLOWED_TRANSITIONS } from "~/lib/constants/status";
 
 import { generateId, AGENT_ACTOR_ID, logEvent } from "./discovery-utils";

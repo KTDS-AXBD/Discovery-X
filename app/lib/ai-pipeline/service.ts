@@ -19,9 +19,9 @@ import { callLLM } from "~/lib/ai";
 
 /** 클러스터링에는 빠른 Haiku 사용 (CF 30초 제한 대응) */
 const FAST_MODEL = "claude-haiku-4-5-20251001";
-import { IdeaService } from "~/lib/services/idea.service";
-import { DiscoveryEntityService } from "~/lib/services/discovery/entity";
-import { DiscoveryWorkflowService } from "~/lib/services/discovery/workflow";
+import { IdeaService } from "~/features/ideas/service";
+import { DiscoveryEntityService } from "~/features/discovery/service/entity";
+import { DiscoveryWorkflowService } from "~/features/discovery/service/workflow";
 import {
   CLUSTER_SYSTEM_PROMPT,
   IDEA_GENERATION_SYSTEM_PROMPT,

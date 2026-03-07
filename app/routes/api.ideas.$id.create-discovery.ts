@@ -7,9 +7,9 @@ import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { requireUser } from "~/lib/auth/session.server";
-import { IdeaService } from "~/lib/services/idea.service";
-import { DiscoveryEntityService } from "~/lib/services/discovery/entity";
-import { DiscoveryWorkflowService } from "~/lib/services/discovery/workflow";
+import { IdeaService } from "~/features/ideas/service";
+import { DiscoveryEntityService } from "~/features/discovery/service/entity";
+import { DiscoveryWorkflowService } from "~/features/discovery/service/workflow";
 
 export async function action({ request, params, context }: ActionFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);

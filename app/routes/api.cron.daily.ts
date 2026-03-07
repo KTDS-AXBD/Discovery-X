@@ -4,7 +4,7 @@ import { discoveries, users, tenants, tenantMembers } from "~/db/schema";
 import { eq, inArray, and, lt } from "drizzle-orm";
 import { DiscoveryStatus } from "~/db/schema";
 import { ACTIVE_STATUSES } from "~/lib/constants/status";
-import { DiscoveryValidationRules, ValidationError } from "~/lib/validation/discovery-rules";
+import { DiscoveryValidationRules, ValidationError } from "~/features/discovery/validation/discovery-rules";
 import { formatDate } from "~/lib/format-date";
 import { createEmailClient } from "~/lib/notifications/email";
 import {

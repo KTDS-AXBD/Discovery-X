@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { ANALYSIS_CATEGORIES, PIPELINE_ORDER, CATEGORY_MAP } from "~/lib/ideas/analysis-prompts";
+import { ANALYSIS_CATEGORIES, PIPELINE_ORDER, CATEGORY_MAP } from "~/features/ideas/lib/analysis-prompts";
 
 describe("analysis-prompts", () => {
   it("has 12 categories", () => {
