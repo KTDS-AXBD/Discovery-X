@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 318 (2026-03-07)
+**refactor: gap 분석 + 5개 갭 수정 — Flag 정리 + settings 서비스화 + IdeaService 테스트**:
+- ✅ SPEC.md vs 실측 갭 분석: 라우트/테이블/코드/테스트/BC/서비스/Flag 5개 영역 병렬 점검
+- ✅ Feature Flag 미사용 7개 제거 (12→5): graphLayer, agentDO, topicCollab, aclScope, memoryLifecycle, pipelineBridge, profileLearner
+- ✅ settings.organization 서비스화: SettingsService 신규 (getTenant, getMembers, updateTenantName, inviteMember, removeMember)
+- ✅ IdeaService 단위 테스트 18개 (CRUD 8 + 소스링크 10) — tests/unit/services/idea.test.ts 신규
+- ✅ SPEC.md 지표 갱신: 코드 72,400줄/452파일, 테스트 1,729개/118파일, Flag 5/5
+- ✅ MEMORY.md 정정: service 12/12, 직접 write 6개(인프라만)
+
+**검증 결과**:
+- ✅ typecheck / lint / tests 1,729개 전부 통과
+
 ### 세션 317 (2026-03-07)
 **feat: 요구사항 표준체계 정렬 — 8칸반 + DX-REQ 코드 + 개발 라이프사이클**:
 - ✅ 상태 모델 확장: 6→9개 (PLANNED/IN_PROGRESS/DONE 추가, ACCEPTED 이후 개발 라이프사이클)
