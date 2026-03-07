@@ -118,9 +118,9 @@ requireAdmin()        → 403 (ADMIN만)
 
 ```
 app/
-├── components/     # UI 컴포넌트 (21개 — agent, charts, chat, discovery, layout, onboarding, ontology, ui, ...)
+├── components/     # 공유 UI 컴포넌트 (charts, docs, layout, onboarding, tenant, ui — ui/ 하위 21개)
 ├── db/             # Drizzle 스키마 + DB 연결 (index.ts에서 스키마 머지)
-├── features/       # 도메인별 모듈 (archive, ideas, matrix, proposals, requests)
+├── features/       # 도메인별 모듈 (13 BC: archive, chat, dashboard, discovery, ideas, lab, matrix, profile, proposals, radar, requests, settings, topic)
 │   └── {feature}/  # db/schema.ts + constants + types + ui/
 ├── lib/            # 공유 유틸 (agent, auth, embeddings, notifications, ...)
 ├── routes/         # Remix 라우트 (flat-file convention)
