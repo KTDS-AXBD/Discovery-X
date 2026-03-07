@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 326 (2026-03-08)
+**test: Phase 1 Gap 해소 — executor-stream + radar.service + lab.service 테스트 66개 추가**:
+- ✅ Gap 분석 수행: API 라우트(15%), Feature 서비스(73%), Agent 모듈(80%), Graph 모듈(14%) 현황 파악
+- ✅ executor-stream.test.ts (19개): SSE 스트리밍 코어, 도구 루프, 인용/라벨, 모드 분기, 세션 flush, 에러 처리
+- ✅ radar-service.test.ts (25개): Sources CRUD, Runs, Items, User Status, 통합 데이터 — 17개 메서드 전체 커버
+- ✅ lab-service.test.ts (22개): Stats, Graph, Nodes, Review Actions, Types, 통합 데이터 — 14개 메서드 전체 커버
+- ✅ Agent Team 시도 (3-worker 병렬) → worker 포맷 보정 이슈로 수동 전환, 교훈 MEMORY 기록
+- 테스트: 1,982개 (135 files, 100% PASS)
+
+**검증**: typecheck ✅ lint ✅ tests ✅ (1,982개)
+
 ### 세션 325 (2026-03-08)
 **chore: 프로덕션 DB 테스트 데이터 전체 리셋**:
 - ✅ ideas(14) + idea_sources(20) + discoveries(17) + experiments(6) + evidence(1) 삭제
