@@ -176,7 +176,7 @@ Flow K: Ideas → Discovery 수동 전환
 **라우팅 정책**
 - `/` → `/dashboard` 리다이렉트 (인증 시), 미인증 시 `/login` 리다이렉트
 
-### 페이지 맵 (139개 라우트)
+### 페이지 맵 (158개 라우트)
 
 **Core (37개)**
 - `/` — `/dashboard` 리다이렉트 (1)
@@ -243,9 +243,12 @@ Flow K: Ideas → Discovery 수동 전환
 - `/profile` — Graph 기반 프로필 편집 (기본정보/전문분야/관심분야 + USER.md Projection 미리보기 + 나의 Agent 설정)
 - `/api/profile/graph` — 프로필 Graph API (GET/PUT/PATCH)
 
-**Requests (1 page + 2 API)**- `/requests` — 요구사항 목록 (카드 뷰, 상태/우선순위 필터, 생성 폼)
+**Requests (1 page + 4 API)**
+- `/requests` — 요구사항 목록 (카드 뷰, 상태/우선순위 필터, 생성 폼)
 - `/api/requests` — 요구사항 API (GET 목록 + POST 생성)
 - `/api/requests/:id` — 요구사항 상세 API (GET + PATCH 상태변경 + DELETE)
+- `/api/requests/:id/review` — AI 자동 검토 API (POST)
+- `/api/requests/:id/plan` — 작업 계획 API (GET + POST)
 
 **Onboarding API (1 API)**- `/api/onboarding` — 온보딩 완료/재시작 API (PATCH)
 
@@ -290,7 +293,7 @@ Flow K: Ideas → Discovery 수동 전환
 **API (37개, proposals/lab API 제외)**
 - `/api/chat` — SSE 스트리밍 채팅 (1)
 - `/api/conversations*` — 대화 CRUD + 메시지 (2)
-- `/api/cron*` — Cron 13개: daily/agent-review/alerts/embeddings/weekly-summary/log-archive/pattern-extract/memory-compact/projection-sync/signal-route/matrix-scoring/vectorize/lab
+- `/api/cron*` — Cron 10개 라우트: daily/agent-review/embeddings/weekly-summary/signal-route/matrix-scoring/vectorize/lab/ai-pipeline/maintenance (alerts/log-archive/pattern-extract/memory-compact/projection-sync은 daily/maintenance에 통합)
 - ~~`/api/venture*`~~ — *(아카이브됨, 세션 228)*
 - `/api/export*` — Export 4개: discoveries/discoveries-json/brief.$id/metrics
 - `/api/radar*` — Radar API 6개: runs/sources/trigger/summarize/items.$id.status/items.$id.reaction
@@ -316,7 +319,7 @@ Flow K: Ideas → Discovery 수동 전환
 - `/api/proposals/categories` — 카테고리 API
 - `/api/recall-events` — 재호출 이벤트 API
 
-**라우트 합계**: Core 37 + Ideas 15 + Proposals 7 + Lab 6 + Agent 4 + Profile 3 + Topics 12 + Signals 2 + Matrix 12 + API 41 = **139** (Venture/Knowledge/Briefing/ValueUp 아카이브, Market/evidence/dashboard 서브라우트 삭제 반영)
+**라우트 합계**: 페이지 73 + API 85 = **158** (Venture/Knowledge/Briefing 아카이브 반영)
 
 ---
 
@@ -352,12 +355,12 @@ root.tsx
 └─ Outlet (하위 라우트)
 ```
 
-### 데이터 모델 (92개 테이블)
+### 데이터 모델 (97개 테이블)
 
 | 카테고리 | 테이블 수 | 테이블 |
 |---------|---------|--------|
 | Users & Auth | 4 | users, sessions, tenants, tenant_members |
-| Discovery Core | 6 | discoveries (+sourceIdeaId, +aiProcessedAt on radar_items), experiments, evidence, event_logs, stages, signal_metadata |
+| Discovery Core | 5 | discoveries (+sourceIdeaId, +aiProcessedAt on radar_items), experiments, evidence, event_logs, stages |
 | Ontology/Graph | 5 | ontology_types, context_nodes, context_edges, context_snapshots, evidence_duplicate_candidates |
 | v3 Graph Layer | 9 | graphs, graph_events, projections, topics, topic_members, shared_signals, agent_memory_v2, agent_sessions_v2, acl_audit_logs |
 | Methods & Gates | 4 | method_packs, method_runs, gate_packages, assumptions |
@@ -378,23 +381,28 @@ root.tsx
 | Matrix | 7 | industries, functions, matrix_cells, individual_scores, consensus_scores, cell_topic_map, scoring_config |
 | Worker/Infra | 2 | notification_queue, cron_logs |
 | FTS | 1 | discoveries_fts |
-| Requests | 1 | feature_requests |
-| **합계** | **94** | |
+| Requests | 5 | feature_requests, request_reviews, request_events, work_plans, work_plan_runs |
+| **합계** | **97** | |
 
-### Agent 시스템 (52개 도구)
+### Agent 시스템 (72개 도구)
 
 | 카테고리 | 도구 수 | 예 |
 |---------|--------|-----|
-| Discovery CRUD | 11 | create_discovery, transition_stage, promote_discovery, etc. |
-| Query | 12 | search_discoveries, get_discovery, get_radar_items, etc. |
-| Method | 6 | recommend_method, execute_method, etc. |
-| Ontology | 9 | create_node, add_edge, find_related, analyze_patterns, analyze_contradictions, analyze_clusters, analyze_centrality, etc. |
-| Indicator | 4 | get_kpi, record_signal, etc. |
-| Connector | 2 | link_discoveries, unlink_discoveries |
-| Governance | 2 | request_gate_approval, record_decision |
-| Alert | 3 | create_alert, send_webhook, etc. |
-| BD PoC | 3 | generate_idea_candidates, select_idea_candidate, auto_fill_template |
-| **합계** | **52** | |
+| Discovery CRUD | 11 | create/update/promote_discovery, transition_stage, add/complete_experiment, add_evidence, decide_*, request_extension |
+| Query | 14 | list/get_discovery*, search_similar, get_metrics/radar/review/recall, list_users, validate_evidence, compare_discoveries, get_gate_package, generate_digest |
+| Tag | 2 | tag_discovery, remove_discovery_tag |
+| Method | 5 | list_method_packs, recommend_methods, draft_gate_package, start/complete_method_run |
+| Ontology | 10 | query_graph, extract/link_entities, get/review_duplicate, analyze_patterns/contradictions/clusters/centrality, simulate_scenario |
+| Indicator | 4 | get_kpi_status, get_pipeline_health, register_kpi, record_kpi_measurement |
+| Connector | 2 | get_linked/link_discoveries |
+| Governance | 2 | request/submit_gate_approval |
+| Alert | 3 | get_alerts, acknowledge_alert, manage_webhook |
+| Strategic | 7 | get_industry_context, extract_decision_pattern, apply_reusable_rule, audit_trail, regulatory_compliance, etc. |
+| Tenant | 2 | get_tenant_info, manage_tenant_members |
+| BD PoC/Ideas | 4 | generate/select_idea_candidates, auto_fill_template, update_idea_analysis |
+| Matrix | 3 | query_matrix_heatmap, get_cell_signals, get_top_cells |
+| Requirements | 3 | classify/review/plan_feature_request |
+| **합계** | **72** | |
 
 ---
 
@@ -432,14 +440,14 @@ build/
 ### 버전
 - **프로토타입**: v6.26.0 — PIVOT 핵심 루프 + 온보딩 플로우 (세션 269)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 47개 마이그레이션 (0000~0046), 전체 적용 완료 (로컬+프로덕션)
+- **DB**: 50개 마이그레이션 (0000~0049), 전체 적용 완료 (로컬+프로덕션)
 
 ### 주요 지표
-- **라우트**: 157개
+- **라우트**: 158개
 - **테이블**: 97개
-- **Agent 도구**: 53개
+- **Agent 도구**: 72개
 - **코드**: ~70,700줄 (~427파일)
-- **테스트**: 1,615개 (110 test files, 로컬 통과)
+- **테스트**: 1,697개 (128 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
@@ -462,7 +470,7 @@ build/
 - **브랜치 전략**: master 단일 브랜치 (Prototype 기간)
 - **배포**: Cloudflare Pages (master push → GitHub Actions CI/CD 자동 배포) — Secrets 설정 완료 ✅
 - **운영 실험**: 🚀 2026-01-31 시작 (30-60일, 최대 5명, Discovery 5-10건 목표)
-- **DB 마이그레이션**: ✅ 28개 (0000~0027) 로컬+프로덕션 적용 완료
+- **DB 마이그레이션**: ✅ 50개 (0000~0049) 로컬+프로덕션 적용 완료
 - **Cron 설정**: 10개 라우트 (daily/agent-review/embeddings/weekly-summary/signal-route/matrix-scoring/maintenance/vectorize/lab/ai-pipeline) + cron-job.org 14개 등록 완료
 - **Radar Worker**: 프로덕션 운영 중 (Cron 매일 9:00 KST, 10소스)
 - **이메일**: Resend (`noreply@ideaonaction.ai`), cron-job.org 자동 발송
@@ -545,8 +553,8 @@ build/
 | F24 | 온톨로지 인텔리전스 Phase 1+2 (LLM 엔티티 추출 + 글로벌 매칭 + 관계 분석 엔진 + UI) | v5.3 | ✅ | 16 |
 | F25 | 온톨로지 인텔리전스 Phase 3 (BFS 영향 전파 + LLM 시나리오 + 스냅샷 비교 + 시뮬레이션 UI) | v5.3 | ✅ | 9 |
 | F26 | 아이디어 워크스페이스 리디자인 (ideas 테이블 + 전용 헤더 + 6탭 가젯 + 사업 제안 모달) | v6.2 | ✅ | 15 |
-| F27 | AI 동료 파이프라인 + 인간 워크플로우 (Radar→Ideas→Discovery 자동 + Ideas→Discovery 수동 전환 + AI 인수) | v6.25 | 🔧 | — |
+| F27 | AI 동료 파이프라인 + 인간 워크플로우 (Radar→Ideas→Discovery 자동 + Ideas→Discovery 수동 전환 + AI 인수) | v6.25 | ✅ | 5 |
 | F28 | AI Agent 응답 품질 고도화 (Evidence 인용 + '모름' 명시 + Memory 요약 개선 + SOUL 커스터마이징 UI) | v3.1 | 🔧 | 5 |
-| F29 | 요구사항 수집/관리 (feature_requests 테이블 + API 3개 + 카드 뷰 UI) | v3.1 | 🔧 | 7 |
-| F30 | 앱 내 온보딩 튜토리얼 (3단계 spotlight 모달 + 최초 접속 감지 + Skip/재실행) | v3.1 | 🔧 | 6 |
+| F29 | 요구사항 수집/관리 (feature_requests 등 5 테이블 + API 4개 + 카드 뷰 UI + AI 자동 검토) | v3.1 | ✅ | 9 |
+| F30 | 앱 내 온보딩 튜토리얼 (3단계 spotlight 모달 + 최초 접속 감지 + Skip/재실행) | v3.1 | ✅ | 6 |
 
