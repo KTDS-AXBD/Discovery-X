@@ -6,7 +6,8 @@
  *
  * 메인 앱의 api.cron.*.ts 엔드포인트를 Worker로 이관.
  */
-import type { Env, CronResult } from "./types";
+import type { Env } from "./types";
+import type { CronResult } from "@discovery-x/worker-utils";
 
 /** Cron 작업 실행기 */
 export async function handleCron(

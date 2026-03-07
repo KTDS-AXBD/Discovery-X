@@ -7,12 +7,3 @@ export interface Env {
   FF_PIPELINE_BRIDGE: string;
   FF_MEMORY_LIFECYCLE: string;
 }
-
-/** Cron 작업 결과 */
-export interface CronResult {
-  job: string;
-  success: boolean;
-  details?: Record<string, unknown>;
-  error?: string;
-  durationMs: number;
-}

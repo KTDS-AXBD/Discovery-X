@@ -1,48 +1,36 @@
 import type { Env } from "./types";
 import { runPipeline } from "./pipeline";
+import {
+  createHealthResponse,
+  verifySecret,
+  unauthorizedResponse,
+} from "@discovery-x/worker-utils";
 
 export default {
-  /**
-   * Cron Trigger handler — runs daily at 0:00 UTC (9:00 KST).
-   */
   async scheduled(
     _controller: ScheduledController,
     env: Env,
-    ctx: ExecutionContext
+    ctx: ExecutionContext,
   ): Promise<void> {
     ctx.waitUntil(executePipeline(env));
   },
 
-  /**
-   * HTTP handler — for manual triggers via /run?secret=xxx.
-   */
   async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
-    if (url.pathname === "/run") {
-      // Authenticate
-      const secret = url.searchParams.get("secret");
-      if (env.CRON_SECRET && secret !== env.CRON_SECRET) {
-        return new Response("Unauthorized", { status: 401 });
-      }
-
-      // Run pipeline synchronously — Workers have no wall-time limit on fetch
-      const result = await executePipeline(env);
-
-      return new Response(
-        JSON.stringify(result),
-        { headers: { "Content-Type": "application/json" } }
-      );
-    }
-
     if (url.pathname === "/health") {
-      return new Response(
-        JSON.stringify({ status: "ok", timestamp: new Date().toISOString() }),
-        { headers: { "Content-Type": "application/json" } }
-      );
+      return createHealthResponse("radar-worker");
     }
 
-    return new Response("Not found", { status: 404 });
+    if (url.pathname === "/run") {
+      if (!verifySecret(request, env)) {
+        return unauthorizedResponse();
+      }
+      const result = await executePipeline(env);
+      return Response.json(result);
+    }
+
+    return Response.json({ error: "Not Found" }, { status: 404 });
   },
 };
 

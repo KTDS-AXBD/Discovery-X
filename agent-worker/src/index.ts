@@ -5,6 +5,7 @@
  * PRD v3 §7.1 Worker 라우팅 구현.
  */
 import type { Env } from "./types";
+import { createHealthResponse } from "@discovery-x/worker-utils";
 
 export { AgentSessionDO } from "./agent-session";
 
@@ -12,13 +13,8 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
-    // Health check
     if (url.pathname === "/health") {
-      return Response.json({
-        status: "ok",
-        timestamp: new Date().toISOString(),
-        worker: "agent-worker",
-      });
+      return createHealthResponse("agent-worker");
     }
 
     // 인증 — SESSION_SECRET 기반 간단 검증

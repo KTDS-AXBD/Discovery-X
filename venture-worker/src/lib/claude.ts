@@ -5,7 +5,7 @@
  */
 
 import type { ClaudeResponse, ClaudeToolUseBlock } from "../types";
-import { BACKOFF_CONFIG } from "../config";
+import { waitWithBackoff } from "@discovery-x/worker-utils";
 
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_VERSION = "2023-06-01";
@@ -78,7 +78,7 @@ export async function callClaude<T>(
         // Retryable errors (429, 5xx)
         if (response.status === 429 || response.status >= 500) {
           lastError = error;
-          await backoff(attempt);
+          await waitWithBackoff(attempt);
           continue;
         }
 
@@ -106,7 +106,7 @@ export async function callClaude<T>(
           error.message.includes("ETIMEDOUT")
         ) {
           lastError = error;
-          await backoff(attempt);
+          await waitWithBackoff(attempt);
           continue;
         }
         throw error;
@@ -116,24 +116,4 @@ export async function callClaude<T>(
   }
 
   throw lastError || new Error("Max retries exceeded");
-}
-
-/**
- * Exponential backoff with jitter
- */
-async function backoff(attempt: number): Promise<void> {
-  const { baseDelaySeconds, factor, maxDelayMinutes, jitterMin, jitterMax } =
-    BACKOFF_CONFIG;
-
-  const baseDelay = baseDelaySeconds * Math.pow(factor, attempt);
-  const maxDelay = maxDelayMinutes * 60;
-  const delay = Math.min(baseDelay, maxDelay);
-
-  // Apply jitter
-  const jitter = jitterMin + Math.random() * (jitterMax - jitterMin);
-  const finalDelay = delay * jitter * 1000; // Convert to ms
-
-  console.log(`[claude] Backing off for ${(finalDelay / 1000).toFixed(1)}s (attempt ${attempt + 1})`);
-
-  await new Promise((resolve) => setTimeout(resolve, finalDelay));
 }

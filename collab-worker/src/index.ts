@@ -7,11 +7,16 @@
  *
  * fetch() — 수동 트리거 + 헬스체크.
  */
-import type { Env, CronResult } from "./types";
+import type { Env } from "./types";
 import { handleCron } from "./cron-handler";
+import {
+  createHealthResponse,
+  verifySecret,
+  unauthorizedResponse,
+  logCronResults,
+} from "@discovery-x/worker-utils";
 
 export default {
-  /** Cron 트리거 핸들러 */
   async scheduled(
     event: ScheduledEvent,
     env: Env,
@@ -31,29 +36,19 @@ export default {
       );
     }
 
-    // waitUntil로 비동기 로깅/정리 작업 허용
-    ctx.waitUntil(logCronResults(env, event.cron, results));
+    ctx.waitUntil(logCronResults(env.DB, event.cron, results));
   },
 
-  /** HTTP 핸들러 — 헬스체크 + 수동 Cron 트리거 */
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
-    // 헬스체크
     if (url.pathname === "/health") {
-      return Response.json({
-        status: "ok",
-        timestamp: new Date().toISOString(),
-        worker: "collab-worker",
-      });
+      return createHealthResponse("collab-worker");
     }
 
-    // 수동 Cron 트리거 (POST /trigger?cron=...)
     if (url.pathname === "/trigger" && request.method === "POST") {
-      // CRON_SECRET 인증
-      const authHeader = request.headers.get("Authorization");
-      if (authHeader !== `Bearer ${env.CRON_SECRET}`) {
-        return Response.json({ error: "Unauthorized" }, { status: 401 });
+      if (!verifySecret(request, env)) {
+        return unauthorizedResponse();
       }
 
       const cron = url.searchParams.get("cron");
@@ -71,20 +66,3 @@ export default {
     return Response.json({ error: "Not Found" }, { status: 404 });
   },
 };
-
-/** Cron 실행 결과를 D1에 기록 (선택적) */
-async function logCronResults(
-  env: Env,
-  cron: string,
-  results: CronResult[],
-): Promise<void> {
-  try {
-    const stmt = env.DB.prepare(`
-      INSERT INTO cron_logs (cron_expression, results_json, created_at)
-      VALUES (?, ?, unixepoch())
-    `);
-    await stmt.bind(cron, JSON.stringify(results)).run();
-  } catch {
-    // 로깅 실패는 무시 (cron_logs 테이블이 없을 수 있음)
-  }
-}

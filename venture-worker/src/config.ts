@@ -72,38 +72,3 @@ export const VD_TASK_TYPE_CONFIG: Record<VdTaskTypeValue, TaskTypeConfig> = {
   },
 };
 
-// Backoff 설정
-export const BACKOFF_CONFIG = {
-  baseDelaySeconds: 30,
-  factor: 2,
-  maxDelayMinutes: 30,
-  jitterMin: 0.8,
-  jitterMax: 1.2,
-};
-
-// 에러 분류
-export const RETRYABLE_ERROR_PATTERNS = [
-  /rate.?limit/i,
-  /too.?many.?requests/i,
-  /timeout/i,
-  /ETIMEDOUT/i,
-  /ECONNRESET/i,
-  /ECONNREFUSED/i,
-  /network/i,
-  /5\d\d/,
-  /overloaded/i,
-  /temporarily.?unavailable/i,
-];
-
-export const NON_RETRYABLE_ERROR_PATTERNS = [
-  /invalid.?api.?key/i,
-  /authentication/i,
-  /authorization/i,
-  /permission/i,
-  /not.?found/i,
-  /bad.?request/i,
-  /4\d\d/,
-  /invalid.?input/i,
-  /schema/i,
-  /validation/i,
-];

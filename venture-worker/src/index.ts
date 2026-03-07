@@ -8,63 +8,41 @@
 
 import type { Env } from "./types";
 import { runDispatcher } from "./dispatcher";
+import {
+  createHealthResponse,
+  verifySecret,
+  unauthorizedResponse,
+} from "@discovery-x/worker-utils";
 
 export default {
-  /**
-   * Cron Trigger — 5분마다 실행
-   */
   async scheduled(
     _controller: ScheduledController,
     env: Env,
-    ctx: ExecutionContext
+    ctx: ExecutionContext,
   ): Promise<void> {
     ctx.waitUntil(executePipeline(env));
   },
 
-  /**
-   * HTTP Handler
-   * - /health: 헬스체크
-   * - /run?secret=xxx: 수동 트리거
-   */
   async fetch(
     request: Request,
     env: Env,
-    _ctx: ExecutionContext
+    _ctx: ExecutionContext,
   ): Promise<Response> {
     const url = new URL(request.url);
 
-    // 헬스체크
     if (url.pathname === "/health") {
-      return new Response(
-        JSON.stringify({
-          status: "ok",
-          worker: "venture-worker",
-          timestamp: new Date().toISOString(),
-        }),
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      return createHealthResponse("venture-worker");
     }
 
-    // 수동 실행
     if (url.pathname === "/run") {
-      // 인증
-      const secret = url.searchParams.get("secret");
-      if (env.CRON_SECRET && secret !== env.CRON_SECRET) {
-        return new Response("Unauthorized", { status: 401 });
+      if (!verifySecret(request, env)) {
+        return unauthorizedResponse();
       }
-
-      // 파이프라인 실행 (HTTP 요청은 더 긴 타임아웃)
       const result = await executePipeline(env);
-
-      return new Response(JSON.stringify(result, null, 2), {
-        headers: { "Content-Type": "application/json" },
-      });
+      return Response.json(result);
     }
 
-    // 404
-    return new Response("Not found", { status: 404 });
+    return Response.json({ error: "Not Found" }, { status: 404 });
   },
 };
 

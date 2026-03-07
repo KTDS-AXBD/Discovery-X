@@ -1,5 +1,5 @@
 import type { CollectedItem, RadarSource } from "../types";
-import { fetchWithRetry } from "../lib/fetch-retry";
+import { fetchWithRetry } from "@discovery-x/worker-utils";
 import { collectRss } from "./rss";
 
 /**

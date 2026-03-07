@@ -1,5 +1,5 @@
 import type { CollectedItem, ScoredItem } from "./types";
-import { fetchWithRetry } from "./lib/fetch-retry";
+import { fetchWithRetry } from "@discovery-x/worker-utils";
 
 interface ScoreResult {
   title: string;

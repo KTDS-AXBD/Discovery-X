@@ -8,7 +8,7 @@
 import type { Env, VdTaskQueueItem, DispatcherStats } from "./types";
 import { claimTasks, completeTask, failTask } from "./db";
 import { getHandler } from "./handlers";
-import { classifyError } from "./lib/error-classifier";
+import { classifyError } from "@discovery-x/worker-utils";
 
 /**
  * 디스패처 실행
