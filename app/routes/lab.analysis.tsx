@@ -37,13 +37,48 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   if (!ctx) throw new Response("Unauthorized", { status: 401 });
 
   const service = new LabService(db);
-  const data = await service.getAnalysisData({ tenantId: ctx.tenantId });
+  const [data, insights] = await Promise.all([
+    service.getAnalysisData({ tenantId: ctx.tenantId }),
+    service.getInsightSummary({ tenantId: ctx.tenantId }),
+  ]);
 
-  return json(data);
+  return json({ ...data, insights });
+}
+
+// analyzer 결과 → InsightPanel 내부 타입으로 변환
+function mapPatterns(raw: unknown[]): unknown[] {
+  return raw.map((item) => {
+    const p = item as { path: string[]; count: number; examples: Array<{ fromLabel: string; toLabel: string }> };
+    return { path: p.path, frequency: p.count };
+  });
+}
+
+function mapContradictions(raw: unknown[]): unknown[] {
+  return raw.map((item) => {
+    const c = item as {
+      nodeA: { id: string; label: string };
+      nodeB: { id: string; label: string };
+      supportEdges: unknown[];
+      contradictEdges: unknown[];
+    };
+    return {
+      nodeA: c.nodeA.label,
+      nodeB: c.nodeB.label,
+      supports: c.supportEdges.length,
+      contradicts: c.contradictEdges.length,
+    };
+  });
+}
+
+function mapCentrality(raw: unknown[]): unknown[] {
+  return raw.map((item) => {
+    const e = item as { globalEntityId: string; label: string; totalDegree: number };
+    return { nodeId: e.globalEntityId, label: e.label, degree: e.totalDegree };
+  });
 }
 
 export default function LabAnalysis() {
-  const { nodes, types } = useLoaderData<typeof loader>();
+  const { nodes, types, insights } = useLoaderData<typeof loader>();
   const analysisFetcher = useFetcher<{ results?: unknown; error?: string }>();
   const simFetcher = useFetcher<{
     success?: boolean;
@@ -112,6 +147,36 @@ export default function LabAnalysis() {
 
   return (
     <div className="space-y-6">
+      {/* Insight Summary Widget */}
+      <section className="space-y-3">
+        <h2 className="flex items-center gap-2 text-base font-semibold text-fg font-mono-dx">
+          인사이트 요약
+          <Badge variant="info" className="text-[10px]">자동 분석</Badge>
+        </h2>
+        {insights.hasData ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <InsightPanel
+              type="patterns"
+              data={mapPatterns(insights.patterns)}
+            />
+            <InsightPanel
+              type="contradictions"
+              data={mapContradictions(insights.contradictions)}
+            />
+            <InsightPanel
+              type="centrality"
+              data={mapCentrality(insights.topEntities)}
+            />
+          </div>
+        ) : (
+          <div className="flex h-24 items-center justify-center rounded-lg border border-dashed border-line-subtle">
+            <p className="text-sm text-fg-tertiary font-mono-dx">
+              &gt; 데이터 부족 — Evidence가 더 쌓이면 인사이트가 나타나요
+            </p>
+          </div>
+        )}
+      </section>
+
       {/* Mode selector */}
       <div className="flex flex-wrap gap-2">
         {MODES.map(({ key, label }) => (

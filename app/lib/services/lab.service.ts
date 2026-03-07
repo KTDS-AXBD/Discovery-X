@@ -7,6 +7,11 @@ import {
   discoveries,
   methodPacks,
 } from "~/db/schema";
+import {
+  detectPatterns,
+  detectContradictions,
+  analyzeCentrality,
+} from "~/lib/ontology/analyzer";
 
 // ============================================================================
 // Types
@@ -318,6 +323,43 @@ export class LabService {
       this.getOntologyTypes(),
     ]);
     return { nodes, types, tenantId: params.tenantId };
+  }
+
+  /** 인사이트 요약 (패턴·모순·중심 엔티티 top-N) */
+  async getInsightSummary(params: TenantParams): Promise<{
+    patterns: unknown[];
+    contradictions: unknown[];
+    topEntities: unknown[];
+    hasData: boolean;
+  }> {
+    const [nodeCountRow] = await this.db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(contextNodes)
+      .innerJoin(discoveries, eq(contextNodes.discoveryId, discoveries.id))
+      .where(
+        and(
+          eq(discoveries.tenantId, params.tenantId),
+          ne(contextNodes.reviewed, 2),
+        ),
+      );
+
+    if (nodeCountRow.count < 5) {
+      return { patterns: [], contradictions: [], topEntities: [], hasData: false };
+    }
+
+    const analyzerDb = this.db as unknown as Parameters<typeof detectPatterns>[0];
+    const [patterns, contradictions, topEntities] = await Promise.all([
+      detectPatterns(analyzerDb, params.tenantId),
+      detectContradictions(analyzerDb, params.tenantId),
+      analyzeCentrality(analyzerDb, params.tenantId),
+    ]);
+
+    return {
+      patterns: patterns.slice(0, 3),
+      contradictions: contradictions.slice(0, 3),
+      topEntities: topEntities.slice(0, 5),
+      hasData: true,
+    };
   }
 
   /** lab.review.tsx loader용 데이터 */

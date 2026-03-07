@@ -6,9 +6,9 @@
  */
 
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { getDb } from "~/db";
-import { tenants } from "~/db/schema";
+import { tenants, evidence, discoveries } from "~/db/schema";
 import { extractOntologyBatch } from "~/lib/ontology/extractor";
 import {
   detectPatterns,
@@ -24,6 +24,17 @@ interface CronEnv {
 }
 
 type Db = ReturnType<typeof getDb>;
+
+export const EVIDENCE_THRESHOLD = 30;
+
+export async function getEvidenceCount(db: Db, tenantId: string): Promise<number> {
+  const [result] = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(evidence)
+    .innerJoin(discoveries, eq(evidence.discoveryId, discoveries.id))
+    .where(eq(discoveries.tenantId, tenantId));
+  return result?.count ?? 0;
+}
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const env = context.cloudflare.env as unknown as CronEnv;
@@ -71,6 +82,16 @@ async function handleExtract(db: Db, env: CronEnv, url: URL) {
 
   const results = [];
   for (const tenant of activeTenants) {
+    const evidenceCount = await getEvidenceCount(db, tenant.id);
+    if (evidenceCount < EVIDENCE_THRESHOLD) {
+      results.push({
+        tenantId: tenant.id,
+        skipped: true,
+        reason: "evidence_below_threshold" as const,
+        evidenceCount,
+      });
+      continue;
+    }
     const result = await extractOntologyBatch(db, env.ANTHROPIC_API_KEY, tenant.id, batchSize);
     results.push({ tenantId: tenant.id, ...result });
   }
