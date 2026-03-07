@@ -5,15 +5,8 @@
  */
 
 export interface FeatureFlags {
-  graphLayer: boolean;
-  agentDO: boolean;
-  topicCollab: boolean;
-  aclScope: boolean;
-  memoryLifecycle: boolean;
   vectorizeSearch: boolean;
-  pipelineBridge: boolean;
   collabWorker: boolean;
-  profileLearner: boolean;
   simplifiedNav: boolean;
   aiFallback: boolean;
   requirementsAgent: boolean;
@@ -26,15 +19,8 @@ export interface FeatureFlags {
  */
 export function getFeatureFlags(env: Record<string, string | undefined>): FeatureFlags {
   return {
-    graphLayer: env.FF_GRAPH_LAYER === "true",
-    agentDO: env.FF_AGENT_DO === "true",
-    topicCollab: env.FF_TOPIC_COLLAB === "true",
-    aclScope: env.FF_ACL_SCOPE === "true",
-    memoryLifecycle: env.FF_MEMORY_LIFECYCLE === "true",
     vectorizeSearch: env.FF_VECTORIZE_SEARCH === "true",
-    pipelineBridge: env.FF_PIPELINE_BRIDGE === "true",
     collabWorker: env.FF_COLLAB_WORKER === "true",
-    profileLearner: env.FF_PROFILE_LEARNER === "true",
     simplifiedNav: env.FF_SIMPLIFIED_NAV === "true",
     aiFallback: env.FF_AI_FALLBACK === "true",
     requirementsAgent: env.FF_REQUIREMENTS_AGENT === "true",

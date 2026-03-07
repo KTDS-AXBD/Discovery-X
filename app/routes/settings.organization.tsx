@@ -7,10 +7,9 @@ import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/cloudfla
 import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, useActionData } from "@remix-run/react";
 import { useState } from "react";
-import { eq, and } from "drizzle-orm";
 import { getDb } from "~/db";
-import { tenants, tenantMembers, users } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
+import { SettingsService } from "~/features/settings/service";
 import { AppShell } from "~/components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Button } from "~/components/ui/Button";
@@ -25,47 +24,17 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const ctx = await getSessionContext(request, db, secret);
   if (!ctx) return redirect("/login");
 
-  const tenant = await db
-    .select()
-    .from(tenants)
-    .where(eq(tenants.id, ctx.tenantId))
-    .limit(1);
+  const service = new SettingsService(db);
+  const tenant = await service.getTenant(ctx.tenantId);
+  if (!tenant) return redirect("/onboarding");
 
-  if (!tenant[0]) return redirect("/onboarding");
-
-  const members = await db
-    .select({
-      id: tenantMembers.id,
-      userId: tenantMembers.userId,
-      role: tenantMembers.role,
-      joinedAt: tenantMembers.joinedAt,
-      name: users.name,
-      email: users.email,
-    })
-    .from(tenantMembers)
-    .innerJoin(users, eq(tenantMembers.userId, users.id))
-    .where(eq(tenantMembers.tenantId, ctx.tenantId));
+  const members = await service.getMembers(ctx.tenantId);
 
   return json({
     user: ctx.user,
     tenantRole: ctx.tenantRole,
-    tenant: {
-      id: tenant[0].id,
-      name: tenant[0].name,
-      slug: tenant[0].slug,
-      plan: tenant[0].plan,
-      status: tenant[0].status,
-      settings: tenant[0].settings,
-      ownerUserId: tenant[0].ownerUserId,
-    },
-    members: members.map((m) => ({
-      id: m.id,
-      userId: m.userId,
-      name: m.name || "",
-      email: m.email,
-      role: m.role,
-      joinedAt: m.joinedAt?.toISOString() || null,
-    })),
+    tenant,
+    members,
   });
 }
 
@@ -75,70 +44,31 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const ctx = await getSessionContext(request, db, secret);
   if (!ctx) return json({ error: "Unauthorized" }, { status: 401 });
 
+  const service = new SettingsService(db);
   const formData = await request.formData();
   const actionType = formData.get("_action") as string;
 
   switch (actionType) {
     case "updateTenant": {
-      // Only owner can update
-      const tenant = await db.select().from(tenants).where(eq(tenants.id, ctx.tenantId)).limit(1);
-      if (tenant[0]?.ownerUserId !== ctx.user.id) {
-        return json({ error: "Only the owner can update organization settings." });
-      }
-
       const name = formData.get("name") as string;
-      if (name?.trim()) {
-        await db
-          .update(tenants)
-          .set({ name: name.trim(), updatedAt: new Date() })
-          .where(eq(tenants.id, ctx.tenantId));
-      }
+      const result = await service.updateTenantName(ctx.tenantId, ctx.user.id, name);
+      if (!result.success) return json({ error: result.error });
       return json({ success: true, message: "Organization updated." });
     }
 
     case "inviteMember": {
       const email = formData.get("email") as string;
       const role = (formData.get("role") as string) || "member";
-
-      const user = await db.select().from(users).where(eq(users.email, email)).limit(1);
-      if (!user[0]) {
-        return json({ error: `User ${email} not found. They must sign up first.` });
-      }
-
-      const existing = await db
-        .select()
-        .from(tenantMembers)
-        .where(and(eq(tenantMembers.tenantId, ctx.tenantId), eq(tenantMembers.userId, user[0].id)))
-        .limit(1);
-
-      if (existing[0]) {
-        return json({ error: `${email} is already a member.` });
-      }
-
-      await db.insert(tenantMembers).values({
-        id: crypto.randomUUID(),
-        tenantId: ctx.tenantId,
-        userId: user[0].id,
-        role,
-        invitedBy: ctx.user.id,
-      });
-
-      return json({ success: true, message: `Invited ${user[0].name || email} as ${role}.` });
+      const result = await service.inviteMember(ctx.tenantId, email, role, ctx.user.id);
+      if (!result.success) return json({ error: result.error });
+      return json({ success: true, message: result.message });
     }
 
     case "removeMember": {
       const userId = formData.get("userId") as string;
-      const tenant = await db.select().from(tenants).where(eq(tenants.id, ctx.tenantId)).limit(1);
-
-      if (tenant[0]?.ownerUserId === userId) {
-        return json({ error: "Cannot remove the organization owner." });
-      }
-
-      await db
-        .delete(tenantMembers)
-        .where(and(eq(tenantMembers.tenantId, ctx.tenantId), eq(tenantMembers.userId, userId)));
-
-      return json({ success: true, message: "Member removed." });
+      const result = await service.removeMember(ctx.tenantId, userId);
+      if (!result.success) return json({ error: result.error });
+      return json({ success: true, message: result.message });
     }
 
     default:
