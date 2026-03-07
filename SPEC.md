@@ -441,7 +441,7 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **시스템 (SemVer SSOT)**: 0.5.0 (package.json)
+- **시스템 (SemVer SSOT)**: 0.5.1 (package.json)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 53개 마이그레이션 SQL (0000~0051), 전체 적용 완료 (로컬+프로덕션)
 
@@ -560,12 +560,12 @@ build/
 | F28 | AI Agent 응답 품질 고도화 (Evidence 인용 + '모름' 명시 + Memory 요약 개선 + SOUL 커스터마이징 UI) | v3.1 | ✅ | 5 |
 | F29 | 요구사항 수집/관리 (feature_requests 등 5 테이블 + API 4개 + 카드 뷰 UI + AI 자동 검토) | v3.1 | ✅ | 9 |
 | F30 | 앱 내 온보딩 튜토리얼 (3단계 spotlight 모달 + 최초 접속 감지 + Skip/재실행) | v3.1 | ✅ | 6 |
-| F31 | 대시보드 통계 기간 필터 추가 (DX-REQ-001, P3) | v0.6.0 | 📋 | - |
-| F32 | 공통 서비스 레이어 패키지 분리 (DX-REQ-002, P3) | v0.6.0 | 📋 | - |
-| F33 | Agent 실행 모듈 독립 패키지화 (DX-REQ-003, P3) | v0.6.0 | 📋 | - |
-| F34 | 공통 UI 컴포넌트 라이브러리 분리 (DX-REQ-004, P3) | v0.6.0 | 📋 | - |
-| F35 | 사업제안 PPT 슬라이드 자동 생성 Agent (DX-REQ-005, P1) | v0.6.0 | 📋 | - |
-| F36 | 자동 MVP 구축 Agent — 형상화→코드 스캐폴딩 (DX-REQ-006, P1) | v0.6.0 | 📋 | - |
+| F31 | 대시보드 통계 기간 필터 추가 (DX-REQ-001, P3) | v0.7.0 | 📋 | - |
+| F32 | 공통 서비스 레이어 패키지 분리 (DX-REQ-002, P3) | v0.7.0 | 📋 | - |
+| F33 | Agent 실행 모듈 독립 패키지화 (DX-REQ-003, P3) | v0.7.0 | 📋 | - |
+| F34 | 공통 UI 컴포넌트 라이브러리 분리 (DX-REQ-004, P3) | v0.7.0 | 📋 | - |
+| **F35** | **사업제안 PPT 슬라이드 자동 생성 Agent (DX-REQ-005, P1)** | **v0.6.0** | 📋 | - |
+| **F36** | **자동 MVP 구축 Agent — 형상화→코드 스캐폴딩 (DX-REQ-006, P1)** | **v0.6.0** | 📋 | - |
 | F37 | 작업 현황 가시성 개선 — 카드 그리드→컴팩트 리스트 뷰 (DX-REQ-007, P2) | v0.5.0 | ✅ | 1 |
 | F38 | MWC 2026 파이프라인 시나리오 — Radar→Ideas→Proposals 풀 파이프라인 데모 (DX-REQ-008, P1) | v0.5.0 | 🔧 | - |
 
