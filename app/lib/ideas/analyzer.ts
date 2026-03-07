@@ -17,6 +17,28 @@ import { PIPELINE_ORDER, CATEGORY_MAP } from "./analysis-prompts";
 
 const INTER_CATEGORY_DELAY_MS = 1500;
 
+/** 분석 카테고리 → EvidenceType 매핑 */
+export function mapCategoryToEvidenceType(category: string): string {
+  switch (category) {
+    case "market_research":
+    case "feasibility":
+      return "DATA";
+    case "customer_research":
+      return "USER";
+    case "industry_example":
+    case "regulation":
+      return "REF";
+    default:
+      return "ASSUMPTION";
+  }
+}
+
+/** 분석 Phase → EvidenceStrength 매핑 */
+export function mapPhaseToEvidenceStrength(phase: number): string {
+  if (phase === 1) return "B"; // Phase 1: 사실 기반 조사 → Direct
+  return "C"; // Phase 2-3: 분석/종합 → Indirect
+}
+
 export interface AnalysisProgress {
   type: "analysis_start" | "category_start" | "category_complete" | "category_error" | "analysis_complete";
   category?: string;
@@ -79,7 +101,11 @@ export async function runIdeaAnalysis({
   sourceIds,
   onProgress,
   env,
-}: AnalyzerOptions): Promise<{ completed: string[]; failed: string[] }> {
+}: AnalyzerOptions): Promise<{
+  completed: string[];
+  failed: string[];
+  evidenceData: Array<{ type: string; content: string; strength: string }>;
+}> {
   const aiCtx: FallbackContext | undefined = env ? { env } : undefined;
 
   // Determine which categories to run
@@ -95,6 +121,7 @@ export async function runIdeaAnalysis({
   let completedCount = 0;
   const completed: string[] = [];
   const failed: string[] = [];
+  const evidenceData: Array<{ type: string; content: string; strength: string }> = [];
 
   onProgress?.({
     type: "analysis_start",
@@ -192,6 +219,12 @@ export async function runIdeaAnalysis({
       completedCount++;
       completed.push(cat.category);
 
+      evidenceData.push({
+        type: mapCategoryToEvidenceType(cat.category),
+        content: extractInsightSummary(cat.category, cat.label, textContent),
+        strength: mapPhaseToEvidenceStrength(cat.phase),
+      });
+
       onProgress?.({
         type: "category_complete",
         category: cat.category,
@@ -228,7 +261,7 @@ export async function runIdeaAnalysis({
     totalCount,
   });
 
-  return { completed, failed };
+  return { completed, failed, evidenceData };
 }
 
 async function logTokenUsage(

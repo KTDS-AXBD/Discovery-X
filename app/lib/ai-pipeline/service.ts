@@ -11,6 +11,7 @@ import {
   aiPipelineRuns,
   AIPipelineRunStatus,
   DiscoveryStatus,
+  evidence,
 } from "~/db/schema";
 import { ideas } from "~/features/ideas/db/schema";
 import { CLAUDE_MODEL } from "~/lib/agent/claude-client";
@@ -28,6 +29,14 @@ import {
 } from "./prompts";
 
 const SYSTEM_AGENT_ID = "system-agent";
+
+/** confidence(0-100) → EvidenceStrength(A-D) 매핑 */
+export function mapConfidenceToStrength(confidence: number): string {
+  if (confidence >= 80) return "A";
+  if (confidence >= 60) return "B";
+  if (confidence >= 40) return "C";
+  return "D";
+}
 
 /** Claude 응답에서 JSON을 추출 (마크다운 코드블록 래퍼 제거) */
 function extractJSON(text: string): string {
@@ -209,6 +218,33 @@ export class AIPipelineService {
             DiscoveryStatus.HYPOTHESIS,
             SYSTEM_AGENT_ID,
           );
+
+          // 4d. Auto-create Evidence from Radar source
+          const clusterItems = items.filter((i) => cluster.itemIds.includes(i.id));
+          const sourceUrl = clusterItems[0]?.url || null;
+
+          let skipEvidence = false;
+          if (sourceUrl) {
+            const existing = await this.db
+              .select({ id: evidence.id })
+              .from(evidence)
+              .where(and(eq(evidence.discoveryId, discovery.id), eq(evidence.sourceUrl, sourceUrl)))
+              .get();
+            if (existing) skipEvidence = true;
+          }
+
+          if (!skipEvidence) {
+            await this.db.insert(evidence).values({
+              id: crypto.randomUUID(),
+              discoveryId: discovery.id,
+              type: "DATA",
+              strength: mapConfidenceToStrength(evaluation.confidence),
+              content: `[자동생성] ${ideaResult.summary}\n근거: ${evaluation.rationale}`.slice(0, 400),
+              reliabilityLabel: "reported",
+              sourceUrl,
+              createdById: SYSTEM_AGENT_ID,
+            });
+          }
 
           discoveriesCreated++;
         } catch (error) {
