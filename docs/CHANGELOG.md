@@ -3,6 +3,22 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 305 (2026-03-07)
+**docs: 범용 거버넌스 표준 10개 신규 구축 — 인터뷰 기반 표준화**:
+- ✅ 코딩 컨벤션 (`coding-convention.md`) — 네이밍, import 정렬, 함수 크기, 에러 처리, AI 협업
+- ✅ 테스트/QA 전략 (`test-strategy.md`) — 3계층 피라미드, TDD, co-located, 한국어 명명
+- ✅ 보안 (`security.md`) — 시크릿 관리, 인증 가드, OWASP, 데이터 보호
+- ✅ CI/CD 파이프라인 (`cicd-pipeline.md`) — 4단계 빌드, trunk-based, push-to-deploy
+- ✅ 의존성 관리 (`dependency-management.md`) — 버전별 업데이트, lock 커밋, 최소 원칙
+- ✅ 데이터/스키마 (`data-schema.md`) — 스키마 명명, 순방향 마이그레이션, 정합성
+- ✅ 모니터링/관찰성 (`observability.md`) — 4레벨 로깅, 에러 4등급, 헬스체크
+- ✅ 성능 기준 (`performance.md`) — 웹/API 권장 범위, 측정 후 최적화 원칙
+- ✅ ADR (`adr.md`) — 문서 관리 DSGN 유형 통합, 4항목 간결 포맷
+- ✅ 온보딩/지식 공유 (`onboarding.md`) — 프로젝트 셋업, 3-Tier 지식 구조
+- ✅ global CLAUDE.md에 10개 표준 요약 반영 (총 15개 거버넌스 표준 체계 완성)
+
+**범위**: user-scope (`~/.claude/standards/`, `~/.claude-work/.claude/CLAUDE.md`) — 프로젝트 코드 변경 없음
+
 ### 세션 304 (2026-03-07)
 **feat: Agent Evidence 자동 연결 + 인사이트 추출 파이프라인 (Phase B S5+S6)**:
 - ✅ S5: Evidence에 `conversationId` 컬럼 추가 (마이그레이션 0049) + processToolBlocks에서 `add_evidence` 실행 시 대화 컨텍스트 자동 연결
