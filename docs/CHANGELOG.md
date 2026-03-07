@@ -3,6 +3,23 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 317 (2026-03-07)
+**feat: 요구사항 표준체계 정렬 — 8칸반 + DX-REQ 코드 + 개발 라이프사이클**:
+- ✅ 상태 모델 확장: 6→9개 (PLANNED/IN_PROGRESS/DONE 추가, ACCEPTED 이후 개발 라이프사이클)
+- ✅ 스키마 확장: feature_requests에 7컬럼 추가 (reqCode, type, domain, impactLevel, urgencyLevel, specItemId, milestoneVersion)
+- ✅ 칸반 5→8칸: 검토 파이프라인 | 개발 라이프사이클 구분, DnD 전환
+- ✅ DX-REQ-{NNN} 코드: ACCEPTED 시 자동 부여 (generateReqCode)
+- ✅ 표준 분류 체계: 유형×도메인 2축 + P0~P3 우선순위 (영향도×긴급도 매트릭스)
+- ✅ PlanDialog 신규: 반영→계획 전환 시 분류 메타데이터 입력 UI
+- ✅ API: lifecycleAction (plan/start_progress/mark_done) 핸들링
+- ✅ 작업 현황 탭: 2섹션 구조 (개발 라이프사이클 카드 + 작업계획 카드)
+- ✅ RequestCard: REQ코드, 유형/도메인/SPEC/마일스톤 태그 표시
+- ✅ 마이그레이션 0050 생성 + 로컬 적용
+- ✅ settings 서비스 레이어 + feature flags 정리 (미커밋 잔여)
+
+**검증 결과**:
+- ✅ typecheck / lint / build / tests 1,697개 전부 통과
+
 ### 세션 316 (2026-03-07)
 **chore: ax-13-selfcheck 스킬 신규 + ax-12-retro 참조 수정**:
 - ✅ `/ax-13-selfcheck` 스킬 신규 — ax plugin 6항목 자율점검 (frontmatter/동기화/standards/참조/hook/skills)

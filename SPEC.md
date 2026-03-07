@@ -34,7 +34,7 @@ AX 신사업 발굴 과정에서 **관찰→내부 실험→근거→결정**을
 - 3탭 GNB (아이디어/사업제안/실험실) + 대시보드는 홈(로고) 매핑 + ContextPanel + 보관함 사이드바 레이아웃 재구성
 - 아이디어 페이지: Radar 아이템 재활용 + 메모 패널
 - 사업제안: DB 6테이블 + CRUD API + 마일스톤/액션/댓글 + 진행상황 패널
-- 실험실 (Lab): 3탭 구조 (요구사항/작업 현황/방법론) + 기존 탭(개요/분석/검토 큐/매트릭스) hidden 보관 + LLM 자동 엔티티 추출 + 글로벌 엔티티 매칭 + 관계 분석 엔진 + 시뮬레이션 + 인터랙티브 그래프 (드래그/줌/팬) + Method Pack 라이브러리 통합 + 과학 Lab 미학
+- 실험실 (Lab): 3탭 구조 (요구사항/작업 현황/방법론) + 기존 탭(개요/분석/검토 큐/매트릭스) hidden 보관 + 요구사항 표준체계 정렬 (8칸반: 접수→AI검토→담당자검토→반영 | 계획→진행중→완료 | 보류, DX-REQ-{NNN} 자동 부여, 유형×도메인 2축 분류, P0~P3 우선순위, SPEC F항목 연동, 마일스톤 배정) + LLM 자동 엔티티 추출 + 글로벌 엔티티 매칭 + 관계 분석 엔진 + 시뮬레이션 + 인터랙티브 그래프 (드래그/줌/팬) + Method Pack 라이브러리 통합 + 과학 Lab 미학
 - 대시보드 리디자인:
   - 2컬럼 레이아웃: SourceSidebar (280px, 읽음/안읽음 시각 구분) + SummaryCard + PeerBriefing
   - SummaryCard: "핵심 요약" 배지 + 요약 텍스트 + "키워드" 배지 + "원본 링크" 배지 + 반응(like/dislike) + "소스 수집 관리"/"아이디어 생성" 액션 버튼
@@ -221,10 +221,11 @@ Flow K: Ideas → Discovery 수동 전환
 - `/api/proposals/:id/actions` — 액션 아이템 토글 API (POST)
 
 **Lab (실험실) (4 pages + 5 API)**
-- `/lab` — 실험실 레이아웃 (4탭: 개요/분석/검토 큐/방법론, 전폭 dot-grid 배경, 모노스페이스 teal accent)
-- `/lab/_index` — 개요 (InstrumentPanel 5개 스탯 + GraphViewer (인터랙티브 드래그, 줌/팬) + ExtractionLog)
-- `/lab/analysis` — 분석 + 시뮬레이션 통합 (5모드: 패턴/모순/클러스터/중심성/시뮬레이션)
-- `/lab/review` — 자동 추출 검토 큐 (승인/반려/편집, LabButton 컴포넌트)
+- `/lab` — 실험실 레이아웃 (3탭: 요구사항/작업 현황/방법론, 전폭 dot-grid 배경, 모노스페이스 teal accent)
+- `/lab/_index` — 요구사항 (8칸반: 접수→AI검토→담당자검토→반영 | 계획→진행중→완료 | 보류, DnD + PlanDialog 표준분류)
+- `/lab/work-status` — 작업 현황 (개발 라이프사이클 카드 + 작업계획 카드, REQ코드/분류/SPEC연동 표시)
+- `/lab/analysis` — 분석 + 시뮬레이션 통합 (5모드: 패턴/모순/클러스터/중심성/시뮬레이션) *(hidden)*
+- `/lab/review` — 자동 추출 검토 큐 (승인/반려/편집, LabButton 컴포넌트) *(hidden)*
 - `/lab/methods` — Method Pack 라이브러리 (12종, Tier 필터, Lab 스타일 적용, 기존 MethodPackCard/DetailDialog 재사용)
 - `/api/lab/review` — 검토 API (POST approve/reject/edit)
 - `/api/lab/analyze` — 분석 API (POST by type)
@@ -442,19 +443,19 @@ build/
 ### 버전
 - **시스템 (SemVer SSOT)**: 0.5.0 (package.json)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 51개 마이그레이션 SQL (0000~0049), 전체 적용 완료 (로컬+프로덕션)
+- **DB**: 52개 마이그레이션 SQL (0000~0050), 전체 적용 완료 (로컬, 프로덕션 대기)
 
 ### 주요 지표
 - **라우트**: 158개
 - **테이블**: 97개
 - **Agent 도구**: 72개
-- **코드**: ~71,600줄 (~448파일)
-- **테스트**: 1,697개 (117 test files, 로컬 통과)
+- **코드**: ~72,400줄 (~452파일)
+- **테스트**: 1,729개 (118 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
 - **부하 테스트**: Artillery v2.0.30 — 4개 시나리오 (health, api-crud, chat-stream, spike)
-- **Feature Flag**: 12개 — **12/12 true** (전체 활성화)
+- **Feature Flag**: 5개 — **5/5 true** (미사용 7개 제거)
 - **@theme inline**: 104 토큰 등록, var() 1,752→122 (93.0% 감소, 163 파일)
 - **@axis-ds 컴포넌트**: 15/28 활용
 - **radar-worker**: scorer 4단계 fallback (Anthropic→OpenAI→Gemini→Workers AI) + failedProviders 스킵
@@ -472,7 +473,7 @@ build/
 - **브랜치 전략**: master 단일 브랜치 (Prototype 기간)
 - **배포**: Cloudflare Pages (master push → GitHub Actions CI/CD 자동 배포) — Secrets 설정 완료 ✅
 - **운영 실험**: 🚀 2026-01-31 시작 (30-60일, 최대 5명, Discovery 5-10건 목표)
-- **DB 마이그레이션**: ✅ 51개 SQL (0000~0049) 로컬+프로덕션 적용 완료
+- **DB 마이그레이션**: ✅ 52개 SQL (0000~0050) 로컬 적용 완료, 프로덕션 배포 대기
 - **Cron 설정**: 10개 라우트 (daily/agent-review/embeddings/weekly-summary/signal-route/matrix-scoring/maintenance/vectorize/lab/ai-pipeline) + cron-job.org 14개 등록 완료
 - **Radar Worker**: 프로덕션 운영 중 (Cron 매일 9:00 KST, 10소스)
 - **이메일**: Resend (`noreply@ideaonaction.ai`), cron-job.org 자동 발송
