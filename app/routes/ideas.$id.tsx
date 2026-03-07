@@ -7,7 +7,6 @@ import { getDb } from "~/db";
 import { IdeaService, RadarService } from "~/lib/services";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { usePanelLayout } from "~/lib/hooks/use-panel-layout";
-import { METHODOLOGY_PROMPTS, ALL_METHODOLOGIES } from "~/lib/constants/methodology";
 import { buildSourceContext, buildMethodologySections, detectStaleSections } from "~/lib/ideas/section-builder";
 import { EditableTitle } from "~/components/ideas/EditableTitle";
 import { SuggestTitleButton } from "~/components/ideas/SuggestTitleButton";
@@ -37,7 +36,9 @@ interface OutletCtx {
     id: string;
     title: string;
     titleKo: string | null;
+    summary: string | null;
     summaryKo: string | null;
+    keyPoints: string[] | null;
     url: string;
     relevanceScore: number | null;
     status: string;
@@ -122,7 +123,6 @@ export default function IdeaDetail() {
 
   // ─── Source selection (multi-select) ───
   const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>([]);
-  const [autoMessage, setAutoMessage] = useState<string | null>(null);
   const [loadingCategory, setLoadingCategory] = useState<string | null>(null);
   const [analysisRunning, setAnalysisRunning] = useState(false);
   const [categoryStates, setCategoryStates] = useState<Record<string, "pending" | "running" | "complete" | "failed">>({});
@@ -153,7 +153,9 @@ export default function IdeaDetail() {
               id: (s.radarItemId as string) || (s.id as string),
               title: (s.title as string) || "",
               titleKo: (s.titleKo as string) || null,
+              summary: (s.summary as string) || null,
               summaryKo: (s.summaryKo as string) || null,
+              keyPoints: (s.keyPoints as string[]) || null,
               url: (s.url as string) || "",
               relevanceScore: null,
               status: (s.status as string) || "COLLECTED",
@@ -281,7 +283,11 @@ export default function IdeaDetail() {
     const sourceContext = buildSourceContext(selectedSources);
 
     const initialStates: Record<string, "pending"> = {};
-    const cats = ["industry_example", "regulation", "market_research", "customer_research", "feasibility", "differentiation"];
+    const cats = [
+      "market_research", "customer_research", "industry_example", "regulation",
+      "swot", "pestel", "value_chain", "differentiation",
+      "bmc", "lean_canvas", "feasibility", "critical_thinking",
+    ];
     for (const c of cats) initialStates[c] = "pending";
     setCategoryStates(initialStates);
     setAnalysisRunning(true);
@@ -339,35 +345,58 @@ export default function IdeaDetail() {
     if (!ideaId) return;
 
     setLoadingCategory(category);
+    setCategoryStates((prev) => ({ ...prev, [category]: "running" }));
 
     const selectedSources = ideaSourceItems.filter((s) => selectedSourceIds.includes(s.id));
-    const sourceSummaries = buildSourceContext(selectedSources);
+    const sourceContext = buildSourceContext(selectedSources);
 
-    const methodologyLabel = ALL_METHODOLOGIES.find((m) => m.key === category)?.label || category;
-    const methodologyPrompt = METHODOLOGY_PROMPTS[category] || "";
+    try {
+      const res = await fetch(`/api/ideas/${ideaId}/analyze`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sourceContext,
+          sourceIds: selectedSourceIds,
+          categories: [category],
+        }),
+      });
 
-    const msg = `아이디어 ID: ${ideaId}
-
-## 분석할 소스
-${sourceSummaries || "소스 없음"}
-
-## 실행할 방법론: ${methodologyLabel}
-${methodologyPrompt}
-
-update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석 결과를 저장해주세요. ideaId는 "${ideaId}"입니다. sourceIds는 ${JSON.stringify(selectedSourceIds)}입니다.`;
-
-    setAutoMessage(msg);
-  }, [ideaId, ideaSourceItems, selectedSourceIds]);
-
-  const handleToolResult = useCallback(
-    (toolName: string, _result: Record<string, unknown>) => {
-      if (toolName === "update_idea_analysis") {
-        revalidator.revalidate();
+      if (!res.ok || !res.body) {
+        setCategoryStates((prev) => ({ ...prev, [category]: "failed" }));
         setLoadingCategory(null);
+        return;
       }
-    },
-    [revalidator]
-  );
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const event = JSON.parse(line.slice(6));
+            if (event.type === "category_complete" && event.category) {
+              setCategoryStates((prev) => ({ ...prev, [event.category]: "complete" }));
+            } else if (event.type === "category_error" && event.category) {
+              setCategoryStates((prev) => ({ ...prev, [event.category]: "failed" }));
+            }
+          } catch { /* skip malformed */ }
+        }
+      }
+
+      revalidator.revalidate();
+    } catch {
+      setCategoryStates((prev) => ({ ...prev, [category]: "failed" }));
+    }
+
+    setLoadingCategory(null);
+  }, [ideaId, ideaSourceItems, selectedSourceIds, revalidator]);
 
   const handleTitleUpdated = useCallback(() => {
     revalidator.revalidate();
@@ -536,8 +565,6 @@ update_idea_analysis 도구를 사용하여 "${category}" 카테고리에 분석
               conversationId={conversationId}
               messages={chatMessages}
               isLoadingMessages={isLoadingMessages}
-              onToolResult={handleToolResult}
-              autoMessage={autoMessage}
               selectedSourceCount={selectedSourceIds.length}
               totalSourceCount={ideaSourceItems.length}
               analysisRunning={analysisRunning}

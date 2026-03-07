@@ -15,7 +15,10 @@ export type SectionMap = Record<string, SectionEntry | null>;
 interface SourceItem {
   titleKo?: string | null;
   title?: string | null;
+  summary?: string | null;
   summaryKo?: string | null;
+  keyPoints?: string[] | unknown;
+  memo?: string | null;
   url?: string | null;
 }
 
@@ -34,16 +37,28 @@ interface AnalysisEntry {
  * handleStartAnalysis / handleRunMethodology 양쪽에서 사용.
  */
 export function buildSourceContext(sources: SourceItem[]): string {
-  return (
-    sources
-      .map((s) => {
-        const title = s.titleKo || s.title || "제목 없음";
-        const summary = s.summaryKo || "";
-        const url = s.url && !s.url.startsWith("text://") ? s.url : "";
-        return `- **${title}**${summary ? `: ${summary}` : ""}${url ? ` (${url})` : ""}`;
-      })
-      .join("\n") || "소스 없음"
-  );
+  if (sources.length === 0) return "소스 없음";
+
+  return sources
+    .map((s, i) => {
+      const title = s.titleKo || s.title || "제목 없음";
+      const url = s.url && !s.url.startsWith("text://") ? s.url : "";
+      const summary = s.summaryKo || s.summary || "";
+      const points = Array.isArray(s.keyPoints) ? (s.keyPoints as string[]) : [];
+      const memo = s.memo || "";
+
+      const lines: string[] = [];
+      lines.push(`### 소스 ${i + 1}: ${title}${url ? ` (${url})` : ""}`);
+      if (summary) lines.push(`요약: ${summary}`);
+      if (points.length > 0) {
+        lines.push("핵심 포인트:");
+        points.forEach((p, j) => lines.push(`  ${j + 1}. ${p}`));
+      }
+      if (memo) lines.push(`메모: ${memo}`);
+
+      return lines.join("\n");
+    })
+    .join("\n\n");
 }
 
 /**

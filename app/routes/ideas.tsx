@@ -31,7 +31,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       id: string;
       title: string;
       titleKo: string | null;
+      summary: string | null;
       summaryKo: string | null;
+      keyPoints: string[] | null;
       url: string;
       relevanceScore: number | null;
       status: string;
@@ -44,7 +46,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         id: item.id,
         title: item.title,
         titleKo: item.titleKo,
+        summary: item.summary,
         summaryKo: item.summaryKo,
+        keyPoints: item.keyPoints,
         url: item.url,
         relevanceScore: item.relevanceScore,
         status: item.status,

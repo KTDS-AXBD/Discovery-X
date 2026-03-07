@@ -1,5 +1,5 @@
 /**
- * Analysis progress indicator — shows 6 category states during direct analysis.
+ * Analysis progress indicator — shows 12 category states in 3 phases.
  * States: pending (gray), running (blue pulse), complete (green), failed (red)
  */
 
@@ -27,10 +27,22 @@ const STATE_ICONS: Record<CategoryState, string> = {
   failed: "\u2717",   // cross
 };
 
+const PHASE_LABELS: Record<number, string> = {
+  1: "기초 조사",
+  2: "전략 분석",
+  3: "비즈니스 모델",
+};
+
 export function AnalysisProgress({ categoryStates, isRunning }: AnalysisProgressProps) {
   const completedCount = Object.values(categoryStates).filter((s) => s === "complete").length;
   const failedCount = Object.values(categoryStates).filter((s) => s === "failed").length;
-  const totalCount = ANALYSIS_CATEGORIES.length;
+  const totalCount = Object.keys(categoryStates).length || ANALYSIS_CATEGORIES.length;
+
+  // Group categories by phase
+  const phases = [1, 2, 3] as const;
+  const categoriesByPhase = phases.map((phase) =>
+    ANALYSIS_CATEGORIES.filter((c) => c.phase === phase)
+  );
 
   return (
     <div className="border-b border-line px-4 py-3">
@@ -44,21 +56,35 @@ export function AnalysisProgress({ categoryStates, isRunning }: AnalysisProgress
         </span>
       </div>
 
-      {/* Progress bar */}
       <Progress value={((completedCount + failedCount) / totalCount) * 100} size="sm" className="mb-2" />
 
-      {/* Category chips */}
-      <div className="flex flex-wrap gap-1">
-        {ANALYSIS_CATEGORIES.map((cat) => {
-          const state = categoryStates[cat.category] || "pending";
+      {/* Category chips grouped by phase */}
+      <div className="space-y-1.5">
+        {phases.map((phase, pi) => {
+          const cats = categoriesByPhase[pi];
+          const hasActiveCategory = cats.some((c) => categoryStates[c.category]);
+          if (!hasActiveCategory && Object.keys(categoryStates).length > 0) return null;
+
           return (
-            <span
-              key={cat.category}
-              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${STATE_STYLES[state]}`}
-            >
-              <span className="text-[10px]">{STATE_ICONS[state]}</span>
-              {cat.label}
-            </span>
+            <div key={phase}>
+              <span className="mb-0.5 block text-[9px] font-medium uppercase tracking-wider text-fg-tertiary">
+                {PHASE_LABELS[phase]}
+              </span>
+              <div className="flex flex-wrap gap-1">
+                {cats.map((cat) => {
+                  const state = categoryStates[cat.category] || "pending";
+                  return (
+                    <span
+                      key={cat.category}
+                      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${STATE_STYLES[state]}`}
+                    >
+                      <span className="text-[10px]">{STATE_ICONS[state]}</span>
+                      {cat.label}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
           );
         })}
       </div>
