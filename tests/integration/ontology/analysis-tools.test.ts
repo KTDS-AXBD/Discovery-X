@@ -15,7 +15,7 @@ import {
   ontologyTypes,
   tenants,
   tenantMembers,
-} from "~/db/schema";
+} from "~/db";
 import {
   analyzePatterns,
   analyzeContradictions,

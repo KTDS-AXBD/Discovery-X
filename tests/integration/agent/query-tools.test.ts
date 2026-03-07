@@ -14,7 +14,7 @@ import {
   evidence,
   methodRuns,
   assumptions,
-} from "~/db/schema";
+} from "~/db";
 import {
   listDiscoveries,
   getDiscoveryDetail,

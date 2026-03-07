@@ -20,7 +20,7 @@ import {
   contextNodes,
   contextEdges,
   methodRuns,
-} from "~/db/schema";
+} from "~/db";
 
 describe("DB Migration Smoke Tests (0007~0010)", () => {
   let db: TestDB;

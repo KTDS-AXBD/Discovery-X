@@ -8,7 +8,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { eq } from "drizzle-orm";
 import { createTestDb, type TestDB } from "tests/helpers/db";
-import { evidence, conversations, users, discoveries } from "~/db/schema";
+import { evidence, conversations, users, discoveries } from "~/db";
 import type { DB } from "~/db";
 
 // executeTool 모킹 — 도구 실행 결과를 제어

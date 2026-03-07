@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { createTestDb, type TestDB } from "../helpers/db";
-import { users } from "~/db/schema";
+import { users } from "~/db";
 import {
   sharedSignals,
   topics,

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { createTestDb, type TestDB } from "../helpers/db";
-import { users, conversations } from "~/db/schema";
+import { users, conversations } from "~/db";
 import { agentMemoryV2 } from "~/db/schema-v2";
 import { tokenUsageLogs } from "~/db/token-usage-schema";
 import {

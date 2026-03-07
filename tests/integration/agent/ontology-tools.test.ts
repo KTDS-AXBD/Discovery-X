@@ -16,7 +16,7 @@ import {
   contextNodes,
   contextEdges,
   evidenceDuplicateCandidates,
-} from "~/db/schema";
+} from "~/db";
 import {
   extractEntities,
   linkEntities,

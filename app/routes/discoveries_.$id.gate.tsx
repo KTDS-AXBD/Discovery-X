@@ -13,7 +13,7 @@ import { Badge } from "~/components/ui/Badge";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/Select";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import { AlertBanner } from "~/components/ui/AlertBanner";
-import { GatePackageEditor } from "~/components/methods/GatePackageEditor";
+import { GatePackageEditor } from "~/features/discovery/ui/GatePackageEditor";
 import { formatDate } from "~/lib/format-date";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {

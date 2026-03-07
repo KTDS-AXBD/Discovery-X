@@ -12,7 +12,7 @@ import {
   ontologyTypes,
   tenants,
   tenantMembers,
-} from "~/db/schema";
+} from "~/db";
 import { extractOntologyBatch, type ExtractionResult } from "~/lib/ontology/extractor";
 
 /** TestDB → DrizzleD1Database 호환 타입 캐스팅 */

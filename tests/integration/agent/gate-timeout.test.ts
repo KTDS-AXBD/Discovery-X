@@ -14,7 +14,7 @@ import {
   gateApprovals,
   eventLogs,
   GateApprovalDecision,
-} from "~/db/schema";
+} from "~/db";
 import { eq } from "drizzle-orm";
 import { processExpiredGateApprovals } from "~/lib/notifications/alert-engine";
 import { requestGateApproval } from "~/features/chat/agent/tools/governance-tools";

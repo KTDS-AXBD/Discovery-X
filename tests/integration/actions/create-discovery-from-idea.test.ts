@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { eq } from "drizzle-orm";
 import { createTestDb, type TestDB } from "../../helpers/db";
 import { makeUser, resetFixtureCounter } from "../../helpers/fixtures";
-import { users, discoveries, experiments, tenants, tenantMembers } from "~/db/schema";
+import { users, discoveries, experiments, tenants, tenantMembers } from "~/db";
 import { ideas } from "~/features/ideas/db/schema";
 import type { DB } from "~/db";
 import { IdeaService } from "~/features/ideas/service";

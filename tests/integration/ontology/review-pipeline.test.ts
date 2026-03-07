@@ -16,7 +16,7 @@ import {
   ontologyTypes,
   tenants,
   tenantMembers,
-} from "~/db/schema";
+} from "~/db";
 import { matchGlobalEntity } from "~/lib/ontology/matcher";
 import {
   detectClusters,

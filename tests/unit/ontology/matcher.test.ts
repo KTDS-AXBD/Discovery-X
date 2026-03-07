@@ -5,7 +5,7 @@ import {
   makeContextNode,
   resetFixtureCounter,
 } from "../../helpers/fixtures";
-import { discoveries, contextNodes, ontologyTypes } from "~/db/schema";
+import { discoveries, contextNodes, ontologyTypes } from "~/db";
 import {
   normalizeLabel,
   matchGlobalEntity,

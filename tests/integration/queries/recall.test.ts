@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { eq, lte, and } from "drizzle-orm";
 import { createTestDb, type TestDB } from "../../helpers/db";
 import { makeUser, makeDiscovery, resetFixtureCounter } from "../../helpers/fixtures";
-import { users, discoveries } from "~/db/schema";
+import { users, discoveries } from "~/db";
 
 describe("Recall Query (NOT_NOW with past revisitDate)", () => {
   let db: TestDB;

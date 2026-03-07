@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { createTestDb, type TestDB } from "../../../helpers/db";
 import { makeUser, resetFixtureCounter } from "../../../helpers/fixtures";
-import { users } from "~/db/schema";
+import { users } from "~/db";
 import { featureRequests } from "~/features/requests/db/schema";
 import type { WorkPlanStepData } from "~/features/requests/db/schema";
 import {

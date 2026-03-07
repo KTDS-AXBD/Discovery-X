@@ -23,7 +23,7 @@ import {
   ontologyTypes,
   tenants,
   tenantMembers,
-} from "~/db/schema";
+} from "~/db";
 
 // ─── LLM Mock ─────────────────────────────────────────────────────────────
 vi.mock("~/features/chat/agent/claude-client", () => ({

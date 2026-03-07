@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { createTestDb, type TestDB } from "../../helpers/db";
 import { makeDiscovery, makeEvidence, resetFixtureCounter } from "../../helpers/fixtures";
-import { discoveries, users, evidence, tenants, tenantMembers } from "~/db/schema";
+import { discoveries, users, evidence, tenants, tenantMembers } from "~/db";
 import {
   getEvidenceCount,
   EVIDENCE_THRESHOLD,

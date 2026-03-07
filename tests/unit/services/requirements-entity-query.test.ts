@@ -13,7 +13,7 @@ import type { DB } from "~/db";
 import { RequirementsEntityService } from "~/features/requests/service/entity";
 import { RequirementsQueryService } from "~/features/requests/service/query";
 import { featureRequests, requestReviews, requestEvents, workPlans } from "~/features/requests/db/schema";
-import { users, tenants, tenantMembers } from "~/db/schema";
+import { users, tenants, tenantMembers } from "~/db";
 import { RequestClassification, RequestEventType } from "~/features/requests/constants";
 
 let db: ReturnType<typeof createTestDb>;

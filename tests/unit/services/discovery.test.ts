@@ -17,7 +17,7 @@ import {
   eventLogs,
   tenants,
   tenantMembers,
-} from "~/db/schema";
+} from "~/db";
 import { ALLOWED_TRANSITIONS } from "~/lib/constants/status";
 import { eq } from "drizzle-orm";
 

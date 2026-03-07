@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { eq } from "drizzle-orm";
 import { createTestDb, type TestDB } from "../../helpers/db";
 import { makeUser, makeDiscovery, makeExperiment, resetFixtureCounter } from "../../helpers/fixtures";
-import { users, discoveries, experiments, eventLogs } from "~/db/schema";
+import { users, discoveries, experiments, eventLogs } from "~/db";
 import {
   PromoteToOpenSchema,
   DiscoveryValidationRules,

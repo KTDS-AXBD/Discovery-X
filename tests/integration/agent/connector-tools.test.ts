@@ -6,7 +6,7 @@ import {
   makeDiscoveryLink,
   resetFixtureCounter,
 } from "../../helpers/fixtures";
-import { users, discoveries, discoveryLinks } from "~/db/schema";
+import { users, discoveries, discoveryLinks } from "~/db";
 import {
   linkDiscoveries,
   getLinkedDiscoveries,

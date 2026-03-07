@@ -18,7 +18,7 @@ import {
   conversations,
   messages,
   evidence,
-} from "~/db/schema";
+} from "~/db";
 import { eq } from "drizzle-orm";
 import type { DB } from "~/db";
 

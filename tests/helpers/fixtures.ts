@@ -14,7 +14,7 @@ import type {
   NewWebhookConfig,
   NewGateApproval,
   NewDiscoveryLink,
-} from "~/db/schema";
+} from "~/db";
 
 let counter = 0;
 function nextId() {

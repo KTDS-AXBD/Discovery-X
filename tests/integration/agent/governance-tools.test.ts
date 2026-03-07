@@ -13,7 +13,7 @@ import {
   gatePackages,
   gateApprovals,
   GateApprovalDecision,
-} from "~/db/schema";
+} from "~/db";
 import {
   requestGateApproval,
   submitGateApproval,

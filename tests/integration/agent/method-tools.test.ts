@@ -16,7 +16,7 @@ import {
   evidence,
   methodRuns,
   assumptions,
-} from "~/db/schema";
+} from "~/db";
 import {
   listMethodPacks,
   recommendMethods,

@@ -4,7 +4,7 @@ import {
   DiscoveryValidationRules,
   type CriticalCheckResult,
 } from "~/features/discovery/validation/discovery-rules";
-import { users, discoveries, experiments, evidence, assumptions } from "~/db/schema";
+import { users, discoveries, experiments, evidence, assumptions } from "~/db";
 
 // ============================================================================
 // 헬퍼: 테스트 시드 데이터 삽입

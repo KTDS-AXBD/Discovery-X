@@ -18,7 +18,7 @@ import { RequirementsWorkflowService } from "~/features/requests/service/workflo
 import { RequirementsEntityService } from "~/features/requests/service/entity";
 import { RequirementsQueryService } from "~/features/requests/service/query";
 import { featureRequests, requestReviews, requestEvents } from "~/features/requests/db/schema";
-import { users, discoveries, alerts, tenants, tenantMembers } from "~/db/schema";
+import { users, discoveries, alerts, tenants, tenantMembers } from "~/db";
 import { ALLOWED_TRANSITIONS, RequestStatus, RequestClassification, RequestEventType } from "~/features/requests/constants";
 
 let db: ReturnType<typeof createTestDb>;

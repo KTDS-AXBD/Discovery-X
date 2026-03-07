@@ -20,7 +20,7 @@ import {
   requestReviews,
   requestEvents,
 } from "~/features/requests/db/schema";
-import { users, tenants, tenantMembers } from "~/db/schema";
+import { users, tenants, tenantMembers } from "~/db";
 import {
   RequestClassification,
   RequestEventType,

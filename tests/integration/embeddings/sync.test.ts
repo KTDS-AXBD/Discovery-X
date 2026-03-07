@@ -8,7 +8,7 @@ import {
   evidenceDuplicateCandidates,
   radarSources,
   radarItems,
-} from "~/db/schema";
+} from "~/db";
 import { eq } from "drizzle-orm";
 import { syncEmbeddings } from "~/lib/embeddings/sync";
 import type { EmbeddingEnv } from "~/lib/embeddings/embedding-service";

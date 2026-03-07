@@ -15,7 +15,7 @@ import {
   tenants,
   tenantMembers,
   users,
-} from "~/db/schema";
+} from "~/db";
 import {
   detectPatterns,
   detectContradictions,

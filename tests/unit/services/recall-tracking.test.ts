@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { createTestDb } from "tests/helpers/db";
 import type { DB } from "~/db";
 import { RecallTrackingService } from "~/features/discovery/service/recall-tracking";
-import { eventLogs, users, discoveries, tenants, tenantMembers } from "~/db/schema";
+import { eventLogs, users, discoveries, tenants, tenantMembers } from "~/db";
 import { eq } from "drizzle-orm";
 
 let db: ReturnType<typeof createTestDb>;

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { createTestDb, type TestDB } from "../../helpers/db";
 import { makeUser, makeDiscovery, resetFixtureCounter } from "../../helpers/fixtures";
-import { users, discoveries } from "~/db/schema";
+import { users, discoveries } from "~/db";
 import { ACTIVE_STATUSES } from "~/lib/constants/status";
 import { buildWeeklySummaryEmail, type WeeklySummaryData } from "~/lib/notifications/templates";
 

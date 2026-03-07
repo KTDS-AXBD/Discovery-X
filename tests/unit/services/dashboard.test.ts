@@ -20,7 +20,7 @@ import {
   users,
   tenants,
   tenantMembers,
-} from "~/db/schema";
+} from "~/db";
 
 let db: ReturnType<typeof createTestDb>;
 let service: DashboardService;

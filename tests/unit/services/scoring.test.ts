@@ -19,7 +19,7 @@ import {
   functions,
   matrixCells,
 } from "~/features/matrix/db/schema";
-import { users, tenants, tenantMembers } from "~/db/schema";
+import { users, tenants, tenantMembers } from "~/db";
 import type { IndividualScoreInput } from "~/features/matrix/types";
 
 // ── 상수 ──

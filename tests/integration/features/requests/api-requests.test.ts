@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { eq } from "drizzle-orm";
 import { createTestDb, type TestDB } from "../../../helpers/db";
 import { makeUser, resetFixtureCounter } from "../../../helpers/fixtures";
-import { users, alerts } from "~/db/schema";
+import { users, alerts } from "~/db";
 import { featureRequests, requestReviews, requestEvents } from "~/features/requests/db/schema";
 import {
   RequirementsEntityService,

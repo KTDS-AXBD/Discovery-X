@@ -8,7 +8,7 @@ import {
   makeDiscoveryKpi,
   resetFixtureCounter,
 } from "../../helpers/fixtures";
-import { users, discoveries, alerts, webhookConfigs, discoveryKpis } from "~/db/schema";
+import { users, discoveries, alerts, webhookConfigs, discoveryKpis } from "~/db";
 import {
   getAlerts,
   acknowledgeAlert,

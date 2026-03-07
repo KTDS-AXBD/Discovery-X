@@ -16,7 +16,7 @@ import {
   tenants,
   tenantMembers,
   users,
-} from "~/db/schema";
+} from "~/db";
 import {
   propagateInfluence,
   compareSnapshots,

@@ -8,7 +8,7 @@ import {
   experiments,
   evidence,
   eventLogs,
-} from "~/db/schema";
+} from "~/db";
 import {
   createDiscovery,
   updateDiscovery,

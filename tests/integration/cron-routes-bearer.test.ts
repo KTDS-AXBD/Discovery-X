@@ -7,7 +7,7 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createTestDb, type TestDB } from "../helpers/db";
-import { tenants, users } from "~/db/schema";
+import { tenants, users } from "~/db";
 
 // ─── DB Mock ─────────────────────────────────────────────────────────────
 let testDb: TestDB;

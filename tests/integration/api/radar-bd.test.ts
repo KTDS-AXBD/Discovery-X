@@ -13,7 +13,7 @@ import {
   radarSources,
   radarItems,
   radarItemUserStatus,
-} from "~/db/schema";
+} from "~/db";
 
 // ── 테스트 헬퍼: Radar 소스/아이템 생성 ──
 

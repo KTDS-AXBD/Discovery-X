@@ -7,7 +7,7 @@ import {
   radarSources,
   radarItems,
   conversations,
-} from "~/db/schema";
+} from "~/db";
 
 /**
  * executor.ts의 sourceContext 조회 로직을 직접 재현하여 테스트합니다.
