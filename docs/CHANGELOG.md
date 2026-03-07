@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 307 (2026-03-07)
+**refactor: S8 BC 통일 — Discovery/Ideas/Radar 서비스 레이어 이동 (Phase C-1)**:
+- ✅ Discovery BC: `lib/services/discovery/` → `features/discovery/service/` (6파일) + validation 이동
+- ✅ Ideas BC: `lib/services/idea.service.ts` → `features/ideas/service/` + `lib/ideas/` (4파일) → `features/ideas/lib/`
+- ✅ Radar BC: `lib/services/radar.service.ts` → `features/radar/service/` (신규 BC)
+- ✅ 64파일 import 경로 업데이트 (routes 20+ / tests 14 / agent tools 3)
+- ✅ `lib/services/index.ts` re-export 경로 변경 (하위 호환 유지)
+- ✅ `/team` 병렬 작업 — Worker 1(Discovery) + Worker 2(Ideas+Radar) 동시 수행
+
+**검증 결과**:
+- ✅ typecheck / lint / 1,697 tests (117 files, 100% PASS)
+
 ### 세션 306 (2026-03-07)
 **feat: Cron 임계치(Evidence 30건) + Lab 인사이트 요약 위젯 — Phase B S7 완료**:
 - ✅ `api.cron.lab.ts`: EVIDENCE_THRESHOLD=30 상수 + `getEvidenceCount()` + 테넌트별 skip 로직
