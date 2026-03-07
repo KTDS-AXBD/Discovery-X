@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 303 (2026-03-07)
+**feat: Worker 공통 유틸 추출 — `@discovery-x/worker-utils` 패키지**:
+- ✅ `packages/worker-utils/` 신설 — 7개 모듈 (error-classifier, backoff, fetch-retry, health, cron-log, auth, types)
+- ✅ `pnpm-workspace.yaml` 생성 — 5개 패키지 workspace 구성
+- ✅ 4개 Worker 리팩토링 — 로컬 중복 코드를 공통 패키지로 전환 (22파일 변경)
+- ✅ Response 포맷 통일 — `new Response(JSON.stringify())` → `Response.json()`
+- ✅ 인증 통합 — 쿼리 파라미터 + Bearer 헤더 양방향 지원
+- ✅ 로컬 파일 3개 삭제 (error-classifier.ts, backoff.ts, fetch-retry.ts)
+
+**검증 결과**:
+- ✅ typecheck: 5개 패키지 모두 통과 (worker-utils + 4 workers + main app)
+- ✅ lint: 0 에러
+
 ### 세션 302 (2026-03-07)
 **docs: 요구사항/프로젝트/리스크 관리 표준 + 자동화 스킬/훅**:
 - 요구사항 관리 표준 (`requirements-governance.md`) — 전체 백로그 통합, 유형x도메인 교차 분류, 영향도x긴급도 우선순위, 8단계 상태
