@@ -1,0 +1,90 @@
+import type { SlideFormat } from "../types.js";
+
+export const SECTION_GROUPS: Array<{ groupTitle: string; types: string[] }> = [
+  { groupTitle: "사업 개요", types: ["overview", "content", "hypothesis"] },
+  { groupTitle: "시장 & 고객", types: ["target_market", "target_customer"] },
+  { groupTitle: "전략 & 차별화", types: ["value_proposition"] },
+  { groupTitle: "비즈니스 모델", types: ["revenue_model", "scenario"] },
+  { groupTitle: "실행 계획", types: ["mvp", "execution_plan"] },
+];
+
+export const SLIDE_TEMPLATES: Record<SlideFormat, string[]> = {
+  executive: [
+    "overview",
+    "target_market",
+    "value_proposition",
+    "revenue_model",
+    "mvp",
+    "execution_plan",
+  ],
+  pitch: [
+    "overview",
+    "content",
+    "hypothesis",
+    "target_market",
+    "target_customer",
+    "value_proposition",
+    "revenue_model",
+    "scenario",
+    "mvp",
+    "execution_plan",
+  ],
+  internal: [
+    "overview",
+    "content",
+    "hypothesis",
+    "target_market",
+    "target_customer",
+    "value_proposition",
+    "revenue_model",
+    "scenario",
+    "mvp",
+    "execution_plan",
+  ],
+};
+
+export const SECTION_LABELS: Record<string, string> = {
+  overview: "사업 개요",
+  content: "핵심 내용",
+  hypothesis: "핵심 가설",
+  target_market: "타겟 시장",
+  target_customer: "타겟 고객",
+  value_proposition: "가치 제안",
+  revenue_model: "수익 구조",
+  scenario: "시나리오 분석",
+  mvp: "MVP",
+  execution_plan: "실행 계획",
+};
+
+/** markdown 모드: 헤딩 키워드 → 섹션 타입 자동 추론 맵 */
+export const HEADING_TYPE_MAP: Record<string, string> = {
+  개요: "overview",
+  소개: "overview",
+  배경: "overview",
+  overview: "overview",
+  introduction: "overview",
+  시장: "target_market",
+  market: "target_market",
+  고객: "target_customer",
+  customer: "target_customer",
+  사용자: "target_customer",
+  user: "target_customer",
+  가치: "value_proposition",
+  차별화: "value_proposition",
+  value: "value_proposition",
+  수익: "revenue_model",
+  비용: "revenue_model",
+  revenue: "revenue_model",
+  비즈니스: "revenue_model",
+  가설: "hypothesis",
+  hypothesis: "hypothesis",
+  시나리오: "scenario",
+  scenario: "scenario",
+  mvp: "mvp",
+  프로토타입: "mvp",
+  prototype: "mvp",
+  실행: "execution_plan",
+  로드맵: "execution_plan",
+  일정: "execution_plan",
+  계획: "execution_plan",
+};
