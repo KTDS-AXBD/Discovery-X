@@ -36,12 +36,20 @@ pnpm load-test:chat   # 부하 테스트 — chat stream
 pnpm load-test:spike  # 부하 테스트 — spike
 ```
 
-## IMPORTANT: 검증 워크플로우
+## IMPORTANT: 검증 워크플로우 (GOV-004 DoD 6단계)
 
-- 코드 변경 후 반드시 `pnpm typecheck && pnpm lint` 실행
-- 새 기능 구현 후 관련 테스트 실행으로 검증
-- UI 변경 시 `pnpm dev`로 시각적 확인
-- 빌드 통과: `build/client/assets/` + `build/server/index.js` 존재로 판단
+| 단계 | 명령 | 기준 |
+|------|------|------|
+| 1. 타입 체크 | `pnpm typecheck` | 에러 0개 |
+| 2. 린트 | `pnpm lint` | 에러 0개 |
+| 3. 테스트 | `pnpm test` | 관련 테스트 전체 통과 |
+| 4. 빌드 | `pnpm build` | `build/client/assets/` + `build/server/index.js` 존재 |
+| 5. 배포 확인 | `/ax-02-end` (CI/CD) 또는 `/ax-03-deploy --preview` | 프리뷰/프로덕션 정상 |
+| 6. 문서 반영 | SPEC.md + CHANGELOG.md | 변경사항 기록 완료 |
+
+- UI 변경 시 `pnpm dev`로 시각적 확인 병행
+- docs: 커밋은 1~5번 스킵, 6번만 필수
+- Bug (P0)는 5번 후 6번 사후 반영 허용
 
 ## 핵심 비즈니스 규칙
 
