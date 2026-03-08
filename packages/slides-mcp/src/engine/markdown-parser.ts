@@ -220,13 +220,16 @@ export function splitByHeadings(markdown: string): SectionInput[] {
     const h2Match = line.match(/^##\s+(.+)$/);
 
     if (h2Match) {
-      // 이전 섹션 저장
-      if (buffer.length > 0 || currentTitle) {
-        sections.push({
-          type: currentType,
-          title: currentTitle || "Untitled",
-          content: buffer.join("\n").trim(),
-        });
+      // 이전 섹션 저장 (빈 content 섹션 무시)
+      const trimmedContent = buffer.join("\n").trim();
+      if (trimmedContent || currentTitle) {
+        if (trimmedContent) {
+          sections.push({
+            type: currentType,
+            title: currentTitle || "Untitled",
+            content: trimmedContent,
+          });
+        }
       }
       currentTitle = h2Match[1].replace(/\*\*/g, "").trim();
       // 키워드 매칭으로 타입 추론

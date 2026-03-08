@@ -24,7 +24,7 @@ export const PARSE_MARKDOWN_SCHEMA = {
 } as const;
 
 export function executeParseMarkdown(args: { markdown: string }): ParsedContent {
-  if (!args.markdown) {
+  if (args.markdown == null) {
     throw new Error("markdown 필드가 필수입니다.");
   }
   return parseMarkdown(args.markdown);
