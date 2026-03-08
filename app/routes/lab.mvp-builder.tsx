@@ -58,7 +58,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const ctx = await getSessionContext(request, db, secret);
 
   if (!ctx) {
-    return json({ proposals: [] as ProposalItem[], existingBuild: null });
+    return json({ proposals: [] as ProposalItem[] });
   }
 
   const proposalList = await db
@@ -66,10 +66,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .from(proposals)
     .where(eq(proposals.tenantId, ctx.tenantId));
 
-  // mvpBuilds 테이블은 아직 미구현 — 추후 API 완성 시 조회 추가
-  const existingBuild: MvpBuildResult | null = null;
-
-  return json({ proposals: proposalList, existingBuild });
+  return json({ proposals: proposalList });
 }
 
 // ---------------------------------------------------------------------------
@@ -77,7 +74,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ---------------------------------------------------------------------------
 
 export default function MvpBuilderPage() {
-  const { proposals: proposalList, existingBuild } = useLoaderData<typeof loader>();
+  const { proposals: proposalList } = useLoaderData<typeof loader>();
 
   const [phase, setPhase] = useState<Phase>("select");
   const [selectedProposalId, setSelectedProposalId] = useState("");
@@ -85,9 +82,7 @@ export default function MvpBuilderPage() {
     SECTION_OPTIONS.filter((s) => s.defaultChecked).map((s) => s.id),
   );
   const [progress, setProgress] = useState<MvpBuildProgress[]>([]);
-  const [buildResult, setBuildResult] = useState<MvpBuildResult | null>(
-    existingBuild ?? null,
-  );
+  const [buildResult, setBuildResult] = useState<MvpBuildResult | null>(null);
   const [expandedFile, setExpandedFile] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -97,6 +92,36 @@ export default function MvpBuilderPage() {
   useEffect(() => {
     return () => abortRef.current?.abort();
   }, []);
+
+  // 제안 변경 시 기존 빌드 조회
+  useEffect(() => {
+    if (!selectedProposalId) {
+      setBuildResult(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch(`/api/lab/mvp-builder?proposalId=${encodeURIComponent(selectedProposalId)}`);
+        if (!res.ok) return;
+        const data = (await res.json()) as { build?: MvpBuildResult & { id: string; projectName: string; status: string } };
+        if (cancelled || !data.build || data.build.status !== "completed") return;
+        const b = data.build;
+        setBuildResult({
+          buildId: b.id,
+          projectName: b.projectName,
+          stack: b.stack ?? "Next.js",
+          fileCount: b.fileCount,
+          totalLines: b.totalLines,
+          files: b.files ?? [],
+        });
+      } catch { /* ignore */ }
+    })();
+
+    return () => { cancelled = true; };
+  }, [selectedProposalId]);
 
   const toggleSection = useCallback((id: string) => {
     setSections((prev) =>
@@ -161,15 +186,43 @@ export default function MvpBuilderPage() {
               }
 
               if (progress_evt.type === "complete") {
-                setBuildResult({
-                  buildId: progress_evt.buildId,
-                  projectName:
-                    proposalList.find((p) => p.id === selectedProposalId)?.title ?? "MVP",
-                  stack: "Next.js",
-                  fileCount: progress_evt.fileCount,
-                  totalLines: progress_evt.totalLines,
-                  files: generatedFiles,
-                });
+                // SSE 완료 후 full build fetch (파일 content 포함)
+                fetch(`/api/lab/mvp-builder?proposalId=${encodeURIComponent(selectedProposalId)}`)
+                  .then(async (r) => (r.ok ? (await r.json()) as { build?: MvpBuildResult & { id: string; projectName: string } } : null))
+                  .then((data) => {
+                    if (data?.build) {
+                      setBuildResult({
+                        buildId: data.build.id,
+                        projectName: data.build.projectName,
+                        stack: data.build.stack ?? "Next.js",
+                        fileCount: data.build.fileCount,
+                        totalLines: data.build.totalLines,
+                        files: data.build.files ?? [],
+                      });
+                    } else {
+                      // fallback: SSE 데이터만 사용
+                      setBuildResult({
+                        buildId: progress_evt.buildId,
+                        projectName:
+                          proposalList.find((p) => p.id === selectedProposalId)?.title ?? "MVP",
+                        stack: "Next.js",
+                        fileCount: progress_evt.fileCount,
+                        totalLines: progress_evt.totalLines,
+                        files: generatedFiles,
+                      });
+                    }
+                  })
+                  .catch(() => {
+                    setBuildResult({
+                      buildId: progress_evt.buildId,
+                      projectName:
+                        proposalList.find((p) => p.id === selectedProposalId)?.title ?? "MVP",
+                      stack: "Next.js",
+                      fileCount: progress_evt.fileCount,
+                      totalLines: progress_evt.totalLines,
+                      files: generatedFiles,
+                    });
+                  });
                 setPhase("complete");
               }
 
