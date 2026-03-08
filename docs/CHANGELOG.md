@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 332e (2026-03-08)
+**feat: F35 PPT 표/프로세스/타임라인 슬라이드 + PPTX Skill 의존성 설치**:
+- ✅ 마크다운 테이블 자동 감지 → addTable() 렌더링 (네이비 헤더 + 교차 행)
+- ✅ execution_plan → 수평 화살표 프로세스 플로우 카드 (번호 배지 + 3색 악센트)
+- ✅ 마일스톤 → 세로 타임라인 도트 (완료/진행중/예정 색상 + 범례)
+- ✅ Slide 인터페이스 확장: tableData, processSteps 필드 + 레이아웃 10종
+- ✅ PPTX Skill 의존성 전체 설치: markitdown, Pillow, pptxgenjs(global), LibreOffice 24.2, Poppler
+
+**검증 결과**:
+- ✅ typecheck (0 에러) / lint (0 에러) / build (2.28s)
+
 ### 세션 332d (2026-03-08)
 **fix: F35 PPTX 인코딩 수정 + v3 컨설팅 디자인 + PPTX Skill 의존성 설치**:
 - ✅ 폰트 인코딩 수정: Pretendard → Malgun Gothic (맑은 고딕) — 한글 깨짐 해결
