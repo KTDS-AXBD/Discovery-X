@@ -62,6 +62,7 @@
 | DX-RPRT-002 | 보관함 폴더 완료 보고 | 1.0 | Active | 04-report/DX-RPRT-002_archive-folders.md |
 | DX-RPRT-003 | 레이아웃 제안 완료 보고 | 1.0 | Active | 04-report/DX-RPRT-003_layout-proposals.md |
 | DX-RPRT-004 | 온톨로지 인텔리전스 완료 보고 | 1.0 | Active | 04-report/DX-RPRT-004_ontology-intelligence.md |
+| DX-RPRT-005 | F36 MVP 빌더 Agent 완료 보고 | 1.0 | Active | 04-report/DX-RPRT-005_F36-mvp-builder.md |
 
 ## GUID — 가이드
 
@@ -81,4 +82,4 @@
 
 ---
 
-*총 42개 문서 | Active: 37 | Draft: 3 | Archived: 0*
+*총 43개 문서 | Active: 38 | Draft: 3 | Archived: 0*
