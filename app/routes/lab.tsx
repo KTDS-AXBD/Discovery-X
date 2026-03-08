@@ -9,6 +9,7 @@ const TABS = [
   { to: "/lab", label: "요구사항", end: true },
   { to: "/lab/work-status", label: "작업 현황", end: false },
   { to: "/lab/methods", label: "방법론", end: false },
+  { to: "/lab/mvp-builder", label: "MVP 빌더", end: false },
 ];
 
 export async function loader({ request, context }: LoaderFunctionArgs) {

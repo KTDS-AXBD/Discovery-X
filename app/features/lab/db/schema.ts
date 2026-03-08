@@ -158,3 +158,35 @@ export type NewContextSnapshot = typeof contextSnapshots.$inferInsert;
 
 export type EvidenceDuplicateCandidate = typeof evidenceDuplicateCandidates.$inferSelect;
 export type NewEvidenceDuplicateCandidate = typeof evidenceDuplicateCandidates.$inferInsert;
+
+// ============================================================================
+// MVP BUILDS (F36)
+// ============================================================================
+
+export const mvpBuilds = sqliteTable(
+  "mvp_builds",
+  {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    proposalId: text("proposal_id").notNull(),
+    tenantId: text("tenant_id").notNull(),
+    stack: text("stack").notNull().default("nextjs"),
+    sections: text("sections", { mode: "json" }).$type<string[]>().notNull().default([]),
+    projectName: text("project_name").notNull(),
+    files: text("files", { mode: "json" }).$type<{ path: string; content: string; language: string }[]>().notNull().default([]),
+    architecture: text("architecture", { mode: "json" }).$type<Record<string, unknown>>(),
+    summary: text("summary"),
+    fileCount: integer("file_count").notNull().default(0),
+    totalLines: integer("total_lines").notNull().default(0),
+    status: text("status").notNull().default("generating"),
+    errorMessage: text("error_message"),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    proposalIdx: index("idx_mvp_builds_proposal").on(table.proposalId),
+    tenantIdx: index("idx_mvp_builds_tenant").on(table.tenantId),
+  }),
+);
+
+export type MvpBuild = typeof mvpBuilds.$inferSelect;
+export type NewMvpBuild = typeof mvpBuilds.$inferInsert;
