@@ -3,6 +3,15 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 337 (2026-03-08)
+**ax plugin 자율점검 + 인프라 수정**:
+- ✅ `/ax-13-selfcheck` 실행 — 7/7 PASS
+- ✅ `ax-03-deploy.md` description `/s-end` → `/ax-02-end` 오타 수정
+- ✅ `ax-13-selfcheck.md` 점검 항목 "6개" → "7개" 카운트 수정
+- ✅ 미커밋 문서 정리: DX-ANLS-005 + slides-mcp README + INDEX 갱신
+
+---
+
 ## 마일스톤 회고: v0.6.0 (2026-03-08)
 
 ### 지표 변화 (v0.5.1 → v0.6.0)
