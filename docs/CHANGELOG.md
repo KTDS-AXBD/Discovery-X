@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 332c (2026-03-08)
+**feat: F35 PPT v2 디자인 + 콘텐츠 대폭 강화 — Corporate Editorial**:
+- ✅ slides.ts v2: 마크다운 deep parsing (헤딩→블록, 하위불릿, 산문→문장분리)
+- ✅ 긴 섹션 자동 분할 (7불릿 초과 → 멀티페이지) + 목차 + 섹션 구분 슬라이드
+- ✅ Key Insight 자동 추출 — 각 섹션 첫 문장을 큰 따옴표 카드로 렌더링
+- ✅ export-pptx.ts v2: 네이비 기조 + 블루 악센트 컨설팅 펌 디자인
+- ✅ 표지(기하학 장식+CONFIDENTIAL), 본문(좌측 악센트바+2단계 불릿), 메트릭(카드)
+- ✅ SlidePreview v2: 새 레이아웃 타입(agenda/key_insight/section_header) 카드 반영
+
+**검증 결과**:
+- ✅ typecheck (0 에러) / lint (0 에러) / build (2.35s)
+
 ### 세션 332b (2026-03-08)
 **feat: F35 PPTX 다운로드 기능 추가 — 사용자 피드백 반영**:
 - ✅ pptxgenjs 패키지 추가 (클라이언트 동적 import, 서버 번들 제외)
