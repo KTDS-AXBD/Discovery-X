@@ -41,6 +41,7 @@
 | DX-DSGN-006 | MSA 리팩토링 설계 | 1.0 | Draft | 02-design/DX-DSGN-006_msa-refactoring-plan.md |
 | DX-DSGN-007 | 온톨로지 활성화 설계 | 1.0 | Draft | 02-design/DX-DSGN-007_ontology-activation-plan.md |
 | DX-DSGN-008 | Radar 스코어링 전략 | 1.0 | Active | 02-design/DX-DSGN-008_radar-scoring-strategy.md |
+| DX-DSGN-009 | MVP 빌더 Agent 설계 | 1.0 | Active | 02-design/DX-DSGN-009_mvp-builder.md |
 | DX-DSGN-100 | 문서 관리 표준 및 적용 계획 | 1.0 | Draft | 02-design/DX-DSGN-100_doc-governance-plan.md |
 
 ## ANLS — 분석
@@ -79,4 +80,4 @@
 
 ---
 
-*총 40개 문서 | Active: 35 | Draft: 3 | Archived: 0*
+*총 41개 문서 | Active: 36 | Draft: 3 | Archived: 0*

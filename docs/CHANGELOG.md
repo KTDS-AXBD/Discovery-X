@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 335 (2026-03-08)
+**feat: F36 MVP 빌더 Agent — Lab 탭 + 4단계 Agent 루프 코드 스캐폴딩**:
+- ✅ DB: mvp_builds 테이블 + 마이그레이션 0053 (lab schema 확장)
+- ✅ 서비스: MvpBuilderService 4단계 Agent 루프 (분석→설계→코드생성→검증, 457줄)
+- ✅ API: SSE 스트리밍 생성 + ZIP 다운로드 (fflate, Workers 호환)
+- ✅ UI: Lab "MVP 빌더" 탭 (선택→진행률→결과 뷰어, 569줄)
+- ✅ 설계 문서: DX-DSGN-009 MVP 빌더 Agent 설계
+- ✅ Agent Teams 병렬 구현 (Worker 3명: DB+API / 서비스 / UI)
+
+**검증 결과**:
+- ✅ typecheck / lint / 2,168 tests 통과 / build 성공
+
 ### 세션 334 (2026-03-08)
 **feat: slides-mcp — PPT 슬라이드 생성 MCP 서버 패키지**:
 - ✅ F35 슬라이드 엔진을 `packages/slides-mcp/`로 추출 (1,713줄, 11 파일)
