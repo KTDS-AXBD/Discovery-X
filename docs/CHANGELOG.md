@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 332g (2026-03-08)
+**docs: CLAUDE.md 품질 감사 + MEMORY→CLAUDE 승격 파이프라인 구축**:
+- ✅ CLAUDE.md Improver 실행 — 3개 파일 감사 (Global B/Org C/Project A등급)
+- ✅ 실제 코드와 정합성 검증 (13 BC, 13 스키마, 54 마이그레이션, SSR 설정 — 전체 일치)
+- ✅ Gotchas에 Import 패턴 추가 (`from "~/db"` 통일 규칙, MEMORY.md에서 승격)
+- ✅ 명령어 섹션에 단일 파일 테스트 실행법 추가
+- ✅ `[→CLAUDE]` 마커 승격 컨벤션 도입 — MEMORY.md 발견 → CLAUDE.md 자동 승격
+- ✅ `/ax-02-end` Phase 4에 마커 승격 스텝 추가
+- ✅ `/ax-13-selfcheck` C7 MEMORY→CLAUDE 동기화 점검 항목 추가 (6→7개)
+
+**검증 결과**:
+- ✅ 코드 변경 없음 (문서/스킬만 수정)
+
 ### 세션 332f (2026-03-08)
 **feat: F35 PPT 콘텐츠 밀도 강화 — 산문 대응 + 자동 요약표 + 비교표**:
 - ✅ 산문 콘텐츠 대응: splitIntoSentences() 한국어 문장 분리 (다/요/음/됨 종결 감지)
