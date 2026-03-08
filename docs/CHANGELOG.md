@@ -16,8 +16,12 @@
 - ✅ 계획서 DX-PLAN-006 작성 + INDEX.md 갱신
 - ✅ Agent Teams 병렬 구현 (Worker 2명 + Leader)
 
+- ✅ E2E 테스트 60개 전체 통과 (12 시나리오: 레이아웃/markdown/sections/executive/테이블/PPTX/디자인/경로/파이프라인/에러/추론/유틸)
+- ✅ 버그 2건 수정: splitByHeadings 빈 섹션 방지 + parseMarkdown 빈 입력 처리
+- ✅ F39 (DX-REQ-009) 요구사항 등록 + SPEC.md F항목 추가
+
 **검증 결과**:
-- ✅ typecheck (메인 + slides-mcp) / tsc 빌드 통과
+- ✅ typecheck (메인 + slides-mcp) / tsc 빌드 / 60 E2E tests 통과
 
 ### 세션 333 (2026-03-08)
 **feat: AI Fallback 갭 해소 + Health Check API + 내부 배치 분석 스킬**:
