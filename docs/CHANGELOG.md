@@ -3,6 +3,22 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 334 (2026-03-08)
+**feat: slides-mcp — PPT 슬라이드 생성 MCP 서버 패키지**:
+- ✅ F35 슬라이드 엔진을 `packages/slides-mcp/`로 추출 (1,713줄, 11 파일)
+  - `markdown-parser.ts`: 마크다운→구조화 블록 + H2 자동 섹션 분할 (markdown 모드)
+  - `slide-builder.ts`: 섹션→슬라이드 JSON 변환 (DB 의존 완전 제거)
+  - `pptx-renderer.ts`: Node.js용 PptxGenJS 렌더러 (브라우저→서버 전환)
+- ✅ MCP 서버 (stdio) + 4 도구: generate_slides, export_pptx, parse_markdown, list_layouts
+- ✅ 입력 모드 2종: markdown(범용) + sections(사업제안 특화)
+- ✅ 커스텀 디자인 토큰 지원 (primaryColor, accentColor, fontFamily)
+- ✅ E2E 검증: markdown→7장 슬라이드→112KB .pptx 파일 생성 성공
+- ✅ 계획서 DX-PLAN-006 작성 + INDEX.md 갱신
+- ✅ Agent Teams 병렬 구현 (Worker 2명 + Leader)
+
+**검증 결과**:
+- ✅ typecheck (메인 + slides-mcp) / tsc 빌드 통과
+
 ### 세션 333 (2026-03-08)
 **feat: AI Fallback 갭 해소 + Health Check API + 내부 배치 분석 스킬**:
 - ✅ AI Fallback 완전 적용 — 미적용 callLLM 6개 호출(3모듈) FallbackContext 전달

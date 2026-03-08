@@ -27,6 +27,7 @@
 | DX-PLAN-003 | 보관함 폴더 계획 | 1.0 | Active | 01-plan/DX-PLAN-003_archive-folders.md |
 | DX-PLAN-004 | 온톨로지 인텔리전스 계획 | 1.0 | Active | 01-plan/DX-PLAN-004_ontology-intelligence.md |
 | DX-PLAN-005 | 통합 실행 계획서 | 2.0 | Active | 01-plan/DX-PLAN-005_integrated-execution-plan.md |
+| DX-PLAN-006 | 슬라이드 MCP 서버 | 1.0 | Active | 01-plan/DX-PLAN-006_slides-mcp-server.md |
 
 ## DSGN — 설계
 
@@ -78,4 +79,4 @@
 
 ---
 
-*총 39개 문서 | Active: 34 | Draft: 3 | Archived: 0*
+*총 40개 문서 | Active: 35 | Draft: 3 | Archived: 0*
