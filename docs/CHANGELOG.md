@@ -3,6 +3,20 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 331 (2026-03-08)
+**feat: F35 사업제안 PPT 슬라이드 자동 생성 Agent Phase 1 + 요구사항 동기화**:
+- ✅ `/ax-10-req list` — 전체 요구사항 34건 조회 (SPEC↔DB 병합 테이블)
+- ✅ `/ax-10-req sync` — F31~F34 마일스톤 불일치 수정 (DB 0.6.0→v0.7.0) + 고아 레코드 3건 삭제
+- ✅ `/ax-10-req status` — F38→DONE, F35→IN_PROGRESS 상태 전환 (SPEC+DB+MEMORY 동시)
+- ✅ F35 백엔드 구현: proposal_slide_decks 테이블 + 0052 마이그레이션
+- ✅ ProposalSlideService: 3포맷(executive/pitch/internal) 슬라이드 자동 생성, 마크다운 불릿 추출
+- ✅ Agent 도구 3개: generate_proposal_slides/list_proposal_slides/get_slide_deck_detail (72→75개)
+- ✅ API: /api/proposals/:id/slides (GET+POST+DELETE) + 시스템 프롬프트 PPT 안내
+- ✅ 신규 5파일 + 수정 6파일 = 687 LOC 추가
+
+**검증 결과**:
+- ✅ typecheck (0 에러) / lint (0 에러) / build (2.50s) / 1,544 유닛 테스트 통과
+
 ### 세션 330 (2026-03-08)
 **chore: CLAUDE.md 감사 + ax selfcheck + v0.5.1 태그 + v0.6.0 마일스톤 설정**:
 - ✅ CLAUDE.md 품질 감사 (3파일, 평균 84/100) — 디렉토리 구조 outdated 2건 수정 (→91점 Grade A)
