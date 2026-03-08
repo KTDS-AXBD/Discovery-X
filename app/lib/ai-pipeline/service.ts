@@ -16,6 +16,7 @@ import {
 import { ideas } from "~/features/ideas/db/schema";
 import { CLAUDE_MODEL } from "~/lib/ai";
 import { callLLM } from "~/lib/ai";
+import type { FallbackContext } from "~/lib/ai";
 
 /** 클러스터링에는 빠른 Haiku 사용 (CF 30초 제한 대응) */
 const FAST_MODEL = "claude-haiku-4-5-20251001";
@@ -85,11 +86,14 @@ export class AIPipelineService {
   private ideaService: IdeaService;
   private entityService: DiscoveryEntityService;
   private workflowService: DiscoveryWorkflowService;
+  private aiCtx: FallbackContext | undefined;
 
   constructor(
     private db: DB,
     private apiKey: string,
+    env?: Record<string, string | undefined>,
   ) {
+    this.aiCtx = env ? { env } : undefined;
     this.ideaService = new IdeaService(db);
     this.entityService = new DiscoveryEntityService(db);
     this.workflowService = new DiscoveryWorkflowService(db);
@@ -310,7 +314,7 @@ export class AIPipelineService {
         max_tokens: 1024,
         system: CLUSTER_SYSTEM_PROMPT,
         messages: [{ role: "user", content: `다음 ${items.length}개 아이템을 클러스터링하세요:\n\n${itemsContext}` }],
-      });
+      }, this.aiCtx);
 
       tokenUsage.input += response.usage.input_tokens;
       tokenUsage.output += response.usage.output_tokens;
@@ -351,7 +355,7 @@ export class AIPipelineService {
             content: `주제: ${cluster.topic}\n묶은 이유: ${cluster.rationale}\n\n소스:\n${context}`,
           },
         ],
-      });
+      }, this.aiCtx);
 
       tokenUsage.input += response.usage.input_tokens;
       tokenUsage.output += response.usage.output_tokens;
@@ -389,7 +393,7 @@ export class AIPipelineService {
             content: `아이디어: ${idea.title}\n요약: ${idea.summary}\nWhy Now: ${idea.whyNow}\n소스: ${sourcesTitles}`,
           },
         ],
-      });
+      }, this.aiCtx);
 
       tokenUsage.input += response.usage.input_tokens;
       tokenUsage.output += response.usage.output_tokens;

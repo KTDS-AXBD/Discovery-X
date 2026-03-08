@@ -92,7 +92,7 @@ async function handleExtract(db: Db, env: CronEnv, url: URL) {
       });
       continue;
     }
-    const result = await extractOntologyBatch(db, env.ANTHROPIC_API_KEY, tenant.id, batchSize);
+    const result = await extractOntologyBatch(db, env.ANTHROPIC_API_KEY, tenant.id, batchSize, { env: env as unknown as Record<string, string | undefined> });
     results.push({ tenantId: tenant.id, ...result });
   }
 

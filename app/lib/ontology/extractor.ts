@@ -9,6 +9,7 @@ import { eq, and, sql, or, isNull } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { evidence, contextNodes, contextEdges, ontologyTypes, discoveries } from "~/db";
 import { callLLM } from "~/lib/ai";
+import type { FallbackContext } from "~/lib/ai";
 import { matchGlobalEntitiesBatch } from "./matcher";
 
 // --- Types ---
@@ -74,9 +75,10 @@ export async function extractFromEvidence(
   ev: { id: string; content: string; discoveryId: string },
   existingNodes: Array<{ label: string; ontologyTypeId: string | null }>,
   typeList: Array<{ id: string; nameKo: string; domain: string }>,
+  aiCtx?: FallbackContext,
 ): Promise<{ nodesCreated: number; edgesCreated: number; globalMatched: number }> {
   // 1. LLM 호출
-  const extraction = await callExtractionLLM(apiKey, ev.content, existingNodes, typeList);
+  const extraction = await callExtractionLLM(apiKey, ev.content, existingNodes, typeList, aiCtx);
   if (!extraction || extraction.entities.length === 0) {
     return { nodesCreated: 0, edgesCreated: 0, globalMatched: 0 };
   }
@@ -187,6 +189,7 @@ async function callExtractionLLM(
   content: string,
   existingNodes: Array<{ label: string; ontologyTypeId: string | null }>,
   typeList: Array<{ id: string; nameKo: string; domain: string }>,
+  aiCtx?: FallbackContext,
 ): Promise<LLMExtractionResult | null> {
   const typeListStr = typeList
     .map((t) => `${t.id}: ${t.nameKo} (${t.domain})`)
@@ -220,7 +223,7 @@ ${existingStr}
             ? EXTRACTION_SYSTEM_PROMPT
             : EXTRACTION_SYSTEM_PROMPT + "\n\n중요: 반드시 유효한 JSON만 출력하세요. 다른 텍스트를 포함하지 마세요.",
         messages: [{ role: "user", content: userMessage }],
-      });
+      }, aiCtx);
 
       const textBlock = response.content.find((b) => b.type === "text");
       if (!textBlock?.text) {
@@ -256,6 +259,7 @@ export async function extractOntologyBatch(
   apiKey: string,
   tenantId: string,
   batchSize = 5,
+  aiCtx?: FallbackContext,
 ): Promise<ExtractionResult> {
   const result: ExtractionResult = {
     evidenceProcessed: 0,
@@ -302,7 +306,7 @@ export async function extractOntologyBatch(
           .from(contextNodes)
           .where(eq(contextNodes.discoveryId, ev.discoveryId));
 
-        const extracted = await extractFromEvidence(db, apiKey, ev, existingNodes, typeList);
+        const extracted = await extractFromEvidence(db, apiKey, ev, existingNodes, typeList, aiCtx);
 
         result.nodesCreated += extracted.nodesCreated;
         result.edgesCreated += extracted.edgesCreated;

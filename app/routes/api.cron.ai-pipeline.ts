@@ -45,7 +45,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
         setTimeout(() => reject(new Error("Pipeline timeout (25s)")), PIPELINE_TIMEOUT_MS),
       );
 
-      const service = new AIPipelineService(db, apiKey);
+      const env = context.cloudflare.env as unknown as Record<string, string | undefined>;
+      const service = new AIPipelineService(db, apiKey, env);
       const result = await Promise.race([
         service.run(tenant.id),
         timeoutPromise,

@@ -55,7 +55,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       maxDepth: body.maxDepth,
       decayFactor: body.decayFactor,
     });
-    const scenario = await generateScenario(env.ANTHROPIC_API_KEY, propagation, body.question);
+    const scenario = await generateScenario(env.ANTHROPIC_API_KEY, propagation, body.question, { env: env as unknown as Record<string, string | undefined> });
     return json({ success: true, propagation, scenario });
   }
 

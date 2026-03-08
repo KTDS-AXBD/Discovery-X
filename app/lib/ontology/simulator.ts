@@ -11,6 +11,7 @@ import { eq, and, inArray, ne } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { contextNodes, contextEdges, contextSnapshots, discoveries, ontologyTypes } from "~/db";
 import { callLLM } from "~/lib/ai";
+import type { FallbackContext } from "~/lib/ai";
 
 // --- Result Types ---
 
@@ -276,6 +277,7 @@ export async function generateScenario(
   apiKey: string,
   propagationResult: PropagationResult,
   question: string,
+  aiCtx?: FallbackContext,
 ): Promise<ScenarioResult> {
   const contextStr = propagationResult.affectedNodes
     .map((n) => `- ${n.label} (${n.ontologyType}): 영향도 ${(n.impact * 100).toFixed(1)}%, 깊이 ${n.depth}`)
@@ -313,7 +315,7 @@ ${question}`;
       max_tokens: 2048,
       system: SCENARIO_SYSTEM_PROMPT,
       messages: [{ role: "user", content: userMessage }],
-    });
+    }, aiCtx);
 
     const text = response.content
       .filter((b) => b.type === "text")
@@ -329,7 +331,7 @@ ${question}`;
         max_tokens: 2048,
         system: SCENARIO_SYSTEM_PROMPT + "\n\n중요: 반드시 유효한 JSON만 출력하세요.",
         messages: [{ role: "user", content: userMessage }],
-      });
+      }, aiCtx);
 
       const text = response.content
         .filter((b) => b.type === "text")
