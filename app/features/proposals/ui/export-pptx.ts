@@ -13,6 +13,8 @@ interface Slide {
   subBullets?: Record<number, string[]>;
   keyInsight?: string;
   notes?: string;
+  tableData?: { headers: string[]; rows: string[][] };
+  processSteps?: Array<{ label: string; description?: string }>;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -427,6 +429,188 @@ function renderTwoColumn(pptx: Pptx, slide: Slide, total: number) {
 // Closing Slide
 // ============================================================================
 
+// ============================================================================
+// Table Slide — 스타일 테이블 (교차 행 색상, 헤더 네이비)
+// ============================================================================
+
+function renderTable(pptx: Pptx, slide: Slide, total: number) {
+  const s = pptx.addSlide();
+  s.background = { color: C.offWhite };
+  addHeaderBand(s, slide.title, slide.order, total);
+
+  if (!slide.tableData) return;
+  const { headers, rows } = slide.tableData;
+
+  const tableRows = [
+    headers.map((h) => ({ text: h, options: { bold: true, color: C.white, fill: { color: C.navy }, fontSize: 11, fontFace: FONT } })),
+    ...rows.map((row, ri) =>
+      row.map((cell) => ({
+        text: cell,
+        options: { fontSize: 10, fontFace: FONT, color: C.text, fill: { color: ri % 2 === 0 ? C.white : C.warmGray } },
+      })),
+    ),
+  ];
+
+  const colW = Math.min((CONTENT_W - 0.2) / headers.length, 3.5);
+
+  s.addTable(tableRows, {
+    x: MARGIN,
+    y: 1.2,
+    w: CONTENT_W,
+    colW: Array(headers.length).fill(colW),
+    border: { type: "solid", pt: 0.5, color: C.borderLight },
+    rowH: 0.4,
+    autoPage: false,
+  });
+
+  addFooter(s);
+  if (slide.notes) s.addNotes(slide.notes);
+}
+
+// ============================================================================
+// Process Flow Slide — 수평 화살표 프로세스
+// ============================================================================
+
+function renderProcess(pptx: Pptx, slide: Slide, total: number) {
+  const s = pptx.addSlide();
+  s.background = { color: C.offWhite };
+  addHeaderBand(s, slide.title, slide.order, total);
+
+  if (!slide.processSteps) return;
+  const steps = slide.processSteps;
+  const count = Math.min(steps.length, 6);
+  const stepW = 1.6;
+  const gap = 0.35;
+  const totalW = count * stepW + (count - 1) * gap;
+  const startX = (W - totalW) / 2;
+  const centerY = 3.2;
+
+  const stepColors = [C.blue, C.navyLight, C.teal, C.blue, C.navyLight, C.teal];
+
+  for (let i = 0; i < count; i++) {
+    const x = startX + i * (stepW + gap);
+    const color = stepColors[i % stepColors.length];
+
+    // 원형 번호
+    s.addShape("rect", {
+      x: x + stepW / 2 - 0.25, y: centerY - 0.8, w: 0.5, h: 0.5,
+      fill: { color }, rectRadius: 0.25,
+    });
+    s.addText(`${i + 1}`, {
+      x: x + stepW / 2 - 0.25, y: centerY - 0.8, w: 0.5, h: 0.5,
+      fontSize: 14, fontFace: FONT, bold: true, color: C.white,
+      align: "center", valign: "middle",
+    });
+
+    // 단계 카드
+    s.addShape("rect", {
+      x, y: centerY, w: stepW, h: 1.8,
+      fill: { color: C.white },
+      line: { color: C.borderLight, width: 0.5 },
+      shadow: { type: "outer", blur: 4, opacity: 0.06, offset: 2, color: "000000" },
+      rectRadius: 0.06,
+    });
+
+    // 상단 색상 바
+    s.addShape("rect", { x, y: centerY, w: stepW, h: 0.05, fill: { color } });
+
+    // 단계명
+    s.addText(steps[i].label, {
+      x: x + 0.1, y: centerY + 0.2, w: stepW - 0.2, h: 0.6,
+      fontSize: 10, fontFace: FONT, bold: true, color: C.text,
+      align: "center", valign: "top",
+    });
+
+    // 설명
+    if (steps[i].description) {
+      s.addText(steps[i].description!, {
+        x: x + 0.1, y: centerY + 0.8, w: stepW - 0.2, h: 0.8,
+        fontSize: 8, fontFace: FONT, color: C.textSec,
+        align: "center", valign: "top",
+      });
+    }
+
+    // 화살표 (마지막 제외)
+    if (i < count - 1) {
+      const arrowX = x + stepW + 0.05;
+      s.addText("\u25B6", {
+        x: arrowX, y: centerY + 0.7, w: gap - 0.1, h: 0.4,
+        fontSize: 14, color: C.textLight, align: "center", valign: "middle",
+      });
+    }
+  }
+
+  addFooter(s);
+}
+
+// ============================================================================
+// Timeline Slide — 세로 타임라인 (마일스톤)
+// ============================================================================
+
+function renderTimeline(pptx: Pptx, slide: Slide, total: number) {
+  const s = pptx.addSlide();
+  s.background = { color: C.offWhite };
+  addHeaderBand(s, slide.title, slide.order, total);
+
+  if (!slide.processSteps) return;
+  const steps = slide.processSteps;
+  const count = Math.min(steps.length, 8);
+  const lineX = 2.0;
+  const startY = 1.4;
+  const stepH = 0.7;
+
+  // 세로 메인 라인
+  s.addShape("rect", {
+    x: lineX - 0.015, y: startY, w: 0.03, h: count * stepH,
+    fill: { color: C.blue },
+  });
+
+  const statusColors: Record<string, string> = { "완료": C.teal, "진행중": C.blue, "예정": C.textLight };
+
+  for (let i = 0; i < count; i++) {
+    const y = startY + i * stepH;
+    const status = steps[i].description || "예정";
+    const dotColor = statusColors[status] || C.textLight;
+
+    // 도트
+    s.addShape("rect", {
+      x: lineX - 0.1, y: y + 0.15, w: 0.2, h: 0.2,
+      fill: { color: dotColor }, rectRadius: 0.1,
+    });
+
+    // 라벨
+    s.addText(steps[i].label, {
+      x: lineX + 0.4, y: y + 0.05, w: 8.0, h: 0.35,
+      fontSize: 12, fontFace: FONT, color: C.text, bold: true,
+    });
+
+    // 상태 배지
+    s.addText(status, {
+      x: lineX + 0.4, y: y + 0.35, w: 2.0, h: 0.25,
+      fontSize: 9, fontFace: FONT, color: dotColor, bold: true,
+    });
+  }
+
+  // 범례
+  const legendY = startY + count * stepH + 0.3;
+  const legendItems = [
+    { label: "완료", color: C.teal },
+    { label: "진행중", color: C.blue },
+    { label: "예정", color: C.textLight },
+  ];
+  for (let i = 0; i < legendItems.length; i++) {
+    const lx = lineX + 0.4 + i * 1.5;
+    s.addShape("rect", { x: lx, y: legendY + 0.05, w: 0.15, h: 0.15, fill: { color: legendItems[i].color }, rectRadius: 0.075 });
+    s.addText(legendItems[i].label, { x: lx + 0.25, y: legendY, w: 1.0, h: 0.25, fontSize: 8, fontFace: FONT, color: C.textSec });
+  }
+
+  addFooter(s);
+}
+
+// ============================================================================
+// Closing Slide
+// ============================================================================
+
 function renderClosing(pptx: Pptx, slide: Slide) {
   const s = pptx.addSlide();
   s.background = { color: C.navy };
@@ -499,6 +683,15 @@ export async function exportToPptx(
         break;
       case "two_column":
         renderTwoColumn(pptx, slide, total);
+        break;
+      case "table":
+        renderTable(pptx, slide, total);
+        break;
+      case "process":
+        renderProcess(pptx, slide, total);
+        break;
+      case "timeline":
+        renderTimeline(pptx, slide, total);
         break;
       case "closing":
         renderClosing(pptx, slide);

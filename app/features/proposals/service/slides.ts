@@ -21,13 +21,15 @@ import { SECTION_LABELS } from "~/features/proposals/constants";
 
 export interface Slide {
   order: number;
-  layout: "cover" | "section_header" | "content" | "two_column" | "agenda" | "key_insight" | "closing";
+  layout: "cover" | "section_header" | "content" | "two_column" | "agenda" | "key_insight" | "closing" | "table" | "process" | "timeline";
   title: string;
   subtitle?: string;
   bullets?: string[];
   subBullets?: Record<number, string[]>;
   keyInsight?: string;
   notes?: string;
+  tableData?: { headers: string[]; rows: string[][] };
+  processSteps?: Array<{ label: string; description?: string }>;
 }
 
 export type SlideFormat = "executive" | "pitch" | "internal";
@@ -97,6 +99,7 @@ const SLIDE_TEMPLATES: Record<SlideFormat, string[]> = {
 interface ParsedContent {
   keyInsight: string;
   blocks: ContentBlock[];
+  tables: ParsedTable[];
 }
 
 interface ContentBlock {
@@ -105,18 +108,61 @@ interface ContentBlock {
   subBullets: Record<number, string[]>;
 }
 
-/** 마크다운을 구조화된 블록으로 파싱 */
+interface ParsedTable {
+  heading?: string;
+  headers: string[];
+  rows: string[][];
+}
+
+/** 마크다운을 구조화된 블록으로 파싱 (테이블 감지 포함) */
 function parseMarkdown(markdown: string): ParsedContent {
-  if (!markdown?.trim()) return { keyInsight: "", blocks: [] };
+  if (!markdown?.trim()) return { keyInsight: "", blocks: [], tables: [] };
 
   const lines = markdown.split("\n");
   const blocks: ContentBlock[] = [];
+  const tables: ParsedTable[] = [];
   let currentBlock: ContentBlock = { bullets: [], subBullets: {} };
   let firstParagraph = "";
+  let lastHeading = "";
+
+  // 마크다운 테이블 감지 + 파싱
+  let tableBuffer: string[] = [];
+  let inTable = false;
+
+  function flushTable() {
+    if (tableBuffer.length < 2) { tableBuffer = []; inTable = false; return; }
+    const headerLine = tableBuffer[0];
+    const dataLines = tableBuffer.slice(2); // skip separator line
+    const headers = headerLine.split("|").map(c => c.trim()).filter(Boolean);
+    const rows = dataLines
+      .filter(l => l.includes("|") && !l.match(/^[\s|:-]+$/))
+      .map(l => l.split("|").map(c => c.replace(/\*\*/g, "").trim()).filter(Boolean));
+    if (headers.length >= 2 && rows.length >= 1) {
+      tables.push({ heading: lastHeading || undefined, headers, rows: rows.slice(0, 10) });
+    }
+    tableBuffer = [];
+    inTable = false;
+  }
 
   for (const rawLine of lines) {
     const line = rawLine.trimEnd();
     const trimmed = line.trim();
+
+    // 테이블 행 감지
+    if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
+      inTable = true;
+      tableBuffer.push(trimmed);
+      continue;
+    }
+    if (inTable) {
+      // 구분행 (|---|---| 등)
+      if (trimmed.match(/^[\s|:-]+$/) && trimmed.includes("|")) {
+        tableBuffer.push(trimmed);
+        continue;
+      }
+      flushTable();
+    }
+
     if (!trimmed) continue;
 
     // 헤딩 → 새 블록 시작
@@ -125,8 +171,9 @@ function parseMarkdown(markdown: string): ParsedContent {
       if (currentBlock.bullets.length > 0 || currentBlock.heading) {
         blocks.push(currentBlock);
       }
+      lastHeading = headingMatch[1].replace(/\*\*/g, "").trim();
       currentBlock = {
-        heading: headingMatch[1].replace(/\*\*/g, "").trim(),
+        heading: lastHeading,
         bullets: [],
         subBullets: {},
       };
@@ -175,12 +222,15 @@ function parseMarkdown(markdown: string): ParsedContent {
   }
 
   // Key Insight: 첫 문단의 첫 문장 또는 첫 블릿
+  // 남은 테이블 버퍼 flush
+  if (inTable) flushTable();
+
   const keyInsight =
     firstParagraph?.split(/[.!?]\s/)?.[0]?.replace(/\*\*/g, "").trim() ||
     blocks[0]?.bullets[0] ||
     "";
 
-  return { keyInsight, blocks };
+  return { keyInsight, blocks, tables };
 }
 
 /** 파싱된 블록을 슬라이드용 불릿 목록으로 변환 (최대 maxPerSlide개) */
@@ -341,6 +391,32 @@ function buildSlides(data: ProposalData, format: SlideFormat): Slide[] {
         notes: pi === 0 ? content.slice(0, 800) : undefined,
       });
     }
+
+    // 마크다운 테이블 → 표 슬라이드
+    for (const table of parsed.tables) {
+      slides.push({
+        order: order++,
+        layout: "table",
+        title: table.heading || `${label} — 상세`,
+        tableData: { headers: table.headers, rows: table.rows },
+      });
+    }
+
+    // execution_plan → 프로세스 플로우 (불릿이 3~8개일 때)
+    if (sectionType === "execution_plan" && parsed.blocks.length > 0) {
+      const allBullets = parsed.blocks.flatMap((b) => b.bullets);
+      if (allBullets.length >= 3 && allBullets.length <= 8) {
+        slides.push({
+          order: order++,
+          layout: "process",
+          title: "실행 로드맵",
+          processSteps: allBullets.slice(0, 6).map((b) => {
+            const parts = b.split(/[:：]\s*/);
+            return { label: parts[0], description: parts.slice(1).join(": ") || undefined };
+          }),
+        });
+      }
+    }
   }
 
   // --- Milestones ---
@@ -354,15 +430,29 @@ function buildSlides(data: ProposalData, format: SlideFormat): Slide[] {
       });
     }
 
-    slides.push({
-      order: order++,
-      layout: "content",
-      title: "주요 마일스톤",
-      bullets: data.milestones.slice(0, 8).map((m) => {
-        const statusLabel = m.status === "COMPLETED" ? "완료" : m.status === "ACTIVE" ? "진행중" : "예정";
-        return `[${statusLabel}] ${m.title}`;
-      }),
-    });
+    // 타임라인 슬라이드 (3~8개 마일스톤일 때)
+    if (data.milestones.length >= 3 && data.milestones.length <= 8) {
+      slides.push({
+        order: order++,
+        layout: "timeline",
+        title: "마일스톤 타임라인",
+        processSteps: data.milestones.slice(0, 8).map((m) => ({
+          label: m.title,
+          description: m.status === "COMPLETED" ? "완료" : m.status === "ACTIVE" ? "진행중" : "예정",
+        })),
+      });
+    } else {
+      // 불릿 폴백
+      slides.push({
+        order: order++,
+        layout: "content",
+        title: "주요 마일스톤",
+        bullets: data.milestones.slice(0, 8).map((m) => {
+          const statusLabel = m.status === "COMPLETED" ? "완료" : m.status === "ACTIVE" ? "진행중" : "예정";
+          return `[${statusLabel}] ${m.title}`;
+        }),
+      });
+    }
   }
 
   // --- Key Metrics ---

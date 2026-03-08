@@ -39,6 +39,9 @@ const LAYOUT_LABELS: Record<string, string> = {
   two_column: "수치",
   agenda: "목차",
   key_insight: "핵심",
+  table: "표",
+  process: "프로세스",
+  timeline: "타임라인",
   closing: "마무리",
 };
 
