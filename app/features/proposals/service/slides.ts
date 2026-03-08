@@ -114,6 +114,17 @@ interface ParsedTable {
   rows: string[][];
 }
 
+/** 산문 텍스트를 문장 단위로 분리 (한국어/영어 지원) */
+function splitIntoSentences(text: string): string[] {
+  if (!text?.trim()) return [];
+  return text
+    .replace(/\*\*/g, "")
+    .split(/(?<=[.!?다요음임됨함])\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 8)
+    .map((s) => s.length > 120 ? s.slice(0, 117) + "..." : s);
+}
+
 /** 마크다운을 구조화된 블록으로 파싱 (테이블 감지 포함) */
 function parseMarkdown(markdown: string): ParsedContent {
   if (!markdown?.trim()) return { keyInsight: "", blocks: [], tables: [] };
@@ -330,8 +341,35 @@ function buildSlides(data: ProposalData, format: SlideFormat): Slide[] {
     });
   }
 
+  // --- 사업 개요 요약표 (Agenda 바로 뒤) ---
+  const summaryRows: string[][] = [];
+  const summaryMap: Record<string, string> = {
+    overview: "사업 개요",
+    target_market: "타겟 시장",
+    target_customer: "타겟 고객",
+    value_proposition: "가치 제안",
+    revenue_model: "수익 구조",
+    mvp: "MVP",
+  };
+  for (const [key, label] of Object.entries(summaryMap)) {
+    const text = data.sections[key]?.trim();
+    if (text) {
+      const summary = text.length > 100 ? text.slice(0, 97) + "..." : text;
+      summaryRows.push([label, summary.replace(/\*\*/g, "")]);
+    }
+  }
+  if (summaryRows.length >= 3) {
+    slides.push({
+      order: order++,
+      layout: "table",
+      title: "사업 개요 — 한눈에 보기",
+      tableData: { headers: ["항목", "내용"], rows: summaryRows },
+    });
+  }
+
   // --- Section slides ---
   let lastGroupTitle = "";
+  const pairTablesAdded = new Set<string>();
 
   for (const sectionType of template) {
     const content = data.sections[sectionType];
@@ -357,12 +395,8 @@ function buildSlides(data: ProposalData, format: SlideFormat): Slide[] {
       }
     }
 
-    // Key Insight 슬라이드 (pitch/internal + 내용이 충분할 때)
-    if (
-      format !== "executive" &&
-      parsed.keyInsight.length > 20 &&
-      parsed.blocks.reduce((sum, b) => sum + b.bullets.length, 0) > 4
-    ) {
+    // Key Insight 슬라이드 — 조건 완화 (산문 20자 이상이면 표시)
+    if (format !== "executive" && parsed.keyInsight.length > 20) {
       slides.push({
         order: order++,
         layout: "key_insight",
@@ -402,16 +436,52 @@ function buildSlides(data: ProposalData, format: SlideFormat): Slide[] {
       });
     }
 
-    // execution_plan → 프로세스 플로우 (불릿이 3~8개일 때)
-    if (sectionType === "execution_plan" && parsed.blocks.length > 0) {
+    // --- 섹션 쌍 비교표 자동 생성 ---
+    const PAIR_TABLES: Array<{ trigger: string; pair: string; title: string; headers: [string, string] }> = [
+      { trigger: "target_market", pair: "target_customer", title: "시장 & 고객 비교 분석", headers: ["타겟 시장", "타겟 고객"] },
+      { trigger: "revenue_model", pair: "scenario", title: "수익 구조 & 재무 시나리오", headers: ["수익 구조", "시나리오"] },
+      { trigger: "hypothesis", pair: "value_proposition", title: "핵심 가설 & 가치 제안", headers: ["핵심 가설", "가치 제안"] },
+    ];
+    for (const pt of PAIR_TABLES) {
+      if (sectionType === pt.trigger && !pairTablesAdded.has(pt.trigger)) {
+        const pairContent = data.sections[pt.pair]?.trim();
+        if (pairContent) {
+          pairTablesAdded.add(pt.trigger);
+          // 각 섹션 내용을 문장 단위로 분리하여 표 행 생성
+          const leftSentences = splitIntoSentences(content);
+          const rightSentences = splitIntoSentences(pairContent);
+          const maxRows = Math.max(leftSentences.length, rightSentences.length, 1);
+          const rows: string[][] = [];
+          for (let ri = 0; ri < Math.min(maxRows, 5); ri++) {
+            rows.push([
+              leftSentences[ri] || "",
+              rightSentences[ri] || "",
+            ]);
+          }
+          slides.push({
+            order: order++,
+            layout: "table",
+            title: pt.title,
+            tableData: { headers: [pt.headers[0], pt.headers[1]], rows },
+          });
+        }
+      }
+    }
+
+    // execution_plan → 프로세스 플로우
+    if (sectionType === "execution_plan") {
       const allBullets = parsed.blocks.flatMap((b) => b.bullets);
-      if (allBullets.length >= 3 && allBullets.length <= 8) {
+      // 불릿이 3개 이상이면 그대로 사용, 아니면 산문에서 문장 분리
+      const steps = allBullets.length >= 3
+        ? allBullets.slice(0, 6)
+        : splitIntoSentences(content).slice(0, 6);
+      if (steps.length >= 2) {
         slides.push({
           order: order++,
           layout: "process",
           title: "실행 로드맵",
-          processSteps: allBullets.slice(0, 6).map((b) => {
-            const parts = b.split(/[:：]\s*/);
+          processSteps: steps.map((s) => {
+            const parts = s.split(/[:：]\s*/);
             return { label: parts[0], description: parts.slice(1).join(": ") || undefined };
           }),
         });
