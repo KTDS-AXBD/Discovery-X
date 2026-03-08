@@ -1,6 +1,7 @@
 /**
  * Proposal Slide Deck Service
  * 사업제안 PPT 슬라이드 자동 생성/조회/삭제
+ * v2: 콘텐츠 밀도 강화 + 구조 슬라이드 + Key Insight 추출
  */
 
 import { eq, and, desc } from "drizzle-orm";
@@ -20,10 +21,12 @@ import { SECTION_LABELS } from "~/features/proposals/constants";
 
 export interface Slide {
   order: number;
-  layout: "cover" | "section_header" | "content" | "two_column" | "closing";
+  layout: "cover" | "section_header" | "content" | "two_column" | "agenda" | "key_insight" | "closing";
   title: string;
   subtitle?: string;
   bullets?: string[];
+  subBullets?: Record<number, string[]>;
+  keyInsight?: string;
   notes?: string;
 }
 
@@ -41,8 +44,16 @@ export interface SlideDeck {
 }
 
 // ============================================================================
-// Slide Templates — section types per format
+// Section Groups — logical grouping for section dividers
 // ============================================================================
+
+const SECTION_GROUPS: Array<{ groupTitle: string; types: string[] }> = [
+  { groupTitle: "사업 개요", types: ["overview", "content", "hypothesis"] },
+  { groupTitle: "시장 & 고객", types: ["target_market", "target_customer"] },
+  { groupTitle: "전략 & 차별화", types: ["value_proposition"] },
+  { groupTitle: "비즈니스 모델", types: ["revenue_model", "scenario"] },
+  { groupTitle: "실행 계획", types: ["mvp", "execution_plan"] },
+];
 
 const SLIDE_TEMPLATES: Record<SlideFormat, string[]> = {
   executive: [
@@ -80,53 +91,138 @@ const SLIDE_TEMPLATES: Record<SlideFormat, string[]> = {
 };
 
 // ============================================================================
-// Bullet Extraction
+// Content Extraction — v2: deep markdown parsing
 // ============================================================================
 
-/** 마크다운 콘텐츠에서 핵심 불릿 포인트를 추출 (최대 5개) */
-function extractBullets(markdown: string, maxBullets = 5): string[] {
-  if (!markdown?.trim()) return [];
+interface ParsedContent {
+  keyInsight: string;
+  blocks: ContentBlock[];
+}
 
-  const lines = markdown.split("\n").map((l) => l.trim()).filter(Boolean);
-  const bullets: string[] = [];
+interface ContentBlock {
+  heading?: string;
+  bullets: string[];
+  subBullets: Record<number, string[]>;
+}
 
-  for (const line of lines) {
-    if (bullets.length >= maxBullets) break;
+/** 마크다운을 구조화된 블록으로 파싱 */
+function parseMarkdown(markdown: string): ParsedContent {
+  if (!markdown?.trim()) return { keyInsight: "", blocks: [] };
 
-    // 마크다운 리스트 아이템 (-, *, 1.)
-    const listMatch = line.match(/^[-*]\s+(.+)$/) || line.match(/^\d+\.\s+(.+)$/);
-    if (listMatch) {
-      bullets.push(listMatch[1].replace(/\*\*/g, "").trim());
-      continue;
-    }
+  const lines = markdown.split("\n");
+  const blocks: ContentBlock[] = [];
+  let currentBlock: ContentBlock = { bullets: [], subBullets: {} };
+  let firstParagraph = "";
 
-    // 헤딩 (## ~)
-    const headingMatch = line.match(/^#{2,4}\s+(.+)$/);
+  for (const rawLine of lines) {
+    const line = rawLine.trimEnd();
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    // 헤딩 → 새 블록 시작
+    const headingMatch = trimmed.match(/^#{1,4}\s+(.+)$/);
     if (headingMatch) {
-      bullets.push(headingMatch[1].replace(/\*\*/g, "").trim());
+      if (currentBlock.bullets.length > 0 || currentBlock.heading) {
+        blocks.push(currentBlock);
+      }
+      currentBlock = {
+        heading: headingMatch[1].replace(/\*\*/g, "").trim(),
+        bullets: [],
+        subBullets: {},
+      };
       continue;
     }
-  }
 
-  // 리스트가 부족하면 일반 텍스트에서 첫 문장들을 추출
-  if (bullets.length < 2) {
-    const prose = lines
-      .filter((l) => !l.startsWith("#") && !l.startsWith("-") && !l.startsWith("*") && l.length > 15)
-      .slice(0, maxBullets - bullets.length);
-    for (const p of prose) {
-      // 첫 문장만 추출 (마침표/느낌표 기준)
-      const sentence = p.split(/[.!]\s/)[0];
-      if (sentence && sentence.length > 10) {
-        bullets.push(sentence.length > 80 ? sentence.slice(0, 77) + "..." : sentence);
+    // 하위 리스트 (들여쓰기된 - 또는 *)
+    const subListMatch = rawLine.match(/^(\s{2,})[-*]\s+(.+)$/);
+    if (subListMatch) {
+      const parentIdx = currentBlock.bullets.length - 1;
+      if (parentIdx >= 0) {
+        if (!currentBlock.subBullets[parentIdx]) {
+          currentBlock.subBullets[parentIdx] = [];
+        }
+        currentBlock.subBullets[parentIdx].push(
+          subListMatch[2].replace(/\*\*/g, "").trim(),
+        );
+      }
+      continue;
+    }
+
+    // 리스트 아이템
+    const listMatch = trimmed.match(/^[-*]\s+(.+)$/) || trimmed.match(/^\d+\.\s+(.+)$/);
+    if (listMatch) {
+      currentBlock.bullets.push(listMatch[1].replace(/\*\*/g, "").trim());
+      continue;
+    }
+
+    // 산문 텍스트 → 문장 단위로 분리하여 불릿화
+    if (trimmed.length > 10 && !trimmed.startsWith("|") && !trimmed.startsWith("```")) {
+      if (!firstParagraph) firstParagraph = trimmed;
+      const sentences = trimmed
+        .split(/(?<=[.!?])\s+/)
+        .filter((s) => s.length > 10);
+      for (const sentence of sentences) {
+        const cleaned = sentence.replace(/\*\*/g, "").trim();
+        currentBlock.bullets.push(
+          cleaned.length > 120 ? cleaned.slice(0, 117) + "..." : cleaned,
+        );
       }
     }
   }
 
-  return bullets.slice(0, maxBullets);
+  if (currentBlock.bullets.length > 0 || currentBlock.heading) {
+    blocks.push(currentBlock);
+  }
+
+  // Key Insight: 첫 문단의 첫 문장 또는 첫 블릿
+  const keyInsight =
+    firstParagraph?.split(/[.!?]\s/)?.[0]?.replace(/\*\*/g, "").trim() ||
+    blocks[0]?.bullets[0] ||
+    "";
+
+  return { keyInsight, blocks };
+}
+
+/** 파싱된 블록을 슬라이드용 불릿 목록으로 변환 (최대 maxPerSlide개) */
+function flattenBlocks(
+  blocks: ContentBlock[],
+  maxPerSlide = 7,
+): Array<{ bullets: string[]; subBullets: Record<number, string[]>; heading?: string }> {
+  const pages: Array<{ bullets: string[]; subBullets: Record<number, string[]>; heading?: string }> = [];
+  let current: { bullets: string[]; subBullets: Record<number, string[]>; heading?: string } = {
+    bullets: [],
+    subBullets: {},
+    heading: undefined,
+  };
+
+  for (const block of blocks) {
+    for (let i = 0; i < block.bullets.length; i++) {
+      if (current.bullets.length >= maxPerSlide) {
+        pages.push(current);
+        current = { bullets: [], subBullets: {}, heading: block.heading };
+      }
+
+      if (i === 0 && block.heading && current.bullets.length === 0) {
+        current.heading = block.heading;
+      }
+
+      const newIdx = current.bullets.length;
+      current.bullets.push(block.bullets[i]);
+      if (block.subBullets[i]) {
+        current.subBullets[newIdx] = block.subBullets[i];
+      }
+    }
+  }
+
+  if (current.bullets.length > 0) {
+    pages.push(current);
+  }
+
+  return pages;
 }
 
 // ============================================================================
-// Slide Generation
+// Slide Generation — v2
 // ============================================================================
 
 interface ProposalData {
@@ -136,6 +232,7 @@ interface ProposalData {
   status: string;
   budget: string | null;
   teamSize: number | null;
+  startDate: string | null;
   ownerName: string | null;
   sections: Record<string, string>;
   milestones: Array<{ title: string; status: string }>;
@@ -144,53 +241,140 @@ interface ProposalData {
 function buildSlides(data: ProposalData, format: SlideFormat): Slide[] {
   const slides: Slide[] = [];
   let order = 1;
+  const template = SLIDE_TEMPLATES[format];
 
-  // Cover slide
+  // --- Cover ---
+  const dateLine = new Date().toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "long",
+  });
   slides.push({
     order: order++,
     layout: "cover",
     title: data.title,
-    subtitle: [data.category, data.ownerName].filter(Boolean).join(" | ") || "사업제안",
+    subtitle: [data.category, dateLine].filter(Boolean).join("  |  "),
     notes: data.description || undefined,
+    keyInsight: data.ownerName || undefined,
   });
 
-  // Section slides
-  const template = SLIDE_TEMPLATES[format];
+  // --- Agenda ---
+  const agendaItems: string[] = [];
+  const includedGroups: string[] = [];
+  for (const group of SECTION_GROUPS) {
+    const hasContent = group.types.some(
+      (t) => template.includes(t) && data.sections[t]?.trim(),
+    );
+    if (hasContent) {
+      agendaItems.push(group.groupTitle);
+      includedGroups.push(group.groupTitle);
+    }
+  }
+  if (data.milestones.length > 0) agendaItems.push("주요 마일스톤");
+
+  if (agendaItems.length >= 3) {
+    slides.push({
+      order: order++,
+      layout: "agenda",
+      title: "목차",
+      bullets: agendaItems,
+    });
+  }
+
+  // --- Section slides ---
+  let lastGroupTitle = "";
+
   for (const sectionType of template) {
     const content = data.sections[sectionType];
     if (!content?.trim()) continue;
 
     const label = SECTION_LABELS[sectionType] || sectionType;
-    const bullets = extractBullets(content);
+    const parsed = parseMarkdown(content);
 
-    if (bullets.length > 0) {
+    // 그룹 구분 슬라이드 (executive는 생략)
+    if (format !== "executive") {
+      const group = SECTION_GROUPS.find((g) => g.types.includes(sectionType));
+      if (group && group.groupTitle !== lastGroupTitle) {
+        lastGroupTitle = group.groupTitle;
+        slides.push({
+          order: order++,
+          layout: "section_header",
+          title: group.groupTitle,
+          subtitle: group.types
+            .filter((t) => template.includes(t) && data.sections[t]?.trim())
+            .map((t) => SECTION_LABELS[t] || t)
+            .join("  ·  "),
+        });
+      }
+    }
+
+    // Key Insight 슬라이드 (pitch/internal + 내용이 충분할 때)
+    if (
+      format !== "executive" &&
+      parsed.keyInsight.length > 20 &&
+      parsed.blocks.reduce((sum, b) => sum + b.bullets.length, 0) > 4
+    ) {
+      slides.push({
+        order: order++,
+        layout: "key_insight",
+        title: label,
+        keyInsight: parsed.keyInsight.length > 150
+          ? parsed.keyInsight.slice(0, 147) + "..."
+          : parsed.keyInsight,
+      });
+    }
+
+    // 콘텐츠 슬라이드 (자동 분할)
+    const pages = flattenBlocks(parsed.blocks);
+    for (let pi = 0; pi < pages.length; pi++) {
+      const page = pages[pi];
+      const pageTitle = pages.length > 1
+        ? `${label} ${pi > 0 ? `(${pi + 1}/${pages.length})` : ""}`
+        : label;
+
       slides.push({
         order: order++,
         layout: "content",
-        title: label,
-        bullets,
-        notes: content.length > 200 ? content.slice(0, 500) : content,
+        title: pageTitle.trim(),
+        subtitle: page.heading || undefined,
+        bullets: page.bullets,
+        subBullets: Object.keys(page.subBullets).length > 0 ? page.subBullets : undefined,
+        notes: pi === 0 ? content.slice(0, 800) : undefined,
       });
     }
   }
 
-  // Milestones slide (internal format only, if milestones exist)
-  if (format === "internal" && data.milestones.length > 0) {
+  // --- Milestones ---
+  if (data.milestones.length > 0) {
+    if (format !== "executive") {
+      slides.push({
+        order: order++,
+        layout: "section_header",
+        title: "주요 마일스톤",
+        subtitle: `${data.milestones.length}개 마일스톤`,
+      });
+    }
+
     slides.push({
       order: order++,
       layout: "content",
       title: "주요 마일스톤",
-      bullets: data.milestones.slice(0, 6).map(
-        (m) => `${m.title} (${m.status === "COMPLETED" ? "완료" : m.status === "ACTIVE" ? "진행중" : "예정"})`,
-      ),
+      bullets: data.milestones.slice(0, 8).map((m) => {
+        const statusLabel = m.status === "COMPLETED" ? "완료" : m.status === "ACTIVE" ? "진행중" : "예정";
+        return `[${statusLabel}] ${m.title}`;
+      }),
     });
   }
 
-  // Key metrics slide (if budget or team info exists)
+  // --- Key Metrics ---
   const metricBullets: string[] = [];
-  if (data.budget) metricBullets.push(`예산: ${data.budget}`);
-  if (data.teamSize) metricBullets.push(`팀 규모: ${data.teamSize}명`);
-  if (metricBullets.length > 0 && format !== "executive") {
+  if (data.budget) metricBullets.push(`예산 규모: ${data.budget}`);
+  if (data.teamSize) metricBullets.push(`투입 인력: ${data.teamSize}명`);
+  if (data.startDate) metricBullets.push(`시작 시점: ${data.startDate}`);
+  if (data.milestones.length > 0) {
+    const done = data.milestones.filter((m) => m.status === "COMPLETED").length;
+    metricBullets.push(`마일스톤 진행률: ${done}/${data.milestones.length}`);
+  }
+  if (metricBullets.length > 0) {
     slides.push({
       order: order++,
       layout: "two_column",
@@ -199,12 +383,13 @@ function buildSlides(data: ProposalData, format: SlideFormat): Slide[] {
     });
   }
 
-  // Closing slide
+  // --- Closing ---
   slides.push({
     order: order++,
     layout: "closing",
     title: "감사합니다",
     subtitle: data.title,
+    keyInsight: [data.ownerName, data.category].filter(Boolean).join("  |  ") || undefined,
   });
 
   return slides;
@@ -217,13 +402,11 @@ function buildSlides(data: ProposalData, format: SlideFormat): Slide[] {
 export class ProposalSlideService {
   constructor(private db: DB) {}
 
-  /** 슬라이드 덱 자동 생성 */
   async generate(
     proposalId: string,
     tenantId: string,
     format: SlideFormat = "pitch",
   ): Promise<SlideDeck> {
-    // 1. Proposal + sections + milestones 로드
     const proposal = await this.db
       .select()
       .from(proposals)
@@ -250,13 +433,11 @@ export class ProposalSlideService {
         .get(),
     ]);
 
-    // 2. Section content를 type→content 맵으로 변환
     const sectionMap: Record<string, string> = {};
     for (const s of sections) {
       if (s.content?.trim()) sectionMap[s.type] = s.content;
     }
 
-    // 3. 슬라이드 생성
     const slides = buildSlides(
       {
         title: proposal.title,
@@ -265,6 +446,7 @@ export class ProposalSlideService {
         status: proposal.status,
         budget: proposal.budget,
         teamSize: proposal.teamSize,
+        startDate: proposal.startDate,
         ownerName: ownerRow?.name ?? null,
         sections: sectionMap,
         milestones: milestones.map((m) => ({ title: m.title, status: m.status })),
@@ -272,7 +454,6 @@ export class ProposalSlideService {
       format,
     );
 
-    // 4. DB 저장
     const id = crypto.randomUUID();
     const formatLabels: Record<SlideFormat, string> = {
       executive: "경영진 요약",
@@ -301,7 +482,6 @@ export class ProposalSlideService {
     };
   }
 
-  /** 특정 제안의 슬라이드 덱 목록 조회 */
   async list(proposalId: string, tenantId: string): Promise<SlideDeck[]> {
     const rows = await this.db
       .select()
@@ -321,7 +501,6 @@ export class ProposalSlideService {
     }));
   }
 
-  /** 슬라이드 덱 상세 조회 */
   async getById(id: string, tenantId: string): Promise<SlideDeck | null> {
     const row = await this.db
       .select()
@@ -342,7 +521,6 @@ export class ProposalSlideService {
     };
   }
 
-  /** 슬라이드 덱 삭제 */
   async delete(id: string, tenantId: string): Promise<void> {
     await this.db
       .delete(proposalSlideDecks)

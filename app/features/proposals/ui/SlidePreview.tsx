@@ -36,23 +36,34 @@ const LAYOUT_LABELS: Record<string, string> = {
   cover: "표지",
   section_header: "구분",
   content: "본문",
-  two_column: "2단",
+  two_column: "수치",
+  agenda: "목차",
+  key_insight: "핵심",
   closing: "마무리",
 };
 
-function SlideCard({ slide }: { slide: Slide }) {
+function SlideCard({ slide }: { slide: Slide & { keyInsight?: string } }) {
   const isCover = slide.layout === "cover";
   const isClosing = slide.layout === "closing";
-  const isSpecial = isCover || isClosing;
+  const isDark = isCover || isClosing || slide.layout === "section_header";
+  const isInsight = slide.layout === "key_insight";
+  const isSpecial = isDark;
 
   return (
     <div
       className={`relative flex aspect-video flex-col overflow-hidden rounded-lg border border-line shadow-sm ${
-        isSpecial
-          ? "bg-surface-brand text-white"
-          : "bg-surface-card text-fg"
+        isDark
+          ? "bg-[#0F172A] text-white"
+          : isInsight
+            ? "bg-blue-50 text-fg"
+            : "bg-surface-card text-fg"
       }`}
     >
+      {/* 좌측 악센트 바 */}
+      {!isDark && (
+        <div className={`absolute left-0 top-0 h-full w-0.5 ${isInsight ? "bg-teal-500" : "bg-blue-600"}`} />
+      )}
+
       {/* Slide number badge */}
       <span className={`absolute right-2 top-2 text-[10px] font-mono ${
         isSpecial ? "text-white/60" : "text-fg-quaternary"
@@ -62,32 +73,41 @@ function SlideCard({ slide }: { slide: Slide }) {
 
       {/* Content area */}
       <div className={`flex flex-1 flex-col px-4 ${
-        isSpecial ? "items-center justify-center text-center" : "justify-center"
+        isDark ? "items-center justify-center text-center" : isInsight ? "items-center justify-center text-center" : "justify-center"
       }`}>
+        {isInsight && (
+          <span className="mb-1 text-[8px] font-bold uppercase tracking-widest text-teal-600">Key Insight</span>
+        )}
         <h3 className={`font-bold leading-tight ${
-          isSpecial ? "text-sm" : "text-xs"
+          isDark ? "text-sm" : "text-xs"
         }`}>
           {slide.title}
         </h3>
 
         {slide.subtitle && (
           <p className={`mt-1 text-[10px] ${
-            isSpecial ? "text-white/70" : "text-fg-tertiary"
+            isDark ? "text-white/70" : isInsight ? "text-teal-700" : "text-blue-600 font-medium"
           }`}>
             {slide.subtitle}
           </p>
         )}
 
-        {slide.bullets && slide.bullets.length > 0 && (
+        {isInsight && slide.keyInsight && (
+          <p className="mt-1.5 text-[9px] italic leading-snug text-fg-secondary line-clamp-2">
+            &ldquo;{slide.keyInsight}&rdquo;
+          </p>
+        )}
+
+        {slide.bullets && slide.bullets.length > 0 && !isInsight && (
           <ul className="mt-2 space-y-0.5">
-            {slide.bullets.slice(0, 4).map((bullet, i) => (
+            {slide.bullets.slice(0, 5).map((bullet, i) => (
               <li key={i} className="flex items-start gap-1 text-[10px] leading-tight text-fg-secondary">
-                <span className="mt-0.5 h-1 w-1 shrink-0 rounded-full bg-fg-quaternary" />
+                <span className={`mt-0.5 h-1 w-1 shrink-0 rounded-full ${isDark ? "bg-blue-400" : "bg-fg-quaternary"}`} />
                 <span className="line-clamp-1">{bullet}</span>
               </li>
             ))}
-            {slide.bullets.length > 4 && (
-              <li className="text-[9px] text-fg-quaternary">+{slide.bullets.length - 4}개 더</li>
+            {slide.bullets.length > 5 && (
+              <li className="text-[9px] text-fg-quaternary">+{slide.bullets.length - 5}개 더</li>
             )}
           </ul>
         )}
@@ -95,10 +115,11 @@ function SlideCard({ slide }: { slide: Slide }) {
 
       {/* Layout type label */}
       <div className={`px-3 pb-1.5 text-right text-[8px] ${
-        isSpecial ? "text-white/40" : "text-fg-quaternary"
+        isDark ? "text-white/40" : "text-fg-quaternary"
       }`}>
         {LAYOUT_LABELS[slide.layout] || slide.layout}
       </div>
+      {!isDark && <span className="absolute bottom-1 left-2 text-[7px] text-fg-quaternary">Discovery-X</span>}
     </div>
   );
 }
