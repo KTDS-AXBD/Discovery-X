@@ -3,6 +3,16 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 339 (2026-03-08)
+**F36 MVP 빌더 통합 테스트 보강**:
+- ✅ api-mvp-builder.test.ts 리팩토링 — 라우트 비즈니스 로직 재현 패턴 (14→27 케이스)
+- ✅ 다운로드 조건 검증 (status/files 체크, ZIP round-trip 정합성)
+- ✅ 멀티테넌트 양방향 격리 + 상태 라이프사이클(generating→completed/failed)
+- ✅ 복합 쿼리(proposalId+tenantId AND) + createdAt 정렬 안정성
+- 📊 테스트: 2,193 → 2,206개 (147 files, 100% PASS)
+
+---
+
 ### 세션 338 (2026-03-08)
 **F36 MVP 빌더 GAP 분석 + MAJOR 해소 + 테스트 25개**:
 - ✅ `/pdca analyze F36` — DX-ANLS-005 갭 분석 (Match Rate 93%)
