@@ -8,6 +8,7 @@ import {
   PROPOSAL_TRANSITIONS,
   CLOSE_TYPE_LABELS,
 } from "~/features/proposals/constants";
+import { SlidePreview } from "~/features/proposals/ui/SlidePreview";
 
 interface ProposalDetailHeaderProps {
   proposal: {
@@ -65,6 +66,9 @@ export function ProposalDetailHeader({ proposal, isOwner, ownerName }: ProposalD
 
         {/* Actions */}
         <div className="flex items-center gap-2">
+          {/* PPT slide generation */}
+          <SlidePreview proposalId={proposal.id} />
+
           {/* Edit button */}
           {isOwner && proposal.status === "PROPOSAL" && (
             <Link
