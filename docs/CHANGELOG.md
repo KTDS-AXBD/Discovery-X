@@ -3,6 +3,16 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 332d (2026-03-08)
+**fix: F35 PPTX 인코딩 수정 + v3 컨설팅 디자인 + PPTX Skill 의존성 설치**:
+- ✅ 폰트 인코딩 수정: Pretendard → Malgun Gothic (맑은 고딕) — 한글 깨짐 해결
+- ✅ export-pptx v3: KPMG 참조 — 네이비 헤더 밴드, 번호 콜아웃, 메트릭 카드, 틸 Key Insight
+- ✅ PPTX Skill 의존성 전체 설치: markitdown 0.1.5, Pillow 12.1.1, pptxgenjs (global), LibreOffice 24.2, Poppler
+
+**검증 결과**:
+- ✅ typecheck (0 에러) / lint (0 에러) / build (2.03s)
+- ✅ 5개 PPTX 도구 전체 설치 확인
+
 ### 세션 332c (2026-03-08)
 **feat: F35 PPT v2 디자인 + 콘텐츠 대폭 강화 — Corporate Editorial**:
 - ✅ slides.ts v2: 마크다운 deep parsing (헤딩→블록, 하위불릿, 산문→문장분리)
