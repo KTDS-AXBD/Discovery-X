@@ -3,6 +3,16 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 332b (2026-03-08)
+**feat: F35 PPTX 다운로드 기능 추가 — 사용자 피드백 반영**:
+- ✅ pptxgenjs 패키지 추가 (클라이언트 동적 import, 서버 번들 제외)
+- ✅ export-pptx.ts: 브랜드 표지(파란 배경) + 불릿 본문 + 발표자 노트 + 16:9 WIDE
+- ✅ "생성 + 다운로드" UX: 포맷 선택 → 생성 → 자동 .pptx 다운로드
+- ✅ 기존 덱 목록/프리뷰에도 PPTX 다운로드 버튼 추가
+
+**검증 결과**:
+- ✅ typecheck (0 에러) / lint (0 에러) / build (2.13s)
+
 ### 세션 332 (2026-03-08)
 **feat: F35 PPT Agent Phase 2 완료 — UI 슬라이드 프리뷰 + 프로덕션 마이그레이션**:
 - ✅ 프로덕션 DB 마이그레이션: proposal_slide_decks 테이블 + 인덱스 2개 수동 적용
