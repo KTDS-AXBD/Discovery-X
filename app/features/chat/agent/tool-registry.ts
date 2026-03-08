@@ -15,6 +15,7 @@ import {
   IDEA_SCHEMA_TOOLS,
   MATRIX_TOOLS,
   REQUIREMENTS_TOOLS,
+  PROPOSAL_TOOLS,
 } from "./tool-schemas";
 
 // Minimum autonomy level required to use each tool
@@ -99,6 +100,10 @@ export const TOOL_MIN_AUTONOMY: Record<string, number> = {
   classify_feature_request: 1,
   review_feature_request: 2,
   plan_feature_request: 2,
+  // Proposal slides: 사업제안 PPT
+  generate_proposal_slides: 2,
+  list_proposal_slides: 1,
+  get_slide_deck_detail: 1,
   // Level 3: full autonomy
   add_experiment: 3,
   complete_experiment: 3,
@@ -131,6 +136,7 @@ export const AGENT_TOOLS: ClaudeTool[] = [
   ...IDEA_SCHEMA_TOOLS,
   ...MATRIX_TOOLS,
   ...REQUIREMENTS_TOOLS,
+  ...PROPOSAL_TOOLS,
 ];
 
 /** Ideas 모드 전용 도구 (경량) — update_idea_analysis만 포함 */

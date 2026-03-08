@@ -220,6 +220,7 @@ export const proposalsRelations = relations(proposals, ({ many }) => ({
   comments: many(proposalComments),
   members: many(proposalMembers),
   likes: many(proposalLikes),
+  slideDecks: many(proposalSlideDecks),
 }));
 
 export const proposalSectionsRelations = relations(proposalSections, ({ one }) => ({
@@ -248,4 +249,30 @@ export const proposalLikesRelations = relations(proposalLikes, ({ one }) => ({
 
 export const proposalCategoriesRelations = relations(proposalCategories, ({ one }) => ({
   tenant: one(tenants, { fields: [proposalCategories.tenantId], references: [tenants.id] }),
+}));
+
+// ============================================================================
+// PROPOSAL SLIDE DECKS (F35)
+// ============================================================================
+
+export const proposalSlideDecks = sqliteTable(
+  "proposal_slide_decks",
+  {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    proposalId: text("proposal_id").notNull().references(() => proposals.id, { onDelete: "cascade" }),
+    tenantId: text("tenant_id").notNull().references(() => tenants.id),
+    format: text("format").notNull().default("pitch"),
+    title: text("title").notNull(),
+    slides: text("slides", { mode: "json" }).notNull().default([]),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    proposalIdx: index("idx_slide_decks_proposal").on(table.proposalId),
+    tenantIdx: index("idx_slide_decks_tenant").on(table.tenantId),
+  }),
+);
+
+export const proposalSlideDecksRelations = relations(proposalSlideDecks, ({ one }) => ({
+  proposal: one(proposals, { fields: [proposalSlideDecks.proposalId], references: [proposals.id] }),
 }));

@@ -98,6 +98,11 @@ import {
   reviewFeatureRequest,
   planFeatureRequest,
 } from "./tools/requirements-tools";
+import {
+  generateProposalSlides,
+  listProposalSlides,
+  getSlideDeckDetail,
+} from "./tools/proposal-tools";
 
 type ToolHandler = (db: DB, input: Record<string, unknown>, env?: Record<string, string>) => Promise<string>;
 
@@ -204,6 +209,11 @@ const TOOL_HANDLER_MAP: Record<string, ToolHandler> = {
   classify_feature_request: (db, input, env) => classifyFeatureRequest(db, input as Parameters<typeof classifyFeatureRequest>[1], env),
   review_feature_request: (db, input, env) => reviewFeatureRequest(db, input as Parameters<typeof reviewFeatureRequest>[1], env),
   plan_feature_request: (db, input) => planFeatureRequest(db, input as Parameters<typeof planFeatureRequest>[1]),
+
+  // Proposal slides 도구
+  generate_proposal_slides: (db, input) => generateProposalSlides(db, input as unknown as Parameters<typeof generateProposalSlides>[1]),
+  list_proposal_slides: (db, input) => listProposalSlides(db, input as unknown as Parameters<typeof listProposalSlides>[1]),
+  get_slide_deck_detail: (db, input) => getSlideDeckDetail(db, input as unknown as Parameters<typeof getSlideDeckDetail>[1]),
 };
 
 export async function executeTool(
