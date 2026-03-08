@@ -3,6 +3,16 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 332 (2026-03-08)
+**feat: F35 PPT Agent Phase 2 완료 — UI 슬라이드 프리뷰 + 프로덕션 마이그레이션**:
+- ✅ 프로덕션 DB 마이그레이션: proposal_slide_decks 테이블 + 인덱스 2개 수동 적용
+- ✅ SlidePreview 컴포넌트: 포맷 선택(3종) + API 생성 + 16:9 카드 그리드 + 기존 덱 관리
+- ✅ ProposalDetailHeader에 PPT 버튼 통합
+- ✅ F35 완료: 백엔드(Phase 1) + UI(Phase 2) = 7파일, Agent 도구 75개, 테이블 98개
+
+**검증 결과**:
+- ✅ typecheck (0 에러) / lint (0 에러) / build (2.12s)
+
 ### 세션 331 (2026-03-08)
 **feat: F35 사업제안 PPT 슬라이드 자동 생성 Agent Phase 1 + 요구사항 동기화**:
 - ✅ `/ax-10-req list` — 전체 요구사항 34건 조회 (SPEC↔DB 병합 테이블)
