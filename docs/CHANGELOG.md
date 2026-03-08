@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 333 (2026-03-08)
+**feat: AI Fallback 갭 해소 + Health Check API + 내부 배치 분석 스킬**:
+- ✅ AI Fallback 완전 적용 — 미적용 callLLM 6개 호출(3모듈) FallbackContext 전달
+  - `ai-pipeline/service.ts`: 생성자에 env 추가, 3개 callLLM에 aiCtx
+  - `ontology/simulator.ts`: generateScenario에 aiCtx, 2개 callLLM
+  - `ontology/extractor.ts`: 3함수에 aiCtx threading
+- ✅ AI Health Check API (`GET /api/ai/health`) — 4-provider 병렬 ping, 가용성/지연시간/크레딧 상태
+- ✅ 내부 배치 분석 스킬 (`/ax-batch-analysis`) — Claude Code 구독 기반 DB 아이템 배치 처리
+
+**검증 결과**:
+- ✅ typecheck / lint / 2,168 tests all pass
+
 ### 세션 332g (2026-03-08)
 **docs: CLAUDE.md 품질 감사 + MEMORY→CLAUDE 승격 파이프라인 구축**:
 - ✅ CLAUDE.md Improver 실행 — 3개 파일 감사 (Global B/Org C/Project A등급)
