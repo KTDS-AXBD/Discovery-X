@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 338 (2026-03-08)
+**F36 MVP 빌더 GAP 분석 + MAJOR 해소 + 테스트 25개**:
+- ✅ `/pdca analyze F36` — DX-ANLS-005 갭 분석 (Match Rate 93%)
+- ✅ MAJOR 해소: `lab.mvp-builder.tsx` 기존 빌드 조회 → 클라이언트 fetch 패턴
+- ✅ SSE 완료 후 full build fetch (파일 content 포함)
+- ✅ mvp-builder-service.test.ts — 10개 유닛 테스트
+- ✅ api-mvp-builder.test.ts — 15개 통합 테스트
+- ✅ `/pdca report F36` — DX-RPRT-005 완료 보고서 생성
+- 📊 테스트: 2,168 → 2,193개 (147 files, 100% PASS)
+
+---
+
 ### 세션 337 (2026-03-08)
 **ax plugin 자율점검 + 인프라 수정**:
 - ✅ `/ax-13-selfcheck` 실행 — 7/7 PASS
