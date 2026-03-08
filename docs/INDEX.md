@@ -1,6 +1,6 @@
 # Discovery-X 문서 인덱스
 
-> 자동 생성 | 최종 갱신: 2026-03-07
+> 자동 생성 | 최종 갱신: 2026-03-08
 
 ## SPEC — 사양
 
@@ -52,6 +52,7 @@
 | DX-ANLS-002 | 보관함 폴더 갭 분석 | 1.0 | Active | 03-analysis/DX-ANLS-002_archive-folders.md |
 | DX-ANLS-003 | 레이아웃 제안 갭 분석 | 1.0 | Active | 03-analysis/DX-ANLS-003_layout-proposals.md |
 | DX-ANLS-004 | 온톨로지 인텔리전스 갭 분석 | 1.0 | Active | 03-analysis/DX-ANLS-004_ontology-intelligence.md |
+| DX-ANLS-005 | F36 MVP 빌더 Agent 갭 분석 | 1.0 | Active | 03-analysis/DX-ANLS-005_F36-mvp-builder.md |
 
 ## RPRT — 보고
 
@@ -80,4 +81,4 @@
 
 ---
 
-*총 41개 문서 | Active: 36 | Draft: 3 | Archived: 0*
+*총 42개 문서 | Active: 37 | Draft: 3 | Archived: 0*
