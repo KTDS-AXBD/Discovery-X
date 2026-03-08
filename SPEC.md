@@ -211,7 +211,7 @@ Flow K: Ideas → Discovery 수동 전환
 - `/api/ideas/seed` — Seed 연동 API
 - `/api/ideas/sources` — 소스 벌크 API
 
-**Proposals (7개: 4 pages + 3 API)**
+**Proposals (7개: 4 pages + 4 API)**
 - `/proposals` — 사업제안 레이아웃 (전용 사이드바 + Surface + 진행상황 패널)
 - `/proposals/_index` — 파이프라인 칸반 뷰 (5컬럼 아이템 나열) + 분야별 대형 카드 + 지연 제안 알림
 - `/proposals/:id` — 사업제안 상세 (메타 카드 + 5개 섹션 + 팀 토론 + 진행상황 패널)
@@ -219,6 +219,7 @@ Flow K: Ideas → Discovery 수동 전환
 - `/api/proposals` — 제안 CRUD API (GET 목록 + DELETE)
 - `/api/proposals/:id/comments` — 댓글 API (GET + POST)
 - `/api/proposals/:id/actions` — 액션 아이템 토글 API (POST)
+- `/api/proposals/:id/slides` — 슬라이드 덱 API (GET 목록 + POST 생성 + DELETE)
 
 **Lab (실험실) (4 pages + 5 API)**
 - `/lab` — 실험실 레이아웃 (3탭: 요구사항/작업 현황/방법론, 전폭 dot-grid 배경, 모노스페이스 teal accent)
@@ -449,8 +450,8 @@ build/
 - **라우트**: 159개
 - **테이블**: 98개
 - **Agent 도구**: 75개
-- **코드**: ~74,100줄 (~459파일)
-- **테스트**: 2,148개 (143 test files, 로컬 통과)
+- **코드**: ~75,800줄 (~471파일)
+- **테스트**: 2,168개 (145 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
@@ -568,4 +569,5 @@ build/
 | **F36** | **자동 MVP 구축 Agent — 형상화→코드 스캐폴딩 (DX-REQ-006, P1)** | **v0.6.0** | 🔧 | - |
 | F37 | 작업 현황 가시성 개선 — 카드 그리드→컴팩트 리스트 뷰 (DX-REQ-007, P2) | v0.5.0 | ✅ | 1 |
 | F38 | MWC 2026 파이프라인 시나리오 — Radar→Ideas→Proposals 풀 파이프라인 데모 (DX-REQ-008, P1) | v0.5.0 | ✅ | - |
+| **F39** | **PPT 슬라이드 생성 MCP 서버 — 외부 재사용 (DX-REQ-009, P1)** | **v0.6.0** | ✅ | 11 |
 
