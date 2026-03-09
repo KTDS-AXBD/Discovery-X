@@ -4,13 +4,14 @@
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
 ### 세션 341 (2026-03-09)
-**SPEC↔DB↔MEMORY 3-way 동기화 점검 + 에러 HTTP 매퍼**:
+**SPEC↔DB↔MEMORY 3-way 동기화 + 에러 HTTP 매퍼 + ValidationError 통합**:
 - ✅ `/ax-10-req sync` 실행 — SPEC↔DB↔MEMORY 양방향 불일치 6건 감지·수정
 - ✅ F31 (대시보드 기간 필터) 완료 처리: SPEC 📋→✅ + DB PLANNED→DONE
 - ✅ SPEC 내부 수치 보정: 라우트 158→163, 테이블 97→99, Agent 72→77
-- ✅ MEMORY F항목 건수 36→34건 보정
 - ✅ `http-mapper.ts`: 서비스 에러→HTTP 상태코드 매핑 유틸 추가
 - ✅ 5개 테스트 파일: 문자열 매칭→에러 클래스 기반 assertion 전환
+- ✅ **ValidationError 통합**: discovery-rules 로컬 클래스 → `~/lib/errors` 단일 클래스 (re-export 유지, 12개 throw 사이트 마이그레이션)
+- ✅ **toJSON() 오버라이드**: 4개 서브클래스에 고유 속성(field, details, entity 등) JSON 직렬화 추가
 - 📊 테스트: 2,206개 (147 files, 100% PASS) — 변동 없음
 
 ---
