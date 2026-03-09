@@ -11,7 +11,7 @@ import type { ClaudeRequest, ClaudeResponse, FallbackContext, ProviderId, LLMPro
 import { anthropicProvider } from "./providers/anthropic";
 import { openaiProvider } from "./providers/openai";
 import { googleProvider } from "./providers/google";
-import { workersAIProvider, setAIBinding } from "./providers/workers-ai";
+import { workersAIProvider, setWorkersAIEnv } from "./providers/workers-ai";
 
 /** 프로바이더 체인 순서 */
 const PROVIDER_CHAIN: ProviderId[] = ["anthropic", "openai", "google", "workers-ai"];
@@ -44,11 +44,9 @@ export class FallbackManager {
 
   constructor(ctx: FallbackContext) {
     this.ctx = ctx;
-    // AI 바인딩이 env에 있으면 Workers AI 프로바이더에 주입
-    const aiBinding = ctx.env?.["AI"];
-    if (aiBinding && typeof aiBinding === "object" && "run" in aiBinding) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setAIBinding(aiBinding as any);
+    // Workers AI 프로바이더에 env 주입 (AI 바인딩 또는 REST API용 CF_ACCOUNT_ID)
+    if (ctx.env) {
+      setWorkersAIEnv(ctx.env as Record<string, unknown>);
     }
   }
 

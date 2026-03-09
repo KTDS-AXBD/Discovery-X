@@ -45,6 +45,7 @@ vi.mock("~/lib/ai/providers/workers-ai", () => ({
     parseStream: vi.fn(),
     isCreditExhausted: vi.fn(),
   },
+  setWorkersAIEnv: vi.fn(),
 }));
 
 import { anthropicProvider } from "~/lib/ai/providers/anthropic";
