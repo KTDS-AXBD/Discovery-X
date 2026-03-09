@@ -48,6 +48,8 @@ export interface AnalysisProgress {
   error?: string;
   completedCount?: number;
   totalCount?: number;
+  provider?: string;
+  model?: string;
 }
 
 interface AnalyzerOptions {
@@ -175,12 +177,17 @@ export async function runIdeaAnalysis({
         ],
       }, aiCtx);
 
+      // 프로바이더 정보 추출
+      const usedProvider = (response as unknown as Record<string, unknown>)._provider as string | undefined;
+      const actualProvider = usedProvider || "anthropic";
+      const actualModel = response.model || modelId;
+
       const textContent = response.content
         .filter((b) => b.type === "text")
         .map((b) => b.text || "")
         .join("");
 
-      // Save analysis result to DB
+      // Save analysis result to DB (프로바이더 정보 포함)
       const idea = await db.select().from(ideas).where(eq(ideas.id, ideaId)).get();
       if (idea) {
         const existingData = (idea.analysisData || {}) as Record<string, unknown>;
@@ -191,6 +198,8 @@ export async function runIdeaAnalysis({
           sources: [],
           sourceIds: sourceIds || [],
           analyzedAt: new Date().toISOString(),
+          provider: actualProvider,
+          model: actualModel,
         };
         await db
           .update(ideas)
@@ -201,16 +210,17 @@ export async function runIdeaAnalysis({
       // Add to chain context
       chainSummaries.push(extractInsightSummary(cat.category, cat.label, textContent));
 
-      // Log token usage
+      // Log token usage (프로바이더 정보 포함)
       const totalTokens = response.usage.input_tokens + response.usage.output_tokens;
       try {
         await logTokenUsage(db, {
           mode: "direct",
-          model: modelId,
+          model: actualModel,
           inputTokens: response.usage.input_tokens,
           outputTokens: response.usage.output_tokens,
           totalTokens,
           tenantId,
+          provider: actualProvider,
         });
       } catch {
         // Non-critical
@@ -233,6 +243,8 @@ export async function runIdeaAnalysis({
         content: textContent.slice(0, 200),
         completedCount,
         totalCount,
+        provider: actualProvider,
+        model: actualModel,
       });
     } catch (error) {
       failed.push(cat.category);
@@ -273,6 +285,7 @@ async function logTokenUsage(
     outputTokens: number;
     totalTokens: number;
     tenantId?: string;
+    provider?: string;
   }
 ) {
   // Update daily aggregate
@@ -307,5 +320,6 @@ async function logTokenUsage(
     totalTokens: meta.totalTokens,
     toolRounds: 0,
     tenantId: meta.tenantId || null,
+    provider: meta.provider || "anthropic",
   });
 }

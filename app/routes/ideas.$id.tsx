@@ -127,6 +127,7 @@ export default function IdeaDetail() {
   const [analysisRunning, setAnalysisRunning] = useState(false);
   const [categoryStates, setCategoryStates] = useState<Record<string, "pending" | "running" | "complete" | "failed">>({});
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [activeProvider, setActiveProvider] = useState<{ provider: string; model: string } | null>(null);
 
   // ─── Source items for this idea ───
   const [ideaSourceItems, setIdeaSourceItems] = useState(allItems);
@@ -326,6 +327,9 @@ export default function IdeaDetail() {
               setCategoryStates((prev) => ({ ...prev, [event.category]: "running" }));
             } else if (event.type === "category_complete" && event.category) {
               setCategoryStates((prev) => ({ ...prev, [event.category]: "complete" }));
+              if (event.provider) {
+                setActiveProvider({ provider: event.provider, model: event.model || "" });
+              }
               revalidator.revalidate();
             } else if (event.type === "category_error") {
               if (event.category) {
@@ -392,6 +396,9 @@ export default function IdeaDetail() {
             const event = JSON.parse(line.slice(6));
             if (event.type === "category_complete" && event.category) {
               setCategoryStates((prev) => ({ ...prev, [event.category]: "complete" }));
+              if (event.provider) {
+                setActiveProvider({ provider: event.provider, model: event.model || "" });
+              }
             } else if (event.type === "category_error") {
               if (event.category) {
                 setCategoryStates((prev) => ({ ...prev, [event.category]: "failed" }));
@@ -570,6 +577,23 @@ export default function IdeaDetail() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
               </svg>
             </button>
+          </div>
+        )}
+
+        {/* Provider indicator */}
+        {activeProvider && (
+          <div className="flex items-center gap-1.5 border-b border-line px-4 py-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+            <span className="text-[10px] text-fg-tertiary">
+              {activeProvider.provider === "anthropic" ? "Claude" :
+               activeProvider.provider === "openai" ? "GPT-4o" :
+               activeProvider.provider === "google" ? "Gemini" :
+               activeProvider.provider === "workers-ai" ? "Llama" :
+               activeProvider.provider}
+              {activeProvider.model && (
+                <span className="ml-1 opacity-60">({activeProvider.model})</span>
+              )}
+            </span>
           </div>
         )}
 
