@@ -3,6 +3,13 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 342 (2026-03-09)
+**SPEC↔DB 동기화 점검 (코드 변경 없음)**:
+- ✅ `/ax-10-req sync` — SPEC.md F항목 34건 vs 앱 DB 34건 완전 일치 확인
+- 📊 테스트: 2,206개 (147 files, 100% PASS) — 변동 없음
+
+---
+
 ### 세션 341 (2026-03-09)
 **SPEC↔DB↔MEMORY 3-way 동기화 + 에러 HTTP 매퍼 + ValidationError 통합**:
 - ✅ `/ax-10-req sync` 실행 — SPEC↔DB↔MEMORY 양방향 불일치 6건 감지·수정
