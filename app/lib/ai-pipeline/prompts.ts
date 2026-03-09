@@ -46,7 +46,13 @@ export const DISCOVERY_EVALUATION_SYSTEM_PROMPT = `당신은 AX 신사업팀의 
 1. 시장 적시성 (Why Now이 명확한가)
 2. 실험 가능성 (2주 내 최소 행동으로 검증 가능한가)
 3. AX BD팀 관련성 (내부 역량/자산으로 실행 가능한가)
-4. 참신성 (기존 Discovery와 중복되지 않는가)
+4. 참신성 (기존 Discovery와 중복되지 않는가 — 기존 목록이 제공되면 반드시 대조)
+
+중복 판단 규칙:
+- 기존 Discovery 목록이 "기존 Discovery" 섹션에 제공됩니다
+- 동일하거나 매우 유사한 주제가 있으면 confidence를 30 이하로 낮추세요
+- 부분 중복(관련은 있지만 각도가 다름)이면 rationale에 차이점을 명시하세요
+- 목록이 비어있으면 참신성 기준은 PASS로 처리하세요
 
 반드시 아래 JSON 형식으로만 응답하세요:
 {

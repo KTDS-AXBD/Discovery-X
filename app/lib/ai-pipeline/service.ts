@@ -3,7 +3,7 @@
  * Cron (09:30 KST)에서 호출. CF 30초 제한 대응.
  */
 
-import { eq, and, isNull, inArray, sql } from "drizzle-orm";
+import { eq, and, not, isNull, inArray, sql } from "drizzle-orm";
 import type { DB } from "~/db";
 import {
   radarItems,
@@ -12,6 +12,7 @@ import {
   AIPipelineRunStatus,
   DiscoveryStatus,
   evidence,
+  discoveries,
 } from "~/db";
 import { ideas } from "~/features/ideas/db/schema";
 import { CLAUDE_MODEL } from "~/lib/ai";
@@ -177,6 +178,7 @@ export class AIPipelineService {
 
           await this.delay();
           const evaluation = await this.evaluateForDiscovery(
+            tenantId,
             ideaResult,
             cluster,
             items,
@@ -372,6 +374,7 @@ export class AIPipelineService {
   }
 
   private async evaluateForDiscovery(
+    tenantId: string,
     idea: IdeaResult,
     cluster: { topic: string; itemIds: string[] },
     allItems: Array<{ id: string; title: string; titleKo: string | null; summaryKo: string | null }>,
@@ -382,6 +385,22 @@ export class AIPipelineService {
       .map((i) => i.titleKo || i.title)
       .join(", ");
 
+    // 기존 Discovery 목록 조회 (중복 검사용, DROP 제외)
+    const existingDiscoveries = await this.db
+      .select({ title: discoveries.title, status: discoveries.status })
+      .from(discoveries)
+      .where(
+        and(
+          eq(discoveries.tenantId, tenantId),
+          not(eq(discoveries.status, DiscoveryStatus.DROP)),
+        ),
+      )
+      .limit(50);
+
+    const existingContext = existingDiscoveries.length > 0
+      ? existingDiscoveries.map((d) => `- ${d.title} (${d.status})`).join("\n")
+      : "(없음)";
+
     try {
       const response = await callLLM(this.apiKey, {
         model: CLAUDE_MODEL,
@@ -390,7 +409,7 @@ export class AIPipelineService {
         messages: [
           {
             role: "user",
-            content: `아이디어: ${idea.title}\n요약: ${idea.summary}\nWhy Now: ${idea.whyNow}\n소스: ${sourcesTitles}`,
+            content: `아이디어: ${idea.title}\n요약: ${idea.summary}\nWhy Now: ${idea.whyNow}\n소스: ${sourcesTitles}\n\n기존 Discovery:\n${existingContext}`,
           },
         ],
       }, this.aiCtx);
