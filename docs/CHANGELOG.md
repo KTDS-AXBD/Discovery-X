@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 344 (2026-03-10)
+**AI 분석 Fallback 버그 수정 (DX-REQ-010)**:
+- 🐛 근본 원인: Anthropic API 크레딧 소진 → FallbackManager가 non-credit 에러 시 체인 중단 (re-throw)
+- ✅ FallbackManager: 모든 에러 시 다음 프로바이더로 fallback (Anthropic→OpenAI→Google→Workers AI)
+- ✅ Workers AI 프로바이더: 깨진 REST URL 제거 → `env.AI` 바인딩 기반 재구현
+- ✅ wrangler.toml: `[ai] binding = "AI"` 추가
+- ✅ ideas.$id.tsx: 분석 실패 시 에러 배너 UI 추가 (기존: "failed" 상태만 표시, 원인 미노출)
+- ✅ DX-REQ-010 등록: 프로덕션 DB에 bug 타입 요구사항 등록 (priority: high)
+- 📊 Fallback 라이브 테스트: Anthropic(크레딧 소진) → OpenAI(정상) → Google(429) → Workers AI(정상)
+- 📊 테스트: 2,206개 (147 files, 100% PASS), typecheck OK, build OK
+
+---
+
 ### 세션 342 (2026-03-09)
 **SPEC↔DB 동기화 점검 (코드 변경 없음)**:
 - ✅ `/ax-10-req sync` — SPEC.md F항목 34건 vs 앱 DB 34건 완전 일치 확인
