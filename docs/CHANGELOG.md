@@ -3,6 +3,20 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 340 (2026-03-09)
+**ax-batch-analysis 스킬 정규화 + 서비스 에러 모듈 + 대시보드 필터 + AI 중복검사**:
+- ✅ `/ax-13-selfcheck` 실행 — 7/7 PASS (고아 파일 1건 발견)
+- ✅ ax-batch-analysis 스킬 전면 재설계 — 정규 SKILL.md 구조, 하이브리드 실행, 확장 가능 모드
+- ✅ `app/lib/errors/`: ServiceError 계층 구조 도입 (NotFoundError, ValidationError 등)
+- ✅ 13개 서비스에 에러 모듈 적용 + 관련 테스트 에러 메시지 동기화
+- ✅ StatusBadge: config prop 외부 주입 (의존성 역전)
+- ✅ 대시보드 날짜 범위 필터 (DateRangePicker + from/to 쿼리 파라미터)
+- ✅ AI 파이프라인 Discovery 중복검사 강화 — evaluateForDiscovery에 기존 목록 제공 + not(eq()) 패턴
+- ✅ `~/.claude/CLAUDE.md` 글로벌 설정에 AskUserQuestion 인터뷰 형식 기본값 저장
+- 📊 테스트: 2,206개 (147 files, 100% PASS) — 변동 없음
+
+---
+
 ### 세션 339 (2026-03-08)
 **F36 MVP 빌더 통합 테스트 보강**:
 - ✅ api-mvp-builder.test.ts 리팩토링 — 라우트 비즈니스 로직 재현 패턴 (14→27 케이스)
