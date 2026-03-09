@@ -1,3 +1,4 @@
+import { and, eq, gte, lte } from "drizzle-orm";
 import type { DB } from "~/db";
 import { discoveries, experiments, evidence, eventLogs, users } from "~/db";
 import { DiscoveryStatus } from "~/db";
@@ -60,13 +61,46 @@ export interface OperationalMetrics {
 export class MetricsService {
   constructor(private db: DB) {}
 
-  async getOperationalMetrics(): Promise<OperationalMetrics> {
+  async getOperationalMetrics(params?: {
+    startDate?: Date;
+    endDate?: Date;
+    tenantId?: string;
+  }): Promise<OperationalMetrics> {
+    // 날짜/테넌트 필터 조건 구성
+    const discoveryConditions = [];
+    const dateConditions = [];
+    if (params?.tenantId) {
+      discoveryConditions.push(eq(discoveries.tenantId, params.tenantId));
+    }
+    if (params?.startDate) {
+      discoveryConditions.push(gte(discoveries.createdAt, params.startDate));
+      dateConditions.push({ field: "createdAt", op: "gte", date: params.startDate });
+    }
+    if (params?.endDate) {
+      discoveryConditions.push(lte(discoveries.createdAt, params.endDate));
+      dateConditions.push({ field: "createdAt", op: "lte", date: params.endDate });
+    }
+
+    const experimentConditions = [];
+    if (params?.startDate) experimentConditions.push(gte(experiments.createdAt, params.startDate));
+    if (params?.endDate) experimentConditions.push(lte(experiments.createdAt, params.endDate));
+
+    const evidenceConditions = [];
+    if (params?.startDate) evidenceConditions.push(gte(evidence.createdAt, params.startDate));
+    if (params?.endDate) evidenceConditions.push(lte(evidence.createdAt, params.endDate));
+
     // 병렬로 모든 데이터 로드
     const [allDiscoveries, allExperiments, allEvidence, allEventLogs, allUsers] =
       await Promise.all([
-        this.db.select().from(discoveries),
-        this.db.select().from(experiments),
-        this.db.select().from(evidence),
+        discoveryConditions.length > 0
+          ? this.db.select().from(discoveries).where(and(...discoveryConditions))
+          : this.db.select().from(discoveries),
+        experimentConditions.length > 0
+          ? this.db.select().from(experiments).where(and(...experimentConditions))
+          : this.db.select().from(experiments),
+        evidenceConditions.length > 0
+          ? this.db.select().from(evidence).where(and(...evidenceConditions))
+          : this.db.select().from(evidence),
         this.db.select().from(eventLogs),
         this.db.select().from(users),
       ]);
@@ -128,11 +162,12 @@ export class MetricsService {
 
     // ── Weekly creation data (last 8 weeks) ──
     const weeklyData: WeeklyDataItem[] = [];
+    const weeklyRef = params?.endDate ?? new Date();
     for (let i = 7; i >= 0; i--) {
-      const weekStart = new Date();
+      const weekStart = new Date(weeklyRef);
       weekStart.setDate(weekStart.getDate() - (i + 1) * 7);
       weekStart.setHours(0, 0, 0, 0);
-      const weekEnd = new Date();
+      const weekEnd = new Date(weeklyRef);
       weekEnd.setDate(weekEnd.getDate() - i * 7);
       weekEnd.setHours(0, 0, 0, 0);
 

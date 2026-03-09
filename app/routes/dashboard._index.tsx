@@ -5,7 +5,7 @@
 import { useState, useCallback } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { useLoaderData, useFetcher } from "@remix-run/react";
+import { useLoaderData, useFetcher, useSearchParams } from "@remix-run/react";
 import { getDb } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { DashboardService } from "~/features/dashboard/service";
@@ -15,6 +15,7 @@ import { SummaryCard } from "~/features/dashboard/ui/SummaryCard";
 import { PipelineKanban } from "~/features/dashboard/ui/PipelineKanban";
 import { StatisticsPanel } from "~/features/dashboard/ui/StatisticsPanel";
 import { OnboardingGuide } from "~/features/dashboard/ui/OnboardingGuide";
+import { DateRangePicker } from "~/features/dashboard/ui/DateRangePicker";
 
 const EMPTY_DATA = {
   recentCollections: { total: 0, items: [] as DashboardCollectionItem[] },
@@ -47,9 +48,18 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     const now = new Date();
     const timestamp = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, "0")}.${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
+    // 선택적 날짜 범위 파라미터 (from, to)
+    const url = new URL(request.url);
+    const fromParam = url.searchParams.get("from");
+    const toParam = url.searchParams.get("to");
+    const startDate = fromParam ? new Date(fromParam) : undefined;
+    const endDate = toParam ? new Date(toParam) : undefined;
+    const validStart = startDate && !isNaN(startDate.getTime()) ? startDate : undefined;
+    const validEnd = endDate && !isNaN(endDate.getTime()) ? endDate : undefined;
+
     const service = new DashboardService(db);
     const [data, onboardingState] = await Promise.all([
-      service.getOverviewData({ tenantId: ctx.tenantId, userId: ctx.user?.id }),
+      service.getOverviewData({ tenantId: ctx.tenantId, userId: ctx.user?.id, startDate: validStart, endDate: validEnd }),
       service.getOnboardingState(ctx.tenantId),
     ]);
 
@@ -80,6 +90,9 @@ export default function DashboardOverview() {
     new Set(viewedItemIds),
   );
   const statusFetcher = useFetcher();
+  const [searchParams] = useSearchParams();
+  const from = searchParams.get("from") ?? undefined;
+  const to = searchParams.get("to") ?? undefined;
 
   const handleSelect = useCallback(
     (id: string) => {
@@ -136,14 +149,22 @@ export default function DashboardOverview() {
 
       {/* Statistics — 온보딩 중에는 숨김 */}
       {!showOnboarding && (
-        <StatisticsPanel
-          discoveries={totalDiscoveries.items}
-          proposals={strategyProposals.items}
-          industryAdapters={industryAdapterList}
-          sourceStats={sourceStats}
-          totalCollections={recentCollections.total}
-          serverNow={serverNow}
-        />
+        <>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium text-secondary">통계</h3>
+            <DateRangePicker />
+          </div>
+          <StatisticsPanel
+            discoveries={totalDiscoveries.items}
+            proposals={strategyProposals.items}
+            industryAdapters={industryAdapterList}
+            sourceStats={sourceStats}
+            totalCollections={recentCollections.total}
+            serverNow={serverNow}
+            from={from}
+            to={to}
+          />
+        </>
       )}
     </div>
   );

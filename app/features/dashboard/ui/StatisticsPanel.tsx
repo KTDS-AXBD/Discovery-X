@@ -33,6 +33,8 @@ interface StatisticsPanelProps {
   sourceStats: SourceStat[];
   totalCollections: number;
   serverNow: number;
+  from?: string;
+  to?: string;
 }
 
 // ────────────────────────────────────────────────────────────
@@ -64,6 +66,22 @@ function getRecentMonths(n: number): string[] {
   return months;
 }
 
+function getMonthsInRange(from: string, to: string): string[] {
+  const start = new Date(from);
+  const end = new Date(to);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return getRecentMonths(6);
+  }
+  const months: string[] = [];
+  const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+  const endMonth = new Date(end.getFullYear(), end.getMonth(), 1);
+  while (cursor <= endMonth) {
+    months.push(monthKey(cursor));
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+  return months.length > 0 ? months : getRecentMonths(6);
+}
+
 // ────────────────────────────────────────────────────────────
 // Sub-components
 // ────────────────────────────────────────────────────────────
@@ -71,11 +89,18 @@ function getRecentMonths(n: number): string[] {
 function MonthlyActivityChart({
   discoveries,
   proposals,
+  from,
+  to,
 }: {
   discoveries: DiscoveryItem[];
   proposals: ProposalItem[];
+  from?: string;
+  to?: string;
 }) {
-  const months = useMemo(() => getRecentMonths(6), []);
+  const months = useMemo(
+    () => (from && to ? getMonthsInRange(from, to) : getRecentMonths(6)),
+    [from, to],
+  );
 
   const data = useMemo(() => {
     const discByMonth: Record<string, number> = {};
@@ -366,6 +391,8 @@ export function StatisticsPanel({
   sourceStats,
   totalCollections,
   serverNow,
+  from,
+  to,
 }: StatisticsPanelProps) {
   return (
     <div>
@@ -373,7 +400,7 @@ export function StatisticsPanel({
         통계
       </h3>
       <div className="grid grid-cols-2 gap-4">
-        <MonthlyActivityChart discoveries={discoveries} proposals={proposals} />
+        <MonthlyActivityChart discoveries={discoveries} proposals={proposals} from={from} to={to} />
         <IndustryDonutChart discoveries={discoveries} adapters={adapters} />
         <CollectionStats totalCollections={totalCollections} sourceStats={sourceStats} />
         <StageResidencyChart discoveries={discoveries} now={serverNow} />

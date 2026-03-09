@@ -1,5 +1,5 @@
 // DashboardService — /dashboard 오버뷰 통합 데이터
-import { eq, sql, desc, and, inArray, asc } from "drizzle-orm";
+import { eq, sql, desc, and, inArray, asc, gte, lte } from "drizzle-orm";
 import type { DB } from "~/db";
 import {
   discoveries,
@@ -140,8 +140,10 @@ export class DashboardService {
   async getOverviewData(params: {
     tenantId: string;
     userId?: string;
+    startDate?: Date;
+    endDate?: Date;
   }): Promise<DashboardOverviewData> {
-    const { tenantId, userId } = params;
+    const { tenantId, userId, startDate, endDate } = params;
 
     const [
       recentCollections,
@@ -150,8 +152,8 @@ export class DashboardService {
       industryAdapterList,
       sourceStats,
     ] = await Promise.all([
-      this.getRecentCollections(tenantId),
-      this.getAllDiscoveries(tenantId),
+      this.getRecentCollections(tenantId, startDate, endDate),
+      this.getAllDiscoveries(tenantId, startDate, endDate),
       this.getStrategyProposals(tenantId),
       this.getIndustryAdapters(tenantId),
       this.getSourceStats(tenantId),
@@ -173,15 +175,22 @@ export class DashboardService {
     };
   }
 
-  private async getRecentCollections(tenantId: string) {
+  private async getRecentCollections(tenantId: string, startDate?: Date, endDate?: Date) {
     try {
       const tenantRunIds = sql`(SELECT id FROM radar_runs WHERE tenant_id = ${tenantId})`;
+      const baseWhere = sql`${radarItems.runId} IN ${tenantRunIds}`;
+      const dateConditions = [];
+      if (startDate) dateConditions.push(gte(radarItems.collectedAt, startDate));
+      if (endDate) dateConditions.push(lte(radarItems.collectedAt, endDate));
+      const whereClause = dateConditions.length > 0
+        ? and(baseWhere, ...dateConditions)!
+        : baseWhere;
 
       const [countResult, latestItemsRaw] = await Promise.all([
         this.db
           .select({ count: sql<number>`count(*)` })
           .from(radarItems)
-          .where(sql`${radarItems.runId} IN ${tenantRunIds}`),
+          .where(whereClause),
         this.db
           .select({
             id: radarItems.id,
@@ -193,7 +202,7 @@ export class DashboardService {
             url: radarItems.url,
           })
           .from(radarItems)
-          .where(sql`${radarItems.runId} IN ${tenantRunIds}`)
+          .where(whereClause)
           .orderBy(desc(sql`rowid`))
           .limit(30),
       ]);
@@ -213,7 +222,12 @@ export class DashboardService {
     }
   }
 
-  private async getAllDiscoveries(tenantId: string) {
+  private async getAllDiscoveries(tenantId: string, startDate?: Date, endDate?: Date) {
+    const dateConditions = [];
+    if (startDate) dateConditions.push(gte(discoveries.createdAt, startDate));
+    if (endDate) dateConditions.push(lte(discoveries.createdAt, endDate));
+    const additionalWhere = dateConditions.length > 0 ? and(...dateConditions) : undefined;
+
     const items = await this.db
       .select({
         id: discoveries.id,
@@ -224,7 +238,7 @@ export class DashboardService {
         industryAdapterId: discoveries.industryAdapterId,
       })
       .from(discoveries)
-      .where(tenantWhere(discoveries, tenantId));
+      .where(tenantWhere(discoveries, tenantId, additionalWhere));
     return { total: items.length, items };
   }
 
