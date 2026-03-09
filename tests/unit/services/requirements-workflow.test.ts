@@ -14,6 +14,7 @@ import { describe, it, expect, beforeAll, beforeEach } from "vitest";
 import { eq } from "drizzle-orm";
 import { createTestDb } from "tests/helpers/db";
 import type { DB } from "~/db";
+import { NotFoundError, ValidationError } from "~/lib/errors";
 import { RequirementsWorkflowService } from "~/features/requests/service/workflow";
 import { RequirementsEntityService } from "~/features/requests/service/entity";
 import { RequirementsQueryService } from "~/features/requests/service/query";
@@ -148,12 +149,12 @@ describe("transition", () => {
   });
 
   it("존재하지 않는 요구사항은 에러", async () => {
-    await expect(workflow.transition("non-existent", "AI_REVIEWING")).rejects.toThrow("not found");
+    await expect(workflow.transition("non-existent", "AI_REVIEWING")).rejects.toThrow(NotFoundError);
   });
 
   it("허용되지 않은 전환은 에러", async () => {
     createSeedRequest("req-tr-2");
-    await expect(workflow.transition("req-tr-2", "ACCEPTED")).rejects.toThrow("허용되지 않습니다");
+    await expect(workflow.transition("req-tr-2", "ACCEPTED")).rejects.toThrow(ValidationError);
   });
 });
 
@@ -168,7 +169,7 @@ describe("startAiReview", () => {
 
   it("이미 AI_REVIEWING이면 에러", async () => {
     createSeedRequest("req-ai-2", "AI_REVIEWING");
-    await expect(workflow.startAiReview("req-ai-2")).rejects.toThrow("허용되지 않습니다");
+    await expect(workflow.startAiReview("req-ai-2")).rejects.toThrow(ValidationError);
   });
 });
 
@@ -334,7 +335,7 @@ describe("submitHumanVerdict", () => {
         verdict: "APPROVED",
         reviewerId: USER_B,
       }),
-    ).rejects.toThrow("Review not found");
+    ).rejects.toThrow(NotFoundError);
   });
 
   it("HUMAN_VERDICT 이벤트 로그 기록", async () => {

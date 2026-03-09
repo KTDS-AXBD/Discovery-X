@@ -8,6 +8,8 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { createTestDb } from "tests/helpers/db";
 import type { DB } from "~/db";
+import { NotFoundError, ValidationError as ServiceValidationError } from "~/lib/errors";
+import { ValidationError as RulesValidationError } from "~/features/discovery/validation/discovery-rules";
 import { DiscoveryService } from "~/features/discovery/service";
 import {
   discoveries,
@@ -406,7 +408,7 @@ describe("DiscoveryService", () => {
     it("무효한 전환 — DISCOVERY → EXPERIMENT → ValidationError throw", async () => {
       await expect(
         service.transition("disc-inbox-1", "EXPERIMENT", USER_A),
-      ).rejects.toThrow("전환할 수 없습니다");
+      ).rejects.toThrow(RulesValidationError);
     });
 
     it("무효한 전환 — DROP에서는 어디로도 전환 불가", async () => {
@@ -418,7 +420,7 @@ describe("DiscoveryService", () => {
     it("존재하지 않는 Discovery — Error throw", async () => {
       await expect(
         service.transition("non-existent", "IDEA_CARD", USER_A),
-      ).rejects.toThrow("not found");
+      ).rejects.toThrow(NotFoundError);
     });
   });
 
@@ -495,7 +497,7 @@ describe("DiscoveryService", () => {
           newOwnerId: USER_B,
           actorId: USER_A,
         }),
-      ).rejects.toThrow("활성 상태");
+      ).rejects.toThrow(ServiceValidationError);
     });
 
     it("존재하지 않는 Discovery — Error throw", async () => {
@@ -505,7 +507,7 @@ describe("DiscoveryService", () => {
           newOwnerId: USER_B,
           actorId: USER_A,
         }),
-      ).rejects.toThrow("not found");
+      ).rejects.toThrow(NotFoundError);
     });
   });
 

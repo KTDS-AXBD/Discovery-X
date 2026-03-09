@@ -13,6 +13,7 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { eq } from "drizzle-orm";
 import { createTestDb, type TestDB } from "tests/helpers/db";
 import type { DB } from "~/db";
+import { NotFoundError, ValidationError } from "~/lib/errors";
 import { RequirementsWorkflowService } from "~/features/requests/service/workflow";
 import { RequirementsEntityService } from "~/features/requests/service/entity";
 import {
@@ -186,14 +187,14 @@ describe("transition", () => {
   it("존재하지 않는 요구사항은 에러", async () => {
     await expect(
       workflow.transition("non-existent-req", "AI_REVIEWING"),
-    ).rejects.toThrow("not found");
+    ).rejects.toThrow(NotFoundError);
   });
 
   it("허용되지 않은 전환은 에러", async () => {
     seedRequest("wf-tr-2");
     await expect(
       workflow.transition("wf-tr-2", "ACCEPTED"),
-    ).rejects.toThrow("허용되지 않습니다");
+    ).rejects.toThrow(ValidationError);
   });
 
   it("actorId 미지정 시 actorType = system", async () => {
@@ -229,7 +230,7 @@ describe("startAiReview", () => {
 
   it("이미 AI_REVIEWING이면 에러 (중복 전환 방지)", async () => {
     seedRequest("wf-ai-2", "AI_REVIEWING");
-    await expect(workflow.startAiReview("wf-ai-2")).rejects.toThrow("허용되지 않습니다");
+    await expect(workflow.startAiReview("wf-ai-2")).rejects.toThrow(ValidationError);
   });
 });
 
@@ -497,7 +498,7 @@ describe("submitHumanVerdict", () => {
         verdict: "APPROVED",
         reviewerId: USER_B,
       }),
-    ).rejects.toThrow("Review not found");
+    ).rejects.toThrow(NotFoundError);
   });
 
   it("존재하지 않는 요구사항은 에러", async () => {
@@ -507,7 +508,7 @@ describe("submitHumanVerdict", () => {
         verdict: "APPROVED",
         reviewerId: USER_B,
       }),
-    ).rejects.toThrow("not found");
+    ).rejects.toThrow(NotFoundError);
   });
 
   it("HUMAN_VERDICT 이벤트에 verdict + comment 기록", async () => {

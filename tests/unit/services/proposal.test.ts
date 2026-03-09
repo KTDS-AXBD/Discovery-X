@@ -8,6 +8,7 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { createTestDb } from "tests/helpers/db";
 import type { DB } from "~/db";
 import { ProposalService } from "~/features/proposals/service/proposal.service";
+import { NotFoundError, UnauthorizedError, ValidationError } from "~/lib/errors";
 import { users, tenants, tenantMembers } from "~/db";
 import {
   proposals,
@@ -157,19 +158,19 @@ describe("ProposalService", () => {
     it("다른 tenant → 'Not found' 에러", async () => {
       await expect(
         service.delete(PROPOSAL_ID, OTHER_TENANT, USER_ID),
-      ).rejects.toThrow("not found");
+      ).rejects.toThrow(NotFoundError);
     });
 
     it("다른 owner → 'Forbidden' 에러", async () => {
       await expect(
         service.delete(PROPOSAL_ID, TENANT_ID, OTHER_USER_ID),
-      ).rejects.toThrow("Forbidden");
+      ).rejects.toThrow(UnauthorizedError);
     });
 
     it("존재하지 않는 proposal → 'Not found' 에러", async () => {
       await expect(
         service.delete("no-such-id", TENANT_ID, USER_ID),
-      ).rejects.toThrow("not found");
+      ).rejects.toThrow(NotFoundError);
     });
   });
 
@@ -204,13 +205,13 @@ describe("ProposalService", () => {
       // FORMALIZATION → COMPLETED는 허용되지 않음 (VALIDATION을 거쳐야 함)
       await expect(
         service.update(PROPOSAL_ID, TENANT_ID, { status: "COMPLETED" }),
-      ).rejects.toThrow("상태 전환 불가");
+      ).rejects.toThrow(ValidationError);
     });
 
     it("CLOSED 전환 시 closeType 없으면 에러", async () => {
       await expect(
         service.update(PROPOSAL_ID, TENANT_ID, { status: "CLOSED" }),
-      ).rejects.toThrow("close_type(HOLD/DROP)이 필요합니다");
+      ).rejects.toThrow(ValidationError);
     });
 
     it("CLOSED 전환 시 closeType 있으면 정상", async () => {
@@ -240,7 +241,7 @@ describe("ProposalService", () => {
     it("다른 tenant → 'Not found' 에러", async () => {
       await expect(
         service.update(PROPOSAL_ID, OTHER_TENANT, { title: "해킹" }),
-      ).rejects.toThrow("not found");
+      ).rejects.toThrow(NotFoundError);
     });
 
     it("섹션 업데이트 (sections 배열)", async () => {
@@ -382,7 +383,7 @@ describe("ProposalService", () => {
             USER_ID,
             "해킹",
           ),
-        ).rejects.toThrow("Forbidden");
+        ).rejects.toThrow(UnauthorizedError);
       });
 
       it("존재하지 않는 댓글 수정 시 Not found", async () => {
@@ -393,7 +394,7 @@ describe("ProposalService", () => {
             USER_ID,
             "내용",
           ),
-        ).rejects.toThrow("Comment not found");
+        ).rejects.toThrow(NotFoundError);
       });
     });
 
@@ -406,7 +407,7 @@ describe("ProposalService", () => {
 
         await expect(
           service.deleteComment(otherComment.id, COMMENT_PROPOSAL, USER_ID),
-        ).rejects.toThrow("Forbidden");
+        ).rejects.toThrow(UnauthorizedError);
       });
 
       it("본인 댓글 삭제 + commentCount 감소", async () => {
@@ -429,7 +430,7 @@ describe("ProposalService", () => {
       it("존재하지 않는 댓글 삭제 시 Not found", async () => {
         await expect(
           service.deleteComment("no-such-comment", COMMENT_PROPOSAL, USER_ID),
-        ).rejects.toThrow("Comment not found");
+        ).rejects.toThrow(NotFoundError);
       });
     });
   });

@@ -17,6 +17,7 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { createTestDb } from "tests/helpers/db";
 import type { DB } from "~/db";
 import { TopicService } from "~/features/topic/service/topic.service";
+import { NotFoundError } from "~/lib/errors";
 import { users, tenants, topics, topicMembers } from "~/db";
 
 let db: ReturnType<typeof createTestDb>;
@@ -250,7 +251,7 @@ describe("TopicService", () => {
     it("존재하지 않는 Topic — Error throw", async () => {
       await expect(
         service.update("non-existent", { name: "수정" }),
-      ).rejects.toThrow("not found");
+      ).rejects.toThrow(NotFoundError);
     });
   });
 
@@ -274,7 +275,7 @@ describe("TopicService", () => {
 
     it("존재하지 않는 Topic — Error throw", async () => {
       await expect(service.archive("non-existent")).rejects.toThrow(
-        "not found",
+        NotFoundError,
       );
     });
   });
