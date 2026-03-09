@@ -3,6 +3,10 @@ import type { DB } from "~/db";
 import { eq, count } from "drizzle-orm";
 import { experiments, evidence, assumptions } from "~/db";
 import { ALLOWED_TRANSITIONS } from "~/lib/constants/status";
+import { ValidationError } from "~/lib/errors";
+
+// Re-export for backward compatibility
+export { ValidationError };
 
 // ============================================================================
 // Critical Check (비판적 검증 4종) — v1.4 기획서 §7.3
@@ -13,20 +17,6 @@ export interface CriticalCheckResult {
   passed: boolean;
   message: string;
   details?: Record<string, unknown>;
-}
-
-// ============================================================================
-// Validation Error
-// ============================================================================
-
-export class ValidationError extends Error {
-  constructor(
-    message: string,
-    public details?: Record<string, unknown>
-  ) {
-    super(message);
-    this.name = "ValidationError";
-  }
 }
 
 export type ValidationResult = {
@@ -46,13 +36,13 @@ export class DiscoveryValidationRules {
     const allowed = ALLOWED_TRANSITIONS[fromStatus];
     if (!allowed) {
       throw new ValidationError(
-        `알 수 없는 상태입니다: ${fromStatus}`,
+        "status", `알 수 없는 상태입니다: ${fromStatus}`,
         { fromStatus, rule: "unknown_status" }
       );
     }
     if (!allowed.includes(toStatus)) {
       throw new ValidationError(
-        `${fromStatus}에서 ${toStatus}로 전환할 수 없습니다. 허용된 전환: ${allowed.join(", ")}`,
+        "status", `${fromStatus}에서 ${toStatus}로 전환할 수 없습니다. 허용된 전환: ${allowed.join(", ")}`,
         { fromStatus, toStatus, allowed, rule: "invalid_transition" }
       );
     }
@@ -64,8 +54,8 @@ export class DiscoveryValidationRules {
   static validateOwnerRequired(ownerId: string | null | undefined): void {
     if (!ownerId) {
       throw new ValidationError(
-        "Owner를 지정해야 IDEA_CARD 상태로 전환할 수 있습니다.",
-        { field: "ownerId", rule: "owner_required" }
+        "ownerId", "Owner를 지정해야 IDEA_CARD 상태로 전환할 수 있습니다.",
+        { rule: "owner_required" }
       );
     }
   }
@@ -86,11 +76,8 @@ export class DiscoveryValidationRules {
 
     if (experimentCount >= 2) {
       throw new ValidationError(
-        "Discovery당 최대 2개 실험만 가능합니다. 3번째 실험은 Reviewer 승인이 필요합니다.",
-        {
-          currentCount: experimentCount,
-          suggestedAction: "request_extension",
-        }
+        "experiments", "Discovery당 최대 2개 실험만 가능합니다. 3번째 실험은 Reviewer 승인이 필요합니다.",
+        { currentCount: experimentCount, suggestedAction: "request_extension" }
       );
     }
 
@@ -111,21 +98,14 @@ export class DiscoveryValidationRules {
       !data.revisitDate
     ) {
       throw new ValidationError(
-        "HOLD 결정은 트리거 유형, 조건, 재검토 날짜가 모두 필수입니다.",
-        {
-          missing: {
-            triggerType: !data.notNowTriggerType,
-            triggerCondition: !data.notNowTriggerCondition,
-            revisitDate: !data.revisitDate,
-          },
-        }
+        "holdDecision", "HOLD 결정은 트리거 유형, 조건, 재검토 날짜가 모두 필수입니다.",
+        { missing: { triggerType: !data.notNowTriggerType, triggerCondition: !data.notNowTriggerCondition, revisitDate: !data.revisitDate } }
       );
     }
 
     if (data.revisitDate && data.revisitDate <= new Date()) {
-      throw new ValidationError("재검토 날짜는 미래 날짜여야 합니다.", {
-        revisitDate: data.revisitDate,
-      });
+      throw new ValidationError("revisitDate", "재검토 날짜는 미래 날짜여야 합니다.",
+        { revisitDate: data.revisitDate });
     }
   }
 
@@ -141,21 +121,19 @@ export class DiscoveryValidationRules {
       data.deadEndFailurePattern.length === 0
     ) {
       throw new ValidationError(
-        "DROP은 최소 1개의 실패 패턴 태그가 필요합니다.",
-        { field: "deadEndFailurePattern" }
+        "failurePattern", "DROP은 최소 1개의 실패 패턴 태그가 필요합니다."
       );
     }
 
     if (data.deadEndFailurePattern.length > 3) {
-      throw new ValidationError("실패 패턴은 최대 3개까지 선택 가능합니다.", {
-        count: data.deadEndFailurePattern.length,
-      });
+      throw new ValidationError("failurePattern", "실패 패턴은 최대 3개까지 선택 가능합니다.",
+        { count: data.deadEndFailurePattern.length });
     }
 
     if (!data.deadEndEvidenceReason?.trim()) {
-      throw new ValidationError("DROP은 증거 기반 사유가 필수입니다.", {
-        field: "deadEndEvidenceReason",
-      });
+      throw new ValidationError(
+        "evidenceReason", "DROP은 증거 기반 사유가 필수입니다."
+      );
     }
   }
 
@@ -334,8 +312,8 @@ export class DiscoveryValidationRules {
   static validateReviewerRequired(reviewerId: string | null | undefined): void {
     if (!reviewerId) {
       throw new ValidationError(
-        "Reviewer가 지정되어야 결정을 제출할 수 있습니다. Discovery 상세 페이지에서 Reviewer를 먼저 지정해주세요.",
-        { field: "reviewerId", rule: "reviewer_required" }
+        "reviewerId", "Reviewer가 지정되어야 결정을 제출할 수 있습니다. Discovery 상세 페이지에서 Reviewer를 먼저 지정해주세요.",
+        { rule: "reviewer_required" }
       );
     }
   }
@@ -346,7 +324,7 @@ export class DiscoveryValidationRules {
   static validateNoApprovalPending(approvalStatus: string): void {
     if (approvalStatus === "PENDING") {
       throw new ValidationError(
-        "이미 승인 대기 중인 결정이 있습니다. Reviewer의 승인/거부를 기다려주세요.",
+        "approvalStatus", "이미 승인 대기 중인 결정이 있습니다. Reviewer의 승인/거부를 기다려주세요.",
         { rule: "no_duplicate_approval" }
       );
     }
@@ -393,22 +371,22 @@ export class DiscoveryValidationRules {
   }): ValidationResult {
     if (!data.reliabilityLabel) {
       throw new ValidationError(
-        "근거의 신뢰도 라벨(reliability_label)은 필수입니다. confirmed/reported/hypothesis 중 선택하세요.",
-        { field: "reliabilityLabel", rule: "evidence_reliability_required" }
+        "reliabilityLabel", "근거의 신뢰도 라벨(reliability_label)은 필수입니다. confirmed/reported/hypothesis 중 선택하세요.",
+        { rule: "evidence_reliability_required" }
       );
     }
 
     const validLabels = ["confirmed", "reported", "hypothesis"];
     if (!validLabels.includes(data.reliabilityLabel)) {
       throw new ValidationError(
-        `잘못된 신뢰도 라벨: ${data.reliabilityLabel}. confirmed/reported/hypothesis 중 선택하세요.`,
-        { field: "reliabilityLabel", rule: "evidence_reliability_invalid" }
+        "reliabilityLabel", `잘못된 신뢰도 라벨: ${data.reliabilityLabel}. confirmed/reported/hypothesis 중 선택하세요.`,
+        { rule: "evidence_reliability_invalid" }
       );
     }
 
     if (!data.sourceUrl && !data.linkOrAttachment) {
       throw new ValidationError(
-        "근거의 출처 URL(source_url) 또는 첨부(linkOrAttachment) 중 하나는 필수입니다.",
+        "sourceUrl", "근거의 출처 URL(source_url) 또는 첨부(linkOrAttachment) 중 하나는 필수입니다.",
         { rule: "evidence_source_required" }
       );
     }

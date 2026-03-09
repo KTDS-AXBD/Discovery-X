@@ -18,14 +18,21 @@ export class NotFoundError extends ServiceError {
   ) {
     super("NOT_FOUND", `${entity} not found: ${entityId}`);
   }
+  override toJSON() {
+    return { ...super.toJSON(), entity: this.entity, entityId: this.entityId };
+  }
 }
 
 export class ValidationError extends ServiceError {
   constructor(
     public field: string,
     detail: string,
+    public details?: Record<string, unknown>,
   ) {
     super("VALIDATION", `Validation failed on ${field}: ${detail}`);
+  }
+  override toJSON() {
+    return { ...super.toJSON(), field: this.field, ...(this.details && { details: this.details }) };
   }
 }
 
@@ -33,10 +40,16 @@ export class UnauthorizedError extends ServiceError {
   constructor(public action: string) {
     super("UNAUTHORIZED", `Unauthorized: ${action}`);
   }
+  override toJSON() {
+    return { ...super.toJSON(), action: this.action };
+  }
 }
 
 export class ConflictError extends ServiceError {
   constructor(public resource: string) {
     super("CONFLICT", `Conflict on resource: ${resource}`);
+  }
+  override toJSON() {
+    return { ...super.toJSON(), resource: this.resource };
   }
 }

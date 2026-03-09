@@ -8,8 +8,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { createTestDb } from "tests/helpers/db";
 import type { DB } from "~/db";
-import { NotFoundError, ValidationError as ServiceValidationError } from "~/lib/errors";
-import { ValidationError as RulesValidationError } from "~/features/discovery/validation/discovery-rules";
+import { NotFoundError, ValidationError } from "~/lib/errors";
 import { DiscoveryService } from "~/features/discovery/service";
 import {
   discoveries,
@@ -408,7 +407,7 @@ describe("DiscoveryService", () => {
     it("무효한 전환 — DISCOVERY → EXPERIMENT → ValidationError throw", async () => {
       await expect(
         service.transition("disc-inbox-1", "EXPERIMENT", USER_A),
-      ).rejects.toThrow(RulesValidationError);
+      ).rejects.toThrow(ValidationError);
     });
 
     it("무효한 전환 — DROP에서는 어디로도 전환 불가", async () => {
@@ -497,7 +496,7 @@ describe("DiscoveryService", () => {
           newOwnerId: USER_B,
           actorId: USER_A,
         }),
-      ).rejects.toThrow(ServiceValidationError);
+      ).rejects.toThrow(ValidationError);
     });
 
     it("존재하지 않는 Discovery — Error throw", async () => {
