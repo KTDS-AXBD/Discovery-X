@@ -321,7 +321,7 @@ Flow K: Ideas → Discovery 수동 전환
 - `/api/proposals/categories` — 카테고리 API
 - `/api/recall-events` — 재호출 이벤트 API
 
-**라우트 합계**: 페이지 73 + API 85 = **158** (Venture/Knowledge/Briefing 아카이브 반영)
+**라우트 합계**: **163** (Venture/Knowledge/Briefing 아카이브 반영)
 
 ---
 
@@ -357,7 +357,7 @@ root.tsx
 └─ Outlet (하위 라우트)
 ```
 
-### 데이터 모델 (97개 테이블 — Drizzle 72 + 마이그레이션 전용 25)
+### 데이터 모델 (99개 테이블 — Drizzle 72 + 마이그레이션 전용 27)
 
 | 카테고리 | 테이블 수 | 테이블 |
 |---------|---------|--------|
@@ -388,7 +388,7 @@ root.tsx
 
 > Drizzle 스키마 미정의 25개: Venture Sprint 16 (아카이브) + Shadow Mode 2 + Value-up Engine 4 + Worker/Infra 2 + FTS 1 — 마이그레이션 SQL에만 존재
 
-### Agent 시스템 (72개 도구)
+### Agent 시스템 (77개 도구)
 
 | 카테고리 | 도구 수 | 예 |
 |---------|--------|-----|
@@ -561,7 +561,7 @@ build/
 | F28 | AI Agent 응답 품질 고도화 (Evidence 인용 + '모름' 명시 + Memory 요약 개선 + SOUL 커스터마이징 UI) | v3.1 | ✅ | 5 |
 | F29 | 요구사항 수집/관리 (feature_requests 등 5 테이블 + API 4개 + 카드 뷰 UI + AI 자동 검토) | v3.1 | ✅ | 9 |
 | F30 | 앱 내 온보딩 튜토리얼 (3단계 spotlight 모달 + 최초 접속 감지 + Skip/재실행) | v3.1 | ✅ | 6 |
-| F31 | 대시보드 통계 기간 필터 추가 (DX-REQ-001, P3) | v0.7.0 | 📋 | - |
+| F31 | 대시보드 통계 기간 필터 추가 (DX-REQ-001, P3) | v0.6.0 | ✅ | - |
 | F32 | 공통 서비스 레이어 패키지 분리 (DX-REQ-002, P3) | v0.7.0 | 🔧 | - |
 | F33 | Agent 실행 모듈 독립 패키지화 (DX-REQ-003, P3) | v0.7.0 | 📋 | - |
 | F34 | 공통 UI 컴포넌트 라이브러리 분리 (DX-REQ-004, P3) | v0.7.0 | 📋 | - |

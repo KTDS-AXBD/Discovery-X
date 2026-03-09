@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 341 (2026-03-09)
+**SPEC↔DB↔MEMORY 3-way 동기화 점검 + 에러 HTTP 매퍼**:
+- ✅ `/ax-10-req sync` 실행 — SPEC↔DB↔MEMORY 양방향 불일치 6건 감지·수정
+- ✅ F31 (대시보드 기간 필터) 완료 처리: SPEC 📋→✅ + DB PLANNED→DONE
+- ✅ SPEC 내부 수치 보정: 라우트 158→163, 테이블 97→99, Agent 72→77
+- ✅ MEMORY F항목 건수 36→34건 보정
+- ✅ `http-mapper.ts`: 서비스 에러→HTTP 상태코드 매핑 유틸 추가
+- ✅ 5개 테스트 파일: 문자열 매칭→에러 클래스 기반 assertion 전환
+- 📊 테스트: 2,206개 (147 files, 100% PASS) — 변동 없음
+
+---
+
 ### 세션 340 (2026-03-09)
 **ax-batch-analysis 스킬 정규화 + 서비스 에러 모듈 + 대시보드 필터 + AI 중복검사**:
 - ✅ `/ax-13-selfcheck` 실행 — 7/7 PASS (고아 파일 1건 발견)
