@@ -4,6 +4,7 @@ import { discoveries, experiments, eventLogs } from "~/db";
 import { DiscoveryStatus } from "~/db";
 import { DiscoveryValidationRules } from "~/features/discovery/validation/discovery-rules";
 import { ALLOWED_TRANSITIONS, ACTIVE_STATUSES } from "~/lib/constants/status";
+import { NotFoundError, ValidationError } from "~/lib/errors";
 import type {
   Discovery,
   ChangeOwnerInput,
@@ -33,7 +34,7 @@ export class DiscoveryWorkflowService {
   ): Promise<Discovery> {
     const discovery = await this.queryService.getById(id);
     if (!discovery) {
-      throw new Error(`Discovery를 찾을 수 없습니다: ${id}`);
+      throw new NotFoundError("Discovery", id);
     }
 
     DiscoveryValidationRules.validateTransition(
@@ -71,13 +72,12 @@ export class DiscoveryWorkflowService {
   async changeOwner(input: ChangeOwnerInput): Promise<void> {
     const discovery = await this.queryService.getById(input.discoveryId);
     if (!discovery) {
-      throw new Error(
-        `Discovery를 찾을 수 없습니다: ${input.discoveryId}`,
-      );
+      throw new NotFoundError("Discovery", input.discoveryId);
     }
 
     if (!(ACTIVE_STATUSES as readonly string[]).includes(discovery.status)) {
-      throw new Error(
+      throw new ValidationError(
+        "status",
         "활성 상태(DISCOVERY~GATE2)에서만 Owner를 변경할 수 있습니다",
       );
     }
@@ -117,11 +117,11 @@ export class DiscoveryWorkflowService {
   ): Promise<Discovery> {
     const discovery = await this.queryService.getById(id);
     if (!discovery) {
-      throw new Error(`Discovery를 찾을 수 없습니다: ${id}`);
+      throw new NotFoundError("Discovery", id);
     }
 
     if (discovery.status !== DiscoveryStatus.DISCOVERY) {
-      throw new Error("INBOX 상태의 Discovery만 승격할 수 있습니다");
+      throw new ValidationError("status", "INBOX 상태의 Discovery만 승격할 수 있습니다");
     }
 
     DiscoveryValidationRules.validateOwnerRequired(input.ownerId);
@@ -178,7 +178,7 @@ export class DiscoveryWorkflowService {
   ): Promise<void> {
     const discovery = await this.queryService.getById(id);
     if (!discovery) {
-      throw new Error(`Discovery를 찾을 수 없습니다: ${id}`);
+      throw new NotFoundError("Discovery", id);
     }
 
     DiscoveryValidationRules.validateReviewerRequired(discovery.reviewerId);
@@ -218,11 +218,11 @@ export class DiscoveryWorkflowService {
   ): Promise<ApproveDecisionResult> {
     const discovery = await this.queryService.getById(id);
     if (!discovery) {
-      throw new Error(`Discovery를 찾을 수 없습니다: ${id}`);
+      throw new NotFoundError("Discovery", id);
     }
 
     if (discovery.approvalStatus !== "PENDING") {
-      throw new Error("승인 대기 중인 결정이 없습니다");
+      throw new ValidationError("approvalStatus", "승인 대기 중인 결정이 없습니다");
     }
 
     const pendingData = discovery.pendingDecisionData as Record<string, unknown> | null;
@@ -297,11 +297,11 @@ export class DiscoveryWorkflowService {
   ): Promise<ApproveDecisionResult> {
     const discovery = await this.queryService.getById(id);
     if (!discovery) {
-      throw new Error(`Discovery를 찾을 수 없습니다: ${id}`);
+      throw new NotFoundError("Discovery", id);
     }
 
     if (discovery.approvalStatus !== "PENDING") {
-      throw new Error("승인 대기 중인 결정이 없습니다");
+      throw new ValidationError("approvalStatus", "승인 대기 중인 결정이 없습니다");
     }
 
     const pendingDecision = discovery.pendingDecision;
@@ -342,11 +342,11 @@ export class DiscoveryWorkflowService {
   ): Promise<void> {
     const discovery = await this.queryService.getById(id);
     if (!discovery) {
-      throw new Error(`Discovery를 찾을 수 없습니다: ${id}`);
+      throw new NotFoundError("Discovery", id);
     }
 
     if (discovery.status !== DiscoveryStatus.IDEA_CARD) {
-      throw new Error("OPEN 상태의 Discovery만 연장 요청할 수 있습니다");
+      throw new ValidationError("status", "OPEN 상태의 Discovery만 연장 요청할 수 있습니다");
     }
 
     DiscoveryValidationRules.validateReviewerRequired(discovery.reviewerId);
@@ -390,9 +390,7 @@ export class DiscoveryWorkflowService {
   async changeReviewer(input: ChangeReviewerInput): Promise<void> {
     const discovery = await this.queryService.getById(input.discoveryId);
     if (!discovery) {
-      throw new Error(
-        `Discovery를 찾을 수 없습니다: ${input.discoveryId}`,
-      );
+      throw new NotFoundError("Discovery", input.discoveryId);
     }
 
     if (
@@ -400,7 +398,8 @@ export class DiscoveryWorkflowService {
         discovery.status as (typeof ACTIVE_STATUSES)[number],
       )
     ) {
-      throw new Error(
+      throw new ValidationError(
+        "status",
         "활성 상태에서만 Reviewer를 변경할 수 있습니다",
       );
     }
@@ -431,9 +430,7 @@ export class DiscoveryWorkflowService {
   async changeGatekeeper(input: ChangeGatekeeperInput): Promise<void> {
     const discovery = await this.queryService.getById(input.discoveryId);
     if (!discovery) {
-      throw new Error(
-        `Discovery를 찾을 수 없습니다: ${input.discoveryId}`,
-      );
+      throw new NotFoundError("Discovery", input.discoveryId);
     }
 
     await this.db

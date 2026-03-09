@@ -7,6 +7,7 @@ import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { DiscoveryService } from "~/features/discovery/service";
 import { AppShell } from "~/components/layout/AppShell";
 import { StatusBadge } from "~/components/ui/StatusBadge";
+import { STATUS_CONFIG } from "~/lib/constants/status";
 import { Badge } from "~/components/ui/Badge";
 import { Button } from "~/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
@@ -186,7 +187,7 @@ export default function DiscoveryDetail() {
           <div className="flex-1">
             <div className="flex items-center space-x-3">
               <h1 className="text-2xl font-bold text-fg">{discovery.title}</h1>
-              <StatusBadge status={discovery.status} size="md" />
+              <StatusBadge status={discovery.status} config={STATUS_CONFIG} size="md" />
               {discovery.createdByAgent === 1 && (
                 <Badge variant="outline" className="border-violet-300 text-violet-600 dark:border-violet-700 dark:text-violet-400">AI 생성</Badge>
               )}
@@ -643,7 +644,7 @@ export default function DiscoveryDetail() {
                       >
                         {linked.title}
                       </Link>
-                      <StatusBadge status={linked.status} size="sm" />
+                      <StatusBadge status={linked.status} config={STATUS_CONFIG} size="sm" />
                     </div>
                     <Badge variant="secondary">{relationLabel}</Badge>
                   </div>

@@ -148,7 +148,7 @@ describe("transition", () => {
   });
 
   it("존재하지 않는 요구사항은 에러", async () => {
-    await expect(workflow.transition("non-existent", "AI_REVIEWING")).rejects.toThrow("찾을 수 없습니다");
+    await expect(workflow.transition("non-existent", "AI_REVIEWING")).rejects.toThrow("not found");
   });
 
   it("허용되지 않은 전환은 에러", async () => {
@@ -334,7 +334,7 @@ describe("submitHumanVerdict", () => {
         verdict: "APPROVED",
         reviewerId: USER_B,
       }),
-    ).rejects.toThrow("AI 리뷰가 없습니다");
+    ).rejects.toThrow("Review not found");
   });
 
   it("HUMAN_VERDICT 이벤트 로그 기록", async () => {

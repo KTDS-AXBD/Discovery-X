@@ -11,6 +11,7 @@ import type {
   UpdateProposalInput,
   ProposalSection,
 } from "./types";
+import { NotFoundError, ValidationError, UnauthorizedError } from "~/lib/errors";
 
 export class ProposalMutationService {
   constructor(private db: DB) {}
@@ -57,10 +58,10 @@ export class ProposalMutationService {
       .get();
 
     if (!proposal || proposal.tenantId !== tenantId) {
-      throw new Error("Not found");
+      throw new NotFoundError("Proposal", id);
     }
     if (proposal.ownerId !== userId) {
-      throw new Error("Forbidden");
+      throw new UnauthorizedError("Forbidden");
     }
 
     await this.db.delete(proposals).where(eq(proposals.id, id));
@@ -87,18 +88,19 @@ export class ProposalMutationService {
       .get();
 
     if (!proposal || proposal.tenantId !== tenantId) {
-      throw new Error("Not found");
+      throw new NotFoundError("Proposal", id);
     }
 
     // 상태 전환 검증
     if (input.status !== undefined && input.status !== proposal.status) {
       if (!validateProposalTransition(proposal.status, input.status)) {
-        throw new Error(
+        throw new ValidationError(
+          "status",
           `상태 전환 불가: ${proposal.status} → ${input.status}`,
         );
       }
       if (input.status === "CLOSED" && !input.closeType) {
-        throw new Error("종료 시 close_type(HOLD/DROP)이 필요합니다");
+        throw new ValidationError("closeType", "종료 시 close_type(HOLD/DROP)이 필요합니다");
       }
     }
 

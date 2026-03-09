@@ -174,7 +174,7 @@ describe("PATCH /api/topics/:id — 수정", () => {
 
   it("존재하지 않는 ID → 에러 (404 시뮬레이션)", async () => {
     await expect(svc.update("nonexistent", { name: "Fail" })).rejects.toThrow(
-      "Topic을 찾을 수 없습니다",
+      "Topic not found",
     );
   });
 });
@@ -194,7 +194,7 @@ describe("DELETE /api/topics/:id — 아카이브", () => {
 
   it("존재하지 않는 ID → 에러 (404 시뮬레이션)", async () => {
     await expect(svc.archive("nonexistent")).rejects.toThrow(
-      "Topic을 찾을 수 없습니다",
+      "Topic not found",
     );
   });
 });

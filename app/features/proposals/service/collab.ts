@@ -16,6 +16,7 @@ import type {
   CreateMilestoneInput,
   UpdateMilestoneInput,
 } from "./types";
+import { NotFoundError, UnauthorizedError, ConflictError } from "~/lib/errors";
 
 export class ProposalCollabService {
   constructor(private db: DB) {}
@@ -74,10 +75,10 @@ export class ProposalCollabService {
       )
       .get();
     if (!comment) {
-      throw new Error("Comment not found");
+      throw new NotFoundError("Comment", commentId);
     }
     if (comment.authorId !== authorId) {
-      throw new Error("Forbidden");
+      throw new UnauthorizedError("Forbidden");
     }
     await this.db
       .update(proposalComments)
@@ -102,10 +103,10 @@ export class ProposalCollabService {
       )
       .get();
     if (!comment) {
-      throw new Error("Comment not found");
+      throw new NotFoundError("Comment", commentId);
     }
     if (comment.authorId !== authorId) {
-      throw new Error("Forbidden");
+      throw new UnauthorizedError("Forbidden");
     }
     await this.db
       .delete(proposalComments)
@@ -194,7 +195,7 @@ export class ProposalCollabService {
       )
       .get();
     if (!actionItem) {
-      throw new Error("Action not found");
+      throw new NotFoundError("Action", actionId);
     }
     await this.db
       .update(proposalActions)
@@ -215,7 +216,7 @@ export class ProposalCollabService {
       )
       .get();
     if (!actionItem) {
-      throw new Error("Action not found");
+      throw new NotFoundError("Action", actionId);
     }
     await this.db
       .delete(proposalActions)
@@ -239,7 +240,7 @@ export class ProposalCollabService {
       )
       .get();
     if (existing) {
-      throw new Error("이미 등록된 멤버입니다");
+      throw new ConflictError("이미 등록된 멤버입니다");
     }
     await this.db
       .insert(proposalMembers)
@@ -306,7 +307,7 @@ export class ProposalCollabService {
       )
       .get();
     if (!milestone) {
-      throw new Error("Milestone not found");
+      throw new NotFoundError("Milestone", milestoneId);
     }
 
     const updates: Record<string, unknown> = {};
@@ -339,7 +340,7 @@ export class ProposalCollabService {
       )
       .get();
     if (!milestone) {
-      throw new Error("Milestone not found");
+      throw new NotFoundError("Milestone", milestoneId);
     }
     await this.db
       .delete(proposalMilestones)

@@ -186,7 +186,7 @@ describe("transition", () => {
   it("존재하지 않는 요구사항은 에러", async () => {
     await expect(
       workflow.transition("non-existent-req", "AI_REVIEWING"),
-    ).rejects.toThrow("찾을 수 없습니다");
+    ).rejects.toThrow("not found");
   });
 
   it("허용되지 않은 전환은 에러", async () => {
@@ -497,7 +497,7 @@ describe("submitHumanVerdict", () => {
         verdict: "APPROVED",
         reviewerId: USER_B,
       }),
-    ).rejects.toThrow("AI 리뷰가 없습니다");
+    ).rejects.toThrow("Review not found");
   });
 
   it("존재하지 않는 요구사항은 에러", async () => {
@@ -507,7 +507,7 @@ describe("submitHumanVerdict", () => {
         verdict: "APPROVED",
         reviewerId: USER_B,
       }),
-    ).rejects.toThrow("찾을 수 없습니다");
+    ).rejects.toThrow("not found");
   });
 
   it("HUMAN_VERDICT 이벤트에 verdict + comment 기록", async () => {

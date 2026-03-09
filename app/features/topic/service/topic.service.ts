@@ -6,6 +6,7 @@ import { users } from "~/db";
 import { GraphStore } from "~/lib/graph/store";
 import { GraphQueryEngine } from "~/lib/graph/query";
 import type { JsonLdNode, JsonLdGraph, PendingSuggestion } from "~/lib/graph/types";
+import { NotFoundError } from "~/lib/errors";
 
 // ============================================================================
 // Types
@@ -151,7 +152,7 @@ export class TopicService {
       where: eq(topics.id, id),
     });
     if (!existing) {
-      throw new Error(`Topic을 찾을 수 없습니다: ${id}`);
+      throw new NotFoundError("Topic", id);
     }
 
     await this.db
@@ -177,7 +178,7 @@ export class TopicService {
       where: eq(topics.id, id),
     });
     if (!existing) {
-      throw new Error(`Topic을 찾을 수 없습니다: ${id}`);
+      throw new NotFoundError("Topic", id);
     }
 
     await this.db
@@ -555,7 +556,7 @@ export class TopicService {
     const store = new GraphStore(this.db);
     const graph = await store.getByScopeId("topic", topicId);
     if (!graph) {
-      throw new Error("해당 Topic의 Graph가 없습니다");
+      throw new NotFoundError("Graph", topicId);
     }
     const audit = { actorId, actorType: "user" as const };
     await store.approveSuggestion(graph.id, suggestionId, audit);
@@ -573,7 +574,7 @@ export class TopicService {
     const store = new GraphStore(this.db);
     const graph = await store.getByScopeId("topic", topicId);
     if (!graph) {
-      throw new Error("해당 Topic의 Graph가 없습니다");
+      throw new NotFoundError("Graph", topicId);
     }
     const audit = { actorId, actorType: "user" as const };
     await store.rejectSuggestion(graph.id, suggestionId, reason, audit);
@@ -635,7 +636,7 @@ export class TopicService {
     const store = new GraphStore(this.db);
     const graph = await store.getByScopeId("topic", topicId);
     if (!graph) {
-      throw new Error("Topic Graph를 찾을 수 없습니다");
+      throw new NotFoundError("Graph", topicId);
     }
 
     const nodes = graph.jsonld["@graph"];
@@ -644,7 +645,7 @@ export class TopicService {
     );
 
     if (targetIdx === -1) {
-      throw new Error(`${label}을 찾을 수 없습니다`);
+      throw new NotFoundError(label, nodeId);
     }
 
     return { store, graph, nodes, targetIdx };

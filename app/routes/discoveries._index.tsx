@@ -266,7 +266,7 @@ export default function DiscoveriesIndex() {
                       {result.title}
                     </h3>
                     <span className="ml-2 shrink-0">
-                      <StatusBadge status={result.status} />
+                      <StatusBadge status={result.status} config={STATUS_CONFIG} />
                     </span>
                   </div>
                   {result.score != null && (
@@ -314,7 +314,7 @@ export default function DiscoveriesIndex() {
                         </Link>
                       </TableCell>
                       <TableCell>
-                        <StatusBadge status={result.status} />
+                        <StatusBadge status={result.status} config={STATUS_CONFIG} />
                       </TableCell>
                       <TableCell>
                         {result.score != null ? (
@@ -369,7 +369,7 @@ export default function DiscoveriesIndex() {
                       {discovery.title}
                     </h3>
                     <span className="ml-2 shrink-0">
-                      <StatusBadge status={discovery.status} />
+                      <StatusBadge status={discovery.status} config={STATUS_CONFIG} />
                     </span>
                   </div>
                   <div className="mt-2 flex items-center gap-3 text-xs text-fg-tertiary">
@@ -456,7 +456,7 @@ export default function DiscoveriesIndex() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <StatusBadge status={discovery.status} />
+                        <StatusBadge status={discovery.status} config={STATUS_CONFIG} />
                       </TableCell>
                       <TableCell>{discovery.ownerName || "—"}</TableCell>
                       <TableCell>{formatDate(discovery.createdAt)}</TableCell>

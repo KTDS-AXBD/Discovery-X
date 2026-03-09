@@ -418,7 +418,7 @@ describe("DiscoveryService", () => {
     it("존재하지 않는 Discovery — Error throw", async () => {
       await expect(
         service.transition("non-existent", "IDEA_CARD", USER_A),
-      ).rejects.toThrow("찾을 수 없습니다");
+      ).rejects.toThrow("not found");
     });
   });
 
@@ -505,7 +505,7 @@ describe("DiscoveryService", () => {
           newOwnerId: USER_B,
           actorId: USER_A,
         }),
-      ).rejects.toThrow("찾을 수 없습니다");
+      ).rejects.toThrow("not found");
     });
   });
 

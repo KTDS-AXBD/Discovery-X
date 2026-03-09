@@ -250,7 +250,7 @@ describe("TopicService", () => {
     it("존재하지 않는 Topic — Error throw", async () => {
       await expect(
         service.update("non-existent", { name: "수정" }),
-      ).rejects.toThrow("찾을 수 없습니다");
+      ).rejects.toThrow("not found");
     });
   });
 
@@ -274,7 +274,7 @@ describe("TopicService", () => {
 
     it("존재하지 않는 Topic — Error throw", async () => {
       await expect(service.archive("non-existent")).rejects.toThrow(
-        "찾을 수 없습니다",
+        "not found",
       );
     });
   });

@@ -134,7 +134,7 @@ describe("TopicService", () => {
     it("존재하지 않는 Topic 업데이트 시 에러를 던진다", async () => {
       await expect(
         svc.update("nonexistent", { name: "Fail" }),
-      ).rejects.toThrow("Topic을 찾을 수 없습니다");
+      ).rejects.toThrow("Topic not found");
     });
   });
 
@@ -156,7 +156,7 @@ describe("TopicService", () => {
 
     it("존재하지 않는 Topic 아카이브 시 에러를 던진다", async () => {
       await expect(svc.archive("nonexistent")).rejects.toThrow(
-        "Topic을 찾을 수 없습니다",
+        "Topic not found",
       );
     });
   });

@@ -8,6 +8,7 @@ import type { DB } from "~/db";
 import { alerts } from "~/db";
 import { featureRequests, requestReviews, requestEvents, workPlans, workPlanRuns } from "../db/schema";
 import type { WorkPlanStepData } from "../db/schema";
+import { NotFoundError, ValidationError } from "~/lib/errors";
 
 export class RequirementsEntityService {
   constructor(private db: DB) {}
@@ -230,10 +231,10 @@ export class RequirementsEntityService {
   /** 작업계획 단계 상태 변경 */
   async updateStepStatus(planId: string, stepIndex: number, status: WorkPlanStepData["status"]) {
     const [plan] = await this.db.select().from(workPlans).where(eq(workPlans.id, planId));
-    if (!plan || !plan.steps) throw new Error("작업계획 또는 단계를 찾을 수 없어요.");
+    if (!plan || !plan.steps) throw new NotFoundError("WorkPlan", planId);
 
     const steps = plan.steps as WorkPlanStepData[];
-    if (stepIndex < 0 || stepIndex >= steps.length) throw new Error("유효하지 않은 단계 인덱스예요.");
+    if (stepIndex < 0 || stepIndex >= steps.length) throw new ValidationError("stepIndex", "유효하지 않은 단계 인덱스예요.");
 
     const now = Math.floor(Date.now() / 1000);
     steps[stepIndex].status = status;

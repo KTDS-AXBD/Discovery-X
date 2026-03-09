@@ -14,6 +14,7 @@ import {
 } from "~/features/proposals/db/schema";
 import { users } from "~/db";
 import { SECTION_LABELS } from "~/features/proposals/constants";
+import { NotFoundError } from "~/lib/errors";
 
 // ============================================================================
 // Types
@@ -574,7 +575,7 @@ export class ProposalSlideService {
       .get();
 
     if (!proposal || proposal.tenantId !== tenantId) {
-      throw new Error("사업제안을 찾을 수 없습니다.");
+      throw new NotFoundError("Proposal", proposalId);
     }
 
     const [sections, milestones, ownerRow] = await Promise.all([

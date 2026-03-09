@@ -3,6 +3,7 @@ import { Card, CardContent } from "~/components/ui/Card";
 import { Badge } from "~/components/ui/Badge";
 import { Button } from "~/components/ui/Button";
 import { StatusBadge } from "~/components/ui/StatusBadge";
+import { STATUS_CONFIG } from "~/lib/constants/status";
 import { formatDate } from "~/lib/format-date";
 
 interface DiscoveryCardProps {
@@ -27,7 +28,7 @@ export function DiscoveryCard({
       <CardContent className="flex items-center justify-between p-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <StatusBadge status={status} />
+            <StatusBadge status={status} config={STATUS_CONFIG} />
             {createdByAgent && (
               <Badge variant="purple" className="text-[10px]">
                 Agent

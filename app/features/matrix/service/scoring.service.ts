@@ -21,6 +21,7 @@ import type {
   ScoreChange,
   TopCell,
 } from "~/features/matrix/types";
+import { ValidationError } from "~/lib/errors";
 
 // ============================================================================
 // 기본 설정값
@@ -385,7 +386,8 @@ export class ScoringService {
     // 최소 투표자 수 체크
     const weights = await this.getWeightsForCell(cellId);
     if (existing[0].participantCount < weights.minVotersForConfirm) {
-      throw new Error(
+      throw new ValidationError(
+        "participantCount",
         `최소 ${weights.minVotersForConfirm}명의 참여자가 필요합니다 (현재: ${existing[0].participantCount}명)`,
       );
     }

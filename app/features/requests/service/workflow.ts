@@ -9,6 +9,7 @@ import { ALLOWED_TRANSITIONS, RequestStatus, RequestEventType, RequestClassifica
 import type { HumanVerdictInput } from "../types";
 import { RequirementsEntityService } from "./entity";
 import { RequirementsQueryService } from "./query";
+import { NotFoundError, ValidationError } from "~/lib/errors";
 
 export class RequirementsWorkflowService {
   private entity: RequirementsEntityService;
@@ -34,12 +35,12 @@ export class RequirementsWorkflowService {
   /** 상태 전환 실행 */
   async transition(requestId: string, toStatus: string, actorId?: string) {
     const result = await this.query.getById(requestId);
-    if (!result) throw new Error("요구사항을 찾을 수 없습니다.");
+    if (!result) throw new NotFoundError("Request", requestId);
 
     const fromStatus = result.request.status;
     const validation = this.validateTransition(fromStatus, toStatus);
     if (!validation.valid) {
-      throw new Error(validation.error);
+      throw new ValidationError("status", validation.error!);
     }
 
     await this.entity.updateRequest(requestId, { status: toStatus });
@@ -100,8 +101,8 @@ export class RequirementsWorkflowService {
   /** HITL 판정: HUMAN_REVIEW → ACCEPTED / REJECTED */
   async submitHumanVerdict(input: HumanVerdictInput) {
     const result = await this.query.getById(input.requestId);
-    if (!result) throw new Error("요구사항을 찾을 수 없습니다.");
-    if (!result.review) throw new Error("AI 리뷰가 없습니다.");
+    if (!result) throw new NotFoundError("Request", input.requestId);
+    if (!result.review) throw new NotFoundError("Review", "unknown");
 
     // 리뷰에 판정 저장
     await this.entity.saveHumanVerdict(result.review.id, {

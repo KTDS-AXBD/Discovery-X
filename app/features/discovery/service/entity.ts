@@ -14,6 +14,7 @@ import {
 } from "~/db";
 import { DiscoveryStatus } from "~/db";
 import { DiscoveryValidationRules } from "~/features/discovery/validation/discovery-rules";
+import { NotFoundError, ValidationError, UnauthorizedError } from "~/lib/errors";
 import type {
   Discovery,
   CreateDiscoveryInput,
@@ -75,14 +76,14 @@ export class DiscoveryEntityService {
   ): Promise<void> {
     const discovery = await this.queryService.getById(id);
     if (!discovery) {
-      throw new Error(`Discovery를 찾을 수 없습니다: ${id}`);
+      throw new NotFoundError("Discovery", id);
     }
 
     if (
       discovery.status !== DiscoveryStatus.DISCOVERY &&
       discovery.status !== DiscoveryStatus.IDEA_CARD
     ) {
-      throw new Error("INBOX/OPEN 상태에서만 편집할 수 있습니다");
+      throw new ValidationError("status", "INBOX/OPEN 상태에서만 편집할 수 있습니다");
     }
 
     await this.db
@@ -117,11 +118,12 @@ export class DiscoveryEntityService {
   ): Promise<string> {
     const discovery = await this.queryService.getById(discoveryId);
     if (!discovery) {
-      throw new Error(`Discovery를 찾을 수 없습니다: ${discoveryId}`);
+      throw new NotFoundError("Discovery", discoveryId);
     }
 
     if (discovery.status !== DiscoveryStatus.IDEA_CARD) {
-      throw new Error(
+      throw new ValidationError(
+        "status",
         "OPEN 상태의 Discovery만 실험을 추가할 수 있습니다",
       );
     }
@@ -132,7 +134,7 @@ export class DiscoveryEntityService {
       .from(experiments)
       .where(eq(experiments.discoveryId, discoveryId));
     if ((expCount[0]?.count || 0) >= 3) {
-      throw new Error("최대 3개 실험만 가능합니다");
+      throw new ValidationError("experiments", "최대 3개 실험만 가능합니다");
     }
 
     const experimentId = crypto.randomUUID();
@@ -171,11 +173,11 @@ export class DiscoveryEntityService {
   ): Promise<string> {
     const discovery = await this.queryService.getById(discoveryId);
     if (!discovery) {
-      throw new Error(`Discovery를 찾을 수 없습니다: ${discoveryId}`);
+      throw new NotFoundError("Discovery", discoveryId);
     }
 
     if (discovery.status === DiscoveryStatus.DISCOVERY) {
-      throw new Error("INBOX 상태에서는 Evidence를 추가할 수 없습니다");
+      throw new ValidationError("status", "INBOX 상태에서는 Evidence를 추가할 수 없습니다");
     }
 
     const evidenceId = crypto.randomUUID();
@@ -222,11 +224,11 @@ export class DiscoveryEntityService {
     });
 
     if (!experiment) {
-      throw new Error("실험을 찾을 수 없습니다");
+      throw new NotFoundError("Experiment", input.experimentId);
     }
 
     if (experiment.completedAt) {
-      throw new Error("이미 완료된 실험입니다");
+      throw new ValidationError("status", "이미 완료된 실험입니다");
     }
 
     await this.db
@@ -280,7 +282,7 @@ export class DiscoveryEntityService {
       );
 
     if (existing.length > 0) {
-      throw new Error("이미 실행 중인 방법론입니다.");
+      throw new ValidationError("methodRun", "이미 실행 중인 방법론입니다.");
     }
 
     const runId = crypto.randomUUID();
@@ -479,7 +481,7 @@ export class DiscoveryEntityService {
       where: eq(gateApprovals.id, approvalId),
     });
     if (!approval || approval.reviewerId !== actorId) {
-      throw new Error("본인에게 할당된 승인만 처리할 수 있습니다.");
+      throw new UnauthorizedError("본인에게 할당된 승인만 처리할 수 있습니다.");
     }
 
     await this.db

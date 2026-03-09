@@ -157,7 +157,7 @@ describe("ProposalService", () => {
     it("다른 tenant → 'Not found' 에러", async () => {
       await expect(
         service.delete(PROPOSAL_ID, OTHER_TENANT, USER_ID),
-      ).rejects.toThrow("Not found");
+      ).rejects.toThrow("not found");
     });
 
     it("다른 owner → 'Forbidden' 에러", async () => {
@@ -169,7 +169,7 @@ describe("ProposalService", () => {
     it("존재하지 않는 proposal → 'Not found' 에러", async () => {
       await expect(
         service.delete("no-such-id", TENANT_ID, USER_ID),
-      ).rejects.toThrow("Not found");
+      ).rejects.toThrow("not found");
     });
   });
 
@@ -240,7 +240,7 @@ describe("ProposalService", () => {
     it("다른 tenant → 'Not found' 에러", async () => {
       await expect(
         service.update(PROPOSAL_ID, OTHER_TENANT, { title: "해킹" }),
-      ).rejects.toThrow("Not found");
+      ).rejects.toThrow("not found");
     });
 
     it("섹션 업데이트 (sections 배열)", async () => {

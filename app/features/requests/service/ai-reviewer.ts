@@ -14,6 +14,7 @@ import { RequirementsEntityService } from "./entity";
 import { RequirementsWorkflowService } from "./workflow";
 import { callLLM } from "~/lib/ai";
 import type { ClaudeRequest } from "~/lib/ai";
+import { NotFoundError, ValidationError } from "~/lib/errors";
 
 /** 라우트 매니페스트 캐시 */
 let routeManifestCache: string[] | null = null;
@@ -126,7 +127,7 @@ export class RequirementsAiReviewerService {
       .from(featureRequests)
       .where(eq(featureRequests.id, requestId));
 
-    if (!request) throw new Error("요구사항을 찾을 수 없습니다.");
+    if (!request) throw new NotFoundError("Request", requestId);
 
     // 2. OPEN → AI_REVIEWING
     await this.workflow.startAiReview(requestId, actorId);
@@ -172,7 +173,7 @@ export class RequirementsAiReviewerService {
       const jsonMatch = text.match(/```json\s*([\s\S]*?)```/) || text.match(/(\{[\s\S]*\})/);
       analysis = JSON.parse(jsonMatch?.[1] ?? text);
     } catch {
-      throw new Error(`AI 응답 파싱 실패: ${text.slice(0, 200)}`);
+      throw new ValidationError("ai_response", `AI 응답 파싱 실패: ${text.slice(0, 200)}`);
     }
 
     // 분류 검증
@@ -224,7 +225,7 @@ export class RequirementsAiReviewerService {
       .from(featureRequests)
       .where(eq(featureRequests.id, requestId));
 
-    if (!request) throw new Error("요구사항을 찾을 수 없습니다.");
+    if (!request) throw new NotFoundError("Request", requestId);
 
     const routeManifest = buildRouteManifest();
     const specContext = loadSpecContext();
@@ -254,7 +255,7 @@ export class RequirementsAiReviewerService {
     try {
       analysis = JSON.parse(jsonMatch?.[1] ?? text);
     } catch {
-      throw new Error(`AI 응답 파싱 실패: ${text.slice(0, 200)}`);
+      throw new ValidationError("ai_response", `AI 응답 파싱 실패: ${text.slice(0, 200)}`);
     }
 
     return {

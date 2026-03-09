@@ -12,6 +12,7 @@ import type {
   ProposalWithOwner,
   ProposalDetail,
 } from "./types";
+import { NotFoundError } from "~/lib/errors";
 
 export class ProposalQueryService {
   constructor(private db: DB) {}
@@ -24,7 +25,7 @@ export class ProposalQueryService {
       .where(eq(proposals.id, proposalId))
       .get();
     if (!proposal || proposal.tenantId !== tenantId) {
-      throw new Error("Not found");
+      throw new NotFoundError("Proposal", proposalId);
     }
   }
 

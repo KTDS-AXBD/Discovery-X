@@ -6,6 +6,7 @@ import {
   FolderItemType,
 } from "~/features/archive/db/schema";
 import type { FolderItemTypeValue } from "~/features/archive/db/schema";
+import { NotFoundError, ValidationError } from "~/lib/errors";
 
 // ============================================================================
 // Types
@@ -180,6 +181,20 @@ export class FolderService {
 
   /** 아이템 추가 */
   async addItem(input: AddItemInput): Promise<FolderItem> {
+    if (!this.isValidItemType(input.itemType)) {
+      throw new ValidationError("itemType", `invalid item type: ${input.itemType}`);
+    }
+
+    const folder = await this.db
+      .select({ id: archiveFolders.id })
+      .from(archiveFolders)
+      .where(eq(archiveFolders.id, input.folderId))
+      .get();
+
+    if (!folder) {
+      throw new NotFoundError("Folder", input.folderId);
+    }
+
     const [item] = await this.db
       .insert(archiveFolderItems)
       .values({

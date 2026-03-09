@@ -13,6 +13,7 @@ import {
 } from "~/db";
 import { callLLM } from "~/lib/ai";
 import type { FallbackContext } from "~/lib/ai";
+import { NotFoundError } from "~/lib/errors";
 
 // ============================================================================
 // Types
@@ -172,7 +173,7 @@ export class MvpBuilderService {
       .where(eq(proposals.id, options.proposalId));
 
     if (!proposal) {
-      throw new Error(`Proposal not found: ${options.proposalId}`);
+      throw new NotFoundError("Proposal", options.proposalId);
     }
 
     // 같은 tenant의 최근 ideas analysisData (참고 자료)

@@ -9,6 +9,7 @@ import { PageHeader } from "~/components/layout/PageHeader";
 import { SearchInput } from "~/components/ui/SearchInput";
 import { Badge } from "~/components/ui/Badge";
 import { StatusBadge } from "~/components/ui/StatusBadge";
+import { STATUS_CONFIG } from "~/lib/constants/status";
 import { cn } from "~/lib/utils/cn";
 import { formatDate } from "~/lib/format-date";
 
@@ -297,7 +298,7 @@ function ResultCard({ result }: { result: SearchResult }) {
           )}
         </div>
         <span className="shrink-0">
-          <StatusBadge status={result.status} />
+          <StatusBadge status={result.status} config={STATUS_CONFIG} />
         </span>
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-fg-tertiary">
@@ -338,7 +339,7 @@ function ResultRow({ result }: { result: SearchResult }) {
         )}
       </div>
 
-      <StatusBadge status={result.status} />
+      <StatusBadge status={result.status} config={STATUS_CONFIG} />
 
       {result.score != null && (
         <span className="shrink-0 text-xs text-fg-brand">

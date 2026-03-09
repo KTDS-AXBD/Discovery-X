@@ -11,6 +11,7 @@ import { PageHeader } from "~/components/layout/PageHeader";
 import { CreateDiscoverySchema } from "~/features/discovery/validation/discovery-rules";
 import { getFormErrorMessage } from "~/lib/utils/form-error";
 import { StatusBadge } from "~/components/ui/StatusBadge";
+import { STATUS_CONFIG } from "~/lib/constants/status";
 import { Card, CardContent } from "~/components/ui/Card";
 import { Input } from "~/components/ui/Input";
 import { Textarea } from "~/components/ui/Textarea";
@@ -145,7 +146,7 @@ function SimilarSeedsPanel({ seeds, source }: { seeds: SimilarSeed[]; source?: "
                     {Math.round(seed.score * 100)}%
                   </span>
                 )}
-                <StatusBadge status={seed.status} />
+                <StatusBadge status={seed.status} config={STATUS_CONFIG} />
               </div>
             </div>
             <p className="mt-1 text-xs text-fg-secondary line-clamp-2">{seed.seedSummary}</p>
