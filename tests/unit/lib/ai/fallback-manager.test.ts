@@ -106,14 +106,18 @@ describe("FallbackManager", () => {
       expect(openaiProvider.call).toHaveBeenCalledOnce();
     });
 
-    it("re-throws non-credit errors (does NOT fall back)", async () => {
+    it("falls back on non-credit errors too (500, auth, etc.)", async () => {
       const serverError = new Error("Claude API error 500: internal server error");
       vi.mocked(anthropicProvider.call).mockRejectedValue(serverError);
       vi.mocked(anthropicProvider.isCreditExhausted).mockReturnValue(false);
+      vi.mocked(openaiProvider.call).mockResolvedValue(mockResponse);
 
       const manager = new FallbackManager(ctx);
-      await expect(manager.call("sk-ant-test", baseRequest)).rejects.toThrow("500");
-      expect(openaiProvider.call).not.toHaveBeenCalled();
+      const result = await manager.call("sk-ant-test", baseRequest);
+
+      expect(result).toEqual(mockResponse);
+      expect(anthropicProvider.call).toHaveBeenCalledOnce();
+      expect(openaiProvider.call).toHaveBeenCalledOnce();
     });
 
     it("throws when all providers exhausted", async () => {
@@ -128,7 +132,7 @@ describe("FallbackManager", () => {
       vi.mocked(workersAIProvider.isCreditExhausted).mockReturnValue(true);
 
       const manager = new FallbackManager(ctx);
-      await expect(manager.call("sk-ant-test", baseRequest)).rejects.toThrow("모든 AI 프로바이더");
+      await expect(manager.call("sk-ant-test", baseRequest)).rejects.toThrow("모든 AI 프로바이더가 실패");
     });
 
     it("skips workers-ai for tool-use requests", async () => {
@@ -146,7 +150,7 @@ describe("FallbackManager", () => {
       };
 
       const manager = new FallbackManager(ctx);
-      await expect(manager.call("sk-ant-test", toolRequest)).rejects.toThrow("모든 AI 프로바이더");
+      await expect(manager.call("sk-ant-test", toolRequest)).rejects.toThrow("모든 AI 프로바이더가 실패");
       // Workers AI should not have been called because it doesn't support tools
       expect(workersAIProvider.call).not.toHaveBeenCalled();
     });

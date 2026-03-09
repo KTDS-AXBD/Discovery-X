@@ -73,4 +73,8 @@ FF_COLLAB_WORKER = "true"      # collab-worker 프로덕션 활성화
 FF_PROFILE_LEARNER = "true"
 FF_SIMPLIFIED_NAV = "true"       # 온보딩 모드: GNB를 대시보드+아이디어만 노출
 FF_AI_FALLBACK = "true"          # AI 프로바이더 자동 전환 (Anthropic→OpenAI→Google→Workers AI)
+
+# Workers AI binding (fallback 마지막 단계)
+[ai]
+binding = "AI"
 FF_REQUIREMENTS_AGENT = "true"   # 요구사항 AI 검토 Agent + 5칸반 칸반

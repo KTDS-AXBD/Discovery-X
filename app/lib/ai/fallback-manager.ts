@@ -3,16 +3,15 @@
  *
  * 호출 흐름:
  *   getActiveProvider(request) → provider.call(request)
- *     └─ 실패 시: isCreditExhausted?
- *          ├─ Yes → markFailed → 다음 프로바이더로 재시도
- *          └─ No  → 에러 re-throw
+ *     └─ 실패 시 → markFailed → 다음 프로바이더로 재시도
+ *     └─ 모든 프로바이더 실패 → 마지막 에러 throw
  */
 
 import type { ClaudeRequest, ClaudeResponse, FallbackContext, ProviderId, LLMProvider } from "./types";
 import { anthropicProvider } from "./providers/anthropic";
 import { openaiProvider } from "./providers/openai";
 import { googleProvider } from "./providers/google";
-import { workersAIProvider } from "./providers/workers-ai";
+import { workersAIProvider, setAIBinding } from "./providers/workers-ai";
 
 /** 프로바이더 체인 순서 */
 const PROVIDER_CHAIN: ProviderId[] = ["anthropic", "openai", "google", "workers-ai"];
@@ -45,13 +44,21 @@ export class FallbackManager {
 
   constructor(ctx: FallbackContext) {
     this.ctx = ctx;
+    // AI 바인딩이 env에 있으면 Workers AI 프로바이더에 주입
+    const aiBinding = ctx.env?.["AI"];
+    if (aiBinding && typeof aiBinding === "object" && "run" in aiBinding) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setAIBinding(aiBinding as any);
+    }
   }
 
   /**
    * 비스트리밍 호출 — fallback 체인 적용.
+   * 모든 에러에 대해 다음 프로바이더로 전환 (크레딧 소진뿐 아니라 인증/네트워크 에러 포함).
    */
   async call(apiKey: string, request: ClaudeRequest): Promise<ClaudeResponse> {
     const needsTools = !!request.tools && request.tools.length > 0;
+    let lastError: Error | null = null;
 
     for (const providerId of PROVIDER_CHAIN) {
       if (this.isProviderFailed(providerId)) continue;
@@ -77,20 +84,16 @@ export class FallbackManager {
       } catch (error) {
         if (!(error instanceof Error)) throw error;
 
-        if (provider.isCreditExhausted(error)) {
-          this.markFailed(providerId, error.message);
-          continue; // 다음 프로바이더로
-        }
-
-        // 크레딧 소진이 아닌 에러 → re-throw
-        throw error;
+        lastError = error;
+        this.markFailed(providerId, error.message);
+        continue; // 모든 에러 시 다음 프로바이더로
       }
     }
 
-    // 모든 프로바이더 소진
+    // 모든 프로바이더 실패
     const failedList = this.failedProviders.map((f) => `${f.id}: ${f.reason}`).join("; ");
     throw new Error(
-      `모든 AI 프로바이더의 크레딧이 소진되었습니다. [${failedList}]`
+      `모든 AI 프로바이더가 실패했습니다. [${failedList}]`
     );
   }
 
@@ -117,12 +120,8 @@ export class FallbackManager {
       } catch (error) {
         if (!(error instanceof Error)) throw error;
 
-        if (provider.isCreditExhausted(error)) {
-          this.markFailed(providerId, error.message);
-          continue;
-        }
-
-        throw error;
+        this.markFailed(providerId, error.message);
+        continue; // 모든 에러 시 다음 프로바이더로
       }
     }
 

@@ -126,6 +126,7 @@ export default function IdeaDetail() {
   const [loadingCategory, setLoadingCategory] = useState<string | null>(null);
   const [analysisRunning, setAnalysisRunning] = useState(false);
   const [categoryStates, setCategoryStates] = useState<Record<string, "pending" | "running" | "complete" | "failed">>({});
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   // ─── Source items for this idea ───
   const [ideaSourceItems, setIdeaSourceItems] = useState(allItems);
@@ -282,6 +283,7 @@ export default function IdeaDetail() {
     const selectedSources = ideaSourceItems.filter((s) => selectedSourceIds.includes(s.id));
     const sourceContext = buildSourceContext(selectedSources);
 
+    setAnalysisError(null);
     const initialStates: Record<string, "pending"> = {};
     const cats = [
       "market_research", "customer_research", "industry_example", "regulation",
@@ -325,8 +327,13 @@ export default function IdeaDetail() {
             } else if (event.type === "category_complete" && event.category) {
               setCategoryStates((prev) => ({ ...prev, [event.category]: "complete" }));
               revalidator.revalidate();
-            } else if (event.type === "category_error" && event.category) {
-              setCategoryStates((prev) => ({ ...prev, [event.category]: "failed" }));
+            } else if (event.type === "category_error") {
+              if (event.category) {
+                setCategoryStates((prev) => ({ ...prev, [event.category]: "failed" }));
+              }
+              if (event.error) {
+                setAnalysisError(event.error);
+              }
             }
           } catch {
             // Skip malformed JSON
@@ -345,6 +352,7 @@ export default function IdeaDetail() {
     if (!ideaId) return;
 
     setLoadingCategory(category);
+    setAnalysisError(null);
     setCategoryStates((prev) => ({ ...prev, [category]: "running" }));
 
     const selectedSources = ideaSourceItems.filter((s) => selectedSourceIds.includes(s.id));
@@ -363,6 +371,7 @@ export default function IdeaDetail() {
 
       if (!res.ok || !res.body) {
         setCategoryStates((prev) => ({ ...prev, [category]: "failed" }));
+        setAnalysisError(res.ok ? "응답 스트림 없음" : `서버 오류 (${res.status})`);
         setLoadingCategory(null);
         return;
       }
@@ -383,8 +392,13 @@ export default function IdeaDetail() {
             const event = JSON.parse(line.slice(6));
             if (event.type === "category_complete" && event.category) {
               setCategoryStates((prev) => ({ ...prev, [event.category]: "complete" }));
-            } else if (event.type === "category_error" && event.category) {
-              setCategoryStates((prev) => ({ ...prev, [event.category]: "failed" }));
+            } else if (event.type === "category_error") {
+              if (event.category) {
+                setCategoryStates((prev) => ({ ...prev, [event.category]: "failed" }));
+              }
+              if (event.error) {
+                setAnalysisError(event.error);
+              }
             }
           } catch { /* skip malformed */ }
         }
@@ -393,6 +407,7 @@ export default function IdeaDetail() {
       revalidator.revalidate();
     } catch {
       setCategoryStates((prev) => ({ ...prev, [category]: "failed" }));
+      setAnalysisError("네트워크 오류 — 인터넷 연결을 확인하세요");
     }
 
     setLoadingCategory(null);
@@ -533,6 +548,30 @@ export default function IdeaDetail() {
             </button>
           )}
         </div>
+
+        {/* Error banner */}
+        {analysisError && (
+          <div className="flex items-center gap-2 border-b border-red-200 bg-red-50 px-4 py-2.5 dark:border-red-800/40 dark:bg-red-950/30">
+            <svg className="h-4 w-4 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+            </svg>
+            <span className="flex-1 text-xs text-red-700 dark:text-red-300">
+              {analysisError.includes("프로바이더") || analysisError.includes("credit")
+                ? "AI 서비스 크레딧이 소진되었습니다. 관리자에게 문의하세요."
+                : analysisError.length > 100 ? analysisError.slice(0, 100) + "..." : analysisError}
+            </span>
+            <button
+              type="button"
+              onClick={() => setAnalysisError(null)}
+              className="shrink-0 text-red-400 hover:text-red-600"
+              aria-label="닫기"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
 
         {/* Methodology Cards */}
         <MethodologyCards
