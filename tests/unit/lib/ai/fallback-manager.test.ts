@@ -133,7 +133,7 @@ describe("FallbackManager", () => {
       vi.mocked(workersAIProvider.isCreditExhausted).mockReturnValue(true);
 
       const manager = new FallbackManager(ctx);
-      await expect(manager.call("sk-ant-test", baseRequest)).rejects.toThrow("모든 AI 프로바이더가 실패");
+      await expect(manager.call("sk-ant-test", baseRequest)).rejects.toThrow("모든 AI 프로바이더 실패");
     });
 
     it("skips workers-ai for tool-use requests", async () => {
@@ -151,7 +151,7 @@ describe("FallbackManager", () => {
       };
 
       const manager = new FallbackManager(ctx);
-      await expect(manager.call("sk-ant-test", toolRequest)).rejects.toThrow("모든 AI 프로바이더가 실패");
+      await expect(manager.call("sk-ant-test", toolRequest)).rejects.toThrow("모든 AI 프로바이더 실패");
       // Workers AI should not have been called because it doesn't support tools
       expect(workersAIProvider.call).not.toHaveBeenCalled();
     });

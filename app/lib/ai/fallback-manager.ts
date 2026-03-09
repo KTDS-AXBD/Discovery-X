@@ -68,11 +68,16 @@ export class FallbackManager {
 
       // API 키 확인 (Workers AI 제외)
       const providerApiKey = this.getApiKey(providerId, apiKey);
-      if (!providerApiKey && providerId !== "workers-ai") continue;
+      if (!providerApiKey && providerId !== "workers-ai") {
+        this.markFailed(providerId, "API 키 미설정");
+        continue;
+      }
 
       try {
+        console.log(`[AI Fallback] ${providerId} 시도 중...`);
         const response = await provider.call(providerApiKey, request);
 
+        console.log(`[AI Fallback] ${providerId} 성공`);
         // 프로바이더 정보를 응답에 포함 (디버깅/로깅용)
         if (providerId !== "anthropic") {
           (response as unknown as Record<string, unknown>)._provider = providerId;
@@ -82,16 +87,20 @@ export class FallbackManager {
       } catch (error) {
         if (!(error instanceof Error)) throw error;
 
+        console.warn(`[AI Fallback] ${providerId} 실패: ${error.message.slice(0, 150)}`);
         lastError = error;
         this.markFailed(providerId, error.message);
         continue; // 모든 에러 시 다음 프로바이더로
       }
     }
 
-    // 모든 프로바이더 실패
-    const failedList = this.failedProviders.map((f) => `${f.id}: ${f.reason}`).join("; ");
+    // 모든 프로바이더 실패 — 각 프로바이더별 상태 요약
+    const summary = this.failedProviders.map((f) => {
+      const shortReason = f.reason.length > 80 ? f.reason.slice(0, 80) + "…" : f.reason;
+      return `${f.id}: ${shortReason}`;
+    }).join(" | ");
     throw new Error(
-      `모든 AI 프로바이더가 실패했습니다. [${failedList}]`
+      `모든 AI 프로바이더 실패. ${summary}`
     );
   }
 

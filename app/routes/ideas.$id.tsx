@@ -558,25 +558,28 @@ export default function IdeaDetail() {
 
         {/* Error banner */}
         {analysisError && (
-          <div className="flex items-center gap-2 border-b border-red-200 bg-red-50 px-4 py-2.5 dark:border-red-800/40 dark:bg-red-950/30">
-            <svg className="h-4 w-4 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-            </svg>
-            <span className="flex-1 text-xs text-red-700 dark:text-red-300">
-              {analysisError.includes("프로바이더") || analysisError.includes("credit")
-                ? "AI 서비스 크레딧이 소진되었습니다. 관리자에게 문의하세요."
-                : analysisError.length > 100 ? analysisError.slice(0, 100) + "..." : analysisError}
-            </span>
-            <button
-              type="button"
-              onClick={() => setAnalysisError(null)}
-              className="shrink-0 text-red-400 hover:text-red-600"
-              aria-label="닫기"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+          <div className="border-b border-red-200 bg-red-50 px-4 py-2.5 dark:border-red-800/40 dark:bg-red-950/30">
+            <div className="flex items-start gap-2">
+              <svg className="mt-0.5 h-4 w-4 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
               </svg>
-            </button>
+              <div className="flex-1 text-xs text-red-700 dark:text-red-300">
+                <p className="font-medium">AI 분석 실패</p>
+                <p className="mt-0.5 font-mono text-[10px] opacity-80 break-all">
+                  {analysisError}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAnalysisError(null)}
+                className="shrink-0 text-red-400 hover:text-red-600"
+                aria-label="닫기"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           </div>
         )}
 
