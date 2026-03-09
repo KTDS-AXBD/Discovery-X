@@ -1,6 +1,8 @@
 /**
  * POST /api/ideas/:id/analyze — Direct analysis API with SSE progress
  * Bypasses chat agent loop for better quality and efficiency.
+ *
+ * SSE keep-alive: LLM 호출 대기 중 10초 간격 heartbeat로 QUIC 타임아웃 방지.
  */
 
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
@@ -42,7 +44,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
   const categories = body.categories;
   const sourceIds = body.sourceIds;
 
-  // Return SSE stream
+  // Return SSE stream with keep-alive heartbeat
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
@@ -50,6 +52,16 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
       function send(event: AnalysisProgress) {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
       }
+
+      // SSE keep-alive: 10초 간격 heartbeat (QUIC 타임아웃 방지)
+      const heartbeat = setInterval(() => {
+        try {
+          controller.enqueue(encoder.encode(`: heartbeat\n\n`));
+        } catch {
+          // Stream already closed
+          clearInterval(heartbeat);
+        }
+      }, 10_000);
 
       try {
         const result = await runIdeaAnalysis({
@@ -76,6 +88,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
         });
       }
 
+      clearInterval(heartbeat);
       controller.close();
     },
   });
