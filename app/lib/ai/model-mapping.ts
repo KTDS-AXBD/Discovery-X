@@ -19,25 +19,25 @@ const MODEL_MAP: Record<string, ModelMapping> = {
   // Sonnet 4 계열 → 고성능 모델
   "claude-sonnet-4-20250514": {
     openai: "gpt-4o",
-    google: "gemini-2.0-flash",
+    google: "gemini-2.5-flash",
     "workers-ai": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
   },
   // Haiku 계열 → 경량 모델
   "claude-haiku-4-5-20251001": {
     openai: "gpt-4o-mini",
-    google: "gemini-2.0-flash-lite",
+    google: "gemini-2.5-flash-lite",
     "workers-ai": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
   },
   // Haiku 3.5 (레거시)
   "claude-haiku-3-5-20241022": {
     openai: "gpt-4o-mini",
-    google: "gemini-2.0-flash-lite",
+    google: "gemini-2.5-flash-lite",
     "workers-ai": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
   },
   // Opus 4 → 최고급 모델
   "claude-opus-4-20250514": {
     openai: "gpt-4o",
-    google: "gemini-2.0-flash",
+    google: "gemini-2.5-flash",
     "workers-ai": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
   },
 };
@@ -45,7 +45,7 @@ const MODEL_MAP: Record<string, ModelMapping> = {
 /** 기본 매핑 (매핑 테이블에 없는 모델의 폴백) */
 const DEFAULT_MAPPING: ModelMapping = {
   openai: "gpt-4o",
-  google: "gemini-2.0-flash",
+  google: "gemini-2.5-flash",
   "workers-ai": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
 };
 
