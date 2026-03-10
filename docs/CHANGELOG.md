@@ -3,6 +3,22 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 347 (2026-03-11)
+
+**AI API 서비스 관리 아키텍처 설계 + Cost BC 스키마 구현 (DX-REQ-011 확장)**:
+- ✅ DX-PLAN-008 v1.0→v1.2: 인터뷰 기반 요구사항 구체화 + 3차 검토의견 반영
+  - 1차 검토: 3-Ledger 분리, 4-Catalog SSOT, capability-aware fallback, 정책 우선순위
+  - 2차 검토: Usage Aggregation, Budget Cache(O(1)), Policy JSON 정규화, Capability Score
+  - 3차 검토: Usage Cold Archive(90일), Score 산정 기준(3축 가중합), Policy Versioning
+- ✅ Design 문서: 12 테이블 Drizzle 스키마 + 4 서비스 인터페이스 + 구현 순서
+- ✅ Cost BC 생성: `app/features/cost/` (db/schema.ts 406줄, constants, types)
+- ✅ 0054 마이그레이션: 12 테이블 CREATE (usage_events~daily_usage_aggregates)
+- ✅ db/index.ts costSchema 머지 (re-export 제거 — vi.mock 호환성)
+- ✅ tests/helpers/db.ts 동기화
+
+**검증 결과**:
+- ✅ typecheck 0 errors / lint 0 errors / 2,206 tests passed (147 files)
+
 ### 세션 346 (2026-03-10)
 
 **DX-REQ-012 아이템 수집 시스템 고도화 — 기획 + 설계 + 마이그레이션**:

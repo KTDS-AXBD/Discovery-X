@@ -357,7 +357,7 @@ root.tsx
 └─ Outlet (하위 라우트)
 ```
 
-### 데이터 모델 (99개 테이블 — Drizzle 72 + 마이그레이션 전용 27)
+### 데이터 모델 (111개 테이블 — Drizzle 84 + 마이그레이션 전용 27)
 
 | 카테고리 | 테이블 수 | 테이블 |
 |---------|---------|--------|
@@ -380,11 +380,12 @@ root.tsx
 | Proposals | 8 | proposals, proposal_sections, proposal_milestones, proposal_actions, proposal_comments, proposal_members, proposal_likes, proposal_categories |
 | Archive | 2 | archive_folders, archive_folder_items |
 | Token Usage | 1 | token_usage_logs |
+| Cost Management | 12 | usage_events, cost_estimates, model_catalog, price_catalog, budget_policies, budget_usage_cache, routing_policies, policy_provider_priorities, policy_purpose_rules, policy_degrade_rules, routing_decisions, daily_usage_aggregates |
 | Matrix | 7 | industries, functions, matrix_cells, individual_scores, consensus_scores, cell_topic_map, scoring_config |
 | Worker/Infra | 2 | notification_queue, cron_logs |
 | FTS | 1 | discoveries_fts |
 | Requests | 5 | feature_requests, request_reviews, request_events, work_plans, work_plan_runs |
-| **합계** | **97** | |
+| **합계** | **109** | |
 
 > Drizzle 스키마 미정의 25개: Venture Sprint 16 (아카이브) + Shadow Mode 2 + Value-up Engine 4 + Worker/Infra 2 + FTS 1 — 마이그레이션 SQL에만 존재
 
@@ -444,11 +445,11 @@ build/
 ### 버전
 - **시스템 (SemVer SSOT)**: 0.6.0 (package.json)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 55개 마이그레이션 SQL (0000~0053), 로컬 적용 완료
+- **DB**: 57개 마이그레이션 SQL (0000~0055), 로컬 적용 완료
 
 ### 주요 지표
 - **라우트**: 163개
-- **테이블**: 99개
+- **테이블**: 111개
 - **Agent 도구**: 77개
 - **코드**: ~76,300줄 (~464파일)
 - **테스트**: 2,206개 (147 test files, 로컬 통과)
