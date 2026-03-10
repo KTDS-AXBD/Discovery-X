@@ -23,6 +23,8 @@ import { AlertBanner } from "~/components/ui/AlertBanner";
 import { Badge } from "~/components/ui/Badge";
 import { TokenUsageChart } from "~/features/settings/ui/TokenUsageChart";
 import { TokenUsageTable } from "~/features/settings/ui/TokenUsageTable";
+import { CostMonitorWidget } from "~/features/settings/ui/CostMonitorWidget";
+import type { UsageBucket, CostBucket, ClaudeCodeMetric } from "~/lib/cost/anthropic-admin-client";
 
 const AUTONOMY_OPTIONS = [
   { value: "0", label: "Passive — 응답만" },
@@ -167,6 +169,30 @@ function useTokenUsage(isAdmin: boolean) {
   return { data, range, setRange, modeFilter, setModeFilter };
 }
 
+interface CostReportData {
+  usage: UsageBucket[];
+  cost: CostBucket[];
+  analytics: ClaudeCodeMetric[];
+  available: boolean;
+}
+
+function useCostReport(isAdmin: boolean) {
+  const [data, setData] = useState<CostReportData | null>(null);
+  const [range, setRange] = useState<"7d" | "30d">("7d");
+
+  const fetchData = useCallback(() => {
+    if (!isAdmin) return;
+    fetch(`/api/admin/cost-report?range=${range}`)
+      .then((r) => r.json() as Promise<CostReportData>)
+      .then(setData)
+      .catch(() => {});
+  }, [isAdmin, range]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  return { data, range, setRange };
+}
+
 export default function Settings() {
   const { user, config, aiFallbackEnabled, aiProviderState } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
@@ -174,6 +200,7 @@ export default function Settings() {
   const isAdmin = role === UserRole.ADMIN;
   const isGatekeeperOrAbove = role === UserRole.GATEKEEPER || isAdmin;
   const tokenUsage = useTokenUsage(isAdmin);
+  const costReport = useCostReport(isAdmin);
 
   return (
     <AppShell user={user}>
@@ -332,6 +359,17 @@ export default function Settings() {
                   onModeChange={tokenUsage.setModeFilter}
                 />
               </>
+            )}
+
+            {costReport.data && (
+              <CostMonitorWidget
+                usage={costReport.data.usage}
+                cost={costReport.data.cost}
+                analytics={costReport.data.analytics}
+                available={costReport.data.available}
+                range={costReport.range}
+                onRangeChange={costReport.setRange}
+              />
             )}
 
             <Card>
