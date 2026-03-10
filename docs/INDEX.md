@@ -28,6 +28,7 @@
 | DX-PLAN-004 | 온톨로지 인텔리전스 계획 | 1.0 | Active | 01-plan/DX-PLAN-004_ontology-intelligence.md |
 | DX-PLAN-005 | 통합 실행 계획서 | 2.0 | Active | 01-plan/DX-PLAN-005_integrated-execution-plan.md |
 | DX-PLAN-006 | 슬라이드 MCP 서버 | 1.0 | Active | 01-plan/DX-PLAN-006_slides-mcp-server.md |
+| DX-PLAN-007 | LLM Credit 소진 대응 | 0.1 | Draft | 01-plan/DX-PLAN-007_llm-credit-optimization.md |
 
 ## DSGN — 설계
 
