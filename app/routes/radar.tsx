@@ -21,6 +21,8 @@ import { Badge } from "~/components/ui/Badge";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "~/components/ui/Table";
 import { formatDateLocalTime } from "~/lib/format-date";
+import { ManualCollectTab } from "~/features/radar/ui/ManualCollectTab";
+import { SendToIdeaButton } from "~/features/radar/ui/SendToIdeaButton";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -63,8 +65,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: "이름, 소스 유형, URL은 필수입니다." });
     }
 
-    if (!["rss", "web", "youtube"].includes(sourceType)) {
-      return json({ error: "소스 유형은 rss, web, youtube 중 하나여야 합니다." });
+    if (!["rss", "site", "web", "youtube", "sns"].includes(sourceType)) {
+      return json({ error: "소스 유형은 rss, site, web, youtube, sns 중 하나여야 합니다." });
     }
 
     // BD팀 PoC: 키워드와 태그 파싱
@@ -101,8 +103,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
 const SOURCE_TYPE_LABELS: Record<string, string> = {
   [RadarSourceType.RSS]: "RSS",
+  [RadarSourceType.SITE]: "사이트",
   [RadarSourceType.WEB]: "Web",
   [RadarSourceType.YOUTUBE]: "YouTube",
+  [RadarSourceType.SNS]: "SNS",
 };
 
 const RUN_STATUS_VARIANT: Record<string, "warning" | "success" | "destructive"> = {
@@ -116,12 +120,15 @@ function formatDateLocal(timestamp: string | Date | null) {
   return formatDateLocalTime(timestamp);
 }
 
+type RadarTab = "feed" | "manual" | "sources";
+
 export default function RadarPage() {
   const { user, sources, runs, recentItems } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const navigate = useNavigate();
   const [showAddForm, setShowAddForm] = useState(false);
+  const [activeTab, setActiveTab] = useState<RadarTab>("feed");
   const isSubmitting = navigation.state === "submitting";
 
   // BD팀 PoC: 소스 아이템에서 대화 시작
@@ -153,7 +160,160 @@ export default function RadarPage() {
         </AlertBanner>
       )}
 
-      {/* Sources Section */}
+      {/* Tab Navigation */}
+      <div className="mb-6 flex gap-1 border-b border-border">
+        {([
+          { key: "feed", label: "피드" },
+          { key: "manual", label: "수동 등록" },
+          { key: "sources", label: "소스 관리" },
+        ] as const).map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => setActiveTab(key)}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === key
+                ? "border-fg-brand text-fg-brand"
+                : "border-transparent text-fg-tertiary hover:text-fg-secondary"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Manual Collect Tab */}
+      {activeTab === "manual" && (
+        <div className="mb-8">
+          <ManualCollectTab />
+        </div>
+      )}
+
+      {/* Feed Tab — Recent Items */}
+      {activeTab === "feed" && (
+        <>
+          {/* Run History Section */}
+          <div className="mb-8">
+            <h2 className="mb-4 text-lg font-semibold text-fg">실행 이력</h2>
+            {runs.length === 0 ? (
+              <p className="text-sm text-fg-tertiary">실행 이력이 없습니다.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <tr>
+                    <TableHead className="pl-4">시작</TableHead>
+                    <TableHead>상태</TableHead>
+                    <TableHead className="text-center">소스</TableHead>
+                    <TableHead className="text-center">수집</TableHead>
+                    <TableHead className="text-center">중복</TableHead>
+                    <TableHead className="text-center">Seed 생성</TableHead>
+                    <TableHead>완료</TableHead>
+                  </tr>
+                </TableHeader>
+                <TableBody>
+                  {runs.map((run) => (
+                    <TableRow key={run.id}>
+                      <TableCell className="pl-4 text-fg">
+                        {formatDateLocal(run.startedAt)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={RUN_STATUS_VARIANT[run.status] || "secondary"}>
+                          {run.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center text-fg-tertiary">
+                        {run.sourcesChecked}
+                      </TableCell>
+                      <TableCell className="text-center text-fg-tertiary">
+                        {run.itemsCollected}
+                      </TableCell>
+                      <TableCell className="text-center text-fg-tertiary">
+                        {run.itemsDeduplicated}
+                      </TableCell>
+                      <TableCell className="text-center font-medium text-fg-brand">
+                        {run.seedsCreated}
+                      </TableCell>
+                      <TableCell className="text-fg-tertiary">
+                        {formatDateLocal(run.completedAt)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+
+          {/* Recent Items Section */}
+          <div>
+            <h2 className="mb-4 text-lg font-semibold text-fg">최근 수집 아이템</h2>
+            {recentItems.length === 0 ? (
+              <p className="text-sm text-fg-tertiary">수집된 아이템이 없습니다.</p>
+            ) : (
+              <div className="space-y-3">
+                {recentItems.map((item) => (
+                  <Card key={item.id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-sm font-medium text-fg">
+                            {item.titleKo || item.title}
+                          </h3>
+                          {item.summaryKo && (
+                            <p className="mt-1 text-sm text-fg-secondary line-clamp-2">
+                              {item.summaryKo}
+                            </p>
+                          )}
+                          <div className="mt-2 flex items-center gap-3 text-xs text-fg-tertiary">
+                            <a
+                              href={item.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hover:text-fg-brand truncate max-w-xs"
+                            >
+                              {item.url}
+                            </a>
+                            <span>{formatDateLocal(item.collectedAt)}</span>
+                          </div>
+                        </div>
+                        <div className="ml-4 flex flex-col items-end gap-2">
+                          {item.relevanceScore !== null && (
+                            <Badge variant={item.relevanceScore >= 60 ? "success" : "secondary"}>
+                              {item.relevanceScore}점
+                            </Badge>
+                          )}
+                          <Badge
+                            variant={
+                              item.status === "SEEDED"
+                                ? "info"
+                                : item.status === "SCORED"
+                                  ? "info"
+                                  : item.status === "SKIPPED"
+                                    ? "secondary"
+                                    : "warning"
+                            }
+                          >
+                            {item.status}
+                          </Badge>
+                          <SendToIdeaButton itemId={item.id} />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleStartChat(item.id, item.titleKo || item.title)}
+                          >
+                            대화 시작
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* Sources Tab */}
+      {activeTab === "sources" && (
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-fg">수집 소스</h2>
@@ -188,8 +348,9 @@ export default function RadarPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="rss">RSS</SelectItem>
-                        <SelectItem value="web">Web</SelectItem>
+                        <SelectItem value="site">사이트</SelectItem>
                         <SelectItem value="youtube">YouTube</SelectItem>
+                        <SelectItem value="sns">SNS</SelectItem>
                       </SelectContent>
                     </Select>
                   </FormField>
@@ -298,124 +459,8 @@ export default function RadarPage() {
           </Table>
         )}
       </div>
+      )}
 
-      {/* Run History Section */}
-      <div className="mb-8">
-        <h2 className="mb-4 text-lg font-semibold text-fg">실행 이력</h2>
-        {runs.length === 0 ? (
-          <p className="text-sm text-fg-tertiary">실행 이력이 없습니다.</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <tr>
-                <TableHead className="pl-4">시작</TableHead>
-                <TableHead>상태</TableHead>
-                <TableHead className="text-center">소스</TableHead>
-                <TableHead className="text-center">수집</TableHead>
-                <TableHead className="text-center">중복</TableHead>
-                <TableHead className="text-center">Seed 생성</TableHead>
-                <TableHead>완료</TableHead>
-              </tr>
-            </TableHeader>
-            <TableBody>
-              {runs.map((run) => (
-                <TableRow key={run.id}>
-                  <TableCell className="pl-4 text-fg">
-                    {formatDateLocal(run.startedAt)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={RUN_STATUS_VARIANT[run.status] || "secondary"}>
-                      {run.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-center text-fg-tertiary">
-                    {run.sourcesChecked}
-                  </TableCell>
-                  <TableCell className="text-center text-fg-tertiary">
-                    {run.itemsCollected}
-                  </TableCell>
-                  <TableCell className="text-center text-fg-tertiary">
-                    {run.itemsDeduplicated}
-                  </TableCell>
-                  <TableCell className="text-center font-medium text-fg-brand">
-                    {run.seedsCreated}
-                  </TableCell>
-                  <TableCell className="text-fg-tertiary">
-                    {formatDateLocal(run.completedAt)}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </div>
-
-      {/* Recent Items Section */}
-      <div>
-        <h2 className="mb-4 text-lg font-semibold text-fg">최근 수집 아이템</h2>
-        {recentItems.length === 0 ? (
-          <p className="text-sm text-fg-tertiary">수집된 아이템이 없습니다. Radar Worker가 실행되면 여기에 표시됩니다.</p>
-        ) : (
-          <div className="space-y-3">
-            {recentItems.map((item) => (
-              <Card key={item.id}>
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-sm font-medium text-fg">
-                        {item.titleKo || item.title}
-                      </h3>
-                      {item.summaryKo && (
-                        <p className="mt-1 text-sm text-fg-secondary line-clamp-2">
-                          {item.summaryKo}
-                        </p>
-                      )}
-                      <div className="mt-2 flex items-center gap-3 text-xs text-fg-tertiary">
-                        <a
-                          href={item.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="hover:text-fg-brand truncate max-w-xs"
-                        >
-                          {item.url}
-                        </a>
-                        <span>{formatDateLocal(item.collectedAt)}</span>
-                      </div>
-                    </div>
-                    <div className="ml-4 flex flex-col items-end gap-2">
-                      {item.relevanceScore !== null && (
-                        <Badge variant={item.relevanceScore >= 60 ? "success" : "secondary"}>
-                          {item.relevanceScore}점
-                        </Badge>
-                      )}
-                      <Badge
-                        variant={
-                          item.status === "SEEDED"
-                            ? "info"
-                            : item.status === "SCORED"
-                              ? "info"
-                              : item.status === "SKIPPED"
-                                ? "secondary"
-                                : "warning"
-                        }
-                      >
-                        {item.status}
-                      </Badge>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleStartChat(item.id, item.titleKo || item.title)}
-                      >
-                        대화 시작
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
     </AppShell>
   );
 }

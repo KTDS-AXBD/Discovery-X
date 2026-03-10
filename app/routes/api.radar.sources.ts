@@ -45,8 +45,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: "name, sourceType, url은 필수입니다." }, { status: 400 });
     }
 
-    if (!["rss", "web", "youtube"].includes(sourceType)) {
-      return json({ error: "sourceType은 rss, web, youtube 중 하나여야 합니다." }, { status: 400 });
+    if (!["rss", "site", "web", "youtube", "sns"].includes(sourceType)) {
+      return json({ error: "sourceType은 rss, site, web, youtube, sns 중 하나여야 합니다." }, { status: 400 });
     }
 
     let config: Record<string, unknown> | null = null;

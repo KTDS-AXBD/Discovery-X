@@ -8,8 +8,10 @@ import { users, tenants } from "~/db";
 
 export const RadarSourceType = {
   RSS: "rss",
-  WEB: "web",
+  SITE: "site",
+  WEB: "web", // 하위호환 (deprecated, use SITE)
   YOUTUBE: "youtube",
+  SNS: "sns",
 } as const;
 
 export const RadarItemStatus = {
@@ -17,6 +19,26 @@ export const RadarItemStatus = {
   SCORED: "SCORED",
   SEEDED: "SEEDED",
   SKIPPED: "SKIPPED",
+} as const;
+
+export const CollectionType = {
+  AUTO: "auto",
+  MANUAL: "manual",
+} as const;
+
+export const ContentType = {
+  ARTICLE: "article",
+  VIDEO: "video",
+  DOCUMENT: "document",
+  MEMO: "memo",
+} as const;
+
+export const SourceStatus = {
+  ACTIVE: "ACTIVE",
+  PAUSED: "PAUSED",
+  REVIEW: "REVIEW",
+  ARCHIVED: "ARCHIVED",
+  FAILED: "FAILED",
 } as const;
 
 export const RadarRunStatus = {
@@ -50,6 +72,13 @@ export const radarSources = sqliteTable("radar_sources", {
   userId: text("user_id").references(() => users.id),
   keywords: text("keywords", { mode: "json" }).$type<string[]>(),
   radarTags: text("radar_tags", { mode: "json" }).$type<string[]>(),
+
+  // F41: 수집 고도화
+  collectionType: text("collection_type").default("auto"),
+  status: text("status").default("ACTIVE"),
+  crawlInterval: integer("crawl_interval").default(86400),
+  lastCollectedAt: integer("last_collected_at", { mode: "timestamp" }),
+  consecutiveFailures: integer("consecutive_failures").default(0),
 }, (table) => ({
   tenantIdx: index("idx_radar_sources_tenant_drizzle").on(table.tenantId),
   userIdx: index("idx_radar_sources_user_id").on(table.userId),
@@ -86,6 +115,14 @@ export const radarItems = sqliteTable(
 
     // F27: AI 파이프라인 처리 추적
     aiProcessedAt: integer("ai_processed_at", { mode: "timestamp" }),
+
+    // F41: 수집 고도화
+    contentType: text("content_type").default("article"),
+    rawContent: text("raw_content"),
+    parsedContent: text("parsed_content"),
+    excerpt: text("excerpt"),
+    itemMetadata: text("item_metadata", { mode: "json" }).$type<Record<string, unknown>>(),
+    dedupeKey: text("dedupe_key"),
   },
   (table) => ({
     sourceIdIdx: index("idx_radar_items_source_id").on(table.sourceId),

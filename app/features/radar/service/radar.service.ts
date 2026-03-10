@@ -5,7 +5,10 @@ import {
   radarRuns,
   radarItems,
   radarItemUserStatus,
+  ideas,
+  ideaSources,
 } from "~/db";
+import { canonicalizeUrl, generateDedupeKey, parseUrl } from "./url-parser";
 
 // ============================================================================
 // Types
@@ -49,6 +52,25 @@ interface UpsertItemReactionInput {
 }
 
 interface RadarDataParams {
+  tenantId: string;
+}
+
+interface CollectFromUrlInput {
+  url: string;
+  userId: string;
+  tenantId: string;
+}
+
+interface CollectFromTextInput {
+  title: string;
+  content: string;
+  userId: string;
+  tenantId: string;
+}
+
+interface SendToIdeaInput {
+  itemId: string;
+  userId: string;
   tenantId: string;
 }
 
@@ -180,7 +202,7 @@ export class RadarService {
     userId: string;
     tenantId: string;
     runId: string;
-    type?: "web" | "youtube" | "text";
+    type?: "web" | "site" | "youtube" | "text";
     titleKo?: string;
     summaryKo?: string;
     memo?: string | null;
@@ -201,7 +223,7 @@ export class RadarService {
     await this.db.insert(radarSources).values({
       id: sourceId,
       name: params.titleKo ?? params.title,
-      sourceType: params.type ?? "web",
+      sourceType: params.type === "web" ? "site" : (params.type ?? "site"),
       url: params.url,
       userId: params.userId,
       tenantId: params.tenantId,
@@ -388,5 +410,178 @@ export class RadarService {
       this.listRecentItemsByTenant(params.tenantId),
     ]);
     return { sources, runs, recentItems };
+  }
+
+  // ---------- 수동 수집 (F41 Phase 1A) ----------
+
+  /** 시스템 소스 조회/생성 (__manual__ per tenant) */
+  async getOrCreateManualSource(tenantId: string): Promise<string> {
+    const existing = await this.db
+      .select({ id: radarSources.id })
+      .from(radarSources)
+      .where(
+        and(
+          eq(radarSources.name, "__manual__"),
+          eq(radarSources.tenantId, tenantId),
+          eq(radarSources.collectionType, "manual"),
+        ),
+      )
+      .limit(1);
+
+    if (existing.length > 0) return existing[0].id;
+
+    const id = crypto.randomUUID();
+    await this.db.insert(radarSources).values({
+      id,
+      name: "__manual__",
+      sourceType: "site",
+      url: "manual://system",
+      collectionType: "manual",
+      tenantId,
+      enabled: 1,
+    });
+    return id;
+  }
+
+  /** URL 수동 수집 */
+  async collectFromUrl(input: CollectFromUrlInput) {
+    const canonical = canonicalizeUrl(input.url);
+
+    // urlHash 기반 중복 체크
+    const urlHashBuffer = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(canonical),
+    );
+    const urlHash = Array.from(new Uint8Array(urlHashBuffer))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+
+    const duplicate = await this.db
+      .select({ id: radarItems.id })
+      .from(radarItems)
+      .where(eq(radarItems.urlHash, urlHash))
+      .limit(1);
+
+    if (duplicate.length > 0) {
+      return { item: duplicate[0], isDuplicate: true };
+    }
+
+    // URL fetch + 파싱
+    const parsed = await parseUrl(canonical);
+    const dedupeKey = await generateDedupeKey(
+      parsed.title,
+      parsed.metadata.publishedAt,
+    );
+
+    // dedupe_key 기반 2차 중복 체크
+    const dedupeHit = await this.db
+      .select({ id: radarItems.id })
+      .from(radarItems)
+      .where(eq(radarItems.dedupeKey, dedupeKey))
+      .limit(1);
+
+    if (dedupeHit.length > 0) {
+      return { item: dedupeHit[0], isDuplicate: true };
+    }
+
+    const sourceId = await this.getOrCreateManualSource(input.tenantId);
+    const runId = await this.findOrCreateDailyRun(input.tenantId);
+    const itemId = crypto.randomUUID();
+
+    await this.db.insert(radarItems).values({
+      id: itemId,
+      sourceId,
+      runId,
+      urlHash,
+      url: canonical,
+      title: parsed.title,
+      summary: parsed.summary,
+      status: "COLLECTED",
+      contentType: "article",
+      rawContent: parsed.rawContent,
+      parsedContent: parsed.parsedContent,
+      excerpt: parsed.excerpt,
+      itemMetadata: parsed.metadata,
+      dedupeKey,
+    });
+
+    const item = await this.getItem(itemId);
+    return { item, isDuplicate: false };
+  }
+
+  /** 텍스트 수동 수집 */
+  async collectFromText(input: CollectFromTextInput) {
+    const dedupeKey = await generateDedupeKey(input.title);
+
+    // dedupe_key 중복 체크
+    const dedupeHit = await this.db
+      .select({ id: radarItems.id })
+      .from(radarItems)
+      .where(eq(radarItems.dedupeKey, dedupeKey))
+      .limit(1);
+
+    if (dedupeHit.length > 0) {
+      return { item: dedupeHit[0], isDuplicate: true };
+    }
+
+    const sourceId = await this.getOrCreateManualSource(input.tenantId);
+    const runId = await this.findOrCreateDailyRun(input.tenantId);
+    const itemId = crypto.randomUUID();
+    const manualUrl = `manual://${itemId}`;
+
+    const urlHashBuffer = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(manualUrl),
+    );
+    const urlHash = Array.from(new Uint8Array(urlHashBuffer))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+
+    await this.db.insert(radarItems).values({
+      id: itemId,
+      sourceId,
+      runId,
+      urlHash,
+      url: manualUrl,
+      title: input.title,
+      summary: input.content.slice(0, 200),
+      status: "COLLECTED",
+      contentType: "memo",
+      rawContent: input.content,
+      parsedContent: input.content,
+      excerpt: input.content.slice(0, 200),
+      dedupeKey,
+    });
+
+    const item = await this.getItem(itemId);
+    return { item, isDuplicate: false };
+  }
+
+  /** Signal → Idea 전환 */
+  async sendToIdea(input: SendToIdeaInput): Promise<{ ideaId: string }> {
+    const item = await this.getItem(input.itemId);
+    if (!item) {
+      throw new Error("아이템을 찾을 수 없습니다.");
+    }
+
+    const ideaId = crypto.randomUUID();
+    await this.db.insert(ideas).values({
+      id: ideaId,
+      tenantId: input.tenantId,
+      ownerId: input.userId,
+      title: item.titleKo || item.title,
+      status: "ACTIVE",
+      createdByAgent: 0,
+    });
+
+    await this.db.insert(ideaSources).values({
+      id: crypto.randomUUID(),
+      ideaId,
+      radarItemId: input.itemId,
+      linkType: "primary",
+      createdBy: "user",
+    });
+
+    return { ideaId };
   }
 }

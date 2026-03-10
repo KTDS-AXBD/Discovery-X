@@ -55,6 +55,10 @@ export const ideaSources = sqliteTable(
     addedAt: integer("added_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),
+
+    // F41: 수집 고도화
+    linkType: text("link_type").default("primary"),
+    createdBy: text("created_by").default("user"),
   },
   (table) => ({
     ideaIdx: index("idx_idea_sources_idea").on(table.ideaId),
