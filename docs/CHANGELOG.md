@@ -3,6 +3,14 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 348 (2026-03-10)
+
+**CLAUDE.md 품질 감사 + cost BC 반영 누락 수정**:
+- ✅ CLAUDE.md Improver 실행: 3개 파일 감사 (Global B/83, Org C/50, Project B/88)
+- ✅ 스키마 머지 수 수정: 13→14개 (costSchema 누락 반영)
+- ✅ BC 목록 수정: 13→14개 (cost BC 추가, 알파벳순)
+- ✅ costSchema re-export 제외 주석 추가 (vi.mock 호환성)
+
 ### 세션 347 (2026-03-11)
 
 **AI API 서비스 관리 아키텍처 설계 + Cost BC 스키마 구현 (DX-REQ-011 확장)**:
