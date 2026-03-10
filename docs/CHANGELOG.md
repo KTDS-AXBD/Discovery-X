@@ -3,6 +3,16 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 349 (2026-03-10)
+
+**ax-14-req-interview 스킬 Global 설치 (DX-REQ-013)**:
+- ✅ `~/.claude/skills/ax-14-req-interview/` 설치 (6파일: SKILL.md + 3 templates + 1 reference + 1 script)
+- ✅ SKILL.md 보정: name→ax-14, 상대경로→절대경로
+- ✅ Global CLAUDE.md + Project CLAUDE.md 스킬 등록
+- ✅ SPEC.md F42 + DX-REQ-013 등록 (✅ 완료)
+- ✅ 테스트 8/8 통과 (파일 존재, frontmatter, 경로 참조, init-project.sh, CLAUDE.md, 5파트, AI 프롬프트, 스코어카드)
+- ✅ 이전 미커밋: 0056_purpose_migration.sql + tests/helpers/db.ts 동기화 (DX-REQ-011)
+
 ### 세션 348 (2026-03-10)
 
 **CLAUDE.md 품질 감사 + cost BC 반영 누락 수정**:
