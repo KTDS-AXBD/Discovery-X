@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 353 (2026-03-11)
+
+**프로덕션 마이그레이션 적용 + F40 PolicyLoader/PolicyRouter 커밋**:
+- ✅ 프로덕션 D1 마이그레이션 3건 적용: 0054(Cost 12테이블) + 0055(Radar 수동 수집 컬럼) + 0056(purpose 데이터 마이그레이션)
+  - 0052/0053은 이미 적용 확인 → SPEC.md 기록 보정 (53→58개)
+- ✅ F40 P1-05 PolicyLoader: DB 기반 라우팅 정책 로드 + 캐시 + purpose 규칙 매칭 (187 LOC)
+- ✅ F40 P1-06 PolicyRouter: 예산 상태 기반 모델 선택 + capability-aware fallback + degrade (462 LOC)
+- ✅ seed.ts 확장: 기본 글로벌 정책 시드 (4 provider, 5 purpose, degrade rules)
+- ✅ 테스트 37개 추가 (policy-loader 15 + policy-router 22) → 총 2,243개 (149 files)
+
+**검증 결과**:
+- ✅ typecheck: 0 에러 / ✅ lint: 0 에러 / ✅ test: 2,243 PASS
+
 ### 세션 352 (2026-03-11)
 
 **DX-REQ-014 F43 인터뷰 스킬 검토 고도화 — PRD + 프로토타입**:

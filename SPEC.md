@@ -451,8 +451,8 @@ build/
 - **라우트**: 167개
 - **테이블**: 111개
 - **Agent 도구**: 77개
-- **코드**: ~79,400줄 (~486파일)
-- **테스트**: 2,206개 (147 test files, 로컬 통과)
+- **코드**: ~81,000줄 (~488파일)
+- **테스트**: 2,243개 (149 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
@@ -475,7 +475,7 @@ build/
 - **브랜치 전략**: master 단일 브랜치 (Prototype 기간)
 - **배포**: Cloudflare Pages (master push → GitHub Actions CI/CD 자동 배포) — Secrets 설정 완료 ✅
 - **운영 실험**: 🚀 2026-01-31 시작 (30-60일, 최대 5명, Discovery 5-10건 목표)
-- **DB 마이그레이션**: ✅ 53개 SQL (0000~0051) 로컬+프로덕션 적용 완료
+- **DB 마이그레이션**: ✅ 58개 SQL (0000~0056) 로컬+프로덕션 적용 완료
 - **Cron 설정**: 10개 라우트 (daily/agent-review/embeddings/weekly-summary/signal-route/matrix-scoring/maintenance/vectorize/lab/ai-pipeline) + cron-job.org 14개 등록 완료
 - **Radar Worker**: 프로덕션 운영 중 (Cron 매일 9:00 KST, 10소스)
 - **이메일**: Resend (`noreply@ideaonaction.ai`), cron-job.org 자동 발송
