@@ -102,7 +102,8 @@ const db = getDb(context.DB);
 - `ALLOWED_TRANSITIONS` (app/lib/constants/status.ts) 정의된 전환만 허용
 
 ### 스키마 머지
-- `app/db/index.ts`에서 13개 스키마 머지: `schema`, `discoverySchema`, `radarSchema`, `chatSchema`, `labSchema`, `proposalSchema`, `archiveSchema`, `ideasSchema`, `tokenUsageSchema`, `v2Schema`, `matrixSchema`, `requestsSchema`, `topicSchema`
+- `app/db/index.ts`에서 14개 스키마 머지: `schema`, `discoverySchema`, `radarSchema`, `chatSchema`, `labSchema`, `proposalSchema`, `archiveSchema`, `ideasSchema`, `tokenUsageSchema`, `v2Schema`, `matrixSchema`, `requestsSchema`, `topicSchema`, `costSchema`
+  - `costSchema`는 `~/db`에서 re-export하지 않음 (vi.mock 호환성) — 사용처에서 `~/features/cost/db/schema` 직접 import
 
 ### Import 패턴
 - `from "~/db"` 통일 — `~/db/schema` 직접 import 금지 (core auth만 `db/schema.ts`에서 export)
@@ -132,7 +133,7 @@ requireAdmin()        → 403 (ADMIN만)
 app/
 ├── components/     # 공유 UI 컴포넌트 (charts, docs, layout, onboarding, tenant, ui — ui/ 하위 21개)
 ├── db/             # Drizzle 스키마 + DB 연결 (index.ts에서 스키마 머지)
-├── features/       # 도메인별 모듈 (13 BC: archive, chat, dashboard, discovery, ideas, lab, matrix, profile, proposals, radar, requests, settings, topic)
+├── features/       # 도메인별 모듈 (14 BC: archive, chat, cost, dashboard, discovery, ideas, lab, matrix, profile, proposals, radar, requests, settings, topic)
 │   └── {feature}/  # db/schema.ts + constants + types + ui/
 ├── lib/            # 공유 유틸 (agent, auth, embeddings, notifications, ...)
 ├── routes/         # Remix 라우트 (flat-file convention)
