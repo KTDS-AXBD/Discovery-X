@@ -3,6 +3,20 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 346 (2026-03-10)
+
+**DX-REQ-012 아이템 수집 시스템 고도화 — 기획 + 설계 + 마이그레이션**:
+- ✅ F41 (DX-REQ-012) 요구사항 등록: 인터뷰 기반 4개 하위 기능 구체화 (SPEC + DB)
+- ✅ DX-PLAN-008 Plan v0.3: 2차 검토 반영 (3축 유형, 4축 Health, 전환 이벤트, Queue 장애대응, Source lifecycle, Dedupe)
+- ✅ DX-DSGN-010 Design: Phase 1A 수동 수집 + Signal→Idea 연결 설계
+- ✅ 0055 마이그레이션: radar_sources(lifecycle/collection_type) + radar_items(content_type/raw_content/dedupe) + idea_sources(link_type)
+- ✅ 0054 마이그레이션: AI API 비용 관리 3-Ledger + 4-Catalog + Budget/Routing Policy (Cost BC)
+- ✅ `/ax-04-verify` 스킬 생성 (global): lint + typecheck + test + coverage + watch 통합
+- ✅ tests/helpers/db.ts 동기화 (0054+0055)
+
+**검증 결과**:
+- ✅ typecheck 0 errors / lint 0 errors / 2,206 tests passed (147 files)
+
 ### 세션 345 (2026-03-10)
 
 **LLM API Credit 소진 대응 — 탐구 + 모니터링 구현 (DX-REQ-011)**:
