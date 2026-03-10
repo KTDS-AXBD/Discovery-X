@@ -3,6 +3,27 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 345 (2026-03-10)
+
+**LLM API Credit 소진 대응 — 탐구 + 모니터링 구현 (DX-REQ-011)**:
+- ✅ F40 (DX-REQ-011) 요구사항 등록: SPEC.md + 앱 DB 동기화
+- ✅ DX-PLAN-007 Plan 문서 작성: 구독 토큰 + Admin API 탐구 완료 (3개 탐구 영역)
+- ✅ `AnthropicAdminClient`: Usage/Cost/Claude Code Analytics 3 API 클라이언트
+- ✅ `GET /api/admin/cost-report`: 관리자 비용 보고서 API (Admin API Key graceful degradation)
+- ✅ `CostMonitorWidget`: 설정 페이지 비용 모니터링 위젯 (일별 차트 + 모델별 + 오늘 요약)
+- ✅ `scripts/batch-runner.sh`: claude -p 기반 배치 분석 자동화 (radar/ontology/all)
+- ✅ `scripts/batch-cron.sh`: cron 래퍼 스크립트
+- ✅ `/ax-04-verify`: ax-04-lint 확장 → lint + typecheck + test + coverage + watch 통합 스킬
+- ✅ `/ax-06-team` runner 템플릿 개선: 프롬프트 파일 직접 참조 방식
+
+**핵심 탐구 결과**:
+- OAuth Token 직접 API 호출 ❌ (2026.01 차단), `claude -p` headless ✅ (공식 허용)
+- Anthropic Admin API: Usage/Cost/Analytics 3 엔드포인트 — `sk-ant-admin` 키 필요 (Organization 필수)
+- 권장 아키텍처: 실시간(API Key) + 배치(`claude -p` 구독 토큰) + 모니터링(Admin API)
+
+**검증 결과**:
+- ✅ typecheck 0 errors / lint 0 errors / batch-runner.sh syntax OK
+
 ### 세션 344 (2026-03-10)
 **AI 분석 Fallback 버그 수정 (DX-REQ-010)**:
 - 🐛 근본 원인: Anthropic API 크레딧 소진 → FallbackManager가 non-credit 에러 시 체인 중단 (re-throw)
