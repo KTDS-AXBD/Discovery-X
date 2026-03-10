@@ -11,7 +11,7 @@
 - ✅ F40 P1-05 PolicyLoader: DB 기반 라우팅 정책 로드 + 캐시 + purpose 규칙 매칭 (187 LOC)
 - ✅ F40 P1-06 PolicyRouter: 예산 상태 기반 모델 선택 + capability-aware fallback + degrade (462 LOC)
 - ✅ seed.ts 확장: 기본 글로벌 정책 시드 (4 provider, 5 purpose, degrade rules)
-- ✅ 테스트 37개 추가 (policy-loader 15 + policy-router 22) → 총 2,243개 (149 files)
+- ✅ 테스트 37개 추가 (PolicyLoader 13 + PolicyRouter 24) → 총 2,243개 (149 files)
 
 **검증 결과**:
 - ✅ typecheck: 0 에러 / ✅ lint: 0 에러 / ✅ test: 2,243 PASS
