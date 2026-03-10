@@ -5,6 +5,7 @@ import * as v2Schema from "~/db/schema-v2";
 import * as matrixSchema from "~/features/matrix/db/schema";
 import * as requestsSchema from "~/features/requests/db/schema";
 import * as topicSchema from "~/features/topic/db/schema";
+import * as costSchema from "~/features/cost/db/schema";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 
@@ -80,8 +81,10 @@ export function createTestDb() {
   runMigrationSQL(sqlite, resolve(migrationsDir, "0051_status_check_lifecycle.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0052_proposal_slide_decks.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0053_mvp_builds.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0055_radar_manual_collection.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0054_cost_management.sql"));
 
-  return drizzle(sqlite, { schema: { ...schema, ...v2Schema, ...matrixSchema, ...requestsSchema, ...topicSchema } });
+  return drizzle(sqlite, { schema: { ...schema, ...v2Schema, ...matrixSchema, ...requestsSchema, ...topicSchema, ...costSchema } });
 }
 
 export type TestDB = ReturnType<typeof createTestDb>;

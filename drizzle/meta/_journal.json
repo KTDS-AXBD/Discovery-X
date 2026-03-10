@@ -183,6 +183,13 @@
       "when": 1771224000000,
       "tag": "0025_ontology_auto_extract",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "6",
+      "when": 1773128049691,
+      "tag": "0026_plain_prowler",
+      "breakpoints": true
     }
   ]
 }
