@@ -3,6 +3,20 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 352 (2026-03-11)
+
+**DX-REQ-014 F43 인터뷰 스킬 검토 고도화 — PRD + 프로토타입**:
+- ✅ 인터뷰 5파트 완료 (목적/사용자/범위/성공기준/제약) → interview-log.md
+- ✅ PRD v1 작성 (6개 P0 기능: 모델 레지스트리/선택/API 자동호출/파싱/프롬프트 고도화/요구사항 자동등록)
+- ✅ SPEC.md에 F43 + DX-REQ-014 등록
+- ✅ review-api.mjs v2 프로토타입: ChatGPT(gpt-4o) + Gemini(2.5-flash) API 병렬 호출
+  - 28초 완료 (수동 ~25분 대비 53배 단축)
+  - v2 개선: fallback 체인 + 재시도(지수 백오프) + 착수 판단 파싱 100% + 품질 메트릭 + 잘림 감지
+- ✅ Round 1 검토 완료: ChatGPT=Conditional, Gemini=Conditional
+
+**검증 결과**:
+- ⏭️ 코드 변경 없음 (docs + global 스킬 스크립트만) — typecheck/lint/test/build 스킵
+
 ### 세션 351 (2026-03-10)
 
 **DX-REQ-011 F40 Cost 서비스 레이어 Phase 1 구현**:
