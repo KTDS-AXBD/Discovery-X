@@ -29,6 +29,7 @@
 | DX-PLAN-005 | 통합 실행 계획서 | 2.0 | Active | 01-plan/DX-PLAN-005_integrated-execution-plan.md |
 | DX-PLAN-006 | 슬라이드 MCP 서버 | 1.0 | Active | 01-plan/DX-PLAN-006_slides-mcp-server.md |
 | DX-PLAN-007 | LLM Credit 소진 대응 | 0.1 | Draft | 01-plan/DX-PLAN-007_llm-credit-optimization.md |
+| DX-PLAN-008 | 아이템 수집 시스템 고도화 | 0.1 | Draft | 01-plan/DX-PLAN-008_radar-collection-enhancement.md |
 
 ## DSGN — 설계
 
@@ -43,6 +44,7 @@
 | DX-DSGN-007 | 온톨로지 활성화 설계 | 1.0 | Draft | 02-design/DX-DSGN-007_ontology-activation-plan.md |
 | DX-DSGN-008 | Radar 스코어링 전략 | 1.0 | Active | 02-design/DX-DSGN-008_radar-scoring-strategy.md |
 | DX-DSGN-009 | MVP 빌더 Agent 설계 | 1.0 | Active | 02-design/DX-DSGN-009_mvp-builder.md |
+| DX-DSGN-010 | Radar 수동 수집 + Signal→Idea 설계 | 1.0 | Draft | 02-design/DX-DSGN-010_radar-manual-collection.md |
 | DX-DSGN-100 | 문서 관리 표준 및 적용 계획 | 1.0 | Draft | 02-design/DX-DSGN-100_doc-governance-plan.md |
 
 ## ANLS — 분석
