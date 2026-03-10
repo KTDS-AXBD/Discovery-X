@@ -3,6 +3,38 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 351 (2026-03-10)
+
+**DX-REQ-011 F40 Cost 서비스 레이어 Phase 1 구현**:
+- ✅ P1-02b: model_catalog(7모델) + price_catalog 시딩 + Admin Seed API (`/api/admin/cost-seed`)
+- ✅ P1-03: CostEstimator — 단가 환산(price_catalog 참조) + budget_usage_cache incremental update
+- ✅ P1-04: BudgetEvaluator — O(1) 캐시 조회 + 4단계 정책 우선순위(user+purpose > user > tenant+purpose > tenant)
+- ✅ P1-07: UsageRecorder — usage_events INSERT + daily_usage_aggregates UPSERT + token_usage_logs 하위호환
+- ✅ P1-10: purpose 마이그레이션 SQL (mode→purpose: default→chat, ideas→analysis, direct→extraction)
+- ✅ 호출부 통합: updateTokenUsage/logTokenUsage에 UsageRecorder 병행 기록 (userId+tenantId 존재 시)
+- ✅ Agent Team (W1: Seed, W2: UsageRecorder, W3: CostEstimator) + Leader(BudgetEvaluator + 호출부 교체)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 2,206 테스트 통과 / build 성공
+
+### 세션 350 (2026-03-10)
+
+**F41 수집 고도화 Phase 1A 구현 (DX-REQ-012)**:
+- ✅ Drizzle 스키마 확장: radar_sources 5필드 + radar_items 6필드 + idea_sources 2필드
+- ✅ 3축 유형 분류: SourceType(+site,sns) + CollectionType(auto/manual) + ContentType(article/video/document/memo)
+- ✅ URL 파싱 유틸: canonicalizeUrl + parseUrl + generateDedupeKey (2단계 dedupe)
+- ✅ RadarService 확장: getOrCreateManualSource, collectFromUrl, collectFromText, sendToIdea
+- ✅ API 2개: POST /api/radar/manual-collect, POST /api/radar/items/:id/send-to-idea
+- ✅ UI 4개: ManualCollectTab, UrlCollectForm, TextCollectForm, SendToIdeaButton
+- ✅ radar.tsx 3탭 구조: 피드 / 수동 등록 / 소스 관리
+- ✅ WEB→SITE 호환성 전환 (기존 데이터 마이그레이션 0055 적용)
+- ✅ Agent Team 3 Worker 병렬 실행 (W1: Schema, W2: URL Parser, W3: UI)
+- ✅ typecheck/lint/test(2,206)/build 전체 통과
+- ✅ Cost 서비스 P1 미커밋분 함께 커밋 (DX-REQ-011: Seed + UsageRecorder + CostEstimator + BudgetEvaluator)
+
+**검증 결과**: ✅ typecheck / ✅ lint / ✅ tests (2,206) / ✅ build
+**신규 12파일 / 수정 5파일** — 코드 +904줄
+
 ### 세션 349 (2026-03-10)
 
 **ax-14-req-interview 스킬 Global 설치 (DX-REQ-013)**:
