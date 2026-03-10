@@ -1,6 +1,6 @@
 # Discovery-X 문서 인덱스
 
-> 자동 생성 | 최종 갱신: 2026-03-08
+> 자동 생성 | 최종 갱신: 2026-03-10
 
 ## SPEC — 사양
 
@@ -28,8 +28,9 @@
 | DX-PLAN-004 | 온톨로지 인텔리전스 계획 | 1.0 | Active | 01-plan/DX-PLAN-004_ontology-intelligence.md |
 | DX-PLAN-005 | 통합 실행 계획서 | 2.0 | Active | 01-plan/DX-PLAN-005_integrated-execution-plan.md |
 | DX-PLAN-006 | 슬라이드 MCP 서버 | 1.0 | Active | 01-plan/DX-PLAN-006_slides-mcp-server.md |
-| DX-PLAN-007 | LLM Credit 소진 대응 | 0.1 | Draft | 01-plan/DX-PLAN-007_llm-credit-optimization.md |
-| DX-PLAN-008 | 아이템 수집 시스템 고도화 | 0.1 | Draft | 01-plan/DX-PLAN-008_radar-collection-enhancement.md |
+| DX-PLAN-007 | LLM Credit 소진 대응 | 1.0 | Draft | 01-plan/DX-PLAN-007_llm-credit-optimization.md |
+| DX-PLAN-008 | AI API 서비스 관리 | 1.2 | Draft | 01-plan/DX-PLAN-008_ai-api-service-management.md |
+| DX-PLAN-009 | 아이템 수집 시스템 고도화 | 0.3 | Draft | 01-plan/DX-PLAN-009_radar-collection-enhancement.md |
 
 ## DSGN — 설계
 
@@ -45,6 +46,7 @@
 | DX-DSGN-008 | Radar 스코어링 전략 | 1.0 | Active | 02-design/DX-DSGN-008_radar-scoring-strategy.md |
 | DX-DSGN-009 | MVP 빌더 Agent 설계 | 1.0 | Active | 02-design/DX-DSGN-009_mvp-builder.md |
 | DX-DSGN-010 | Radar 수동 수집 + Signal→Idea 설계 | 1.0 | Draft | 02-design/DX-DSGN-010_radar-manual-collection.md |
+| DX-DSGN-011 | AI API 서비스 관리 설계 | 1.0 | Draft | 02-design/DX-DSGN-011_ai-api-service-management.md |
 | DX-DSGN-100 | 문서 관리 표준 및 적용 계획 | 1.0 | Draft | 02-design/DX-DSGN-100_doc-governance-plan.md |
 
 ## ANLS — 분석
@@ -56,6 +58,7 @@
 | DX-ANLS-003 | 레이아웃 제안 갭 분석 | 1.0 | Active | 03-analysis/DX-ANLS-003_layout-proposals.md |
 | DX-ANLS-004 | 온톨로지 인텔리전스 갭 분석 | 1.0 | Active | 03-analysis/DX-ANLS-004_ontology-intelligence.md |
 | DX-ANLS-005 | F36 MVP 빌더 Agent 갭 분석 | 1.0 | Active | 03-analysis/DX-ANLS-005_F36-mvp-builder.md |
+| DX-ANLS-006 | AI API 서비스 관리 개발계획 검토의견 | 1.0 | Active | 03-analysis/DX-ANLS-006_ai-api-review.md |
 
 ## RPRT — 보고
 
@@ -85,4 +88,4 @@
 
 ---
 
-*총 43개 문서 | Active: 38 | Draft: 3 | Archived: 0*
+*총 46개 문서 | Active: 39 | Draft: 7 | Archived: 0*

@@ -1,12 +1,16 @@
+---
+code: DX-PLAN-009
+title: 아이템 수집 시스템 고도화 — Signal Capture Engine
+version: "0.3"
+status: Draft
+category: PLAN
+created: 2026-03-10
+updated: 2026-03-10
+author: Sinclair Seo
+---
+
 # 아이템 수집 시스템 고도화 — Signal Capture Engine
 
-> **Summary**: Radar를 Signal Capture Engine으로 고도화 — 수동 수집 우선, 채널 자율 관리, 4축 품질 판단, 3축 유형 분류, 큐 기반 수집 파이프라인
->
-> **Project**: Discovery-X
-> **Version**: 0.6.0
-> **Author**: Sinclair Seo
-> **Date**: 2026-03-10
-> **Status**: Draft (v0.3 — 재검토 의견 반영)
 > **Req**: DX-REQ-012 (F41, P1)
 > **Review**: 1차 검토 7.5 → v0.2 8.5 → v0.3 재검토 반영
 

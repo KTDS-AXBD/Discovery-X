@@ -1,13 +1,18 @@
+---
+code: DX-DSGN-011
+title: AI API 서비스 관리 — 설계 문서
+version: "1.0"
+status: Draft
+category: DSGN
+created: 2026-03-11
+updated: 2026-03-11
+author: Sinclair Seo
+---
+
 # AI API 서비스 관리 — 설계 문서
 
 > **Summary**: 3-Ledger 비용 관리 + Policy Engine 라우팅 + Capability-aware Fallback
->
-> **Project**: Discovery-X
-> **Version**: 0.7.0
-> **Author**: Sinclair Seo
-> **Date**: 2026-03-11
-> **Status**: Draft
-> **Planning Doc**: [DX-PLAN-008](../../01-plan/DX-PLAN-008_ai-api-service-management.md)
+> **Planning Doc**: [[DX-PLAN-008]]
 
 ---
 

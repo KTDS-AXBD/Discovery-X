@@ -1,12 +1,16 @@
+---
+code: DX-PLAN-007
+title: LLM API Credit 소진 대응 — 구독 토큰 기반 분석 + 사용량 모니터링
+version: "1.0"
+status: Draft
+category: PLAN
+created: 2026-03-10
+updated: 2026-03-10
+author: Sinclair Seo
+---
+
 # LLM API Credit 소진 대응 — 구독 토큰 기반 분석 + 사용량 모니터링
 
-> **Summary**: LLM API Credit 직접 소비 대신 Claude Code 구독 토큰 활용 방안 탐구 + Credit/토큰 사용량 모니터링
->
-> **Project**: Discovery-X
-> **Version**: 0.6.0
-> **Author**: Sinclair Seo
-> **Date**: 2026-03-10
-> **Status**: Draft
 > **Req**: DX-REQ-011 (F40, P1)
 
 ---

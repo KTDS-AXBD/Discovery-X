@@ -1,3 +1,14 @@
+---
+code: DX-ANLS-006
+title: AI API 서비스 관리 개발계획 검토의견
+version: "1.0"
+status: Active
+category: ANLS
+created: 2026-03-11
+updated: 2026-03-11
+author: External Reviewer
+---
+
 # AI API 서비스 관리 개발계획 검토의견
 
 ## 총평

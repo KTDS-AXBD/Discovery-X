@@ -15,7 +15,7 @@ refs:
 
 # AI API 서비스 관리 — 재구조화 요구사항
 
-> 1차 검토의견(`docs/ai_api_service_management_review.md`) 반영하여 재구조화.
+> 1차 검토의견([[DX-ANLS-006]]) 반영하여 재구조화.
 > 2차 검토의견 반영: Usage Aggregation / Budget Cache / Policy 정규화 / Capability Score.
 > 3차 검토의견 반영: Usage Cold Archive / Score 산정 기준 / Policy Versioning.
 > 핵심 변경: 3-Ledger 데이터 모델 / 정책 엔진 우선 / capability-aware fallback.
