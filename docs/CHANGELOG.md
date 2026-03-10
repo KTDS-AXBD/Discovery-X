@@ -25,14 +25,16 @@
 - ✅ typecheck 0 errors / lint 0 errors / batch-runner.sh syntax OK
 
 ### 세션 344 (2026-03-10)
-**AI 분석 Fallback 버그 수정 (DX-REQ-010)**:
+**AI 분석 Fallback 버그 수정 + 프로바이더 모니터링 (DX-REQ-010)**:
 - 🐛 근본 원인: Anthropic API 크레딧 소진 → FallbackManager가 non-credit 에러 시 체인 중단 (re-throw)
 - ✅ FallbackManager: 모든 에러 시 다음 프로바이더로 fallback (Anthropic→OpenAI→Google→Workers AI)
-- ✅ Workers AI 프로바이더: 깨진 REST URL 제거 → `env.AI` 바인딩 기반 재구현
-- ✅ wrangler.toml: `[ai] binding = "AI"` 추가
-- ✅ ideas.$id.tsx: 분석 실패 시 에러 배너 UI 추가 (기존: "failed" 상태만 표시, 원인 미노출)
-- ✅ DX-REQ-010 등록: 프로덕션 DB에 bug 타입 요구사항 등록 (priority: high)
-- 📊 Fallback 라이브 테스트: Anthropic(크레딧 소진) → OpenAI(정상) → Google(429) → Workers AI(정상)
+- ✅ Workers AI 프로바이더: REST API 기반 재구현 (env.AI 바인딩 우선 + REST 폴백)
+- ✅ SSE keep-alive heartbeat 추가 (10초 간격, QUIC 타임아웃 방지)
+- ✅ 프로바이더 모니터링: SSE 이벤트 + DB analysisData + token_usage_logs에 provider/model 기록
+- ✅ ideas.$id.tsx: 에러 배너(프로바이더별 실패 원인) + 프로바이더 인디케이터(Claude/GPT-4o/Gemini/Llama)
+- ✅ Google AI 모델 매핑: gemini-2.0-flash → gemini-2.5-flash (신규 키에서 2.0 deprecated)
+- ✅ 프로덕션 시크릿 교정: OPENAI_API_KEY(401 잘못된 키 교체) + GOOGLE_AI_API_KEY(신규) + CLOUDFLARE_API_TOKEN(Workers AI용)
+- 📊 최종 Fallback 체인: Anthropic(❌소진) → OpenAI(✅) → Google(✅) → Workers AI(✅)
 - 📊 테스트: 2,206개 (147 files, 100% PASS), typecheck OK, build OK
 
 ---
