@@ -1,5 +1,12 @@
 import type { DB } from "~/db";
-import { modelCatalog, priceCatalog } from "./schema";
+import {
+  modelCatalog,
+  priceCatalog,
+  routingPolicies,
+  policyProviderPriorities,
+  policyPurposeRules,
+  policyDegradeRules,
+} from "./schema";
 
 // ============================================================================
 // MODEL CATALOG SEED DATA (7 models)
@@ -212,10 +219,210 @@ export async function seedPriceCatalog(db: DB): Promise<number> {
   return count;
 }
 
+// ============================================================================
+// ROUTING POLICY SEED DATA (DX-DSGN-011 §7.2)
+// ============================================================================
+
+const DEFAULT_POLICY_ID = "default-global";
+
+const PROVIDER_PRIORITIES = [
+  { provider: "anthropic", priority: 1 },
+  { provider: "openai", priority: 2 },
+  { provider: "google", priority: 3 },
+  { provider: "workers-ai", priority: 4 },
+] as const;
+
+const PURPOSE_RULES = [
+  {
+    purpose: "chat",
+    minCapabilityScore: 35,
+    requiresTools: false,
+    requiresJsonMode: false,
+    requiresStreaming: false,
+    degradable: true,
+    degradeToScore: 35,
+  },
+  {
+    purpose: "analysis",
+    minCapabilityScore: 55,
+    requiresTools: false,
+    requiresJsonMode: false,
+    requiresStreaming: false,
+    degradable: true,
+    degradeToScore: 35,
+  },
+  {
+    purpose: "extraction",
+    minCapabilityScore: 55,
+    requiresTools: false,
+    requiresJsonMode: true,
+    requiresStreaming: false,
+    degradable: false,
+    degradeToScore: null,
+  },
+  {
+    purpose: "batch",
+    minCapabilityScore: 35,
+    requiresTools: false,
+    requiresJsonMode: false,
+    requiresStreaming: false,
+    degradable: true,
+    degradeToScore: 35,
+  },
+  {
+    purpose: "agent-tool",
+    minCapabilityScore: 55,
+    requiresTools: true,
+    requiresJsonMode: false,
+    requiresStreaming: false,
+    degradable: false,
+    degradeToScore: null,
+  },
+  {
+    purpose: "eval",
+    minCapabilityScore: 55,
+    requiresTools: false,
+    requiresJsonMode: false,
+    requiresStreaming: false,
+    degradable: false,
+    degradeToScore: null,
+  },
+] as const;
+
+const DEGRADE_RULES = [
+  {
+    fromMinScore: 85,
+    fromMaxScore: 100,
+    degradeToModelId: "anthropic:claude-sonnet-4-6",
+    action: "degrade",
+  },
+  {
+    fromMinScore: 55,
+    fromMaxScore: 84,
+    degradeToModelId: "anthropic:claude-haiku-4-5",
+    action: "degrade",
+  },
+  {
+    fromMinScore: 0,
+    fromMaxScore: 54,
+    degradeToModelId: null,
+    action: "block",
+  },
+] as const;
+
+export async function seedRoutingPolicy(db: DB): Promise<number> {
+  let count = 0;
+
+  // 1. routing_policies 본체
+  await db
+    .insert(routingPolicies)
+    .values({
+      id: DEFAULT_POLICY_ID,
+      tenantId: null, // 전역 정책
+      name: "default-global",
+      version: 1,
+      isActive: true,
+      priority: 100,
+    })
+    .onConflictDoUpdate({
+      target: routingPolicies.id,
+      set: {
+        name: "default-global",
+        version: 1,
+        isActive: true,
+        priority: 100,
+      },
+    });
+  count++;
+
+  // 2. provider priorities
+  for (const pp of PROVIDER_PRIORITIES) {
+    const id = `${DEFAULT_POLICY_ID}-pp-${pp.provider}`;
+    await db
+      .insert(policyProviderPriorities)
+      .values({
+        id,
+        policyId: DEFAULT_POLICY_ID,
+        policyVersion: 1,
+        provider: pp.provider,
+        priority: pp.priority,
+      })
+      .onConflictDoUpdate({
+        target: policyProviderPriorities.id,
+        set: {
+          provider: pp.provider,
+          priority: pp.priority,
+        },
+      });
+    count++;
+  }
+
+  // 3. purpose rules
+  for (const pr of PURPOSE_RULES) {
+    const id = `${DEFAULT_POLICY_ID}-pr-${pr.purpose}`;
+    await db
+      .insert(policyPurposeRules)
+      .values({
+        id,
+        policyId: DEFAULT_POLICY_ID,
+        policyVersion: 1,
+        purpose: pr.purpose,
+        minCapabilityScore: pr.minCapabilityScore,
+        requiresTools: pr.requiresTools,
+        requiresJsonMode: pr.requiresJsonMode,
+        requiresStreaming: pr.requiresStreaming,
+        degradable: pr.degradable,
+        degradeToScore: pr.degradeToScore,
+      })
+      .onConflictDoUpdate({
+        target: policyPurposeRules.id,
+        set: {
+          minCapabilityScore: pr.minCapabilityScore,
+          requiresTools: pr.requiresTools,
+          requiresJsonMode: pr.requiresJsonMode,
+          requiresStreaming: pr.requiresStreaming,
+          degradable: pr.degradable,
+          degradeToScore: pr.degradeToScore,
+        },
+      });
+    count++;
+  }
+
+  // 4. degrade rules
+  for (let i = 0; i < DEGRADE_RULES.length; i++) {
+    const dr = DEGRADE_RULES[i];
+    const id = `${DEFAULT_POLICY_ID}-dr-${i}`;
+    await db
+      .insert(policyDegradeRules)
+      .values({
+        id,
+        policyId: DEFAULT_POLICY_ID,
+        policyVersion: 1,
+        fromMinScore: dr.fromMinScore,
+        fromMaxScore: dr.fromMaxScore,
+        degradeToModelId: dr.degradeToModelId,
+        action: dr.action,
+      })
+      .onConflictDoUpdate({
+        target: policyDegradeRules.id,
+        set: {
+          fromMinScore: dr.fromMinScore,
+          fromMaxScore: dr.fromMaxScore,
+          degradeToModelId: dr.degradeToModelId,
+          action: dr.action,
+        },
+      });
+    count++;
+  }
+
+  return count;
+}
+
 export async function seedAll(
   db: DB
-): Promise<{ models: number; prices: number }> {
+): Promise<{ models: number; prices: number; routingPolicy: number }> {
   const models = await seedModelCatalog(db);
   const prices = await seedPriceCatalog(db);
-  return { models, prices };
+  const routingPolicy = await seedRoutingPolicy(db);
+  return { models, prices, routingPolicy };
 }
