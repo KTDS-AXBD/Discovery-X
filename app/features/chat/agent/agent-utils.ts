@@ -8,6 +8,9 @@ import type { DB } from "~/db";
 import { agentConfig } from "~/db";
 import { tokenUsageLogs } from "~/db/token-usage-schema";
 import { CLAUDE_MODEL } from "~/lib/ai";
+import { UsageRecorder } from "~/features/cost/service/usage-recorder";
+import { MODE_TO_PURPOSE } from "~/features/cost/constants/purpose";
+import type { ProviderId } from "~/features/cost/types";
 
 export function generateId(): string {
   return crypto.randomUUID();
@@ -21,6 +24,8 @@ export interface TokenUsageMeta {
   outputTokens?: number;
   toolRounds?: number;
   tenantId?: string | null;
+  userId?: string | null;
+  provider?: string | null;
 }
 
 export async function updateTokenUsage(db: DB, tokensUsed: number, meta?: TokenUsageMeta) {
@@ -59,6 +64,27 @@ export async function updateTokenUsage(db: DB, tokensUsed: number, meta?: TokenU
       });
     } catch {
       // Non-critical: don't fail the main operation if logging fails
+    }
+
+    // 신규 usage_events 병행 기록 (userId + tenantId가 있을 때만)
+    if (meta.userId && meta.tenantId) {
+      try {
+        const recorder = new UsageRecorder(db);
+        const purpose = MODE_TO_PURPOSE[meta.mode || "default"] || "chat";
+        await recorder.record({
+          userId: meta.userId,
+          tenantId: meta.tenantId,
+          conversationId: meta.conversationId ?? undefined,
+          provider: (meta.provider as ProviderId) || "anthropic",
+          model: meta.model || CLAUDE_MODEL,
+          purpose,
+          inputTokens: meta.inputTokens || 0,
+          outputTokens: meta.outputTokens || 0,
+          toolRounds: meta.toolRounds || 0,
+        });
+      } catch {
+        // Non-critical: usage_events 기록 실패는 무시
+      }
     }
   }
 }

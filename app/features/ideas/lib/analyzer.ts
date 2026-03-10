@@ -14,6 +14,9 @@ import { CLAUDE_MODEL } from "~/lib/ai";
 import { callLLM } from "~/lib/ai";
 import type { FallbackContext } from "~/lib/ai";
 import { PIPELINE_ORDER, CATEGORY_MAP } from "./analysis-prompts";
+import { UsageRecorder } from "~/features/cost/service/usage-recorder";
+import { MODE_TO_PURPOSE } from "~/features/cost/constants/purpose";
+import type { ProviderId } from "~/features/cost/types";
 
 const INTER_CATEGORY_DELAY_MS = 1500;
 
@@ -286,6 +289,7 @@ async function logTokenUsage(
     totalTokens: number;
     tenantId?: string;
     provider?: string;
+    userId?: string;
   }
 ) {
   // Update daily aggregate
@@ -310,7 +314,7 @@ async function logTokenUsage(
       .where(eq(agentConfig.id, "default"));
   }
 
-  // Insert log
+  // Insert log (legacy)
   await db.insert(tokenUsageLogs).values({
     id: crypto.randomUUID(),
     mode: meta.mode,
@@ -322,4 +326,23 @@ async function logTokenUsage(
     tenantId: meta.tenantId || null,
     provider: meta.provider || "anthropic",
   });
+
+  // 신규 usage_events 병행 기록
+  if (meta.userId && meta.tenantId) {
+    try {
+      const recorder = new UsageRecorder(db);
+      const purpose = MODE_TO_PURPOSE[meta.mode] || "chat";
+      await recorder.record({
+        userId: meta.userId,
+        tenantId: meta.tenantId,
+        provider: (meta.provider as ProviderId) || "anthropic",
+        model: meta.model,
+        purpose,
+        inputTokens: meta.inputTokens,
+        outputTokens: meta.outputTokens,
+      });
+    } catch {
+      // Non-critical
+    }
+  }
 }

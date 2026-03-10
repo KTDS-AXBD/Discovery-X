@@ -192,6 +192,8 @@ export async function saveAndFinalize(
     outputTokens: number;
     toolRounds: number;
     tenantId?: string;
+    userId?: string;
+    provider?: string;
   },
 ): Promise<void> {
   // 어시스턴트 메시지 저장
@@ -211,5 +213,7 @@ export async function saveAndFinalize(
     outputTokens: usage.outputTokens,
     toolRounds: usage.toolRounds,
     tenantId: usage.tenantId,
+    userId: usage.userId,
+    provider: usage.provider,
   });
 }

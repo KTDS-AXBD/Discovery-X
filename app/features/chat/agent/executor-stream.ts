@@ -362,6 +362,7 @@ export function createAgentStreamResponse(
               outputTokens: totalOutputTokens,
               toolRounds: round,
               tenantId,
+              userId: streamOptions?.userId,
             });
             await flushSessionMemory(db, conversationId, streamOptions, totalInputTokens, totalOutputTokens, finalText);
             await sendBudgetWarning(db, controller, send);
@@ -395,6 +396,7 @@ export function createAgentStreamResponse(
           outputTokens: totalOutputTokens,
           toolRounds: MAX_TOOL_ROUNDS,
           tenantId,
+          userId: streamOptions?.userId,
         });
         await flushSessionMemory(db, conversationId, streamOptions, totalInputTokens, totalOutputTokens, streamMaxRoundsMsg);
         send(controller, { type: "text_delta", content: streamMaxRoundsMsg });
