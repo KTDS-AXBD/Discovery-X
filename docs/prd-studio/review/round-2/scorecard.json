@@ -1,0 +1,91 @@
+{
+  "round": 2,
+  "timestamp": "2026-03-11T05:45:31.224Z",
+  "total": 82,
+  "verdict": "착수 준비 완료",
+  "emoji": "✅",
+  "item1": {
+    "score": 20,
+    "max": 20,
+    "reason": "신규 0개 (현재 10, 이전 12)",
+    "totalIssues": 10,
+    "prevIssues": 12,
+    "newIssues": 0
+  },
+  "item2": {
+    "score": 12,
+    "max": 30,
+    "details": [
+      {
+        "name": "ChatGPT",
+        "verdict": "Conditional",
+        "points": 1.5
+      },
+      {
+        "name": "Gemini",
+        "verdict": "Conditional",
+        "points": 1.5
+      }
+    ],
+    "rawTotal": 3,
+    "scaled": 6,
+    "count": 2
+  },
+  "item3": {
+    "score": 30,
+    "max": 30,
+    "details": [
+      {
+        "name": "핵심 문제 정의",
+        "max": 5,
+        "found": true
+      },
+      {
+        "name": "사용자/이해관계자",
+        "max": 5,
+        "found": true
+      },
+      {
+        "name": "핵심 기능 범위",
+        "max": 5,
+        "found": true
+      },
+      {
+        "name": "Out-of-scope",
+        "max": 4,
+        "found": true
+      },
+      {
+        "name": "KPI/성공 기준",
+        "max": 6,
+        "found": true
+      },
+      {
+        "name": "MVP 기준",
+        "max": 5,
+        "found": true
+      }
+    ]
+  },
+  "item4": {
+    "score": 20,
+    "max": 20,
+    "details": [
+      {
+        "name": "사용자 관점",
+        "max": 7,
+        "found": true
+      },
+      {
+        "name": "기술 관점",
+        "max": 7,
+        "found": true
+      },
+      {
+        "name": "비즈니스 관점",
+        "max": 6,
+        "found": true
+      }
+    ]
+  }
+}
