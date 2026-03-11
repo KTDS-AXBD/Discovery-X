@@ -3,6 +3,23 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 361 (2026-03-11)
+
+**F43 인터뷰 스킬 고도화 — review-api.mjs v5 + Six Hats 토론 (DX-REQ-014)**:
+- ✅ review-api.mjs v4→v5: Six Thinking Hats 토론 모드 추가 (`--mode sixhats --rounds 20`)
+- ✅ models.json v1.1: `$sixhats` 설정 (6 hats 한국어 프롬프트 + hatOrder + defaultModel/Rounds)
+- ✅ SKILL.md: Phase 2b (Six Hats 토론) 섹션 + 버전 참조 v5 동기화
+- ✅ review-prompts.md: 모델 테이블 models.json 정합 (Claude/Grok → DeepSeek)
+- ✅ actionable-items.json 자동 생성 (Phase 3 자동화 준비)
+- ✅ callGemini optional params 리팩토링 — maxTokens/temperature 파라미터화 (인라인 코드 중복 제거)
+- ✅ 버그 수정: Gemini 경로 maxTokens 무시 + dead code 제거
+
+**변경 범위**: ~/.claude/skills/ax-14-req-interview/ (프로젝트 외부, 4파일)
+- review-api.mjs: 688→1,015줄 (+327)
+- models.json: 43→95줄 (+52, $sixhats)
+- SKILL.md: 250→300줄 (+50, Phase 2b)
+- review-prompts.md: 172줄 (모델 테이블 수정)
+
 ### 세션 360 (2026-03-11)
 
 **F41 Phase 2A 채널 관리 + 도메인 CRUD + Source Lifecycle (DX-REQ-012)**:
