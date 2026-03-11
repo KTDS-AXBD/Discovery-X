@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 359 (2026-03-11)
+
+**F40 P1-09 관리자 비용 대시보드 (DX-REQ-011)**:
+- ✅ 관리자 API 8개 신규: budget-policies CRUD, model-catalog CRUD, routing-policies, cost-report-v2, routing-decisions, usage-aggregates
+- ✅ admin.costs.tsx 4탭 전면 리디자인 (비용 개요/예산 정책/모델 카탈로그/라우팅 로그)
+- ✅ 3-Ledger 기반 USD 비용 표시 + 출처 라벨 구분 (DX-PLAN-008 §7)
+- ✅ /frontend-design 스킬 적용: teal accent, threshold 마커 progress bar, underline tab, gradient chart
+- ✅ 빌트인 subagent 병렬 실행 (W1:CRUD API, W2:Report API, W3:UI — 3개 동시)
+
+**검증 결과**: typecheck 0 (기존 1건 제외) / lint 0 (기존 2건 제외) / build ✅
+
+**영향 범위**: 9파일 (신규 8 + 수정 1) / +1,972줄 / 라우트 168→176
+
 ### 세션 358b (2026-03-11)
 
 **ax 스킬 개선 — Pane-Scoped 커밋/테스트 (인프라)**:
