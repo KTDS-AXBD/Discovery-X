@@ -3,6 +3,20 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 368 (2026-03-12)
+
+**DeepSeek 프로바이더 구현 + LLM Service 품질 비교 + Fallback 체인 재조정 (DX-REQ-011)**:
+- ✅ DeepSeek V3 프로바이더 구현 (`providers/deepseek.ts`, OpenAI 호환 API 재사용)
+- ✅ FallbackManager + Health API에 DeepSeek 통합 (5개 프로바이더 완성)
+- ✅ LLM 품질 비교 스크립트 (`scripts/llm-quality-compare.ts`) — 4프롬프트×4모델 병렬 테스트
+- ✅ 비교 결과: DeepSeek V3 🏆 (91/100, 209ms) > GPT-4o (90, 2.9s) > GPT-4o Mini (88, 3.4s) > Gemini (74, 6s)
+- ✅ Fallback 체인 재조정: anthropic→**deepseek**→openai→google→workers-ai (품질·속도 기반)
+- ✅ 프로덕션 시크릿 설정: DEEPSEEK_API_KEY + CRON_SECRET 갱신
+- ✅ PolicyRouter 시드 `provider_priorities`에 deepseek priority 2 추가
+
+**변경**: 7파일 (신규 3 + 수정 4), +1,101줄
+**검증**: ✅ typecheck / ✅ lint / ✅ test (2,415) / ✅ build
+
 ### 세션 367 (2026-03-12)
 
 **F41 Phase 3A 검증 + GAP 분석 + 프로덕션 마이그레이션 (DX-REQ-012)**:

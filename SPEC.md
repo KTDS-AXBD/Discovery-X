@@ -461,6 +461,7 @@ build/
 - **@theme inline**: 104 토큰 등록, var() 1,752→122 (93.0% 감소, 163 파일)
 - **@axis-ds 컴포넌트**: 15/28 활용
 - **radar-worker**: scorer 4단계 fallback (Anthropic→OpenAI→Gemini→Workers AI) + failedProviders 스킵
+- **AI Fallback 체인**: 5단계 — Anthropic→DeepSeek→OpenAI→Google→Workers AI (S367 품질 비교 기반)
 - **배포**: 세션 297 — 요구사항 Agent 서비스 테스트 88개 추가
 - **Cron 등록**: cron-job.org 14개 등록 완료 (ai-pipeline 09:30 KST 포함)
 - **Vectorize 인덱스**: dx-graph-embeddings, dx-memory-embeddings, dx-signal-embeddings (512d cosine, 프로덕션 생성 완료)
@@ -576,4 +577,4 @@ build/
 | F42 | 요구사항 인터뷰 스킬 설치 — 인터뷰→PRD→외부 AI 다중 검토→착수 판단 워크플로우 (DX-REQ-013, P2) | v0.7.0 | ✅ | 6 |
 | F43 | 인터뷰 스킬 검토 고도화 — 모델 선택 + API 자동 호출 + 프롬프트 개선 + 결과 파싱 + 스코어카드 채점 자동화 (DX-REQ-014, P1) | v0.7.0 | 🔧 | - |
 
-| F44 | PRD Studio — 인터뷰 스킬 웹 UI 통합 (인터뷰→PRD→AI검토→스코어카드→착수판단, DX-REQ-015, P1) | v0.7.0 | 📋 | - |
+| F44 | PRD Studio — pm-skills 통합 웹 UI + CLI 하이브리드 (인터뷰→PRD→AI검토→스코어카드→착수판단 + 아이디어 분석 대체, DX-REQ-015, P1) | v0.7.0 | 📋 | - |
