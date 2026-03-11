@@ -1,12 +1,14 @@
 /**
  * POST /api/cron/maintenance
- * ?task=log-archive|memory-compact|projection-sync|pattern-extract|all
+ * ?task=log-archive|memory-compact|projection-sync|pattern-extract|usage-aggregate|all
+ * &days=7  (usage-aggregate 전용: 백필 범위, 기본 7일)
  * Auth: Authorization: Bearer CRON_SECRET
  *
- * 주간 유지보수 + 일별 패턴 추출 통합 엔드포인트.
+ * 주간 유지보수 + 일별 패턴 추출 + 사용량 집계 통합 엔드포인트.
  * 권장 cron-job.org 등록:
  *   - 일요일 03:00 KST → POST ?task=all   (log-archive+memory-compact+projection-sync)
  *   - 매일   04:00 KST → POST ?task=pattern-extract
+ *   - 매일   05:00 KST → POST ?task=usage-aggregate  (daily_usage_aggregates 백필)
  */
 
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
@@ -19,6 +21,7 @@ import { TokenBudgetManager } from "~/lib/cost/token-budget";
 import { ProjectionBuilder } from "~/lib/graph/projection";
 import { callLLM } from "~/lib/ai";
 import type { DB } from "~/db";
+import { UsageAggregator } from "~/features/cost/service/usage-aggregator";
 
 // ============================================================================
 // Types
@@ -329,7 +332,7 @@ async function runPatternExtract(db: DB): Promise<PatternExtractResult> {
 // Route Handler
 // ============================================================================
 
-const VALID_TASKS = ["log-archive", "memory-compact", "projection-sync", "pattern-extract", "all"] as const;
+const VALID_TASKS = ["log-archive", "memory-compact", "projection-sync", "pattern-extract", "usage-aggregate", "all"] as const;
 type Task = (typeof VALID_TASKS)[number];
 
 export async function action({ request, context }: ActionFunctionArgs) {
@@ -371,6 +374,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
   if (task === "pattern-extract" || task === "all") {
     result["pattern-extract"] = await runPatternExtract(db);
+  }
+  if (task === "usage-aggregate" || task === "all") {
+    const days = parseInt(url.searchParams.get("days") ?? "7", 10);
+    const aggregator = new UsageAggregator(db);
+    result["usage-aggregate"] = await aggregator.backfill(
+      Number.isFinite(days) && days > 0 ? days : 7
+    );
   }
 
   return Response.json(result);
