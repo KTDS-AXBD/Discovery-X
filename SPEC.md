@@ -298,7 +298,7 @@ Flow K: Ideas → Discovery 수동 전환
 - `/api/cron*` — Cron 11개 라우트: daily/agent-review/embeddings/weekly-summary/signal-route/matrix-scoring/vectorize/lab/ai-pipeline/maintenance/radar-health (alerts/log-archive/pattern-extract/memory-compact/projection-sync은 daily/maintenance에 통합)
 - ~~`/api/venture*`~~ — *(아카이브됨, 세션 228)*
 - `/api/export*` — Export 4개: discoveries/discoveries-json/brief.$id/metrics
-- `/api/radar*` — Radar API 6개: runs/sources/trigger/summarize/items.$id.status/items.$id.reaction
+- `/api/radar*` — Radar API 8개: runs/sources/trigger/summarize/items.$id.status/items.$id.reaction/health/health.actions
 - `/api/similar*` — 유사 검색 2개: similar-seeds/similar-sources
 - `/api/search` — 통합 검색 API (4개 엔티티 병렬, Vectorize/FTS5/LIKE fallback)
 - `/search` — 통합 검색 페이지 (텍스트/시맨틱 모드, 카테고리 탭)
@@ -321,7 +321,7 @@ Flow K: Ideas → Discovery 수동 전환
 - `/api/proposals/categories` — 카테고리 API
 - `/api/recall-events` — 재호출 이벤트 API
 
-**라우트 합계**: **163** (Venture/Knowledge/Briefing 아카이브 반영)
+**라우트 합계**: **165** (Venture/Knowledge/Briefing 아카이브 반영, +2 radar health)
 
 ---
 
@@ -448,7 +448,7 @@ build/
 - **DB**: 60개 마이그레이션 SQL (0000~0058), 로컬+프로덕션 적용 완료
 
 ### 주요 지표
-- **라우트**: 181개
+- **라우트**: 182개
 - **테이블**: 113개
 - **Agent 도구**: 77개
 - **코드**: ~83,000줄 (~493파일)

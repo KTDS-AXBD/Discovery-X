@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 369 (2026-03-12)
+
+**F41 Phase 3B Source Health Dashboard UI + 운영 액션 API + eval 배치 (DX-REQ-012)**:
+- ✅ Source Health Dashboard UI 4개 컴포넌트: HealthScoreBadge, HealthSummaryCards, OperationActions, SourceHealthTab
+- ✅ radar.tsx "Source Health" 탭 추가 (4탭 구조: 피드/수동등록/Source Health/채널관리)
+- ✅ `api.radar.health.actions` POST API — 소스 pause/activate/archive (gatekeeper+ 권한)
+- ✅ isGatekeeper 권한 전파: UI 숨김 + API 403 이중 방어
+- ✅ `/ax-batch-analysis` eval 모드 추가: 미평가 radar_items → AI 품질 평가 → radar_item_metrics UPSERT
+- ✅ DX-DSGN-013 §3 EVAL_PROMPT 스킬 내장, composite score 계산, Novelty 과감지 플래그
+
+**변경**: 7파일 (신규 5 + 수정 2), +597줄
+**검증**: ✅ typecheck / ✅ lint / ✅ test (2,415) / ✅ build
+
 ### 세션 368 (2026-03-12)
 
 **DeepSeek 프로바이더 구현 + LLM Service 품질 비교 + Fallback 체인 재조정 (DX-REQ-011)**:
