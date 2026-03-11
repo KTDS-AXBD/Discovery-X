@@ -22,62 +22,71 @@ import { Skeleton } from "~/components/ui/Skeleton";
 type TabId = "overview" | "budget" | "catalog" | "routing";
 type RangeId = "7d" | "30d" | "90d";
 
-// --- Overview ---
+// --- Overview (matches /api/admin/cost-report-v2 response) ---
 
-interface DailyCostRow {
+interface DailyTrendRow {
   date: string;
-  totalCostUsd: number;
-  requestCount: number;
+  requests: number;
+  tokens: number;
+  costUsd: number;
+}
+
+interface BudgetStatusRow {
+  policy: {
+    id: string;
+    tenantId: string;
+    userId: string | null;
+    purpose: string | null;
+    budgetUsd: number;
+    thresholdWarnPct: number;
+    thresholdDegradePct: number;
+    thresholdBlockPct: number;
+  };
+  cache: {
+    currentUsageUsd: number;
+    usagePct: number;
+    budgetTier: string;
+  } | null;
 }
 
 interface CostReportResponse {
-  dailyCosts: DailyCostRow[];
+  period: { startDate: string; endDate: string; days: number };
   summary: {
-    totalCostUsd: number;
     totalRequests: number;
-    avgDailyCostUsd: number;
-    days: number;
+    totalTokens: number;
+    totalCostUsd: number;
   };
-  activePolicies: PolicyWithUsage[];
+  breakdown: { key: string; requests: number; tokens: number; costUsd: number }[];
+  dailyTrend: DailyTrendRow[];
+  budgetStatus: BudgetStatusRow[];
 }
 
-interface PolicyWithUsage {
-  id: string;
-  scope: string;
-  budgetUsd: number;
-  period: string;
-  currentUsageUsd: number;
-  usagePct: number;
-  tier: string;
-  thresholdWarnPct: number;
-  thresholdDegradePct: number;
-  thresholdBlockPct: number;
-}
+// --- Budget Policies (matches /api/admin/budget-policies response) ---
 
-// --- Budget Policies ---
-
-interface BudgetPolicyRow {
-  id: string;
-  tenantId: string;
-  userId: string | null;
-  purpose: string | null;
-  budgetUsd: number;
-  periodStart: number;
-  periodEnd: number;
-  thresholdWarnPct: number;
-  thresholdDegradePct: number;
-  thresholdBlockPct: number;
-  isActive: boolean;
-  currentUsageUsd: number;
-  usagePct: number;
-  tier: string;
+interface BudgetPolicyApiRow {
+  policy: {
+    id: string;
+    tenantId: string;
+    userId: string | null;
+    purpose: string | null;
+    budgetUsd: number;
+    periodStart: number;
+    periodEnd: number;
+    thresholdWarnPct: number;
+    thresholdDegradePct: number;
+    thresholdBlockPct: number;
+    isActive: boolean;
+  };
+  currentUsageUsd: number | null;
+  usagePct: number | null;
+  budgetTier: string | null;
 }
 
 interface BudgetPoliciesResponse {
-  policies: BudgetPolicyRow[];
+  policies: BudgetPolicyApiRow[];
 }
 
-// --- Model Catalog ---
+// --- Model Catalog (matches /api/admin/model-catalog response) ---
 
 interface ModelCatalogRow {
   id: string;
@@ -89,21 +98,22 @@ interface ModelCatalogRow {
   supportsStreaming: boolean;
   supportsJsonMode: boolean;
   isActive: boolean;
-  inputPrice: number | null;
-  outputPrice: number | null;
+  currentPrice: {
+    inputPricePerMToken: number;
+    outputPricePerMToken: number;
+  } | null;
 }
 
 interface ModelCatalogResponse {
   models: ModelCatalogRow[];
 }
 
-// --- Routing Decisions ---
+// --- Routing Decisions (matches /api/admin/routing-decisions response) ---
 
 interface RoutingDecisionRow {
   id: string;
   createdAt: number;
   userId: string;
-  userEmail: string | null;
   purpose: string;
   selectedProvider: string | null;
   selectedModel: string | null;
@@ -114,8 +124,6 @@ interface RoutingDecisionRow {
 interface RoutingDecisionsResponse {
   decisions: RoutingDecisionRow[];
   total: number;
-  page: number;
-  pageSize: number;
 }
 
 // ─── 상수 ──────────────────────────────────────────────────────────────
@@ -203,10 +211,10 @@ function purposeLabel(p: string): string {
   return PURPOSE_LABELS[p] ?? p;
 }
 
-function scopeLabel(policy: BudgetPolicyRow): string {
-  if (policy.userId && policy.purpose) return `사용자+${purposeLabel(policy.purpose)}`;
-  if (policy.userId) return "사용자";
-  if (policy.purpose) return purposeLabel(policy.purpose);
+function scopeLabel(p: { userId: string | null; purpose: string | null }): string {
+  if (p.userId && p.purpose) return `사용자+${purposeLabel(p.purpose)}`;
+  if (p.userId) return "사용자";
+  if (p.purpose) return purposeLabel(p.purpose);
   return "조직 전체";
 }
 
@@ -319,7 +327,7 @@ function UsageBar({ pct, warnAt = 80, degradeAt = 100, blockAt = 120 }: { pct: n
 }
 
 /** 일별 비용 바 차트 (CSS 전용) */
-function DailyCostChart({ data }: { data: DailyCostRow[] }) {
+function DailyCostChart({ data }: { data: DailyTrendRow[] }) {
   if (data.length === 0) {
     return (
       <div className="flex items-center justify-center h-48 text-sm text-fg-tertiary">
@@ -329,7 +337,7 @@ function DailyCostChart({ data }: { data: DailyCostRow[] }) {
   }
 
   const sorted = [...data].sort((a, b) => a.date.localeCompare(b.date));
-  const maxCost = Math.max(...sorted.map((r) => r.totalCostUsd), 0.0001);
+  const maxCost = Math.max(...sorted.map((r) => r.costUsd), 0.0001);
 
   return (
     <div>
@@ -343,7 +351,7 @@ function DailyCostChart({ data }: { data: DailyCostRow[] }) {
           />
         ))}
         {sorted.map((row) => {
-          const pct = (row.totalCostUsd / maxCost) * 100;
+          const pct = (row.costUsd / maxCost) * 100;
           return (
             <div
               key={row.date}
@@ -353,15 +361,15 @@ function DailyCostChart({ data }: { data: DailyCostRow[] }) {
                 className="w-full rounded-t-sm bg-gradient-to-t from-teal-600 to-teal-400 dark:from-teal-500 dark:to-teal-300/80"
                 style={{
                   height: `${pct}%`,
-                  minHeight: row.totalCostUsd > 0 ? "2px" : 0,
+                  minHeight: row.costUsd > 0 ? "2px" : 0,
                 }}
               />
               {/* 툴팁 */}
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10">
                 <div className="bg-neutral-900 text-white text-[10px] rounded px-2 py-1.5 whitespace-nowrap shadow-lg">
                   <p className="font-medium">{row.date}</p>
-                  <p>비용: {formatUsd(row.totalCostUsd)}</p>
-                  <p>요청: {formatNumber(row.requestCount)}건</p>
+                  <p>비용: {formatUsd(row.costUsd)}</p>
+                  <p>요청: {formatNumber(row.requests)}건</p>
                 </div>
               </div>
             </div>
@@ -462,12 +470,16 @@ function OverviewTab() {
             <SummaryCard
               label="총 요청 수"
               value={formatNumber(data?.summary.totalRequests ?? 0)}
-              sub={`${data?.summary.days ?? 0}일 기준`}
+              sub={`${data?.period.days ?? 0}일 기준`}
               accent="amber"
             />
             <SummaryCard
               label="일평균 비용"
-              value={formatUsdShort(data?.summary.avgDailyCostUsd ?? 0)}
+              value={formatUsdShort(
+                (data?.period.days ?? 0) > 0
+                  ? (data?.summary.totalCostUsd ?? 0) / (data?.period.days ?? 1)
+                  : 0,
+              )}
               sub="USD / 일"
               accent="rose"
             />
@@ -484,7 +496,7 @@ function OverviewTab() {
           {isLoading ? (
             <Skeleton className="h-48 rounded" />
           ) : (
-            <DailyCostChart data={data?.dailyCosts ?? []} />
+            <DailyCostChart data={data?.dailyTrend ?? []} />
           )}
         </CardContent>
       </Card>
@@ -497,7 +509,7 @@ function OverviewTab() {
         <CardContent>
           {isLoading ? (
             <TableSkeleton rows={3} />
-          ) : !data?.activePolicies?.length ? (
+          ) : !data?.budgetStatus?.length ? (
             <p className="text-sm text-fg-tertiary py-4">
               활성 예산 정책이 없습니다
             </p>
@@ -524,19 +536,20 @@ function OverviewTab() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
-                  {data.activePolicies.map((p) => {
-                    const badge = TIER_BADGE[p.tier] ?? TIER_BADGE.normal;
+                  {data.budgetStatus.map((bs) => {
+                    const tier = bs.cache?.budgetTier ?? "normal";
+                    const badge = TIER_BADGE[tier] ?? TIER_BADGE.normal;
                     return (
-                      <tr key={p.id}>
-                        <td className="py-2.5 px-5 text-fg">{p.scope}</td>
+                      <tr key={bs.policy.id}>
+                        <td className="py-2.5 px-5 text-fg">{scopeLabel(bs.policy)}</td>
                         <td className="py-2.5 px-3 text-right text-fg-secondary tabular-nums">
-                          {formatUsdShort(p.budgetUsd)}
+                          {formatUsdShort(bs.policy.budgetUsd)}
                         </td>
                         <td className="py-2.5 px-3 text-right text-fg-secondary tabular-nums">
-                          {formatUsdShort(p.currentUsageUsd)}
+                          {formatUsdShort(bs.cache?.currentUsageUsd ?? 0)}
                         </td>
                         <td className="py-2.5 px-3">
-                          <UsageBar pct={p.usagePct} />
+                          <UsageBar pct={bs.cache?.usagePct ?? 0} />
                         </td>
                         <td className="py-2.5 px-5 text-center">
                           <Badge variant={badge.variant}>{badge.label}</Badge>
@@ -599,7 +612,8 @@ function BudgetTab() {
     setEditId(null);
   }
 
-  function startEdit(p: BudgetPolicyRow) {
+  function startEdit(row: BudgetPolicyApiRow) {
+    const p = row.policy;
     setEditId(p.id);
     setFormScope(p.purpose ? "purpose" : "org");
     setFormPurpose(p.purpose ?? "chat");
@@ -808,8 +822,10 @@ function BudgetTab() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
-                  {data.policies.map((p) => {
-                    const badge = TIER_BADGE[p.tier] ?? TIER_BADGE.normal;
+                  {data.policies.map((row) => {
+                    const p = row.policy;
+                    const tier = row.budgetTier ?? "normal";
+                    const badge = TIER_BADGE[tier] ?? TIER_BADGE.normal;
                     return (
                       <tr
                         key={p.id}
@@ -832,7 +848,7 @@ function BudgetTab() {
                           {p.thresholdWarnPct}/{p.thresholdDegradePct}/{p.thresholdBlockPct}%
                         </td>
                         <td className="py-2.5 px-3">
-                          <UsageBar pct={p.usagePct} />
+                          <UsageBar pct={row.usagePct ?? 0} />
                         </td>
                         <td className="py-2.5 px-3 text-center">
                           <Badge variant={badge.variant}>{badge.label}</Badge>
@@ -841,7 +857,7 @@ function BudgetTab() {
                           <div className="flex items-center justify-center gap-1">
                             <button
                               type="button"
-                              onClick={() => startEdit(p)}
+                              onClick={() => startEdit(row)}
                               className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                             >
                               수정
@@ -1046,13 +1062,13 @@ function CatalogTab() {
                         </div>
                       </td>
                       <td className="py-2.5 px-3 text-right text-xs text-fg-secondary tabular-nums">
-                        {m.inputPrice != null
-                          ? `$${m.inputPrice.toFixed(2)}/M`
+                        {m.currentPrice
+                          ? `$${m.currentPrice.inputPricePerMToken.toFixed(2)}/M`
                           : "-"}
                       </td>
                       <td className="py-2.5 px-3 text-right text-xs text-fg-secondary tabular-nums">
-                        {m.outputPrice != null
-                          ? `$${m.outputPrice.toFixed(2)}/M`
+                        {m.currentPrice
+                          ? `$${m.currentPrice.outputPricePerMToken.toFixed(2)}/M`
                           : "-"}
                       </td>
                       <td className="py-2.5 px-5 text-center">
@@ -1096,9 +1112,10 @@ function RoutingTab() {
 
   const load = useCallback(
     (p: number, reason: string, provider: string, purpose: string) => {
+      const pageSize = 50;
       const params = new URLSearchParams();
-      params.set("page", String(p));
-      params.set("pageSize", "50");
+      params.set("limit", String(pageSize));
+      params.set("offset", String((p - 1) * pageSize));
       if (reason) params.set("reasonCode", reason);
       if (provider) params.set("provider", provider);
       if (purpose) params.set("purpose", purpose);
@@ -1124,7 +1141,8 @@ function RoutingTab() {
 
   const data = fetcher.data;
   const isLoading = fetcher.state === "loading";
-  const totalPages = data ? Math.ceil(data.total / data.pageSize) : 0;
+  const pageSize = 50;
+  const totalPages = data ? Math.ceil(data.total / pageSize) : 0;
 
   return (
     <div className="space-y-6">
@@ -1247,7 +1265,7 @@ function RoutingTab() {
                             {formatTimestamp(d.createdAt)}
                           </td>
                           <td className="py-2 px-3 text-xs text-fg-secondary truncate max-w-[140px]">
-                            {d.userEmail ?? d.userId.slice(0, 8)}
+                            {d.userId.slice(0, 8)}
                           </td>
                           <td className="py-2 px-3">
                             <Badge variant="subtle">
