@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 370 (2026-03-12)
+
+**F44 PRD Studio PRD 확정 + F43 스코어카드 v2 (DX-REQ-014, DX-REQ-015)**:
+- ✅ F44 PRD Studio 인터뷰 → PRD v1~v10 (10회 반복, 12회 AI 검토)
+- ✅ pm-skills (phuryn/pm-skills, MIT) 통합 방향으로 PRD 재설계 (v6~v10)
+- ✅ F44 REQ 등록: DX-REQ-015, SPEC F44, 앱 DB 동기화
+- ✅ F43 스코어카드 v2: 4항목 전체 개선 (이슈 파싱 구조화, Ready 비율 연속 스케일링, 3단계 충실도, 키워드 수 기반)
+- ✅ ax-config push: review-api.mjs v6 + scorecard.md v2
+
+**변경**: docs/prd-studio/ 72파일 신규, review-api.mjs 142줄 추가
+**검증**: 실 API 테스트 ✅ (스코어카드 v2 검증 완료)
+
 ### 세션 369 (2026-03-12)
 
 **F41 Phase 3B Source Health Dashboard UI + 운영 액션 API + eval 배치 (DX-REQ-012)**:
