@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 356b (2026-03-11)
+
+**F40 P1-11 — daily_usage_aggregates Cron 백필 집계 (DX-REQ-011)**:
+- ✅ `UsageAggregator` 서비스 신규 — usage_events → daily_usage_aggregates 전체 교체 (DELETE + re-INSERT)
+- ✅ `api.cron.maintenance.ts`에 `task=usage-aggregate` 추가 — `?days=N` 파라미터로 백필 범위 조절 (기본 7일)
+- ✅ 테스트 9개 추가 (빈 결과/단일 집계/다중 그룹핑/다중 날짜/drift 보정/범위 제외/days 파라미터/null latency/기존 보존)
+- ✅ F41 Phase 2 Drizzle 스키마 커밋 (radarDomains/radarSourceDomains/radarCrawlQueue)
+
+**검증 결과**:
+- ✅ typecheck 0 에러 / lint 0 에러 / 2,284 테스트 전체 PASS (151 files)
+
 ### 세션 356 (2026-03-11)
 
 **F43 Phase 1 — 인터뷰 스킬 검토 API 자동화 구현 (DX-REQ-014)**:
