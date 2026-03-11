@@ -3,6 +3,15 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 354b (2026-03-11)
+
+**F43 인터뷰 스킬 검토 고도화 — PRD v2 + Round 2 착수 판단 (DX-REQ-014)**:
+- ✅ PRD v2 작성: Round 1 피드백 8건 반영 (보안 정책, 비용 실측, 안정성 90%, 마일스톤, 성공 기준 객관화)
+- ✅ review-api.mjs v3 확장: `--prompt-dir` + `--round` 커스텀 프롬프트 지원
+- ✅ Round 2 자동 실행: ChatGPT Conditional (5/5 해소, 운영 검증만 잔여) + Gemini **Ready** (6/7 해소)
+- ✅ PRD v2 상태: 🔄 검토 중 → ✅ 착수 가능
+- ✅ 오픈 이슈 5→2 해소 (API 키 관리, 민감 정보 정책, 비용 검증)
+
 ### 세션 354 (2026-03-11)
 
 **F41 Phase 1B 파일 업로드 수동 수집 (DX-REQ-012)**:
