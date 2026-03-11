@@ -3,6 +3,20 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 364 (2026-03-11)
+
+**F41 Phase 2B 큐 기반 수집 파이프라인 — Crawl Queue + Worker + Cron (DX-REQ-012)**:
+- ✅ RadarService 7메서드: enqueue/dequeue/complete/fail/status/cleanup/recentFailed
+- ✅ Crawl Worker: processCrawlQueue + RSS/HTML 파서 + CrawlError 구조화 에러
+- ✅ Cron 라우트: `api.cron.radar-collect` (ACTIVE 소스 → 큐 → 배치 수집)
+- ✅ Queue Status API: `api.radar.queue.status` (gatekeeper+ 전용)
+- ✅ QueueStatusPanel UI: 채널 관리 탭 내 접이식 수집 현황 (R1)
+- ✅ deleteSource cascade: crawl_queue 앱 레벨 삭제 추가 (F1)
+- ✅ 테스트 +44개: crawl-queue(30) + crawl-worker(14) → 총 2,375개
+- ✅ 설계-구현 GAP: 97% Match Rate (DX-ANLS-012)
+
+**검증 결과**: ✅ typecheck / lint / 2,375 tests / build
+
 ### 세션 363 (2026-03-11)
 
 **F40 P1-10 purpose 마이그레이션 — mode→purpose 코드 통일 (DX-REQ-011)**:

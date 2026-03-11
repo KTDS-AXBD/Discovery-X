@@ -47,7 +47,7 @@
 | DX-DSGN-009 | MVP 빌더 Agent 설계 | 1.0 | Active | 02-design/DX-DSGN-009_mvp-builder.md |
 | DX-DSGN-010 | Radar 수동 수집 + Signal→Idea 설계 | 1.0 | Draft | 02-design/DX-DSGN-010_radar-manual-collection.md |
 | DX-DSGN-011 | AI API 서비스 관리 설계 | 1.0 | Draft | 02-design/DX-DSGN-011_ai-api-service-management.md |
-| DX-DSGN-012 | Radar 채널 관리 + 도메인 + 큐 설계 | 1.0 | Draft | 02-design/DX-DSGN-012_radar-channel-management.md |
+| DX-DSGN-012 | Radar 채널 관리 + 도메인 + 큐 설계 | 1.1 | Draft | 02-design/DX-DSGN-012_radar-channel-management.md |
 | DX-DSGN-100 | 문서 관리 표준 및 적용 계획 | 1.0 | Draft | 02-design/DX-DSGN-100_doc-governance-plan.md |
 
 ## ANLS — 분석
@@ -60,6 +60,7 @@
 | DX-ANLS-004 | 온톨로지 인텔리전스 갭 분석 | 1.0 | Active | 03-analysis/DX-ANLS-004_ontology-intelligence.md |
 | DX-ANLS-005 | F36 MVP 빌더 Agent 갭 분석 | 1.0 | Active | 03-analysis/DX-ANLS-005_F36-mvp-builder.md |
 | DX-ANLS-006 | AI API 서비스 관리 개발계획 검토의견 | 1.0 | Active | 03-analysis/DX-ANLS-006_ai-api-review.md |
+| DX-ANLS-012 | F41 Phase 2B (큐+워커) 설계-구현 GAP 분석 | 1.0 | Active | 03-analysis/DX-ANLS-012_radar-phase2b-gap.md |
 
 ## RPRT — 보고
 
@@ -89,4 +90,4 @@
 
 ---
 
-*총 47개 문서 | Active: 39 | Draft: 8 | Archived: 0*
+*총 48개 문서 | Active: 40 | Draft: 8 | Archived: 0*
