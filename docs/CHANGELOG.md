@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 365 (2026-03-11)
+
+**F41 Phase 3 설계 문서 — Health Score + AI 품질 평가 + Dashboard (DX-REQ-012)**:
+- ✅ DX-DSGN-013 설계 문서 작성: 4축 Health Score 계산 + AI 배치 평가 + Source Health Dashboard
+- ✅ 데이터 모델: `radar_source_metrics` + `radar_item_metrics` 2테이블 설계 (마이그레이션 0058)
+- ✅ Health Score 4축: relevance(30%) + novelty(20%) + engagement(20%) + conversion(30%)
+- ✅ AI 평가 전략: `claude -p` 배치 (구독 토큰, API 크레딧 소비 없음)
+- ✅ Phase 3A/3B 분할 계획: 3A(데이터+서비스+Cron) → 3B(AI+UI)
+- ✅ INDEX.md 갱신 (49개 문서)
+
+**변경**: docs 2파일 (DX-DSGN-013 신규 + INDEX.md 갱신), 코드 변경 없음
+**검증**: docs only — typecheck/lint/test/build 스킵
+
 ### 세션 364 (2026-03-11)
 
 **F41 Phase 2B 큐 기반 수집 파이프라인 — Crawl Queue + Worker + Cron (DX-REQ-012)**:
