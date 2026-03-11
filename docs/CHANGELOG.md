@@ -3,6 +3,35 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 358 (2026-03-11)
+
+**F41 Phase 2~3 — 마이그레이션 0057 + Source Lifecycle 상수 (DX-REQ-012)**:
+- ✅ 마이그레이션 0057 커밋 (radar_domains + radar_source_domains + radar_crawl_queue) + test helper 동기화
+- ✅ `app/features/radar/constants/source-lifecycle.ts` 신규 — SOURCE_ALLOWED_TRANSITIONS 6개 전환 규칙
+- ✅ `validateSourceTransition()` 검증 함수 + REVIEW_THRESHOLDS 자동 전환 임계치
+- ✅ COLLECTIBLE/ATTENTION/TERMINAL 상태 그룹 + SOURCE_STATUS_CONFIG UI 설정
+
+**검증 결과**:
+- ✅ typecheck / lint (에러 0개)
+
+### 세션 357 (2026-03-11)
+
+**F43 Phase 4 — 스코어카드 채점 자동화 (DX-REQ-014)**:
+- ✅ `review-api.mjs`에 `calculateScorecard()` 함수 추가 (~100줄) — API 검토 완료 후 4항목 100점 만점 자동 채점
+- ✅ 항목 1(신규 이슈): 이전 라운드 `scorecard.json`과 비교, Round 1은 자동 스킵(만점)
+- ✅ 항목 2(Ready 비율): AI verdict 파싱 결과로 30점 환산 (Ready=3, Conditional=1.5, Not Ready=0)
+- ✅ 항목 3(커버리지): PRD 섹션 존재+내용 유무로 6개 필수 항목 체크 (§2~§5)
+- ✅ 항목 4(다관점): PRD 키워드 분석으로 사용자/기술/비즈니스 관점 반영 확인
+- ✅ 출력: `scorecard.md` (사람용) + `scorecard.json` (기계용, 라운드 간 비교 데이터)
+- ✅ `SKILL.md` Phase 4 섹션 리라이트 — 수동 채점 → 자동 채점 설명으로 전환
+- ✅ Gemini 모델로 실 PRD 테스트 통과 (26초, 100/100점)
+- ✅ DX-REQ-014 범위 확장 — SPEC.md F43 설명에 "스코어카드 채점 자동화" 추가
+- ✅ DX-REQ-014 앱 DB 등록 (feature_requests 테이블)
+
+**검증 결과**:
+- ✅ 스크립트 실행 테스트 통과 (Gemini 1모델 26초, scorecard.md/json 정상 생성)
+- ⏭️ typecheck/lint/build: 프로젝트 코드 변경 없음 (스킬 파일은 ~/.claude/ 외부)
+
 ### 세션 356b (2026-03-11)
 
 **F40 P1-11 — daily_usage_aggregates Cron 백필 집계 (DX-REQ-011)**:

@@ -445,7 +445,7 @@ build/
 ### 버전
 - **시스템 (SemVer SSOT)**: 0.6.0 (package.json)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 58개 마이그레이션 SQL (0000~0056), 로컬 적용 완료
+- **DB**: 59개 마이그레이션 SQL (0000~0057), 로컬 적용 완료
 
 ### 주요 지표
 - **라우트**: 168개
@@ -475,7 +475,7 @@ build/
 - **브랜치 전략**: master 단일 브랜치 (Prototype 기간)
 - **배포**: Cloudflare Pages (master push → GitHub Actions CI/CD 자동 배포) — Secrets 설정 완료 ✅
 - **운영 실험**: 🚀 2026-01-31 시작 (30-60일, 최대 5명, Discovery 5-10건 목표)
-- **DB 마이그레이션**: ✅ 58개 SQL (0000~0056) 로컬+프로덕션 적용 완료
+- **DB 마이그레이션**: ✅ 59개 SQL (0000~0057) 로컬+프로덕션 적용 완료
 - **Cron 설정**: 10개 라우트 (daily/agent-review/embeddings/weekly-summary/signal-route/matrix-scoring/maintenance/vectorize/lab/ai-pipeline) + cron-job.org 14개 등록 완료
 - **Radar Worker**: 프로덕션 운영 중 (Cron 매일 9:00 KST, 10소스)
 - **이메일**: Resend (`noreply@ideaonaction.ai`), cron-job.org 자동 발송
@@ -574,5 +574,5 @@ build/
 | F40 | LLM API Credit 소진 대응 — 구독 토큰 기반 분석 + 사용량 모니터링 (DX-REQ-011, P1) | v0.7.0 | 🔧 | - |
 | F41 | 아이템 수집 시스템 고도화 — 채널 CRUD + 품질 판단 + 수동 수집 + 채널 분류 (DX-REQ-012, P1) | v0.7.0 | 🔧 | - |
 | F42 | 요구사항 인터뷰 스킬 설치 — 인터뷰→PRD→외부 AI 다중 검토→착수 판단 워크플로우 (DX-REQ-013, P2) | v0.7.0 | ✅ | 6 |
-| F43 | 인터뷰 스킬 검토 고도화 — 모델 선택 + API 자동 호출 + 프롬프트 개선 + 결과 파싱 (DX-REQ-014, P1) | v0.7.0 | 🔧 | - |
+| F43 | 인터뷰 스킬 검토 고도화 — 모델 선택 + API 자동 호출 + 프롬프트 개선 + 결과 파싱 + 스코어카드 채점 자동화 (DX-REQ-014, P1) | v0.7.0 | 🔧 | - |
 
