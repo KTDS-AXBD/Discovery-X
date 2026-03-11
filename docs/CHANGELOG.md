@@ -3,6 +3,21 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 360 (2026-03-11)
+
+**F41 Phase 2A 채널 관리 + 도메인 CRUD + Source Lifecycle (DX-REQ-012)**:
+- ✅ Source Lifecycle 불일치 수정: FAILED→ACTIVE 전환 허용 [R2] + consecutiveFailures 리셋
+- ✅ RadarService 9개 메서드 확장: updateSourceStatus, deleteSource(cascade), getSourceWithDomains, listSourcesWithDomains, updateSourceFull, Domain CRUD 4개
+- ✅ API 라우트: api.radar.sources update-status/update-full intent + api.radar.domains 신규
+- ✅ UI 4개 컴포넌트: ChannelManagementTab + ChannelCard + ChannelFormModal + DomainTagSelect
+- ✅ radar.tsx "소스 관리" → "채널 관리" 탭 전환
+- ✅ 테스트 47개 추가 (lifecycle 25 + domain 10 + service 12)
+- ✅ pdca-iterator 3회 반복 자동 구현 (38%→97%→99%)
+
+**검증 결과**: typecheck 0 / lint 0 / 2,331 tests PASS (전체 153 files)
+
+**영향 범위**: 12파일 (신규 7 + 수정 5) / +1,855줄 / 라우트 176→177 / 테스트 2,284→2,331
+
 ### 세션 359 (2026-03-11)
 
 **F40 P1-09 관리자 비용 대시보드 (DX-REQ-011)**:
