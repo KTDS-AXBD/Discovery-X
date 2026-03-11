@@ -3,7 +3,7 @@ name: ax-batch-analysis
 description: |
   내부 배치 분석 — Claude Code 구독으로 AI 분석 처리. API Credit 소비 없이 D1 원격 DB의 미처리 아이템을 배치 분석.
   cron 보조용: 누락분 보정 + 대량 처리 보충.
-  모드: radar (클러스터링→아이디어), ontology (엔티티/관계 추출), all.
+  모드: radar (클러스터링→아이디어), ontology (엔티티/관계 추출), eval (아이템 품질 평가), all.
 ---
 
 # ax-batch-analysis — 내부 배치 분석
@@ -18,7 +18,7 @@ Claude Code 구독을 활용해 D1 원격 DB의 미처리 아이템을 로컬에
 
 ## 실행 방식 (하이브리드)
 
-- **인수 있음**: `$ARGUMENTS`가 `radar`, `ontology`, `all` 중 하나이면 해당 모드를 즉시 실행
+- **인수 있음**: `$ARGUMENTS`가 `radar`, `ontology`, `eval`, `all` 중 하나이면 해당 모드를 즉시 실행
 - **인수 없음**: 인터랙티브 모드 → Step 1~2를 거쳐 모드 선택
 
 ## Step 1: DB 이름 추출 + 미처리 현황 조회
@@ -42,6 +42,13 @@ npx wrangler d1 execute "$DB_NAME" --remote --command \
   --json
 ```
 
+**Eval 미평가:**
+```bash
+npx wrangler d1 execute "$DB_NAME" --remote --command \
+  "SELECT COUNT(*) as cnt FROM radar_items ri WHERE ri.status IN ('COLLECTED', 'SCORED') AND NOT EXISTS (SELECT 1 FROM radar_item_metrics rim WHERE rim.item_id = ri.id AND rim.evaluated_at IS NOT NULL);" \
+  --json
+```
+
 결과를 사용자에게 보여주고, 인수가 없으면 AskUserQuestion으로 모드를 선택받는다.
 
 ## Step 2: 모드 선택 (인터랙티브만)
@@ -49,7 +56,8 @@ npx wrangler d1 execute "$DB_NAME" --remote --command \
 AskUserQuestion으로 선택:
 1. **radar** — Radar→Ideas 클러스터링 + 아이디어 생성 (미처리 N건)
 2. **ontology** — Evidence→엔티티/관계 추출 (미처리 N건)
-3. **all** — 둘 다 실행
+3. **eval** — Radar 아이템 품질 평가 → radar_item_metrics UPSERT (미평가 N건)
+4. **all** — 전체 실행 (radar + ontology + eval)
 
 ## Step 3: 분석 실행
 
@@ -190,6 +198,91 @@ npx wrangler d1 execute "$DB_NAME" --remote --command \
 
 ---
 
+### Mode: eval
+
+Radar 아이템의 AI 품질 평가 → `radar_item_metrics` UPSERT. 설계 문서: DX-DSGN-013 §3.
+
+**3-1. 미평가 아이템 상세 조회 (최대 5건):**
+```bash
+npx wrangler d1 execute "$DB_NAME" --remote --command \
+  "SELECT ri.id, ri.title, ri.title_ko, ri.summary, ri.summary_ko, ri.url, rs.name as source_name
+   FROM radar_items ri
+   JOIN radar_sources rs ON ri.source_id = rs.id
+   WHERE ri.status IN ('COLLECTED', 'SCORED')
+     AND NOT EXISTS (SELECT 1 FROM radar_item_metrics rim WHERE rim.item_id = ri.id AND rim.evaluated_at IS NOT NULL)
+   LIMIT 5;" \
+  --json
+```
+
+**3-2. tenant_id 확인:**
+```bash
+npx wrangler d1 execute "$DB_NAME" --remote --command \
+  "SELECT DISTINCT rs.tenant_id FROM radar_items ri JOIN radar_sources rs ON ri.source_id = rs.id WHERE ri.status IN ('COLLECTED', 'SCORED') AND NOT EXISTS (SELECT 1 FROM radar_item_metrics rim WHERE rim.item_id = ri.id AND rim.evaluated_at IS NOT NULL) LIMIT 1;" \
+  --json
+```
+
+**3-3. 품질 평가:**
+각 아이템에 대해 아래 프롬프트로 직접 평가한다 (Claude Code 세션 내).
+
+```
+당신은 AX BD팀의 신사업 발굴 정보 품질 평가 전문가입니다.
+
+## 평가 기준
+
+1. **Topic Relevance** (0~1): BD/신사업 발굴에 얼마나 관련이 있는지
+   - 1.0: 직접적인 신사업 기회, 시장 변화, 기술 트렌드
+   - 0.7: 간접 관련 (산업 동향, 경쟁사 동향)
+   - 0.3: 약한 관련 (일반 기술 뉴스)
+   - 0.0: 무관 (스포츠, 연예 등)
+
+2. **Novelty** (0~1): 기존에 알려지지 않은 새로운 정보/관점 정도
+   - 1.0: 완전히 새로운 발견/발표
+   - 0.7: 새로운 분석/해석
+   - 0.3: 이미 알려진 정보의 업데이트
+   - 0.0: 재탕/중복
+
+3. **Quality** (0~1): 내용의 깊이와 신뢰성
+   - 1.0: 데이터 기반, 전문가 분석, 출처 명확
+   - 0.7: 합리적 분석, 일부 데이터
+   - 0.3: 의견 중심, 데이터 부족
+   - 0.0: 광고/홍보/근거 없는 주장
+
+## 입력
+
+제목: {title_ko 또는 title}
+요약: {summary_ko 또는 summary}
+소스: {source_name}
+
+## 출력 (JSON만)
+
+{ "topicRelevance": 0.7, "novelty": 0.5, "quality": 0.8, "reasoning": "..." }
+```
+
+**3-4. Composite Score 계산:**
+```
+composite = (topicRelevance × 0.4) + (novelty × 0.3) + (quality × 0.3)
+```
+
+**Novelty 과감지 플래그**: `novelty > 0.95 AND topicRelevance < 0.3` → 결과 출력 시 `⚠️ 잡음 의심` 표시.
+
+**3-5. DB 저장 (UPSERT):**
+```bash
+npx wrangler d1 execute "$DB_NAME" --remote --command \
+  "INSERT INTO radar_item_metrics (id, item_id, tenant_id, topic_relevance, novelty, quality, composite_score, model_version, evaluated_at, created_at)
+   VALUES ('rim-{uuid}', '{item_id}', '{tenant_id}', {topicRelevance}, {novelty}, {quality}, {composite}, 'claude-opus-4-6', unixepoch(), unixepoch())
+   ON CONFLICT(item_id) DO UPDATE SET
+     topic_relevance = excluded.topic_relevance,
+     novelty = excluded.novelty,
+     quality = excluded.quality,
+     composite_score = excluded.composite_score,
+     model_version = excluded.model_version,
+     evaluated_at = excluded.evaluated_at;"
+```
+
+**주의**: `model_version`은 실행 시 사용된 모델 ID를 기록 (예: `claude-opus-4-6`, `claude-sonnet-4-6`).
+
+---
+
 ### 모드 확장 가이드
 
 새 배치 분석 모드를 추가하려면 아래 패턴을 따른다:
@@ -218,6 +311,9 @@ npx wrangler d1 execute "$DB_NAME" --remote --command \
   "UPDATE evidence SET ontology_extracted_at = unixepoch() WHERE id IN ('{id1}', '{id2}', ...);"
 ```
 
+**Eval:**
+별도 마킹 불필요 — `radar_item_metrics.evaluated_at`이 마킹 역할 (Step 3-5에서 UPSERT 시 설정됨).
+
 ## Step 5: 결과 요약
 
 ```
@@ -225,12 +321,15 @@ npx wrangler d1 execute "$DB_NAME" --remote --command \
 
 | 항목 | 값 |
 |------|------|
-| 모드 | {radar / ontology / all} |
+| 모드 | {radar / ontology / eval / all} |
 | Radar 처리 | {N}건 |
 | 아이디어 생성 | {N}건 |
 | Evidence 처리 | {N}건 |
 | 노드 생성 | {N}건 |
 | 엣지 생성 | {N}건 |
+| Eval 평가 | {N}건 |
+| 평균 composite | {0.XX} |
+| 잡음 의심 | {N}건 |
 | 에러 | {N}건 |
 | API 크레딧 소비 | 0 (Claude Code 구독 사용) |
 ```

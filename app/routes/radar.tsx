@@ -20,6 +20,7 @@ import { formatDateLocalTime } from "~/lib/format-date";
 import { ManualCollectTab } from "~/features/radar/ui/ManualCollectTab";
 import { SendToIdeaButton } from "~/features/radar/ui/SendToIdeaButton";
 import { ChannelManagementTab } from "~/features/radar/ui/ChannelManagementTab";
+import { SourceHealthTab } from "~/features/radar/ui/SourceHealthTab";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -111,7 +112,7 @@ function formatDateLocal(timestamp: string | Date | null) {
   return formatDateLocalTime(timestamp);
 }
 
-type RadarTab = "feed" | "manual" | "channels";
+type RadarTab = "feed" | "manual" | "health" | "channels";
 
 export default function RadarPage() {
   const { user, tenantId, sources, sourcesWithDomains, domains, runs, recentItems, isGatekeeper } = useLoaderData<typeof loader>();
@@ -157,6 +158,7 @@ export default function RadarPage() {
         {([
           { key: "feed", label: "피드" },
           { key: "manual", label: "수동 등록" },
+          { key: "health", label: "Source Health" },
           { key: "channels", label: "채널 관리" },
         ] as const).map(({ key, label }) => (
           <button
@@ -302,6 +304,13 @@ export default function RadarPage() {
             )}
           </div>
         </>
+      )}
+
+      {/* Source Health Tab (Phase 3B) */}
+      {activeTab === "health" && (
+        <div className="mb-8">
+          <SourceHealthTab tenantId={tenantId} isGatekeeper={isGatekeeper} />
+        </div>
       )}
 
       {/* Channels Tab (Phase 2A) */}
