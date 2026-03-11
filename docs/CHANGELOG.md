@@ -3,6 +3,16 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 358b (2026-03-11)
+
+**ax 스킬 개선 — Pane-Scoped 커밋/테스트 (인프라)**:
+- ✅ `/ax-01-start`에 baseline 스냅샷 저장 추가 (Step 5b) — HEAD 커밋 + dirty 파일 목록 pane별 저장
+- ✅ `/ax-02-end`에 Phase 0b (Pane Scope 감지) + Phase 1 수정 — baseline diff로 이 세션의 변경만 식별
+- ✅ `git add .` 금지, 파일 개별 지정 스테이징, 관련 테스트만 실행
+- ✅ fallback: baseline 없으면 기존 동작(전체 변경 처리) 유지
+
+**영향 범위**: `~/.claude/commands/ax-01-start.md`, `ax-02-end.md` (user scope, ax-config repo)
+
 ### 세션 358 (2026-03-11)
 
 **F41 Phase 2~3 — 마이그레이션 0057 + Source Lifecycle 상수 (DX-REQ-012)**:
