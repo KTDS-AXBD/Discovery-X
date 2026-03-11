@@ -22,6 +22,16 @@
 **검증**: typecheck ✅ | lint ✅ | test 2,331 ✅ | build ✅
 **Gap 분석**: Match Rate 100% (설계서 9개 항목 전수 일치)
 
+### 세션 362 (2026-03-11)
+
+**F43 인터뷰 스킬 실 테스트 + 중복 수정 (DX-REQ-014)**:
+- ✅ OpenAI gpt-4.1 Six Hats 3턴 미니 테스트 성공 (15.9초, 8,885토큰)
+- ✅ `sixhats-discussion.md` 최종 종합 중복 제거 (content→verdict만 출력)
+- ✅ ax-config push: 6파일 551줄 (review-api.mjs + models.json + SKILL.md + ax-01/02-end)
+
+**변경**: review-api.mjs 1건 수정 (ax-config 스코프, 프로젝트 코드 변경 없음)
+**검증**: 실 API 호출 테스트 ✅ (verdict 파싱 성공, 토론 흐름 정상)
+
 ### 세션 361 (2026-03-11)
 
 **F43 인터뷰 스킬 고도화 — review-api.mjs v5 + Six Hats 토론 (DX-REQ-014)**:
