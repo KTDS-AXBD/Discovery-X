@@ -3,6 +3,21 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 355c (2026-03-11)
+
+**F41 Phase 2 설계 문서 — 채널 관리 + 도메인 + 수집 큐 (DX-REQ-012)**:
+- ✅ DX-DSGN-012 v1.0 작성 — 3 신규 테이블 + Source Lifecycle + 큐 파이프라인 + UI 4탭
+- ✅ Six Thinking Hats 검토 20회 — Must Fix 5건 + Should Consider 5건 도출
+- ✅ DX-DSGN-012 v1.1 반영 — F1~F5/R1~R5 전건 수정 (§10 검토 대응 매트릭스)
+- ✅ Phase 2A/2B 분할: 2A(채널+도메인, 1세션) / 2B(큐+워커, 1세션)
+- ✅ docs/INDEX.md 갱신 (47개 문서)
+
+**주요 설계 결정**:
+- D1 FK CASCADE 미지원 → 앱 레벨 삭제 (F1)
+- 1소스=1큐 아이템, Worker가 RSS N개/HTML 1개 생성 (F2)
+- FAILED→ACTIVE 복구 허용 (R2)
+- 큐 모니터 독립 탭 대신 채널 관리 내 접이식 (R1)
+
 ### 세션 355b (2026-03-11)
 
 **F40 P1-07 UsageRecorder 교체 — token_usage_logs → usage_events 완전 전환 (DX-REQ-011)**:
