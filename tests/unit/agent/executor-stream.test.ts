@@ -353,11 +353,11 @@ describe("createAgentStreamResponse", () => {
     });
   });
 
-  describe("모드 분기", () => {
-    it("ideas 모드: buildIdeaSystemPrompt 사용", async () => {
+  describe("purpose 분기", () => {
+    it("analysis purpose: buildIdeaSystemPrompt 사용", async () => {
       mockSSEEvents(textOnlySSEEvents("아이디어 응답"));
 
-      const stream = createAgentStreamResponse(asDB(db), "key", CONV_ID, "hi", undefined, "ideas");
+      const stream = createAgentStreamResponse(asDB(db), "key", CONV_ID, "hi", undefined, "analysis");
       await consumeStream(stream);
 
       expect(vi.mocked(buildIdeaSystemPrompt)).toHaveBeenCalled();
@@ -368,7 +368,7 @@ describe("createAgentStreamResponse", () => {
       mockSSEEvents(textOnlySSEEvents("soul 응답"));
 
       const stream = createAgentStreamResponse(
-        asDB(db), "key", CONV_ID, "hi", undefined, "default",
+        asDB(db), "key", CONV_ID, "hi", undefined, "chat",
         { env: { ANTHROPIC_API_KEY: "k" }, sessionId: "s1", userId: "u1" },
       );
       await consumeStream(stream);
@@ -376,7 +376,7 @@ describe("createAgentStreamResponse", () => {
       expect(mockBuildPrompt).toHaveBeenCalled();
     });
 
-    it("기본 모드: buildSystemPrompt 사용", async () => {
+    it("기본 purpose: buildSystemPrompt 사용", async () => {
       mockSSEEvents(textOnlySSEEvents("기본 응답"));
 
       const stream = createAgentStreamResponse(asDB(db), "key", CONV_ID, "hi");
@@ -391,7 +391,7 @@ describe("createAgentStreamResponse", () => {
       mockSSEEvents(textOnlySSEEvents("응답"));
 
       const stream = createAgentStreamResponse(
-        asDB(db), "key", CONV_ID, "hi", undefined, "default",
+        asDB(db), "key", CONV_ID, "hi", undefined, "chat",
         { sessionId: "sess-1", env: { ANTHROPIC_API_KEY: "k" }, userId: "u1" },
       );
       await consumeStream(stream);
@@ -403,7 +403,7 @@ describe("createAgentStreamResponse", () => {
       mockSSEEvents(textOnlySSEEvents("응답"));
 
       const stream = createAgentStreamResponse(
-        asDB(db), "key", CONV_ID, "hi", undefined, "default",
+        asDB(db), "key", CONV_ID, "hi", undefined, "chat",
         { userId: "u1", env: { ANTHROPIC_API_KEY: "k" }, sessionId: "s1" },
       );
       await consumeStream(stream);

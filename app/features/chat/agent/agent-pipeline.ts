@@ -186,7 +186,7 @@ export async function saveAndFinalize(
   conversationId: string,
   assistantContent: string,
   usage: {
-    mode: string;
+    purpose: string;
     model: string;
     inputTokens: number;
     outputTokens: number;
@@ -207,7 +207,7 @@ export async function saveAndFinalize(
   // 토큰 사용량 기록
   await updateTokenUsage(db, usage.inputTokens + usage.outputTokens, {
     conversationId,
-    mode: usage.mode as TokenUsageMeta["mode"],
+    purpose: usage.purpose as TokenUsageMeta["purpose"],
     model: usage.model,
     inputTokens: usage.inputTokens,
     outputTokens: usage.outputTokens,

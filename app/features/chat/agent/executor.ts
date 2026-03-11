@@ -68,7 +68,7 @@ export async function executeAgentTurn(
 
     if (toolUseBlocks.length === 0 || response.stop_reason !== "tool_use") {
       await saveAndFinalize(db, conversationId, addSummaryHeader(assistantText), {
-        mode: "default",
+        purpose: "chat",
         model: ctx.modelId,
         inputTokens: totalInputTokens,
         outputTokens: totalOutputTokens,
@@ -98,7 +98,7 @@ export async function executeAgentTurn(
   const maxRoundsMessage = `도구 호출 제한(${MAX_TOOL_ROUNDS}회)에 도달했습니다. 수행한 도구: ${toolSummary || "없음"}. 추가 작업이 필요하면 이어서 요청해주세요.`;
 
   await saveAndFinalize(db, conversationId, maxRoundsMessage, {
-    mode: "default",
+    purpose: "chat",
     model: ctx.modelId,
     inputTokens: totalInputTokens,
     outputTokens: totalOutputTokens,

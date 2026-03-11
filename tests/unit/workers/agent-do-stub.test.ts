@@ -35,7 +35,7 @@ describe("delegateToDO", () => {
   const defaultPayload: AgentDOChatPayload = {
     conversationId: "conv-123",
     message: "테스트 메시지",
-    mode: "default",
+    purpose: "chat",
     userId: "user-456",
     tenantId: "tenant-789",
   };
@@ -81,7 +81,7 @@ describe("delegateToDO", () => {
 
     expect(body.conversationId).toBe("conv-123");
     expect(body.message).toBe("테스트 메시지");
-    expect(body.mode).toBe("default");
+    expect(body.purpose).toBe("chat");
     expect(body.userId).toBe("user-456");
     expect(body.tenantId).toBe("tenant-789");
   });

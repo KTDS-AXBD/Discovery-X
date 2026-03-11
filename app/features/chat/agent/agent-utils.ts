@@ -8,7 +8,7 @@ import type { DB } from "~/db";
 import { agentConfig } from "~/db";
 import { CLAUDE_MODEL } from "~/lib/ai";
 import { UsageRecorder } from "~/features/cost/service/usage-recorder";
-import { MODE_TO_PURPOSE } from "~/features/cost/constants/purpose";
+import type { Purpose } from "~/features/cost/constants/purpose";
 import type { ProviderId } from "~/features/cost/types";
 
 export function generateId(): string {
@@ -17,7 +17,7 @@ export function generateId(): string {
 
 export interface TokenUsageMeta {
   conversationId?: string | null;
-  mode?: "default" | "ideas" | "direct";
+  purpose?: Purpose;
   model?: string;
   inputTokens?: number;
   outputTokens?: number;
@@ -51,14 +51,13 @@ export async function updateTokenUsage(db: DB, tokensUsed: number, meta?: TokenU
   if (meta?.userId && meta?.tenantId) {
     try {
       const recorder = new UsageRecorder(db);
-      const purpose = MODE_TO_PURPOSE[meta.mode || "default"] || "chat";
       await recorder.record({
         userId: meta.userId,
         tenantId: meta.tenantId,
         conversationId: meta.conversationId ?? undefined,
         provider: (meta.provider as ProviderId) || "anthropic",
         model: meta.model || CLAUDE_MODEL,
-        purpose,
+        purpose: meta.purpose || "chat",
         inputTokens: meta.inputTokens || 0,
         outputTokens: meta.outputTokens || 0,
         toolRounds: meta.toolRounds || 0,

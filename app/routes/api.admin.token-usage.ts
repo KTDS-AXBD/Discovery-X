@@ -21,7 +21,7 @@ async function getDailySummary(db: DB, range: "7d" | "30d", purpose: string) {
   return db
     .select({
       date: sql<string>`date(${usageEvents.createdAt}, 'unixepoch')`.as("date"),
-      mode: usageEvents.purpose,
+      purpose: usageEvents.purpose,
       totalTokens: sql<number>`sum(${usageEvents.totalTokens})`.as("total_tokens"),
       requestCount: sql<number>`count(*)`.as("request_count"),
     })
@@ -50,7 +50,7 @@ async function getRecentLogs(db: DB, purpose: string) {
   return db
     .select({
       id: usageEvents.id,
-      mode: usageEvents.purpose,
+      purpose: usageEvents.purpose,
       model: usageEvents.model,
       provider: usageEvents.provider,
       inputTokens: usageEvents.inputTokens,

@@ -42,8 +42,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   const env = context.cloudflare.env as unknown as Record<string, unknown>;
-  const body = await request.json() as { conversationId: string; message: string; mode?: "default" | "ideas" };
-  const { conversationId, message, mode } = body;
+  const body = await request.json() as { conversationId: string; message: string; purpose?: "chat" | "analysis"; mode?: string };
+  const { conversationId, message } = body;
+  // 하위 호환: 기존 mode 파라미터를 purpose로 매핑
+  const purpose = body.purpose ?? (body.mode === "ideas" ? "analysis" : "chat") as "chat" | "analysis";
 
   if (!conversationId || !message?.trim()) {
     releaseSSESession(user.id);
@@ -66,7 +68,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (isAgentDOAvailable(env)) {
     releaseSSESession(user.id); // DO가 자체 동시성 제어하므로 SSE limiter 해제
     const doResponse = await delegateToDO(
-      { conversationId, message, mode, userId: user.id, tenantId: ctx.tenantId },
+      { conversationId, message, purpose, userId: user.id, tenantId: ctx.tenantId },
       env,
     );
     // DO가 429를 반환하면 그대로 전달
@@ -91,7 +93,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       .where(eq(conversations.id, conversationId));
   }
 
-  const originalStream = createAgentStreamResponse(db, apiKey, conversationId, message, ctx.tenantId, mode);
+  const originalStream = createAgentStreamResponse(db, apiKey, conversationId, message, ctx.tenantId, purpose);
 
   // TransformStream으로 래핑 — 종료 시 SSE 세션 해제 보장
   const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();

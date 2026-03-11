@@ -9,7 +9,7 @@ export const PURPOSE = {
 
 export type Purpose = (typeof PURPOSE)[keyof typeof PURPOSE];
 
-/** 기존 mode → purpose 매핑 (마이그레이션용) */
+/** @deprecated P1-10 마이그레이션 완료 — 앱 코드에서 더 이상 사용하지 않음 */
 export const MODE_TO_PURPOSE: Record<string, Purpose> = {
   default: PURPOSE.CHAT,
   ideas: PURPOSE.ANALYSIS,

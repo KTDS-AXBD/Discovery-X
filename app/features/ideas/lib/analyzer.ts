@@ -14,7 +14,7 @@ import { callLLM } from "~/lib/ai";
 import type { FallbackContext } from "~/lib/ai";
 import { PIPELINE_ORDER, CATEGORY_MAP } from "./analysis-prompts";
 import { UsageRecorder } from "~/features/cost/service/usage-recorder";
-import { MODE_TO_PURPOSE } from "~/features/cost/constants/purpose";
+import type { Purpose } from "~/features/cost/constants/purpose";
 import type { ProviderId } from "~/features/cost/types";
 
 const INTER_CATEGORY_DELAY_MS = 1500;
@@ -218,7 +218,7 @@ export async function runIdeaAnalysis({
       const totalTokens = response.usage.input_tokens + response.usage.output_tokens;
       try {
         await logTokenUsage(db, {
-          mode: "direct",
+          purpose: "extraction",
           model: actualModel,
           inputTokens: response.usage.input_tokens,
           outputTokens: response.usage.output_tokens,
@@ -284,7 +284,7 @@ export async function runIdeaAnalysis({
 async function logTokenUsage(
   db: DB,
   meta: {
-    mode: string;
+    purpose: Purpose;
     model: string;
     inputTokens: number;
     outputTokens: number;
@@ -319,13 +319,12 @@ async function logTokenUsage(
   // usage_events에 기록 (userId + tenantId 필수)
   if (meta.userId && meta.tenantId) {
     const recorder = new UsageRecorder(db);
-    const purpose = MODE_TO_PURPOSE[meta.mode] || "chat";
     await recorder.record({
       userId: meta.userId,
       tenantId: meta.tenantId,
       provider: (meta.provider as ProviderId) || "anthropic",
       model: meta.model,
-      purpose,
+      purpose: meta.purpose || "extraction",
       inputTokens: meta.inputTokens,
       outputTokens: meta.outputTokens,
     });

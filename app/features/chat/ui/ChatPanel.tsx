@@ -29,7 +29,7 @@ interface ChatPanelProps {
   isLoadingMessages?: boolean;
   onToolResult?: (toolName: string, result: Record<string, unknown>) => void;
   autoMessage?: string | null;
-  mode?: "default" | "ideas";
+  purpose?: "chat" | "analysis";
 }
 
 interface BudgetWarning {
@@ -57,7 +57,7 @@ function parseSuggestions(content: string): { cleanContent: string; suggestions:
   }
 }
 
-export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, onToolResult, autoMessage, mode = "default" }: ChatPanelProps) {
+export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, onToolResult, autoMessage, purpose = "chat" }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -104,7 +104,7 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversationId, message: userMessage, mode }),
+        body: JSON.stringify({ conversationId, message: userMessage, purpose }),
         signal: abortControllerRef.current.signal,
       });
 
@@ -263,7 +263,7 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
         return prev;
       });
     }
-  }, [conversationId, isLoading, onToolResult, mode]);
+  }, [conversationId, isLoading, onToolResult, purpose]);
 
   // Auto-send message (e.g., from "분석 시작" button)
   const autoMessageProcessed = useRef<string | null>(null);
@@ -312,8 +312,8 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
   return (
     <div className="flex h-full flex-col">
       {/* Messages area */}
-      <div className={`flex-1 overflow-y-auto ${mode === "ideas" ? "px-3 py-4" : "px-6 py-8"}`}>
-        <div className={`${mode === "ideas" ? "" : "mx-auto max-w-3xl"} space-y-6`}>
+      <div className={`flex-1 overflow-y-auto ${purpose === "analysis" ? "px-3 py-4" : "px-6 py-8"}`}>
+        <div className={`${purpose === "analysis" ? "" : "mx-auto max-w-3xl"} space-y-6`}>
           {isLoadingMessages && (
             <div className="flex items-center justify-center py-12" role="status" aria-label="대화 불러오는 중">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-line border-t-fg-brand" />
@@ -405,7 +405,7 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
       {/* Budget warning banner */}
       {budgetWarning && (
         <div className="border-t border-line px-4 py-2">
-          <div className={mode === "ideas" ? "" : "mx-auto max-w-3xl"}>
+          <div className={purpose === "analysis" ? "" : "mx-auto max-w-3xl"}>
             <AlertBanner variant={isOverBudget(budgetWarning) ? "destructive" : "warning"} className="py-2">
               <div className="flex items-center justify-between text-xs">
                 <span>
@@ -427,8 +427,8 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
 
       {/* Dynamic suggestions */}
       {dynamicSuggestions.length > 0 && !isLoading && (
-        <div className={`border-t border-line-subtle-alt bg-surface pt-3 pb-0 ${mode === "ideas" ? "px-3" : "px-4"}`}>
-          <div className={`flex flex-wrap gap-2 ${mode === "ideas" ? "" : "mx-auto max-w-3xl"}`}>
+        <div className={`border-t border-line-subtle-alt bg-surface pt-3 pb-0 ${purpose === "analysis" ? "px-3" : "px-4"}`}>
+          <div className={`flex flex-wrap gap-2 ${purpose === "analysis" ? "" : "mx-auto max-w-3xl"}`}>
             {dynamicSuggestions.map((suggestion) => (
               <SuggestionChip
                 key={suggestion}
@@ -446,8 +446,8 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
       )}
 
       {/* Input area */}
-      <div className={`border-t border-line-subtle bg-surface-panel ${mode === "ideas" ? "p-3" : "p-4"}`}>
-        <div className={mode === "ideas" ? "" : "mx-auto max-w-3xl"}>
+      <div className={`border-t border-line-subtle bg-surface-panel ${purpose === "analysis" ? "p-3" : "p-4"}`}>
+        <div className={purpose === "analysis" ? "" : "mx-auto max-w-3xl"}>
           <div className="flex items-center gap-2 rounded-xl border border-line-subtle bg-surface-card px-4 py-2 transition-colors focus-within:border-line-brand focus-within:ring-1 focus-within:ring-line-brand">
             <Input
               ref={inputRef}

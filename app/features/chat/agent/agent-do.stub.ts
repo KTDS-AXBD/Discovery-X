@@ -24,7 +24,7 @@ export interface AgentDOResponse {
 export interface AgentDOChatPayload {
   conversationId: string;
   message: string;
-  mode?: "default" | "ideas";
+  purpose?: "chat" | "analysis";
   userId: string;
   tenantId: string;
 }
@@ -78,7 +78,7 @@ export async function delegateToDO(
     body: JSON.stringify({
       conversationId: payload.conversationId,
       message: payload.message,
-      mode: payload.mode,
+      purpose: payload.purpose,
       userId: payload.userId,
       tenantId: payload.tenantId,
     }),

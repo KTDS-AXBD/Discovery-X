@@ -266,7 +266,7 @@ export function createAgentStreamResponse(
   conversationId: string,
   userMessage: string,
   tenantId?: string,
-  mode?: "default" | "ideas",
+  purpose?: "chat" | "analysis",
   streamOptions?: StreamOptions,
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
@@ -279,17 +279,17 @@ export function createAgentStreamResponse(
     async start(controller) {
       try {
         const ctx = await prepareAgentPipeline(db, conversationId, userMessage);
-        const isIdeasMode = mode === "ideas";
+        const isAnalysis = purpose === "analysis";
 
         // System prompt: 3-branch logic (ideas / graph projection / default)
         const useGraphProjection =
-          !isIdeasMode &&
+          !isAnalysis &&
           !!streamOptions?.env &&
           !!streamOptions?.userId &&
           true;
 
         let systemPrompt: string;
-        if (isIdeasMode) {
+        if (isAnalysis) {
           systemPrompt = buildIdeaSystemPrompt(ctx.sourceContext);
         } else if (useGraphProjection && streamOptions?.userId) {
           const soulEngine = new SoulEngine({
@@ -304,7 +304,7 @@ export function createAgentStreamResponse(
           systemPrompt = buildSystemPrompt(ctx.agentCfg, ctx.sourceContext);
         }
 
-        const filteredTools = isIdeasMode
+        const filteredTools = isAnalysis
           ? IDEA_TOOLS
           : getToolsForAutonomyLevel(ctx.autonomyLevel);
         let totalInputTokens = 0;
@@ -315,7 +315,7 @@ export function createAgentStreamResponse(
         for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
           const contextMessages = await buildConversationContext(db, conversationId, ctx.modelId);
 
-          const purpose = isIdeasMode ? "analysis" : "chat";
+          const purpose = isAnalysis ? "analysis" : "chat";
           const aiCtx: FallbackContext | undefined = streamOptions?.env
             ? { env: streamOptions.env, db, userId: streamOptions.userId, tenantId, purpose }
             : undefined;
@@ -359,7 +359,7 @@ export function createAgentStreamResponse(
 
             // No tool calls — save and finish
             await saveAndFinalize(db, conversationId, addSummaryHeader(finalText), {
-              mode: isIdeasMode ? "ideas" : "default",
+              purpose: isAnalysis ? "analysis" : "chat",
               model: ctx.modelId,
               inputTokens: totalInputTokens,
               outputTokens: totalOutputTokens,
@@ -382,8 +382,8 @@ export function createAgentStreamResponse(
           sendToolResults(results, controller, send, executedToolNames);
           allToolResults.push(...results);
 
-          // Rate limit mitigation: wait between tool rounds in ideas mode
-          if (isIdeasMode && round < MAX_TOOL_ROUNDS - 1) {
+          // Rate limit mitigation: wait between tool rounds in analysis mode
+          if (isAnalysis && round < MAX_TOOL_ROUNDS - 1) {
             await new Promise((r) => setTimeout(r, 2000));
           }
         }
@@ -393,7 +393,7 @@ export function createAgentStreamResponse(
         const streamMaxRoundsMsg = `도구 호출 제한(${MAX_TOOL_ROUNDS}회)에 도달했습니다. 수행한 도구: ${streamToolSummary || "없음"}. 추가 작업이 필요하면 이어서 요청해주세요.`;
 
         await saveAndFinalize(db, conversationId, streamMaxRoundsMsg, {
-          mode: isIdeasMode ? "ideas" : "default",
+          purpose: isAnalysis ? "analysis" : "chat",
           model: ctx.modelId,
           inputTokens: totalInputTokens,
           outputTokens: totalOutputTokens,

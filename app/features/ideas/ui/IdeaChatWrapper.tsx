@@ -67,7 +67,7 @@ export function IdeaChatWrapper({
             isLoadingMessages={isLoadingMessages}
             onToolResult={onToolResult}
             autoMessage={autoMessage}
-            mode="ideas"
+            purpose="analysis"
           />
         ) : (
           <div className="flex h-full flex-col items-center justify-center px-6">
