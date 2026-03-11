@@ -3,6 +3,29 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 355b (2026-03-11)
+
+**F40 P1-07 UsageRecorder 교체 — token_usage_logs → usage_events 완전 전환 (DX-REQ-011)**:
+- ✅ UsageRecorder: writeLegacyLog() 제거, usage_events 단일 기록으로 통일
+- ✅ agent-utils/analyzer: tokenUsageLogs 이중 기록 제거, UsageRecorder만 사용
+- ✅ api.admin.token-usage: usageEvents 기반 전환 (mode→purpose 하위호환)
+- ✅ TokenBudgetManager: JOIN 제거 → usageEvents.userId 직접 조회
+- ✅ agent-session DO: Raw SQL usage_events 전환
+- ✅ token-usage-schema.ts 삭제 + db/index.ts 스키마 머지 13개로 감소
+
+**검증**: typecheck 0 에러 / lint 0 에러 / 2,275 테스트 전체 통과
+**변경**: 10파일 (-120줄 순삭감)
+
+### 세션 355 (2026-03-11)
+
+**StatusLine 고도화 — 계정/프로젝트/요구사항/tmux pane별 표시**:
+- ✅ StatusLine 레이아웃 재설계: `dir → [ctx] → project:req타이틀 → account → model → [vim]`
+- ✅ 계정 표시: `~/.claude/statusline-account` 설정 파일 방식 (ktds.axbd)
+- ✅ 요구사항 표시: 세션이름 F번호 파싱 + `/tmp/claude-req-pane{N}` 상태파일 fallback (타이틀 포함)
+- ✅ tmux pane별 독립 REQ 추적: `$TMUX_PANE` 환경변수로 pane별 상태파일 분리
+- ✅ `/ax-15-statusline` 커맨드 신규: clear/set/list (pane별 REQ 관리)
+- ✅ `/ax-01-start`, `/ax-02-end` pane별 상태파일 연동 수정
+
 ### 세션 354b (2026-03-11)
 
 **F43 인터뷰 스킬 검토 고도화 — PRD v2 + Round 2 착수 판단 (DX-REQ-014)**:
