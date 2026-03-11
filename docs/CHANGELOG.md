@@ -3,6 +3,21 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 356 (2026-03-11)
+
+**F43 Phase 1 — 인터뷰 스킬 검토 API 자동화 구현 (DX-REQ-014)**:
+- ✅ `config/models.json` 모델 레지스트리 생성 — ChatGPT(gpt-4.1) + Gemini(2.5-flash) + DeepSeek(V3.2) 3개 모델
+- ✅ `review-api.mjs` v3→v4 리팩토링 — 외부 JSON 로드, 환경변수 우선 로딩, 커스텀 endpoint, --models/--config 플래그
+- ✅ `SKILL.md` Phase 2 재작성 — 수동 복붙 → API 자동 호출 워크플로우 (Bash 호출 방식)
+- ✅ Round 3 테스트: ChatGPT(Conditional) + Gemini(Ready) 검증 완료 (33초, 파싱 100%)
+- ⚠️ DeepSeek: 잔액 부족(402) — 재시도 2회 후 정상 스킵, 충전 필요
+
+**설계 결정**:
+- 모델 레지스트리: 외부 JSON 분리 (코드 수정 없이 모델 추가/변경)
+- API 키: process.env 우선 → .dev.vars 폴백 (PRD §6.4)
+- DeepSeek: `provider: "openai"` + 커스텀 endpoint로 OpenAI 호환 API 재사용
+- 최신 모델 반영: gpt-4o→gpt-4.1, gemini-2.0-flash-lite 제거
+
 ### 세션 355c (2026-03-11)
 
 **F41 Phase 2 설계 문서 — 채널 관리 + 도메인 + 수집 큐 (DX-REQ-012)**:
