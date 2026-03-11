@@ -70,9 +70,9 @@ interface OpenAIStreamChunk {
   usage?: { prompt_tokens: number; completion_tokens: number };
 }
 
-// --- 변환 함수 ---
+// --- 변환 함수 (DeepSeek 등 OpenAI 호환 프로바이더에서 재사용) ---
 
-function convertMessages(system: string | undefined, messages: ClaudeMessage[]): OpenAIMessage[] {
+export function convertMessages(system: string | undefined, messages: ClaudeMessage[]): OpenAIMessage[] {
   const result: OpenAIMessage[] = [];
 
   if (system) {
@@ -140,7 +140,7 @@ function convertMessages(system: string | undefined, messages: ClaudeMessage[]):
   return result;
 }
 
-function convertTools(tools: ClaudeRequest["tools"]): OpenAITool[] | undefined {
+export function convertTools(tools: ClaudeRequest["tools"]): OpenAITool[] | undefined {
   if (!tools || tools.length === 0) return undefined;
 
   return tools.map((t) => ({
@@ -153,7 +153,7 @@ function convertTools(tools: ClaudeRequest["tools"]): OpenAITool[] | undefined {
   }));
 }
 
-function convertResponse(openaiResp: OpenAIResponse): ClaudeResponse {
+export function convertResponse(openaiResp: OpenAIResponse): ClaudeResponse {
   const choice = openaiResp.choices[0];
   if (!choice) {
     throw new Error("OpenAI returned empty choices");
@@ -203,7 +203,7 @@ function convertResponse(openaiResp: OpenAIResponse): ClaudeResponse {
 
 // --- OpenAI SSE → Anthropic SSE 변환 스트림 ---
 
-function createAnthropicSSEStream(openaiStream: ReadableStream<Uint8Array>, modelId: string): ReadableStream<Uint8Array> {
+export function createAnthropicSSEStream(openaiStream: ReadableStream<Uint8Array>, modelId: string): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
 

@@ -263,9 +263,10 @@ const DEFAULT_POLICY_ID = "default-global";
 
 const PROVIDER_PRIORITIES = [
   { provider: "anthropic", priority: 1 },
-  { provider: "openai", priority: 2 },
-  { provider: "google", priority: 3 },
-  { provider: "workers-ai", priority: 4 },
+  { provider: "deepseek", priority: 2 },
+  { provider: "openai", priority: 3 },
+  { provider: "google", priority: 4 },
+  { provider: "workers-ai", priority: 5 },
 ] as const;
 
 const PURPOSE_RULES = [

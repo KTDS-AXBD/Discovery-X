@@ -11,16 +11,18 @@ import type { ClaudeRequest, ClaudeResponse, FallbackContext, FallbackManagerOpt
 import { anthropicProvider } from "./providers/anthropic";
 import { openaiProvider } from "./providers/openai";
 import { googleProvider } from "./providers/google";
+import { deepseekProvider } from "./providers/deepseek";
 import { workersAIProvider, setWorkersAIEnv } from "./providers/workers-ai";
 
-/** 기본 프로바이더 체인 순서 */
-const DEFAULT_PROVIDER_CHAIN: ProviderId[] = ["anthropic", "openai", "google", "workers-ai"];
+/** 기본 프로바이더 체인 순서 (품질·속도 기반: S367 비교 결과) */
+const DEFAULT_PROVIDER_CHAIN: ProviderId[] = ["anthropic", "deepseek", "openai", "google", "workers-ai"];
 
 /** 프로바이더 인스턴스 맵 */
 const PROVIDERS: Partial<Record<ProviderId, LLMProvider>> = {
   anthropic: anthropicProvider,
   openai: openaiProvider,
   google: googleProvider,
+  deepseek: deepseekProvider,
   "workers-ai": workersAIProvider,
 };
 

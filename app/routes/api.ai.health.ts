@@ -7,19 +7,21 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { anthropicProvider } from "~/lib/ai/providers/anthropic";
 import { openaiProvider } from "~/lib/ai/providers/openai";
 import { googleProvider } from "~/lib/ai/providers/google";
+import { deepseekProvider } from "~/lib/ai/providers/deepseek";
 import { workersAIProvider } from "~/lib/ai/providers/workers-ai";
 import type { ProviderId, LLMProvider } from "~/lib/ai/types";
 import { getDb } from "~/db";
 import { requireAdmin } from "~/lib/auth/session.server";
 
-/** 프로바이더 체인 순서 */
-const PROVIDER_CHAIN: ProviderId[] = ["anthropic", "openai", "google", "workers-ai"];
+/** 프로바이더 체인 순서 (품질·속도 기반: S367 비교 결과) */
+const PROVIDER_CHAIN: ProviderId[] = ["anthropic", "deepseek", "openai", "google", "workers-ai"];
 
 /** 프로바이더 인스턴스 맵 */
 const PROVIDERS: Partial<Record<ProviderId, LLMProvider>> = {
   anthropic: anthropicProvider,
   openai: openaiProvider,
   google: googleProvider,
+  deepseek: deepseekProvider,
   "workers-ai": workersAIProvider,
 };
 
