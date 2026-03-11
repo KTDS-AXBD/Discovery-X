@@ -35,7 +35,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     tenantId: ctx.tenantId,
   });
 
-  return json({ user: ctx.user, tenantId: ctx.tenantId, sources, sourcesWithDomains, domains, runs, recentItems });
+  const isGatekeeper = ["admin", "gatekeeper", "owner"].includes(ctx.tenantRole);
+
+  return json({ user: ctx.user, tenantId: ctx.tenantId, sources, sourcesWithDomains, domains, runs, recentItems, isGatekeeper });
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
@@ -112,7 +114,7 @@ function formatDateLocal(timestamp: string | Date | null) {
 type RadarTab = "feed" | "manual" | "channels";
 
 export default function RadarPage() {
-  const { user, tenantId, sources, sourcesWithDomains, domains, runs, recentItems } = useLoaderData<typeof loader>();
+  const { user, tenantId, sources, sourcesWithDomains, domains, runs, recentItems, isGatekeeper } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const navigate = useNavigate();
@@ -309,6 +311,7 @@ export default function RadarPage() {
             sourcesWithDomains={sourcesWithDomains}
             domains={domains}
             tenantId={tenantId}
+            isGatekeeper={isGatekeeper}
           />
         </div>
       )}

@@ -1,4 +1,4 @@
-import { eq, desc, and, or, isNull, sql, gte } from "drizzle-orm";
+import { eq, desc, and, or, isNull, sql, gte, lt, lte, inArray } from "drizzle-orm";
 import type { DB } from "~/db";
 import {
   radarSources,
@@ -11,9 +11,15 @@ import {
 import {
   radarDomains,
   radarSourceDomains,
+  radarCrawlQueue,
+  CrawlQueueStatus,
+  ParserType,
+  RadarSourceType,
+  SourceStatus,
 } from "~/features/radar/db/schema";
 import {
   validateSourceTransition,
+  REVIEW_THRESHOLDS,
 } from "~/features/radar/constants/source-lifecycle";
 import { canonicalizeUrl, generateDedupeKey, parseUrl } from "./url-parser";
 
@@ -314,7 +320,11 @@ export class RadarService {
     await this.db
       .delete(radarSourceDomains)
       .where(eq(radarSourceDomains.sourceId, id));
-    // 2. radar_sources 삭제 (crawl_queue는 Phase 2B에서 추가)
+    // 2. radar_crawl_queue 삭제 [F1]
+    await this.db
+      .delete(radarCrawlQueue)
+      .where(eq(radarCrawlQueue.sourceId, id));
+    // 3. radar_sources 삭제
     await this.db.delete(radarSources).where(eq(radarSources.id, id));
   }
 
@@ -856,4 +866,400 @@ export class RadarService {
 
     return { ideaId };
   }
+
+  // ---------- Crawl Queue (F41 Phase 2B) ----------
+
+  /**
+   * 소스를 큐에 등록 [F2]
+   * 1소스 = 1큐 아이템. crawlInterval 미경과 시 스킵.
+   * @returns 생성된 큐 아이템 수 (0 또는 1)
+   */
+  async enqueueSource(sourceId: string, tenantId: string): Promise<number> {
+    const rows = await this.db
+      .select({
+        url: radarSources.url,
+        sourceType: radarSources.sourceType,
+        crawlInterval: radarSources.crawlInterval,
+        lastCollectedAt: radarSources.lastCollectedAt,
+        status: radarSources.status,
+      })
+      .from(radarSources)
+      .where(eq(radarSources.id, sourceId))
+      .limit(1);
+
+    if (rows.length === 0) return 0;
+
+    const source = rows[0];
+
+    // ACTIVE 상태만 큐에 등록
+    if (source.status !== SourceStatus.ACTIVE) return 0;
+
+    // crawlInterval 경과 체크
+    if (source.lastCollectedAt) {
+      const interval = source.crawlInterval ?? 86400;
+      const elapsed = Math.floor(
+        (Date.now() - source.lastCollectedAt.getTime()) / 1000,
+      );
+      if (elapsed < interval) return 0;
+    }
+
+    // 이미 PENDING/PROCESSING 상태인 큐 아이템이 있으면 스킵
+    const pendingRows = await this.db
+      .select({ id: radarCrawlQueue.id })
+      .from(radarCrawlQueue)
+      .where(
+        and(
+          eq(radarCrawlQueue.sourceId, sourceId),
+          inArray(radarCrawlQueue.status, [
+            CrawlQueueStatus.PENDING,
+            CrawlQueueStatus.PROCESSING,
+          ]),
+        ),
+      )
+      .limit(1);
+
+    if (pendingRows.length > 0) return 0;
+
+    // sourceType → parserType 매핑
+    const parserMap: Record<string, string> = {
+      [RadarSourceType.RSS]: ParserType.RSS,
+      [RadarSourceType.SITE]: ParserType.HTML,
+      [RadarSourceType.WEB]: ParserType.HTML,
+      [RadarSourceType.YOUTUBE]: ParserType.YOUTUBE,
+      [RadarSourceType.SNS]: ParserType.HTML,
+    };
+    const parserType = parserMap[source.sourceType] ?? ParserType.HTML;
+
+    await this.db.insert(radarCrawlQueue).values({
+      id: crypto.randomUUID(),
+      sourceId,
+      url: source.url,
+      parserType,
+      tenantId,
+    });
+
+    return 1;
+  }
+
+  /**
+   * PENDING 큐 아이템 배치 가져오기 [F3]
+   * stale PROCESSING 아이템 자동 복구 (10분 초과)
+   */
+  async dequeueBatch(
+    tenantId: string,
+    limit: number,
+  ): Promise<(typeof radarCrawlQueue.$inferSelect)[]> {
+    const now = new Date();
+    const staleThreshold = new Date(Date.now() - 10 * 60 * 1000); // 10분 전
+
+    // stale PROCESSING 아이템 → PENDING 리셋
+    await this.db
+      .update(radarCrawlQueue)
+      .set({
+        status: CrawlQueueStatus.PENDING,
+        startedAt: null,
+      })
+      .where(
+        and(
+          eq(radarCrawlQueue.tenantId, tenantId),
+          eq(radarCrawlQueue.status, CrawlQueueStatus.PROCESSING),
+          lt(radarCrawlQueue.startedAt, staleThreshold),
+        ),
+      );
+
+    // PENDING + scheduled_at <= now + (next_retry_at IS NULL or <= now)
+    const candidates = await this.db
+      .select()
+      .from(radarCrawlQueue)
+      .where(
+        and(
+          eq(radarCrawlQueue.tenantId, tenantId),
+          eq(radarCrawlQueue.status, CrawlQueueStatus.PENDING),
+          lte(radarCrawlQueue.scheduledAt, now),
+          or(
+            isNull(radarCrawlQueue.nextRetryAt),
+            lte(radarCrawlQueue.nextRetryAt, now),
+          ),
+        ),
+      )
+      .orderBy(desc(radarCrawlQueue.priority), radarCrawlQueue.scheduledAt)
+      .limit(limit);
+
+    if (candidates.length === 0) return [];
+
+    // PROCESSING 으로 일괄 변경
+    const ids = candidates.map((c) => c.id);
+    await this.db
+      .update(radarCrawlQueue)
+      .set({
+        status: CrawlQueueStatus.PROCESSING,
+        startedAt: now,
+      })
+      .where(inArray(radarCrawlQueue.id, ids));
+
+    // 변경된 상태로 반환
+    return candidates.map((c) => ({
+      ...c,
+      status: CrawlQueueStatus.PROCESSING,
+      startedAt: now,
+    }));
+  }
+
+  /** 큐 아이템 완료 처리 */
+  async completeQueueItem(id: string, itemsCreated: number): Promise<void> {
+    const now = new Date();
+
+    // 큐 아이템 완료
+    await this.db
+      .update(radarCrawlQueue)
+      .set({
+        status: CrawlQueueStatus.COMPLETED,
+        completedAt: now,
+        itemsCreated,
+      })
+      .where(eq(radarCrawlQueue.id, id));
+
+    // 소스 성공 상태 갱신: consecutiveFailures 리셋 + lastCollectedAt
+    const queueItem = await this.db
+      .select({ sourceId: radarCrawlQueue.sourceId })
+      .from(radarCrawlQueue)
+      .where(eq(radarCrawlQueue.id, id))
+      .limit(1);
+
+    if (queueItem.length > 0) {
+      await this.db
+        .update(radarSources)
+        .set({
+          consecutiveFailures: 0,
+          lastCollectedAt: now,
+          updatedAt: now,
+        })
+        .where(eq(radarSources.id, queueItem[0].sourceId));
+    }
+  }
+
+  /** 큐 아이템 실패 처리 — 재시도 또는 DEAD 전환 */
+  async failQueueItem(
+    id: string,
+    failureCode: string,
+    error: string,
+  ): Promise<void> {
+    const rows = await this.db
+      .select()
+      .from(radarCrawlQueue)
+      .where(eq(radarCrawlQueue.id, id))
+      .limit(1);
+
+    if (rows.length === 0) return;
+
+    const item = rows[0];
+    const retryCount = (item.retryCount ?? 0) + 1;
+    const maxRetries = item.maxRetries ?? 3;
+
+    if (retryCount >= maxRetries) {
+      // 최대 재시도 도달 → DEAD
+      await this.db
+        .update(radarCrawlQueue)
+        .set({
+          status: CrawlQueueStatus.DEAD,
+          retryCount,
+          failureCode,
+          error,
+          completedAt: new Date(),
+        })
+        .where(eq(radarCrawlQueue.id, id));
+
+      // Source consecutiveFailures 증가 + 상태 전환
+      await this.incrementSourceFailures(item.sourceId);
+    } else {
+      // 재시도 스케줄링 (지수 백오프)
+      const nextRetryAt = calculateNextRetry(retryCount);
+      await this.db
+        .update(radarCrawlQueue)
+        .set({
+          status: CrawlQueueStatus.FAILED,
+          retryCount,
+          failureCode,
+          error,
+          nextRetryAt,
+        })
+        .where(eq(radarCrawlQueue.id, id));
+    }
+  }
+
+  /** Source 연속 실패 횟수 증가 + 자동 상태 전환 */
+  private async incrementSourceFailures(sourceId: string): Promise<void> {
+    const sourceRows = await this.db
+      .select({
+        consecutiveFailures: radarSources.consecutiveFailures,
+        status: radarSources.status,
+      })
+      .from(radarSources)
+      .where(eq(radarSources.id, sourceId))
+      .limit(1);
+
+    if (sourceRows.length === 0) return;
+
+    const current = sourceRows[0];
+    const newFailures = (current.consecutiveFailures ?? 0) + 1;
+
+    const updates: Record<string, unknown> = {
+      consecutiveFailures: newFailures,
+      updatedAt: new Date(),
+    };
+
+    // 자동 상태 전환 (ACTIVE 상태에서만)
+    if (current.status === SourceStatus.ACTIVE) {
+      if (newFailures >= REVIEW_THRESHOLDS.failedThreshold) {
+        updates.status = SourceStatus.FAILED;
+        updates.enabled = 0;
+      } else if (newFailures >= REVIEW_THRESHOLDS.consecutiveFailures) {
+        updates.status = SourceStatus.REVIEW;
+        updates.enabled = 0;
+      }
+    }
+
+    await this.db
+      .update(radarSources)
+      .set(updates)
+      .where(eq(radarSources.id, sourceId));
+  }
+
+  /** 큐 상태 요약 */
+  async getQueueStatus(
+    tenantId: string,
+  ): Promise<{
+    pending: number;
+    processing: number;
+    completed: number;
+    failed: number;
+    dead: number;
+  }> {
+    const rows = await this.db
+      .select({
+        status: radarCrawlQueue.status,
+        count: sql<number>`COUNT(*)`,
+      })
+      .from(radarCrawlQueue)
+      .where(eq(radarCrawlQueue.tenantId, tenantId))
+      .groupBy(radarCrawlQueue.status);
+
+    const result = { pending: 0, processing: 0, completed: 0, failed: 0, dead: 0 };
+    for (const row of rows) {
+      const key = row.status.toLowerCase() as keyof typeof result;
+      if (key in result) result[key] = Number(row.count);
+    }
+    return result;
+  }
+
+  /**
+   * 큐 정리 [R5]
+   * COMPLETED 7일 이상, DEAD 30일 이상 된 아이템 삭제.
+   * @returns 삭제된 행 수
+   */
+  async cleanupQueue(tenantId: string): Promise<number> {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    // 삭제 대상 수 먼저 카운트
+    const countRows = await this.db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(radarCrawlQueue)
+      .where(
+        and(
+          eq(radarCrawlQueue.tenantId, tenantId),
+          or(
+            and(
+              eq(radarCrawlQueue.status, CrawlQueueStatus.COMPLETED),
+              lt(radarCrawlQueue.completedAt, sevenDaysAgo),
+            ),
+            and(
+              eq(radarCrawlQueue.status, CrawlQueueStatus.DEAD),
+              lt(radarCrawlQueue.completedAt, thirtyDaysAgo),
+            ),
+          ),
+        ),
+      );
+
+    const total = Number(countRows[0]?.count ?? 0);
+
+    if (total > 0) {
+      await this.db
+        .delete(radarCrawlQueue)
+        .where(
+          and(
+            eq(radarCrawlQueue.tenantId, tenantId),
+            eq(radarCrawlQueue.status, CrawlQueueStatus.COMPLETED),
+            lt(radarCrawlQueue.completedAt, sevenDaysAgo),
+          ),
+        );
+
+      await this.db
+        .delete(radarCrawlQueue)
+        .where(
+          and(
+            eq(radarCrawlQueue.tenantId, tenantId),
+            eq(radarCrawlQueue.status, CrawlQueueStatus.DEAD),
+            lt(radarCrawlQueue.completedAt, thirtyDaysAgo),
+          ),
+        );
+    }
+
+    return total;
+  }
+
+  /** 최근 실패 큐 아이템 조회 (QueueStatusPanel용) */
+  async getRecentFailedQueue(
+    tenantId: string,
+    limit = 5,
+  ): Promise<
+    {
+      id: string;
+      sourceId: string;
+      sourceName: string;
+      failureCode: string | null;
+      retryCount: number | null;
+      maxRetries: number | null;
+      status: string;
+      nextRetryAt: Date | null;
+    }[]
+  > {
+    const rows = await this.db
+      .select({
+        id: radarCrawlQueue.id,
+        sourceId: radarCrawlQueue.sourceId,
+        sourceName: radarSources.name,
+        failureCode: radarCrawlQueue.failureCode,
+        retryCount: radarCrawlQueue.retryCount,
+        maxRetries: radarCrawlQueue.maxRetries,
+        status: radarCrawlQueue.status,
+        nextRetryAt: radarCrawlQueue.nextRetryAt,
+      })
+      .from(radarCrawlQueue)
+      .innerJoin(radarSources, eq(radarCrawlQueue.sourceId, radarSources.id))
+      .where(
+        and(
+          eq(radarCrawlQueue.tenantId, tenantId),
+          inArray(radarCrawlQueue.status, [
+            CrawlQueueStatus.FAILED,
+            CrawlQueueStatus.DEAD,
+          ]),
+        ),
+      )
+      .orderBy(desc(radarCrawlQueue.scheduledAt))
+      .limit(limit);
+
+    return rows;
+  }
+}
+
+// ============================================================================
+// Queue Helpers
+// ============================================================================
+
+/** 재시도 지연 계산 (지수 백오프) — 1시간, 6시간, 24시간 */
+function calculateNextRetry(retryCount: number): Date {
+  const delays = [3600, 21600, 86400]; // 초
+  const delaySec = delays[Math.min(retryCount - 1, delays.length - 1)];
+  return new Date(Date.now() + delaySec * 1000);
 }

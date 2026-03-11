@@ -12,6 +12,7 @@ import { Input } from "~/components/ui/Input";
 import { ChannelCard } from "./ChannelCard";
 import { ChannelFormModal } from "./ChannelFormModal";
 import { AddDomainInline } from "./DomainTagSelect";
+import { QueueStatusPanel } from "./QueueStatusPanel";
 import type { RadarSource, RadarDomain } from "~/features/radar/db/schema";
 
 // ============================================================================
@@ -38,6 +39,7 @@ export interface ChannelManagementTabProps {
   sourcesWithDomains: SourceWithDomains[];
   domains: SerializedRadarDomain[];
   tenantId: string;
+  isGatekeeper?: boolean;
 }
 
 // ============================================================================
@@ -72,6 +74,7 @@ export function ChannelManagementTab({
   sourcesWithDomains,
   domains,
   tenantId,
+  isGatekeeper = false,
 }: ChannelManagementTabProps) {
   // 모달 상태
   const [modalOpen, setModalOpen] = useState(false);
@@ -226,6 +229,11 @@ export function ChannelManagementTab({
         tenantId={tenantId}
         onDomainCreate={handleDomainCreate}
       />
+
+      {/* 수집 현황 — gatekeeper+ 전용 [R1] */}
+      {isGatekeeper && (
+        <QueueStatusPanel tenantId={tenantId} />
+      )}
     </div>
   );
 }
