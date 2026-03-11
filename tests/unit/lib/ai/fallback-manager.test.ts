@@ -177,6 +177,74 @@ describe("FallbackManager", () => {
     });
   });
 
+  describe("custom provider chain", () => {
+    it("uses custom chain order when provided", async () => {
+      vi.mocked(openaiProvider.call).mockResolvedValue(mockResponse);
+
+      const manager = new FallbackManager(ctx, {
+        providerChain: ["openai", "anthropic", "google", "workers-ai"],
+      });
+      const result = await manager.call("sk-ant-test", baseRequest);
+
+      expect(result).toEqual(mockResponse);
+      // OpenAI가 첫 번째로 시도되어야 함
+      expect(openaiProvider.call).toHaveBeenCalledOnce();
+      expect(anthropicProvider.call).not.toHaveBeenCalled();
+    });
+
+    it("falls back through custom chain order", async () => {
+      const err = new Error("fail");
+      vi.mocked(googleProvider.call).mockRejectedValue(err);
+      vi.mocked(openaiProvider.call).mockResolvedValue(mockResponse);
+
+      const manager = new FallbackManager(ctx, {
+        providerChain: ["google", "openai", "anthropic", "workers-ai"],
+      });
+      const result = await manager.call("sk-ant-test", baseRequest);
+
+      expect(result).toEqual(mockResponse);
+      expect(googleProvider.call).toHaveBeenCalledOnce();
+      expect(openaiProvider.call).toHaveBeenCalledOnce();
+      expect(anthropicProvider.call).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("health callbacks", () => {
+    it("calls onProviderSuccess on successful call", async () => {
+      vi.mocked(anthropicProvider.call).mockResolvedValue(mockResponse);
+      const onSuccess = vi.fn();
+
+      const manager = new FallbackManager(ctx, { onProviderSuccess: onSuccess });
+      await manager.call("sk-ant-test", baseRequest);
+
+      expect(onSuccess).toHaveBeenCalledWith("anthropic");
+    });
+
+    it("calls onProviderFailed on failed call", async () => {
+      vi.mocked(anthropicProvider.call).mockRejectedValue(new Error("fail"));
+      vi.mocked(openaiProvider.call).mockResolvedValue(mockResponse);
+      const onFailed = vi.fn();
+
+      const manager = new FallbackManager(ctx, { onProviderFailed: onFailed });
+      await manager.call("sk-ant-test", baseRequest);
+
+      expect(onFailed).toHaveBeenCalledWith("anthropic");
+    });
+
+    it("calls both callbacks during fallback", async () => {
+      vi.mocked(anthropicProvider.call).mockRejectedValue(new Error("fail"));
+      vi.mocked(openaiProvider.call).mockResolvedValue(mockResponse);
+      const onFailed = vi.fn();
+      const onSuccess = vi.fn();
+
+      const manager = new FallbackManager(ctx, { onProviderFailed: onFailed, onProviderSuccess: onSuccess });
+      await manager.call("sk-ant-test", baseRequest);
+
+      expect(onFailed).toHaveBeenCalledWith("anthropic");
+      expect(onSuccess).toHaveBeenCalledWith("openai");
+    });
+  });
+
   describe("callStream", () => {
     it("skips workers-ai for streaming (no streaming support)", async () => {
       const creditError = new Error("credit exhausted");

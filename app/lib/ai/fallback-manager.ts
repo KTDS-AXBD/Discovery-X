@@ -7,14 +7,14 @@
  *     └─ 모든 프로바이더 실패 → 마지막 에러 throw
  */
 
-import type { ClaudeRequest, ClaudeResponse, FallbackContext, ProviderId, LLMProvider } from "./types";
+import type { ClaudeRequest, ClaudeResponse, FallbackContext, FallbackManagerOptions, ProviderId, LLMProvider } from "./types";
 import { anthropicProvider } from "./providers/anthropic";
 import { openaiProvider } from "./providers/openai";
 import { googleProvider } from "./providers/google";
 import { workersAIProvider, setWorkersAIEnv } from "./providers/workers-ai";
 
-/** 프로바이더 체인 순서 */
-const PROVIDER_CHAIN: ProviderId[] = ["anthropic", "openai", "google", "workers-ai"];
+/** 기본 프로바이더 체인 순서 */
+const DEFAULT_PROVIDER_CHAIN: ProviderId[] = ["anthropic", "openai", "google", "workers-ai"];
 
 /** 프로바이더 인스턴스 맵 */
 const PROVIDERS: Record<ProviderId, LLMProvider> = {
@@ -41,9 +41,15 @@ interface FailedProvider {
 export class FallbackManager {
   private ctx: FallbackContext;
   private failedProviders: FailedProvider[] = [];
+  private providerChain: ProviderId[];
+  private onProviderFailed?: (id: ProviderId) => void;
+  private onProviderSuccess?: (id: ProviderId) => void;
 
-  constructor(ctx: FallbackContext) {
+  constructor(ctx: FallbackContext, options?: FallbackManagerOptions) {
     this.ctx = ctx;
+    this.providerChain = options?.providerChain ?? DEFAULT_PROVIDER_CHAIN;
+    this.onProviderFailed = options?.onProviderFailed;
+    this.onProviderSuccess = options?.onProviderSuccess;
     // Workers AI 프로바이더에 env 주입 (AI 바인딩 또는 REST API용 CF_ACCOUNT_ID)
     if (ctx.env) {
       setWorkersAIEnv(ctx.env as Record<string, unknown>);
@@ -58,7 +64,7 @@ export class FallbackManager {
     const needsTools = !!request.tools && request.tools.length > 0;
     let lastError: Error | null = null;
 
-    for (const providerId of PROVIDER_CHAIN) {
+    for (const providerId of this.providerChain) {
       if (this.isProviderFailed(providerId)) continue;
 
       const provider = PROVIDERS[providerId];
@@ -78,6 +84,7 @@ export class FallbackManager {
         const response = await provider.call(providerApiKey, request);
 
         console.log(`[AI Fallback] ${providerId} 성공`);
+        this.onProviderSuccess?.(providerId);
         // 프로바이더 정보를 응답에 포함 (디버깅/로깅용)
         if (providerId !== "anthropic") {
           (response as unknown as Record<string, unknown>)._provider = providerId;
@@ -110,7 +117,7 @@ export class FallbackManager {
   async callStream(apiKey: string, request: ClaudeRequest): Promise<ReadableStream<Uint8Array>> {
     const needsTools = !!request.tools && request.tools.length > 0;
 
-    for (const providerId of PROVIDER_CHAIN) {
+    for (const providerId of this.providerChain) {
       if (this.isProviderFailed(providerId)) continue;
 
       const provider = PROVIDERS[providerId];
@@ -123,7 +130,9 @@ export class FallbackManager {
       if (!providerApiKey && providerId !== "workers-ai") continue;
 
       try {
-        return await provider.callStream(providerApiKey, request);
+        const stream = await provider.callStream(providerApiKey, request);
+        this.onProviderSuccess?.(providerId);
+        return stream;
       } catch (error) {
         if (!(error instanceof Error)) throw error;
 
@@ -150,7 +159,8 @@ export class FallbackManager {
       failedAt: new Date().toISOString(),
       reason: reason.slice(0, 200),
     });
-    console.warn(`[AI Fallback] ${id} 크레딧 소진: ${reason.slice(0, 100)}`);
+    this.onProviderFailed?.(id);
+    console.warn(`[AI Fallback] ${id} 실패: ${reason.slice(0, 100)}`);
   }
 
   /**

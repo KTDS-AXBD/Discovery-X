@@ -45,7 +45,21 @@ export interface FallbackState {
 /** Fallback Manager에 전달하는 환경 컨텍스트 */
 export interface FallbackContext {
   env: Record<string, string | undefined>;
-  db?: unknown; // DB 인스턴스 (알림용)
+  db?: unknown; // DB 인스턴스 (PolicyRouter/알림용)
+  /** PolicyRouter 통합: userId + tenantId 모두 있으면 정책 기반 라우팅 활성화 */
+  userId?: string;
+  tenantId?: string;
+  purpose?: string;
+}
+
+/** FallbackManager 옵션 */
+export interface FallbackManagerOptions {
+  /** PolicyRouter가 결정한 provider 체인 순서 (없으면 기본 순서) */
+  providerChain?: ProviderId[];
+  /** provider 실패 시 호출 (PolicyRouter 건강 캐시 갱신용) */
+  onProviderFailed?: (id: ProviderId) => void;
+  /** provider 성공 시 호출 (PolicyRouter 건강 캐시 갱신용) */
+  onProviderSuccess?: (id: ProviderId) => void;
 }
 
 // Re-export claude-client 타입들 (편의)

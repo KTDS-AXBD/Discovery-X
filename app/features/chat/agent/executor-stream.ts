@@ -315,7 +315,10 @@ export function createAgentStreamResponse(
         for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
           const contextMessages = await buildConversationContext(db, conversationId, ctx.modelId);
 
-          const aiCtx: FallbackContext | undefined = streamOptions?.env ? { env: streamOptions.env } : undefined;
+          const purpose = isIdeasMode ? "analysis" : "chat";
+          const aiCtx: FallbackContext | undefined = streamOptions?.env
+            ? { env: streamOptions.env, db, userId: streamOptions.userId, tenantId, purpose }
+            : undefined;
           const rawStream = await callLLMStream(apiKey, {
             model: ctx.modelId,
             max_tokens: 4096,

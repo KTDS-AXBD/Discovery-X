@@ -40,7 +40,7 @@ export async function executeAgentTurn(
   tenantId?: string,
   env?: Record<string, string | undefined>,
 ): Promise<ExecuteResult> {
-  const aiCtx: FallbackContext | undefined = env ? { env } : undefined;
+  const aiCtx: FallbackContext | undefined = env ? { env, db, tenantId, purpose: "chat" } : undefined;
   const ctx = await prepareAgentPipeline(db, conversationId, userMessage);
   const systemPrompt = buildSystemPrompt(ctx.agentCfg, ctx.sourceContext);
   const filteredTools = getToolsForAutonomyLevel(ctx.autonomyLevel);
