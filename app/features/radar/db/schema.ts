@@ -48,6 +48,33 @@ export const RadarRunStatus = {
 } as const;
 
 // ============================================================================
+// CRAWL QUEUE CONSTANTS
+// ============================================================================
+
+export const CrawlQueueStatus = {
+  PENDING: "PENDING",
+  PROCESSING: "PROCESSING",
+  COMPLETED: "COMPLETED",
+  FAILED: "FAILED",
+  DEAD: "DEAD",
+} as const;
+
+export const ParserType = {
+  HTML: "html",
+  RSS: "rss",
+  YOUTUBE: "youtube",
+  PDF: "pdf",
+} as const;
+
+export const FailureCode = {
+  TIMEOUT: "TIMEOUT",
+  PARSE_ERROR: "PARSE_ERROR",
+  AUTH_REQUIRED: "AUTH_REQUIRED",
+  RATE_LIMITED: "RATE_LIMITED",
+  NETWORK_ERROR: "NETWORK_ERROR",
+} as const;
+
+// ============================================================================
 // RADAR TABLES
 // ============================================================================
 
@@ -181,6 +208,71 @@ export const radarRuns = sqliteTable(
 );
 
 // ============================================================================
+// DOMAIN TABLES (F41 Phase 2)
+// ============================================================================
+
+export const radarDomains = sqliteTable("radar_domains", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  color: text("color"),
+  tenantId: text("tenant_id").references(() => tenants.id),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+}, (table) => ({
+  tenantIdx: index("idx_radar_domains_tenant").on(table.tenantId),
+}));
+
+export const radarSourceDomains = sqliteTable("radar_source_domains", {
+  id: text("id").primaryKey(),
+  sourceId: text("source_id")
+    .notNull()
+    .references(() => radarSources.id),
+  domainId: text("domain_id")
+    .notNull()
+    .references(() => radarDomains.id),
+}, (table) => ({
+  sourceIdx: index("idx_rsd_source").on(table.sourceId),
+  domainIdx: index("idx_rsd_domain").on(table.domainId),
+}));
+
+// ============================================================================
+// CRAWL QUEUE TABLE (F41 Phase 2)
+// ============================================================================
+
+export const radarCrawlQueue = sqliteTable("radar_crawl_queue", {
+  id: text("id").primaryKey(),
+  sourceId: text("source_id")
+    .notNull()
+    .references(() => radarSources.id),
+  url: text("url").notNull(),
+  dedupeKey: text("dedupe_key"),
+  status: text("status").notNull().default(CrawlQueueStatus.PENDING),
+  priority: integer("priority").default(0),
+  retryCount: integer("retry_count").default(0),
+  maxRetries: integer("max_retries").default(3),
+  parserType: text("parser_type").default(ParserType.HTML),
+  failureCode: text("failure_code"),
+  error: text("error"),
+  batchId: text("batch_id"),
+  itemsCreated: integer("items_created").default(0),
+  tenantId: text("tenant_id").references(() => tenants.id),
+  scheduledAt: integer("scheduled_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  startedAt: integer("started_at", { mode: "timestamp" }),
+  completedAt: integer("completed_at", { mode: "timestamp" }),
+  nextRetryAt: integer("next_retry_at", { mode: "timestamp" }),
+}, (table) => ({
+  statusIdx: index("idx_rcq_status").on(table.status),
+  sourceIdx: index("idx_rcq_source").on(table.sourceId),
+  scheduledIdx: index("idx_rcq_scheduled").on(table.scheduledAt),
+  tenantIdx: index("idx_rcq_tenant").on(table.tenantId),
+  batchIdx: index("idx_rcq_batch").on(table.batchId),
+}));
+
+// ============================================================================
 // AI PIPELINE TABLES (F27)
 // ============================================================================
 
@@ -225,3 +317,13 @@ export type NewRadarItemUserStatus = typeof radarItemUserStatus.$inferInsert;
 
 export type AIPipelineRun = typeof aiPipelineRuns.$inferSelect;
 export type NewAIPipelineRun = typeof aiPipelineRuns.$inferInsert;
+
+// F41 Phase 2 types
+export type RadarDomain = typeof radarDomains.$inferSelect;
+export type NewRadarDomain = typeof radarDomains.$inferInsert;
+
+export type RadarSourceDomain = typeof radarSourceDomains.$inferSelect;
+export type NewRadarSourceDomain = typeof radarSourceDomains.$inferInsert;
+
+export type RadarCrawlQueueItem = typeof radarCrawlQueue.$inferSelect;
+export type NewRadarCrawlQueueItem = typeof radarCrawlQueue.$inferInsert;
