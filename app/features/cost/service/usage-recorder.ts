@@ -1,26 +1,13 @@
 import { eq, and } from "drizzle-orm";
 import type { DB } from "~/db";
 import { usageEvents, dailyUsageAggregates } from "../db/schema";
-import { tokenUsageLogs } from "~/db/token-usage-schema";
 import type { UsageEventInput } from "../types";
-import type { Purpose } from "../constants/purpose";
-
-/** purpose → 기존 token_usage_logs.mode 역매핑 (하위 호환) */
-const PURPOSE_TO_MODE: Record<Purpose, string> = {
-  chat: "default",
-  analysis: "ideas",
-  extraction: "direct",
-  batch: "default",
-  "agent-tool": "default",
-  eval: "default",
-};
 
 export class UsageRecorder {
   constructor(private db: DB) {}
 
   /**
    * usage_events INSERT + daily_usage_aggregates UPSERT.
-   * 기존 token_usage_logs에도 병행 기록 (하위 호환).
    * @returns usageEventId
    */
   async record(event: UsageEventInput): Promise<{ usageEventId: string }> {
@@ -56,13 +43,6 @@ export class UsageRecorder {
       await this.upsertDailyAggregate(event, totalTokens);
     } catch (err) {
       console.warn("[UsageRecorder] daily aggregate upsert failed:", err);
-    }
-
-    // 3) token_usage_logs 병행 기록 (하위 호환 — 실패 시 무시)
-    try {
-      await this.writeLegacyLog(id, event, totalTokens);
-    } catch {
-      // 비핵심: 무시
     }
 
     return { usageEventId: id };
@@ -115,26 +95,5 @@ export class UsageRecorder {
         totalTokens,
       });
     }
-  }
-
-  private async writeLegacyLog(
-    usageEventId: string,
-    event: UsageEventInput,
-    totalTokens: number
-  ): Promise<void> {
-    await this.db.insert(tokenUsageLogs).values({
-      id: usageEventId,
-      conversationId: event.conversationId ?? null,
-      userId: event.userId,
-      mode: PURPOSE_TO_MODE[event.purpose] ?? "default",
-      model: event.model,
-      inputTokens: event.inputTokens,
-      outputTokens: event.outputTokens,
-      totalTokens,
-      purpose: event.purpose,
-      toolRounds: event.toolRounds ?? 0,
-      provider: event.provider,
-      tenantId: event.tenantId,
-    });
   }
 }

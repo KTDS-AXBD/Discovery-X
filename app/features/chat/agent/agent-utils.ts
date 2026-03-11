@@ -6,7 +6,6 @@
 import { eq } from "drizzle-orm";
 import type { DB } from "~/db";
 import { agentConfig } from "~/db";
-import { tokenUsageLogs } from "~/db/token-usage-schema";
 import { CLAUDE_MODEL } from "~/lib/ai";
 import { UsageRecorder } from "~/features/cost/service/usage-recorder";
 import { MODE_TO_PURPOSE } from "~/features/cost/constants/purpose";
@@ -48,43 +47,24 @@ export async function updateTokenUsage(db: DB, tokensUsed: number, meta?: TokenU
       .where(eq(agentConfig.id, "default"));
   }
 
-  // Log to token_usage_logs for historical tracking
-  if (meta) {
+  // usage_events에 기록 (userId + tenantId 필수)
+  if (meta?.userId && meta?.tenantId) {
     try {
-      await db.insert(tokenUsageLogs).values({
-        id: crypto.randomUUID(),
-        conversationId: meta.conversationId || null,
-        mode: meta.mode || "default",
+      const recorder = new UsageRecorder(db);
+      const purpose = MODE_TO_PURPOSE[meta.mode || "default"] || "chat";
+      await recorder.record({
+        userId: meta.userId,
+        tenantId: meta.tenantId,
+        conversationId: meta.conversationId ?? undefined,
+        provider: (meta.provider as ProviderId) || "anthropic",
         model: meta.model || CLAUDE_MODEL,
+        purpose,
         inputTokens: meta.inputTokens || 0,
         outputTokens: meta.outputTokens || 0,
-        totalTokens: tokensUsed,
         toolRounds: meta.toolRounds || 0,
-        tenantId: meta.tenantId || null,
       });
     } catch {
-      // Non-critical: don't fail the main operation if logging fails
-    }
-
-    // 신규 usage_events 병행 기록 (userId + tenantId가 있을 때만)
-    if (meta.userId && meta.tenantId) {
-      try {
-        const recorder = new UsageRecorder(db);
-        const purpose = MODE_TO_PURPOSE[meta.mode || "default"] || "chat";
-        await recorder.record({
-          userId: meta.userId,
-          tenantId: meta.tenantId,
-          conversationId: meta.conversationId ?? undefined,
-          provider: (meta.provider as ProviderId) || "anthropic",
-          model: meta.model || CLAUDE_MODEL,
-          purpose,
-          inputTokens: meta.inputTokens || 0,
-          outputTokens: meta.outputTokens || 0,
-          toolRounds: meta.toolRounds || 0,
-        });
-      } catch {
-        // Non-critical: usage_events 기록 실패는 무시
-      }
+      // Non-critical: usage_events 기록 실패는 무시
     }
   }
 }

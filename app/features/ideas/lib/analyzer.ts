@@ -8,7 +8,6 @@
 import { eq } from "drizzle-orm";
 import type { DB } from "~/db";
 import { ideas } from "~/features/ideas/db/schema";
-import { tokenUsageLogs } from "~/db/token-usage-schema";
 import { agentConfig } from "~/db";
 import { CLAUDE_MODEL } from "~/lib/ai";
 import { callLLM } from "~/lib/ai";
@@ -61,6 +60,7 @@ interface AnalyzerOptions {
   ideaId: string;
   sourceContext: string;
   tenantId?: string;
+  userId?: string;
   categories?: string[];
   sourceIds?: string[];
   onProgress?: (event: AnalysisProgress) => void;
@@ -102,6 +102,7 @@ export async function runIdeaAnalysis({
   ideaId,
   sourceContext,
   tenantId,
+  userId,
   categories,
   sourceIds,
   onProgress,
@@ -223,6 +224,7 @@ export async function runIdeaAnalysis({
           outputTokens: response.usage.output_tokens,
           totalTokens,
           tenantId,
+          userId,
           provider: actualProvider,
         });
       } catch {
@@ -292,7 +294,7 @@ async function logTokenUsage(
     userId?: string;
   }
 ) {
-  // Update daily aggregate
+  // agentConfig 일일 예산 추적 (병행 유지)
   const today = new Date().toISOString().slice(0, 10);
   const config = await db
     .select()
@@ -314,35 +316,18 @@ async function logTokenUsage(
       .where(eq(agentConfig.id, "default"));
   }
 
-  // Insert log (legacy)
-  await db.insert(tokenUsageLogs).values({
-    id: crypto.randomUUID(),
-    mode: meta.mode,
-    model: meta.model,
-    inputTokens: meta.inputTokens,
-    outputTokens: meta.outputTokens,
-    totalTokens: meta.totalTokens,
-    toolRounds: 0,
-    tenantId: meta.tenantId || null,
-    provider: meta.provider || "anthropic",
-  });
-
-  // 신규 usage_events 병행 기록
+  // usage_events에 기록 (userId + tenantId 필수)
   if (meta.userId && meta.tenantId) {
-    try {
-      const recorder = new UsageRecorder(db);
-      const purpose = MODE_TO_PURPOSE[meta.mode] || "chat";
-      await recorder.record({
-        userId: meta.userId,
-        tenantId: meta.tenantId,
-        provider: (meta.provider as ProviderId) || "anthropic",
-        model: meta.model,
-        purpose,
-        inputTokens: meta.inputTokens,
-        outputTokens: meta.outputTokens,
-      });
-    } catch {
-      // Non-critical
-    }
+    const recorder = new UsageRecorder(db);
+    const purpose = MODE_TO_PURPOSE[meta.mode] || "chat";
+    await recorder.record({
+      userId: meta.userId,
+      tenantId: meta.tenantId,
+      provider: (meta.provider as ProviderId) || "anthropic",
+      model: meta.model,
+      purpose,
+      inputTokens: meta.inputTokens,
+      outputTokens: meta.outputTokens,
+    });
   }
 }

@@ -70,6 +70,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
           ideaId,
           sourceContext,
           tenantId: ctx.tenantId,
+          userId: ctx.user.id,
           categories,
           sourceIds,
           onProgress: send,

@@ -1,8 +1,7 @@
 import { eq, and, gte, sql } from "drizzle-orm";
 import type { DB } from "~/db";
-import { conversations } from "~/db";
 import { agentMemoryV2 } from "~/db/schema-v2";
-import { tokenUsageLogs } from "~/db/token-usage-schema";
+import { usageEvents } from "~/features/cost/db/schema";
 import { MemoryLifecycle } from "~/features/chat/agent/memory-lifecycle";
 
 // ─── 상수 ──────────────────────────────────────────────────────────────
@@ -30,7 +29,7 @@ export interface BudgetStatus {
  *
  * 두 축으로 예산을 관리한다:
  * - 메모리 토큰: agent_memory_v2의 활성(비아카이브) 레코드 토큰 합계 (100K)
- * - 월간 LLM 사용량: conversations → token_usage_logs 월간 집계 (2M)
+ * - 월간 LLM 사용량: usage_events 월간 집계 (2M)
  */
 export class TokenBudgetManager {
   constructor(private db: DB) {}
@@ -69,27 +68,19 @@ export class TokenBudgetManager {
     return row?.total ?? 0;
   }
 
-  // ─── 월간 LLM 사용량 (conversations JOIN token_usage_logs) ──────
-  /**
-   * token_usage_logs에는 userId가 없으므로
-   * conversationId → conversations.userId 조인으로 사용자 귀속을 결정한다.
-   */
+  // ─── 월간 LLM 사용량 (usage_events 직접 조회) ───────────────────
   async getMonthlyUsage(userId: string): Promise<number> {
     const monthStart = getCurrentMonthStart();
 
     const [row] = await this.db
       .select({
-        total: sql<number>`coalesce(sum(${tokenUsageLogs.inputTokens} + ${tokenUsageLogs.outputTokens}), 0)`,
+        total: sql<number>`coalesce(sum(${usageEvents.inputTokens} + ${usageEvents.outputTokens}), 0)`,
       })
-      .from(tokenUsageLogs)
-      .innerJoin(
-        conversations,
-        eq(tokenUsageLogs.conversationId, conversations.id),
-      )
+      .from(usageEvents)
       .where(
         and(
-          eq(conversations.userId, userId),
-          gte(tokenUsageLogs.createdAt, monthStart),
+          eq(usageEvents.userId, userId),
+          gte(usageEvents.createdAt, monthStart),
         ),
       );
     return row?.total ?? 0;

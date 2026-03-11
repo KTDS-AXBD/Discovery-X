@@ -293,10 +293,9 @@ export class AgentSessionDO implements DurableObject {
       const monthStartEpoch = Math.floor(monthStart.getTime() / 1000);
 
       const stmt = this.env.DB.prepare(`
-        SELECT coalesce(sum(tul.input_tokens + tul.output_tokens), 0) as total
-        FROM token_usage_logs tul
-        INNER JOIN conversations c ON c.id = tul.conversation_id
-        WHERE c.user_id = ? AND tul.created_at >= ?
+        SELECT coalesce(sum(input_tokens + output_tokens), 0) as total
+        FROM usage_events
+        WHERE user_id = ? AND created_at >= ?
       `);
       const result = await stmt.bind(this.userId, monthStartEpoch).first<{ total: number }>();
       return (result?.total ?? 0) < AgentSessionDO.MONTHLY_LLM_BUDGET;

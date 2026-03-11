@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { createTestDb, type TestDB } from "../helpers/db";
-import { users, conversations } from "~/db";
+import { users } from "~/db";
 import { agentMemoryV2 } from "~/db/schema-v2";
-import { tokenUsageLogs } from "~/db/token-usage-schema";
+import { usageEvents } from "~/features/cost/db/schema";
 import {
   TokenBudgetManager,
   USER_MEMORY_BUDGET,
@@ -79,18 +79,17 @@ describe("TokenBudgetManager", () => {
     expect(count).toBe(0);
   });
 
-  // ─── getMonthlyUsage (conversations JOIN) ─────────────────────────
+  // ─── getMonthlyUsage (usage_events 직접 조회) ───────────────────
 
-  it("이번 달 LLM 사용량을 conversations JOIN으로 계산한다", async () => {
-    db.insert(conversations)
-      .values({ id: "c1", userId: "u1", title: "test conv" })
-      .run();
-
-    db.insert(tokenUsageLogs)
+  it("이번 달 LLM 사용량을 usage_events에서 계산한다", async () => {
+    db.insert(usageEvents)
       .values({
-        id: "tul1",
-        conversationId: "c1",
+        id: "ue1",
+        userId: "u1",
+        tenantId: "t1",
+        provider: "anthropic",
         model: "claude-3",
+        purpose: "chat",
         inputTokens: 1000,
         outputTokens: 500,
         totalTokens: 1500,
@@ -106,27 +105,26 @@ describe("TokenBudgetManager", () => {
       .values({ id: "u2", email: "u2@test.com", name: "User 2" })
       .run();
 
-    db.insert(conversations)
-      .values([
-        { id: "c1", userId: "u1", title: "conv1" },
-        { id: "c2", userId: "u2", title: "conv2" },
-      ])
-      .run();
-
-    db.insert(tokenUsageLogs)
+    db.insert(usageEvents)
       .values([
         {
-          id: "tul1",
-          conversationId: "c1",
+          id: "ue1",
+          userId: "u1",
+          tenantId: "t1",
+          provider: "anthropic",
           model: "claude-3",
+          purpose: "chat",
           inputTokens: 1000,
           outputTokens: 500,
           totalTokens: 1500,
         },
         {
-          id: "tul2",
-          conversationId: "c2",
+          id: "ue2",
+          userId: "u2",
+          tenantId: "t1",
+          provider: "anthropic",
           model: "claude-3",
+          purpose: "chat",
           inputTokens: 2000,
           outputTokens: 1000,
           totalTokens: 3000,
