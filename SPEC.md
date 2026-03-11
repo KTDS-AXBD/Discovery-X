@@ -445,7 +445,7 @@ build/
 ### 버전
 - **시스템 (SemVer SSOT)**: 0.6.0 (package.json)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 60개 마이그레이션 SQL (0000~0058), 로컬 적용 완료
+- **DB**: 60개 마이그레이션 SQL (0000~0058), 로컬+프로덕션 적용 완료
 
 ### 주요 지표
 - **라우트**: 181개

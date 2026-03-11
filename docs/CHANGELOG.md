@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 367 (2026-03-12)
+
+**F41 Phase 3A 검증 + GAP 분석 + 프로덕션 마이그레이션 (DX-REQ-012)**:
+- ✅ CI/CD 배포 확인: run 22953894998 성공
+- ✅ 프로덕션 헬스체크: HTTP 200 통과
+- ✅ 프로덕션 마이그레이션 0058 적용 (wrangler d1 execute --file, num_tables: 119)
+- ✅ GAP 분석 DX-ANLS-013: 97% → GAP 2건 해소 → **100% Match Rate**
+  - GAP-1: `radarItemMetrics.itemId` `.unique()` 추가
+  - GAP-2: `idx_rim_evaluated_drizzle` 인덱스 추가
+
+**변경**: 1파일 수정 (schema.ts +2줄), 분석 문서 1개 생성
+**검증**: ✅ test (2,415) / ✅ 프로덕션 헬스체크
+
 ### 세션 366 (2026-03-11)
 
 **F41 Phase 3A Health Score 서비스 + Cron + API (DX-REQ-012)**:
