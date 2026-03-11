@@ -8,7 +8,7 @@ import type {
   ClaudeStreamEvent,
 } from "~/features/chat/agent/claude-client";
 
-export type ProviderId = "anthropic" | "openai" | "google" | "workers-ai";
+export type ProviderId = "anthropic" | "openai" | "google" | "deepseek" | "workers-ai";
 
 /** 각 프로바이더가 구현해야 하는 인터페이스 */
 export interface LLMProvider {

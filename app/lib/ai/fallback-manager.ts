@@ -17,7 +17,7 @@ import { workersAIProvider, setWorkersAIEnv } from "./providers/workers-ai";
 const DEFAULT_PROVIDER_CHAIN: ProviderId[] = ["anthropic", "openai", "google", "workers-ai"];
 
 /** 프로바이더 인스턴스 맵 */
-const PROVIDERS: Record<ProviderId, LLMProvider> = {
+const PROVIDERS: Partial<Record<ProviderId, LLMProvider>> = {
   anthropic: anthropicProvider,
   openai: openaiProvider,
   google: googleProvider,
@@ -25,10 +25,11 @@ const PROVIDERS: Record<ProviderId, LLMProvider> = {
 };
 
 /** 프로바이더별 API 키 환경변수 이름 */
-const API_KEY_MAP: Record<ProviderId, string> = {
+const API_KEY_MAP: Record<string, string> = {
   anthropic: "ANTHROPIC_API_KEY",
   openai: "OPENAI_API_KEY",
   google: "GOOGLE_AI_API_KEY",
+  deepseek: "DEEPSEEK_API_KEY",
   "workers-ai": "", // Workers AI는 바인딩 사용
 };
 
@@ -68,6 +69,7 @@ export class FallbackManager {
       if (this.isProviderFailed(providerId)) continue;
 
       const provider = PROVIDERS[providerId];
+      if (!provider) continue; // 미구현 프로바이더 건너뛰기
 
       // 도구 필요 시 미지원 프로바이더 건너뛰기
       if (needsTools && !provider.capabilities.supportsTools) continue;
@@ -121,6 +123,7 @@ export class FallbackManager {
       if (this.isProviderFailed(providerId)) continue;
 
       const provider = PROVIDERS[providerId];
+      if (!provider) continue;
 
       // 도구/스트리밍 미지원 건너뛰기
       if (needsTools && !provider.capabilities.supportsTools) continue;

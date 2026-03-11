@@ -54,10 +54,11 @@ interface ProviderHealthEntry {
 // ============================================================================
 
 /** API 키 환경변수 매핑 */
-const API_KEY_MAP: Record<ProviderId, string> = {
+const API_KEY_MAP: Record<string, string> = {
   anthropic: "ANTHROPIC_API_KEY",
   openai: "OPENAI_API_KEY",
   google: "GOOGLE_AI_API_KEY",
+  deepseek: "DEEPSEEK_API_KEY",
   "workers-ai": "", // Workers AI는 바인딩 사용
 };
 

@@ -12,7 +12,7 @@ export type ReasonCode =
   | "policy_override"
   | "retry";
 
-export type ProviderId = "anthropic" | "openai" | "google" | "workers-ai";
+export type ProviderId = "anthropic" | "openai" | "google" | "deepseek" | "workers-ai";
 
 export interface BudgetEvaluation {
   tier: BudgetTier;

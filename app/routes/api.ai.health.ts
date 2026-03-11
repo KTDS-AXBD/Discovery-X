@@ -16,7 +16,7 @@ import { requireAdmin } from "~/lib/auth/session.server";
 const PROVIDER_CHAIN: ProviderId[] = ["anthropic", "openai", "google", "workers-ai"];
 
 /** 프로바이더 인스턴스 맵 */
-const PROVIDERS: Record<ProviderId, LLMProvider> = {
+const PROVIDERS: Partial<Record<ProviderId, LLMProvider>> = {
   anthropic: anthropicProvider,
   openai: openaiProvider,
   google: googleProvider,
@@ -24,18 +24,20 @@ const PROVIDERS: Record<ProviderId, LLMProvider> = {
 };
 
 /** 프로바이더별 API 키 환경변수명 */
-const API_KEY_MAP: Record<ProviderId, string> = {
+const API_KEY_MAP: Record<string, string> = {
   anthropic: "ANTHROPIC_API_KEY",
   openai: "OPENAI_API_KEY",
   google: "GOOGLE_AI_API_KEY",
+  deepseek: "DEEPSEEK_API_KEY",
   "workers-ai": "",
 };
 
 /** 프로바이더별 최저비용 모델 */
-const PING_MODELS: Record<ProviderId, string> = {
+const PING_MODELS: Record<string, string> = {
   anthropic: "claude-haiku-4-5-20251001",
   openai: "gpt-4o-mini",
   google: "gemini-2.0-flash-lite",
+  deepseek: "deepseek-chat",
   "workers-ai": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
 };
 
@@ -76,13 +78,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     const id = PROVIDER_CHAIN[i];
     const provider = PROVIDERS[id];
     if (result.status === "fulfilled") {
-      return { ...result.value, capabilities: provider.capabilities };
+      return { ...result.value, capabilities: provider?.capabilities ?? { supportsTools: false, supportsStreaming: false } };
     }
     // Promise.allSettled의 rejected는 발생하지 않지만 방어적으로 처리
     return {
       id,
       status: "error" as const,
-      capabilities: provider.capabilities,
+      capabilities: provider?.capabilities ?? { supportsTools: false, supportsStreaming: false },
       error: result.reason instanceof Error ? result.reason.message : "Unknown error",
     };
   });
@@ -121,6 +123,7 @@ async function pingProvider(
   env: Record<string, string>,
 ): Promise<Omit<ProviderResult, "capabilities">> {
   const provider = PROVIDERS[id];
+  if (!provider) return { id, status: "no_key" };
   const keyName = API_KEY_MAP[id];
 
   // API 키 확인

@@ -8,6 +8,7 @@ import type { ProviderId } from "./types";
 interface ModelMapping {
   openai: string;
   google: string;
+  deepseek: string;
   "workers-ai": string;
 }
 
@@ -20,24 +21,28 @@ const MODEL_MAP: Record<string, ModelMapping> = {
   "claude-sonnet-4-20250514": {
     openai: "gpt-4o",
     google: "gemini-2.5-flash",
+    deepseek: "deepseek-chat",
     "workers-ai": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
   },
   // Haiku 계열 → 경량 모델
   "claude-haiku-4-5-20251001": {
     openai: "gpt-4o-mini",
     google: "gemini-2.5-flash-lite",
+    deepseek: "deepseek-chat",
     "workers-ai": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
   },
   // Haiku 3.5 (레거시)
   "claude-haiku-3-5-20241022": {
     openai: "gpt-4o-mini",
     google: "gemini-2.5-flash-lite",
+    deepseek: "deepseek-chat",
     "workers-ai": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
   },
   // Opus 4 → 최고급 모델
   "claude-opus-4-20250514": {
     openai: "gpt-4o",
     google: "gemini-2.5-flash",
+    deepseek: "deepseek-reasoner",
     "workers-ai": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
   },
 };
@@ -46,6 +51,7 @@ const MODEL_MAP: Record<string, ModelMapping> = {
 const DEFAULT_MAPPING: ModelMapping = {
   openai: "gpt-4o",
   google: "gemini-2.5-flash",
+  deepseek: "deepseek-chat",
   "workers-ai": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
 };
 
