@@ -379,7 +379,7 @@ root.tsx
 | Value-up Engine | 4 | valueup_assessments, valueup_scores, valueup_scenarios, valueup_checklists |
 | Proposals | 8 | proposals, proposal_sections, proposal_milestones, proposal_actions, proposal_comments, proposal_members, proposal_likes, proposal_categories |
 | Archive | 2 | archive_folders, archive_folder_items |
-| Token Usage | 1 | token_usage_logs |
+| Token Usage | 1 | token_usage_logs *(레거시, Drizzle 스키마 제거됨 — usage_events로 전환)* |
 | Cost Management | 12 | usage_events, cost_estimates, model_catalog, price_catalog, budget_policies, budget_usage_cache, routing_policies, policy_provider_priorities, policy_purpose_rules, policy_degrade_rules, routing_decisions, daily_usage_aggregates |
 | Matrix | 7 | industries, functions, matrix_cells, individual_scores, consensus_scores, cell_topic_map, scoring_config |
 | Worker/Infra | 2 | notification_queue, cron_logs |

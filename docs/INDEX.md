@@ -47,6 +47,7 @@
 | DX-DSGN-009 | MVP 빌더 Agent 설계 | 1.0 | Active | 02-design/DX-DSGN-009_mvp-builder.md |
 | DX-DSGN-010 | Radar 수동 수집 + Signal→Idea 설계 | 1.0 | Draft | 02-design/DX-DSGN-010_radar-manual-collection.md |
 | DX-DSGN-011 | AI API 서비스 관리 설계 | 1.0 | Draft | 02-design/DX-DSGN-011_ai-api-service-management.md |
+| DX-DSGN-012 | Radar 채널 관리 + 도메인 + 큐 설계 | 1.0 | Draft | 02-design/DX-DSGN-012_radar-channel-management.md |
 | DX-DSGN-100 | 문서 관리 표준 및 적용 계획 | 1.0 | Draft | 02-design/DX-DSGN-100_doc-governance-plan.md |
 
 ## ANLS — 분석
@@ -88,4 +89,4 @@
 
 ---
 
-*총 46개 문서 | Active: 39 | Draft: 7 | Archived: 0*
+*총 47개 문서 | Active: 39 | Draft: 8 | Archived: 0*
