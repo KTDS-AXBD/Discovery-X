@@ -295,7 +295,7 @@ Flow K: Ideas → Discovery 수동 전환
 **API (37개, proposals/lab API 제외)**
 - `/api/chat` — SSE 스트리밍 채팅 (1)
 - `/api/conversations*` — 대화 CRUD + 메시지 (2)
-- `/api/cron*` — Cron 10개 라우트: daily/agent-review/embeddings/weekly-summary/signal-route/matrix-scoring/vectorize/lab/ai-pipeline/maintenance (alerts/log-archive/pattern-extract/memory-compact/projection-sync은 daily/maintenance에 통합)
+- `/api/cron*` — Cron 11개 라우트: daily/agent-review/embeddings/weekly-summary/signal-route/matrix-scoring/vectorize/lab/ai-pipeline/maintenance/radar-health (alerts/log-archive/pattern-extract/memory-compact/projection-sync은 daily/maintenance에 통합)
 - ~~`/api/venture*`~~ — *(아카이브됨, 세션 228)*
 - `/api/export*` — Export 4개: discoveries/discoveries-json/brief.$id/metrics
 - `/api/radar*` — Radar API 6개: runs/sources/trigger/summarize/items.$id.status/items.$id.reaction
@@ -369,7 +369,7 @@ root.tsx
 | Venture Sprint (아카이브) | 16 | vd_sprints, vd_sprint_scopes, vd_signals, vd_problems, vd_themes, vd_opportunities, vd_evidences, vd_assumptions, vd_premortems, vd_artifacts, vd_decisions, vd_votes, vd_scores, vd_work_events, vd_analytics_snapshots, vd_task_queue |
 | Ideas | 2 | ideas (+createdByAgent), idea_sources |
 | AI Pipeline | 1 | ai_pipeline_runs |
-| Radar | 4 | radar_sources, radar_runs, radar_items, radar_item_user_status |
+| Radar | 6 | radar_sources, radar_runs, radar_items, radar_item_user_status, radar_source_metrics, radar_item_metrics |
 | Chat & Agent | 3 | conversations, messages, agent_config |
 | Indicators & Alerts | 6 | discovery_kpis, kpi_measurements, discovery_links, webhook_configs, alert_rules, alerts |
 | Gate/Governance | 1 | gate_approvals |
@@ -385,7 +385,7 @@ root.tsx
 | Worker/Infra | 2 | notification_queue, cron_logs |
 | FTS | 1 | discoveries_fts |
 | Requests | 5 | feature_requests, request_reviews, request_events, work_plans, work_plan_runs |
-| **합계** | **109** | |
+| **합계** | **111** | |
 
 > Drizzle 스키마 미정의 25개: Venture Sprint 16 (아카이브) + Shadow Mode 2 + Value-up Engine 4 + Worker/Infra 2 + FTS 1 — 마이그레이션 SQL에만 존재
 
@@ -445,14 +445,14 @@ build/
 ### 버전
 - **시스템 (SemVer SSOT)**: 0.6.0 (package.json)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 59개 마이그레이션 SQL (0000~0057), 로컬 적용 완료
+- **DB**: 60개 마이그레이션 SQL (0000~0058), 로컬 적용 완료
 
 ### 주요 지표
-- **라우트**: 179개
-- **테이블**: 111개
+- **라우트**: 181개
+- **테이블**: 113개
 - **Agent 도구**: 77개
 - **코드**: ~83,000줄 (~493파일)
-- **테스트**: 2,375개 (155 test files, 로컬 통과)
+- **테스트**: 2,415개 (157 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
@@ -576,3 +576,4 @@ build/
 | F42 | 요구사항 인터뷰 스킬 설치 — 인터뷰→PRD→외부 AI 다중 검토→착수 판단 워크플로우 (DX-REQ-013, P2) | v0.7.0 | ✅ | 6 |
 | F43 | 인터뷰 스킬 검토 고도화 — 모델 선택 + API 자동 호출 + 프롬프트 개선 + 결과 파싱 + 스코어카드 채점 자동화 (DX-REQ-014, P1) | v0.7.0 | 🔧 | - |
 
+| F44 | PRD Studio — 인터뷰 스킬 웹 UI 통합 (인터뷰→PRD→AI검토→스코어카드→착수판단, DX-REQ-015, P1) | v0.7.0 | 📋 | - |

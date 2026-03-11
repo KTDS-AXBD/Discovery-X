@@ -3,6 +3,21 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 366 (2026-03-11)
+
+**F41 Phase 3A Health Score 서비스 + Cron + API (DX-REQ-012)**:
+- ✅ 마이그레이션 0058: `radar_source_metrics` + `radar_item_metrics` 2테이블 (5인덱스)
+- ✅ Drizzle 스키마: `radarSourceMetrics`, `radarItemMetrics` (radar/db/schema.ts에 추가)
+- ✅ `health-score.ts`: 순수 계산 함수 (calculateHealthScore/Engagement/Composite, 상수 4개)
+- ✅ `health-metrics.ts`: HealthMetricsService (집계+UPSERT+REVIEW자동전환+Dashboard)
+- ✅ `api.cron.radar-health.ts`: 건강도 일괄 갱신 Cron (매일 10:00 KST)
+- ✅ `api.radar.health.ts`: Source Health Dashboard API (GET)
+- ✅ 테스트 +40개: health-score(22) + health-metrics(18) → 총 2,415개 (157 파일)
+- ✅ 검증: lint 0에러, build 성공
+
+**변경**: 10파일 (신규 7 + 수정 3), +1,434줄
+**검증**: ✅ typecheck / ✅ lint / ✅ test (2,415) / ✅ build
+
 ### 세션 365 (2026-03-11)
 
 **F41 Phase 3 설계 문서 — Health Score + AI 품질 평가 + Dashboard (DX-REQ-012)**:
