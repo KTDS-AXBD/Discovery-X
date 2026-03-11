@@ -309,6 +309,7 @@ export const radarItemMetrics = sqliteTable("radar_item_metrics", {
   id: text("id").primaryKey(),
   itemId: text("item_id")
     .notNull()
+    .unique()
     .references(() => radarItems.id),
   tenantId: text("tenant_id").references(() => tenants.id),
   topicRelevance: real("topic_relevance").default(0),
@@ -323,6 +324,7 @@ export const radarItemMetrics = sqliteTable("radar_item_metrics", {
 }, (table) => ({
   itemIdx: index("idx_rim_item_drizzle").on(table.itemId),
   tenantIdx: index("idx_rim_tenant_drizzle").on(table.tenantId),
+  evaluatedIdx: index("idx_rim_evaluated_drizzle").on(table.evaluatedAt),
 }));
 
 // ============================================================================
