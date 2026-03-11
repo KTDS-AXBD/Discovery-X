@@ -68,6 +68,16 @@ interface CollectFromTextInput {
   tenantId: string;
 }
 
+interface CollectFromFileInput {
+  title: string;
+  content: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  userId: string;
+  tenantId: string;
+}
+
 interface SendToIdeaInput {
   itemId: string;
   userId: string;
@@ -550,6 +560,58 @@ export class RadarService {
       rawContent: input.content,
       parsedContent: input.content,
       excerpt: input.content.slice(0, 200),
+      dedupeKey,
+    });
+
+    const item = await this.getItem(itemId);
+    return { item, isDuplicate: false };
+  }
+
+  /** 파일 수동 수집 (클라이언트에서 추출된 텍스트 수신) */
+  async collectFromFile(input: CollectFromFileInput) {
+    const dedupeKey = await generateDedupeKey(input.title);
+
+    const dedupeHit = await this.db
+      .select({ id: radarItems.id })
+      .from(radarItems)
+      .where(eq(radarItems.dedupeKey, dedupeKey))
+      .limit(1);
+
+    if (dedupeHit.length > 0) {
+      return { item: dedupeHit[0], isDuplicate: true };
+    }
+
+    const sourceId = await this.getOrCreateManualSource(input.tenantId);
+    const runId = await this.findOrCreateDailyRun(input.tenantId);
+    const itemId = crypto.randomUUID();
+    const manualUrl = `file://${itemId}/${input.fileName}`;
+
+    const urlHashBuffer = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(manualUrl),
+    );
+    const urlHash = Array.from(new Uint8Array(urlHashBuffer))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+
+    await this.db.insert(radarItems).values({
+      id: itemId,
+      sourceId,
+      runId,
+      urlHash,
+      url: manualUrl,
+      title: input.title,
+      summary: input.content.slice(0, 200),
+      status: "COLLECTED",
+      contentType: "document",
+      rawContent: input.content,
+      parsedContent: input.content,
+      excerpt: input.content.slice(0, 200),
+      itemMetadata: {
+        fileName: input.fileName,
+        fileType: input.fileType,
+        fileSize: input.fileSize,
+      },
       dedupeKey,
     });
 

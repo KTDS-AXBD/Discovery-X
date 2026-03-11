@@ -1,5 +1,6 @@
 import { UrlCollectForm } from "./UrlCollectForm";
 import { TextCollectForm } from "./TextCollectForm";
+import { FileUploadForm } from "./FileUploadForm";
 
 export function ManualCollectTab() {
   return (
@@ -7,6 +8,11 @@ export function ManualCollectTab() {
       <section>
         <h3 className="text-sm font-medium text-fg mb-3">URL로 수집</h3>
         <UrlCollectForm />
+      </section>
+      <div className="border-t border-border" />
+      <section>
+        <h3 className="text-sm font-medium text-fg mb-3">파일 업로드</h3>
+        <FileUploadForm />
       </section>
       <div className="border-t border-border" />
       <section>

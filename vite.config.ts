@@ -23,6 +23,8 @@ export default defineConfig({
       "mailparser",
       "@zone-eu/mailsplit",
       "libmime",
+      "pdfjs-dist",
+      "mammoth",
     ],
     // Optimize these packages by bundling them
     noExternal: [

@@ -39,6 +39,8 @@
     "drizzle-orm": "^0.36.4",
     "fflate": "^0.8.2",
     "isbot": "^4",
+    "mammoth": "^1.11.0",
+    "pdfjs-dist": "^5.5.207",
     "pptxgenjs": "^4.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
