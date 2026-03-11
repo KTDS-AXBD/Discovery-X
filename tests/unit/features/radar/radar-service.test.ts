@@ -435,5 +435,204 @@ describe("RadarService", () => {
       expect(data).toHaveProperty("recentItems");
       expect(data.sources.length).toBeGreaterThanOrEqual(1);
     });
+
+    it("sourcesWithDomains + domains 필드 포함 (Phase 2A)", async () => {
+      const data = await service.getRadarData({ tenantId: TENANT_ID });
+      expect(data).toHaveProperty("sourcesWithDomains");
+      expect(data).toHaveProperty("domains");
+      expect(Array.isArray(data.sourcesWithDomains)).toBe(true);
+      expect(Array.isArray(data.domains)).toBe(true);
+    });
+  });
+
+  // ══════════════════════════════════════════════
+  // Source Lifecycle (Phase 2A)
+  // ══════════════════════════════════════════════
+  describe("updateSourceStatus [Phase 2A]", () => {
+    let sourceId: string;
+
+    beforeEach(() => {
+      sourceId = "s-lifecycle";
+      db.insert(radarSources)
+        .values({
+          id: sourceId,
+          name: "Lifecycle Test",
+          sourceType: "rss",
+          url: "https://lifecycle.com",
+          tenantId: TENANT_ID,
+          status: "ACTIVE",
+          enabled: 1,
+          consecutiveFailures: 0,
+        })
+        .run();
+    });
+
+    it("ACTIVE → PAUSED: enabled=0으로 동기화", async () => {
+      await service.updateSourceStatus(sourceId, "PAUSED");
+
+      const rows = await db.select().from(radarSources).where(eq(radarSources.id, sourceId));
+      expect(rows[0].status).toBe("PAUSED");
+      expect(rows[0].enabled).toBe(0);
+    });
+
+    it("PAUSED → ACTIVE: enabled=1으로 복원", async () => {
+      db.update(radarSources)
+        .set({ status: "PAUSED", enabled: 0 })
+        .where(eq(radarSources.id, sourceId))
+        .run();
+
+      await service.updateSourceStatus(sourceId, "ACTIVE");
+
+      const rows = await db.select().from(radarSources).where(eq(radarSources.id, sourceId));
+      expect(rows[0].status).toBe("ACTIVE");
+      expect(rows[0].enabled).toBe(1);
+    });
+
+    it("[R2] FAILED → ACTIVE: consecutiveFailures 리셋", async () => {
+      db.update(radarSources)
+        .set({ status: "FAILED", enabled: 0, consecutiveFailures: 5 })
+        .where(eq(radarSources.id, sourceId))
+        .run();
+
+      await service.updateSourceStatus(sourceId, "ACTIVE");
+
+      const rows = await db.select().from(radarSources).where(eq(radarSources.id, sourceId));
+      expect(rows[0].status).toBe("ACTIVE");
+      expect(rows[0].enabled).toBe(1);
+      expect(rows[0].consecutiveFailures).toBe(0);
+    });
+
+    it("허용되지 않은 전환 시 에러", async () => {
+      await expect(service.updateSourceStatus(sourceId, "ARCHIVED")).rejects.toThrow();
+    });
+
+    it("존재하지 않는 소스 업데이트 시 에러", async () => {
+      await expect(service.updateSourceStatus("not-exist", "PAUSED")).rejects.toThrow();
+    });
+  });
+
+  // ══════════════════════════════════════════════
+  // deleteSource cascade (Phase 2A) [F1]
+  // ══════════════════════════════════════════════
+  describe("deleteSource cascade [F1]", () => {
+    it("소스 삭제 시 radar_source_domains도 삭제", async () => {
+      const { radarDomains, radarSourceDomains } = await import("~/features/radar/db/schema");
+
+      db.insert(radarSources)
+        .values({ id: "s-del", name: "Del", sourceType: "rss", url: "https://del.com", tenantId: TENANT_ID })
+        .run();
+      db.insert(radarDomains)
+        .values({ id: "d-del", name: "Del Domain", tenantId: TENANT_ID })
+        .run();
+      db.insert(radarSourceDomains)
+        .values({ id: "rsd-del", sourceId: "s-del", domainId: "d-del" })
+        .run();
+
+      await service.deleteSource("s-del");
+
+      const sources = await db.select().from(radarSources).where(eq(radarSources.id, "s-del"));
+      expect(sources).toHaveLength(0);
+
+      const links = await db.select().from(radarSourceDomains).where(eq(radarSourceDomains.sourceId, "s-del"));
+      expect(links).toHaveLength(0);
+    });
+  });
+
+  // ══════════════════════════════════════════════
+  // updateSourceFull (Phase 2A)
+  // ══════════════════════════════════════════════
+  describe("updateSourceFull [Phase 2A]", () => {
+    it("name, url, keywords, radarTags 업데이트", async () => {
+      db.insert(radarSources)
+        .values({ id: "s-full", name: "Old Name", sourceType: "rss", url: "https://old.com", tenantId: TENANT_ID })
+        .run();
+
+      await service.updateSourceFull({
+        id: "s-full",
+        name: "New Name",
+        url: "https://new.com",
+        keywords: ["AI", "ML"],
+        radarTags: ["트렌드"],
+      });
+
+      const rows = await db.select().from(radarSources).where(eq(radarSources.id, "s-full"));
+      expect(rows[0].name).toBe("New Name");
+      expect(rows[0].url).toBe("https://new.com");
+      expect(rows[0].keywords).toEqual(["AI", "ML"]);
+      expect(rows[0].radarTags).toEqual(["트렌드"]);
+    });
+
+    it("domainIds 포함 시 도메인 동기화", async () => {
+      const { radarDomains, radarSourceDomains } = await import("~/features/radar/db/schema");
+
+      db.insert(radarSources)
+        .values({ id: "s-full2", name: "Test", sourceType: "rss", url: "https://test.com", tenantId: TENANT_ID })
+        .run();
+      db.insert(radarDomains)
+        .values({ id: "d-f1", name: "도메인1", tenantId: TENANT_ID })
+        .run();
+
+      await service.updateSourceFull({ id: "s-full2", domainIds: ["d-f1"] });
+
+      const links = await db.select().from(radarSourceDomains).where(eq(radarSourceDomains.sourceId, "s-full2"));
+      expect(links).toHaveLength(1);
+      expect(links[0].domainId).toBe("d-f1");
+    });
+  });
+
+  // ══════════════════════════════════════════════
+  // getSourceWithDomains + listSourcesWithDomains (Phase 2A)
+  // ══════════════════════════════════════════════
+  describe("getSourceWithDomains / listSourcesWithDomains [Phase 2A]", () => {
+    it("getSourceWithDomains — 소스+도메인 반환", async () => {
+      const { radarDomains, radarSourceDomains } = await import("~/features/radar/db/schema");
+
+      db.insert(radarSources)
+        .values({ id: "s-wd", name: "With Domain", sourceType: "rss", url: "https://wd.com", tenantId: TENANT_ID })
+        .run();
+      db.insert(radarDomains)
+        .values({ id: "d-wd", name: "기술", tenantId: TENANT_ID })
+        .run();
+      db.insert(radarSourceDomains)
+        .values({ id: "rsd-wd", sourceId: "s-wd", domainId: "d-wd" })
+        .run();
+
+      const result = await service.getSourceWithDomains("s-wd");
+
+      expect(result).not.toBeNull();
+      expect(result!.source.id).toBe("s-wd");
+      expect(result!.domains).toHaveLength(1);
+      expect(result!.domains[0].name).toBe("기술");
+    });
+
+    it("getSourceWithDomains — 존재하지 않으면 null", async () => {
+      const result = await service.getSourceWithDomains("not-exist");
+      expect(result).toBeNull();
+    });
+
+    it("listSourcesWithDomains — 테넌트별 소스+도메인 목록", async () => {
+      const { radarDomains, radarSourceDomains } = await import("~/features/radar/db/schema");
+
+      db.insert(radarSources)
+        .values([
+          { id: "s-l1", name: "S1", sourceType: "rss", url: "https://l1.com", tenantId: TENANT_ID },
+          { id: "s-l2", name: "S2", sourceType: "site", url: "https://l2.com", tenantId: TENANT_ID },
+        ])
+        .run();
+      db.insert(radarDomains)
+        .values({ id: "d-l1", name: "도메인", tenantId: TENANT_ID })
+        .run();
+      db.insert(radarSourceDomains)
+        .values({ id: "rsd-l1", sourceId: "s-l1", domainId: "d-l1" })
+        .run();
+
+      const result = await service.listSourcesWithDomains(TENANT_ID);
+
+      expect(result).toHaveLength(2);
+      const s1 = result.find((r) => r.source.id === "s-l1");
+      const s2 = result.find((r) => r.source.id === "s-l2");
+      expect(s1?.domains).toHaveLength(1);
+      expect(s2?.domains).toHaveLength(0);
+    });
   });
 });

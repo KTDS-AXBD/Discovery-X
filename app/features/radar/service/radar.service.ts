@@ -8,6 +8,13 @@ import {
   ideas,
   ideaSources,
 } from "~/db";
+import {
+  radarDomains,
+  radarSourceDomains,
+} from "~/features/radar/db/schema";
+import {
+  validateSourceTransition,
+} from "~/features/radar/constants/source-lifecycle";
 import { canonicalizeUrl, generateDedupeKey, parseUrl } from "./url-parser";
 
 // ============================================================================
@@ -37,6 +44,29 @@ interface UpdateSourceInput {
   url?: string;
   enabled?: number;
   config?: Record<string, unknown>;
+}
+
+interface UpdateSourceFullInput {
+  id: string;
+  name?: string;
+  url?: string;
+  sourceType?: string;
+  keywords?: string[];
+  radarTags?: string[];
+  crawlInterval?: number;
+  domainIds?: string[];
+}
+
+interface CreateDomainInput {
+  name: string;
+  description?: string;
+  color?: string;
+  tenantId: string;
+}
+
+interface SourceWithDomains {
+  source: typeof radarSources.$inferSelect;
+  domains: (typeof radarDomains.$inferSelect)[];
 }
 
 interface UpsertItemStatusInput {
@@ -153,7 +183,7 @@ export class RadarService {
       .where(eq(radarSources.id, input.id));
   }
 
-  /** 소스 토글 (활성/비활성) */
+  /** 소스 토글 (활성/비활성) — deprecated: updateSourceStatus(id, 'PAUSED'|'ACTIVE') 사용 권장 */
   async toggleSource(id: string, currentEnabled: boolean) {
     await this.db
       .update(radarSources)
@@ -161,8 +191,130 @@ export class RadarService {
       .where(eq(radarSources.id, id));
   }
 
-  /** 소스 삭제 */
+  /**
+   * 소스 상태 변경 (lifecycle 전환) [R2]
+   * FAILED→ACTIVE 시 consecutiveFailures 리셋
+   */
+  async updateSourceStatus(id: string, newStatus: string): Promise<void> {
+    const rows = await this.db
+      .select({ status: radarSources.status })
+      .from(radarSources)
+      .where(eq(radarSources.id, id))
+      .limit(1);
+
+    if (rows.length === 0) {
+      throw new Error(`소스를 찾을 수 없어요: ${id}`);
+    }
+
+    const currentStatus = rows[0].status ?? "ACTIVE";
+    const error = validateSourceTransition(currentStatus, newStatus);
+    if (error) {
+      throw new Error(error);
+    }
+
+    // enabled 파생: ACTIVE만 1, 나머지 0
+    const enabled = newStatus === "ACTIVE" ? 1 : 0;
+
+    const updates: Record<string, unknown> = {
+      status: newStatus,
+      enabled,
+      updatedAt: new Date(),
+    };
+
+    // [R2] FAILED→ACTIVE 시 consecutiveFailures 리셋
+    if (currentStatus === "FAILED" && newStatus === "ACTIVE") {
+      updates.consecutiveFailures = 0;
+    }
+
+    await this.db
+      .update(radarSources)
+      .set(updates)
+      .where(eq(radarSources.id, id));
+  }
+
+  /** 소스 상세 조회 (도메인 포함) */
+  async getSourceWithDomains(id: string): Promise<SourceWithDomains | null> {
+    const sourceRows = await this.db
+      .select()
+      .from(radarSources)
+      .where(eq(radarSources.id, id))
+      .limit(1);
+
+    if (sourceRows.length === 0) return null;
+
+    const domainRows = await this.db
+      .select({ domain: radarDomains })
+      .from(radarSourceDomains)
+      .innerJoin(radarDomains, eq(radarSourceDomains.domainId, radarDomains.id))
+      .where(eq(radarSourceDomains.sourceId, id));
+
+    return {
+      source: sourceRows[0],
+      domains: domainRows.map((r) => r.domain),
+    };
+  }
+
+  /** 테넌트별 소스 목록 + 도메인 조회 */
+  async listSourcesWithDomains(tenantId: string): Promise<SourceWithDomains[]> {
+    const sources = await this.listSourcesByTenant(tenantId);
+    if (sources.length === 0) return [];
+
+    const sourceIds = sources.map((s) => s.id);
+
+    // 소스-도메인 조인
+    const allDomainRows = await this.db
+      .select({ sourceId: radarSourceDomains.sourceId, domain: radarDomains })
+      .from(radarSourceDomains)
+      .innerJoin(radarDomains, eq(radarSourceDomains.domainId, radarDomains.id))
+      .where(
+        sql`${radarSourceDomains.sourceId} IN ${sourceIds.length > 0 ? sql`(${sql.join(sourceIds.map((id) => sql`${id}`), sql`, `)})` : sql`('')`}`,
+      );
+
+    // sourceId → domains 매핑
+    const domainMap = new Map<string, (typeof radarDomains.$inferSelect)[]>();
+    for (const row of allDomainRows) {
+      const existing = domainMap.get(row.sourceId) ?? [];
+      existing.push(row.domain);
+      domainMap.set(row.sourceId, existing);
+    }
+
+    return sources.map((source) => ({
+      source,
+      domains: domainMap.get(source.id) ?? [],
+    }));
+  }
+
+  /** 소스 수정 (확장: keywords, radarTags, crawlInterval, 도메인) */
+  async updateSourceFull(input: UpdateSourceFullInput): Promise<void> {
+    const updates: Record<string, unknown> = { updatedAt: new Date() };
+    if (input.name !== undefined) updates.name = input.name;
+    if (input.url !== undefined) updates.url = input.url;
+    if (input.sourceType !== undefined) updates.sourceType = input.sourceType;
+    if (input.keywords !== undefined) updates.keywords = input.keywords;
+    if (input.radarTags !== undefined) updates.radarTags = input.radarTags;
+    if (input.crawlInterval !== undefined) updates.crawlInterval = input.crawlInterval;
+
+    await this.db
+      .update(radarSources)
+      .set(updates)
+      .where(eq(radarSources.id, input.id));
+
+    // 도메인 동기화: 기존 삭제 + 새로 INSERT
+    if (input.domainIds !== undefined) {
+      await this.setSourceDomains(input.id, input.domainIds);
+    }
+  }
+
+  /**
+   * 소스 삭제 [F1] — 앱 레벨 cascade
+   * D1은 FK CASCADE 미지원 → 관련 레코드 직접 삭제
+   */
   async deleteSource(id: string) {
+    // 1. radar_source_domains 삭제
+    await this.db
+      .delete(radarSourceDomains)
+      .where(eq(radarSourceDomains.sourceId, id));
+    // 2. radar_sources 삭제 (crawl_queue는 Phase 2B에서 추가)
     await this.db.delete(radarSources).where(eq(radarSources.id, id));
   }
 
@@ -414,12 +566,15 @@ export class RadarService {
 
   /** radar.tsx loader용 통합 데이터 */
   async getRadarData(params: RadarDataParams) {
-    const [sources, runs, recentItems] = await Promise.all([
-      this.listSourcesByTenant(params.tenantId),
+    const [sourcesWithDomains, domains, runs, recentItems] = await Promise.all([
+      this.listSourcesWithDomains(params.tenantId),
+      this.listDomains(params.tenantId),
       this.listRunsByTenant(params.tenantId),
       this.listRecentItemsByTenant(params.tenantId),
     ]);
-    return { sources, runs, recentItems };
+    // 하위 호환: sources 필드 유지
+    const sources = sourcesWithDomains.map((s) => s.source);
+    return { sources, sourcesWithDomains, domains, runs, recentItems };
   }
 
   // ---------- 수동 수집 (F41 Phase 1A) ----------
@@ -617,6 +772,61 @@ export class RadarService {
 
     const item = await this.getItem(itemId);
     return { item, isDuplicate: false };
+  }
+
+  // ---------- Domain CRUD ----------
+
+  /** 도메인 목록 조회 */
+  async listDomains(tenantId: string): Promise<(typeof radarDomains.$inferSelect)[]> {
+    return this.db
+      .select()
+      .from(radarDomains)
+      .where(eq(radarDomains.tenantId, tenantId));
+  }
+
+  /** 도메인 생성 */
+  async createDomain(input: CreateDomainInput): Promise<string> {
+    const id = crypto.randomUUID();
+    await this.db.insert(radarDomains).values({
+      id,
+      name: input.name,
+      description: input.description ?? null,
+      color: input.color ?? null,
+      tenantId: input.tenantId,
+    });
+    return id;
+  }
+
+  /**
+   * 도메인 삭제 [F1] — 앱 레벨 cascade
+   * D1은 FK CASCADE 미지원 → radar_source_domains 먼저 삭제
+   */
+  async deleteDomain(id: string): Promise<void> {
+    // 1. radar_source_domains에서 관련 레코드 삭제
+    await this.db
+      .delete(radarSourceDomains)
+      .where(eq(radarSourceDomains.domainId, id));
+    // 2. 도메인 삭제
+    await this.db.delete(radarDomains).where(eq(radarDomains.id, id));
+  }
+
+  /** 소스-도메인 연결 동기화 (기존 삭제 + 새로 INSERT) */
+  async setSourceDomains(sourceId: string, domainIds: string[]): Promise<void> {
+    // 기존 연결 삭제
+    await this.db
+      .delete(radarSourceDomains)
+      .where(eq(radarSourceDomains.sourceId, sourceId));
+
+    // 새 연결 INSERT
+    if (domainIds.length > 0) {
+      await this.db.insert(radarSourceDomains).values(
+        domainIds.map((domainId) => ({
+          id: crypto.randomUUID(),
+          sourceId,
+          domainId,
+        })),
+      );
+    }
   }
 
   /** Signal → Idea 전환 */

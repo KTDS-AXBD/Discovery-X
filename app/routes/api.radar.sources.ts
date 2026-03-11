@@ -1,15 +1,15 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
-import { getUserFromSession, getSessionSecret } from "~/lib/auth/session.server";
+import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { RadarService } from "~/lib/services";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
+  const ctx = await getSessionContext(request, db, secret);
 
-  if (!user) {
+  if (!ctx) {
     return redirect("/login");
   }
 
@@ -17,7 +17,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const userOnly = url.searchParams.get("userOnly") === "true";
 
   const service = new RadarService(db);
-  const sources = await service.listSources({ userOnly, userId: user.id });
+  const sources = await service.listSources({ userOnly, userId: ctx.user.id });
 
   return json({ sources });
 }
@@ -25,9 +25,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 export async function action({ request, context }: ActionFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
   const secret = getSessionSecret(context.cloudflare.env);
-  const user = await getUserFromSession(request, db, secret);
+  const ctx = await getSessionContext(request, db, secret);
 
-  if (!user) {
+  if (!ctx) {
     return new Response("Unauthorized", { status: 401 });
   }
 
@@ -70,15 +70,34 @@ export async function action({ request, context }: ActionFunctionArgs) {
       try { radarTags = JSON.parse(radarTagsRaw); } catch { radarTags = radarTagsRaw.split(",").map(t => t.trim()).filter(Boolean); }
     }
 
+    const crawlIntervalRaw = formData.get("crawlInterval");
+    const crawlInterval = crawlIntervalRaw ? Number(crawlIntervalRaw) : undefined;
+
     const id = await service.createSource({
       name,
       sourceType,
       url,
       config,
-      userId: user.id,
+      userId: ctx.user.id,
+      tenantId: ctx.tenantId,
       keywords,
       radarTags,
     });
+
+    // crawlInterval 업데이트 (createSource에 미포함 필드)
+    if (crawlInterval) {
+      await service.updateSourceFull({ id, crawlInterval });
+    }
+
+    // domainIds 처리
+    const domainIdsRaw = formData.get("domainIds");
+    if (domainIdsRaw !== null) {
+      let domainIds: string[] = [];
+      try { domainIds = JSON.parse(String(domainIdsRaw)); } catch { domainIds = []; }
+      if (domainIds.length > 0) {
+        await service.setSourceDomains(id, domainIds);
+      }
+    }
 
     return json({ success: true, id });
   }
@@ -119,6 +138,60 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: "id는 필수입니다." }, { status: 400 });
     }
     await service.deleteSource(id);
+    return json({ success: true });
+  }
+
+  // [Phase 2A] Lifecycle 상태 변경
+  if (intent === "update-status") {
+    const id = String(formData.get("id") || "");
+    const newStatus = String(formData.get("status") || "");
+
+    if (!id) {
+      return json({ error: "id는 필수입니다." }, { status: 400 });
+    }
+    if (!["ACTIVE", "PAUSED", "REVIEW", "ARCHIVED", "FAILED"].includes(newStatus)) {
+      return json({ error: "status는 ACTIVE, PAUSED, REVIEW, ARCHIVED, FAILED 중 하나여야 합니다." }, { status: 400 });
+    }
+
+    try {
+      await service.updateSourceStatus(id, newStatus);
+      return json({ success: true });
+    } catch (e) {
+      return json({ error: e instanceof Error ? e.message : "상태 변경에 실패했어요." }, { status: 400 });
+    }
+  }
+
+  // [Phase 2A] 소스 전체 편집
+  if (intent === "update-full") {
+    const id = String(formData.get("id") || "");
+    if (!id) {
+      return json({ error: "id는 필수입니다." }, { status: 400 });
+    }
+
+    const name = String(formData.get("name") || "").trim() || undefined;
+    const url = String(formData.get("url") || "").trim() || undefined;
+    const sourceType = String(formData.get("sourceType") || "").trim() || undefined;
+    const crawlIntervalRaw = formData.get("crawlInterval");
+    const crawlInterval = crawlIntervalRaw ? Number(crawlIntervalRaw) : undefined;
+
+    const keywordsRaw = String(formData.get("keywords") || "").trim();
+    const radarTagsRaw = String(formData.get("radarTags") || "").trim();
+    let keywords: string[] | undefined;
+    let radarTags: string[] | undefined;
+    if (formData.has("keywords")) {
+      try { keywords = JSON.parse(keywordsRaw); } catch { keywords = keywordsRaw ? keywordsRaw.split(",").map(k => k.trim()).filter(Boolean) : []; }
+    }
+    if (formData.has("radarTags")) {
+      try { radarTags = JSON.parse(radarTagsRaw); } catch { radarTags = radarTagsRaw ? radarTagsRaw.split(",").map(t => t.trim()).filter(Boolean) : []; }
+    }
+
+    const domainIdsRaw = formData.get("domainIds");
+    let domainIds: string[] | undefined;
+    if (domainIdsRaw !== null) {
+      try { domainIds = JSON.parse(String(domainIdsRaw)); } catch { domainIds = []; }
+    }
+
+    await service.updateSourceFull({ id, name, url, sourceType, keywords, radarTags, crawlInterval, domainIds });
     return json({ success: true });
   }
 

@@ -50,7 +50,7 @@ export const SOURCE_STATUS_CONFIG: Record<
 // PAUSED  → ACTIVE   사용자 재시작
 // REVIEW  → ACTIVE   사용자 확인 후 복구
 // REVIEW  → ARCHIVED 사용자 판단으로 폐기
-// FAILED  → ARCHIVED 실패 소스 정리
+// FAILED  → ACTIVE   [R2] 사용자가 URL 수정 후 재활성 (consecutiveFailures 리셋)
 // ARCHIVED → (없음)  terminal
 
 export const SOURCE_ALLOWED_TRANSITIONS: Record<string, string[]> = {
@@ -61,7 +61,7 @@ export const SOURCE_ALLOWED_TRANSITIONS: Record<string, string[]> = {
   ],
   [SourceStatus.PAUSED]: [SourceStatus.ACTIVE],
   [SourceStatus.REVIEW]: [SourceStatus.ACTIVE, SourceStatus.ARCHIVED],
-  [SourceStatus.FAILED]: [SourceStatus.ARCHIVED],
+  [SourceStatus.FAILED]: [SourceStatus.ACTIVE],  // [R2] ACTIVE 재활성 허용 (consecutiveFailures 리셋)
   [SourceStatus.ARCHIVED]: [],
 };
 

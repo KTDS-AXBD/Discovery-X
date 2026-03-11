@@ -2,10 +2,9 @@ import { useState, useCallback } from "react";
 import { useNavigate } from "@remix-run/react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
-import { Form, useLoaderData, useActionData, useNavigation } from "@remix-run/react";
+import { useLoaderData, useActionData, useNavigation } from "@remix-run/react";
 import { getDb } from "~/db";
 import {
-  RadarSourceType,
   RadarRunStatus,
 } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
@@ -14,15 +13,13 @@ import { AppShell } from "~/components/layout/AppShell";
 import { PageHeader } from "~/components/layout/PageHeader";
 import { Card, CardContent } from "~/components/ui/Card";
 import { Button } from "~/components/ui/Button";
-import { Input } from "~/components/ui/Input";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/Select";
-import { FormField } from "~/components/ui/FormField";
 import { Badge } from "~/components/ui/Badge";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "~/components/ui/Table";
 import { formatDateLocalTime } from "~/lib/format-date";
 import { ManualCollectTab } from "~/features/radar/ui/ManualCollectTab";
 import { SendToIdeaButton } from "~/features/radar/ui/SendToIdeaButton";
+import { ChannelManagementTab } from "~/features/radar/ui/ChannelManagementTab";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -34,11 +31,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   const service = new RadarService(db);
-  const { sources, runs, recentItems } = await service.getRadarData({
+  const { sources, sourcesWithDomains, domains, runs, recentItems } = await service.getRadarData({
     tenantId: ctx.tenantId,
   });
 
-  return json({ user: ctx.user, sources, runs, recentItems });
+  return json({ user: ctx.user, tenantId: ctx.tenantId, sources, sourcesWithDomains, domains, runs, recentItems });
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
@@ -101,14 +98,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
   return json({ error: "Unknown intent" });
 }
 
-const SOURCE_TYPE_LABELS: Record<string, string> = {
-  [RadarSourceType.RSS]: "RSS",
-  [RadarSourceType.SITE]: "사이트",
-  [RadarSourceType.WEB]: "Web",
-  [RadarSourceType.YOUTUBE]: "YouTube",
-  [RadarSourceType.SNS]: "SNS",
-};
-
 const RUN_STATUS_VARIANT: Record<string, "warning" | "success" | "destructive"> = {
   [RadarRunStatus.RUNNING]: "warning",
   [RadarRunStatus.COMPLETED]: "success",
@@ -120,16 +109,17 @@ function formatDateLocal(timestamp: string | Date | null) {
   return formatDateLocalTime(timestamp);
 }
 
-type RadarTab = "feed" | "manual" | "sources";
+type RadarTab = "feed" | "manual" | "channels";
 
 export default function RadarPage() {
-  const { user, sources, runs, recentItems } = useLoaderData<typeof loader>();
+  const { user, tenantId, sources, sourcesWithDomains, domains, runs, recentItems } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const navigate = useNavigate();
-  const [showAddForm, setShowAddForm] = useState(false);
   const [activeTab, setActiveTab] = useState<RadarTab>("feed");
   const isSubmitting = navigation.state === "submitting";
+  // sources는 현재 피드 탭 등에서 사용되지 않으나 하위 호환 보존
+  void sources; void isSubmitting;
 
   // BD팀 PoC: 소스 아이템에서 대화 시작
   const handleStartChat = useCallback(async (itemId: string, itemTitle: string) => {
@@ -165,7 +155,7 @@ export default function RadarPage() {
         {([
           { key: "feed", label: "피드" },
           { key: "manual", label: "수동 등록" },
-          { key: "sources", label: "소스 관리" },
+          { key: "channels", label: "채널 관리" },
         ] as const).map(({ key, label }) => (
           <button
             key={key}
@@ -312,153 +302,15 @@ export default function RadarPage() {
         </>
       )}
 
-      {/* Sources Tab */}
-      {activeTab === "sources" && (
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-fg">수집 소스</h2>
-          <Button
-            variant={showAddForm ? "outline" : "default"}
-            size="sm"
-            onClick={() => setShowAddForm(!showAddForm)}
-          >
-            {showAddForm ? "취소" : "+ 소스 추가"}
-          </Button>
+      {/* Channels Tab (Phase 2A) */}
+      {activeTab === "channels" && (
+        <div className="mb-8">
+          <ChannelManagementTab
+            sourcesWithDomains={sourcesWithDomains}
+            domains={domains}
+            tenantId={tenantId}
+          />
         </div>
-
-        {showAddForm && (
-          <Card className="mb-4">
-            <CardContent className="p-4">
-              <Form method="post">
-                <input type="hidden" name="intent" value="create-source" />
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                  <FormField label="이름" htmlFor="name" required>
-                    <Input
-                      type="text"
-                      name="name"
-                      id="name"
-                      required
-                      placeholder="GeekNews"
-                    />
-                  </FormField>
-                  <FormField label="유형" htmlFor="sourceType" required>
-                    <Select name="sourceType" defaultValue="rss" required>
-                      <SelectTrigger id="sourceType">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="rss">RSS</SelectItem>
-                        <SelectItem value="site">사이트</SelectItem>
-                        <SelectItem value="youtube">YouTube</SelectItem>
-                        <SelectItem value="sns">SNS</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormField>
-                  <FormField label="URL" htmlFor="url" required>
-                    <Input
-                      type="url"
-                      name="url"
-                      id="url"
-                      required
-                      placeholder="https://news.hada.io/rss"
-                    />
-                  </FormField>
-                </div>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mt-4">
-                  <FormField label="키워드" htmlFor="keywords">
-                    <Input
-                      type="text"
-                      name="keywords"
-                      id="keywords"
-                      placeholder="AI, 제조업, SaaS (쉼표 구분)"
-                    />
-                  </FormField>
-                  <FormField label="태그" htmlFor="radarTags">
-                    <Input
-                      type="text"
-                      name="radarTags"
-                      id="radarTags"
-                      placeholder="시장분석, 경쟁사 (쉼표 구분)"
-                    />
-                  </FormField>
-                </div>
-                <div className="mt-4 flex justify-end">
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "추가 중..." : "추가"}
-                  </Button>
-                </div>
-              </Form>
-            </CardContent>
-          </Card>
-        )}
-
-        {sources.length === 0 ? (
-          <p className="text-sm text-fg-tertiary">등록된 소스가 없습니다.</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <tr>
-                <TableHead className="pl-4">이름</TableHead>
-                <TableHead>유형</TableHead>
-                <TableHead>URL</TableHead>
-                <TableHead>상태</TableHead>
-                <TableHead className="text-right pr-4">작업</TableHead>
-              </tr>
-            </TableHeader>
-            <TableBody>
-              {sources.map((source) => (
-                <TableRow key={source.id}>
-                  <TableCell className="pl-4 font-medium text-fg">
-                    {source.name}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">
-                      {SOURCE_TYPE_LABELS[source.sourceType] || source.sourceType}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="max-w-xs truncate text-fg-tertiary" title={source.url}>
-                    {source.url}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={source.enabled ? "success" : "secondary"}>
-                      {source.enabled ? "활성" : "비활성"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right pr-4">
-                    <div className="flex items-center justify-end gap-2">
-                      <Form method="post">
-                        <input type="hidden" name="intent" value="toggle-source" />
-                        <input type="hidden" name="id" value={source.id} />
-                        <input type="hidden" name="enabled" value={source.enabled ? "1" : "0"} />
-                        <Button variant="ghost" size="sm" type="submit">
-                          {source.enabled ? "비활성화" : "활성화"}
-                        </Button>
-                      </Form>
-                      <Form method="post">
-                        <input type="hidden" name="intent" value="delete-source" />
-                        <input type="hidden" name="id" value={source.id} />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          type="submit"
-                          className="text-fg-error"
-                          onClick={(e) => {
-                            if (!confirm("이 소스를 삭제하시겠습니까?")) {
-                              e.preventDefault();
-                            }
-                          }}
-                        >
-                          삭제
-                        </Button>
-                      </Form>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </div>
       )}
 
     </AppShell>
