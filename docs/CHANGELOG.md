@@ -3,6 +3,21 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 354 (2026-03-11)
+
+**F41 Phase 1B 파일 업로드 수동 수집 (DX-REQ-012)**:
+- ✅ 클라이언트사이드 텍스트 추출 유틸 (pdfjs-dist/mammoth/FileReader)
+- ✅ FileUploadForm: 파일 선택 → 추출 → 미리보기 → 등록 UI
+- ✅ API 라우트: `api.radar.manual-collect.upload` (파일 수집)
+- ✅ RadarService.collectFromFile() — contentType='document' + itemMetadata 파일 정보
+- ✅ ManualCollectTab에 파일 업로드 섹션 추가
+- ✅ vite.config.ts SSR external: pdfjs-dist, mammoth
+- ✅ 테스트 15개 추가 (수동 수집 전체 커버: collectFromFile/Text, sendToIdea, dedupeKey, __manual__ 소스)
+- ✅ 이전 세션 미커밋 코드 정리: F40 AI fallback 고도화 + F43 검토 Round 2 문서
+
+**검증 결과**:
+- ✅ typecheck: 0 에러 / ✅ lint: 0 에러 / ✅ test: 2,275 PASS (150 files) / ✅ build: 성공
+
 ### 세션 353 (2026-03-11)
 
 **프로덕션 마이그레이션 적용 + F40 PolicyLoader/PolicyRouter 커밋**:
