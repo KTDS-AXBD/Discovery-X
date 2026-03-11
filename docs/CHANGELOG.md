@@ -60,7 +60,13 @@
 - ✅ 테스트 2파일 갱신 (agent-do-stub, executor-stream)
 - **F40 Phase 1 전체 완료 (11/11)** — DX-REQ-011 DONE
 
-**변경**: 13파일 수정 (53행 변경, 라인 수 동일)
+**추가 작업**:
+- ✅ admin/costs 4탭 API 응답 구조 불일치 수정 (Overview/Budget/Catalog/Routing)
+- ✅ TopNav admin 드롭다운에 /admin/costs "비용 관리" 링크 추가
+- ✅ DeepSeek V3/R1 모델 추가: ProviderId + 카탈로그 시드 + 가격 + PolicyRouter + 모델 매핑
+- ✅ 프로덕션 DB 시드: model_catalog 9개 + price_catalog 9개 + routing_policies + 정규화 테이블
+
+**변경**: 21파일 수정 (코드 13 + admin.costs 1 + TopNav 1 + DeepSeek 5 + docs 1)
 **검증**: typecheck ✅ | lint ✅ | test 2,331 ✅ | build ✅
 **Gap 분석**: Match Rate 100% (설계서 9개 항목 전수 일치)
 
