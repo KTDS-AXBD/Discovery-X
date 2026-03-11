@@ -85,6 +85,7 @@ export function createTestDb() {
   runMigrationSQL(sqlite, resolve(migrationsDir, "0054_cost_management.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0056_purpose_migration.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0057_radar_channel_management.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0058_radar_health_metrics.sql"));
 
   return drizzle(sqlite, { schema: { ...schema, ...v2Schema, ...matrixSchema, ...requestsSchema, ...topicSchema, ...costSchema } });
 }

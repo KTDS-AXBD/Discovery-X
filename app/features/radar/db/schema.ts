@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, real, index } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 import { users, tenants } from "~/db";
 
@@ -273,6 +273,59 @@ export const radarCrawlQueue = sqliteTable("radar_crawl_queue", {
 }));
 
 // ============================================================================
+// HEALTH METRICS TABLES (F41 Phase 3)
+// ============================================================================
+
+export const radarSourceMetrics = sqliteTable("radar_source_metrics", {
+  id: text("id").primaryKey(),
+  sourceId: text("source_id")
+    .notNull()
+    .references(() => radarSources.id),
+  tenantId: text("tenant_id").references(() => tenants.id),
+  date: text("date").notNull(),
+  totalItems: integer("total_items").default(0),
+  newItemsToday: integer("new_items_today").default(0),
+  totalIdeas: integer("total_ideas").default(0),
+  viewedCount: integer("viewed_count").default(0),
+  likeCount: integer("like_count").default(0),
+  dislikeCount: integer("dislike_count").default(0),
+  conversionCount7d: integer("conversion_count_7d").default(0),
+  conversionCount30d: integer("conversion_count_30d").default(0),
+  avgRelevance: real("avg_relevance").default(0),
+  avgNovelty: real("avg_novelty").default(0),
+  engagementRate: real("engagement_rate").default(0),
+  conversionRate7d: real("conversion_rate_7d").default(0),
+  conversionRate30d: real("conversion_rate_30d").default(0),
+  healthScore: real("health_score").default(0),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+}, (table) => ({
+  sourceIdx: index("idx_rsm_source_drizzle").on(table.sourceId),
+  tenantDateIdx: index("idx_rsm_tenant_date_drizzle").on(table.tenantId, table.date),
+}));
+
+export const radarItemMetrics = sqliteTable("radar_item_metrics", {
+  id: text("id").primaryKey(),
+  itemId: text("item_id")
+    .notNull()
+    .references(() => radarItems.id),
+  tenantId: text("tenant_id").references(() => tenants.id),
+  topicRelevance: real("topic_relevance").default(0),
+  novelty: real("novelty").default(0),
+  quality: real("quality").default(0),
+  compositeScore: real("composite_score").default(0),
+  modelVersion: text("model_version"),
+  evaluatedAt: integer("evaluated_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+}, (table) => ({
+  itemIdx: index("idx_rim_item_drizzle").on(table.itemId),
+  tenantIdx: index("idx_rim_tenant_drizzle").on(table.tenantId),
+}));
+
+// ============================================================================
 // AI PIPELINE TABLES (F27)
 // ============================================================================
 
@@ -327,3 +380,9 @@ export type NewRadarSourceDomain = typeof radarSourceDomains.$inferInsert;
 
 export type RadarCrawlQueueItem = typeof radarCrawlQueue.$inferSelect;
 export type NewRadarCrawlQueueItem = typeof radarCrawlQueue.$inferInsert;
+
+// F41 Phase 3 types
+export type RadarSourceMetric = typeof radarSourceMetrics.$inferSelect;
+export type NewRadarSourceMetric = typeof radarSourceMetrics.$inferInsert;
+export type RadarItemMetric = typeof radarItemMetrics.$inferSelect;
+export type NewRadarItemMetric = typeof radarItemMetrics.$inferInsert;
