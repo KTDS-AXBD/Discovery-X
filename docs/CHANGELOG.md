@@ -3,6 +3,25 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 363 (2026-03-11)
+
+**F40 P1-10 purpose 마이그레이션 — mode→purpose 코드 통일 (DX-REQ-011)**:
+- ✅ `TokenUsageMeta.mode` → `.purpose: Purpose` 타입 변경
+- ✅ `saveAndFinalize()`, `logTokenUsage()` 파라미터 mode→purpose
+- ✅ executor-stream: `isIdeasMode` → `isAnalysis`, 시그니처 purpose
+- ✅ executor/analyzer: mode 값 → purpose 값 (chat/analysis/extraction)
+- ✅ api.chat.ts: body에서 purpose 수신 + mode 하위 호환 유지
+- ✅ ChatPanel/IdeaChatWrapper: prop mode→purpose, UI 분기 동일 적용
+- ✅ agent-do.stub: AgentDOChatPayload.mode → .purpose
+- ✅ api.admin.token-usage: SELECT alias mode→purpose
+- ✅ MODE_TO_PURPOSE 앱 코드 import 제거 + @deprecated 마킹
+- ✅ 테스트 2파일 갱신 (agent-do-stub, executor-stream)
+- **F40 Phase 1 전체 완료 (11/11)** — DX-REQ-011 DONE
+
+**변경**: 13파일 수정 (53행 변경, 라인 수 동일)
+**검증**: typecheck ✅ | lint ✅ | test 2,331 ✅ | build ✅
+**Gap 분석**: Match Rate 100% (설계서 9개 항목 전수 일치)
+
 ### 세션 361 (2026-03-11)
 
 **F43 인터뷰 스킬 고도화 — review-api.mjs v5 + Six Hats 토론 (DX-REQ-014)**:
