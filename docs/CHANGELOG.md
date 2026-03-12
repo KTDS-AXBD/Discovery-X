@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 384 (2026-03-12)
+
+**F41 채널 관리 Phase 1+2 — 접이식 그룹 뷰 + 커스텀 폴더 시스템 (DX-REQ-012)**:
+- ✅ Phase 1: 프로덕션 도메인 6개 시드 + 채널-도메인 매핑 17건 + 키워드 9채널 (AI 분류)
+- ✅ Phase 1: ChannelManagementTab 접이식 그룹 뷰 (도메인별/유형별/없음 3가지)
+- ✅ Phase 2: radar_folders + radar_source_folders 테이블 (0061 마이그레이션, 프로덕션 적용)
+- ✅ Phase 2: 폴더 CRUD 서비스 + /api/radar/folders API + "폴더별" 그룹핑 UI
+- ✅ Phase 2: 인라인 폴더 생성/삭제 UI + getRadarData 폴더 매핑 통합
+
+**변경**: 7파일 수정/신규 + 1 마이그레이션 SQL (339+, 9-)
+**검증**: ✅ typecheck 0 / test 2,453 pass / build 성공
+
 ### 세션 383 (2026-03-12)
 
 **F44 PRD Studio 자체 QA — P0 보안/UX 버그 6건 수정 (DX-REQ-015)**:
