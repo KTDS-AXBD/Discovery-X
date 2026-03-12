@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 371 (2026-03-12)
+
+**F41 DX-REQ-012 완료 처리 — eval 배치 검증 + DONE 전환 (DX-REQ-012)**:
+- ✅ 프로덕션 배포 확인: CI/CD 5건 success + health check HTTP 200
+- ✅ 프로덕션 마이그레이션: 0058 적용 확인 (S367에서 완료)
+- ✅ eval 배치 테스트: `/ax-batch-analysis eval` 5건 프로덕션 D1 UPSERT 성공 (avg composite 0.624)
+- ✅ DX-REQ-012 DONE 전환: SPEC F41 🔧→✅ + 앱 DB IN_PROGRESS→DONE
+- ✅ SPEC F44 📋→🔧 미커밋 변경 반영 (S370에서 발생)
+
+**변경**: docs only (SPEC.md + CHANGELOG.md)
+**검증**: docs commit — typecheck/lint/test/build 스킵
+
 ### 세션 368b (2026-03-12)
 
 **모델 카탈로그 2026-03 최신화 (DX-REQ-011)**:
