@@ -5,6 +5,21 @@
 
 ### 세션 373 (2026-03-12)
 
+**F43 DONE 전환 — E2E 테스트 완료 + DX-REQ-014 DONE**:
+- ✅ API 키 검증: OpenAI (gpt-4.1) + Google (gemini-2.5-flash) + DeepSeek ($4.99 잔액) 3/3 정상
+- ✅ E2E 테스트: review→apply→re-review 전체 파이프라인 검증 (테스트 PRD "팀 회고 도구")
+  - Phase 2 R1: 3/3 AI 병렬 완료, 48점 (26초)
+  - Phase 3 apply: prd-v1→v2, 19건 변경 마커, 615→5,054자 (38초)
+  - Phase 2 R2: 3/3 AI 병렬 완료, 49점, 라운드간 비교 정상 (47초)
+  - Phase 4 스코어카드: scorecard.json 라운드간 비교 (prevIssues=29→41, newIssues=12)
+- ✅ 출력 파일 무결성: 18/18 파일 SKILL.md 정의 100% 일치
+- ✅ F43 DONE 전환: SPEC ✅ + 앱 DB DONE + MEMORY 갱신
+
+**변경**: SPEC.md (F43 상태만), 프로젝트 코드 변경 없음 (user-scope 스킬)
+**검증**: docs commit — typecheck/lint/test/build 스킵
+
+### 세션 374 (2026-03-12)
+
 **F40 프로덕션 비용 관리 데이터 동기화 — seed 재실행 + CostEstimator 연동 (DX-REQ-011)**:
 - ✅ 프로덕션 모델 카탈로그 9→12개 동기화 (GPT-5.4/4.1 + Gemini 2.5 Pro + DeepSeek V3.2 점수 보정)
 - ✅ 잔존 모델 비활성화: gpt-4o, gpt-4o-mini → is_active=0 (usage 참조 보존)
