@@ -2,15 +2,18 @@ import { eq, and } from "drizzle-orm";
 import type { DB } from "~/db";
 import { usageEvents, dailyUsageAggregates } from "../db/schema";
 import type { UsageEventInput } from "../types";
+import { CostEstimator } from "./cost-estimator";
 
 export class UsageRecorder {
   constructor(private db: DB) {}
 
   /**
-   * usage_events INSERT + daily_usage_aggregates UPSERT.
-   * @returns usageEventId
+   * usage_events INSERT + daily_usage_aggregates UPSERT + cost_estimates 자동 생성.
+   * @returns usageEventId, totalCostUsd
    */
-  async record(event: UsageEventInput): Promise<{ usageEventId: string }> {
+  async record(
+    event: UsageEventInput
+  ): Promise<{ usageEventId: string; totalCostUsd: number }> {
     const id = crypto.randomUUID();
     const totalTokens =
       event.inputTokens +
@@ -45,7 +48,17 @@ export class UsageRecorder {
       console.warn("[UsageRecorder] daily aggregate upsert failed:", err);
     }
 
-    return { usageEventId: id };
+    // 3) cost_estimates 자동 생성 (보조 — 실패 시 warn, totalCostUsd=0 반환)
+    let totalCostUsd = 0;
+    try {
+      const estimator = new CostEstimator(this.db);
+      const result = await estimator.estimate(id);
+      totalCostUsd = result.totalCostUsd;
+    } catch (err) {
+      console.warn("[UsageRecorder] cost estimation failed:", err);
+    }
+
+    return { usageEventId: id, totalCostUsd };
   }
 
   private async upsertDailyAggregate(
