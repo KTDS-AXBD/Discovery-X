@@ -3,6 +3,37 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 386 (2026-03-12)
+
+**F44 PRD Studio QA 전체 해소 — Phase 2-5 P1+P2 수정 (DX-REQ-015)**:
+- ✅ 이탈 분석 이벤트 6종 (useEventTracking 훅: interview_start/section_complete/abandon/prd_generated/review_start/review_complete)
+- ✅ 에러 처리 UX: ErrorMessage 공통 컴포넌트 (재시도 + budget_blocked 안내)
+- ✅ ReviewResults onRetry prop + 재시도 버튼 추가
+- ✅ 서버 검증 강화: DRAFT 상태 검증, sectionType enum 대조, IN_REVIEW 상태 전환, 원자적 progress 갱신
+- ✅ 비용 한도: generate + review에 BudgetEvaluator 연동 (tier="block" → 429)
+- ✅ StatusBadge 공통 컴포넌트 분리 ($id.tsx + _index.tsx 중복 제거)
+- ✅ FAQSection 접이식 5개 항목 (용어 설명)
+- ✅ ConfirmDialog 커스텀 모달 (네이티브 confirm() 대체, aria-modal)
+- ✅ 접근성: PrdOnboardingModal role="dialog", textarea/progress aria-label
+- ✅ _index.tsx: loader 에러 표시, 테이블 overflow-x-auto, 삭제 로딩 상태
+- ✅ new.tsx: 폼 로딩 + maxLength(200) + 글자 수 카운터 + 뒤로가기 링크
+- ✅ PrdContentView: 편집 에러 표시 + textarea 높이 자동 조절
+- ✅ VersionHistory: 미사용 prdId prop 제거
+- ✅ generate.ts: AI 응답 키 검증 + 타임아웃 주석
+- ✅ review.ts: OpenAI usage.total_tokens 추출 + Gemini URL 주석
+- ✅ api.prd-studio.ts: DELETE 소유자 검증
+- ✅ events.ts: try-catch 래핑
+- ✅ edit.ts: content 10000자 제한 + sectionType 검증
+- ✅ service: batch INSERT (9쿼리→2쿼리)
+- ✅ prd-studio.tsx: Feature Flag PRD_STUDIO_ENABLED 체크
+- ✅ C-P1-8 해소: useFetcher → fetch() 직접 호출 (동시 저장 유실 방지)
+- ✅ 마이그레이션 0062: prd_sections/versions UNIQUE 인덱스
+- ✅ DX-PLAN-010 Plan 문서 + DX-DSGN-015 Design 문서 (소급 생성)
+- ✅ docs/INDEX.md 갱신 (51개 문서)
+- QA 결과: 원래 48건 중 45건 해소, 잔여 3건 (Gemini OAuth 향후/localStorage fetch 저리스크/C-P2-11 유지)
+- Agent Team 3회 × 2 Workers: 이벤트훅+에러UX / 서버API+클라이언트 / 서버잔여+UI컴포넌트 병렬
+- 검증: typecheck ✅ lint ✅ build ✅
+
 ### 세션 385 (2026-03-12)
 
 **F41 Phase 4 — 폴더 시스템 고도화 (DX-REQ-012)**:
