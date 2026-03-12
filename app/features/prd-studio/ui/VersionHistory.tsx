@@ -11,15 +11,12 @@ interface VersionHistoryProps {
   }>;
 }
 
+import { formatDateTime as formatDateTimeKST } from "~/lib/format-date";
+
 function formatDateTime(ts: string | number | null) {
   if (!ts) return "-";
-  const d = new Date(typeof ts === "number" ? ts * 1000 : ts);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  const h = String(d.getHours()).padStart(2, "0");
-  const min = String(d.getMinutes()).padStart(2, "0");
-  return `${y}-${m}-${day} ${h}:${min}`;
+  const iso = typeof ts === "number" ? new Date(ts * 1000).toISOString() : ts;
+  return formatDateTimeKST(iso);
 }
 
 export function VersionHistory({ versions }: VersionHistoryProps) {

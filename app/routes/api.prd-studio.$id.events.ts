@@ -27,6 +27,10 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
   }
 
   const service = new PrdStudioService(db);
+  const prd = await service.getById(params.id!, ctx.tenantId);
+  if (!prd) {
+    return json({ error: "PRD를 찾을 수 없어요." }, { status: 404 });
+  }
   await service.logEvent({
     prdId: params.id!,
     tenantId: ctx.tenantId,

@@ -99,6 +99,7 @@ export default function PrdStudioInterview() {
 
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedTypeRef = useRef<string>("");
   const [exampleOpen, setExampleOpen] = useState(false);
 
   const config = INTERVIEW_SECTIONS[currentStep];
@@ -142,20 +143,22 @@ export default function PrdStudioInterview() {
       const data = fetcher.data as { ok?: boolean; error?: string };
       if (data.ok) {
         setSaveStatus("saved");
-        // 저장 성공 시 localStorage 정리
-        const key = localKey(prd.id, config.type);
-        localStorage.removeItem(key);
+        // 저장 성공 시 localStorage 정리 — 저장 시점의 type을 참조
+        if (lastSavedTypeRef.current) {
+          localStorage.removeItem(localKey(prd.id, lastSavedTypeRef.current));
+        }
       } else {
         setSaveStatus("error");
       }
     }
-  }, [fetcher.state, fetcher.data, prd.id, config.type]);
+  }, [fetcher.state, fetcher.data, prd.id]);
 
   // -- 저장 함수 -----------------------------------------------------------
   const saveAnswer = useCallback(
     (type: string, answer: string) => {
       // localStorage에 임시 저장 (네트워크 실패 대비)
       localStorage.setItem(localKey(prd.id, type), answer);
+      lastSavedTypeRef.current = type;
       setSaveStatus("saving");
       fetcher.submit(
         { type, answer },
@@ -421,16 +424,34 @@ export default function PrdStudioInterview() {
       )}
 
       {/* 생성/검토 결과 메시지 */}
-      {!!generateFetcher.data && (
-        <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800">
-          PRD가 생성되었어요! 위에서 확인하고 AI 검토를 시작할 수 있어요.
-        </div>
-      )}
-      {!!reviewFetcher.data && (
-        <div className="rounded-lg border border-purple-200 bg-purple-50 p-3 text-sm text-purple-800">
-          AI 검토가 완료되었어요! 위에서 결과를 확인하세요.
-        </div>
-      )}
+      {(() => {
+        const genData = generateFetcher.data as { ok?: boolean; error?: string } | undefined;
+        const revData = reviewFetcher.data as { ok?: boolean; error?: string } | undefined;
+        return (
+          <>
+            {genData?.ok && (
+              <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+                PRD가 생성되었어요! 위에서 확인하고 AI 검토를 시작할 수 있어요.
+              </div>
+            )}
+            {genData?.error && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+                {genData.error}
+              </div>
+            )}
+            {revData?.ok && (
+              <div className="rounded-lg border border-purple-200 bg-purple-50 p-3 text-sm text-purple-800">
+                AI 검토가 완료되었어요! 위에서 결과를 확인하세요.
+              </div>
+            )}
+            {revData?.error && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+                {revData.error}
+              </div>
+            )}
+          </>
+        );
+      })()}
     </div>
   );
 }

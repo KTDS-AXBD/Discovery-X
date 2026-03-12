@@ -34,13 +34,12 @@ interface ReviewResultsProps {
 // Helpers
 // ---------------------------------------------------------------------------
 
+import { formatDate as formatDateKST } from "~/lib/format-date";
+
 function formatDate(ts: string | number | null) {
   if (!ts) return "-";
-  const d = new Date(typeof ts === "number" ? ts * 1000 : ts);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
+  const iso = typeof ts === "number" ? new Date(ts * 1000).toISOString() : ts;
+  return formatDateKST(iso);
 }
 
 function VerdictBadge({ verdict }: { verdict: string | null }) {

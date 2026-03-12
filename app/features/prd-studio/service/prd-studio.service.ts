@@ -63,12 +63,15 @@ export class PrdStudioService {
       .orderBy(desc(prds.updatedAt));
   }
 
-  /** PRD 단건 조회 + sections eager load */
-  async getById(id: string) {
+  /** PRD 단건 조회 + sections eager load (테넌트 격리) */
+  async getById(id: string, tenantId?: string) {
+    const conditions = tenantId
+      ? and(eq(prds.id, id), eq(prds.tenantId, tenantId))
+      : eq(prds.id, id);
     const prd = await this.db
       .select()
       .from(prds)
-      .where(eq(prds.id, id))
+      .where(conditions)
       .get();
     if (!prd) return null;
 

@@ -15,9 +15,12 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     }
 
     const service = new PrdStudioService(db);
-    const sections = await service.getSections(params.id!);
+    const prd = await service.getById(params.id!, ctx.tenantId);
+    if (!prd) {
+      return json({ error: "PRD를 찾을 수 없어요.", sections: [] }, { status: 404 });
+    }
 
-    return json({ sections });
+    return json({ sections: prd.sections });
   } catch (error) {
     console.error("[api.prd-studio.sections.loader] Error:", error instanceof Error ? error.message : error);
     return json({ error: "Internal server error", sections: [] }, { status: 500 });
@@ -54,6 +57,13 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
   }
 
   const service = new PrdStudioService(db);
+  const prd = await service.getById(params.id!, ctx.tenantId);
+  if (!prd) {
+    return json({ error: "PRD를 찾을 수 없어요." }, { status: 404 });
+  }
+  if (prd.createdBy !== ctx.user.id) {
+    return json({ error: "본인의 PRD만 수정할 수 있어요." }, { status: 403 });
+  }
   await service.saveSectionAnswer(params.id!, type, answer ?? "");
 
   return json({ ok: true });

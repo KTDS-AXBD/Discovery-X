@@ -69,10 +69,13 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
   const id = params.id!;
   const service = new PrdStudioService(db);
 
-  // PRD 로드 + 상태 확인
-  const prd = await service.getById(id);
+  // PRD 로드 + 소유자 검증 + 상태 확인
+  const prd = await service.getById(id, ctx.tenantId);
   if (!prd) {
     return json({ error: "PRD를 찾을 수 없어요." }, { status: 404 });
+  }
+  if (prd.createdBy !== ctx.user.id) {
+    return json({ error: "본인의 PRD만 생성할 수 있어요." }, { status: 403 });
   }
   if (prd.status !== PrdStatus.DRAFT) {
     return json({ error: "DRAFT 상태의 PRD만 생성할 수 있어요." }, { status: 400 });

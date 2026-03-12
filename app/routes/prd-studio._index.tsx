@@ -42,14 +42,13 @@ function statusBadge(status: string) {
   );
 }
 
-/** 날짜 포맷 (hydration mismatch 방지를 위해 수동 포맷) */
+import { formatDate as formatDateKST } from "~/lib/format-date";
+
+/** unix timestamp/ISO string → KST 포맷 (hydration-safe) */
 function formatDate(ts: string | number | null) {
   if (!ts) return "-";
-  const d = new Date(typeof ts === "number" ? ts * 1000 : ts);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
+  const iso = typeof ts === "number" ? new Date(ts * 1000).toISOString() : ts;
+  return formatDateKST(iso);
 }
 
 export default function PrdStudioIndex() {
