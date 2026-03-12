@@ -3,6 +3,21 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 373 (2026-03-12)
+
+**F40 프로덕션 비용 관리 데이터 동기화 — seed 재실행 + CostEstimator 연동 (DX-REQ-011)**:
+- ✅ 프로덕션 모델 카탈로그 9→12개 동기화 (GPT-5.4/4.1 + Gemini 2.5 Pro + DeepSeek V3.2 점수 보정)
+- ✅ 잔존 모델 비활성화: gpt-4o, gpt-4o-mini → is_active=0 (usage 참조 보존)
+- ✅ 가격 카탈로그 12개 동기화 (2026-03 최신가)
+- ✅ 라우팅 정책: 4→5 프로바이더 (DeepSeek priority 2 추가), anthropic→deepseek→openai→google→workers-ai
+- ✅ Purpose rules 6개 + Degrade rules 3개 재시딩
+- ✅ `UsageRecorder.record()` → `CostEstimator.estimate()` 자동 연쇄 호출 추가 (cost_estimates 0건 원인 해소)
+- ✅ 예산 정책 설정: $50/분기 (2026-01-31~04-30), warn 80%/degrade 100%/block 120%
+
+**변경**: `app/features/cost/service/usage-recorder.ts` (1파일, +17 -4)
+**프로덕션 DB**: model_catalog 12 + price_catalog 12 + routing_policies 5p + budget_policies 1
+**검증**: ✅ typecheck 0 에러 / lint 0 에러 / 테스트 2,417개 100% 통과
+
 ### 세션 372 (2026-03-12)
 
 **F43 Phase 3 자동 반영 구현 — review-api.mjs v6 (DX-REQ-014)**:
