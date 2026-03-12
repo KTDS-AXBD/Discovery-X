@@ -1,50 +1,62 @@
 /**
  * 날짜 포맷 유틸리티
  *
- * 서버/클라이언트 hydration 불일치를 방지하기 위해
- * toLocaleDateString 대신 수동 포맷을 사용합니다.
+ * SSR hydration 불일치 방지:
+ * - Cloudflare Workers(서버)는 UTC, 브라우저(클라이언트)는 로컬 타임존
+ * - getHours() 등 로컬 메서드 대신 getUTC*() + KST 오프셋으로 통일
  */
 
-/** ISO 문자열 → "2026. 2. 9." 형식 (locale 무관, 수동 포맷) */
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+
+/** UTC 기준 Date를 KST로 시프트 (UTC 메서드로 KST 값 추출용) */
+function toKST(d: Date): Date {
+  return new Date(d.getTime() + KST_OFFSET_MS);
+}
+
+/** ISO 문자열 → "2026. 2. 9." 형식 (KST 기준) */
 export function formatDate(iso: string | Date | null | undefined): string {
   if (!iso) return "-";
   const d = typeof iso === "string" ? new Date(iso) : iso;
   if (isNaN(d.getTime())) return "-";
-  return `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}.`;
+  const k = toKST(d);
+  return `${k.getUTCFullYear()}. ${k.getUTCMonth() + 1}. ${k.getUTCDate()}.`;
 }
 
-/** ISO 문자열 → "2월 9일 14:30" 형식 */
+/** ISO 문자열 → "2월 9일 14:30" 형식 (KST 기준) */
 export function formatDateTime(iso: string | Date | null | undefined): string {
   if (!iso) return "-";
   const d = typeof iso === "string" ? new Date(iso) : iso;
   if (isNaN(d.getTime())) return "-";
-  const month = d.getMonth() + 1;
-  const day = d.getDate();
-  const h = String(d.getHours()).padStart(2, "0");
-  const m = String(d.getMinutes()).padStart(2, "0");
+  const k = toKST(d);
+  const month = k.getUTCMonth() + 1;
+  const day = k.getUTCDate();
+  const h = String(k.getUTCHours()).padStart(2, "0");
+  const m = String(k.getUTCMinutes()).padStart(2, "0");
   return `${month}월 ${day}일 ${h}:${m}`;
 }
 
-/** ISO 문자열 → "2026-02-09 14:30" 형식 (로컬 타임) */
+/** ISO 문자열 → "2026-02-09 14:30" 형식 (KST 기준) */
 export function formatDateLocalTime(iso: string | Date | null | undefined): string {
   if (!iso) return "-";
   const d = typeof iso === "string" ? new Date(iso) : iso;
   if (isNaN(d.getTime())) return "-";
-  const y = d.getFullYear();
-  const mo = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  const h = String(d.getHours()).padStart(2, "0");
-  const m = String(d.getMinutes()).padStart(2, "0");
+  const k = toKST(d);
+  const y = k.getUTCFullYear();
+  const mo = String(k.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(k.getUTCDate()).padStart(2, "0");
+  const h = String(k.getUTCHours()).padStart(2, "0");
+  const m = String(k.getUTCMinutes()).padStart(2, "0");
   return `${y}-${mo}-${day} ${h}:${m}`;
 }
 
-/** ISO 문자열 → "14:30" 형식 (시간만) */
+/** ISO 문자열 → "14:30" 형식 (시간만, KST 기준) */
 export function formatTime(iso: string | Date | null | undefined): string {
   if (!iso) return "-";
   const d = typeof iso === "string" ? new Date(iso) : iso;
   if (isNaN(d.getTime())) return "-";
-  const h = String(d.getHours()).padStart(2, "0");
-  const m = String(d.getMinutes()).padStart(2, "0");
+  const k = toKST(d);
+  const h = String(k.getUTCHours()).padStart(2, "0");
+  const m = String(k.getUTCMinutes()).padStart(2, "0");
   return `${h}:${m}`;
 }
 
