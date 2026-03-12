@@ -6,6 +6,7 @@ import * as matrixSchema from "~/features/matrix/db/schema";
 import * as requestsSchema from "~/features/requests/db/schema";
 import * as topicSchema from "~/features/topic/db/schema";
 import * as costSchema from "~/features/cost/db/schema";
+import * as prdStudioSchema from "~/features/prd-studio/db/schema";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 
@@ -86,8 +87,9 @@ export function createTestDb() {
   runMigrationSQL(sqlite, resolve(migrationsDir, "0056_purpose_migration.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0057_radar_channel_management.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0058_radar_health_metrics.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0059_prd_studio.sql"));
 
-  return drizzle(sqlite, { schema: { ...schema, ...v2Schema, ...matrixSchema, ...requestsSchema, ...topicSchema, ...costSchema } });
+  return drizzle(sqlite, { schema: { ...schema, ...v2Schema, ...matrixSchema, ...requestsSchema, ...topicSchema, ...costSchema, ...prdStudioSchema } });
 }
 
 export type TestDB = ReturnType<typeof createTestDb>;

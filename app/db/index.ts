@@ -12,8 +12,9 @@ import * as matrixSchema from "~/features/matrix/db/schema";
 import * as requestsSchema from "~/features/requests/db/schema";
 import * as topicSchema from "~/features/topic/db/schema";
 import * as costSchema from "~/features/cost/db/schema";
+import * as prdStudioSchema from "~/features/prd-studio/db/schema";
 
-const allSchema = { ...schema, ...discoverySchema, ...radarSchema, ...chatSchema, ...labSchema, ...proposalSchema, ...archiveSchema, ...ideasSchema, ...v2Schema, ...matrixSchema, ...requestsSchema, ...topicSchema, ...costSchema };
+const allSchema = { ...schema, ...discoverySchema, ...radarSchema, ...chatSchema, ...labSchema, ...proposalSchema, ...archiveSchema, ...ideasSchema, ...v2Schema, ...matrixSchema, ...requestsSchema, ...topicSchema, ...costSchema, ...prdStudioSchema };
 
 export function getDb(d1: D1Database) {
   return drizzle(d1, { schema: allSchema });
@@ -33,5 +34,6 @@ export * from "./schema-v2";
 export * from "~/features/matrix/db/schema";
 export * from "~/features/requests/db/schema";
 export * from "~/features/topic/db/schema";
+export * from "~/features/prd-studio/db/schema";
 // cost schema는 ~/db에서 re-export하지 않음 (vi.mock 호환성)
 // 사용처에서 직접 import: from "~/features/cost/db/schema"
