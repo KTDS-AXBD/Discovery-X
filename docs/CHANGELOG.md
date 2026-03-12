@@ -3,6 +3,20 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 378 (2026-03-12)
+
+**F40 Cost Management 코드 완성도 리뷰 + 6건 수정 (DX-REQ-011)**:
+- ✅ C1: daily_usage_aggregates.totalCostUsd 실시간 갱신 추가 (cost-report-v2 비용 0원 문제 해결) + backfill에 cost_estimates LEFT JOIN
+- ✅ C2: DEFAULT_CHAIN에 deepseek 누락 수정 — PolicyRouter 활성 시에도 5단계 fallback 체인 정상 동작
+- ✅ C3: daily_usage_aggregates 복합 유니크 인덱스 마이그레이션 (0060) — UPSERT 레이스 컨디션 방지
+- ✅ M1: BudgetBlockedError 전용 에러 핸들링 — executor-stream에서 budget_blocked errorType 반환
+- ✅ M2: 모든 프로바이더 모델 오버라이드 — FallbackManagerOptions.nativeModel + mapModel non-claude pass-through
+- ✅ M3: model-catalog API N+1 쿼리 → 단일 LEFT JOIN (12 parallel queries → 1 query)
+- ✅ L1: token-usage API 레거시 agentConfig 참조 제거 → daily_usage_aggregates 기반 전환
+
+**변경**: 12파일 수정 + 1 마이그레이션 SQL 신규 (164+, 82-)
+**검증**: ✅ typecheck 0 / lint 0 / test 2,445 pass / build 성공
+
 ### 세션 377 (2026-03-12)
 
 **F43 완료 내역 검토 + ax-13-selfcheck 플러그인 점검**:
