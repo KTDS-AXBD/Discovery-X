@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-11T23:17:23.155Z",
+  "timestamp": "2026-03-12T00:20:15.306Z",
   "testPrompts": 4,
   "providers": [
     "openai",
@@ -9,9 +9,29 @@
   "results": [
     {
       "provider": "openai",
-      "model": "gpt-4o",
+      "model": "gpt-5.4",
       "prompt": "kr-summary",
-      "latencyMs": 3200,
+      "latencyMs": 5136,
+      "quality": {
+        "korean": 10,
+        "relevance": 10,
+        "structure": 9,
+        "jsonValid": false,
+        "total": 97
+      },
+      "tokens": {
+        "input": 173,
+        "output": 325
+      },
+      "costUsd": 0.0053075,
+      "error": null,
+      "responsePreview": "### 3줄 요약\n1. SK텔레콤이 AI 반도체 스타트업 리벨리온과 전략적 파트너십을 체결했다.  \n2. SKT는 AI 인프라를 강화하고, 리벨리온은 SKT의 대규모 고객 기반을 활용할 수 있게 됐다.  \n3. 양사는 AI 데이터센터용 반도체 공동 개발과 클라우드 AI 서비스 최적화를 추진하며, 국내 AI 생태계의 수직 통합을 촉진할 것으로 보인다.  \n\n### BD 관점 시사점 2개\n1. **대기업-스타트업 간 상호보완형 제휴 모델의 중요성 확대**  \n   SKT는 인프라·고객 접점을, 리벨리온은 핵심 기술을 제공하는 구조로, "
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-4.1",
+      "prompt": "kr-summary",
+      "latencyMs": 3545,
       "quality": {
         "korean": 10,
         "relevance": 10,
@@ -21,17 +41,17 @@
       },
       "tokens": {
         "input": 174,
-        "output": 210
+        "output": 178
       },
-      "costUsd": 0.002535,
+      "costUsd": 0.001772,
       "error": null,
-      "responsePreview": "요약:\n1. SK텔레콤이 AI 반도체 스타트업 리벨리온과 전략적 파트너십을 체결했다.\n2. SKT는 AI 인프라를 강화하고, 리벨리온은 대규모 고객 기반을 확보할 예정이다.\n3. 양사는 AI 데이터센터용 반도체 개발과 클라우드 AI 서비스 최적화에 협력한다.\n\nBD 관점 시사점:\n1. SK텔레콤과 리벨리온의 협력은 AI 반도체 및 클라우드 서비스 분야에서의 경쟁력을 강화할 수 있는 기회로, 이를 통해 새로운 시장 진입 및 기존 시장 점유율 확대가 가능하다.\n2. 이번 파트너십은 국내 AI 생태계의 수직 통합을 가속화하여, 관련 산업"
+      "responsePreview": "요약  \n1. SK텔레콤이 AI 반도체 스타트업 리벨리온과 전략적 파트너십을 맺었다.  \n2. SKT는 AI 인프라를 강화하고, 리벨리온은 대규모 고객을 확보한다.  \n3. 양사는 AI 데이터센터용 반도체 공동 개발과 클라우드 AI 서비스 최적화에 협력한다.\n\nBD 관점 시사점  \n1. 대기업-스타트업 간 전략적 협업을 통해 신기술 개발과 시장 확대를 동시에 도모할 수 있는 모델이 강화되고 있다.  \n2. AI 반도체 및 클라우드 서비스 분야에서 수직적 통합이 가속화되며, 관련 생태계 내 파트너십 및 M&A 기회가 증가할 것으로 예"
     },
     {
       "provider": "openai",
-      "model": "gpt-4o-mini",
+      "model": "gpt-4.1-nano",
       "prompt": "kr-summary",
-      "latencyMs": 4625,
+      "latencyMs": 3180,
       "quality": {
         "korean": 10,
         "relevance": 8,
@@ -41,17 +61,37 @@
       },
       "tokens": {
         "input": 174,
-        "output": 258
+        "output": 219
       },
-      "costUsd": 0.00018089999999999998,
+      "costUsd": 0.00010500000000000002,
       "error": null,
-      "responsePreview": "**기사 요약:**\nSK텔레콤이 AI 반도체 스타트업 리벨리온과 전략적 파트너십을 체결하여 AI 인프라를 강화하고, 리벨리온은 고객 기반을 확대하게 된다. 양사는 AI 데이터센터용 반도체 공동 개발과 클라우드 AI 서비스 최적화에 협력할 예정이다. 이번 협약은 국내 AI 생태계의 수직 통합을 가속화할 것으로 예상된다.\n\n**BD 관점 시사점:**\n1. **시장 진입 기회:** SK텔레콤과 리벨리온의 협력은 AI 반도체 시장에서의 경쟁력을 높이며, 새로운 고객층을 확보할 수 있는 기회를 제공한다. 다른 기업들도 유사한 전략적 파트너십"
+      "responsePreview": "SK텔레콤이 AI 반도체 스타트업 '리벨리온'과 전략적 파트너십을 맺어 AI 인프라 강화와 고객 기반 확장을 도모한다. 양사는 AI 데이터센터용 반도체 공동 개발과 클라우드 AI 서비스 최적화에 협력할 예정이며, 이는 국내 AI 생태계의 수직 통합을 촉진할 것으로 기대된다. 이번 협약은 AI 하드웨어 및 인프라 경쟁력 강화를 통한 시장 주도권 확보의 중요한 계기가 될 전망이다.\n\nBD 관점에서 시사점 2개:\n1. AI 반도체 분야의 전략적 제휴를 통해 기술 경쟁력과 시장 지배력을 강화하는 것이 중요하며, 이를 위해 스타트업과의 협력"
+    },
+    {
+      "provider": "google",
+      "model": "gemini-2.5-pro",
+      "prompt": "kr-summary",
+      "latencyMs": 18845,
+      "quality": {
+        "korean": 10,
+        "relevance": 10,
+        "structure": 9,
+        "jsonValid": false,
+        "total": 97
+      },
+      "tokens": {
+        "input": 159,
+        "output": 486
+      },
+      "costUsd": 0.00505875,
+      "error": null,
+      "responsePreview": "네, BD 전문 분석가 관점에서 기사를 분석하고 요약해 드리겠습니다.\n\n### **기사 3줄 요약**\n\n1.  SK텔레콤이 AI 반도체 스타트업 리벨리온과 전략적 파트너십을 체결했습니다.\n2.  양사는 SKT의 AI 인프라 강화와 리벨리온의 고객 확보를 목표로 AI 데이터센터용 반도체를 공동 개발합니다.\n3.  이번 협력은 특정 기술에 대한 의존도를 낮추고 국내 AI 생태계의 수직 통합을 가속화할 전망입니다.\n\n---\n\n### **BD(사업개발) 관점 시사점**\n\n1.  **핵심 기술 내재화를 위한 '전략적 파트너십' 모델 부상**"
     },
     {
       "provider": "google",
       "model": "gemini-2.5-flash",
       "prompt": "kr-summary",
-      "latencyMs": 6622,
+      "latencyMs": 5783,
       "quality": {
         "korean": 10,
         "relevance": 7,
@@ -65,13 +105,13 @@
       },
       "costUsd": 0.00004845,
       "error": null,
-      "responsePreview": "## 기사 요약 (3줄)\n\nSK텔레콤이 AI 반도체 스타트업 리벨리온과 전략적 파트너십을 체결했습니다. 이 협약"
+      "responsePreview": "## 기사 요약 (3줄)\n\nSK텔레콤이 AI 반도체 스타트업 리벨리온과 전략적 파트너십을 체결했습니다. 이번 협약"
     },
     {
       "provider": "deepseek",
       "model": "deepseek-chat",
       "prompt": "kr-summary",
-      "latencyMs": 300,
+      "latencyMs": 507,
       "quality": {
         "korean": 10,
         "relevance": 10,
@@ -81,17 +121,37 @@
       },
       "tokens": {
         "input": 195,
-        "output": 291
+        "output": 286
       },
-      "costUsd": 0.00037275,
+      "costUsd": 0.00017472,
       "error": null,
-      "responsePreview": "**기사 요약 (3줄):**\n1. SK텔레콤이 AI 반도체 스타트업 리벨리온과 전략적 파트너십을 체결했다.\n2. 양사는 AI 데이터센터용 반도체 공동 개발과 클라우드 AI 서비스 최적화를 협력한다.\n3. 이번 협약으로 SKT는 AI 인프라를 강화하고, 리벨리온은 대규모 고객 기반을 확보하게 된다.\n\n**BD 관점 시사점:**\n1. **수직 통합을 통한 생태계 경쟁력 강화:** AI 인프라(클라우드 서비스)와 핵심 부품(AI 반도체)을 결합한 협력은 산업의 수직 통합을 가속화하여, 종합적인 AI 솔루션 제공 능력을 확보하고 시장 선점"
+      "responsePreview": "**요약:**\n1. SK텔레콤이 AI 반도체 스타트업 리벨리온과 전략적 파트너십을 체결했다.\n2. 양사는 AI 데이터센터용 반도체 공동 개발과 클라우드 AI 서비스 최적화를 협력한다.\n3. 이번 협약으로 SKT는 AI 인프라를 강화하고, 리벨리온은 대규모 고객 기반을 확보할 전망이다.\n\n**BD 관점 시사점:**\n1. **수직 통합을 통한 생태계 경쟁력 강화**: AI 서비스(클라우드)부터 핵심 부품(반도체)까지의 수직적 협력은 기술 독립성과 비용 효율성을 높여, 종합적 AI 솔루션 제공 경쟁력을 확보할 수 있다.\n2. **상호 보"
     },
     {
       "provider": "openai",
-      "model": "gpt-4o",
+      "model": "gpt-5.4",
       "prompt": "entity-extraction",
-      "latencyMs": 1556,
+      "latencyMs": 1797,
+      "quality": {
+        "korean": 5,
+        "relevance": 10,
+        "structure": 10,
+        "jsonValid": true,
+        "total": 85
+      },
+      "tokens": {
+        "input": 148,
+        "output": 63
+      },
+      "costUsd": 0.001315,
+      "error": null,
+      "responsePreview": "{\"entities\":{\"companies\":[\"테슬라\",\"우버\",\"리프트\"],\"technologies\":[\"자율주행\",\"FSD v12\",\"순수 비전 기반\",\"LiDAR\",\"카메라\",\"Level 4 자율주행\"],\"markets\":[\"로보택시 시장\"]}}"
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-4.1",
+      "prompt": "entity-extraction",
+      "latencyMs": 1793,
       "quality": {
         "korean": 5,
         "relevance": 10,
@@ -101,17 +161,17 @@
       },
       "tokens": {
         "input": 149,
-        "output": 72
+        "output": 81
       },
-      "costUsd": 0.0010925,
+      "costUsd": 0.000946,
       "error": null,
-      "responsePreview": "```json\n{\n    \"entities\": {\n        \"companies\": [\"테슬라\", \"우버\", \"리프트\"],\n        \"technologies\": [\"FSD v12\", \"순수 비전 기반\", \"카메라 기반 Level 4 자율주행\"],\n        \"markets\": [\"로보택시 시장\"]\n    }\n}\n```"
+      "responsePreview": "{\n  \"entities\": {\n    \"companies\": [\"테슬라\", \"우버\", \"리프트\"],\n    \"technologies\": [\"자율주행 기술\", \"FSD v12\", \"순수 비전 기반\", \"카메라 기반 자율주행\", \"Level 4 자율주행\"],\n    \"markets\": [\"로보택시 시장\"]\n  }\n}"
     },
     {
       "provider": "openai",
-      "model": "gpt-4o-mini",
+      "model": "gpt-4.1-nano",
       "prompt": "entity-extraction",
-      "latencyMs": 2244,
+      "latencyMs": 1795,
       "quality": {
         "korean": 5,
         "relevance": 10,
@@ -121,17 +181,17 @@
       },
       "tokens": {
         "input": 149,
-        "output": 69
+        "output": 71
       },
-      "costUsd": 0.00006375,
+      "costUsd": 0.0000433,
       "error": null,
-      "responsePreview": "{\n  \"entities\": {\n    \"companies\": [\"테슬라\", \"우버\", \"리프트\"],\n    \"technologies\": [\"FSD v12\", \"자율주행\", \"순수 비전 기반\", \"Level 4 자율주행\"],\n    \"markets\": [\"로보택시\"]\n  }\n}"
+      "responsePreview": "{\n  \"entities\": {\n    \"companies\": [\"테슬라\", \"우버\", \"리프트\"],\n    \"technologies\": [\"FSD v12\", \"자율주행 기술\", \"순수 비전 기반\", \"Level 4 자율주행\"],\n    \"markets\": [\"로보택시 시장\"]\n  }\n}"
     },
     {
       "provider": "google",
-      "model": "gemini-2.5-flash",
+      "model": "gemini-2.5-pro",
       "prompt": "entity-extraction",
-      "latencyMs": 4409,
+      "latencyMs": 11243,
       "quality": {
         "korean": 5,
         "relevance": 10,
@@ -141,17 +201,37 @@
       },
       "tokens": {
         "input": 137,
-        "output": 108
+        "output": 122
       },
-      "costUsd": 0.00008535,
+      "costUsd": 0.00139125,
       "error": null,
-      "responsePreview": "```json\n{\n  \"entities\": {\n    \"companies\": [\n      \"테슬라\",\n      \"우버\",\n      \"리프트\"\n    ],\n    \"technologies\": [\n      \"FSD v12\",\n      \"순수 비전 기반\",\n      \"LiDAR\",\n      \"Level 4 자율주행\"\n    ],\n    \"markets\": [\n      \"로보택시 시장\"\n    ]\n  }\n}\n```"
+      "responsePreview": "```json\n{\n  \"entities\": {\n    \"companies\": [\n      \"테슬라\",\n      \"우버\",\n      \"리프트\"\n    ],\n    \"technologies\": [\n      \"자율주행\",\n      \"FSD v12\",\n      \"순수 비전 기반\",\n      \"LiDAR\",\n      \"카메라\",\n      \"Level 4 자율주행\"\n    ],\n    \"markets\": [\n      \"로보택시 시장\"\n    ]\n  }\n}\n```"
+    },
+    {
+      "provider": "google",
+      "model": "gemini-2.5-flash",
+      "prompt": "entity-extraction",
+      "latencyMs": 3843,
+      "quality": {
+        "korean": 5,
+        "relevance": 10,
+        "structure": 10,
+        "jsonValid": true,
+        "total": 85
+      },
+      "tokens": {
+        "input": 137,
+        "output": 123
+      },
+      "costUsd": 0.00009434999999999999,
+      "error": null,
+      "responsePreview": "```json\n{\n  \"entities\": {\n    \"companies\": [\n      \"테슬라\",\n      \"우버\",\n      \"리프트\"\n    ],\n    \"technologies\": [\n      \"FSD v12\",\n      \"자율주행 기술\",\n      \"순수 비전 기반\",\n      \"LiDAR\",\n      \"카메라\",\n      \"Level 4 자율주행\"\n    ],\n    \"markets\": [\n      \"로보택시 시장\"\n    ]\n  }\n}\n```"
     },
     {
       "provider": "deepseek",
       "model": "deepseek-chat",
       "prompt": "entity-extraction",
-      "latencyMs": 172,
+      "latencyMs": 636,
       "quality": {
         "korean": 5,
         "relevance": 10,
@@ -161,17 +241,37 @@
       },
       "tokens": {
         "input": 163,
-        "output": 75
+        "output": 77
       },
-      "costUsd": 0.00012651,
+      "costUsd": 0.00007798000000000001,
       "error": null,
-      "responsePreview": "{\n  \"entities\": {\n    \"companies\": [\"테슬라\", \"우버\", \"리프트\"],\n    \"technologies\": [\"FSD v12\", \"순수 비전\", \"LiDAR\", \"카메라\", \"Level 4 자율주행\"],\n    \"markets\": [\"로보택시 시장\"]\n  }\n}"
+      "responsePreview": "{\n  \"entities\": {\n    \"companies\": [\"테슬라\", \"우버\", \"리프트\"],\n    \"technologies\": [\"FSD v12\", \"순수 비전 기반\", \"LiDAR\", \"카메라\", \"Level 4 자율주행\"],\n    \"markets\": [\"로보택시 시장\"]\n  }\n}"
     },
     {
       "provider": "openai",
-      "model": "gpt-4o",
+      "model": "gpt-5.4",
       "prompt": "scoring",
-      "latencyMs": 2781,
+      "latencyMs": 2991,
+      "quality": {
+        "korean": 9,
+        "relevance": 10,
+        "structure": 9,
+        "jsonValid": true,
+        "total": 94
+      },
+      "tokens": {
+        "input": 171,
+        "output": 153
+      },
+      "costUsd": 0.0027225,
+      "error": null,
+      "responsePreview": "{\"relevanceScore\": 98, \"titleKo\": \"오픈AI, 추론 기능 강화한 GPT-5 출시\", \"summaryKo\": \"오픈AI가 다단계 추론, 도구 통합 사용, 복잡한 작업 정확도 향상을 갖춘 GPT-5를 공개했다.\\n코드 생성, 수학 문제 해결, 과학적 추론 성능이 크게 개선돼 AI 서비스·플랫폼 사업화 가능성이 높다.\", \"reasoning\": \"최신 생성형 AI 핵심 기술의 성능 고도화로 AI/ML, 신기술, 플랫폼 비즈니스 확장성과 스타트업 활용성이 매우 높아 BD 관련성이 거의 최고 수준이다.\"}"
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-4.1",
+      "prompt": "scoring",
+      "latencyMs": 2078,
       "quality": {
         "korean": 8,
         "relevance": 10,
@@ -181,17 +281,37 @@
       },
       "tokens": {
         "input": 172,
-        "output": 137
+        "output": 133
       },
-      "costUsd": 0.0018,
+      "costUsd": 0.001408,
       "error": null,
-      "responsePreview": "{\"relevanceScore\": 95, \"titleKo\": \"OpenAI, 추론 기능을 갖춘 GPT-5 출시\", \"summaryKo\": \"OpenAI는 고급 다단계 추론, 통합 도구 사용 및 복잡한 작업에 대한 정확성이 향상된 GPT-5를 공개했습니다. 이 모델은 코드 생성, 수학적 문제 해결 및 과학적 추론에서 상당한 개선을 보여줍니다.\", \"reasoning\": \"GPT-5의 출시와 그 기능은 AI/ML 분야의 혁신과 비즈니스 모델에 큰 영향을 미칠 수 있어 사업 개발에 매우 관련성이 높습니다.\"}"
+      "responsePreview": "{\n  \"relevanceScore\": 98,\n  \"titleKo\": \"OpenAI, 추론 능력 갖춘 GPT-5 출시\",\n  \"summaryKo\": \"OpenAI가 다단계 추론, 통합 도구 사용, 복잡한 작업 정확도 향상 등 혁신적 기능을 갖춘 GPT-5를 공개했습니다. 코드 생성, 수학 문제 해결, 과학적 추론에서 큰 진전을 보였습니다.\",\n  \"reasoning\": \"AI/ML 신기술 혁신과 비즈니스 모델 확장 가능성이 매우 높아 신사업 트렌드와 밀접하게 관련됨.\"\n}"
     },
     {
       "provider": "openai",
-      "model": "gpt-4o-mini",
+      "model": "gpt-4.1-nano",
       "prompt": "scoring",
-      "latencyMs": 2443,
+      "latencyMs": 1642,
+      "quality": {
+        "korean": 7,
+        "relevance": 10,
+        "structure": 9,
+        "jsonValid": true,
+        "total": 88
+      },
+      "tokens": {
+        "input": 172,
+        "output": 119
+      },
+      "costUsd": 0.0000648,
+      "error": null,
+      "responsePreview": "{\"relevanceScore\": 85, \"titleKo\": \"OpenAI, GPT-5 출시 및 추론 능력 강화\", \"summaryKo\": \"OpenAI가 GPT-5를 공개하며 다단계 추론, 도구 활용, 정밀도 향상 등 신기술을 선보였다. 이 모델은 코드 생성, 수학 문제 해결, 과학적 추론에서 큰 발전을 보이고 있다.\", \"reasoning\": \"신기술과 AI/ML 발전이 사업 개발에 직결될 수 있어 높은 점수를 부여함.\"}"
+    },
+    {
+      "provider": "google",
+      "model": "gemini-2.5-pro",
+      "prompt": "scoring",
+      "latencyMs": 19320,
       "quality": {
         "korean": 8,
         "relevance": 10,
@@ -200,38 +320,38 @@
         "total": 91
       },
       "tokens": {
-        "input": 172,
-        "output": 141
+        "input": 170,
+        "output": 148
       },
-      "costUsd": 0.00011039999999999999,
+      "costUsd": 0.0016925,
       "error": null,
-      "responsePreview": "```json\n{\n  \"relevanceScore\": 95,\n  \"titleKo\": \"OpenAI, 추론 능력을 갖춘 GPT-5 출시\",\n  \"summaryKo\": \"OpenAI가 다단계 추론, 통합 도구 사용 및 복잡한 작업에 대한 정확성을 개선한 GPT-5를 공개했습니다. 이 모델은 코드 생성, 수학 문제 해결 및 과학적 추론에서 상당한 개선을 보여줍니다.\",\n  \"reasoning\": \"AI/ML 기술의 혁신과 비즈니스 모델의 발전을 반영하며, 스타트업 및 신기술 분야에서 큰 영향을 미칠 것으로 예상됩니다.\"\n}\n```"
+      "responsePreview": "```json\n{\n  \"relevanceScore\": 100,\n  \"titleKo\": \"OpenAI, 추론 능력을 갖춘 GPT-5 출시\",\n  \"summaryKo\": \"OpenAI가 고도화된 다단계 추론, 통합 도구 사용, 향상된 정확도를 특징으로 하는 GPT-5를 공개했습니다. 이 모델은 코드 생성, 수학 문제 해결, 과학적 추론 등 복잡한 과제에서 큰 성능 향상을 보입니다.\",\n  \"reasoning\": \"차세대 파운데이션 모델의 등장은 AI 산업 전반의 비즈니스 모델과 기술 혁신을 주도할 핵심 동력이기 때문입니다.\"\n}\n```"
     },
     {
       "provider": "google",
       "model": "gemini-2.5-flash",
       "prompt": "scoring",
-      "latencyMs": 7392,
+      "latencyMs": 6579,
       "quality": {
-        "korean": 7,
-        "relevance": 10,
-        "structure": 9,
+        "korean": 3,
+        "relevance": 8,
+        "structure": 8,
         "jsonValid": false,
-        "total": 88
+        "total": 65
       },
       "tokens": {
         "input": 170,
-        "output": 92
+        "output": 40
       },
-      "costUsd": 0.00008069999999999998,
+      "costUsd": 0.0000495,
       "error": null,
-      "responsePreview": "```json\n{\n  \"relevanceScore\": 98,\n  \"titleKo\": \"OpenAI, 추론 능력 갖춘 GPT-5 출시\",\n  \"summaryKo\": \"OpenAI가 고급 다단계 추론, 통합 도구 사용, 복잡한 작업 정확도 향상 기능을 갖춘 GPT-5를 공개했다.\\n이 모델은 코드 생성, 수학 문제 해결, 과학적 추론에서 상당한"
+      "responsePreview": "```json\n{\n  \"relevanceScore\": 98,\n  \"titleKo\": \"OpenAI, 추론 능력 대폭 강화된 GPT-5 공개\",\n  \""
     },
     {
       "provider": "deepseek",
       "model": "deepseek-chat",
       "prompt": "scoring",
-      "latencyMs": 188,
+      "latencyMs": 411,
       "quality": {
         "korean": 8,
         "relevance": 10,
@@ -241,77 +361,117 @@
       },
       "tokens": {
         "input": 179,
-        "output": 164
+        "output": 151
       },
-      "costUsd": 0.00022873000000000001,
+      "costUsd": 0.00011353999999999999,
       "error": null,
-      "responsePreview": "```json\n{\n  \"relevanceScore\": 95,\n  \"titleKo\": \"OpenAI, 추론 능력을 갖춘 GPT-5 출시\",\n  \"summaryKo\": \"OpenAI가 고급 다단계 추론, 통합 도구 사용, 복잡한 작업에서 향상된 정확도를 특징으로 하는 GPT-5를 공개했습니다. 이 모델은 코드 생성, 수학적 문제 해결, 과학적 추론에서 상당한 개선을 보여줍니다.\",\n  \"reasoning\": \"AI/ML 최신 모델 출시는 BD 관점에서 시장 재편, 신사업 기회, 경쟁 구도 변화에 직접적 영향을 미치는 핵심 트렌드입니다."
+      "responsePreview": "```json\n{\n  \"relevanceScore\": 95,\n  \"titleKo\": \"OpenAI, 추론 능력을 갖춘 GPT-5 출시\",\n  \"summaryKo\": \"OpenAI가 고급 다단계 추론, 통합 도구 사용, 복잡한 작업에서 향상된 정확도를 특징으로 하는 GPT-5를 공개했습니다. 이 모델은 코드 생성, 수학 문제 해결, 과학적 추론에서 상당한 개선을 보여줍니다.\",\n  \"reasoning\": \"AI/ML 최첨단 기술 혁신과 새로운 비즈니스 모델 창출 가능성을 모두 포함하여 BD 관련성이 매우 높습니다.\"\n}\n```"
     },
     {
       "provider": "openai",
-      "model": "gpt-4o",
+      "model": "gpt-5.4",
       "prompt": "idea-gen",
-      "latencyMs": 3926,
+      "latencyMs": 4846,
       "quality": {
         "korean": 10,
         "relevance": 10,
-        "structure": 6,
+        "structure": 9,
         "jsonValid": false,
-        "total": 88
+        "total": 97
       },
       "tokens": {
-        "input": 120,
-        "output": 168
+        "input": 119,
+        "output": 316
       },
-      "costUsd": 0.00198,
+      "costUsd": 0.0050375,
       "error": null,
-      "responsePreview": "아이디어 제목: \"AI Agent 기반 맞춤형 업무 자동화 컨설팅 플랫폼\"\n\n핵심 가설: 기업들은 AI Agent 도입을 통해 맞춤형 업무 자동화 솔루션을 원하며, 이를 위한 전문 컨설팅 서비스가 필요하다.\n\n목표 시장: 중소기업 및 대기업의 IT 및 운영 부서\n\n차별화 포인트: 각 기업의 고유한 업무 프로세스와 문화에 맞춘 맞춤형 AI Agent 솔루션을 제공하며, 도입 후 지속적인 최적화 및 교육 지원을 통해 경쟁사와 차별화\n\n최소 검증 행동: 5개 기업을 대상으로 AI Agent 도입 컨설팅 파일럿 프로그램을 운영하여, 고객 "
+      "responsePreview": "- **아이디어 제목**  \n  중소기업용 “AI 업무 에이전트 운영실” SaaS\n\n- **핵심 가설 (1줄)**  \n  중소기업은 AI Agent 자체보다도, 여러 부서 업무에 맞는 에이전트를 빠르게 배포·관리·통제할 수 있는 “운영 플랫폼”에 더 큰 비용을 지불할 것이다.\n\n- **목표 시장**  \n  국내 중소·중견기업(특히 영업, CS, 인사, 재무팀의 반복 업무가 많은 기업)\n\n- **차별화 포인트**  \n  Salesforce·Microsoft 같은 대형 솔루션이 대기업 중심의 범용 플랫폼이라면, 이 서비스는 국내 중소기"
     },
     {
       "provider": "openai",
-      "model": "gpt-4o-mini",
+      "model": "gpt-4.1",
       "prompt": "idea-gen",
-      "latencyMs": 4306,
+      "latencyMs": 3988,
       "quality": {
         "korean": 10,
         "relevance": 10,
-        "structure": 6,
+        "structure": 9,
         "jsonValid": false,
-        "total": 88
+        "total": 97
       },
       "tokens": {
         "input": 120,
         "output": 185
       },
-      "costUsd": 0.000129,
+      "costUsd": 0.00172,
       "error": null,
-      "responsePreview": "### 아이디어 제목\nAI 기반 업무 자동화 컨설팅 플랫폼\n\n### 핵심 가설\n기업들이 AI Agent를 통해 업무 효율성을 극대화하고자 하며, 맞춤형 솔루션 제공이 필요하다.\n\n### 목표 시장\n중소기업 및 스타트업, 특히 IT 및 서비스 산업에 속하는 기업들.\n\n### 차별화 포인트\n기존의 AI Agent 솔루션과의 통합 및 맞춤형 컨설팅을 통해 각 기업의 특성에 맞는 최적의 자동화 전략을 제공하며, 지속적인 성과 분석 및 피드백 시스템을 운영하여 고객의 변화하는 요구에 신속하게 대응.\n\n### 최소 검증 행동\n목표 시장 내 1"
+      "responsePreview": "- 아이디어 제목  \nAI Agent 통합·최적화 플랫폼: \"AgentHub\"\n\n- 핵심 가설 (1줄)  \n여러 AI Agent 솔루션을 사용하는 기업은 통합 관리와 맞춤형 워크플로우 최적화에 대한 니즈가 크다.\n\n- 목표 시장  \n중대형 기업(500인 이상) 및 다양한 SaaS 기반 AI Agent 솔루션을 도입한 기업\n\n- 차별화 포인트  \nSalesforce, Microsoft 등 주요 AI Agent를 한 곳에서 통합 관리하고, 기업별 맞춤 워크플로우 자동화·모니터링·비용 최적화 기능 제공\n\n- 최소 검증 행동 (1가지)  "
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-4.1-nano",
+      "prompt": "idea-gen",
+      "latencyMs": 2464,
+      "quality": {
+        "korean": 10,
+        "relevance": 10,
+        "structure": 6,
+        "jsonValid": false,
+        "total": 88
+      },
+      "tokens": {
+        "input": 120,
+        "output": 146
+      },
+      "costUsd": 0.0000704,
+      "error": null,
+      "responsePreview": "아이디어 제목: AI 업무 자동화 컨설팅 및 맞춤형 솔루션 개발 서비스\n\n핵심 가설: 기업은 AI Agent 도입에 대한 전문 컨설팅과 맞춤형 솔루션을 통해 업무 효율성을 극대화할 수 있다.\n\n목표 시장: 중대형 기업의 IT 부서 및 디지털 전환 담당 부서\n\n차별화 포인트: 업종별 맞춤형 AI 업무 자동화 전략과 실시간 성과 분석, 지속적 최적화 서비스 제공\n\n최소 검증 행동: 잠재 고객 대상 간단한 설문조사와 무료 상담을 통해 AI 도입 기대 효과와 필요성을 파악한다."
+    },
+    {
+      "provider": "google",
+      "model": "gemini-2.5-pro",
+      "prompt": "idea-gen",
+      "latencyMs": 23427,
+      "quality": {
+        "korean": 10,
+        "relevance": 10,
+        "structure": 9,
+        "jsonValid": false,
+        "total": 97
+      },
+      "tokens": {
+        "input": 107,
+        "output": 500
+      },
+      "costUsd": 0.00513375,
+      "error": null,
+      "responsePreview": "## AI Agent 기반 사업 아이디어 제안\n\n**아이디어 제목:** **'AI 워크메이트 (AI Workmate)' - 산업별 맞춤형 AI Agent 구독 마켓플레이스**\n\n**핵심 가설 (1줄):**\n중소기업(SMB)은 AI Agent 도입을 원하지만, 직접 개발할 자원 없이 즉시 도입 가능한 산업별 맞춤형 솔루션을 선호할 것이다.\n\n**목표 시장:**\n자체 IT/AI 개발팀을 보유하기 어려운 중소기업 및 전문직 사업장.\n- **초기 집중 타겟:** 고객 문의 응대, 예약 관리, 단순 정보 제공 등 반복 업무가 많은 서비스업 "
     },
     {
       "provider": "google",
       "model": "gemini-2.5-flash",
       "prompt": "idea-gen",
-      "latencyMs": 5496,
+      "latencyMs": 6280,
       "quality": {
-        "korean": 5,
+        "korean": 6,
         "relevance": 4,
-        "structure": 6,
+        "structure": 9,
         "jsonValid": false,
-        "total": 49
+        "total": 61
       },
       "tokens": {
         "input": 107,
-        "output": 38
+        "output": 41
       },
-      "costUsd": 0.00003885,
+      "costUsd": 0.00004065,
       "error": null,
-      "responsePreview": "## AI Agent 맞춤형 구축 및 최적화 스튜디오\n\n**핵심 가설:** 기업들은 Salesforce Agentforce, Microsoft Copilot Studio 등 범용 AI Agent 플랫폼을 도입"
+      "responsePreview": "## AI Agent 통합 관리 및 최적화 플랫폼: \"AgentFlow Hub\"\n\n---\n\n-   **아이디어 제목:** AgentFlow Hub: 기업 AI 에이전트 통합 관리 및 성과"
     },
     {
       "provider": "deepseek",
       "model": "deepseek-chat",
       "prompt": "idea-gen",
-      "latencyMs": 174,
+      "latencyMs": 366,
       "quality": {
         "korean": 10,
         "relevance": 8,
@@ -321,44 +481,60 @@
       },
       "tokens": {
         "input": 136,
-        "output": 393
+        "output": 388
       },
-      "costUsd": 0.00046902,
+      "costUsd": 0.00020104,
       "error": null,
-      "responsePreview": "**아이디어 제목:**  \nAI 에이전트 통합 관리 플랫폼 \"UniAgent\"\n\n**핵심 가설 (1줄):**  \n기업이 여러 AI 에이전트(Salesforce Agentforce, Microsoft Copilot 등)를 효율적으로 통합·관리할 수 있는 중앙화된 플랫폼이 필요하다.\n\n**목표 시장:**  \n중견·중소기업의 IT 관리자 및 디지털 전환 담당자 (초기), 이후 대기업의 업무 자동화 팀으로 확대\n\n**차별화 포인트:**  \n1. **멀티-에이전트 통합 인터페이스**: 서로 다른 AI 에이전트(Salesforce, Micro"
+      "responsePreview": "**아이디어 제목:**  \nAI 에이전트 통합 관리 플랫폼 \"UniAgent Hub\"\n\n**핵심 가설 (1줄):**  \n기업이 여러 AI 에이전트(Salesforce Agentforce, Microsoft Copilot 등)를 효율적으로 통합·관리할 수 있는 중앙 플랫폼이 필요할 것이다.\n\n**목표 시장:**  \n중소·중견 기업의 IT/디지털 전담팀 또는 AI 도입 초기 단계의 기업\n\n**차별화 포인트:**  \n1. **멀티-에이전트 통합 인터페이스**: 서로 다른 AI 에이전트(Salesforce, Microsoft, 자체 개발 "
     }
   ],
   "summary": [
     {
-      "model": "GPT-4o",
-      "avgLatency": 2866,
-      "avgQuality": 90,
-      "avgTokens": 301,
-      "avgCost": 0.001851875,
+      "model": "GPT-5.4",
+      "avgLatency": 3693,
+      "avgQuality": 93,
+      "avgTokens": 367,
+      "avgCost": 0.003595625,
       "errors": 0
     },
     {
-      "model": "GPT-4o Mini",
-      "avgLatency": 3405,
+      "model": "GPT-4.1",
+      "avgLatency": 2851,
+      "avgQuality": 93,
+      "avgTokens": 298,
+      "avgCost": 0.0014615,
+      "errors": 0
+    },
+    {
+      "model": "GPT-4.1 Nano",
+      "avgLatency": 2270,
       "avgQuality": 88,
-      "avgTokens": 317,
-      "avgCost": 0.0001210125,
+      "avgTokens": 293,
+      "avgCost": 0.000070875,
+      "errors": 0
+    },
+    {
+      "model": "Gemini 2.5 Pro",
+      "avgLatency": 18209,
+      "avgQuality": 93,
+      "avgTokens": 457,
+      "avgCost": 0.0033190625,
       "errors": 0
     },
     {
       "model": "Gemini 2.5 Flash",
-      "avgLatency": 5980,
-      "avgQuality": 74,
-      "avgTokens": 213,
-      "avgCost": 0.0000633375,
+      "avgLatency": 5621,
+      "avgQuality": 71,
+      "avgTokens": 205,
+      "avgCost": 0.0000582375,
       "errors": 0
     },
     {
-      "model": "DeepSeek V3",
-      "avgLatency": 209,
+      "model": "DeepSeek V3.2",
+      "avgLatency": 480,
       "avgQuality": 91,
-      "avgTokens": 399,
-      "avgCost": 0.0002992525,
+      "avgTokens": 394,
+      "avgCost": 0.00014182,
       "errors": 0
     }
   ]

@@ -34,11 +34,11 @@ const API_KEY_MAP: Record<string, string> = {
   "workers-ai": "",
 };
 
-/** 프로바이더별 최저비용 모델 */
+/** 프로바이더별 최저비용 모델 (핑용) */
 const PING_MODELS: Record<string, string> = {
   anthropic: "claude-haiku-4-5-20251001",
-  openai: "gpt-4o-mini",
-  google: "gemini-2.0-flash-lite",
+  openai: "gpt-4.1-nano",
+  google: "gemini-2.5-flash",
   deepseek: "deepseek-chat",
   "workers-ai": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
 };

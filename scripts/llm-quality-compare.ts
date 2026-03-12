@@ -43,12 +43,13 @@ interface ProviderConfig {
 const providers: ProviderConfig[] = [
   {
     id: "openai",
-    name: "OpenAI (ChatGPT)",
+    name: "OpenAI",
     apiUrl: "https://api.openai.com/v1/chat/completions",
     apiKey: envVars.OPENAI_API_KEY || "",
     models: [
-      { id: "gpt-4o", name: "GPT-4o", tier: "high" },
-      { id: "gpt-4o-mini", name: "GPT-4o Mini", tier: "low" },
+      { id: "gpt-5.4", name: "GPT-5.4", tier: "high" },
+      { id: "gpt-4.1", name: "GPT-4.1", tier: "high" },
+      { id: "gpt-4.1-nano", name: "GPT-4.1 Nano", tier: "low" },
     ],
     authHeader: (key) => ({ Authorization: `Bearer ${key}` }),
   },
@@ -58,9 +59,10 @@ const providers: ProviderConfig[] = [
     apiUrl: "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
     apiKey: envVars.GOOGLE_AI_API_KEY || "",
     models: [
-      { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", tier: "high" },
+      { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro", tier: "high" },
+      { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", tier: "low" },
     ],
-    authHeader: () => ({}), // URL 파라미터로 인증
+    authHeader: () => ({}),
   },
   {
     id: "deepseek",
@@ -68,7 +70,7 @@ const providers: ProviderConfig[] = [
     apiUrl: "https://api.deepseek.com/v1/chat/completions",
     apiKey: envVars.DEEPSEEK_API_KEY || "",
     models: [
-      { id: "deepseek-chat", name: "DeepSeek V3", tier: "high" },
+      { id: "deepseek-chat", name: "DeepSeek V3.2", tier: "high" },
     ],
     authHeader: (key) => ({ Authorization: `Bearer ${key}` }),
   },
@@ -138,10 +140,13 @@ Summary: "OpenAI has unveiled GPT-5, featuring advanced multi-step reasoning, in
 // --- 가격 테이블 ($/M tokens) ---
 
 const PRICING: Record<string, { input: number; output: number }> = {
-  "gpt-4o": { input: 2.5, output: 10 },
-  "gpt-4o-mini": { input: 0.15, output: 0.6 },
+  "gpt-5.4": { input: 2.5, output: 15 },
+  "gpt-4.1": { input: 2.0, output: 8.0 },
+  "gpt-4.1-mini": { input: 0.4, output: 1.6 },
+  "gpt-4.1-nano": { input: 0.1, output: 0.4 },
+  "gemini-2.5-pro": { input: 1.25, output: 10.0 },
   "gemini-2.5-flash": { input: 0.15, output: 0.6 },
-  "deepseek-chat": { input: 0.27, output: 1.1 },
+  "deepseek-chat": { input: 0.28, output: 0.42 },
 };
 
 // --- API 호출 함수 ---
@@ -166,15 +171,21 @@ async function callOpenAICompatible(
 ): Promise<CallResult> {
   const start = Date.now();
   try {
-    const body = {
+    // GPT-5.4+는 max_completion_tokens 사용 (max_tokens 미지원)
+    const isNewApi = model.id.startsWith("gpt-5") || model.id.startsWith("o3") || model.id.startsWith("o4");
+    const body: Record<string, unknown> = {
       model: model.id,
-      max_tokens: 1024,
       temperature: 0.3,
       messages: [
         ...(prompt.system ? [{ role: "system" as const, content: prompt.system }] : []),
         { role: "user" as const, content: prompt.user },
       ],
     };
+    if (isNewApi) {
+      body.max_completion_tokens = 1024;
+    } else {
+      body.max_tokens = 1024;
+    }
 
     const response = await fetch(provider.apiUrl, {
       method: "POST",
@@ -254,9 +265,11 @@ async function callGemini(
     if (prompt.system) parts.push({ text: `[System] ${prompt.system}` });
     parts.push({ text: prompt.user });
 
-    const body = {
+    // Gemini 2.5 Pro: thinking 토큰이 maxOutputTokens에 포함되므로 충분히 확보
+    const maxTokens = model.id.includes("pro") ? 8192 : 1024;
+    const body: Record<string, unknown> = {
       contents: [{ role: "user", parts }],
-      generationConfig: { maxOutputTokens: 1024, temperature: 0.3 },
+      generationConfig: { maxOutputTokens: maxTokens, temperature: 0.3 },
     };
 
     const response = await fetch(url, {
@@ -285,11 +298,15 @@ async function callGemini(
     }
 
     const data = (await response.json()) as {
-      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
-      usageMetadata?: { promptTokenCount: number; candidatesTokenCount: number };
+      candidates: Array<{ content: { parts: Array<{ text?: string; thought?: boolean }> } }>;
+      usageMetadata?: { promptTokenCount: number; candidatesTokenCount: number; thoughtsTokenCount?: number };
     };
 
-    const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") || "";
+    // Gemini 2.5 Pro thinking 모드: thought=true인 파트 제외, text 파트만 추출
+    const text = data.candidates?.[0]?.content?.parts
+      ?.filter((p) => !p.thought && p.text)
+      .map((p) => p.text)
+      .join("") || "";
     const inputTokens = data.usageMetadata?.promptTokenCount || 0;
     const outputTokens = data.usageMetadata?.candidatesTokenCount || 0;
     const pricing = PRICING[model.id] || { input: 0, output: 0 };

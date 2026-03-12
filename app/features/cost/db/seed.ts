@@ -9,10 +9,11 @@ import {
 } from "./schema";
 
 // ============================================================================
-// MODEL CATALOG SEED DATA (7 models)
+// MODEL CATALOG SEED DATA (12 models, 2026-03 최신)
 // ============================================================================
 
 const MODEL_SEED_DATA = [
+  // --- Anthropic ---
   {
     id: "anthropic:claude-opus-4-6",
     provider: "anthropic",
@@ -46,24 +47,59 @@ const MODEL_SEED_DATA = [
     supportsStreaming: true,
     supportsJsonMode: true,
   },
+  // --- OpenAI (2026-03 최신: GPT-5.4 + GPT-4.1 계열) ---
   {
-    id: "openai:gpt-4o",
+    id: "openai:gpt-5.4",
     provider: "openai",
-    modelId: "gpt-4o",
-    displayName: "GPT-4o",
-    capabilityScore: 90,
-    maxContextTokens: 128000,
+    modelId: "gpt-5.4",
+    displayName: "GPT-5.4",
+    capabilityScore: 95,
+    maxContextTokens: 1050000,
     supportsTools: true,
     supportsStreaming: true,
     supportsJsonMode: true,
   },
   {
-    id: "openai:gpt-4o-mini",
+    id: "openai:gpt-4.1",
     provider: "openai",
-    modelId: "gpt-4o-mini",
-    displayName: "GPT-4o Mini",
+    modelId: "gpt-4.1",
+    displayName: "GPT-4.1",
+    capabilityScore: 90,
+    maxContextTokens: 1000000,
+    supportsTools: true,
+    supportsStreaming: true,
+    supportsJsonMode: true,
+  },
+  {
+    id: "openai:gpt-4.1-mini",
+    provider: "openai",
+    modelId: "gpt-4.1-mini",
+    displayName: "GPT-4.1 Mini",
     capabilityScore: 70,
-    maxContextTokens: 128000,
+    maxContextTokens: 1000000,
+    supportsTools: true,
+    supportsStreaming: true,
+    supportsJsonMode: true,
+  },
+  {
+    id: "openai:gpt-4.1-nano",
+    provider: "openai",
+    modelId: "gpt-4.1-nano",
+    displayName: "GPT-4.1 Nano",
+    capabilityScore: 55,
+    maxContextTokens: 1000000,
+    supportsTools: true,
+    supportsStreaming: true,
+    supportsJsonMode: true,
+  },
+  // --- Google Gemini (Pro 계정: 2.5 Pro + Flash) ---
+  {
+    id: "google:gemini-2.5-pro",
+    provider: "google",
+    modelId: "gemini-2.5-pro",
+    displayName: "Gemini 2.5 Pro",
+    capabilityScore: 85,
+    maxContextTokens: 1000000,
     supportsTools: true,
     supportsStreaming: true,
     supportsJsonMode: true,
@@ -79,13 +115,14 @@ const MODEL_SEED_DATA = [
     supportsStreaming: true,
     supportsJsonMode: false,
   },
+  // --- DeepSeek (V3.2 자동 서빙, 128K 컨텍스트) ---
   {
     id: "deepseek:deepseek-chat",
     provider: "deepseek",
     modelId: "deepseek-chat",
-    displayName: "DeepSeek V3",
-    capabilityScore: 75,
-    maxContextTokens: 64000,
+    displayName: "DeepSeek V3.2",
+    capabilityScore: 80,
+    maxContextTokens: 128000,
     supportsTools: true,
     supportsStreaming: true,
     supportsJsonMode: true,
@@ -94,13 +131,14 @@ const MODEL_SEED_DATA = [
     id: "deepseek:deepseek-reasoner",
     provider: "deepseek",
     modelId: "deepseek-reasoner",
-    displayName: "DeepSeek R1",
-    capabilityScore: 85,
-    maxContextTokens: 64000,
-    supportsTools: false,
+    displayName: "DeepSeek R1 V3.2",
+    capabilityScore: 88,
+    maxContextTokens: 128000,
+    supportsTools: true,
     supportsStreaming: true,
     supportsJsonMode: false,
   },
+  // --- Workers AI (무료 fallback) ---
   {
     id: "workers-ai:llama",
     provider: "workers-ai",
@@ -115,12 +153,13 @@ const MODEL_SEED_DATA = [
 ] as const;
 
 // ============================================================================
-// PRICE CATALOG SEED DATA (7 models, effectiveFrom = 2025-01-01)
+// PRICE CATALOG SEED DATA (12 models, 2026-03 최신)
 // ============================================================================
 
-const EFFECTIVE_FROM = new Date("2025-01-01");
+const EFFECTIVE_FROM = new Date("2026-03-01");
 
 const PRICE_SEED_DATA = [
+  // Anthropic
   {
     modelCatalogId: "anthropic:claude-opus-4-6",
     inputPricePerMToken: 15.0,
@@ -142,17 +181,40 @@ const PRICE_SEED_DATA = [
     cacheReadPricePerMToken: 0.08,
     cacheWritePricePerMToken: 1.0,
   },
+  // OpenAI (2026-03)
   {
-    modelCatalogId: "openai:gpt-4o",
+    modelCatalogId: "openai:gpt-5.4",
     inputPricePerMToken: 2.5,
-    outputPricePerMToken: 10.0,
+    outputPricePerMToken: 15.0,
     cacheReadPricePerMToken: null,
     cacheWritePricePerMToken: null,
   },
   {
-    modelCatalogId: "openai:gpt-4o-mini",
-    inputPricePerMToken: 0.15,
-    outputPricePerMToken: 0.6,
+    modelCatalogId: "openai:gpt-4.1",
+    inputPricePerMToken: 2.0,
+    outputPricePerMToken: 8.0,
+    cacheReadPricePerMToken: null,
+    cacheWritePricePerMToken: null,
+  },
+  {
+    modelCatalogId: "openai:gpt-4.1-mini",
+    inputPricePerMToken: 0.4,
+    outputPricePerMToken: 1.6,
+    cacheReadPricePerMToken: null,
+    cacheWritePricePerMToken: null,
+  },
+  {
+    modelCatalogId: "openai:gpt-4.1-nano",
+    inputPricePerMToken: 0.1,
+    outputPricePerMToken: 0.4,
+    cacheReadPricePerMToken: null,
+    cacheWritePricePerMToken: null,
+  },
+  // Google Gemini
+  {
+    modelCatalogId: "google:gemini-2.5-pro",
+    inputPricePerMToken: 1.25,
+    outputPricePerMToken: 10.0,
     cacheReadPricePerMToken: null,
     cacheWritePricePerMToken: null,
   },
@@ -163,20 +225,22 @@ const PRICE_SEED_DATA = [
     cacheReadPricePerMToken: null,
     cacheWritePricePerMToken: null,
   },
+  // DeepSeek V3.2 (2026-03)
   {
     modelCatalogId: "deepseek:deepseek-chat",
-    inputPricePerMToken: 0.27,
-    outputPricePerMToken: 1.1,
-    cacheReadPricePerMToken: 0.07,
+    inputPricePerMToken: 0.28,
+    outputPricePerMToken: 0.42,
+    cacheReadPricePerMToken: 0.028,
     cacheWritePricePerMToken: null,
   },
   {
     modelCatalogId: "deepseek:deepseek-reasoner",
-    inputPricePerMToken: 0.55,
-    outputPricePerMToken: 2.19,
-    cacheReadPricePerMToken: 0.14,
+    inputPricePerMToken: 0.28,
+    outputPricePerMToken: 0.42,
+    cacheReadPricePerMToken: 0.028,
     cacheWritePricePerMToken: null,
   },
+  // Workers AI
   {
     modelCatalogId: "workers-ai:llama",
     inputPricePerMToken: 0.0,

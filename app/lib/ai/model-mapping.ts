@@ -14,34 +14,34 @@ interface ModelMapping {
 
 /**
  * Anthropic 모델 → 타 프로바이더 모델 매핑 테이블.
- * sonnet/haiku 계열을 각각 동급 모델로 대응.
+ * 2026-03 최신: GPT-5.4/4.1 + Gemini 2.5 Pro + DeepSeek V3.2
  */
 const MODEL_MAP: Record<string, ModelMapping> = {
   // Sonnet 4 계열 → 고성능 모델
   "claude-sonnet-4-20250514": {
-    openai: "gpt-4o",
-    google: "gemini-2.5-flash",
+    openai: "gpt-4.1",
+    google: "gemini-2.5-pro",
     deepseek: "deepseek-chat",
     "workers-ai": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
   },
   // Haiku 계열 → 경량 모델
   "claude-haiku-4-5-20251001": {
-    openai: "gpt-4o-mini",
-    google: "gemini-2.5-flash-lite",
+    openai: "gpt-4.1-nano",
+    google: "gemini-2.5-flash",
     deepseek: "deepseek-chat",
     "workers-ai": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
   },
   // Haiku 3.5 (레거시)
   "claude-haiku-3-5-20241022": {
-    openai: "gpt-4o-mini",
-    google: "gemini-2.5-flash-lite",
+    openai: "gpt-4.1-nano",
+    google: "gemini-2.5-flash",
     deepseek: "deepseek-chat",
     "workers-ai": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
   },
   // Opus 4 → 최고급 모델
   "claude-opus-4-20250514": {
-    openai: "gpt-4o",
-    google: "gemini-2.5-flash",
+    openai: "gpt-5.4",
+    google: "gemini-2.5-pro",
     deepseek: "deepseek-reasoner",
     "workers-ai": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
   },
@@ -49,8 +49,8 @@ const MODEL_MAP: Record<string, ModelMapping> = {
 
 /** 기본 매핑 (매핑 테이블에 없는 모델의 폴백) */
 const DEFAULT_MAPPING: ModelMapping = {
-  openai: "gpt-4o",
-  google: "gemini-2.5-flash",
+  openai: "gpt-4.1",
+  google: "gemini-2.5-pro",
   deepseek: "deepseek-chat",
   "workers-ai": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
 };
