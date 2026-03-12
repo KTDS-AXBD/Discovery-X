@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 387 (2026-03-12)
+
+**F41 운영 액션 일괄 편집 — AI 추천 검토 + 배치 적용 (DX-REQ-012)**:
+- ✅ OperationActions: 체크박스 선택 + 전체선택 토글 + "선택 항목 일괄 적용" 버튼
+- ✅ api.radar.health.actions: sourceIds 배열 배치 처리 (inArray, 최대 50건 상한)
+- ✅ CategoryPanel 분리: 카테고리별 독립 fetcher + selection 상태
+- ✅ 결과 피드백 UI ("N건 처리 완료" 메시지)
+
+**검증 결과**:
+- ✅ typecheck 0 errors / lint 0 errors / 2,453 tests passed / build 성공
+
+---
+
 ### 세션 386 (2026-03-12)
 
 **F44 PRD Studio QA 전체 해소 — Phase 2-5 P1+P2 수정 (DX-REQ-015)**:
