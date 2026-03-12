@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 372 (2026-03-12)
+
+**F43 Phase 3 자동 반영 구현 — review-api.mjs v6 (DX-REQ-014)**:
+- ✅ `review-api.mjs` v5→v6: `--mode apply` 모드 추가 (~230줄, 11개 새 함수)
+- ✅ Phase 3 자동화: actionable-items.json → LLM PRD 수정 → prd-v{N+1}.md 출력
+- ✅ `<!-- CHANGED: 이유 -->` 마커 기반 변경 추적 + apply-diff.md + review-history.md 자동 생성
+- ✅ `SKILL.md` Phase 3 섹션 전면 개정 (자동 + 수동 폴백 2트랙)
+- ✅ 실 테스트: F44 PRD Studio round-1 데이터로 검증 (14건 이슈 → 15건 변경, 57초, gpt-4.1)
+- ✅ ax-config push: 95c308f (2 files, +403 lines)
+
+**변경**: user-scope 스킬 (ax-config), 프로젝트 코드 변경 없음
+**검증**: docs commit — typecheck/lint/test/build 스킵
+
 ### 세션 371 (2026-03-12)
 
 **F41 DX-REQ-012 완료 처리 — eval 배치 검증 + DONE 전환 (DX-REQ-012)**:
