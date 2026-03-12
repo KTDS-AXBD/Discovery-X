@@ -238,6 +238,37 @@ export const radarSourceDomains = sqliteTable("radar_source_domains", {
 }));
 
 // ============================================================================
+// FOLDER TABLES (F41 채널 관리 Phase 2 — 커스텀 폴더)
+// ============================================================================
+
+export const radarFolders = sqliteTable("radar_folders", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  color: text("color"),
+  sortOrder: integer("sort_order").default(0),
+  tenantId: text("tenant_id").references(() => tenants.id),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+}, (table) => ({
+  tenantIdx: index("idx_radar_folders_tenant").on(table.tenantId),
+}));
+
+export const radarSourceFolders = sqliteTable("radar_source_folders", {
+  id: text("id").primaryKey(),
+  sourceId: text("source_id")
+    .notNull()
+    .references(() => radarSources.id),
+  folderId: text("folder_id")
+    .notNull()
+    .references(() => radarFolders.id),
+}, (table) => ({
+  sourceIdx: index("idx_rsf_source").on(table.sourceId),
+  folderIdx: index("idx_rsf_folder").on(table.folderId),
+}));
+
+// ============================================================================
 // CRAWL QUEUE TABLE (F41 Phase 2)
 // ============================================================================
 
@@ -382,6 +413,13 @@ export type NewRadarSourceDomain = typeof radarSourceDomains.$inferInsert;
 
 export type RadarCrawlQueueItem = typeof radarCrawlQueue.$inferSelect;
 export type NewRadarCrawlQueueItem = typeof radarCrawlQueue.$inferInsert;
+
+// F41 Folder types
+export type RadarFolder = typeof radarFolders.$inferSelect;
+export type NewRadarFolder = typeof radarFolders.$inferInsert;
+
+export type RadarSourceFolder = typeof radarSourceFolders.$inferSelect;
+export type NewRadarSourceFolder = typeof radarSourceFolders.$inferInsert;
 
 // F41 Phase 3 types
 export type RadarSourceMetric = typeof radarSourceMetrics.$inferSelect;

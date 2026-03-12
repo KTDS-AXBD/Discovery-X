@@ -11,6 +11,8 @@ import {
 import {
   radarDomains,
   radarSourceDomains,
+  radarFolders,
+  radarSourceFolders,
   radarCrawlQueue,
   CrawlQueueStatus,
   ParserType,
@@ -576,15 +578,37 @@ export class RadarService {
 
   /** radar.tsx loader용 통합 데이터 */
   async getRadarData(params: RadarDataParams) {
-    const [sourcesWithDomains, domains, runs, recentItems] = await Promise.all([
+    const [sourcesWithDomains, domains, folders, runs, recentItems] = await Promise.all([
       this.listSourcesWithDomains(params.tenantId),
       this.listDomains(params.tenantId),
+      this.listFolders(params.tenantId),
       this.listRunsByTenant(params.tenantId),
       this.listRecentItemsByTenant(params.tenantId),
     ]);
+
+    // 폴더-소스 매핑 조회
+    const allSourceIds = sourcesWithDomains.map((s) => s.source.id);
+    const folderLinks = allSourceIds.length > 0
+      ? await this.db.select().from(radarSourceFolders).where(inArray(radarSourceFolders.sourceId, allSourceIds))
+      : [];
+    const folderMap = new Map(folders.map((f) => [f.id, f]));
+    const sourceFoldersMap = new Map<string, (typeof radarFolders.$inferSelect)[]>();
+    for (const link of folderLinks) {
+      const f = folderMap.get(link.folderId);
+      if (!f) continue;
+      const arr = sourceFoldersMap.get(link.sourceId) ?? [];
+      arr.push(f);
+      sourceFoldersMap.set(link.sourceId, arr);
+    }
+
+    const sourcesWithAll = sourcesWithDomains.map((s) => ({
+      ...s,
+      folders: sourceFoldersMap.get(s.source.id) ?? [],
+    }));
+
     // 하위 호환: sources 필드 유지
     const sources = sourcesWithDomains.map((s) => s.source);
-    return { sources, sourcesWithDomains, domains, runs, recentItems };
+    return { sources, sourcesWithDomains: sourcesWithAll, domains, folders, runs, recentItems };
   }
 
   // ---------- 수동 수집 (F41 Phase 1A) ----------
@@ -837,6 +861,80 @@ export class RadarService {
         })),
       );
     }
+  }
+
+  // ---------- 폴더 CRUD (F41 Phase 2) ----------
+
+  async listFolders(tenantId: string) {
+    return this.db
+      .select()
+      .from(radarFolders)
+      .where(eq(radarFolders.tenantId, tenantId))
+      .orderBy(radarFolders.sortOrder, radarFolders.name);
+  }
+
+  async createFolder(input: { name: string; description?: string; color?: string; tenantId: string }) {
+    const id = crypto.randomUUID();
+    await this.db.insert(radarFolders).values({
+      id,
+      name: input.name,
+      description: input.description ?? null,
+      color: input.color ?? null,
+      tenantId: input.tenantId,
+    });
+    return id;
+  }
+
+  async updateFolder(id: string, input: { name?: string; description?: string; color?: string; sortOrder?: number }) {
+    const updates: Record<string, unknown> = {};
+    if (input.name !== undefined) updates.name = input.name;
+    if (input.description !== undefined) updates.description = input.description;
+    if (input.color !== undefined) updates.color = input.color;
+    if (input.sortOrder !== undefined) updates.sort_order = input.sortOrder;
+
+    if (Object.keys(updates).length > 0) {
+      await this.db.update(radarFolders).set(updates).where(eq(radarFolders.id, id));
+    }
+  }
+
+  async deleteFolder(id: string) {
+    await this.db.delete(radarSourceFolders).where(eq(radarSourceFolders.folderId, id));
+    await this.db.delete(radarFolders).where(eq(radarFolders.id, id));
+  }
+
+  async setSourceFolders(sourceId: string, folderIds: string[]) {
+    await this.db.delete(radarSourceFolders).where(eq(radarSourceFolders.sourceId, sourceId));
+    if (folderIds.length > 0) {
+      await this.db.insert(radarSourceFolders).values(
+        folderIds.map((folderId) => ({ id: crypto.randomUUID(), sourceId, folderId })),
+      );
+    }
+  }
+
+  async listSourcesWithFolders(tenantId: string) {
+    const sources = await this.listSourcesByTenant(tenantId);
+    if (sources.length === 0) return [];
+
+    const sourceIds = sources.map((s) => s.id);
+    const links = await this.db
+      .select()
+      .from(radarSourceFolders)
+      .where(inArray(radarSourceFolders.sourceId, sourceIds));
+
+    const folderIds = [...new Set(links.map((l) => l.folderId))];
+    const folders = folderIds.length > 0
+      ? await this.db.select().from(radarFolders).where(inArray(radarFolders.id, folderIds))
+      : [];
+
+    const folderMap = new Map(folders.map((f) => [f.id, f]));
+
+    return sources.map((source) => ({
+      source,
+      folders: links
+        .filter((l) => l.sourceId === source.id)
+        .map((l) => folderMap.get(l.folderId))
+        .filter(Boolean) as (typeof radarFolders.$inferSelect)[],
+    }));
   }
 
   /** Signal → Idea 전환 */

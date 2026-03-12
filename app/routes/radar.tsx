@@ -32,13 +32,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   const service = new RadarService(db);
-  const { sources, sourcesWithDomains, domains, runs, recentItems } = await service.getRadarData({
+  const { sources, sourcesWithDomains, domains, folders, runs, recentItems } = await service.getRadarData({
     tenantId: ctx.tenantId,
   });
 
   const isGatekeeper = ["admin", "gatekeeper", "owner"].includes(ctx.tenantRole);
 
-  return json({ user: ctx.user, tenantId: ctx.tenantId, sources, sourcesWithDomains, domains, runs, recentItems, isGatekeeper });
+  return json({ user: ctx.user, tenantId: ctx.tenantId, sources, sourcesWithDomains, domains, folders, runs, recentItems, isGatekeeper });
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
@@ -115,7 +115,7 @@ function formatDateLocal(timestamp: string | Date | null) {
 type RadarTab = "feed" | "manual" | "health" | "channels";
 
 export default function RadarPage() {
-  const { user, tenantId, sources, sourcesWithDomains, domains, runs, recentItems, isGatekeeper } = useLoaderData<typeof loader>();
+  const { user, tenantId, sources, sourcesWithDomains, domains, folders, runs, recentItems, isGatekeeper } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const navigate = useNavigate();
@@ -319,6 +319,7 @@ export default function RadarPage() {
           <ChannelManagementTab
             sourcesWithDomains={sourcesWithDomains}
             domains={domains}
+            folders={folders}
             tenantId={tenantId}
             isGatekeeper={isGatekeeper}
           />
