@@ -321,7 +321,20 @@ Flow K: Ideas → Discovery 수동 전환
 - `/api/proposals/categories` — 카테고리 API
 - `/api/recall-events` — 재호출 이벤트 API
 
-**라우트 합계**: **165** (Venture/Knowledge/Briefing 아카이브 반영, +2 radar health)
+**PRD Studio (4 pages + 7 API)**
+- `/prd-studio` — PRD Studio 레이아웃
+- `/prd-studio/_index` — PRD 목록 (상태 필터, 삭제)
+- `/prd-studio/new` — 인터뷰 위저드 (8섹션, 자동 저장, 온보딩)
+- `/prd-studio/:id` — PRD 상세 (편집, 검토, 버전 관리)
+- `/api/prd-studio` — PRD CRUD API (GET 목록 + POST 생성 + DELETE)
+- `/api/prd-studio/:id/sections` — 섹션 저장 API (PUT)
+- `/api/prd-studio/:id/generate` — PRD 생성 API (POST, GPT-4.1)
+- `/api/prd-studio/:id/review` — AI 검토 API (POST, GPT-4.1 + Gemini 병렬)
+- `/api/prd-studio/:id/edit` — 섹션 편집 API (PUT)
+- `/api/prd-studio/:id/versions` — 버전 스냅샷 API (GET + POST)
+- `/api/prd-studio/:id/events` — 이벤트 추적 API (POST)
+
+**라우트 합계**: **176** (Venture/Knowledge/Briefing 아카이브 반영, +11 PRD Studio)
 
 ---
 
@@ -446,13 +459,13 @@ build/
 ### 버전
 - **시스템 (SemVer SSOT)**: 0.6.0 (package.json)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 62개 마이그레이션 SQL (0000~0060), 로컬 적용 완료 (0059~0060 프로덕션 미적용)
+- **DB**: 61개 마이그레이션 SQL (0000~0060), 로컬+프로덕션 전체 적용 완료
 
 ### 주요 지표
 - **라우트**: 193개
-- **테이블**: 118개
+- **테이블**: 121개
 - **Agent 도구**: 77개
-- **코드**: ~83,000줄 (~493파일)
+- **코드**: ~89,400줄 (~539파일)
 - **테스트**: 2,445개 (158 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개

@@ -3,6 +3,21 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 383 (2026-03-12)
+
+**F44 PRD Studio 자체 QA — P0 보안/UX 버그 6건 수정 (DX-REQ-015)**:
+- ✅ P0 보안: 6개 API 소유자/테넌트 검증 추가 (IDOR 취약점 해소, PRD §7.3 준수)
+  - `getById(id, tenantId?)` 테넌트 격리 + `createdBy` 소유자 체크 + admin 예외
+- ✅ P0 UX: Generate/Review 에러 시 성공 메시지 → 에러 메시지 표시 (fetcher.data 타입 분기)
+- ✅ P0 UX: formatDate 3파일(목록/검토/버전) KST-safe 유틸 교체 (SSR hydration mismatch 방지)
+- ✅ P0 UX: localStorage 정리 대상 ref 버그 수정 (스텝 전환 시 lastSavedTypeRef 추적)
+- ✅ SPEC.md 갱신: 마이그레이션 0059-0060 프로덕션 적용 확인 + PRD Studio 11 라우트 추가 + 코드 지표 최신화
+- Agent Team 2 Workers 병렬 QA: Server(P0×3, P1×10, P2×9) + Client(P0×3, P1×10, P2×12) = 48건 발견
+
+**변경**: 11파일 수정 (88+, 42-) + SPEC.md 갱신
+**검증**: ✅ typecheck 0 / lint 0 / build 성공 (2.73s)
+**잔여 P1/P2**: 41건 — Phase 2-5 UX 검증에서 우선순위 재평가 권장
+
 ### 세션 382 (2026-03-12)
 
 **F41 채널 관리 UX 개선 — 접이식 그룹 뷰 + 도메인 시드 (DX-REQ-012)**:
