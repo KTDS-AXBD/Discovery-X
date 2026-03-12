@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useFetcher } from "@remix-run/react";
 import { Button } from "~/components/ui/Button";
+import { Badge } from "~/components/ui/Badge";
 import {
   Select,
   SelectTrigger,
@@ -66,6 +67,21 @@ const STATUS_LABELS: Record<string, string> = {
   ARCHIVED: "보관됨",
 };
 
+type GroupBy = "domain" | "type" | "none";
+
+const GROUP_BY_LABELS: Record<GroupBy, string> = {
+  domain: "도메인별",
+  type: "유형별",
+  none: "그룹 없음",
+};
+
+interface ChannelGroup {
+  key: string;
+  label: string;
+  color?: string;
+  items: SourceWithDomains[];
+}
+
 // ============================================================================
 // Component
 // ============================================================================
@@ -87,6 +103,10 @@ export function ChannelManagementTab({
   const [filterDomainId, setFilterDomainId] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
+  // 그룹핑 상태
+  const [groupBy, setGroupBy] = useState<GroupBy>("domain");
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+
   // 도메인 생성 fetcher
   const domainFetcher = useFetcher();
 
@@ -101,6 +121,54 @@ export function ChannelManagementTab({
     }
     return true;
   });
+
+  // 그룹핑
+  const groups = useMemo((): ChannelGroup[] => {
+    if (groupBy === "none") {
+      return [{ key: "all", label: `전체 (${filtered.length})`, items: filtered }];
+    }
+
+    const map = new Map<string, ChannelGroup>();
+
+    for (const item of filtered) {
+      if (groupBy === "domain") {
+        if (item.domains.length === 0) {
+          const g = map.get("__uncategorized") ?? { key: "__uncategorized", label: "미분류", items: [] };
+          g.items.push(item);
+          map.set("__uncategorized", g);
+        } else {
+          for (const d of item.domains) {
+            const g = map.get(d.id) ?? { key: d.id, label: d.name, color: d.color ?? undefined, items: [] };
+            g.items.push(item);
+            map.set(d.id, g);
+          }
+        }
+      } else {
+        // type 그룹핑
+        const typeKey = item.source.sourceType ?? "unknown";
+        const label = SOURCE_TYPE_LABELS[typeKey] ?? typeKey;
+        const g = map.get(typeKey) ?? { key: typeKey, label, items: [] };
+        g.items.push(item);
+        map.set(typeKey, g);
+      }
+    }
+
+    // 정렬: 미분류는 맨 뒤, 나머지는 항목 수 내림차순
+    return [...map.values()].sort((a, b) => {
+      if (a.key === "__uncategorized") return 1;
+      if (b.key === "__uncategorized") return -1;
+      return b.items.length - a.items.length;
+    });
+  }, [filtered, groupBy]);
+
+  const toggleGroup = useCallback((key: string) => {
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }, []);
 
   const handleEdit = (source: SerializedRadarSource, srcDomains: SerializedRadarDomain[]) => {
     setEditSource(source);
@@ -182,6 +250,21 @@ export function ChannelManagementTab({
           className="h-8 w-40 text-sm"
         />
 
+        {/* 그룹핑 선택 */}
+        <Select
+          value={groupBy}
+          onValueChange={(v) => setGroupBy(v as GroupBy)}
+        >
+          <SelectTrigger className="w-32 h-8 text-sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(GROUP_BY_LABELS).map(([key, label]) => (
+              <SelectItem key={key} value={key}>{label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         {/* 도메인 인라인 생성 */}
         <AddDomainInline onAdd={handleDomainCreate} />
 
@@ -191,7 +274,7 @@ export function ChannelManagementTab({
         </Button>
       </div>
 
-      {/* 채널 목록 */}
+      {/* 채널 목록 (그룹별 접이식) */}
       {filtered.length === 0 ? (
         <div className="py-12 text-center">
           <p className="text-sm text-fg-tertiary">
@@ -201,15 +284,54 @@ export function ChannelManagementTab({
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {filtered.map(({ source, domains: srcDomains }) => (
-            <ChannelCard
-              key={source.id}
-              source={source}
-              domains={srcDomains}
-              onEdit={handleEdit}
-            />
-          ))}
+        <div className="space-y-4">
+          {groups.map((group) => {
+            const isCollapsed = collapsedGroups.has(group.key);
+            return (
+              <div key={group.key} className="rounded-lg border border-line">
+                {/* 그룹 헤더 */}
+                <button
+                  type="button"
+                  onClick={() => toggleGroup(group.key)}
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-surface-secondary"
+                >
+                  <svg
+                    className={`h-4 w-4 shrink-0 text-fg-tertiary transition-transform ${isCollapsed ? "" : "rotate-90"}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="2"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                  </svg>
+                  {group.color && (
+                    <span
+                      className="h-3 w-3 shrink-0 rounded-full"
+                      style={{ backgroundColor: group.color }}
+                    />
+                  )}
+                  <span className="text-sm font-semibold text-fg">{group.label}</span>
+                  <Badge variant="secondary" className="text-xs">
+                    {group.items.length}
+                  </Badge>
+                </button>
+
+                {/* 그룹 내 채널 카드 */}
+                {!isCollapsed && (
+                  <div className="space-y-2 px-4 pb-3">
+                    {group.items.map(({ source, domains: srcDomains }) => (
+                      <ChannelCard
+                        key={source.id}
+                        source={source}
+                        domains={srcDomains}
+                        onEdit={handleEdit}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
