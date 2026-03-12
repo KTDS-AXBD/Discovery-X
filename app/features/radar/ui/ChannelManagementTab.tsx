@@ -12,6 +12,7 @@ import {
 import { Input } from "~/components/ui/Input";
 import { ChannelCard } from "./ChannelCard";
 import { ChannelFormModal } from "./ChannelFormModal";
+import { ColorPicker } from "./ColorPicker";
 import { AddDomainInline } from "./DomainTagSelect";
 import { QueueStatusPanel } from "./QueueStatusPanel";
 import type { RadarSource, RadarDomain, RadarFolder } from "~/features/radar/db/schema";
@@ -94,6 +95,53 @@ function AddInline({ label, placeholder, onAdd }: { label: string; placeholder: 
 }
 
 // ============================================================================
+// 인라인 생성 컴포넌트 (폴더용 + 색상)
+// ============================================================================
+
+function AddFolderInline({ onAdd }: { onAdd: (name: string, color?: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("");
+  const [color, setColor] = useState("");
+
+  const handleSubmit = () => {
+    const trimmed = value.trim();
+    if (trimmed) {
+      onAdd(trimmed, color || undefined);
+      setValue("");
+      setColor("");
+      setOpen(false);
+    }
+  };
+
+  if (!open) {
+    return (
+      <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
+        + 폴더
+      </Button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1">
+      <Input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder="폴더 이름"
+        className="h-8 w-28 text-sm"
+        autoFocus
+        onKeyDown={(e) => {
+          if (e.key === "Enter") handleSubmit();
+          if (e.key === "Escape") { setOpen(false); setValue(""); setColor(""); }
+        }}
+      />
+      <ColorPicker value={color} onChange={setColor} />
+      <Button size="sm" onClick={handleSubmit} disabled={!value.trim()}>확인</Button>
+      <Button variant="ghost" size="sm" onClick={() => { setOpen(false); setValue(""); setColor(""); }}>취소</Button>
+    </div>
+  );
+}
+
+// ============================================================================
 // 필터 유형
 // ============================================================================
 
@@ -148,11 +196,18 @@ export function ChannelManagementTab({
   const [modalOpen, setModalOpen] = useState(false);
   const [editSource, setEditSource] = useState<SerializedRadarSource | null>(null);
   const [editDomains, setEditDomains] = useState<SerializedRadarDomain[]>([]);
+  const [editFolders, setEditFolders] = useState<SerializedRadarFolder[]>([]);
+
+  // 폴더 편집 인라인 상태
+  const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
+  const [editFolderName, setEditFolderName] = useState("");
+  const [editFolderColor, setEditFolderColor] = useState("");
 
   // 필터 상태
   const [filterType, setFilterType] = useState<FilterType>("all");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [filterDomainId, setFilterDomainId] = useState<string>("all");
+  const [filterFolderId, setFilterFolderId] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
   // 그룹핑 상태
@@ -164,10 +219,12 @@ export function ChannelManagementTab({
   const folderFetcher = useFetcher();
 
   // 필터링
-  const filtered = sourcesWithDomains.filter(({ source, domains: srcDomains }) => {
+  const filtered = sourcesWithDomains.filter((item) => {
+    const { source, domains: srcDomains } = item;
     if (filterType !== "all" && source.sourceType !== filterType) return false;
     if (filterStatus !== "all" && source.status !== filterStatus) return false;
     if (filterDomainId !== "all" && !srcDomains.some((d) => d.id === filterDomainId)) return false;
+    if (filterFolderId !== "all" && !(item.folders ?? []).some((f: SerializedRadarFolder) => f.id === filterFolderId)) return false;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       if (!source.name.toLowerCase().includes(q) && !source.url.toLowerCase().includes(q)) return false;
@@ -239,12 +296,15 @@ export function ChannelManagementTab({
   const handleEdit = (source: SerializedRadarSource, srcDomains: SerializedRadarDomain[]) => {
     setEditSource(source);
     setEditDomains(srcDomains);
+    const srcFolders = sourcesWithDomains.find(s => s.source.id === source.id)?.folders ?? [];
+    setEditFolders(srcFolders);
     setModalOpen(true);
   };
 
   const handleAddNew = () => {
     setEditSource(null);
     setEditDomains([]);
+    setEditFolders([]);
     setModalOpen(true);
   };
 
@@ -268,6 +328,33 @@ export function ChannelManagementTab({
       { intent: "delete", id },
       { method: "post", action: "/api/radar/folders" },
     );
+  };
+
+  const handleFolderUpdate = (id: string) => {
+    const data: Record<string, string> = { intent: "update", id };
+    if (editFolderName) data.name = editFolderName;
+    if (editFolderColor) data.color = editFolderColor;
+    folderFetcher.submit(data, { method: "post", action: "/api/radar/folders" });
+    setEditingFolderId(null);
+  };
+
+  const handleFolderReorder = (folderId: string, direction: "up" | "down") => {
+    const sorted = [...(folders ?? [])].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    const idx = sorted.findIndex((f) => f.id === folderId);
+    if (direction === "up" && idx <= 0) return;
+    if (direction === "down" && idx >= sorted.length - 1) return;
+    const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+    [sorted[idx], sorted[swapIdx]] = [sorted[swapIdx], sorted[idx]];
+    folderFetcher.submit(
+      { intent: "reorder", orderedIds: JSON.stringify(sorted.map((f) => f.id)) },
+      { method: "post", action: "/api/radar/folders" },
+    );
+  };
+
+  const handleFolderCreateWithColor = (name: string, color?: string) => {
+    const data: Record<string, string> = { intent: "create", name };
+    if (color) data.color = color;
+    folderFetcher.submit(data, { method: "post", action: "/api/radar/folders" });
   };
 
   return (
@@ -322,6 +409,21 @@ export function ChannelManagementTab({
           </Select>
         )}
 
+        {/* 폴더 필터 */}
+        {(folders ?? []).length > 0 && (
+          <Select value={filterFolderId} onValueChange={setFilterFolderId}>
+            <SelectTrigger className="w-36 h-8 text-sm">
+              <SelectValue placeholder="전체 폴더" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">전체 폴더</SelectItem>
+              {(folders ?? []).map((f) => (
+                <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
         {/* 검색 */}
         <Input
           type="text"
@@ -348,7 +450,7 @@ export function ChannelManagementTab({
 
         {/* 도메인/폴더 인라인 생성 */}
         <AddDomainInline onAdd={handleDomainCreate} />
-        <AddInline label="+ 폴더" placeholder="폴더 이름" onAdd={handleFolderCreate} />
+        <AddFolderInline onAdd={handleFolderCreateWithColor} />
 
         {/* 채널 추가 버튼 */}
         <Button size="sm" className="ml-auto" onClick={handleAddNew}>
@@ -396,18 +498,59 @@ export function ChannelManagementTab({
                   <Badge variant="secondary" className="text-xs">
                     {group.items.length}
                   </Badge>
-                  {/* 폴더 삭제 버튼 (폴더 그룹핑 시, 미분류 제외) */}
+                  {/* 폴더 편집/순서/삭제 버튼 (폴더 그룹핑 시, 미분류 제외) */}
                   {groupBy === "folder" && group.key !== "__uncategorized" && (
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); handleFolderDelete(group.key); }}
-                      className="ml-auto text-fg-tertiary hover:text-fg-error transition-colors"
-                      title="폴더 삭제"
-                    >
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                      </svg>
-                    </button>
+                    <div className="ml-auto flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                      {editingFolderId === group.key ? (
+                        <>
+                          <Input
+                            value={editFolderName}
+                            onChange={(e) => setEditFolderName(e.target.value)}
+                            className="h-6 w-24 text-xs"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleFolderUpdate(group.key);
+                              if (e.key === "Escape") setEditingFolderId(null);
+                            }}
+                            autoFocus
+                          />
+                          <ColorPicker value={editFolderColor} onChange={setEditFolderColor} />
+                          <button type="button" onClick={() => handleFolderUpdate(group.key)}
+                            className="text-fg-brand hover:text-fg text-xs px-1">✓</button>
+                          <button type="button" onClick={() => setEditingFolderId(null)}
+                            className="text-fg-tertiary hover:text-fg text-xs px-1">✕</button>
+                        </>
+                      ) : (
+                        <>
+                          <button type="button" onClick={() => handleFolderReorder(group.key, "up")}
+                            className="text-fg-tertiary hover:text-fg transition-colors p-0.5" title="위로">
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+                            </svg>
+                          </button>
+                          <button type="button" onClick={() => handleFolderReorder(group.key, "down")}
+                            className="text-fg-tertiary hover:text-fg transition-colors p-0.5" title="아래로">
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                          </button>
+                          <button type="button" onClick={() => {
+                            setEditingFolderId(group.key);
+                            setEditFolderName(group.label);
+                            setEditFolderColor(group.color ?? "");
+                          }} className="text-fg-tertiary hover:text-fg transition-colors p-0.5" title="편집">
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Z" />
+                            </svg>
+                          </button>
+                          <button type="button" onClick={() => handleFolderDelete(group.key)}
+                            className="text-fg-tertiary hover:text-fg-error transition-colors p-0.5" title="삭제">
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                            </svg>
+                          </button>
+                        </>
+                      )}
+                    </div>
                   )}
                 </button>
 
@@ -438,6 +581,7 @@ export function ChannelManagementTab({
           if (!open) {
             setEditSource(null);
             setEditDomains([]);
+            setEditFolders([]);
           }
         }}
         editSource={editSource}
@@ -445,6 +589,9 @@ export function ChannelManagementTab({
         domains={domains}
         tenantId={tenantId}
         onDomainCreate={handleDomainCreate}
+        folders={folders}
+        editFolders={editFolders}
+        onFolderCreate={(name) => handleFolderCreateWithColor(name)}
       />
 
       {/* 수집 현황 — gatekeeper+ 전용 [R1] */}

@@ -66,5 +66,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ success: true });
   }
 
+  if (intent === "reorder") {
+    const idsRaw = String(formData.get("orderedIds") || "");
+    let orderedIds: string[] = [];
+    try { orderedIds = JSON.parse(idsRaw); } catch { /* */ }
+    if (orderedIds.length === 0) {
+      return json({ error: "orderedIds는 필수입니다." }, { status: 400 });
+    }
+    await service.reorderFolders(orderedIds);
+    return json({ success: true });
+  }
+
   return json({ error: "Unknown intent" }, { status: 400 });
 }

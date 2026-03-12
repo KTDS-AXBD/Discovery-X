@@ -18,7 +18,8 @@ import {
   SelectItem,
 } from "~/components/ui/Select";
 import { DomainTagSelect } from "./DomainTagSelect";
-import type { RadarSource, RadarDomain } from "~/features/radar/db/schema";
+import { FolderTagSelect } from "./FolderTagSelect";
+import type { RadarSource, RadarDomain, RadarFolder } from "~/features/radar/db/schema";
 
 // ============================================================================
 // Types
@@ -35,6 +36,10 @@ type SerializedRadarDomain = Omit<RadarDomain, "createdAt"> & {
   createdAt: string | Date;
 };
 
+type SerializedRadarFolder = Omit<RadarFolder, "createdAt"> & {
+  createdAt: string | Date;
+};
+
 export interface ChannelFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -46,6 +51,9 @@ export interface ChannelFormModalProps {
   tenantId?: string;
   onSuccess?: () => void;
   onDomainCreate?: (name: string) => void;
+  folders?: SerializedRadarFolder[];
+  editFolders?: SerializedRadarFolder[];
+  onFolderCreate?: (name: string) => void;
 }
 
 // ============================================================================
@@ -74,6 +82,9 @@ export function ChannelFormModal({
   tenantId: _tenantId,
   onSuccess,
   onDomainCreate,
+  folders = [],
+  editFolders = [],
+  onFolderCreate,
 }: ChannelFormModalProps) {
   const isEdit = editSource != null;
   const fetcher = useFetcher();
@@ -86,6 +97,7 @@ export function ChannelFormModal({
   const initialKeywords = (editSource?.keywords ?? []).join(", ");
   const initialRadarTags = (editSource?.radarTags ?? []).join(", ");
   const initialDomainIds = editDomains.map((d) => d.id);
+  const initialFolderIds = editFolders.map((f) => f.id);
 
   const [name, setName] = useState(initialName);
   const [url, setUrl] = useState(initialUrl);
@@ -94,6 +106,7 @@ export function ChannelFormModal({
   const [keywords, setKeywords] = useState(initialKeywords);
   const [radarTags, setRadarTags] = useState(initialRadarTags);
   const [selectedDomainIds, setSelectedDomainIds] = useState<string[]>(initialDomainIds);
+  const [selectedFolderIds, setSelectedFolderIds] = useState<string[]>(initialFolderIds);
 
   // open 상태가 바뀔 때 (모달이 열릴 때) 폼 값 초기화
   useEffect(() => {
@@ -105,6 +118,7 @@ export function ChannelFormModal({
     setKeywords((editSource?.keywords ?? []).join(", "));
     setRadarTags((editSource?.radarTags ?? []).join(", "));
     setSelectedDomainIds(editDomains.map((d) => d.id));
+    setSelectedFolderIds(editFolders.map((f) => f.id));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
@@ -137,6 +151,7 @@ export function ChannelFormModal({
     formData.append("keywords", keywords);
     formData.append("radarTags", radarTags);
     formData.append("domainIds", JSON.stringify(selectedDomainIds));
+    formData.append("folderIds", JSON.stringify(selectedFolderIds));
 
     fetcher.submit(formData, {
       method: "post",
@@ -240,6 +255,15 @@ export function ChannelFormModal({
                 selectedIds={selectedDomainIds}
                 onChange={setSelectedDomainIds}
                 onCreateDomain={onDomainCreate}
+              />
+            </FormField>
+
+            <FormField label="폴더 (선택)" htmlFor="channel-folders">
+              <FolderTagSelect
+                folders={folders}
+                selectedIds={selectedFolderIds}
+                onChange={setSelectedFolderIds}
+                onCreateFolder={onFolderCreate}
               />
             </FormField>
 

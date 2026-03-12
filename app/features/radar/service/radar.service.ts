@@ -63,6 +63,7 @@ interface UpdateSourceFullInput {
   radarTags?: string[];
   crawlInterval?: number;
   domainIds?: string[];
+  folderIds?: string[];
 }
 
 interface CreateDomainInput {
@@ -310,6 +311,11 @@ export class RadarService {
     // 도메인 동기화: 기존 삭제 + 새로 INSERT
     if (input.domainIds !== undefined) {
       await this.setSourceDomains(input.id, input.domainIds);
+    }
+
+    // 폴더 동기화
+    if (input.folderIds !== undefined) {
+      await this.setSourceFolders(input.id, input.folderIds);
     }
   }
 
@@ -900,6 +906,15 @@ export class RadarService {
   async deleteFolder(id: string) {
     await this.db.delete(radarSourceFolders).where(eq(radarSourceFolders.folderId, id));
     await this.db.delete(radarFolders).where(eq(radarFolders.id, id));
+  }
+
+  async reorderFolders(orderedIds: string[]): Promise<void> {
+    for (let i = 0; i < orderedIds.length; i++) {
+      await this.db
+        .update(radarFolders)
+        .set({ sortOrder: i })
+        .where(eq(radarFolders.id, orderedIds[i]));
+    }
   }
 
   async setSourceFolders(sourceId: string, folderIds: string[]) {

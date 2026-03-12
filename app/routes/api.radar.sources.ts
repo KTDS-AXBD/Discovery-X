@@ -99,6 +99,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
     }
 
+    // folderIds 처리
+    const folderIdsRaw = formData.get("folderIds");
+    if (folderIdsRaw !== null) {
+      let folderIds: string[] = [];
+      try { folderIds = JSON.parse(String(folderIdsRaw)); } catch { folderIds = []; }
+      if (folderIds.length > 0) {
+        await service.setSourceFolders(id, folderIds);
+      }
+    }
+
     return json({ success: true, id });
   }
 
@@ -191,7 +201,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
       try { domainIds = JSON.parse(String(domainIdsRaw)); } catch { domainIds = []; }
     }
 
-    await service.updateSourceFull({ id, name, url, sourceType, keywords, radarTags, crawlInterval, domainIds });
+    const folderIdsRaw = formData.get("folderIds");
+    let folderIds: string[] | undefined;
+    if (folderIdsRaw !== null) {
+      try { folderIds = JSON.parse(String(folderIdsRaw)); } catch { folderIds = []; }
+    }
+
+    await service.updateSourceFull({ id, name, url, sourceType, keywords, radarTags, crawlInterval, domainIds, folderIds });
     return json({ success: true });
   }
 
