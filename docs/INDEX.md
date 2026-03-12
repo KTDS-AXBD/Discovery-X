@@ -30,7 +30,8 @@
 | DX-PLAN-006 | 슬라이드 MCP 서버 | 1.0 | Active | 01-plan/DX-PLAN-006_slides-mcp-server.md |
 | DX-PLAN-007 | LLM Credit 소진 대응 | 1.0 | Draft | 01-plan/DX-PLAN-007_llm-credit-optimization.md |
 | DX-PLAN-008 | AI API 서비스 관리 | 1.2 | Draft | 01-plan/DX-PLAN-008_ai-api-service-management.md |
-| DX-PLAN-009 | 아이템 수집 시스템 고도화 | 0.3 | Draft | 01-plan/DX-PLAN-009_radar-collection-enhancement.md |
+| DX-PLAN-009 | 아이템 수집 시스템 고도화 | 0.4 | Draft | 01-plan/DX-PLAN-009_radar-collection-enhancement.md |
+| DX-PLAN-010 | PRD Studio | 0.1 | Active | 01-plan/DX-PLAN-010_prd-studio.md |
 
 ## DSGN — 설계
 
@@ -49,6 +50,8 @@
 | DX-DSGN-011 | AI API 서비스 관리 설계 | 1.0 | Draft | 02-design/DX-DSGN-011_ai-api-service-management.md |
 | DX-DSGN-012 | Radar 채널 관리 + 도메인 + 큐 설계 | 1.1 | Draft | 02-design/DX-DSGN-012_radar-channel-management.md |
 | DX-DSGN-013 | Radar Health Score + AI 품질 평가 + Dashboard 설계 | 1.0 | Draft | 02-design/DX-DSGN-013_radar-health-score.md |
+| DX-DSGN-014 | Radar 폴더 시스템 고도화 설계 | 1.0 | Draft | 02-design/DX-DSGN-014_radar-folder-enhancement.md |
+| DX-DSGN-015 | PRD Studio 설계 | 0.1 | Active | 02-design/DX-DSGN-015_prd-studio.md |
 | DX-DSGN-100 | 문서 관리 표준 및 적용 계획 | 1.0 | Draft | 02-design/DX-DSGN-100_doc-governance-plan.md |
 
 ## ANLS — 분석
@@ -91,4 +94,4 @@
 
 ---
 
-*총 49개 문서 | Active: 40 | Draft: 9 | Archived: 0*
+*총 51개 문서 | Active: 42 | Draft: 9 | Archived: 0*

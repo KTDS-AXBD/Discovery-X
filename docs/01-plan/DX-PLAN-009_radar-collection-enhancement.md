@@ -1,7 +1,7 @@
 ---
 code: DX-PLAN-009
 title: 아이템 수집 시스템 고도화 — Signal Capture Engine
-version: "0.3"
+version: "0.4"
 status: Draft
 category: PLAN
 created: 2026-03-10
@@ -12,7 +12,7 @@ author: Sinclair Seo
 # 아이템 수집 시스템 고도화 — Signal Capture Engine
 
 > **Req**: DX-REQ-012 (F41, P1)
-> **Review**: 1차 검토 7.5 → v0.2 8.5 → v0.3 재검토 반영
+> **Review**: 1차 검토 7.5 → v0.2 8.5 → v0.3 재검토 반영 → v0.4 폴더 고도화 추가
 
 ---
 
@@ -93,6 +93,7 @@ Radar는 **Signal Capture Engine** — 외부·내부 정보 신호를 포착하
 - [ ] **S7**: Source Health Dashboard — 운영 액션 중심 UX
 - [ ] **S8**: 큐 기반 수집 파이프라인 + 장애 대응 설계
 - [ ] **S9**: 아이템 원문 저장 + Dedupe 전략
+- [ ] **S10**: 폴더 시스템 고도화 — 채널↔폴더 연결 UI + 폴더 편집 + 순서 관리 + 필터 + 색상 지정
 
 ### 2.2 Out of Scope
 
@@ -467,6 +468,18 @@ health = (relevance × 0.3) + (novelty × 0.2) + (engagement × 0.2) + (conversi
 20. [ ] Source Health Dashboard (운영 액션 포함: 비활성화 추천, 전환 0건, 부족 경고)
 21. [ ] Cron 건강도 일괄 갱신 + REVIEW 상태 자동 전환
 
+### Phase 4: 폴더 시스템 고도화 (1 세션)
+
+> 기반: `radar_folders` + `radar_source_folders` 테이블 (0061 마이그레이션, 프로덕션 적용 완료)
+> 도메인(시스템 관리 6개)과 독립된 **사용자 자유 그룹핑** 2계층 완성
+
+22. [ ] **채널↔폴더 연결 UI**: ChannelFormModal에 폴더 선택 추가 (DomainTagSelect 패턴 재사용, 멀티 선택)
+23. [ ] **setSourceFolders API 호출 경로**: `api.radar.sources` intent=update-full에서 folderIds 파라미터 처리 → `RadarService.setSourceFolders()` 연결
+24. [ ] **폴더 편집 UI**: 인라인 또는 모달에서 이름/설명/색상 변경 (기존 API intent=update 활용)
+25. [ ] **폴더 색상 지정**: 생성/편집 시 프리셋 컬러 팔레트 제공 (도메인 color 패턴 동일) + ChannelManagementTab 컬러 인디케이터 연동
+26. [ ] **폴더 순서 관리**: sortOrder 기반 정렬 + `/api/radar/folders` intent=reorder API 추가 + 드래그 또는 ↑↓ 버튼 UI
+27. [ ] **폴더 필터**: 필터 바에 폴더 드롭다운 추가 (도메인 필터와 병렬 배치)
+
 ---
 
 ## 8. 검토 의견 대응 매트릭스
@@ -501,9 +514,9 @@ health = (relevance × 0.3) + (novelty × 0.2) + (engagement × 0.2) + (conversi
 
 ## 9. Next Steps
 
-1. [ ] **즉시**: Phase 1A Design 문서 — 수동 수집 스키마 + URL 파싱 + "아이디어로 보내기" 상세
-2. [ ] Phase 1A 구현 시작
-3. [ ] 재검토 최종 결론 확인: "Design Spec 1건 추가 → 개발 문서 전환 가능"
+1. [x] ~~Phase 1A~3B 전체 구현 완료~~ (DX-REQ-012 DONE)
+2. [ ] **즉시**: Phase 4 Design 문서 — 폴더↔채널 연결 UI + 편집/색상/순서/필터 상세
+3. [ ] Phase 4 구현 시작
 
 ---
 
@@ -514,3 +527,4 @@ health = (relevance × 0.3) + (novelty × 0.2) + (engagement × 0.2) + (conversi
 | 0.1 | 2026-03-10 | Initial draft — 인터뷰 기반 요구사항 + 아키텍처 | Sinclair Seo |
 | 0.2 | 2026-03-10 | 1차 검토 반영 — 데이터 모델 재설계, 3축 유형, 4축 Health, Phase 순서, UX 전환, 큐 파이프라인 | Sinclair Seo |
 | 0.3 | 2026-03-10 | 재검토 반영 — 전환 이벤트 정의, AI 운영 정책, Queue 장애 대응, Dashboard 액션, 원문 저장+Dedupe, Source lifecycle, Phase 1 분할 | Sinclair Seo |
+| 0.4 | 2026-03-12 | Phase 4 추가 — 폴더 시스템 고도화 (채널↔폴더 연결 UI, 편집, 색상, 순서, 필터) + S10 Scope + Next Steps 갱신 | Sinclair Seo |

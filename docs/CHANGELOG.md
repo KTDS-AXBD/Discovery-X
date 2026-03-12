@@ -3,6 +3,24 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 385 (2026-03-12)
+
+**F41 Phase 4 — 폴더 시스템 고도화 (DX-REQ-012)**:
+- ✅ DX-PLAN-009 v0.4: Phase 4 (S10 Scope + 항목 22~27) + Next Steps 갱신
+- ✅ DX-DSGN-014 설계 문서: 폴더↔채널 연결 UI + 편집 + 색상 + 순서 + 필터
+- ✅ FolderTagSelect 신규 컴포넌트 (DomainTagSelect 패턴 재사용, 멀티 선택)
+- ✅ ColorPicker 신규 컴포넌트 (8색 프리셋 팔레트)
+- ✅ ChannelFormModal에 폴더 선택 필드 추가 (도메인 아래 배치)
+- ✅ ChannelManagementTab 확장: 폴더 필터 드롭다운 + 인라인 편집(이름/ColorPicker) + 순서 ↑↓ + AddFolderInline 색상 포함
+- ✅ api.radar.sources: create/update-full에 folderIds 처리
+- ✅ api.radar.folders: intent=reorder 핸들러 추가
+- ✅ RadarService: updateSourceFull folderIds 동기화 + reorderFolders 메서드
+- ✅ SPEC.md: F41 ✅→🔧 복원 + DB 마이그레이션 62개 보정
+- Agent Team 2 Workers: Backend(서비스+API) / Frontend(컴포넌트+UI) 병렬 구현
+
+**변경**: 7파일 수정/신규 + 3 문서 (398+, 15-)
+**검증**: ✅ typecheck 0 / test 2,453 pass / build 성공
+
 ### 세션 384 (2026-03-12)
 
 **F41 채널 관리 Phase 1+2 — 접이식 그룹 뷰 + 커스텀 폴더 시스템 (DX-REQ-012)**:
