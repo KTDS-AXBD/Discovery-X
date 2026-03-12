@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 381 (2026-03-12)
+
+**글로벌 크로스 프로젝트 메모리 체계 구축 (인프라)**:
+- ✅ `~/.claude/rules/` 디렉토리 생성 — 모든 프로젝트 세션에서 자동 로딩되는 글로벌 지식 저장소
+- ✅ `rules/agent-team-patterns.md`: Agent Team 운영 교훈 (프롬프트, 범위 관리, 테스트 위임, 에러 패턴)
+- ✅ `rules/development-workflow.md`: 배포/D1/Hook 공통 패턴
+- ✅ `~/.claude/CLAUDE.md`: 크로스 프로젝트 메모리 섹션 추가 (53→61줄)
+- ✅ `~/.claude/.gitignore`: rules/ 추적 허용
+- ✅ ax-config push 완료 (Windows/WSL 동기화)
+
+**참고**: `autoMemoryDirectory` 글로벌 설정은 Claude Code 미지원 (GitHub #28276). `~/.claude/rules/`로 대안 구성.
+
 ### 세션 380 (2026-03-12)
 
 **F44 PRD Studio Phase 2-2~2-4 — 인터뷰 UI + AI 검토 + 편집기 (DX-REQ-015)**:
