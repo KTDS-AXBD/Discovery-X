@@ -3,6 +3,16 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 377 (2026-03-12)
+
+**F43 완료 내역 검토 + ax-13-selfcheck 플러그인 점검**:
+- ✅ F43 (DX-REQ-014) 완료 내역 종합 검토: 13커밋/8세션, 스킬 8파일 2,169LOC, 문서 24파일, Phase 1~4+E2E 확인
+- ✅ ax-13-selfcheck 실행: 7항목 점검 6/7 PASS — C2 CLAUDE.md 동기화 WARN 2건 감지
+- ✅ CLAUDE.md 스킬 테이블 동기화: ax-15-statusline (command) + dx-write-prd (project skill) 추가
+
+**변경**: CLAUDE.md (2행 추가)
+**검증**: docs commit — typecheck/lint/test/build 스킵
+
 ### 세션 376 (2026-03-12)
 
 **F41 GAP 분석 (94.9%) + E2E 통합 테스트 28개 추가 (DX-REQ-012)**:
