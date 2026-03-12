@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 382 (2026-03-12)
+
+**F41 채널 관리 UX 개선 — 접이식 그룹 뷰 + 도메인 시드 (DX-REQ-012)**:
+- ✅ 프로덕션 도메인 6개 시드: AI/ML, Startup/Product, Telecom/MWC, Tech General, AI Research, Industry/Vertical
+- ✅ 채널-도메인 매핑 17건 + 반복 채널 키워드 9건 (AI 분류 → 프로덕션 D1 적용)
+- ✅ ChannelManagementTab 접이식 그룹 뷰: 도메인별/유형별/없음 3가지 그룹핑 + 접기/펼치기
+- ✅ 미분류 채널 자동 그룹 + 컬러 인디케이터 + 카운트 배지
+
+**변경**: 1파일 수정 (133+, 11-)
+**검증**: ✅ typecheck 0 / build 성공
+
 ### 세션 381 (2026-03-12)
 
 **글로벌 크로스 프로젝트 메모리 체계 구축 (인프라)**:
