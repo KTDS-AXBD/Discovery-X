@@ -3,6 +3,23 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 376 (2026-03-12)
+
+**F41 GAP 분석 (94.9%) + E2E 통합 테스트 28개 추가 (DX-REQ-012)**:
+- ✅ DX-ANLS-014 GAP 분석 보고서: 설계 3문서(DX-DSGN-010/012/013) vs 구현 156항목 비교 → 148 일치 (94.9%)
+- ✅ radar-f41-e2e.test.ts: Phase 1A~3B 전체 Phase 관통 E2E 통합 테스트 28개 신규
+  - Phase 1A/1B(4): 수동수집 + 중복감지 + Signal→Idea + 파일 업로드
+  - Phase 2A(5): 도메인 M:N + Lifecycle 전환 규칙 + enabled 동기화 + cascade 삭제 + FAILED 재활성
+  - Phase 2B(6): Crawl Queue enqueue/dequeue/complete/fail→DEAD/stale 복구/정리
+  - Phase 3A(6): Health Score 4축 + dislike 패널티 + AI 미평가 부분 점수 + REVIEW 전환 + item_metrics
+  - Phase 3B(5): 운영 액션 pause/activate/archive + 잘못된 intent + 테넌트 격리
+  - E2E 통합(1): 소스→도메인→큐→수집→건강도 전체 플로우
+- ✅ GAP 항목: 테스트 독립 파일 4개 누락(간접 커버), UI 인라인 통합 2개 (모두 Low)
+- ✅ 전체 테스트: 2,417→2,445 (158 files, 100% PASS)
+
+**검증 결과**:
+- ✅ typecheck / lint (0 errors, 2 warnings) / test 2,445개 PASS
+
 ### 세션 375 (2026-03-12)
 **F44 PRD Studio Phase 0+1+2-1 — pm-skills 통합 + DB 스키마 + 서비스 + 라우트 스캐폴딩 (DX-REQ-015)**:
 - ✅ Phase 0 Go 판정: 팀 회의 니즈 확인 + pm-skills create-prd 3건 샘플 품질 검증 (8/8 섹션, 한국어, 평균 11KB)
