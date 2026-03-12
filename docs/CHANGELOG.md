@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 375 (2026-03-12)
+**F44 PRD Studio Phase 0+1+2-1 — pm-skills 통합 + DB 스키마 + 서비스 + 라우트 스캐폴딩 (DX-REQ-015)**:
+- ✅ Phase 0 Go 판정: 팀 회의 니즈 확인 + pm-skills create-prd 3건 샘플 품질 검증 (8/8 섹션, 한국어, 평균 11KB)
+- ✅ Phase 1 CLI 적용: pm-skills 5개 플러그인 설치 (execution/strategy/research/discovery/gtm) + dx-write-prd 프로젝트 스킬 생성
+- ✅ Phase 2-1 스캐폴딩: DB 5테이블 (prds/prd_sections/prd_versions/prd_reviews/prd_events) + PrdStudioService + 6개 라우트 + 0059_prd_studio.sql 마이그레이션
+- ✅ pm-skills 구조 분석: 8 플러그인, 65 스킬, 36 커맨드 (PRD v10 가정 4개 대비 2배)
+- ✅ 기존 analyzer.ts 프롬프트 구조 + 코드베이스 통합 포인트 상세 분석
+
+**검증 결과**:
+- ✅ typecheck / lint / build / unit test (1,765개)
+- 14 files changed, 1,354 insertions
+
 ### 세션 373 (2026-03-12)
 
 **F43 DONE 전환 — E2E 테스트 완료 + DX-REQ-014 DONE**:

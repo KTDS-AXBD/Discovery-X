@@ -357,7 +357,7 @@ root.tsx
 └─ Outlet (하위 라우트)
 ```
 
-### 데이터 모델 (111개 테이블 — Drizzle 84 + 마이그레이션 전용 27)
+### 데이터 모델 (116개 테이블 — Drizzle 89 + 마이그레이션 전용 27)
 
 | 카테고리 | 테이블 수 | 테이블 |
 |---------|---------|--------|
@@ -385,7 +385,8 @@ root.tsx
 | Worker/Infra | 2 | notification_queue, cron_logs |
 | FTS | 1 | discoveries_fts |
 | Requests | 5 | feature_requests, request_reviews, request_events, work_plans, work_plan_runs |
-| **합계** | **111** | |
+| PRD Studio | 5 | prds, prd_sections, prd_versions, prd_reviews, prd_events |
+| **합계** | **116** | |
 
 > Drizzle 스키마 미정의 25개: Venture Sprint 16 (아카이브) + Shadow Mode 2 + Value-up Engine 4 + Worker/Infra 2 + FTS 1 — 마이그레이션 SQL에만 존재
 
@@ -445,11 +446,11 @@ build/
 ### 버전
 - **시스템 (SemVer SSOT)**: 0.6.0 (package.json)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 60개 마이그레이션 SQL (0000~0058), 로컬+프로덕션 적용 완료
+- **DB**: 61개 마이그레이션 SQL (0000~0059), 로컬 적용 완료 (0059 프로덕션 미적용)
 
 ### 주요 지표
-- **라우트**: 182개
-- **테이블**: 113개
+- **라우트**: 188개
+- **테이블**: 118개
 - **Agent 도구**: 77개
 - **코드**: ~83,000줄 (~493파일)
 - **테스트**: 2,417개 (157 test files, 로컬 통과)
