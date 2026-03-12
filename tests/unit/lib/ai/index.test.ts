@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
     usage: { input_tokens: 10, output_tokens: 5 },
   }),
   callStream: vi.fn().mockResolvedValue(new ReadableStream()),
+  fmOptions: null as unknown,
   route: vi.fn(),
   markFailed: vi.fn(),
   markHealthy: vi.fn(),
@@ -35,7 +36,7 @@ vi.mock("~/features/chat/agent/claude-client", () => ({
 vi.mock("~/lib/ai/fallback-manager", () => {
   class FM {
     options: unknown;
-    constructor(_ctx: unknown, options?: unknown) { this.options = options; }
+    constructor(_ctx: unknown, options?: unknown) { this.options = options; mocks.fmOptions = options; }
     call = mocks.call;
     callStream = mocks.callStream;
   }
@@ -180,7 +181,7 @@ describe("callLLM — PolicyRouter 통합", () => {
     }
   });
 
-  it("overrides model for Anthropic provider on budget degrade", async () => {
+  it("passes nativeModel to FallbackManager for Anthropic provider on budget degrade", async () => {
     mocks.route.mockResolvedValue({
       provider: "anthropic",
       model: "claude-3-5-haiku-20241022",
@@ -191,11 +192,13 @@ describe("callLLM — PolicyRouter 통합", () => {
 
     await callLLM("sk-test", { ...baseRequest, model: "claude-sonnet-4-20250514" }, routingCtx);
 
-    const passedRequest = mocks.call.mock.calls[0][1];
-    expect(passedRequest.model).toBe("claude-3-5-haiku-20241022");
+    // nativeModel이 FallbackManager 옵션으로 전달됨
+    const opts = mocks.fmOptions as { nativeModel?: string; providerChain?: string[] };
+    expect(opts.nativeModel).toBe("claude-3-5-haiku-20241022");
+    expect(opts.providerChain?.[0]).toBe("anthropic");
   });
 
-  it("does NOT override model for non-Anthropic provider", async () => {
+  it("passes nativeModel to FallbackManager for non-Anthropic provider", async () => {
     mocks.route.mockResolvedValue({
       provider: "openai",
       model: "gpt-4o",
@@ -204,11 +207,12 @@ describe("callLLM — PolicyRouter 통합", () => {
       budgetTier: "normal",
     });
 
-    const req = { ...baseRequest, model: "claude-sonnet-4-20250514" };
-    await callLLM("sk-test", req, routingCtx);
+    await callLLM("sk-test", { ...baseRequest, model: "claude-sonnet-4-20250514" }, routingCtx);
 
-    const passedRequest = mocks.call.mock.calls[0][1];
-    expect(passedRequest.model).toBe("claude-sonnet-4-20250514");
+    // 모든 provider에서 nativeModel이 전달됨 (FallbackManager가 선호 provider에 적용)
+    const opts = mocks.fmOptions as { nativeModel?: string; providerChain?: string[] };
+    expect(opts.nativeModel).toBe("gpt-4o");
+    expect(opts.providerChain?.[0]).toBe("openai");
   });
 
   it("detects needsTools from request.tools", async () => {

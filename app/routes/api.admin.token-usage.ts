@@ -7,8 +7,7 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import type { DB } from "~/db";
 import { getDb } from "~/db";
-import { agentConfig } from "~/db";
-import { usageEvents } from "~/features/cost/db/schema";
+import { usageEvents, dailyUsageAggregates } from "~/features/cost/db/schema";
 import { eq, desc, sql, and, gte } from "drizzle-orm";
 import { requireAdmin, getSessionSecret } from "~/lib/auth/session.server";
 
@@ -32,18 +31,22 @@ async function getDailySummary(db: DB, range: "7d" | "30d", purpose: string) {
 }
 
 async function getTodayUsage(db: DB) {
-  const rows = await db
-    .select()
-    .from(agentConfig)
-    .where(eq(agentConfig.id, "default"))
-    .limit(1);
-  return rows[0]
-    ? {
-        tokensUsedToday: rows[0].tokensUsedToday,
-        dailyTokenBudget: rows[0].dailyTokenBudget,
-        tokenResetDate: rows[0].tokenResetDate,
-      }
-    : { tokensUsedToday: 0, dailyTokenBudget: 100000, tokenResetDate: null };
+  const today = new Date().toISOString().slice(0, 10);
+
+  const [row] = await db
+    .select({
+      totalTokens: sql<number>`coalesce(sum(${dailyUsageAggregates.totalTokens}), 0)`,
+      totalCostUsd: sql<number>`coalesce(sum(${dailyUsageAggregates.totalCostUsd}), 0)`,
+      requestCount: sql<number>`coalesce(sum(${dailyUsageAggregates.requestCount}), 0)`,
+    })
+    .from(dailyUsageAggregates)
+    .where(eq(dailyUsageAggregates.date, today));
+
+  return {
+    tokensUsedToday: row?.totalTokens ?? 0,
+    costUsedToday: row?.totalCostUsd ?? 0,
+    requestsToday: row?.requestCount ?? 0,
+  };
 }
 
 async function getRecentLogs(db: DB, purpose: string) {

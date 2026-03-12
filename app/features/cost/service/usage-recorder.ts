@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import type { DB } from "~/db";
 import { usageEvents, dailyUsageAggregates } from "../db/schema";
 import type { UsageEventInput } from "../types";
@@ -58,6 +58,15 @@ export class UsageRecorder {
       console.warn("[UsageRecorder] cost estimation failed:", err);
     }
 
+    // 4) daily_usage_aggregates에 비용 반영 (보조 — 실패 시 warn)
+    if (totalCostUsd > 0) {
+      try {
+        await this.updateDailyAggregateCost(event, totalCostUsd);
+      } catch (err) {
+        console.warn("[UsageRecorder] daily aggregate cost update failed:", err);
+      }
+    }
+
     return { usageEventId: id, totalCostUsd };
   }
 
@@ -108,5 +117,28 @@ export class UsageRecorder {
         totalTokens,
       });
     }
+  }
+
+  private async updateDailyAggregateCost(
+    event: UsageEventInput,
+    costUsd: number
+  ): Promise<void> {
+    const date = new Date().toISOString().slice(0, 10);
+
+    await this.db
+      .update(dailyUsageAggregates)
+      .set({
+        totalCostUsd: sql`${dailyUsageAggregates.totalCostUsd} + ${costUsd}`,
+      })
+      .where(
+        and(
+          eq(dailyUsageAggregates.tenantId, event.tenantId),
+          eq(dailyUsageAggregates.userId, event.userId),
+          eq(dailyUsageAggregates.provider, event.provider),
+          eq(dailyUsageAggregates.model, event.model),
+          eq(dailyUsageAggregates.purpose, event.purpose),
+          eq(dailyUsageAggregates.date, date)
+        )
+      );
   }
 }

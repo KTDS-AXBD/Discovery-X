@@ -56,6 +56,8 @@ export interface FallbackContext {
 export interface FallbackManagerOptions {
   /** PolicyRouter가 결정한 provider 체인 순서 (없으면 기본 순서) */
   providerChain?: ProviderId[];
+  /** PolicyRouter가 선택한 native model ID — 선호 provider에서 매핑 없이 직접 사용 */
+  nativeModel?: string;
   /** provider 실패 시 호출 (PolicyRouter 건강 캐시 갱신용) */
   onProviderFailed?: (id: ProviderId) => void;
   /** provider 성공 시 호출 (PolicyRouter 건강 캐시 갱신용) */

@@ -20,6 +20,7 @@ interface AggRow {
   sum_input: number;
   sum_output: number;
   sum_total: number;
+  sum_cost: number;
   avg_latency: number | null;
 }
 
@@ -65,20 +66,22 @@ export class UsageAggregator {
 
     const result = await this.db.all(
       sql`SELECT
-        tenant_id,
-        user_id,
-        provider,
-        model,
-        purpose,
-        date(created_at, 'unixepoch') AS date_str,
+        ue.tenant_id,
+        ue.user_id,
+        ue.provider,
+        ue.model,
+        ue.purpose,
+        date(ue.created_at, 'unixepoch') AS date_str,
         COUNT(*) AS req_count,
-        COALESCE(SUM(input_tokens), 0) AS sum_input,
-        COALESCE(SUM(output_tokens), 0) AS sum_output,
-        COALESCE(SUM(total_tokens), 0) AS sum_total,
-        AVG(latency_ms) AS avg_latency
-      FROM usage_events
-      WHERE created_at >= ${fromUnix} AND created_at <= ${toUnix}
-      GROUP BY tenant_id, user_id, provider, model, purpose, date_str`
+        COALESCE(SUM(ue.input_tokens), 0) AS sum_input,
+        COALESCE(SUM(ue.output_tokens), 0) AS sum_output,
+        COALESCE(SUM(ue.total_tokens), 0) AS sum_total,
+        COALESCE(SUM(ce.total_cost_usd), 0) AS sum_cost,
+        AVG(ue.latency_ms) AS avg_latency
+      FROM usage_events ue
+      LEFT JOIN cost_estimates ce ON ce.usage_event_id = ue.id
+      WHERE ue.created_at >= ${fromUnix} AND ue.created_at <= ${toUnix}
+      GROUP BY ue.tenant_id, ue.user_id, ue.provider, ue.model, ue.purpose, date_str`
     );
 
     const rows = result as unknown as AggRow[];
@@ -98,6 +101,7 @@ export class UsageAggregator {
           totalInputTokens: r.sum_input,
           totalOutputTokens: r.sum_output,
           totalTokens: r.sum_total,
+          totalCostUsd: r.sum_cost,
           avgLatencyMs: r.avg_latency != null ? Math.round(r.avg_latency) : null,
         }))
       );

@@ -16,11 +16,15 @@ import { users, conversations } from "~/db";
 
 // ─── Mocks ──────────────────────────────────────────────────────────────
 
-vi.mock("~/lib/ai", () => ({
-  callLLM: vi.fn(),
-  callLLMStream: vi.fn(),
-  parseSSEStream: vi.fn(),
-}));
+vi.mock("~/lib/ai", async () => {
+  const actual = await vi.importActual<typeof import("~/lib/ai")>("~/lib/ai");
+  return {
+    callLLM: vi.fn(),
+    callLLMStream: vi.fn(),
+    parseSSEStream: vi.fn(),
+    BudgetBlockedError: actual.BudgetBlockedError,
+  };
+});
 
 vi.mock("~/features/chat/agent/context-builder", () => ({
   buildConversationContext: vi.fn().mockResolvedValue([

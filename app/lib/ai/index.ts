@@ -37,7 +37,7 @@ export class BudgetBlockedError extends Error {
 }
 
 /** 기본 provider 체인 순서 */
-const DEFAULT_CHAIN: ProviderId[] = ["anthropic", "openai", "google", "workers-ai"];
+const DEFAULT_CHAIN: ProviderId[] = ["anthropic", "deepseek", "openai", "google", "workers-ai"];
 
 /** PolicyRouter 결과로 provider 체인 재정렬: 선택된 provider를 최우선으로 */
 function reorderChain(preferred: ProviderId): ProviderId[] {
@@ -99,14 +99,10 @@ export async function callLLM(
 
     options = {
       providerChain: reorderChain(result.provider),
+      nativeModel: result.model || undefined,
       onProviderFailed: (id) => router.markProviderFailed(id),
       onProviderSuccess: (id) => router.markProviderHealthy(id),
     };
-
-    // Anthropic provider + 모델 오버라이드 (예산 degrade 시 저비용 모델로 전환)
-    if (result.model && result.provider === "anthropic") {
-      request = { ...request, model: result.model };
-    }
   }
 
   const manager = new FallbackManager(ctx, options);
@@ -139,13 +135,10 @@ export async function callLLMStream(
 
     options = {
       providerChain: reorderChain(result.provider),
+      nativeModel: result.model || undefined,
       onProviderFailed: (id) => router.markProviderFailed(id),
       onProviderSuccess: (id) => router.markProviderHealthy(id),
     };
-
-    if (result.model && result.provider === "anthropic") {
-      request = { ...request, model: result.model };
-    }
   }
 
   const manager = new FallbackManager(ctx, options);

@@ -45,12 +45,14 @@ export class FallbackManager {
   private ctx: FallbackContext;
   private failedProviders: FailedProvider[] = [];
   private providerChain: ProviderId[];
+  private nativeModel?: string;
   private onProviderFailed?: (id: ProviderId) => void;
   private onProviderSuccess?: (id: ProviderId) => void;
 
   constructor(ctx: FallbackContext, options?: FallbackManagerOptions) {
     this.ctx = ctx;
     this.providerChain = options?.providerChain ?? DEFAULT_PROVIDER_CHAIN;
+    this.nativeModel = options?.nativeModel;
     this.onProviderFailed = options?.onProviderFailed;
     this.onProviderSuccess = options?.onProviderSuccess;
     // Workers AI 프로바이더에 env 주입 (AI 바인딩 또는 REST API용 CF_ACCOUNT_ID)
@@ -85,7 +87,11 @@ export class FallbackManager {
 
       try {
         console.log(`[AI Fallback] ${providerId} 시도 중...`);
-        const response = await provider.call(providerApiKey, request);
+        // 선호 provider(체인 첫 번째)에서 PolicyRouter가 선택한 native model 직접 사용
+        const actualRequest = (this.nativeModel && providerId === this.providerChain[0])
+          ? { ...request, model: this.nativeModel }
+          : request;
+        const response = await provider.call(providerApiKey, actualRequest);
 
         console.log(`[AI Fallback] ${providerId} 성공`);
         this.onProviderSuccess?.(providerId);
@@ -135,7 +141,10 @@ export class FallbackManager {
       if (!providerApiKey && providerId !== "workers-ai") continue;
 
       try {
-        const stream = await provider.callStream(providerApiKey, request);
+        const actualRequest = (this.nativeModel && providerId === this.providerChain[0])
+          ? { ...request, model: this.nativeModel }
+          : request;
+        const stream = await provider.callStream(providerApiKey, actualRequest);
         this.onProviderSuccess?.(providerId);
         return stream;
       } catch (error) {

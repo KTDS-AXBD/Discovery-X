@@ -16,37 +16,38 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
     const url = new URL(request.url);
     const isActiveParam = url.searchParams.get("isActive");
+    const now = new Date();
 
-    // 모델 목록 조회
+    // 단일 LEFT JOIN 쿼리: 모델 + 현행 가격 (N+1 제거)
     const conditions = [];
     if (isActiveParam !== null) {
       conditions.push(eq(modelCatalog.isActive, isActiveParam === "true"));
     }
 
-    const models =
-      conditions.length > 0
-        ? await db.select().from(modelCatalog).where(and(...conditions))
-        : await db.select().from(modelCatalog);
+    const rows = await db
+      .select({
+        model: modelCatalog,
+        price: priceCatalog,
+      })
+      .from(modelCatalog)
+      .leftJoin(
+        priceCatalog,
+        and(
+          eq(priceCatalog.modelCatalogId, modelCatalog.id),
+          or(isNull(priceCatalog.effectiveTo), gte(priceCatalog.effectiveTo, now)),
+        ),
+      )
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(priceCatalog.effectiveFrom));
 
-    // 각 모델에 대해 현행 가격을 조회
-    const now = new Date();
-    const modelsWithPrices = await Promise.all(
-      models.map(async (model) => {
-        const [currentPrice] = await db
-          .select()
-          .from(priceCatalog)
-          .where(
-            and(
-              eq(priceCatalog.modelCatalogId, model.id),
-              or(isNull(priceCatalog.effectiveTo), gte(priceCatalog.effectiveTo, now)),
-            ),
-          )
-          .orderBy(desc(priceCatalog.effectiveFrom))
-          .limit(1);
-
-        return { ...model, currentPrice: currentPrice ?? null };
-      }),
-    );
+    // 모델당 가장 최근 가격만 선택 (effectiveFrom DESC 정렬 후 첫 번째)
+    const seen = new Set<string>();
+    const modelsWithPrices = [];
+    for (const row of rows) {
+      if (seen.has(row.model.id)) continue;
+      seen.add(row.model.id);
+      modelsWithPrices.push({ ...row.model, currentPrice: row.price ?? null });
+    }
 
     return Response.json({ models: modelsWithPrices });
   } catch (error) {

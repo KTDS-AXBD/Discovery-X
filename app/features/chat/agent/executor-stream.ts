@@ -5,7 +5,7 @@
 
 import type { DB } from "~/db";
 import type { ClaudeContentBlock } from "~/lib/ai";
-import { parseSSEStream, callLLM } from "~/lib/ai";
+import { parseSSEStream, callLLM, BudgetBlockedError } from "~/lib/ai";
 import { callLLMStream } from "~/lib/ai";
 import type { FallbackContext } from "~/lib/ai";
 import { messages as messagesTable, evidence } from "~/db";
@@ -406,6 +406,18 @@ export function createAgentStreamResponse(
         send(controller, { type: "done", tokensUsed: { input: totalInputTokens, output: totalOutputTokens } });
         controller.close();
       } catch (error) {
+        if (error instanceof BudgetBlockedError) {
+          send(controller, {
+            type: "error",
+            message: "예산 한도를 초과하여 AI 응답을 생성할 수 없습니다.",
+            errorType: "budget_blocked",
+            retryable: false,
+            suggestion: "관리자 → 비용 관리에서 예산 정책을 확인하세요.",
+          });
+          controller.close();
+          return;
+        }
+
         const isApiError = error instanceof Error && (
           error.message.includes("API") ||
           error.message.includes("401") ||

@@ -57,8 +57,12 @@ const DEFAULT_MAPPING: ModelMapping = {
 
 /**
  * Anthropic 모델 ID를 대상 프로바이더의 모델 ID로 변환.
+ * PolicyRouter가 선택한 native model (non-Anthropic)은 매핑 없이 그대로 반환.
  */
-export function mapModel(anthropicModel: string, targetProvider: Exclude<ProviderId, "anthropic">): string {
-  const mapping = MODEL_MAP[anthropicModel] ?? DEFAULT_MAPPING;
+export function mapModel(model: string, targetProvider: Exclude<ProviderId, "anthropic">): string {
+  // Native model → 매핑 건너뛰기 (PolicyRouter degrade 등으로 직접 선택된 모델)
+  if (!model.startsWith("claude-")) return model;
+
+  const mapping = MODEL_MAP[model] ?? DEFAULT_MAPPING;
   return mapping[targetProvider];
 }
