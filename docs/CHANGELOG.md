@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 379 (2026-03-12)
+
+**프로덕션 마이그레이션 적용 + Hydration 수정 + Radar 메뉴 추가**:
+- ✅ 프로덕션 D1 마이그레이션 0057~0060 적용 (d1_migrations 추적 테이블 동기화 포함) — /radar 500 에러 해결
+- ✅ format-date KST 타임존 고정: getHours() → toKST() + getUTCHours() — SSR hydration mismatch 해결 (앱 전체)
+- ✅ TopNav 관리자 드롭다운에 "Radar 수집 관리" 링크 추가
+- ✅ format-date 테스트 8개 추가 (KST 날짜 경계 포함)
+
+**변경**: 3파일 수정/신규 (95+, 18-)
+**검증**: ✅ typecheck 0 / lint 0 / format-date 8 pass / build 성공
+
 ### 세션 378 (2026-03-12)
 
 **F40 Cost Management 코드 완성도 리뷰 + 6건 수정 (DX-REQ-011)**:
