@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 368b (2026-03-12)
+
+**모델 카탈로그 2026-03 최신화 (DX-REQ-011)**:
+- ✅ 모델 카탈로그 9→12개: GPT-5.4, GPT-4.1/mini/nano, Gemini 2.5 Pro 추가
+- ✅ 가격 최신화: DeepSeek V3.2 ($0.28/$0.42, output 62%↓), GPT-4.1 ($2/$8), Gemini 2.5 Pro ($1.25/$10)
+- ✅ 모델 매핑 갱신: sonnet→gpt-4.1, haiku→gpt-4.1-nano, opus→gpt-5.4, default→gemini-2.5-pro
+- ✅ 품질 비교 재실행 (6모델): GPT-5.4/4.1/Gemini Pro 동률 93점, DeepSeek V3.2 91점 최고속(480ms)
+- ✅ 비교 스크립트 개선: GPT-5.4 max_completion_tokens 대응 + Gemini Pro thinking 모드 파싱
+
+**변경**: 6파일 (수정 5 + 테스트 갱신 1), +433줄/-167줄
+**검증**: ✅ typecheck / ✅ lint / ✅ test (2,417, +2)
+
 ### 세션 370 (2026-03-12)
 
 **F44 PRD Studio PRD 확정 + F43 스코어카드 v2 (DX-REQ-014, DX-REQ-015)**:
