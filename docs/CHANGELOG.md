@@ -3,6 +3,25 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 380 (2026-03-12)
+
+**F44 PRD Studio Phase 2-2~2-4 — 인터뷰 UI + AI 검토 + 편집기 (DX-REQ-015)**:
+- ✅ Phase 2-2: 인터뷰 위저드 (8섹션 스텝별 입력, 1.5초 debounce 자동 저장, 예시 답변 접기/펼치기, 프로그레스 바)
+- ✅ Phase 2-2: 온보딩 3단계 모달 (PrdOnboardingModal, localStorage 기반)
+- ✅ Phase 2-2: 이벤트 추적 API (`api.prd-studio.$id.events`)
+- ✅ Phase 2-3: PRD 생성 API (GPT-4.1, `response_format: json_object`)
+- ✅ Phase 2-3: AI 검토 API (GPT-4.1 + Gemini Flash 병렬, `Promise.allSettled`, 25초 timeout)
+- ✅ Phase 2-3: 스코어카드 (8기준 100점제) + 피드백 뷰어 (severity별 4단계)
+- ✅ Phase 2-4: 인라인 섹션 편집 (PrdContentView 편집 모드)
+- ✅ Phase 2-4: 버전 스냅샷 관리 (VersionHistory 접이식 패널)
+- ✅ Phase 2-4: 목록 페이지 삭제 기능 추가
+- 신규 10파일 (5 API + 4 UI + 1 상수), 수정 3파일 = +1,700줄
+- Agent Team 6회 실행 (2 Workers × 3 Phases)
+
+**검증 결과**:
+- ✅ typecheck 0에러 / lint 0에러 / build 성공 (2.49s)
+- 라우트: 188→193개 (+5 API)
+
 ### 세션 379 (2026-03-12)
 
 **프로덕션 마이그레이션 적용 + Hydration 수정 + Radar 메뉴 추가**:
