@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
-import { useLoaderData, Link } from "@remix-run/react";
+import { useLoaderData, Link, useFetcher } from "@remix-run/react";
 import { getDb } from "~/db";
 import { PrdStudioService } from "~/features/prd-studio/service/prd-studio.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
@@ -54,6 +54,7 @@ function formatDate(ts: string | number | null) {
 
 export default function PrdStudioIndex() {
   const { prds } = useLoaderData<typeof loader>();
+  const deleteFetcher = useFetcher();
 
   return (
     <div className="mx-auto max-w-4xl p-6 space-y-6">
@@ -87,6 +88,7 @@ export default function PrdStudioIndex() {
                 <th className="px-4 py-3 text-center font-medium text-fg-secondary">버전</th>
                 <th className="px-4 py-3 text-center font-medium text-fg-secondary">진행률</th>
                 <th className="px-4 py-3 text-left font-medium text-fg-secondary">생성일</th>
+                <th className="px-4 py-3 w-16"></th>
               </tr>
             </thead>
             <tbody>
@@ -119,6 +121,22 @@ export default function PrdStudioIndex() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-fg-secondary">{formatDate(prd.createdAt)}</td>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm("정말 삭제할까요?")) {
+                          deleteFetcher.submit(
+                            { id: prd.id },
+                            { method: "DELETE", action: "/api/prd-studio", encType: "application/json" },
+                          );
+                        }
+                      }}
+                      className="text-xs text-fg-tertiary hover:text-red-500 transition-colors"
+                    >
+                      삭제
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
