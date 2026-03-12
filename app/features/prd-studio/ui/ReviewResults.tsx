@@ -1,26 +1,11 @@
-interface FeedbackItem {
-  section?: string;
-  severity: string;
-  message: string;
-  suggestion?: string;
-}
-
-interface ScorecardItem {
-  criteria: string;
-  score: number;
-  maxScore: number;
-  comment?: string;
-}
+import type { ReviewFeedbackItem, ReviewScorecard } from "~/features/prd-studio/types";
 
 interface Review {
   id: string;
   model: string;
   verdict: string | null;
-  feedbackItems: FeedbackItem[] | null;
-  scorecard: {
-    totalScore: number;
-    items: ScorecardItem[];
-  } | null;
+  feedbackItems: ReviewFeedbackItem[] | null;
+  scorecard: ReviewScorecard | null;
   error: string | null;
   latency: number | null;
   createdAt: string | number | null;
@@ -28,6 +13,7 @@ interface Review {
 
 interface ReviewResultsProps {
   reviews: Review[];
+  onRetry?: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -70,7 +56,7 @@ const SEVERITY_STYLE: Record<string, { icon: string; cls: string }> = {
 // Sub-components
 // ---------------------------------------------------------------------------
 
-function ScoreBar({ item }: { item: ScorecardItem }) {
+function ScoreBar({ item }: { item: ReviewScorecard["items"][number] }) {
   const pct = item.maxScore > 0 ? (item.score / item.maxScore) * 100 : 0;
   return (
     <div className="flex items-center gap-2">
@@ -88,7 +74,7 @@ function ScoreBar({ item }: { item: ScorecardItem }) {
   );
 }
 
-function FeedbackCard({ fb }: { fb: FeedbackItem }) {
+function FeedbackCard({ fb }: { fb: ReviewFeedbackItem }) {
   const style = SEVERITY_STYLE[fb.severity] ?? {
     icon: "•",
     cls: "border-l-gray-400 bg-gray-50",
@@ -116,7 +102,7 @@ function FeedbackCard({ fb }: { fb: FeedbackItem }) {
   );
 }
 
-function ReviewCard({ review }: { review: Review }) {
+function ReviewCard({ review, onRetry }: { review: Review; onRetry?: () => void }) {
   // Error card
   if (review.error) {
     return (
@@ -128,6 +114,15 @@ function ReviewCard({ review }: { review: Review }) {
           </span>
         </div>
         <p className="mt-1 text-sm text-yellow-700">{review.error}</p>
+        {onRetry && (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="mt-2 rounded px-3 py-1.5 text-xs font-medium bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+          >
+            다시 시도
+          </button>
+        )}
       </div>
     );
   }
@@ -188,7 +183,7 @@ function ReviewCard({ review }: { review: Review }) {
 // Main
 // ---------------------------------------------------------------------------
 
-export function ReviewResults({ reviews }: ReviewResultsProps) {
+export function ReviewResults({ reviews, onRetry }: ReviewResultsProps) {
   if (reviews.length === 0) return null;
 
   return (
@@ -201,7 +196,7 @@ export function ReviewResults({ reviews }: ReviewResultsProps) {
       </div>
       <div className="space-y-4">
         {reviews.map((review) => (
-          <ReviewCard key={review.id} review={review} />
+          <ReviewCard key={review.id} review={review} onRetry={onRetry} />
         ))}
       </div>
     </div>

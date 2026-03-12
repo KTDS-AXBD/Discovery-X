@@ -78,6 +78,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: "id가 필요해요." }, { status: 400 });
     }
 
+    const prd = await service.getById(id, ctx.tenantId);
+    if (!prd) {
+      return json({ error: "PRD를 찾을 수 없어요." }, { status: 404 });
+    }
+    if (prd.createdBy !== ctx.user.id && ctx.user.role !== "admin") {
+      return json({ error: "본인의 PRD만 삭제할 수 있어요." }, { status: 403 });
+    }
+
     await service.delete(id, ctx.tenantId);
     return json({ ok: true });
   }

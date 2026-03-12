@@ -1,4 +1,4 @@
-import { eq, desc, and, sql, count } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 import type { DB } from "~/db";
 import {
   prds,
@@ -84,7 +84,7 @@ export class PrdStudioService {
     return { ...prd, sections };
   }
 
-  /** PRD 생성 + 8개 빈 섹션 자동 생성 — 생성된 ID 반환 */
+  /** PRD 생성 + 8개 빈 섹션 자동 생성 — 생성된 ID 반환 (batch INSERT) */
   async create(input: CreatePrdInput): Promise<string> {
     const id = crypto.randomUUID();
     await this.db.insert(prds).values({
@@ -96,15 +96,15 @@ export class PrdStudioService {
       status: PrdStatus.DRAFT,
     });
 
-    // 8개 섹션 자동 생성
-    for (const type of ALL_SECTION_TYPES) {
-      await this.db.insert(prdSections).values({
+    // 8개 섹션 batch INSERT
+    await this.db.insert(prdSections).values(
+      ALL_SECTION_TYPES.map((type) => ({
         id: crypto.randomUUID(),
         prdId: id,
         type,
         sortOrder: SECTION_SORT_ORDER[type] ?? 0,
-      });
-    }
+      })),
+    );
 
     return id;
   }
@@ -126,7 +126,7 @@ export class PrdStudioService {
 
   // ────────────── 인터뷰 ──────────────
 
-  /** 인터뷰 답변 저장 + interviewProgress 갱신 */
+  /** 인터뷰 답변 저장 + interviewProgress 원자적 갱신 */
   async saveSectionAnswer(prdId: string, sectionType: string, answer: string) {
     // 섹션 답변 저장
     await this.db
@@ -136,21 +136,11 @@ export class PrdStudioService {
         and(eq(prdSections.prdId, prdId), eq(prdSections.type, sectionType)),
       );
 
-    // 완료된 섹션 수 계산 → interviewProgress 갱신
-    const [result] = await this.db
-      .select({ filled: count() })
-      .from(prdSections)
-      .where(
-        and(
-          eq(prdSections.prdId, prdId),
-          sql`${prdSections.interviewAnswer} != ''`,
-        ),
-      );
-
+    // 원자적 서브쿼리로 interviewProgress 갱신 (동시성 경합 방지)
     await this.db
       .update(prds)
       .set({
-        interviewProgress: result?.filled ?? 0,
+        interviewProgress: sql`(SELECT COUNT(*) FROM prd_sections WHERE prd_id = ${prdId} AND interview_answer != '')`,
         updatedAt: sql`(unixepoch())`,
       })
       .where(eq(prds.id, prdId));

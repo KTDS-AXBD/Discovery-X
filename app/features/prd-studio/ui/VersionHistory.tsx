@@ -1,7 +1,8 @@
 import { useState } from "react";
 
 interface VersionHistoryProps {
-  prdId: string;
+  /** @deprecated 사용되지 않음 — 호출처 수정 후 제거 */
+  prdId?: string;
   versions: Array<{
     id: string;
     version: number;

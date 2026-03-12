@@ -1,8 +1,11 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
+import { PrdSectionType, PrdStatus } from "~/features/prd-studio/db/schema";
 import { PrdStudioService } from "~/features/prd-studio/service/prd-studio.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
+
+const VALID_SECTION_TYPES: Set<string> = new Set(Object.values(PrdSectionType));
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
   try {
@@ -55,6 +58,9 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
   if (!type) {
     return json({ error: "섹션 타입이 필요해요." }, { status: 400 });
   }
+  if (!VALID_SECTION_TYPES.has(type)) {
+    return json({ error: "유효하지 않은 섹션 타입이에요." }, { status: 400 });
+  }
 
   const service = new PrdStudioService(db);
   const prd = await service.getById(params.id!, ctx.tenantId);
@@ -63,6 +69,9 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
   }
   if (prd.createdBy !== ctx.user.id) {
     return json({ error: "본인의 PRD만 수정할 수 있어요." }, { status: 403 });
+  }
+  if (prd.status !== PrdStatus.DRAFT) {
+    return json({ error: "DRAFT 상태의 PRD만 인터뷰 답변을 수정할 수 있어요." }, { status: 400 });
   }
   await service.saveSectionAnswer(params.id!, type, answer ?? "");
 

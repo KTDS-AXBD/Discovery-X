@@ -4,6 +4,7 @@ import { eq, and } from "drizzle-orm";
 import { getDb } from "~/db";
 import { prdSections, PrdStatus, PrdSectionType } from "~/features/prd-studio/db/schema";
 import { PrdStudioService } from "~/features/prd-studio/service/prd-studio.service";
+import { BudgetEvaluator } from "~/features/cost/service/budget-evaluator";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 
 // ============================================================================
@@ -100,11 +101,21 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
     return json({ error: "AI API가 설정되지 않았어요." }, { status: 503 });
   }
 
+  const budgetEval = new BudgetEvaluator(db);
+  const budget = await budgetEval.evaluate(ctx.user.id, ctx.tenantId, "prd-studio");
+  if (budget.tier === "block") {
+    return json({
+      error: "이번 분기 AI 사용량이 한도에 도달했어요.",
+      errorType: "budget_blocked",
+    }, { status: 429 });
+  }
+
   // 사용자 프롬프트 조립
   const userPrompt = buildUserPrompt(prd.sections);
 
   // OpenAI 호출
   const controller = new AbortController();
+  // CF Workers 30초 타임아웃 대비 5초 마진 (PRD §7.1)
   const timeoutId = setTimeout(() => controller.abort(), 25000);
 
   try {
@@ -147,12 +158,19 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
       return json({ error: "AI 응답 형식이 올바르지 않아요." }, { status: 502 });
     }
 
-    // 각 섹션의 generatedContent 업데이트
-    for (const [type, content] of Object.entries(parsed.sections)) {
+    // 각 섹션의 generatedContent 업데이트 (유효 키만 처리)
+    const VALID_SECTION_TYPES: Set<string> = new Set(Object.values(PrdSectionType));
+    let sectionsGenerated = 0;
+    for (const [key, content] of Object.entries(parsed.sections)) {
+      if (!VALID_SECTION_TYPES.has(key)) {
+        console.warn(`[generate] Unknown section key: ${key}`);
+        continue;
+      }
       await db
         .update(prdSections)
         .set({ generatedContent: content })
-        .where(and(eq(prdSections.prdId, id), eq(prdSections.type, type)));
+        .where(and(eq(prdSections.prdId, id), eq(prdSections.type, key)));
+      sectionsGenerated++;
     }
 
     // PRD status → GENERATED
@@ -166,7 +184,7 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
       actorId: ctx.user.id,
     });
 
-    return json({ ok: true, sectionsGenerated: Object.keys(parsed.sections).length });
+    return json({ ok: true, sectionsGenerated });
   } catch (error) {
     clearTimeout(timeoutId);
     const message = error instanceof Error ? error.message : "Unknown error";

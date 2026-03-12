@@ -45,6 +45,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return redirect("/login");
   }
 
+  const env = context.cloudflare.env as unknown as Record<string, string>;
+  if (env.PRD_STUDIO_ENABLED === "false") {
+    throw new Response("PRD Studio is not enabled", { status: 403 });
+  }
+
   return json({ user: ctx.user });
 }
 

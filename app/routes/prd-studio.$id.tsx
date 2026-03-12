@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
-import { useLoaderData, useFetcher } from "@remix-run/react";
+import { useLoaderData, useFetcher, useRevalidator } from "@remix-run/react";
 import { getDb } from "~/db";
 import { PrdStudioService } from "~/features/prd-studio/service/prd-studio.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
@@ -9,28 +9,10 @@ import { INTERVIEW_SECTIONS } from "~/features/prd-studio/constants/interview-co
 import { PrdContentView } from "~/features/prd-studio/ui/PrdContentView";
 import { ReviewResults } from "~/features/prd-studio/ui/ReviewResults";
 import { VersionHistory } from "~/features/prd-studio/ui/VersionHistory";
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/** 상태 배지 */
-function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    DRAFT: { label: "작성 중", cls: "bg-yellow-100 text-yellow-800" },
-    GENERATED: { label: "생성됨", cls: "bg-blue-100 text-blue-800" },
-    IN_REVIEW: { label: "검토 중", cls: "bg-purple-100 text-purple-800" },
-    REVIEWED: { label: "검토 완료", cls: "bg-green-100 text-green-800" },
-    FINALIZED: { label: "확정", cls: "bg-emerald-100 text-emerald-800" },
-    ARCHIVED: { label: "보관", cls: "bg-gray-100 text-gray-500" },
-  };
-  const badge = map[status] ?? { label: status, cls: "bg-gray-100 text-gray-600" };
-  return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${badge.cls}`}>
-      {badge.label}
-    </span>
-  );
-}
+import { ErrorMessage } from "~/features/prd-studio/ui/ErrorMessage";
+import { StatusBadge } from "~/features/prd-studio/ui/StatusBadge";
+import { useEventTracking } from "~/features/prd-studio/hooks/useEventTracking";
+import { FAQSection } from "~/features/prd-studio/ui/FAQSection";
 
 /** localStorage 키 */
 function localKey(prdId: string, sectionType: string) {
@@ -70,12 +52,17 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 
 export default function PrdStudioInterview() {
   const { prd, sections, reviews, versions } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
   const generateFetcher = useFetcher();
   const reviewFetcher = useFetcher();
 
   const isGenerating = generateFetcher.state !== "idle";
   const isReviewing = reviewFetcher.state !== "idle";
+
+  const revalidator = useRevalidator();
+
+  // -- 이벤트 트래킹 -------------------------------------------------------
+  const { trackSectionComplete, trackPrdGenerated, trackReviewStart, trackReviewComplete } =
+    useEventTracking(prd.id);
 
   // -- state ---------------------------------------------------------------
   const [currentStep, setCurrentStep] = useState(() => {
@@ -99,7 +86,6 @@ export default function PrdStudioInterview() {
 
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastSavedTypeRef = useRef<string>("");
   const [exampleOpen, setExampleOpen] = useState(false);
 
   const config = INTERVIEW_SECTIONS[currentStep];
@@ -135,37 +121,31 @@ export default function PrdStudioInterview() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // -- fetcher state 추적 -------------------------------------------------
-  useEffect(() => {
-    if (fetcher.state === "submitting") {
-      setSaveStatus("saving");
-    } else if (fetcher.state === "idle" && fetcher.data) {
-      const data = fetcher.data as { ok?: boolean; error?: string };
-      if (data.ok) {
-        setSaveStatus("saved");
-        // 저장 성공 시 localStorage 정리 — 저장 시점의 type을 참조
-        if (lastSavedTypeRef.current) {
-          localStorage.removeItem(localKey(prd.id, lastSavedTypeRef.current));
-        }
-      } else {
-        setSaveStatus("error");
-      }
-    }
-  }, [fetcher.state, fetcher.data, prd.id]);
-
-  // -- 저장 함수 -----------------------------------------------------------
+  // -- 저장 함수 (직접 fetch — 섹션 전환 시 동시 저장 유실 방지) ---------------
   const saveAnswer = useCallback(
     (type: string, answer: string) => {
       // localStorage에 임시 저장 (네트워크 실패 대비)
       localStorage.setItem(localKey(prd.id, type), answer);
-      lastSavedTypeRef.current = type;
       setSaveStatus("saving");
-      fetcher.submit(
-        { type, answer },
-        { method: "PUT", action: `/api/prd-studio/${prd.id}/sections`, encType: "application/json" },
-      );
+      fetch(`/api/prd-studio/${prd.id}/sections`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type, answer }),
+      })
+        .then((res) => res.json() as Promise<{ ok?: boolean }>)
+        .then((data) => {
+          if (data.ok) {
+            setSaveStatus("saved");
+            localStorage.removeItem(localKey(prd.id, type));
+            const idx = INTERVIEW_SECTIONS.findIndex((c) => c.type === type);
+            if (idx >= 0) trackSectionComplete(type, idx);
+          } else {
+            setSaveStatus("error");
+          }
+        })
+        .catch(() => setSaveStatus("error"));
     },
-    [fetcher, prd.id],
+    [prd.id, trackSectionComplete],
   );
 
   // -- debounced 자동 저장 ------------------------------------------------
@@ -188,6 +168,27 @@ export default function PrdStudioInterview() {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, []);
+
+  // -- generate/review 완료 시 이벤트 트래킹 + revalidation ------------------
+  useEffect(() => {
+    if (generateFetcher.state === "idle" && generateFetcher.data) {
+      const data = generateFetcher.data as { ok?: boolean };
+      if (data.ok) {
+        trackPrdGenerated(INTERVIEW_SECTIONS.length);
+        revalidator.revalidate();
+      }
+    }
+  }, [generateFetcher.state, generateFetcher.data, trackPrdGenerated, revalidator]);
+
+  useEffect(() => {
+    if (reviewFetcher.state === "idle" && reviewFetcher.data) {
+      const data = reviewFetcher.data as { ok?: boolean; reviewCount?: number };
+      if (data.ok) {
+        trackReviewComplete(data.reviewCount ?? 0);
+        revalidator.revalidate();
+      }
+    }
+  }, [reviewFetcher.state, reviewFetcher.data, trackReviewComplete, revalidator]);
 
   // -- 네비게이션 ---------------------------------------------------------
   const goToStep = useCallback(
@@ -277,6 +278,7 @@ export default function PrdStudioInterview() {
                 onClick={() => goToStep(i)}
                 className={`w-8 h-8 rounded-full text-xs font-medium flex items-center justify-center transition-all cursor-pointer ${cls}`}
                 title={cfg.label}
+                aria-label={`${cfg.label} ${hasAnswer ? "(완료)" : "(미완료)"}`}
               >
                 {hasAnswer && !isCurrent ? (
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -333,6 +335,7 @@ export default function PrdStudioInterview() {
             value={currentAnswer}
             onChange={(e) => handleChange(e.target.value)}
             placeholder={config.placeholder}
+            aria-label={config.label}
             className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-fg placeholder:text-fg-tertiary focus:outline-none focus:ring-2 focus:ring-accent-fg resize-none"
             style={{ minHeight: "144px" }}
           />
@@ -389,6 +392,7 @@ export default function PrdStudioInterview() {
               type="button"
               disabled={isReviewing}
               onClick={() => {
+                trackReviewStart();
                 reviewFetcher.submit(
                   {},
                   { method: "POST", action: `/api/prd-studio/${prd.id}/review` },
@@ -412,7 +416,20 @@ export default function PrdStudioInterview() {
       {/* 검토 결과 (reviews 있을 때) */}
       {reviews.length > 0 && (
         <div className="border-t border-border pt-6">
-          <ReviewResults reviews={reviews} />
+          <ReviewResults
+            reviews={reviews}
+            onRetry={
+              prd.status === "GENERATED" || prd.status === "REVIEWED"
+                ? () => {
+                    trackReviewStart();
+                    reviewFetcher.submit(
+                      {},
+                      { method: "POST", action: `/api/prd-studio/${prd.id}/review` },
+                    );
+                  }
+                : undefined
+            }
+          />
         </div>
       )}
 
@@ -422,6 +439,11 @@ export default function PrdStudioInterview() {
           <VersionHistory prdId={prd.id} versions={versions} />
         </div>
       )}
+
+      {/* FAQ */}
+      <div className="border-t border-border pt-6">
+        <FAQSection />
+      </div>
 
       {/* 생성/검토 결과 메시지 */}
       {(() => {
@@ -435,9 +457,15 @@ export default function PrdStudioInterview() {
               </div>
             )}
             {genData?.error && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-                {genData.error}
-              </div>
+              <ErrorMessage
+                message={genData.error}
+                errorType={(genData as Record<string, unknown>).errorType as string | undefined}
+                onRetry={
+                  prd.status === "DRAFT"
+                    ? () => generateFetcher.submit({}, { method: "POST", action: `/api/prd-studio/${prd.id}/generate` })
+                    : undefined
+                }
+              />
             )}
             {revData?.ok && (
               <div className="rounded-lg border border-purple-200 bg-purple-50 p-3 text-sm text-purple-800">
@@ -445,9 +473,18 @@ export default function PrdStudioInterview() {
               </div>
             )}
             {revData?.error && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-                {revData.error}
-              </div>
+              <ErrorMessage
+                message={revData.error}
+                errorType={(revData as Record<string, unknown>).errorType as string | undefined}
+                onRetry={
+                  prd.status === "GENERATED" || prd.status === "REVIEWED"
+                    ? () => {
+                        trackReviewStart();
+                        reviewFetcher.submit({}, { method: "POST", action: `/api/prd-studio/${prd.id}/review` });
+                      }
+                    : undefined
+                }
+              />
             )}
           </>
         );

@@ -84,12 +84,15 @@ export function PrdOnboardingModal({ open, onComplete, onSkip }: PrdOnboardingMo
 
       {/* Card */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="prd-onboarding-title"
         className="fixed top-1/2 left-1/2 z-[10001] w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl border border-border bg-surface p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-base font-bold text-fg">PRD Studio \uAC00\uC774\uB4DC</h2>
+          <h2 id="prd-onboarding-title" className="text-base font-bold text-fg">PRD Studio \uAC00\uC774\uB4DC</h2>
           <span className="text-xs text-fg-tertiary">
             {step + 1} / {TOTAL_STEPS}
           </span>
@@ -98,8 +101,11 @@ export function PrdOnboardingModal({ open, onComplete, onSkip }: PrdOnboardingMo
         {/* Step indicator */}
         <div className="mb-5 flex items-center gap-2">
           {Array.from({ length: TOTAL_STEPS }, (_, i) => (
-            <div
+            <button
               key={i}
+              type="button"
+              aria-label={`스텝 ${i + 1}`}
+              onClick={() => setStep(i)}
               className={`h-1.5 rounded-full transition-all ${
                 i === step
                   ? "w-8 bg-[var(--axis-color-primary)]"

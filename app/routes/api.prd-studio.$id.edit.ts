@@ -2,7 +2,7 @@ import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { eq, and } from "drizzle-orm";
 import { getDb } from "~/db";
-import { prdSections, PrdStatus } from "~/features/prd-studio/db/schema";
+import { prdSections, PrdStatus, PrdSectionType } from "~/features/prd-studio/db/schema";
 import { PrdStudioService } from "~/features/prd-studio/service/prd-studio.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 
@@ -42,7 +42,14 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
   }
 
   // 각 섹션 editedContent 업데이트
+  const VALID_SECTION_TYPES: Set<string> = new Set(Object.values(PrdSectionType));
   for (const sec of body.sections) {
+    if (!VALID_SECTION_TYPES.has(sec.type)) {
+      return json({ error: "유효하지 않은 섹션 타입이에요." }, { status: 400 });
+    }
+    if (sec.content && sec.content.length > 10000) {
+      return json({ error: "섹션 내용은 10,000자를 초과할 수 없어요." }, { status: 400 });
+    }
     await db.update(prdSections)
       .set({ editedContent: sec.content })
       .where(and(eq(prdSections.prdId, id), eq(prdSections.type, sec.type)));

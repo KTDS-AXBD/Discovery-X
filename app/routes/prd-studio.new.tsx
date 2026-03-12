@@ -1,6 +1,7 @@
+import { useState } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
-import { Form, useActionData, useLoaderData } from "@remix-run/react";
+import { Form, useActionData, useLoaderData, useNavigation, Link } from "@remix-run/react";
 import { getDb } from "~/db";
 import { PrdStudioService } from "~/features/prd-studio/service/prd-studio.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
@@ -70,9 +71,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
 export default function PrdStudioNew() {
   const { idea } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
+  const [titleLen, setTitleLen] = useState(idea?.title?.length ?? 0);
 
   return (
     <div className="mx-auto max-w-lg p-6">
+      <Link to="/prd-studio" className="inline-flex items-center gap-1 text-sm text-fg-tertiary hover:text-fg mb-4">
+        ← 목록으로
+      </Link>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-fg">새 PRD 작성</h1>
         <p className="mt-2 text-sm text-fg-tertiary">
@@ -102,10 +109,13 @@ export default function PrdStudioNew() {
             name="title"
             type="text"
             required
+            maxLength={200}
             defaultValue={idea?.title ?? ""}
+            onChange={(e) => setTitleLen(e.target.value.length)}
             placeholder="예: 사내 실험 관리 시스템 MVP"
             className="mt-2 w-full rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-fg placeholder:text-fg-tertiary focus:border-accent-fg focus:outline-none focus:ring-1 focus:ring-accent-fg"
           />
+          <span className="text-xs text-fg-tertiary">{titleLen}/200</span>
           {actionData?.error && (
             <p className="mt-2 text-sm text-red-500">{actionData.error}</p>
           )}
@@ -114,9 +124,10 @@ export default function PrdStudioNew() {
         {/* 제출 */}
         <button
           type="submit"
-          className="w-full rounded-lg bg-btn-bg px-4 py-2.5 text-sm font-medium text-btn-text transition-colors hover:bg-btn-bg-hover"
+          disabled={isSubmitting}
+          className="w-full rounded-lg bg-btn-bg px-4 py-2.5 text-sm font-medium text-btn-text transition-colors hover:bg-btn-bg-hover disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          PRD 시작
+          {isSubmitting ? "생성 중..." : "PRD 시작"}
         </button>
       </Form>
     </div>

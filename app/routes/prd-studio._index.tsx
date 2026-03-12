@@ -1,9 +1,12 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
+import { useState, useCallback } from "react";
 import { useLoaderData, Link, useFetcher } from "@remix-run/react";
 import { getDb } from "~/db";
 import { PrdStudioService } from "~/features/prd-studio/service/prd-studio.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
+import { StatusBadge } from "~/features/prd-studio/ui/StatusBadge";
+import { ConfirmDialog } from "~/features/prd-studio/ui/ConfirmDialog";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDb(context.cloudflare.env.DB);
@@ -20,26 +23,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
     return json({ prds });
   } catch {
-    return json({ prds: [] });
+    return json({ prds: [], error: "PRD 목록을 불러오지 못했어요." });
   }
-}
-
-/** 상태 배지 색상 */
-function statusBadge(status: string) {
-  const map: Record<string, { label: string; cls: string }> = {
-    DRAFT: { label: "작성 중", cls: "bg-yellow-100 text-yellow-800" },
-    GENERATED: { label: "생성됨", cls: "bg-blue-100 text-blue-800" },
-    IN_REVIEW: { label: "검토 중", cls: "bg-purple-100 text-purple-800" },
-    REVIEWED: { label: "검토 완료", cls: "bg-green-100 text-green-800" },
-    FINALIZED: { label: "확정", cls: "bg-emerald-100 text-emerald-800" },
-    ARCHIVED: { label: "보관", cls: "bg-gray-100 text-gray-500" },
-  };
-  const badge = map[status] ?? { label: status, cls: "bg-gray-100 text-gray-600" };
-  return (
-    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${badge.cls}`}>
-      {badge.label}
-    </span>
-  );
 }
 
 import { formatDate as formatDateKST } from "~/lib/format-date";
@@ -52,8 +37,28 @@ function formatDate(ts: string | number | null) {
 }
 
 export default function PrdStudioIndex() {
-  const { prds } = useLoaderData<typeof loader>();
+  const { prds, error } = useLoaderData<typeof loader>() as {
+    prds: Array<{
+      id: string;
+      title: string;
+      status: string;
+      version: number;
+      interviewProgress: number;
+      createdAt: string | number | null;
+    }>;
+    error?: string;
+  };
   const deleteFetcher = useFetcher();
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
+
+  const handleDeleteConfirm = useCallback(() => {
+    if (!deleteTarget) return;
+    deleteFetcher.submit(
+      { id: deleteTarget.id },
+      { method: "DELETE", action: "/api/prd-studio", encType: "application/json" },
+    );
+    setDeleteTarget(null);
+  }, [deleteTarget, deleteFetcher]);
 
   return (
     <div className="mx-auto max-w-4xl p-6 space-y-6">
@@ -76,9 +81,14 @@ export default function PrdStudioIndex() {
         </Link>
       </div>
 
+      {/* Loader 에러 */}
+      {error && (
+        <div className="rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800">{error}</div>
+      )}
+
       {/* PRD 목록 */}
       {prds.length > 0 ? (
-        <div className="overflow-hidden rounded-lg border border-border">
+        <div className="overflow-x-auto overflow-hidden rounded-lg border border-border">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-surface-secondary">
@@ -91,15 +101,11 @@ export default function PrdStudioIndex() {
               </tr>
             </thead>
             <tbody>
-              {prds.map((prd: {
-                id: string;
-                title: string;
-                status: string;
-                version: number;
-                interviewProgress: number;
-                createdAt: string | number | null;
-              }) => (
-                <tr key={prd.id} className="border-b border-border last:border-b-0 hover:bg-surface-secondary/50 transition-colors">
+              {prds.map((prd) => {
+                const isDeleting = deleteFetcher.state !== "idle" &&
+                  (deleteFetcher.json as Record<string, unknown> | undefined)?.id === prd.id;
+                return (
+                <tr key={prd.id} className={`border-b border-border last:border-b-0 hover:bg-surface-secondary/50 transition-colors ${isDeleting ? "opacity-50 pointer-events-none" : ""}`}>
                   <td className="px-4 py-3">
                     <Link
                       to={`/prd-studio/${prd.id}`}
@@ -108,7 +114,7 @@ export default function PrdStudioIndex() {
                       {prd.title}
                     </Link>
                   </td>
-                  <td className="px-4 py-3">{statusBadge(prd.status)}</td>
+                  <td className="px-4 py-3"><StatusBadge status={prd.status} /></td>
                   <td className="px-4 py-3 text-center text-fg-secondary">v{prd.version}</td>
                   <td className="px-4 py-3 text-center">
                     <span className="text-fg-secondary">{prd.interviewProgress}/8</span>
@@ -123,21 +129,16 @@ export default function PrdStudioIndex() {
                   <td className="px-4 py-3 text-right">
                     <button
                       type="button"
-                      onClick={() => {
-                        if (confirm("정말 삭제할까요?")) {
-                          deleteFetcher.submit(
-                            { id: prd.id },
-                            { method: "DELETE", action: "/api/prd-studio", encType: "application/json" },
-                          );
-                        }
-                      }}
-                      className="text-xs text-fg-tertiary hover:text-red-500 transition-colors"
+                      disabled={isDeleting}
+                      onClick={() => setDeleteTarget({ id: prd.id, title: prd.title })}
+                      className="text-xs text-fg-tertiary hover:text-red-500 transition-colors disabled:opacity-50"
                     >
-                      삭제
+                      {isDeleting ? "삭제 중..." : "삭제"}
                     </button>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -166,6 +167,16 @@ export default function PrdStudioIndex() {
           </Link>
         </div>
       )}
+      {/* 삭제 확인 모달 */}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="PRD 삭제"
+        description={`"${deleteTarget?.title ?? ""}"을(를) 삭제할까요? 삭제하면 복구할 수 없어요.`}
+        confirmLabel="삭제"
+        variant="danger"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

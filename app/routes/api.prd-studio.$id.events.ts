@@ -12,32 +12,37 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
     return json({ error: "Method not allowed" }, { status: 405 });
   }
 
-  const db = getDb(context.cloudflare.env.DB);
-  const secret = getSessionSecret(context.cloudflare.env);
-  const ctx = await getSessionContext(request, db, secret);
-  if (!ctx) {
-    return json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const db = getDb(context.cloudflare.env.DB);
+    const secret = getSessionSecret(context.cloudflare.env);
+    const ctx = await getSessionContext(request, db, secret);
+    if (!ctx) {
+      return json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = (await request.json()) as Record<string, unknown>;
+    const eventType = body.eventType as string;
+
+    if (!eventType || !VALID_EVENT_TYPES.has(eventType)) {
+      return json({ error: "유효하지 않은 이벤트 타입이에요." }, { status: 400 });
+    }
+
+    const service = new PrdStudioService(db);
+    const prd = await service.getById(params.id!, ctx.tenantId);
+    if (!prd) {
+      return json({ error: "PRD를 찾을 수 없어요." }, { status: 404 });
+    }
+    await service.logEvent({
+      prdId: params.id!,
+      tenantId: ctx.tenantId,
+      eventType,
+      actorId: ctx.user.id,
+      payload: (body.payload as Record<string, unknown>) ?? undefined,
+    });
+
+    return json({ ok: true });
+  } catch (error) {
+    console.error("[api.prd-studio.events] Error:", error instanceof Error ? error.message : error);
+    return json({ error: "이벤트 기록 중 오류가 발생했어요." }, { status: 500 });
   }
-
-  const body = (await request.json()) as Record<string, unknown>;
-  const eventType = body.eventType as string;
-
-  if (!eventType || !VALID_EVENT_TYPES.has(eventType)) {
-    return json({ error: "\uC720\uD6A8\uD558\uC9C0 \uC54A\uC740 \uC774\uBCA4\uD2B8 \uD0C0\uC785\uC774\uC5D0\uC694." }, { status: 400 });
-  }
-
-  const service = new PrdStudioService(db);
-  const prd = await service.getById(params.id!, ctx.tenantId);
-  if (!prd) {
-    return json({ error: "PRD를 찾을 수 없어요." }, { status: 404 });
-  }
-  await service.logEvent({
-    prdId: params.id!,
-    tenantId: ctx.tenantId,
-    eventType,
-    actorId: ctx.user.id,
-    payload: (body.payload as Record<string, unknown>) ?? undefined,
-  });
-
-  return json({ ok: true });
 }

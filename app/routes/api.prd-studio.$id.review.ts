@@ -4,6 +4,7 @@ import { getDb } from "~/db";
 import { PrdStatus } from "~/features/prd-studio/db/schema";
 import { PrdStudioService } from "~/features/prd-studio/service/prd-studio.service";
 import type { ReviewFeedbackItem, ReviewScorecard } from "~/features/prd-studio/types";
+import { BudgetEvaluator } from "~/features/cost/service/budget-evaluator";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 
 // ============================================================================
@@ -109,8 +110,20 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
     return json({ error: "AI API 키가 설정되지 않았어요." }, { status: 503 });
   }
 
+  const budgetEval = new BudgetEvaluator(db);
+  const budget = await budgetEval.evaluate(ctx.user.id, ctx.tenantId, "prd-studio");
+  if (budget.tier === "block") {
+    return json({
+      error: "이번 분기 AI 사용량이 한도에 도달했어요.",
+      errorType: "budget_blocked",
+    }, { status: 429 });
+  }
+
   // PRD 텍스트 조립 (editedContent 우선, 없으면 generatedContent)
   const prdText = buildPrdText(prd.sections);
+
+  // 상태 전환: IN_REVIEW (검토 진행 중 표시)
+  await service.update(id, { status: PrdStatus.IN_REVIEW });
 
   // 이벤트: review_start
   await service.logEvent({
@@ -218,6 +231,7 @@ async function callReviewModel(
 
   try {
     let responseText: string;
+    let apiTokens: number | null = null;
 
     if (model.provider === "openai") {
       const resp = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -241,10 +255,13 @@ async function callReviewModel(
       if (!resp.ok) throw new Error(`OpenAI ${resp.status}`);
       const data = (await resp.json()) as {
         choices: Array<{ message: { content: string } }>;
+        usage?: { total_tokens?: number };
       };
       responseText = data.choices[0]?.message?.content ?? "";
+      apiTokens = data.usage?.total_tokens ?? null;
     } else {
       // Google Gemini
+      // Gemini API 표준 인증: URL 쿼리 파라미터 방식 (OAuth2 서비스 계정 전환 시 Authorization 헤더로 이동 가능)
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model.model}:generateContent?key=${apiKey}`;
       const resp = await fetch(url, {
         method: "POST",
@@ -282,7 +299,7 @@ async function callReviewModel(
       feedbackItems: parsed.feedbackItems ?? parsed.feedback_items ?? [],
       scorecard: parsed.scorecard,
       raw: responseText,
-      tokens: parsed.tokens ?? null,
+      tokens: apiTokens,
       latency,
     };
   } catch (error) {
