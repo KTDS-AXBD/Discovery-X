@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 396 (2026-03-14)
+**프로젝트 폴더 정리 + 정리 자동화 체계 구축**:
+- ✅ Zone.Identifier 3개 + .dev.vars.example(중복) + docs/req-interview/(중복 스킬) 삭제
+- ✅ docs/prd-studio/ 중간 PRD(v1~v10) + review 10라운드(70파일) → docs/archive/ 이동
+- ✅ docs/req-review-upgrade/ 중간 산출물(22파일) → archive/ 이동
+- ✅ llm-quality-comparison.json → scripts/ 이동 (문서→스크립트 출력물 위치 보정)
+- ✅ build/ + .team-tmp/ 삭제 (gitignored 임시 파일)
+- ✅ `/ax-14-req-interview` Phase 5 추가 — prd-final.md 생성 후 중간 산출물 자동 archive
+- ✅ `/ax-02-end` Phase 0e 추가 — 매 세션 Zone.Identifier + .team-tmp 자동 정리
+- ✅ `/ax-13-selfcheck` C8 추가 — Project Hygiene 점검 (임시파일/문서위치/PRD미정리/중복템플릿)
+- ✅ ax-a02-migration 에이전트 — 프로덕션 D1 동기화 검증 추가
+- ✅ ax-config push 완료 (SKILL.md + commands 2개)
+
 ### 세션 395 (2026-03-14)
 **CLAUDE.md 자동 동기화 체계 구축 + PreToolUse 보안 Guard**:
 - ✅ CLAUDE.md 7건 drift 해소 (스키마 머지, BC 수, 스킬, SSR external, 환경 변수)
