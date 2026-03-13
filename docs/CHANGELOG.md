@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 395 (2026-03-14)
+**CLAUDE.md 자동 동기화 체계 구축 + PreToolUse 보안 Guard**:
+- ✅ CLAUDE.md 7건 drift 해소 (스키마 머지, BC 수, 스킬, SSR external, 환경 변수)
+- ✅ `/ax-02-end` Phase 0c 신설 — 열거형 10항목 자동 검증 (BC/스키마/스킬/에이전트/SSR/환경변수)
+- ✅ `/ax-02-end` Phase 4 step 5 — MEMORY.md BC/스키마 정합성 체크
+- ✅ PreToolUse Guard Hook — `.dev.vars` + `drizzle/*.sql` 편집 차단
+- ✅ PostToolUse 보강 — 스키마/타입/auth 변경 시 typecheck 자동 (timeout 10s→60s)
+- ✅ PostToolUse Bash — 마이그레이션 ↔ test helper 수량 불일치 자동 경고
+- ✅ MEMORY.md BC 구조 현황 동기화 (14→15 BC, 스키마 14개, ui 13개)
+
+**검증 결과**:
+- ⏭️ docs 전용 세션 — typecheck/lint/test/build 해당 없음
+
 ### 세션 394 (2026-03-13)
 **F41 PDCA Report + Agentation 개발 도구 적용**:
 - ✅ DX-RPRT-006: F41 아이템 수집 시스템 고도화 완료 보고서 생성 (13세션, 94.9% Match Rate, 276 테스트)
