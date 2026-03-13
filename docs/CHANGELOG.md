@@ -12,9 +12,14 @@
 - ✅ PostToolUse 보강 — 스키마/타입/auth 변경 시 typecheck 자동 (timeout 10s→60s)
 - ✅ PostToolUse Bash — 마이그레이션 ↔ test helper 수량 불일치 자동 경고
 - ✅ MEMORY.md BC 구조 현황 동기화 (14→15 BC, 스키마 14개, ui 13개)
+- ✅ `/ax-13-selfcheck` 실행 — 7/7 PASS (C2 분석 오류 정정)
+- ✅ `.gitignore` 보강 — `.agents/`, `.claude/agent-memory/`, agentation symlink 제외
+- ✅ CLAUDE.md agentation 스킬 출처 주석 추가 (bkit 외부 도구 → symlink)
+- ✅ `/ax-05-sync config` 버그 수정 — `skills/` + `rules/` 동기화 대상 누락 해소 (5곳)
+- ✅ ax-config push 완료 (f281e3c → origin/main)
 
 **검증 결과**:
-- ⏭️ docs 전용 세션 — typecheck/lint/test/build 해당 없음
+- ⏭️ 인프라/docs 전용 세션 — typecheck/lint/test/build 해당 없음
 
 ### 세션 394 (2026-03-13)
 **F41 PDCA Report + Agentation 개발 도구 적용**:
