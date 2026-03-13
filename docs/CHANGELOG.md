@@ -3,6 +3,15 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 394 (2026-03-13)
+**F41 PDCA Report + Agentation 개발 도구 적용**:
+- ✅ DX-RPRT-006: F41 아이템 수집 시스템 고도화 완료 보고서 생성 (13세션, 94.9% Match Rate, 276 테스트)
+- ✅ docs/INDEX.md: DX-ANLS-013/014/017 + DX-RPRT-006 등록 (52→56 문서)
+- ✅ Agentation 개발 도구: npm 설치 + root.tsx DEV 전용 lazy 로딩 + Claude Code 스킬 2개
+
+**검증 결과**:
+- ✅ typecheck: 0 에러 / lint: 0 에러 / tests: 2,584개 100% PASS / build: 성공
+
 ### 세션 393b (2026-03-13)
 **F44 GAP iterate — GtmCard 상세보기 + Phase 3 통합 테스트 13개 (DX-REQ-015)**:
 - ✅ GtmStrategyCard "상세 보기" 버튼 추가 (G17-3b 해소)
