@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 390 (2026-03-13)
+
+**F41 일괄 편집 — AI 소스 분류 추천 + 검토 + 적용 (DX-REQ-012)**:
+- ✅ SourceClassifier: LLM 기반 소스→도메인/폴더 분류 추천 (5건 배치, confidence clamp, 비용 추적)
+- ✅ api.radar.health.classify: classify(AI 실행) + apply(일괄 적용, 신규 폴더 자동 생성)
+- ✅ ClassificationPanel: OperationActions 내 3-state UI (idle→loading→review), overrides+useMemo 파생
+- ✅ getUnclassifiedSources: LEFT JOIN domains/folders, __manual__ 제외, getDashboardData 확장
+- ✅ 테스트 21개 추가 (source-classifier 16 + health-metrics 5), Agent Team 2회×2W
+
+**검증 결과**:
+- ✅ typecheck 0 errors / lint 0 errors / 2,534 tests passed / build 성공
+- ✅ 갭 분석 98% (gap-detector)
+
 ### 세션 389 (2026-03-13)
 
 **F44 Phase 3 — 아이디어 분석 대체 (claude -p + PRD 프로세스, DX-REQ-015)**:
