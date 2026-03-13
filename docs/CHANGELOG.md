@@ -3,6 +3,15 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 393b (2026-03-13)
+**F44 GAP iterate — GtmCard 상세보기 + Phase 3 통합 테스트 13개 (DX-REQ-015)**:
+- ✅ GtmStrategyCard "상세 보기" 버튼 추가 (G17-3b 해소)
+- ✅ Phase 3 통합 테스트 13개 (T54-T68: enqueue/status/cancel/processNext/complete/fail)
+- ✅ 테스트: 2,571 → 2,584 (+13)
+
+**검증 결과**:
+- ✅ typecheck: 0 에러 / lint: 0 에러 / tests: 2,584개 100% PASS
+
 ### 세션 393 (2026-03-13)
 **F44 Phase 4 갭 해소 + PDCA Report — realtime wiring + GtmCard UI + 통합 테스트 (DX-REQ-015)**:
 - ✅ Strategy route: mode=realtime 시 StrategyRealtimeService 인라인 호출 + 즉시 결과 반환
