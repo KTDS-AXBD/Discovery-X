@@ -2,6 +2,7 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
 import { PrdStudioService } from "~/features/prd-studio/service/prd-studio.service";
+import { IdeaService } from "~/features/ideas/service/idea.service";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 
 // ============================================================================
@@ -19,6 +20,13 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const ideaId = params.ideaId;
   if (!ideaId) {
     return json({ error: "ideaId 파라미터 필요" }, { status: 400 });
+  }
+
+  // 테넌트 격리: 아이디어 소유 확인
+  const ideaService = new IdeaService(db);
+  const idea = await ideaService.getById(ideaId);
+  if (!idea || idea.tenantId !== ctx.tenantId) {
+    return json({ error: "아이디어를 찾을 수 없어요." }, { status: 404 });
   }
 
   const service = new PrdStudioService(db);

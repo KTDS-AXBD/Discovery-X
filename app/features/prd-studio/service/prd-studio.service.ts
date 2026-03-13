@@ -367,10 +367,34 @@ export class PrdStudioService {
     }
 
     if (item.status === AnalysisQueueStatus.COMPLETED) {
+      // PRD 제목 + 리뷰 데이터 fetch
+      let prdTitle: string | null = null;
+      let reviewData: { verdict: string; totalScore: number; feedbackCount: number } | null = null;
+
+      if (item.prdId) {
+        const prd = await this.db.select({ title: prds.title }).from(prds).where(eq(prds.id, item.prdId)).get();
+        prdTitle = prd?.title ?? null;
+
+        const review = await this.db
+          .select({ verdict: prdReviews.verdict, scorecard: prdReviews.scorecard, feedbackItems: prdReviews.feedbackItems })
+          .from(prdReviews)
+          .where(eq(prdReviews.prdId, item.prdId))
+          .orderBy(desc(prdReviews.createdAt))
+          .get();
+
+        if (review?.verdict && review.scorecard) {
+          const sc = review.scorecard as ReviewScorecard;
+          const fb = (review.feedbackItems ?? []) as ReviewFeedbackItem[];
+          reviewData = { verdict: review.verdict, totalScore: sc.totalScore, feedbackCount: fb.length };
+        }
+      }
+
       return {
         status: "COMPLETED" as const,
         queueId: item.id,
         prdId: item.prdId,
+        prdTitle,
+        reviewData,
         completedAt: item.completedAt,
       };
     }

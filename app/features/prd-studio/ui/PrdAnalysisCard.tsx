@@ -4,6 +4,12 @@ import { StatusBadge } from "./StatusBadge";
 
 // ── Types ──────────────────────────────────────────────────────────────
 
+interface ReviewData {
+  verdict: string;
+  totalScore: number;
+  feedbackCount: number;
+}
+
 interface AnalysisStatus {
   status: "none" | "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
   queueId?: string;
@@ -11,18 +17,16 @@ interface AnalysisStatus {
   requestedAt?: number | string;
   startedAt?: number | string;
   prdId?: string;
+  prdTitle?: string;
+  reviewData?: ReviewData | null;
   completedAt?: number | string;
   error?: string;
-}
-
-interface CompletedResult {
-  prdTitle?: string;
-  verdict?: string;
 }
 
 interface PrdAnalysisCardProps {
   ideaId: string;
   selectedSourceCount: number;
+  onOpenProposalModal?: () => void;
 }
 
 // ── Polling Hook ───────────────────────────────────────────────────────
@@ -41,7 +45,6 @@ function useAnalysisPolling(ideaId: string) {
 
   useEffect(() => {
     fetchStatus();
-    // PENDING/PROCESSING일 때만 polling
     const shouldPoll = status.status === "PENDING" || status.status === "PROCESSING";
     if (!shouldPoll) return;
 
@@ -52,50 +55,20 @@ function useAnalysisPolling(ideaId: string) {
   return { status, loading, refetch: fetchStatus };
 }
 
+// ── Verdict Config ─────────────────────────────────────────────────────
+
+const VERDICT_STYLES: Record<string, { label: string; className: string }> = {
+  READY: { label: "착수 가능", className: "text-green-600 bg-green-50 border-green-200" },
+  CONDITIONAL: { label: "조건부 착수", className: "text-yellow-600 bg-yellow-50 border-yellow-200" },
+  NOT_READY: { label: "재작성 필요", className: "text-red-600 bg-red-50 border-red-200" },
+};
+
 // ── Component ──────────────────────────────────────────────────────────
 
-export function PrdAnalysisCard({ ideaId, selectedSourceCount }: PrdAnalysisCardProps) {
+export function PrdAnalysisCard({ ideaId, selectedSourceCount, onOpenProposalModal }: PrdAnalysisCardProps) {
   const { status: analysisStatus, loading, refetch } = useAnalysisPolling(ideaId);
   const [requesting, setRequesting] = useState(false);
-  const [completedResult, setCompletedResult] = useState<CompletedResult | null>(null);
   const [expanded, setExpanded] = useState(false);
-
-  // COMPLETED 상태일 때 PRD 상세 데이터 fetch
-  useEffect(() => {
-    if (analysisStatus.status !== "COMPLETED" || !analysisStatus.prdId) return;
-
-    fetch(`/api/prd-studio/${analysisStatus.prdId}/sections`)
-      .then((r) => r.json() as Promise<Record<string, unknown>>)
-      .then(() => {
-        // 큐에 저장된 결과로 표시 (별도 API 호출 불필요)
-        fetch(`/api/prd-studio/analyze-idea/${ideaId}/status`)
-          .then((r) => r.json() as Promise<AnalysisStatus & { resultReview?: CompletedResult }>)
-          .catch(() => {});
-      })
-      .catch(() => {});
-  }, [analysisStatus.status, analysisStatus.prdId, ideaId]);
-
-  // 리뷰 데이터 fetch (COMPLETED 시)
-  useEffect(() => {
-    if (analysisStatus.status !== "COMPLETED" || !analysisStatus.prdId) {
-      setCompletedResult(null);
-      return;
-    }
-
-    fetch(`/api/prd-studio/${analysisStatus.prdId}/review-summary`)
-      .catch(() => {});
-
-    // PRD reviews에서 가져오기
-    fetch(`/api/prd-studio`)
-      .then((r) => r.json() as Promise<{ prds: Array<{ id: string; title: string; finalRating: number | null; status: string }> }>)
-      .then((data) => {
-        const prd = data.prds?.find((p) => p.id === analysisStatus.prdId);
-        if (prd) {
-          setCompletedResult({ prdTitle: prd.title, verdict: prd.status });
-        }
-      })
-      .catch(() => {});
-  }, [analysisStatus.status, analysisStatus.prdId]);
 
   const handleRequestAnalysis = useCallback(async () => {
     setRequesting(true);
@@ -105,9 +78,7 @@ export function PrdAnalysisCard({ ideaId, selectedSourceCount }: PrdAnalysisCard
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ideaId }),
       });
-      if (res.ok) {
-        refetch();
-      }
+      if (res.ok) refetch();
     } finally {
       setRequesting(false);
     }
@@ -119,7 +90,6 @@ export function PrdAnalysisCard({ ideaId, selectedSourceCount }: PrdAnalysisCard
   }, [ideaId, refetch]);
 
   const handleRetry = useCallback(async () => {
-    // 재분석: 새 요청
     setRequesting(true);
     try {
       const res = await fetch("/api/prd-studio/analyze-idea", {
@@ -127,9 +97,7 @@ export function PrdAnalysisCard({ ideaId, selectedSourceCount }: PrdAnalysisCard
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ideaId }),
       });
-      if (res.ok) {
-        refetch();
-      }
+      if (res.ok) refetch();
     } finally {
       setRequesting(false);
     }
@@ -157,8 +125,7 @@ export function PrdAnalysisCard({ ideaId, selectedSourceCount }: PrdAnalysisCard
             <StatusBadge status={
               analysisStatus.status === "COMPLETED" ? "REVIEWED" :
               analysisStatus.status === "PROCESSING" ? "IN_REVIEW" :
-              analysisStatus.status === "PENDING" ? "DRAFT" :
-              analysisStatus.status === "FAILED" ? "DRAFT" : "DRAFT"
+              analysisStatus.status === "PENDING" ? "DRAFT" : "DRAFT"
             } />
           )}
         </div>
@@ -177,7 +144,7 @@ export function PrdAnalysisCard({ ideaId, selectedSourceCount }: PrdAnalysisCard
           {analysisStatus.status === "PROCESSING" && "분석 진행 중..."}
           {analysisStatus.status === "COMPLETED" && (
             <Link to={`/prd-studio/${analysisStatus.prdId}`} className="text-accent-fg hover:underline">
-              {completedResult?.prdTitle ?? "PRD 보기"} →
+              {analysisStatus.prdTitle ?? "PRD 보기"} →
             </Link>
           )}
           {analysisStatus.status === "FAILED" && `실패: ${analysisStatus.error ?? "알 수 없는 오류"}`}
@@ -232,11 +199,7 @@ export function PrdAnalysisCard({ ideaId, selectedSourceCount }: PrdAnalysisCard
               <p className="text-xs text-fg-tertiary">
                 로컬 배치 프로세서가 순차 처리해요. 잠시 기다려주세요.
               </p>
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="text-xs text-fg-tertiary hover:text-red-500 transition-colors"
-              >
+              <button type="button" onClick={handleCancel} className="text-xs text-fg-tertiary hover:text-red-500 transition-colors">
                 취소
               </button>
             </>
@@ -263,14 +226,52 @@ export function PrdAnalysisCard({ ideaId, selectedSourceCount }: PrdAnalysisCard
             <>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-fg">
-                  {completedResult?.prdTitle ?? "PRD 분석 완료"}
+                  {analysisStatus.prdTitle ?? "PRD 분석 완료"}
                 </span>
                 <StatusBadge status="REVIEWED" />
               </div>
 
-              {/* Score bars (if available from loaded PRD) */}
-              <CompletedReviewSummary prdId={analysisStatus.prdId} />
+              {/* Verdict badge + score */}
+              {analysisStatus.reviewData && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    {(() => {
+                      const v = VERDICT_STYLES[analysisStatus.reviewData.verdict];
+                      return v ? (
+                        <span className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium ${v.className}`}>
+                          {v.label}
+                          <span className="opacity-70">({analysisStatus.reviewData.totalScore}/100)</span>
+                        </span>
+                      ) : null;
+                    })()}
+                    <span className="text-xs text-fg-tertiary">
+                      Claude Sonnet 4.6 · 피드백 {analysisStatus.reviewData.feedbackCount}건
+                    </span>
+                  </div>
 
+                  {/* Score bar */}
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-2 rounded-full bg-surface-secondary overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          analysisStatus.reviewData.totalScore >= 80 ? "bg-green-500" :
+                          analysisStatus.reviewData.totalScore >= 60 ? "bg-yellow-500" : "bg-red-500"
+                        }`}
+                        style={{ width: `${analysisStatus.reviewData.totalScore}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-medium text-fg-secondary w-12 text-right">
+                      {analysisStatus.reviewData.totalScore}점
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {!analysisStatus.reviewData && (
+                <p className="text-xs text-fg-tertiary">PRD 상세 페이지에서 스코어카드와 피드백을 확인하세요.</p>
+              )}
+
+              {/* Action buttons */}
               <div className="flex items-center gap-2">
                 <Link
                   to={`/prd-studio/${analysisStatus.prdId}`}
@@ -278,6 +279,15 @@ export function PrdAnalysisCard({ ideaId, selectedSourceCount }: PrdAnalysisCard
                 >
                   PRD 상세 보기
                 </Link>
+                {onOpenProposalModal && (
+                  <button
+                    type="button"
+                    onClick={onOpenProposalModal}
+                    className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-fg-secondary transition-colors hover:bg-surface-secondary"
+                  >
+                    사업제안 생성
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={handleRetry}
@@ -297,9 +307,7 @@ export function PrdAnalysisCard({ ideaId, selectedSourceCount }: PrdAnalysisCard
                 <div className="h-2 w-2 rounded-full bg-red-500" />
                 <span className="text-sm text-red-600">분석에 실패했어요</span>
               </div>
-              <p className="text-xs text-fg-tertiary">
-                오류: {analysisStatus.error ?? "알 수 없는 오류"}
-              </p>
+              <p className="text-xs text-fg-tertiary">오류: {analysisStatus.error ?? "알 수 없는 오류"}</p>
               <button
                 type="button"
                 onClick={handleRetry}
@@ -313,15 +321,5 @@ export function PrdAnalysisCard({ ideaId, selectedSourceCount }: PrdAnalysisCard
         </div>
       )}
     </div>
-  );
-}
-
-// ── Sub-Component: Completed Review Summary ────────────────────────────
-
-function CompletedReviewSummary({ prdId: _prdId }: { prdId: string }) {
-  return (
-    <p className="text-xs text-fg-tertiary">
-      PRD 상세 페이지에서 스코어카드와 피드백을 확인하세요.
-    </p>
   );
 }

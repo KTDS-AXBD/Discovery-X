@@ -606,6 +606,7 @@ export default function IdeaDetail() {
           <PrdAnalysisCard
             ideaId={ideaId}
             selectedSourceCount={selectedSourceIds.length}
+            onOpenProposalModal={() => setProposalModalOpen(true)}
           />
         )}
 
