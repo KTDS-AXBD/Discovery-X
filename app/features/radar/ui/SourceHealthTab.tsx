@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { HealthSummaryCards } from "./HealthSummaryCards";
 import { OperationActions } from "./OperationActions";
 import { HealthScoreBadge } from "./HealthScoreBadge";
-import type { HealthSummary, SourceHealthRow, TrendData, DomainCoverage } from "~/features/radar/service/health-metrics";
+import type { HealthSummary, SourceHealthRow, TrendData, DomainCoverage, UnclassifiedSource } from "~/features/radar/service/health-metrics";
 
 // ============================================================================
 // Types
@@ -18,6 +18,7 @@ interface DashboardData {
   sources: SourceHealthRow[];
   trend: TrendData[];
   domainCoverage: DomainCoverage[];
+  unclassified: UnclassifiedSource[];
 }
 
 type SortKey = "health-desc" | "health-asc" | "items-desc" | "name-asc";
@@ -117,7 +118,7 @@ export function SourceHealthTab({ tenantId, isGatekeeper }: SourceHealthTabProps
       {isGatekeeper && (
         <div>
           <h3 className="mb-3 text-sm font-semibold text-fg-secondary">운영 액션</h3>
-          <OperationActions sources={data.sources} domainCoverage={data.domainCoverage} isGatekeeper={isGatekeeper} />
+          <OperationActions sources={data.sources} domainCoverage={data.domainCoverage} unclassified={data.unclassified} isGatekeeper={isGatekeeper} />
         </div>
       )}
 

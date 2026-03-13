@@ -26,6 +26,8 @@ import {
   radarItemMetrics,
   radarDomains,
   radarSourceDomains,
+  radarFolders,
+  radarSourceFolders,
 } from "~/features/radar/db/schema";
 import { MIN_ITEMS_FOR_HEALTH } from "~/features/radar/service/health-score";
 
@@ -72,6 +74,18 @@ function seedSource(id: string, status = "ACTIVE") {
       status,
       collectionType: "auto",
     })
+    .run();
+}
+
+function seedFolder(id: string, name: string) {
+  db.insert(radarFolders)
+    .values({ id, name, tenantId: TENANT_ID })
+    .run();
+}
+
+function seedSourceFolder(sourceId: string, folderId: string) {
+  db.insert(radarSourceFolders)
+    .values({ id: `rsf-${sourceId}-${folderId}`, sourceId, folderId })
     .run();
 }
 
@@ -530,6 +544,96 @@ describe("HealthMetricsService", () => {
       const result = await service.getDomainCoverage(TENANT_ID);
       expect(result).toHaveLength(1);
       expect(result[0].domainName).toBe("Mine");
+    });
+  });
+
+  // ══════════════════════════════════════════════
+  // getUnclassifiedSources
+  // ══════════════════════════════════════════════
+  describe("getUnclassifiedSources", () => {
+    it("도메인도 폴더도 없는 소스 반환", async () => {
+      seedSource(SOURCE_ID);
+      const result = await service.getUnclassifiedSources(TENANT_ID);
+      expect(result).toHaveLength(1);
+      expect(result[0].sourceId).toBe(SOURCE_ID);
+      expect(result[0].hasDomain).toBe(false);
+      expect(result[0].hasFolder).toBe(false);
+    });
+
+    it("도메인 있고 폴더 없는 소스 포함", async () => {
+      seedSource(SOURCE_ID);
+      db.insert(radarDomains)
+        .values({ id: "dom-uc1", name: "Test Domain", tenantId: TENANT_ID })
+        .run();
+      db.insert(radarSourceDomains)
+        .values({ id: "rsd-uc1", sourceId: SOURCE_ID, domainId: "dom-uc1" })
+        .run();
+
+      const result = await service.getUnclassifiedSources(TENANT_ID);
+      expect(result).toHaveLength(1);
+      expect(result[0].hasDomain).toBe(true);
+      expect(result[0].hasFolder).toBe(false);
+    });
+
+    it("도메인과 폴더 모두 있으면 제외", async () => {
+      seedSource(SOURCE_ID);
+      db.insert(radarDomains)
+        .values({ id: "dom-uc2", name: "Full Domain", tenantId: TENANT_ID })
+        .run();
+      db.insert(radarSourceDomains)
+        .values({ id: "rsd-uc2", sourceId: SOURCE_ID, domainId: "dom-uc2" })
+        .run();
+      seedFolder("fld-uc1", "Full Folder");
+      seedSourceFolder(SOURCE_ID, "fld-uc1");
+
+      const result = await service.getUnclassifiedSources(TENANT_ID);
+      expect(result).toHaveLength(0);
+    });
+
+    it("__manual__ 소스 제외", async () => {
+      // __manual__ 소스 생성
+      db.insert(radarSources)
+        .values({
+          id: "src-manual",
+          name: "__manual__",
+          sourceType: "site",
+          url: "https://manual.com",
+          tenantId: TENANT_ID,
+          userId: USER_ID,
+          status: "ACTIVE",
+          collectionType: "manual",
+        })
+        .run();
+      seedSource(SOURCE_ID); // 일반 소스
+
+      const result = await service.getUnclassifiedSources(TENANT_ID);
+      expect(result).toHaveLength(1);
+      expect(result[0].sourceId).toBe(SOURCE_ID);
+    });
+
+    it("테넌트 격리", async () => {
+      const OTHER = "t-uc-other";
+      db.insert(tenants)
+        .values({ id: OTHER, name: "UC Other", slug: "uc-other", ownerUserId: USER_ID })
+        .run();
+      // 다른 테넌트 소스
+      db.insert(radarSources)
+        .values({
+          id: "src-other-uc",
+          name: "Other Source",
+          sourceType: "rss",
+          url: "https://other.com",
+          tenantId: OTHER,
+          userId: USER_ID,
+          status: "ACTIVE",
+          collectionType: "auto",
+        })
+        .run();
+      seedSource(SOURCE_ID);
+
+      const result = await service.getUnclassifiedSources(TENANT_ID);
+      expect(result).toHaveLength(1);
+      expect(result[0].sourceId).toBe(SOURCE_ID);
     });
   });
 });

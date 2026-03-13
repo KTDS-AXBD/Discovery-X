@@ -1,7 +1,7 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useFetcher } from "@remix-run/react";
 import { Button } from "~/components/ui/Button";
-import type { SourceHealthRow, DomainCoverage } from "~/features/radar/service/health-metrics";
+import type { SourceHealthRow, DomainCoverage, UnclassifiedSource } from "~/features/radar/service/health-metrics";
 
 // ============================================================================
 // Types
@@ -10,7 +10,17 @@ import type { SourceHealthRow, DomainCoverage } from "~/features/radar/service/h
 interface OperationActionsProps {
   sources: SourceHealthRow[];
   domainCoverage?: DomainCoverage[];
+  unclassified?: UnclassifiedSource[];
   isGatekeeper: boolean;
+}
+
+interface ClassifySuggestion {
+  sourceId: string;
+  suggestedDomainIds: string[];
+  suggestedDomainNames: string[];
+  suggestedFolderName: string | null;
+  confidence: number;
+  reasoning: string;
 }
 
 interface ActionCategory {
@@ -231,10 +241,217 @@ function DomainCoveragePanel({ domains }: { domains: DomainCoverage[] }) {
 }
 
 // ============================================================================
+// Classification Panel (AI 분류 추천)
+// ============================================================================
+
+const CONFIDENCE_THRESHOLD = 0.5;
+
+function ClassificationPanel({ count, sources }: { count: number; sources: UnclassifiedSource[] }) {
+  const classifyFetcher = useFetcher();
+  const applyFetcher = useFetcher();
+  // overrides: sourceId → 사용자가 토글한 상태. 키가 없으면 confidence 기반 기본값 사용
+  const [overrides, setOverrides] = useState<Record<string, boolean>>({});
+
+  const sourceNameMap = useMemo(
+    () => new Map(sources.map((s) => [s.sourceId, s.sourceName])),
+    [sources],
+  );
+  const isClassifying = classifyFetcher.state !== "idle";
+  const isApplying = applyFetcher.state !== "idle";
+  const applyResult = applyFetcher.data as { ok?: boolean; applied?: number; foldersCreated?: number } | undefined;
+
+  const classifyData = classifyFetcher.data as {
+    ok?: boolean;
+    suggestions?: ClassifySuggestion[];
+    errors?: string[];
+    budgetBlocked?: boolean;
+  } | undefined;
+
+  const suggestions = useMemo(() => classifyData?.suggestions ?? [], [classifyData]);
+  const phase = classifyData?.ok ? "review" : isClassifying ? "loading" : "idle";
+
+  // selectedIds: confidence 기본값 + 사용자 overrides 병합 (순수 파생)
+  const selectedIds = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of suggestions) {
+      const override = overrides[s.sourceId];
+      if (override !== undefined) {
+        if (override) set.add(s.sourceId);
+      } else if (s.confidence >= CONFIDENCE_THRESHOLD) {
+        set.add(s.sourceId);
+      }
+    }
+    return set;
+  }, [suggestions, overrides]);
+
+  const handleClassify = () => {
+    setOverrides({});
+    classifyFetcher.submit(
+      { intent: "classify" },
+      { method: "post", action: "/api/radar/health/classify" },
+    );
+  };
+
+  const toggleAll = useCallback(() => {
+    const allSelected = selectedIds.size === suggestions.length;
+    const next: Record<string, boolean> = {};
+    for (const s of suggestions) {
+      next[s.sourceId] = !allSelected;
+    }
+    setOverrides(next);
+  }, [selectedIds.size, suggestions]);
+
+  const toggle = useCallback((id: string) => {
+    setOverrides((prev) => ({
+      ...prev,
+      [id]: !selectedIds.has(id),
+    }));
+  }, [selectedIds]);
+
+  const handleApply = () => {
+    const assignments = suggestions
+      .filter((s) => selectedIds.has(s.sourceId))
+      .map((s) => ({
+        sourceId: s.sourceId,
+        domainIds: s.suggestedDomainIds,
+        folderName: s.suggestedFolderName,
+      }));
+
+    applyFetcher.submit(
+      {
+        intent: "apply",
+        assignments: JSON.stringify(assignments),
+      },
+      { method: "post", action: "/api/radar/health/classify" },
+    );
+  };
+
+  return (
+    <div className="rounded-lg border border-indigo-200 bg-indigo-50/50 dark:border-indigo-800 dark:bg-indigo-900/10">
+      <div className="px-4 py-3 text-sm">
+        <span>🤖 미분류 채널 AI 분류 ({count}건)</span>
+        <span className="ml-2 text-xs text-fg-tertiary">
+          도메인/폴더 미배정
+        </span>
+      </div>
+
+      <div className="border-t border-indigo-200 px-4 py-3 dark:border-indigo-800">
+        {/* Idle: 실행 버튼 */}
+        {phase === "idle" && (
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            onClick={handleClassify}
+          >
+            AI 분류 실행
+          </Button>
+        )}
+
+        {/* Loading */}
+        {(phase === "loading" && isClassifying) && (
+          <div className="animate-pulse text-sm text-fg-tertiary">
+            AI 분석 중... (5건씩 배치 처리)
+          </div>
+        )}
+
+        {/* 에러 표시 */}
+        {classifyData?.errors && classifyData.errors.length > 0 && (
+          <div className="mt-2 rounded-md bg-red-50 px-3 py-2 text-xs text-red-700 dark:bg-red-900/20 dark:text-red-400">
+            {classifyData.errors.join(", ")}
+          </div>
+        )}
+
+        {/* 적용 완료 피드백 */}
+        {applyResult?.ok && (
+          <div className="mt-2 rounded-md bg-emerald-50 px-3 py-2 text-xs text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400">
+            {applyResult.applied}건 적용 완료
+            {applyResult.foldersCreated ? ` (신규 폴더 ${applyResult.foldersCreated}개 생성)` : ""}
+          </div>
+        )}
+
+        {/* Review: 추천 결과 */}
+        {phase === "review" && suggestions.length > 0 && !applyResult?.ok && (
+          <div className="mt-2">
+            {/* 전체 선택 + 적용 버튼 */}
+            <div className="mb-3 flex items-center justify-between">
+              <label className="flex items-center gap-2 text-xs text-fg-tertiary cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.size === suggestions.length}
+                  onChange={toggleAll}
+                  className="rounded border-border"
+                />
+                전체 선택 ({selectedIds.size}/{suggestions.length})
+              </label>
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                disabled={selectedIds.size === 0 || isApplying}
+                onClick={handleApply}
+              >
+                {isApplying
+                  ? "적용 중..."
+                  : `선택 항목 적용 (${selectedIds.size}건)`}
+              </Button>
+            </div>
+
+            {/* 추천 목록 */}
+            <div className="space-y-1.5 max-h-80 overflow-y-auto">
+              {suggestions.map((s) => (
+                <label
+                  key={s.sourceId}
+                  className="flex items-start gap-3 rounded-md px-2 py-2 text-sm cursor-pointer hover:bg-bg-tertiary/30 transition-colors select-none"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(s.sourceId)}
+                    onChange={() => toggle(s.sourceId)}
+                    className="mt-0.5 rounded border-border"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate font-medium text-fg-secondary">
+                        {sourceNameMap.get(s.sourceId) ?? s.sourceId}
+                      </span>
+                      <span className="text-xs text-fg-tertiary">
+                        신뢰도 {(s.confidence * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                    <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+                      <span className="text-xs text-fg-tertiary">→</span>
+                      {s.suggestedDomainNames.map((name) => (
+                        <span
+                          key={name}
+                          className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300"
+                        >
+                          {name}
+                        </span>
+                      ))}
+                      {s.suggestedFolderName && (
+                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                          📁 {s.suggestedFolderName}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-0.5 text-xs text-fg-tertiary">{s.reasoning}</div>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
 // Main Component
 // ============================================================================
 
-export function OperationActions({ sources, domainCoverage, isGatekeeper }: OperationActionsProps) {
+export function OperationActions({ sources, domainCoverage, unclassified, isGatekeeper }: OperationActionsProps) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const categories = buildCategories(sources);
 
@@ -243,8 +460,9 @@ export function OperationActions({ sources, domainCoverage, isGatekeeper }: Oper
   const hasDomainWarning = domainCoverage?.some(
     (d) => d.activeSourceCount < DOMAIN_COVERAGE_THRESHOLD,
   );
+  const hasUnclassified = (unclassified?.length ?? 0) > 0;
 
-  if (categories.length === 0 && !hasDomainWarning) {
+  if (categories.length === 0 && !hasDomainWarning && !hasUnclassified) {
     return (
       <div className="rounded-lg border border-border bg-bg-secondary p-4 text-sm text-fg-tertiary">
         운영 액션 없음 — 모든 소스가 정상이에요.
@@ -278,6 +496,9 @@ export function OperationActions({ sources, domainCoverage, isGatekeeper }: Oper
 
       {/* 도메인 커버리지 경고 */}
       {domainCoverage && <DomainCoveragePanel domains={domainCoverage} />}
+
+      {/* AI 분류 추천 */}
+      {hasUnclassified && <ClassificationPanel count={unclassified!.length} sources={unclassified!} />}
     </div>
   );
 }

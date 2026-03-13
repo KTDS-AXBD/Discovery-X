@@ -23,6 +23,7 @@ import {
   radarItemMetrics,
   radarDomains,
   radarSourceDomains,
+  radarSourceFolders,
   SourceStatus,
 } from "~/features/radar/db/schema";
 import {
@@ -85,6 +86,17 @@ export interface DomainCoverage {
   domainName: string;
   color: string | null;
   activeSourceCount: number;
+}
+
+export interface UnclassifiedSource {
+  sourceId: string;
+  sourceName: string;
+  sourceUrl: string;
+  sourceType: string;
+  keywords: string[] | null;
+  radarTags: string[] | null;
+  hasDomain: boolean;
+  hasFolder: boolean;
 }
 
 // ============================================================================
@@ -310,11 +322,47 @@ export class HealthMetricsService {
     return rows as DomainCoverage[];
   }
 
+  /**
+   * 도메인/폴더 미분류 소스 조회
+   */
+  async getUnclassifiedSources(tenantId: string): Promise<UnclassifiedSource[]> {
+    const rows = await this.db
+      .select({
+        sourceId: radarSources.id,
+        sourceName: radarSources.name,
+        sourceUrl: radarSources.url,
+        sourceType: radarSources.sourceType,
+        keywords: radarSources.keywords,
+        radarTags: radarSources.radarTags,
+        hasDomain: sql<number>`CASE WHEN COUNT(DISTINCT ${radarSourceDomains.id}) > 0 THEN 1 ELSE 0 END`,
+        hasFolder: sql<number>`CASE WHEN COUNT(DISTINCT ${radarSourceFolders.id}) > 0 THEN 1 ELSE 0 END`,
+      })
+      .from(radarSources)
+      .leftJoin(radarSourceDomains, eq(radarSources.id, radarSourceDomains.sourceId))
+      .leftJoin(radarSourceFolders, eq(radarSources.id, radarSourceFolders.sourceId))
+      .where(and(eq(radarSources.tenantId, tenantId), sql`${radarSources.name} != '__manual__'`))
+      .groupBy(radarSources.id, radarSources.name, radarSources.url, radarSources.sourceType, radarSources.keywords, radarSources.radarTags);
+
+    return rows
+      .filter(r => r.hasDomain === 0 || r.hasFolder === 0)
+      .map(r => ({
+        sourceId: r.sourceId,
+        sourceName: r.sourceName,
+        sourceUrl: r.sourceUrl,
+        sourceType: r.sourceType,
+        keywords: r.keywords ?? null,
+        radarTags: r.radarTags ?? null,
+        hasDomain: r.hasDomain > 0,
+        hasFolder: r.hasFolder > 0,
+      }));
+  }
+
   async getDashboardData(tenantId: string): Promise<{
     summary: HealthSummary;
     sources: SourceHealthRow[];
     trend: TrendData[];
     domainCoverage: DomainCoverage[];
+    unclassified: UnclassifiedSource[];
   }> {
     // 1. 요약: 상태별 소스 수
     const statusCounts = await this.db
@@ -388,12 +436,14 @@ export class HealthMetricsService {
       .orderBy(radarSourceMetrics.date);
 
     const domainCoverage = await this.getDomainCoverage(tenantId);
+    const unclassified = await this.getUnclassifiedSources(tenantId);
 
     return {
       summary,
       sources: sources as SourceHealthRow[],
       trend: trend as TrendData[],
       domainCoverage,
+      unclassified,
     };
   }
 
