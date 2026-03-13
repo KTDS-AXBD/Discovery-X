@@ -1,6 +1,6 @@
 # Discovery-X 문서 인덱스
 
-> 자동 생성 | 최종 갱신: 2026-03-10
+> 자동 생성 | 최종 갱신: 2026-03-13
 
 ## SPEC — 사양
 
@@ -67,6 +67,10 @@
 | DX-ANLS-005 | F36 MVP 빌더 Agent 갭 분석 | 1.0 | Active | 03-analysis/DX-ANLS-005_F36-mvp-builder.md |
 | DX-ANLS-006 | AI API 서비스 관리 개발계획 검토의견 | 1.0 | Active | 03-analysis/DX-ANLS-006_ai-api-review.md |
 | DX-ANLS-012 | F41 Phase 2B (큐+워커) 설계-구현 GAP 분석 | 1.0 | Active | 03-analysis/DX-ANLS-012_radar-phase2b-gap.md |
+| DX-ANLS-013 | F41 Phase 3A Health Score 설계-구현 GAP 분석 | 1.0 | Active | 03-analysis/DX-ANLS-013_radar-health-score-gap.md |
+| DX-ANLS-014 | F41 전체 Phase GAP 분석 (사후) | 1.0 | Active | 03-analysis/DX-ANLS-014_f41-full-gap-analysis.md |
+| DX-ANLS-015 | F44 PRD Studio 전체 GAP 분석 | 1.1 | Active | 03-analysis/DX-ANLS-015_prd-studio.md |
+| DX-ANLS-017 | F44 Phase 4 전략 도구 GAP 분석 | 1.0 | Active | 03-analysis/DX-ANLS-017_prd-strategy-tools.md |
 
 ## RPRT — 보고
 
@@ -77,6 +81,8 @@
 | DX-RPRT-003 | 레이아웃 제안 완료 보고 | 1.0 | Active | 04-report/DX-RPRT-003_layout-proposals.md |
 | DX-RPRT-004 | 온톨로지 인텔리전스 완료 보고 | 1.0 | Active | 04-report/DX-RPRT-004_ontology-intelligence.md |
 | DX-RPRT-005 | F36 MVP 빌더 Agent 완료 보고 | 1.0 | Active | 04-report/DX-RPRT-005_F36-mvp-builder.md |
+| DX-RPRT-006 | F41 아이템 수집 시스템 고도화 완료 보고 | 1.0 | Active | 04-report/DX-RPRT-006_f41-radar-collection-enhancement.md |
+| DX-RPRT-007 | F44 PRD Studio Phase 4 전략 도구 완료 보고 | 1.0 | Active | 04-report/DX-RPRT-007_prd-studio-strategy-tools.md |
 
 ## GUID — 가이드
 
@@ -96,4 +102,4 @@
 
 ---
 
-*총 52개 문서 | Active: 42 | Draft: 10 | Archived: 0*
+*총 56개 문서 | Active: 46 | Draft: 10 | Archived: 0*
