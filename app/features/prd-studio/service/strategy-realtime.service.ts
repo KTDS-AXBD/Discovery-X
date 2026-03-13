@@ -12,6 +12,8 @@ import { buildStrategyPrompt, type PrdSectionInput } from "../lib/strategy-promp
 import { parseStrategyResult, type StrategyResult } from "../lib/strategy-parser";
 import { buildGtmPrompt } from "../lib/gtm-prompt";
 import { parseGtmResult, type GtmResult } from "../lib/gtm-parser";
+import { buildProposalSynthesisPrompt } from "../lib/proposal-synthesis-prompt";
+import type { StrategyResult as TypesStrategyResult, GtmResult as TypesGtmResult } from "../types";
 
 export class StrategyRealtimeService {
   /**
@@ -64,5 +66,31 @@ export class StrategyRealtimeService {
       .join("");
 
     return parseGtmResult(text);
+  }
+
+  /**
+   * Proposal 합성 — PRD + Strategy + GTM 결과를 종합하여 제안서 텍스트 생성.
+   */
+  async synthesizeProposal(
+    apiKey: string,
+    proposalType: string,
+    sections: PrdSectionInput[],
+    strategy: TypesStrategyResult,
+    gtm: TypesGtmResult | null,
+    aiCtx?: FallbackContext,
+  ): Promise<string> {
+    const prompt = buildProposalSynthesisPrompt(proposalType, sections, strategy, gtm);
+
+    const response = await callLLM(apiKey, {
+      model: "gpt-4.1",
+      max_tokens: 2000,
+      system: "사업 제안서 작성 전문가. 주어진 분석 결과를 기반으로 명확하고 설득력 있는 제안서 섹션을 작성하세요.",
+      messages: [{ role: "user", content: prompt }],
+    }, aiCtx);
+
+    return response.content
+      .filter((b) => b.type === "text")
+      .map((b) => b.text || "")
+      .join("");
   }
 }
