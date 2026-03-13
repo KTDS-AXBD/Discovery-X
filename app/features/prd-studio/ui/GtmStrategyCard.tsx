@@ -15,6 +15,7 @@ interface GtmStrategyCardProps {
   ideaId: string;
   strategyCompleted: boolean;
   onOpenProposalModal?: () => void;
+  onOpenDetail?: () => void;
 }
 
 // ── Polling Hook ───────────────────────────────────────────────────────
@@ -82,7 +83,7 @@ function ChannelBadges({ channels }: { channels: GtmResult["channelStrategy"]["c
 
 // ── Component ──────────────────────────────────────────────────────────
 
-export function GtmStrategyCard({ ideaId, strategyCompleted, onOpenProposalModal }: GtmStrategyCardProps) {
+export function GtmStrategyCard({ ideaId, strategyCompleted, onOpenProposalModal, onOpenDetail }: GtmStrategyCardProps) {
   const { status: gtmStatus, loading, error, refetch } = useGtmPolling(ideaId, strategyCompleted);
   const [expanded, setExpanded] = useState(false);
   const [requesting, setRequesting] = useState(false);
@@ -261,6 +262,15 @@ export function GtmStrategyCard({ ideaId, strategyCompleted, onOpenProposalModal
                     className="inline-flex items-center gap-1 rounded-lg bg-btn-bg px-3 py-1.5 text-xs font-medium text-btn-text transition-colors hover:bg-btn-bg-hover"
                   >
                     사업제안 생성
+                  </button>
+                )}
+                {onOpenDetail && (
+                  <button
+                    type="button"
+                    onClick={onOpenDetail}
+                    className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-fg-secondary transition-colors hover:bg-surface-secondary"
+                  >
+                    상세 보기
                   </button>
                 )}
                 <button

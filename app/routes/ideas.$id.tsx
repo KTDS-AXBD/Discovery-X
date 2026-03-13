@@ -632,6 +632,7 @@ export default function IdeaDetail() {
             ideaId={ideaId}
             strategyCompleted={strategyCompleted}
             onOpenProposalModal={() => setProposalModalOpen(true)}
+            onOpenDetail={() => setStrategyDetailOpen(true)}
           />
         )}
 
