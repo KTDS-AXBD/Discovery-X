@@ -3,6 +3,21 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 389 (2026-03-13)
+
+**F44 Phase 3 — 아이디어 분석 대체 (claude -p + PRD 프로세스, DX-REQ-015)**:
+- ✅ 설계서 DX-DSGN-016 작성 (아키텍처 + 데이터 모델 + API + UI/UX + TDD 76개 시나리오)
+- ✅ 마이그레이션 0063: `prd_analysis_queue` 큐 테이블 (비동기 배치 분석용)
+- ✅ 서비스: 6개 큐 메서드 (`enqueue/getStatus/cancel/processNext/complete/fail`)
+- ✅ 라이브러리 3개 (TDD): `analysis-prompt` (프롬프트 빌더) + `analysis-parser` (JSON 파서) + `proposal-mapper` (8→10 섹션 매핑)
+- ✅ API 라우트 3개: POST 요청 + GET 상태 polling + DELETE 취소
+- ✅ `batch-runner.sh` prd 모드: `claude -p --model claude-sonnet-4-6` 배치 분석 (API 비용 0)
+- ✅ UI: `PrdAnalysisCard` 접이식 컴포넌트 (5개 상태별 UI) + Ideas 상세 통합
+- ✅ 프로덕션 마이그레이션 0062 적용 (UNIQUE 인덱스 2개)
+
+**검증 결과**:
+- ✅ typecheck (0 에러) / lint (0 에러) / tests (2,513 통과) / build 성공
+
 ### 세션 388 (2026-03-13)
 
 **F41 AI 아이템 평가 + 도메인 커버리지 경고 — #17, #18, #20 (DX-REQ-012)**:
