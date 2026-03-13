@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 388 (2026-03-13)
+
+**F41 AI 아이템 평가 + 도메인 커버리지 경고 — #17, #18, #20 (DX-REQ-012)**:
+- ✅ ItemEvaluator 서비스: LLM 기반 3축 평가(관련도/신규성/품질) → radar_item_metrics UPSERT + 비용 추적
+- ✅ api.cron.radar-eval: 매일 평가 Cron (테넌트별 10건, 25s 타임아웃, BudgetBlocked 전체 중단)
+- ✅ getDomainCoverage(): ACTIVE 소스 < 2 도메인 조회 + getDashboardData 확장
+- ✅ DomainCoveragePanel: OperationActions 4번째 카테고리 (정보 표시, amber 스타일)
+- ✅ 테스트 23개 추가 (item-evaluator 17 + health-metrics 6)
+
+**검증 결과**:
+- ✅ typecheck 0 errors / lint 0 errors / 2,497 tests passed / build 성공
+
 ### 세션 387 (2026-03-12)
 
 **F41 운영 액션 일괄 편집 — AI 추천 검토 + 배치 적용 (DX-REQ-012)**:
