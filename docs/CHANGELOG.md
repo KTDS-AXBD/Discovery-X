@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 391 (2026-03-13)
+
+**F41 E2E 테스트 + 버그 수정 — ChannelFormModal 크래시 + 탭 리셋 (DX-REQ-012)**:
+- ✅ Playwright E2E 20개 시나리오 실행 (4탭 네비게이션 + 채널 CRUD + 수동 수집 + Source Health + API)
+- ✅ BUG-01(P2) 수정: Radix Select → 네이티브 select (Dialog compose-refs 무한 루프 해소)
+- ✅ BUG-02(P3) 수정: useState → useSearchParams 탭 상태 URL 관리
+- ✅ E2E 재검증: hasAppError=0, consoleErrors=0, tabPreserved=true
+
+**검증 결과**:
+- ✅ typecheck 0 errors / lint 0 errors / build 성공 / E2E Playwright 통과
+
 ### 세션 390 (2026-03-13)
 
 **F41 일괄 편집 — AI 소스 분류 추천 + 검토 + 적용 (DX-REQ-012)**:
