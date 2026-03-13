@@ -24,6 +24,8 @@ import {
 import {
   radarSourceMetrics,
   radarItemMetrics,
+  radarDomains,
+  radarSourceDomains,
 } from "~/features/radar/db/schema";
 import { MIN_ITEMS_FOR_HEALTH } from "~/features/radar/service/health-score";
 
@@ -432,6 +434,102 @@ describe("HealthMetricsService", () => {
       const data = await service.getDashboardData(TENANT_ID);
       expect(data.sources).toHaveLength(1);
       expect(data.sources[0].healthScore).toBeNull();
+    });
+
+    it("domainCoverage 포함", async () => {
+      seedSource(SOURCE_ID);
+
+      // 도메인 생성
+      db.insert(radarDomains)
+        .values({ id: "dom-1", name: "AI/ML", color: "#3b82f6", tenantId: TENANT_ID })
+        .run();
+
+      db.insert(radarSourceDomains)
+        .values({ id: "rsd-1", sourceId: SOURCE_ID, domainId: "dom-1" })
+        .run();
+
+      const data = await service.getDashboardData(TENANT_ID);
+      expect(data.domainCoverage).toHaveLength(1);
+      expect(data.domainCoverage[0].domainName).toBe("AI/ML");
+      expect(data.domainCoverage[0].activeSourceCount).toBe(1);
+    });
+  });
+
+  // ══════════════════════════════════════════════
+  // getDomainCoverage
+  // ══════════════════════════════════════════════
+  describe("getDomainCoverage", () => {
+    it("ACTIVE 소스 0개 도메인", async () => {
+      db.insert(radarDomains)
+        .values({ id: "dom-empty", name: "Empty Domain", tenantId: TENANT_ID })
+        .run();
+
+      const result = await service.getDomainCoverage(TENANT_ID);
+      expect(result).toHaveLength(1);
+      expect(result[0].activeSourceCount).toBe(0);
+    });
+
+    it("ACTIVE 소스 1개 도메인", async () => {
+      seedSource(SOURCE_ID);
+      db.insert(radarDomains)
+        .values({ id: "dom-1", name: "Tech", color: "#10b981", tenantId: TENANT_ID })
+        .run();
+      db.insert(radarSourceDomains)
+        .values({ id: "rsd-1", sourceId: SOURCE_ID, domainId: "dom-1" })
+        .run();
+
+      const result = await service.getDomainCoverage(TENANT_ID);
+      expect(result).toHaveLength(1);
+      expect(result[0].activeSourceCount).toBe(1);
+      expect(result[0].color).toBe("#10b981");
+    });
+
+    it("ACTIVE 소스 2+ 도메인", async () => {
+      seedSource(SOURCE_ID);
+      seedSource(SOURCE_ID_2);
+      db.insert(radarDomains)
+        .values({ id: "dom-multi", name: "Multi", tenantId: TENANT_ID })
+        .run();
+      db.insert(radarSourceDomains)
+        .values({ id: "rsd-1", sourceId: SOURCE_ID, domainId: "dom-multi" })
+        .run();
+      db.insert(radarSourceDomains)
+        .values({ id: "rsd-2", sourceId: SOURCE_ID_2, domainId: "dom-multi" })
+        .run();
+
+      const result = await service.getDomainCoverage(TENANT_ID);
+      expect(result[0].activeSourceCount).toBe(2);
+    });
+
+    it("PAUSED 소스만 있는 도메인 → 0", async () => {
+      seedSource("src-paused", "PAUSED");
+      db.insert(radarDomains)
+        .values({ id: "dom-paused", name: "Paused Domain", tenantId: TENANT_ID })
+        .run();
+      db.insert(radarSourceDomains)
+        .values({ id: "rsd-p", sourceId: "src-paused", domainId: "dom-paused" })
+        .run();
+
+      const result = await service.getDomainCoverage(TENANT_ID);
+      expect(result[0].activeSourceCount).toBe(0);
+    });
+
+    it("테넌트 격리", async () => {
+      const OTHER = "t-other";
+      db.insert(tenants)
+        .values({ id: OTHER, name: "Other", slug: "other", ownerUserId: USER_ID })
+        .run();
+
+      db.insert(radarDomains)
+        .values({ id: "dom-mine", name: "Mine", tenantId: TENANT_ID })
+        .run();
+      db.insert(radarDomains)
+        .values({ id: "dom-other", name: "Other", tenantId: OTHER })
+        .run();
+
+      const result = await service.getDomainCoverage(TENANT_ID);
+      expect(result).toHaveLength(1);
+      expect(result[0].domainName).toBe("Mine");
     });
   });
 });

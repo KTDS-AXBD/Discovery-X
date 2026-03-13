@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useFetcher } from "@remix-run/react";
 import { Button } from "~/components/ui/Button";
-import type { SourceHealthRow } from "~/features/radar/service/health-metrics";
+import type { SourceHealthRow, DomainCoverage } from "~/features/radar/service/health-metrics";
 
 // ============================================================================
 // Types
@@ -9,6 +9,7 @@ import type { SourceHealthRow } from "~/features/radar/service/health-metrics";
 
 interface OperationActionsProps {
   sources: SourceHealthRow[];
+  domainCoverage?: DomainCoverage[];
   isGatekeeper: boolean;
 }
 
@@ -186,16 +187,64 @@ function CategoryPanel({
 }
 
 // ============================================================================
+// Domain Coverage Panel (#20)
+// ============================================================================
+
+const DOMAIN_COVERAGE_THRESHOLD = 2;
+
+function DomainCoveragePanel({ domains }: { domains: DomainCoverage[] }) {
+  const lowCoverage = domains.filter(
+    (d) => d.activeSourceCount < DOMAIN_COVERAGE_THRESHOLD,
+  );
+
+  if (lowCoverage.length === 0) return null;
+
+  return (
+    <div className="rounded-lg border border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-900/10">
+      <div className="px-4 py-3 text-sm">
+        <span>📡 커버리지 부족 도메인 ({lowCoverage.length}건)</span>
+        <span className="ml-2 text-xs text-fg-tertiary">
+          ACTIVE 소스 {DOMAIN_COVERAGE_THRESHOLD}개 미만
+        </span>
+      </div>
+      <div className="border-t border-amber-200 px-4 py-3 dark:border-amber-800">
+        <div className="space-y-1.5">
+          {lowCoverage.map((d) => (
+            <div
+              key={d.domainId}
+              className="flex items-center gap-3 rounded-md px-2 py-1.5 text-sm"
+            >
+              <span
+                className="h-2.5 w-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: d.color ?? "#9ca3af" }}
+              />
+              <span className="flex-1 text-fg-secondary">{d.domainName}</span>
+              <span className="text-xs text-fg-tertiary">
+                소스 {d.activeSourceCount}개 — 추가 등록 권장
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
 // Main Component
 // ============================================================================
 
-export function OperationActions({ sources, isGatekeeper }: OperationActionsProps) {
+export function OperationActions({ sources, domainCoverage, isGatekeeper }: OperationActionsProps) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const categories = buildCategories(sources);
 
   if (!isGatekeeper) return null;
 
-  if (categories.length === 0) {
+  const hasDomainWarning = domainCoverage?.some(
+    (d) => d.activeSourceCount < DOMAIN_COVERAGE_THRESHOLD,
+  );
+
+  if (categories.length === 0 && !hasDomainWarning) {
     return (
       <div className="rounded-lg border border-border bg-bg-secondary p-4 text-sm text-fg-tertiary">
         운영 액션 없음 — 모든 소스가 정상이에요.
@@ -226,6 +275,9 @@ export function OperationActions({ sources, isGatekeeper }: OperationActionsProp
           {expanded === cat.key && <CategoryPanel category={cat} />}
         </div>
       ))}
+
+      {/* 도메인 커버리지 경고 */}
+      {domainCoverage && <DomainCoveragePanel domains={domainCoverage} />}
     </div>
   );
 }

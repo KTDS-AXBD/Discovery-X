@@ -21,6 +21,8 @@ import {
 import {
   radarSourceMetrics,
   radarItemMetrics,
+  radarDomains,
+  radarSourceDomains,
   SourceStatus,
 } from "~/features/radar/db/schema";
 import {
@@ -76,6 +78,13 @@ export interface TrendData {
   date: string;
   avgHealth: number;
   sourceCount: number;
+}
+
+export interface DomainCoverage {
+  domainId: string;
+  domainName: string;
+  color: string | null;
+  activeSourceCount: number;
 }
 
 // ============================================================================
@@ -281,10 +290,31 @@ export class HealthMetricsService {
   /**
    * Dashboard 데이터 조회
    */
+  /**
+   * 도메인별 ACTIVE 소스 커버리지 조회
+   */
+  async getDomainCoverage(tenantId: string): Promise<DomainCoverage[]> {
+    const rows = await this.db
+      .select({
+        domainId: radarDomains.id,
+        domainName: radarDomains.name,
+        color: radarDomains.color,
+        activeSourceCount: sql<number>`COUNT(DISTINCT CASE WHEN ${radarSources.status} = 'ACTIVE' THEN ${radarSources.id} END)`,
+      })
+      .from(radarDomains)
+      .leftJoin(radarSourceDomains, eq(radarDomains.id, radarSourceDomains.domainId))
+      .leftJoin(radarSources, eq(radarSourceDomains.sourceId, radarSources.id))
+      .where(eq(radarDomains.tenantId, tenantId))
+      .groupBy(radarDomains.id, radarDomains.name, radarDomains.color);
+
+    return rows as DomainCoverage[];
+  }
+
   async getDashboardData(tenantId: string): Promise<{
     summary: HealthSummary;
     sources: SourceHealthRow[];
     trend: TrendData[];
+    domainCoverage: DomainCoverage[];
   }> {
     // 1. 요약: 상태별 소스 수
     const statusCounts = await this.db
@@ -357,10 +387,13 @@ export class HealthMetricsService {
       .groupBy(radarSourceMetrics.date)
       .orderBy(radarSourceMetrics.date);
 
+    const domainCoverage = await this.getDomainCoverage(tenantId);
+
     return {
       summary,
       sources: sources as SourceHealthRow[],
       trend: trend as TrendData[],
+      domainCoverage,
     };
   }
 
