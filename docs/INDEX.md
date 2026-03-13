@@ -53,6 +53,7 @@
 | DX-DSGN-014 | Radar 폴더 시스템 고도화 설계 | 1.0 | Draft | 02-design/DX-DSGN-014_radar-folder-enhancement.md |
 | DX-DSGN-015 | PRD Studio 설계 | 0.1 | Active | 02-design/DX-DSGN-015_prd-studio.md |
 | DX-DSGN-016 | F44 Phase 3 — 아이디어 분석 대체 | 0.1 | Draft | 02-design/DX-DSGN-016_prd-analysis-replacement.md |
+| DX-DSGN-017 | F44 Phase 4 — 전략 도구 (Strategy Canvas + GTM + Proposal 연동) | 0.1 | Draft | 02-design/DX-DSGN-017_prd-strategy-tools.md |
 | DX-DSGN-100 | 문서 관리 표준 및 적용 계획 | 1.0 | Draft | 02-design/DX-DSGN-100_doc-governance-plan.md |
 
 ## ANLS — 분석
@@ -95,4 +96,4 @@
 
 ---
 
-*총 51개 문서 | Active: 42 | Draft: 9 | Archived: 0*
+*총 52개 문서 | Active: 42 | Draft: 10 | Archived: 0*

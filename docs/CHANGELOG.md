@@ -3,6 +3,23 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 392 (2026-03-13)
+**F44 Phase 4 전략 도구 — Strategy Canvas + GTM + Proposal AI 합성 (DX-REQ-015)**:
+- ✅ prd_strategy_queue 테이블 + 0064 마이그레이션
+- ✅ Strategy 프롬프트/파서 4개 (SWOT/린캔버스/JTBD/경쟁분석/시장규모/리스크)
+- ✅ GTM 프롬프트/파서 2개 (비치헤드/ICP/메시징/채널/런치플랜)
+- ✅ Proposal 합성 프롬프트 (PRD+Strategy+GTM → 10섹션)
+- ✅ PrdStudioService 전략 큐 7메서드 + StrategyRealtimeService
+- ✅ API 7라우트 (strategy 4 + gtm 2 + synthesize-proposal 1)
+- ✅ batch-runner.sh strategy+gtm 모드
+- ✅ StrategyCanvasCard + GtmStrategyCard + StrategyDetailModal(6탭) UI
+- ✅ Ideas 페이지 3단 카드 배치 (PRD→Strategy→GTM)
+- ✅ 설계서 DX-DSGN-017 + GAP 분석 DX-ANLS-017 (Match Rate 78→~90%)
+- ✅ TDD 29테스트 (프롬프트 5 + 파서 8 + 합성 4 + 서비스큐 12)
+
+**검증 결과**:
+- ✅ typecheck / lint / 2,563 tests / build
+
 ### 세션 391 (2026-03-13)
 
 **F41 E2E 테스트 + 버그 수정 — ChannelFormModal 크래시 + 탭 리셋 (DX-REQ-012)**:
