@@ -3,7 +3,7 @@
 // ============================================================================
 
 import type { InferSelectModel } from "drizzle-orm";
-import type { prds, prdSections, prdReviews, prdAnalysisQueue } from "../db/schema";
+import type { prds, prdSections, prdReviews, prdAnalysisQueue, prdStrategyQueue } from "../db/schema";
 
 // ----------------------------------------------------------------------------
 // DB Row Types (InferSelectModel)
@@ -64,4 +64,110 @@ export interface UpdatePrdInput {
   interviewProgress?: number;
   finalRating?: number;
   finalComment?: string;
+}
+
+// ----------------------------------------------------------------------------
+// Strategy Analysis Types (Phase 4)
+// ----------------------------------------------------------------------------
+
+export type PrdStrategyQueueItem = InferSelectModel<typeof prdStrategyQueue>;
+
+/** result_strategy — 6개 전략 프레임워크 결과 */
+export interface StrategyResult {
+  swot: {
+    strengths: string[];
+    weaknesses: string[];
+    opportunities: string[];
+    threats: string[];
+    crossAnalysis: string;
+  };
+  leanCanvas: {
+    problem: string;
+    solution: string;
+    keyMetrics: string;
+    uniqueValueProp: string;
+    unfairAdvantage: string;
+    channels: string;
+    customerSegments: string;
+    costStructure: string;
+    revenueStreams: string;
+  };
+  jtbd: {
+    who: string;
+    why: string;
+    whatBefore: string;
+    how: string;
+    whatAfter: string;
+    alternatives: string;
+  };
+  competition: {
+    directCompetitors: Array<{
+      name: string;
+      description: string;
+      strengths: string | string[];
+      weaknesses: string | string[];
+    }>;
+    indirectCompetitors: Array<{
+      name: string;
+      description: string;
+    }>;
+    differentiation: string;
+  };
+  marketSizing: {
+    tam: { value: string; description: string };
+    sam: { value: string; description: string };
+    som: { value: string; description: string };
+    methodology: string;
+    assumptions: string[];
+  };
+  riskAssessment: {
+    risks: Array<{
+      category: string;
+      description: string;
+      impact: "high" | "medium" | "low";
+      likelihood: "high" | "medium" | "low";
+      mitigation: string;
+    }>;
+    overallRiskLevel: "high" | "medium" | "low";
+    summary: string;
+  };
+}
+
+/** result_gtm — GTM 전략 결과 */
+export interface GtmResult {
+  beachheadSegment: {
+    segment: string;
+    rationale: string;
+    size: string;
+    accessibility: string;
+  };
+  icp: {
+    profile: string;
+    demographics: string;
+    psychographics: string;
+    painPoints: string[];
+    buyingTriggers: string[];
+  };
+  messaging: {
+    oneLiner: string;
+    elevatorPitch: string;
+    keyMessages: string[];
+  };
+  channelStrategy: {
+    channels: Array<{
+      name: string;
+      priority: "primary" | "secondary" | "experimental";
+      rationale: string;
+      estimatedCost: string;
+    }>;
+    recommendation: string;
+  };
+  launchPlan: {
+    phases: Array<{
+      name: string;
+      duration: string;
+      objectives: string[];
+      actions: string[];
+    }>;
+  };
 }

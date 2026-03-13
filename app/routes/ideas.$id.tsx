@@ -17,6 +17,9 @@ import { PanelResizeHandle } from "~/features/ideas/ui/PanelResizeHandle";
 import { ProposalCreationModal } from "~/features/ideas/ui/ProposalCreationModal";
 import { MethodologyCards } from "~/features/ideas/ui/MethodologyCards";
 import { PrdAnalysisCard } from "~/features/prd-studio/ui/PrdAnalysisCard";
+import { StrategyCanvasCard } from "~/features/prd-studio/ui/StrategyCanvasCard";
+import { GtmStrategyCard } from "~/features/prd-studio/ui/GtmStrategyCard";
+import { StrategyDetailModal } from "~/features/prd-studio/ui/StrategyDetailModal";
 
 // ── Types ─────────────────────────────────────────────────────────────
 
@@ -115,6 +118,9 @@ export default function IdeaDetail() {
   const [messagesLoaded, setMessagesLoaded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [proposalModalOpen, setProposalModalOpen] = useState(false);
+  const [prdCompleted, setPrdCompleted] = useState(false);
+  const [strategyCompleted, setStrategyCompleted] = useState(false);
+  const [strategyDetailOpen, setStrategyDetailOpen] = useState(false);
   const [discoveryModalOpen, setDiscoveryModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -607,6 +613,25 @@ export default function IdeaDetail() {
             ideaId={ideaId}
             selectedSourceCount={selectedSourceIds.length}
             onOpenProposalModal={() => setProposalModalOpen(true)}
+            onPrdCompleted={setPrdCompleted}
+          />
+        )}
+
+        {/* Strategy Canvas Card */}
+        {ideaId && (
+          <StrategyCanvasCard
+            ideaId={ideaId}
+            prdCompleted={prdCompleted}
+            onStrategyCompleted={() => setStrategyCompleted(true)}
+          />
+        )}
+
+        {/* GTM Strategy Card */}
+        {ideaId && (
+          <GtmStrategyCard
+            ideaId={ideaId}
+            strategyCompleted={strategyCompleted}
+            onOpenProposalModal={() => setProposalModalOpen(true)}
           />
         )}
 
@@ -724,6 +749,15 @@ export default function IdeaDetail() {
           navigate(`/proposals/${proposalId}`);
         }}
       />
+
+      {/* Strategy Detail Modal */}
+      {ideaId && (
+        <StrategyDetailModal
+          open={strategyDetailOpen}
+          onOpenChange={setStrategyDetailOpen}
+          ideaId={ideaId}
+        />
+      )}
 
       {/* Discovery creation modal */}
       <CreateDiscoveryModal

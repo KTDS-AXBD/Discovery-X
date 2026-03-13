@@ -5,6 +5,8 @@ import type {
   PrdVersionSnapshot,
   ReviewFeedbackItem,
   ReviewScorecard,
+  StrategyResult,
+  GtmResult,
 } from "../types";
 
 // ============================================================================
@@ -204,6 +206,51 @@ export const prdAnalysisQueue = sqliteTable(
     statusIdx: index("idx_prd_analysis_queue_status").on(table.status),
     ideaIdx: index("idx_prd_analysis_queue_idea").on(table.ideaId),
     tenantIdx: index("idx_prd_analysis_queue_tenant").on(table.tenantId),
+  }),
+);
+
+// ============================================================================
+// PRD STRATEGY QUEUE — 전략 분석 큐 (Phase 4)
+// ============================================================================
+
+export const StrategyQueueStatus = {
+  PENDING: "PENDING",
+  PROCESSING: "PROCESSING",
+  COMPLETED: "COMPLETED",
+  FAILED: "FAILED",
+} as const;
+
+export const StrategyQueueMode = {
+  BATCH: "batch",
+  REALTIME: "realtime",
+} as const;
+
+export const prdStrategyQueue = sqliteTable(
+  "prd_strategy_queue",
+  {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    ideaId: text("idea_id").notNull(),
+    prdId: text("prd_id").notNull(),
+    tenantId: text("tenant_id").notNull().references(() => tenants.id),
+    requestedBy: text("requested_by").notNull().references(() => users.id),
+    status: text("status").notNull().default(StrategyQueueStatus.PENDING),
+    mode: text("mode").notNull().default(StrategyQueueMode.BATCH),
+    prdContext: text("prd_context"),
+    resultStrategy: text("result_strategy", { mode: "json" }).$type<StrategyResult>(),
+    resultGtm: text("result_gtm", { mode: "json" }).$type<GtmResult>(),
+    errorMessage: text("error_message"),
+    modelVersion: text("model_version"),
+    tokensUsed: integer("tokens_used"),
+    latencyMs: integer("latency_ms"),
+    requestedAt: integer("requested_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+    startedAt: integer("started_at", { mode: "timestamp" }),
+    completedAt: integer("completed_at", { mode: "timestamp" }),
+  },
+  (table) => ({
+    statusIdx: index("idx_prd_strategy_queue_status").on(table.status),
+    ideaIdx: index("idx_prd_strategy_queue_idea").on(table.ideaId),
+    prdIdx: index("idx_prd_strategy_queue_prd").on(table.prdId),
+    tenantIdx: index("idx_prd_strategy_queue_tenant").on(table.tenantId),
   }),
 );
 

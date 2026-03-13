@@ -27,6 +27,7 @@ interface PrdAnalysisCardProps {
   ideaId: string;
   selectedSourceCount: number;
   onOpenProposalModal?: () => void;
+  onPrdCompleted?: (completed: boolean) => void;
 }
 
 // ── Polling Hook ───────────────────────────────────────────────────────
@@ -65,10 +66,15 @@ const VERDICT_STYLES: Record<string, { label: string; className: string }> = {
 
 // ── Component ──────────────────────────────────────────────────────────
 
-export function PrdAnalysisCard({ ideaId, selectedSourceCount, onOpenProposalModal }: PrdAnalysisCardProps) {
+export function PrdAnalysisCard({ ideaId, selectedSourceCount, onOpenProposalModal, onPrdCompleted }: PrdAnalysisCardProps) {
   const { status: analysisStatus, loading, refetch } = useAnalysisPolling(ideaId);
   const [requesting, setRequesting] = useState(false);
   const [expanded, setExpanded] = useState(false);
+
+  // Notify parent when PRD analysis completes
+  useEffect(() => {
+    onPrdCompleted?.(analysisStatus.status === "COMPLETED");
+  }, [analysisStatus.status, onPrdCompleted]);
 
   const handleRequestAnalysis = useCallback(async () => {
     setRequesting(true);

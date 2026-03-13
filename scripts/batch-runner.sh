@@ -575,6 +575,215 @@ run_prd_mode() {
 }
 
 ###############################################################################
+# 전략 분석 함수 (F44 Phase 4)
+###############################################################################
+
+STRATEGY_PROCESSED=0
+STRATEGY_BATCH_SIZE="${STRATEGY_BATCH_SIZE:-3}"
+STRATEGY_RATE_LIMIT_WAIT="${STRATEGY_RATE_LIMIT_WAIT:-60}"
+
+query_pending_strategy() {
+  local raw
+  raw=$(d1_execute "SELECT sq.id, sq.idea_id, sq.prd_id, sq.tenant_id, sq.requested_by, sq.prd_context FROM prd_strategy_queue sq WHERE sq.status = 'PENDING' AND sq.mode = 'batch' ORDER BY sq.requested_at ASC LIMIT $STRATEGY_BATCH_SIZE;") || return 1
+  d1_results "$raw"
+}
+
+mark_strategy_processing() {
+  local queue_id="$1"
+  d1_execute "UPDATE prd_strategy_queue SET status = 'PROCESSING', started_at = unixepoch() WHERE id = '$queue_id';" >/dev/null || true
+}
+
+analyze_strategy_item() {
+  local prd_context="$1"
+  local prompt
+  prompt="PRD 내용을 기반으로 6개 전략 프레임워크를 분석해줘.
+
+## PRD 내용
+$prd_context
+
+## 출력 규칙
+1. 반드시 JSON만 출력 (마크다운 래핑 금지)
+2. 한국어로 작성
+3. 구체적 수치, 기업명, 사례 포함
+
+## JSON 형식
+{\"swot\":{\"strengths\":[],\"weaknesses\":[],\"opportunities\":[],\"threats\":[],\"crossAnalysis\":\"\"},\"leanCanvas\":{\"problem\":\"\",\"solution\":\"\",\"keyMetrics\":\"\",\"uniqueValueProp\":\"\",\"unfairAdvantage\":\"\",\"channels\":\"\",\"customerSegments\":\"\",\"costStructure\":\"\",\"revenueStreams\":\"\"},\"jtbd\":{\"who\":\"\",\"why\":\"\",\"whatBefore\":\"\",\"how\":\"\",\"whatAfter\":\"\",\"alternatives\":\"\"},\"competition\":{\"directCompetitors\":[],\"indirectCompetitors\":[],\"differentiation\":\"\"},\"marketSizing\":{\"tam\":{\"value\":\"\",\"description\":\"\"},\"sam\":{\"value\":\"\",\"description\":\"\"},\"som\":{\"value\":\"\",\"description\":\"\"},\"methodology\":\"\",\"assumptions\":[]},\"riskAssessment\":{\"risks\":[],\"overallRiskLevel\":\"medium\",\"summary\":\"\"}}"
+
+  local result
+  result=$(claude -p "$prompt" \
+    --model claude-sonnet-4-6 \
+    --output-format json \
+    --max-turns 3 \
+    --append-system-prompt "JSON만 출력하세요." \
+    2>/dev/null) || return 1
+
+  echo "$result" | jq -r '.result'
+}
+
+save_strategy_result() {
+  local queue_id="$1"
+  local analysis="$2"
+
+  local result_strategy
+  result_strategy=$(sql_escape "$(echo "$analysis" | jq -c '.')")
+
+  d1_execute "UPDATE prd_strategy_queue SET status = 'COMPLETED', result_strategy = '$result_strategy', model_version = 'claude-sonnet-4-6', completed_at = unixepoch() WHERE id = '$queue_id';" >/dev/null || true
+
+  log "전략 분석 완료: $queue_id"
+}
+
+fail_strategy_analysis() {
+  local queue_id="$1"
+  local error_msg="$2"
+  error_msg=$(sql_escape "$error_msg")
+  d1_execute "UPDATE prd_strategy_queue SET status = 'FAILED', error_message = '$error_msg', completed_at = unixepoch() WHERE id = '$queue_id';" >/dev/null || true
+}
+
+run_strategy_mode() {
+  log "=== 전략 분석 모드 시작 ==="
+
+  while true; do
+    local items
+    items=$(query_pending_strategy) || { log_error "전략 큐 조회 실패"; break; }
+
+    local count
+    count=$(echo "$items" | jq 'length')
+    if [[ "$count" -eq 0 ]]; then
+      log "전략 미처리 큐 없음."
+      break
+    fi
+    log "전략 배치: $count 건 처리 중..."
+
+    for i in $(seq 0 $((count - 1))); do
+      local qid prd_context
+      qid=$(echo "$items" | jq -r ".[$i].id")
+      prd_context=$(echo "$items" | jq -r ".[$i].prd_context")
+
+      log "전략 분석 중: $qid"
+      mark_strategy_processing "$qid"
+
+      local analysis
+      if ! analysis=$(analyze_strategy_item "$prd_context"); then
+        log_error "전략 분석 실패: $qid"
+        fail_strategy_analysis "$qid" "claude -p 호출 실패"
+        STRATEGY_PROCESSED=$((STRATEGY_PROCESSED + 1))
+        sleep "$STRATEGY_RATE_LIMIT_WAIT"
+        continue
+      fi
+
+      if ! echo "$analysis" | jq . >/dev/null 2>&1; then
+        log_error "전략 분석 결과가 유효한 JSON이 아님: $qid"
+        fail_strategy_analysis "$qid" "JSON 파싱 실패"
+        STRATEGY_PROCESSED=$((STRATEGY_PROCESSED + 1))
+        sleep "$STRATEGY_RATE_LIMIT_WAIT"
+        continue
+      fi
+
+      save_strategy_result "$qid" "$analysis"
+      STRATEGY_PROCESSED=$((STRATEGY_PROCESSED + 1))
+
+      if [[ $i -lt $((count - 1)) ]]; then
+        sleep "$STRATEGY_RATE_LIMIT_WAIT"
+      fi
+    done
+
+    sleep "$STRATEGY_RATE_LIMIT_WAIT"
+  done
+}
+
+###############################################################################
+# GTM 분석 함수 (F44 Phase 4)
+###############################################################################
+
+GTM_PROCESSED=0
+
+query_completed_strategy_without_gtm() {
+  local raw
+  raw=$(d1_execute "SELECT sq.id, sq.idea_id, sq.prd_id, sq.tenant_id, sq.prd_context, sq.result_strategy FROM prd_strategy_queue sq WHERE sq.status = 'COMPLETED' AND sq.result_strategy IS NOT NULL AND sq.result_gtm IS NULL ORDER BY sq.completed_at ASC LIMIT $STRATEGY_BATCH_SIZE;") || return 1
+  d1_results "$raw"
+}
+
+analyze_gtm_item() {
+  local prd_context="$1"
+  local strategy_json="$2"
+  local prompt
+  prompt="PRD와 전략 분석 결과를 기반으로 GTM 전략을 수립해줘.
+
+## PRD 내용
+$prd_context
+
+## 전략 분석 결과
+$strategy_json
+
+## 출력 규칙
+1. 반드시 JSON만 출력
+2. 한국어로 작성
+
+## JSON 형식
+{\"beachheadSegment\":{\"segment\":\"\",\"rationale\":\"\",\"size\":\"\",\"accessibility\":\"\"},\"icp\":{\"profile\":\"\",\"demographics\":\"\",\"psychographics\":\"\",\"painPoints\":[],\"buyingTriggers\":[]},\"messaging\":{\"oneLiner\":\"\",\"elevatorPitch\":\"\",\"keyMessages\":[]},\"channelStrategy\":{\"channels\":[],\"recommendation\":\"\"},\"launchPlan\":{\"phases\":[]}}"
+
+  local result
+  result=$(claude -p "$prompt" \
+    --model claude-sonnet-4-6 \
+    --output-format json \
+    --max-turns 3 \
+    --append-system-prompt "JSON만 출력하세요." \
+    2>/dev/null) || return 1
+
+  echo "$result" | jq -r '.result'
+}
+
+run_gtm_mode() {
+  log "=== GTM 분석 모드 시작 ==="
+
+  local items
+  items=$(query_completed_strategy_without_gtm) || { log_error "GTM 큐 조회 실패"; return; }
+
+  local count
+  count=$(echo "$items" | jq 'length')
+  if [[ "$count" -eq 0 ]]; then
+    log "GTM 미처리 항목 없음."
+    return
+  fi
+  log "GTM 배치: $count 건 처리 중..."
+
+  for i in $(seq 0 $((count - 1))); do
+    local qid prd_context strategy_json
+    qid=$(echo "$items" | jq -r ".[$i].id")
+    prd_context=$(echo "$items" | jq -r ".[$i].prd_context")
+    strategy_json=$(echo "$items" | jq -r ".[$i].result_strategy")
+
+    log "GTM 분석 중: $qid"
+
+    local gtm_result
+    if ! gtm_result=$(analyze_gtm_item "$prd_context" "$strategy_json"); then
+      log_error "GTM 분석 실패: $qid"
+      GTM_PROCESSED=$((GTM_PROCESSED + 1))
+      sleep "$STRATEGY_RATE_LIMIT_WAIT"
+      continue
+    fi
+
+    if ! echo "$gtm_result" | jq . >/dev/null 2>&1; then
+      log_error "GTM 결과가 유효한 JSON이 아님: $qid"
+      GTM_PROCESSED=$((GTM_PROCESSED + 1))
+      sleep "$STRATEGY_RATE_LIMIT_WAIT"
+      continue
+    fi
+
+    local escaped_gtm
+    escaped_gtm=$(sql_escape "$(echo "$gtm_result" | jq -c '.')")
+    d1_execute "UPDATE prd_strategy_queue SET result_gtm = '$escaped_gtm' WHERE id = '$qid';" >/dev/null || true
+
+    log "GTM 분석 완료: $qid"
+    GTM_PROCESSED=$((GTM_PROCESSED + 1))
+
+    if [[ $i -lt $((count - 1)) ]]; then
+      sleep "$STRATEGY_RATE_LIMIT_WAIT"
+    fi
+  done
+}
+
+###############################################################################
 # 메인
 ###############################################################################
 
@@ -592,15 +801,25 @@ case "$MODE" in
   prd)
     run_prd_mode
     ;;
+  strategy)
+    run_strategy_mode
+    ;;
+  gtm)
+    run_gtm_mode
+    ;;
   all)
     run_radar_mode
     echo ""
     run_ontology_mode
     echo ""
     run_prd_mode
+    echo ""
+    run_strategy_mode
+    echo ""
+    run_gtm_mode
     ;;
   *)
-    echo "사용법: $0 [radar|ontology|prd|all]" >&2
+    echo "사용법: $0 [radar|ontology|prd|strategy|gtm|all]" >&2
     exit 1
     ;;
 esac
@@ -614,6 +833,8 @@ echo "Evidence processed: $EVIDENCE_PROCESSED"
 echo "Nodes created: $NODES_CREATED"
 echo "Edges created: $EDGES_CREATED"
 echo "PRD processed: $PRD_PROCESSED"
+echo "Strategy processed: $STRATEGY_PROCESSED"
+echo "GTM processed: $GTM_PROCESSED"
 echo "Errors: $ERROR_COUNT"
 echo "API Credit: 0 (Claude Code subscription)"
 

@@ -8,6 +8,8 @@ import {
   prdEvents,
   prdAnalysisQueue,
   AnalysisQueueStatus,
+  prdStrategyQueue,
+  StrategyQueueStatus,
   PrdSectionType,
   PrdStatus,
 } from "~/features/prd-studio/db/schema";
@@ -17,6 +19,8 @@ import type {
   PrdVersionSnapshot,
   ReviewFeedbackItem,
   ReviewScorecard,
+  StrategyResult,
+  GtmResult,
 } from "~/features/prd-studio/types";
 
 // ============================================================================
@@ -538,6 +542,207 @@ export class PrdStudioService {
         completedAt: sql`(unixepoch())`,
       })
       .where(eq(prdAnalysisQueue.id, queueId));
+  }
+
+  // ────────────── 전략 분석 큐 (Phase 4) ──────────────
+
+  /** 전략 분석 요청 큐에 추가 */
+  async enqueueStrategy(input: {
+    ideaId: string;
+    prdId: string;
+    tenantId: string;
+    requestedBy: string;
+    prdContext: string;
+    mode: string;
+  }): Promise<{ queueId: string; position: number }> {
+    // 이미 PENDING/PROCESSING인 큐 확인
+    const existing = await this.db
+      .select({ id: prdStrategyQueue.id, status: prdStrategyQueue.status })
+      .from(prdStrategyQueue)
+      .where(
+        and(
+          eq(prdStrategyQueue.ideaId, input.ideaId),
+          sql`${prdStrategyQueue.status} IN ('PENDING', 'PROCESSING')`,
+        ),
+      )
+      .get();
+
+    if (existing) {
+      throw new ConflictError("이미 전략 분석이 진행 중이에요.");
+    }
+
+    const queueId = crypto.randomUUID();
+    await this.db.insert(prdStrategyQueue).values({
+      id: queueId,
+      ideaId: input.ideaId,
+      prdId: input.prdId,
+      tenantId: input.tenantId,
+      requestedBy: input.requestedBy,
+      prdContext: input.prdContext,
+      mode: input.mode,
+      status: StrategyQueueStatus.PENDING,
+    });
+
+    // 큐 위치 계산
+    const ahead = await this.db
+      .select({ cnt: sql<number>`COUNT(*)` })
+      .from(prdStrategyQueue)
+      .where(
+        and(
+          eq(prdStrategyQueue.status, StrategyQueueStatus.PENDING),
+          lt(prdStrategyQueue.requestedAt, sql`(unixepoch())`),
+        ),
+      )
+      .get();
+
+    return { queueId, position: (ahead?.cnt ?? 0) + 1 };
+  }
+
+  /** 전략 분석 상태 조회 */
+  async getStrategyStatus(ideaId: string) {
+    const item = await this.db
+      .select()
+      .from(prdStrategyQueue)
+      .where(eq(prdStrategyQueue.ideaId, ideaId))
+      .orderBy(desc(prdStrategyQueue.requestedAt))
+      .get();
+
+    if (!item) return { status: "none" as const };
+
+    if (item.status === StrategyQueueStatus.PENDING) {
+      const ahead = await this.db
+        .select({ cnt: sql<number>`COUNT(*)` })
+        .from(prdStrategyQueue)
+        .where(
+          and(
+            eq(prdStrategyQueue.status, StrategyQueueStatus.PENDING),
+            lt(prdStrategyQueue.requestedAt, item.requestedAt),
+          ),
+        )
+        .get();
+
+      return {
+        status: "PENDING" as const,
+        queueId: item.id,
+        position: (ahead?.cnt ?? 0) + 1,
+        requestedAt: item.requestedAt,
+      };
+    }
+
+    if (item.status === StrategyQueueStatus.PROCESSING) {
+      return {
+        status: "PROCESSING" as const,
+        queueId: item.id,
+        startedAt: item.startedAt,
+      };
+    }
+
+    if (item.status === StrategyQueueStatus.COMPLETED) {
+      const hasStrategy = !!item.resultStrategy;
+      const hasGtm = !!item.resultGtm;
+      const strategyFrameworks = hasStrategy
+        ? Object.keys(item.resultStrategy as unknown as Record<string, unknown>).length
+        : 0;
+
+      return {
+        status: "COMPLETED" as const,
+        queueId: item.id,
+        prdId: item.prdId,
+        hasStrategy,
+        hasGtm,
+        strategyFrameworks,
+        completedAt: item.completedAt,
+      };
+    }
+
+    return {
+      status: "FAILED" as const,
+      queueId: item.id,
+      error: item.errorMessage,
+      completedAt: item.completedAt,
+    };
+  }
+
+  /** PENDING 전략 분석 취소 */
+  async cancelStrategy(ideaId: string, requestedBy: string): Promise<void> {
+    const item = await this.db
+      .select()
+      .from(prdStrategyQueue)
+      .where(eq(prdStrategyQueue.ideaId, ideaId))
+      .orderBy(desc(prdStrategyQueue.requestedAt))
+      .get();
+
+    if (!item) {
+      throw new NotFoundError("전략 분석 요청을 찾을 수 없어요.");
+    }
+    if (item.requestedBy !== requestedBy) {
+      throw new ForbiddenError("본인의 분석 요청만 취소할 수 있어요.");
+    }
+    if (item.status !== StrategyQueueStatus.PENDING) {
+      throw new ConflictError("대기 중인 요청만 취소할 수 있어요.");
+    }
+
+    await this.db
+      .delete(prdStrategyQueue)
+      .where(eq(prdStrategyQueue.id, item.id));
+  }
+
+  /** 전략 분석 완료 처리 */
+  async completeStrategy(queueId: string, result: {
+    strategy: StrategyResult;
+    gtm?: GtmResult;
+    modelVersion?: string;
+    tokensUsed?: number;
+    latencyMs?: number;
+  }): Promise<void> {
+    await this.db
+      .update(prdStrategyQueue)
+      .set({
+        status: StrategyQueueStatus.COMPLETED,
+        resultStrategy: result.strategy,
+        resultGtm: result.gtm ?? null,
+        modelVersion: result.modelVersion ?? null,
+        tokensUsed: result.tokensUsed ?? null,
+        latencyMs: result.latencyMs ?? null,
+        completedAt: sql`(unixepoch())`,
+      })
+      .where(eq(prdStrategyQueue.id, queueId));
+  }
+
+  /** 전략 분석 실패 처리 */
+  async failStrategy(queueId: string, errorMessage: string): Promise<void> {
+    await this.db
+      .update(prdStrategyQueue)
+      .set({
+        status: StrategyQueueStatus.FAILED,
+        errorMessage,
+        completedAt: sql`(unixepoch())`,
+      })
+      .where(eq(prdStrategyQueue.id, queueId));
+  }
+
+  /** 전략 분석 결과 조회 (COMPLETED만) */
+  async getStrategyResult(ideaId: string) {
+    const item = await this.db
+      .select({
+        id: prdStrategyQueue.id,
+        prdId: prdStrategyQueue.prdId,
+        resultStrategy: prdStrategyQueue.resultStrategy,
+        resultGtm: prdStrategyQueue.resultGtm,
+        modelVersion: prdStrategyQueue.modelVersion,
+        completedAt: prdStrategyQueue.completedAt,
+      })
+      .from(prdStrategyQueue)
+      .where(
+        and(
+          eq(prdStrategyQueue.ideaId, ideaId),
+          eq(prdStrategyQueue.status, StrategyQueueStatus.COMPLETED),
+        ),
+      )
+      .orderBy(desc(prdStrategyQueue.completedAt))
+      .get();
+
+    return item ?? null;
   }
 }
 
