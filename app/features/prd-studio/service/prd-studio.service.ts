@@ -1,4 +1,4 @@
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, sql, lt } from "drizzle-orm";
 import type { DB } from "~/db";
 import {
   prds,
@@ -6,6 +6,8 @@ import {
   prdVersions,
   prdReviews,
   prdEvents,
+  prdAnalysisQueue,
+  AnalysisQueueStatus,
   PrdSectionType,
   PrdStatus,
 } from "~/features/prd-studio/db/schema";
@@ -271,5 +273,271 @@ export class PrdStudioService {
       actorId: input.actorId ?? null,
       payload: input.payload ?? null,
     });
+  }
+
+  // ────────────── 분석 큐 ──────────────
+
+  /** 분석 요청 큐에 추가 */
+  async enqueueAnalysis(input: {
+    ideaId: string;
+    tenantId: string;
+    requestedBy: string;
+    sourceContext: string;
+    sourceIds: string[];
+  }): Promise<{ queueId: string; position: number }> {
+    // 이미 PENDING/PROCESSING인 큐 확인
+    const existing = await this.db
+      .select({ id: prdAnalysisQueue.id, status: prdAnalysisQueue.status })
+      .from(prdAnalysisQueue)
+      .where(
+        and(
+          eq(prdAnalysisQueue.ideaId, input.ideaId),
+          sql`${prdAnalysisQueue.status} IN ('PENDING', 'PROCESSING')`,
+        ),
+      )
+      .get();
+
+    if (existing) {
+      throw new ConflictError("이미 분석이 진행 중이에요.");
+    }
+
+    const queueId = crypto.randomUUID();
+    await this.db.insert(prdAnalysisQueue).values({
+      id: queueId,
+      ideaId: input.ideaId,
+      tenantId: input.tenantId,
+      requestedBy: input.requestedBy,
+      sourceContext: input.sourceContext,
+      sourceIds: input.sourceIds,
+      status: AnalysisQueueStatus.PENDING,
+    });
+
+    // 큐 위치 계산 (자신보다 앞선 PENDING 수 + 1)
+    const ahead = await this.db
+      .select({ cnt: sql<number>`COUNT(*)` })
+      .from(prdAnalysisQueue)
+      .where(
+        and(
+          eq(prdAnalysisQueue.status, AnalysisQueueStatus.PENDING),
+          lt(prdAnalysisQueue.requestedAt, sql`(unixepoch())`),
+        ),
+      )
+      .get();
+
+    return { queueId, position: (ahead?.cnt ?? 0) + 1 };
+  }
+
+  /** 분석 상태 조회 */
+  async getAnalysisStatus(ideaId: string) {
+    const item = await this.db
+      .select()
+      .from(prdAnalysisQueue)
+      .where(eq(prdAnalysisQueue.ideaId, ideaId))
+      .orderBy(desc(prdAnalysisQueue.requestedAt))
+      .get();
+
+    if (!item) return { status: "none" as const };
+
+    if (item.status === AnalysisQueueStatus.PENDING) {
+      const ahead = await this.db
+        .select({ cnt: sql<number>`COUNT(*)` })
+        .from(prdAnalysisQueue)
+        .where(
+          and(
+            eq(prdAnalysisQueue.status, AnalysisQueueStatus.PENDING),
+            lt(prdAnalysisQueue.requestedAt, item.requestedAt),
+          ),
+        )
+        .get();
+
+      return {
+        status: "PENDING" as const,
+        queueId: item.id,
+        position: (ahead?.cnt ?? 0) + 1,
+        requestedAt: item.requestedAt,
+      };
+    }
+
+    if (item.status === AnalysisQueueStatus.PROCESSING) {
+      return {
+        status: "PROCESSING" as const,
+        queueId: item.id,
+        startedAt: item.startedAt,
+      };
+    }
+
+    if (item.status === AnalysisQueueStatus.COMPLETED) {
+      return {
+        status: "COMPLETED" as const,
+        queueId: item.id,
+        prdId: item.prdId,
+        completedAt: item.completedAt,
+      };
+    }
+
+    return {
+      status: "FAILED" as const,
+      queueId: item.id,
+      error: item.errorMessage,
+      completedAt: item.completedAt,
+    };
+  }
+
+  /** PENDING 큐 취소 */
+  async cancelAnalysis(ideaId: string, requestedBy: string): Promise<void> {
+    const item = await this.db
+      .select()
+      .from(prdAnalysisQueue)
+      .where(eq(prdAnalysisQueue.ideaId, ideaId))
+      .orderBy(desc(prdAnalysisQueue.requestedAt))
+      .get();
+
+    if (!item) {
+      throw new NotFoundError("분석 요청을 찾을 수 없어요.");
+    }
+    if (item.requestedBy !== requestedBy) {
+      throw new ForbiddenError("본인의 분석 요청만 취소할 수 있어요.");
+    }
+    if (item.status !== AnalysisQueueStatus.PENDING) {
+      throw new ConflictError("대기 중인 요청만 취소할 수 있어요.");
+    }
+
+    await this.db
+      .delete(prdAnalysisQueue)
+      .where(eq(prdAnalysisQueue.id, item.id));
+  }
+
+  /** 배치 프로세서: 다음 PENDING 큐 가져오기 (PROCESSING 전환) */
+  async processNext() {
+    const item = await this.db
+      .select()
+      .from(prdAnalysisQueue)
+      .where(eq(prdAnalysisQueue.status, AnalysisQueueStatus.PENDING))
+      .orderBy(prdAnalysisQueue.requestedAt)
+      .get();
+
+    if (!item) return null;
+
+    await this.db
+      .update(prdAnalysisQueue)
+      .set({
+        status: AnalysisQueueStatus.PROCESSING,
+        startedAt: sql`(unixepoch())`,
+      })
+      .where(eq(prdAnalysisQueue.id, item.id));
+
+    return item;
+  }
+
+  /** 배치 프로세서: 분석 완료 처리 (PRD 자동 생성 + 검토 결과 저장) */
+  async completeAnalysis(queueId: string, result: {
+    title: string;
+    sections: Record<string, string>;
+    review: {
+      verdict: string;
+      scorecard: ReviewScorecard;
+      feedbackItems: ReviewFeedbackItem[];
+    } | null;
+    modelVersion?: string;
+    tokensUsed?: number;
+    latencyMs?: number;
+  }): Promise<string> {
+    const item = await this.db
+      .select()
+      .from(prdAnalysisQueue)
+      .where(eq(prdAnalysisQueue.id, queueId))
+      .get();
+
+    if (!item) throw new NotFoundError("큐 항목을 찾을 수 없어요.");
+
+    // PRD 자동 생성
+    const prdId = await this.create({
+      tenantId: item.tenantId,
+      title: result.title,
+      createdBy: item.requestedBy,
+      sourceIdeaId: item.ideaId,
+    });
+
+    // 8개 섹션 generatedContent 업데이트
+    for (const [type, content] of Object.entries(result.sections)) {
+      await this.db
+        .update(prdSections)
+        .set({ generatedContent: content })
+        .where(and(eq(prdSections.prdId, prdId), eq(prdSections.type, type)));
+    }
+
+    // PRD 상태 → GENERATED
+    await this.update(prdId, { status: PrdStatus.GENERATED, interviewProgress: 8 });
+
+    // 검토 결과 저장
+    if (result.review) {
+      await this.saveReviewResult({
+        prdId,
+        round: 1,
+        model: result.modelVersion ?? "claude-sonnet-4-6",
+        verdict: result.review.verdict,
+        feedbackItems: result.review.feedbackItems,
+        scorecard: result.review.scorecard,
+        rawResponse: null,
+        prdVersion: 1,
+      });
+
+      // PRD 상태 → REVIEWED
+      await this.update(prdId, { status: PrdStatus.REVIEWED });
+    }
+
+    // 큐 완료 처리
+    await this.db
+      .update(prdAnalysisQueue)
+      .set({
+        status: AnalysisQueueStatus.COMPLETED,
+        prdId,
+        resultSections: result.sections,
+        resultReview: result.review,
+        modelVersion: result.modelVersion ?? null,
+        tokensUsed: result.tokensUsed ?? null,
+        latencyMs: result.latencyMs ?? null,
+        completedAt: sql`(unixepoch())`,
+      })
+      .where(eq(prdAnalysisQueue.id, queueId));
+
+    return prdId;
+  }
+
+  /** 배치 프로세서: 분석 실패 처리 */
+  async failAnalysis(queueId: string, errorMessage: string): Promise<void> {
+    await this.db
+      .update(prdAnalysisQueue)
+      .set({
+        status: AnalysisQueueStatus.FAILED,
+        errorMessage,
+        completedAt: sql`(unixepoch())`,
+      })
+      .where(eq(prdAnalysisQueue.id, queueId));
+  }
+}
+
+// ============================================================================
+// Error Classes
+// ============================================================================
+
+export class ConflictError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ConflictError";
+  }
+}
+
+export class NotFoundError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "NotFoundError";
+  }
+}
+
+export class ForbiddenError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ForbiddenError";
   }
 }

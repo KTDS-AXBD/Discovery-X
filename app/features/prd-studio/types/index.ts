@@ -3,7 +3,7 @@
 // ============================================================================
 
 import type { InferSelectModel } from "drizzle-orm";
-import type { prds, prdSections, prdReviews } from "../db/schema";
+import type { prds, prdSections, prdReviews, prdAnalysisQueue } from "../db/schema";
 
 // ----------------------------------------------------------------------------
 // DB Row Types (InferSelectModel)
@@ -12,6 +12,7 @@ import type { prds, prdSections, prdReviews } from "../db/schema";
 export type Prd = InferSelectModel<typeof prds>;
 export type PrdSection = InferSelectModel<typeof prdSections>;
 export type PrdReview = InferSelectModel<typeof prdReviews>;
+export type PrdAnalysisQueueItem = InferSelectModel<typeof prdAnalysisQueue>;
 
 // ----------------------------------------------------------------------------
 // JSON Column Types

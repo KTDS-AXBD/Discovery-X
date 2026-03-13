@@ -165,6 +165,49 @@ export const prdEvents = sqliteTable(
 );
 
 // ============================================================================
+// PRD ANALYSIS QUEUE — claude -p 배치 분석 큐
+// ============================================================================
+
+export const AnalysisQueueStatus = {
+  PENDING: "PENDING",
+  PROCESSING: "PROCESSING",
+  COMPLETED: "COMPLETED",
+  FAILED: "FAILED",
+} as const;
+
+export const prdAnalysisQueue = sqliteTable(
+  "prd_analysis_queue",
+  {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    ideaId: text("idea_id").notNull(),
+    prdId: text("prd_id"),
+    tenantId: text("tenant_id").notNull().references(() => tenants.id),
+    requestedBy: text("requested_by").notNull().references(() => users.id),
+    status: text("status").notNull().default(AnalysisQueueStatus.PENDING),
+    sourceContext: text("source_context"),
+    sourceIds: text("source_ids", { mode: "json" }).$type<string[]>(),
+    resultSections: text("result_sections", { mode: "json" }).$type<Record<string, string>>(),
+    resultReview: text("result_review", { mode: "json" }).$type<{
+      verdict: string;
+      scorecard: ReviewScorecard;
+      feedbackItems: ReviewFeedbackItem[];
+    }>(),
+    errorMessage: text("error_message"),
+    modelVersion: text("model_version"),
+    tokensUsed: integer("tokens_used"),
+    latencyMs: integer("latency_ms"),
+    requestedAt: integer("requested_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+    startedAt: integer("started_at", { mode: "timestamp" }),
+    completedAt: integer("completed_at", { mode: "timestamp" }),
+  },
+  (table) => ({
+    statusIdx: index("idx_prd_analysis_queue_status").on(table.status),
+    ideaIdx: index("idx_prd_analysis_queue_idea").on(table.ideaId),
+    tenantIdx: index("idx_prd_analysis_queue_tenant").on(table.tenantId),
+  }),
+);
+
+// ============================================================================
 // DRIZZLE RELATIONS (for relational query API)
 // ============================================================================
 

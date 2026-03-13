@@ -16,6 +16,7 @@ import { IdeaChatWrapper } from "~/features/ideas/ui/IdeaChatWrapper";
 import { PanelResizeHandle } from "~/features/ideas/ui/PanelResizeHandle";
 import { ProposalCreationModal } from "~/features/ideas/ui/ProposalCreationModal";
 import { MethodologyCards } from "~/features/ideas/ui/MethodologyCards";
+import { PrdAnalysisCard } from "~/features/prd-studio/ui/PrdAnalysisCard";
 
 // ── Types ─────────────────────────────────────────────────────────────
 
@@ -598,6 +599,14 @@ export default function IdeaDetail() {
               )}
             </span>
           </div>
+        )}
+
+        {/* PRD Analysis Card */}
+        {ideaId && (
+          <PrdAnalysisCard
+            ideaId={ideaId}
+            selectedSourceCount={selectedSourceIds.length}
+          />
         )}
 
         {/* Methodology Cards */}

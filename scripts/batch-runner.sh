@@ -398,6 +398,183 @@ run_ontology_mode() {
 }
 
 ###############################################################################
+# PRD 분석 함수 (F44 Phase 3)
+###############################################################################
+
+PRD_PROCESSED=0
+PRD_BATCH_SIZE="${PRD_BATCH_SIZE:-3}"
+PRD_RATE_LIMIT_WAIT="${PRD_RATE_LIMIT_WAIT:-60}"
+
+query_pending_prd_analysis() {
+  local raw
+  raw=$(d1_execute "SELECT id, idea_id, tenant_id, requested_by, source_context, source_ids FROM prd_analysis_queue WHERE status = 'PENDING' ORDER BY requested_at ASC LIMIT $PRD_BATCH_SIZE;") || return 1
+  d1_results "$raw"
+}
+
+mark_prd_processing() {
+  local queue_id="$1"
+  d1_execute "UPDATE prd_analysis_queue SET status = 'PROCESSING', started_at = unixepoch() WHERE id = '$queue_id';" >/dev/null || true
+}
+
+analyze_prd_item() {
+  local source_context="$1"
+  local prompt
+  prompt="소스 자료를 바탕으로 PRD를 작성하고 자체 검토해줘.
+
+## 소스 자료
+$source_context
+
+## 출력 규칙
+1. 반드시 JSON만 출력 (마크다운 래핑 금지)
+2. 8개 섹션 각 200~500자, 마크다운 형식, 한국어
+3. 검토 점수: totalScore = 8개 score 합 × (100/80)
+4. feedbackItems 최소 3개, 최대 10개
+
+## JSON 형식
+{\"prd\":{\"title\":\"제목\",\"sections\":{\"summary\":\"...\",\"background\":\"...\",\"objectives\":\"...\",\"target_users\":\"...\",\"requirements\":\"...\",\"solution\":\"...\",\"risks\":\"...\",\"timeline\":\"...\"}},\"review\":{\"verdict\":\"READY|CONDITIONAL|NOT_READY\",\"scorecard\":{\"totalScore\":0,\"items\":[{\"criteria\":\"문제 정의 명확성\",\"score\":0,\"maxScore\":10,\"comment\":\"...\"},{\"criteria\":\"대상 사용자 구체성\",\"score\":0,\"maxScore\":10,\"comment\":\"...\"},{\"criteria\":\"목표/성공기준 측정가능성\",\"score\":0,\"maxScore\":10,\"comment\":\"...\"},{\"criteria\":\"요구사항 완성도\",\"score\":0,\"maxScore\":10,\"comment\":\"...\"},{\"criteria\":\"해결방안 실현가능성\",\"score\":0,\"maxScore\":10,\"comment\":\"...\"},{\"criteria\":\"리스크 분석 충분성\",\"score\":0,\"maxScore\":10,\"comment\":\"...\"},{\"criteria\":\"일정 현실성\",\"score\":0,\"maxScore\":10,\"comment\":\"...\"},{\"criteria\":\"전체 일관성\",\"score\":0,\"maxScore\":10,\"comment\":\"...\"}]},\"feedbackItems\":[{\"section\":\"summary\",\"severity\":\"critical|major|minor|suggestion\",\"message\":\"...\",\"suggestion\":\"...\"}]}}"
+
+  local result
+  result=$(claude -p "$prompt" \
+    --model claude-sonnet-4-6 \
+    --output-format json \
+    --max-turns 3 \
+    --append-system-prompt "JSON만 출력하세요. 추가 설명 없이 순수 JSON만 반환하세요." \
+    2>/dev/null) || return 1
+
+  echo "$result" | jq -r '.result'
+}
+
+save_prd_result() {
+  local queue_id="$1"
+  local analysis="$2"
+  local idea_id="$3"
+  local tenant_id="$4"
+  local requested_by="$5"
+
+  # PRD 제목 추출
+  local title
+  title=$(echo "$analysis" | jq -r '.prd.title // "분석 결과 PRD"')
+  title=$(sql_escape "$title")
+
+  # PRD 생성
+  local prd_id="prd-$(gen_uuid)"
+  if ! d1_execute "INSERT INTO prds (id, tenant_id, title, status, version, created_by, source_idea_id, interview_progress, created_at, updated_at) VALUES ('$prd_id', '$tenant_id', '$title', 'REVIEWED', 1, '$requested_by', '$idea_id', 8, unixepoch(), unixepoch());" >/dev/null; then
+    log_error "PRD INSERT 실패: $queue_id"
+    return 1
+  fi
+
+  # 8개 섹션 생성
+  local section_types=("summary" "background" "objectives" "target_users" "requirements" "solution" "risks" "timeline")
+  local sort_order=1
+  for stype in "${section_types[@]}"; do
+    local content
+    content=$(echo "$analysis" | jq -r ".prd.sections.$stype // \"\"")
+    content=$(sql_escape "$content")
+    local sec_id="sec-$(gen_uuid)"
+    d1_execute "INSERT INTO prd_sections (id, prd_id, type, generated_content, sort_order) VALUES ('$sec_id', '$prd_id', '$stype', '$content', $sort_order);" >/dev/null || true
+    sort_order=$((sort_order + 1))
+  done
+
+  # 검토 결과 저장
+  local verdict scorecard feedback_items
+  verdict=$(echo "$analysis" | jq -r '.review.verdict // "NOT_READY"')
+  scorecard=$(echo "$analysis" | jq -c '.review.scorecard // {}')
+  feedback_items=$(echo "$analysis" | jq -c '.review.feedbackItems // .review.feedback_items // []')
+  scorecard=$(sql_escape "$scorecard")
+  feedback_items=$(sql_escape "$feedback_items")
+
+  local review_id="rev-$(gen_uuid)"
+  d1_execute "INSERT INTO prd_reviews (id, prd_id, round, model, verdict, feedback_items, scorecard, prd_version, created_at) VALUES ('$review_id', '$prd_id', 1, 'claude-sonnet-4-6', '$verdict', '$feedback_items', '$scorecard', 1, unixepoch());" >/dev/null || true
+
+  # 큐 완료 처리
+  local result_sections result_review
+  result_sections=$(echo "$analysis" | jq -c '.prd.sections // {}')
+  result_review=$(echo "$analysis" | jq -c '.review // {}')
+  result_sections=$(sql_escape "$result_sections")
+  result_review=$(sql_escape "$result_review")
+
+  d1_execute "UPDATE prd_analysis_queue SET status = 'COMPLETED', prd_id = '$prd_id', result_sections = '$result_sections', result_review = '$result_review', model_version = 'claude-sonnet-4-6', completed_at = unixepoch() WHERE id = '$queue_id';" >/dev/null || true
+
+  log "PRD 생성 완료: $prd_id (큐: $queue_id)"
+}
+
+fail_prd_analysis() {
+  local queue_id="$1"
+  local error_msg="$2"
+  error_msg=$(sql_escape "$error_msg")
+  d1_execute "UPDATE prd_analysis_queue SET status = 'FAILED', error_message = '$error_msg', completed_at = unixepoch() WHERE id = '$queue_id';" >/dev/null || true
+}
+
+run_prd_mode() {
+  log "=== PRD 분석 모드 시작 ==="
+
+  while true; do
+    local items
+    items=$(query_pending_prd_analysis) || { log_error "PRD 큐 조회 실패"; break; }
+
+    local count
+    count=$(echo "$items" | jq 'length')
+    if [[ "$count" -eq 0 ]]; then
+      log "PRD 미처리 큐 없음."
+      break
+    fi
+    log "PRD 배치: $count 건 처리 중..."
+
+    for i in $(seq 0 $((count - 1))); do
+      local qid idea_id tenant_id requested_by source_context
+      qid=$(echo "$items" | jq -r ".[$i].id")
+      idea_id=$(echo "$items" | jq -r ".[$i].idea_id")
+      tenant_id=$(echo "$items" | jq -r ".[$i].tenant_id")
+      requested_by=$(echo "$items" | jq -r ".[$i].requested_by")
+      source_context=$(echo "$items" | jq -r ".[$i].source_context")
+
+      log "PRD 분석 중: $qid (아이디어: $idea_id)"
+      mark_prd_processing "$qid"
+
+      local analysis
+      if ! analysis=$(analyze_prd_item "$source_context"); then
+        log_error "PRD 분석 실패: $qid (claude -p). 건너뜀."
+        fail_prd_analysis "$qid" "claude -p 호출 실패"
+        PRD_PROCESSED=$((PRD_PROCESSED + 1))
+        sleep "$PRD_RATE_LIMIT_WAIT"
+        continue
+      fi
+
+      # JSON 유효성 체크
+      if ! echo "$analysis" | jq . >/dev/null 2>&1; then
+        log_error "PRD 분석 결과가 유효한 JSON이 아니에요: $qid. 건너뜀."
+        fail_prd_analysis "$qid" "JSON 파싱 실패"
+        PRD_PROCESSED=$((PRD_PROCESSED + 1))
+        sleep "$PRD_RATE_LIMIT_WAIT"
+        continue
+      fi
+
+      # prd.sections 확인
+      local has_sections
+      has_sections=$(echo "$analysis" | jq '.prd.sections | length')
+      if [[ "$has_sections" -lt 1 ]]; then
+        log_error "PRD 분석 결과에 sections 없음: $qid. 건너뜀."
+        fail_prd_analysis "$qid" "prd.sections 누락"
+        PRD_PROCESSED=$((PRD_PROCESSED + 1))
+        sleep "$PRD_RATE_LIMIT_WAIT"
+        continue
+      fi
+
+      save_prd_result "$qid" "$analysis" "$idea_id" "$tenant_id" "$requested_by"
+      PRD_PROCESSED=$((PRD_PROCESSED + 1))
+
+      if [[ $i -lt $((count - 1)) ]]; then
+        log "Rate limit 대기 ${PRD_RATE_LIMIT_WAIT}초..."
+        sleep "$PRD_RATE_LIMIT_WAIT"
+      fi
+    done
+
+    log "Rate limit 대기 ${PRD_RATE_LIMIT_WAIT}초..."
+    sleep "$PRD_RATE_LIMIT_WAIT"
+  done
+}
+
+###############################################################################
 # 메인
 ###############################################################################
 
@@ -412,13 +589,18 @@ case "$MODE" in
   ontology)
     run_ontology_mode
     ;;
+  prd)
+    run_prd_mode
+    ;;
   all)
     run_radar_mode
     echo ""
     run_ontology_mode
+    echo ""
+    run_prd_mode
     ;;
   *)
-    echo "사용법: $0 [radar|ontology|all]" >&2
+    echo "사용법: $0 [radar|ontology|prd|all]" >&2
     exit 1
     ;;
 esac
@@ -431,6 +613,7 @@ echo "Ideas generated: $IDEAS_GENERATED"
 echo "Evidence processed: $EVIDENCE_PROCESSED"
 echo "Nodes created: $NODES_CREATED"
 echo "Edges created: $EDGES_CREATED"
+echo "PRD processed: $PRD_PROCESSED"
 echo "Errors: $ERROR_COUNT"
 echo "API Credit: 0 (Claude Code subscription)"
 
