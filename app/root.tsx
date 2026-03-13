@@ -6,7 +6,7 @@ import {
   ScrollRestoration,
   useRouteLoaderData,
 } from "@remix-run/react";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, lazy, Suspense } from "react";
 import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getDb } from "~/db";
@@ -19,6 +19,11 @@ import { ACTIVE_STATUSES } from "~/lib/constants/status";
 import { ThemeProvider } from "@axis-ds/theme";
 import { OnboardingModal } from "~/components/onboarding/OnboardingModal";
 import stylesheet from "~/styles/tailwind.css?url";
+
+// Agentation: 개발 환경 전용 UI 어노테이션 도구 (SSR 안전 lazy 로딩)
+const AgentationDev = import.meta.env.DEV
+  ? lazy(() => import("agentation").then((m) => ({ default: m.Agentation })))
+  : null;
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
@@ -197,6 +202,11 @@ export default function App() {
           onComplete={handleOnboardingDone}
           onSkip={handleOnboardingSkip}
         />
+      )}
+      {AgentationDev && (
+        <Suspense fallback={null}>
+          <AgentationDev />
+        </Suspense>
       )}
     </ThemeProvider>
   );

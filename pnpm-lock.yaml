@@ -114,6 +114,9 @@ importers:
       '@vitest/coverage-v8':
         specifier: ^4.0.18
         version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.30.2)(yaml@2.8.2))
+      agentation:
+        specifier: ^2.3.2
+        version: 2.3.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       artillery:
         specifier: ^2.0.30
         version: 2.0.30(@types/node@25.2.3)
@@ -4208,6 +4211,17 @@ packages:
   agent-base@7.1.4:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
+
+  agentation@2.3.2:
+    resolution: {integrity: sha512-TMCD7/n1GFZIuThrVWAmNWJuq2s/o7Iabx6M9fKf/Foi2EvH+ZZ8E2AWLSoLgIcAabN653WvCPfx+XqGmcbdmg==}
+    peerDependencies:
+      react: '>=18.0.0'
+      react-dom: '>=18.0.0'
+    peerDependenciesMeta:
+      react:
+        optional: true
+      react-dom:
+        optional: true
 
   agentkeepalive@4.6.0:
     resolution: {integrity: sha512-kja8j7PjmncONqaTsB8fQ+wE2mSU2DJ9D4XKoJ5PFWIdRMa6SLSN1ff4mOr4jCbfRSsxR4keIiySJU0N9T5hIQ==}
@@ -13015,6 +13029,11 @@ snapshots:
       - supports-color
 
   agent-base@7.1.4: {}
+
+  agentation@2.3.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
+    optionalDependencies:
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
 
   agentkeepalive@4.6.0:
     dependencies:

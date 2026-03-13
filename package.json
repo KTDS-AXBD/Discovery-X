@@ -63,6 +63,7 @@
     "@types/react": "^19.0.6",
     "@types/react-dom": "^19.0.2",
     "@vitest/coverage-v8": "^4.0.18",
+    "agentation": "^2.3.2",
     "artillery": "^2.0.30",
     "better-sqlite3": "^12.6.2",
     "drizzle-kit": "^0.30.2",
