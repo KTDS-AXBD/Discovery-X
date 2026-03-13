@@ -1,8 +1,8 @@
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { useNavigate } from "@remix-run/react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
-import { useLoaderData, useActionData, useNavigation } from "@remix-run/react";
+import { useLoaderData, useActionData, useNavigation, useSearchParams } from "@remix-run/react";
 import { getDb } from "~/db";
 import {
   RadarRunStatus,
@@ -119,7 +119,13 @@ export default function RadarPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<RadarTab>("feed");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = (["feed", "manual", "health", "channels"].includes(searchParams.get("tab") ?? "")
+    ? searchParams.get("tab")
+    : "feed") as RadarTab;
+  const setActiveTab = useCallback((tab: RadarTab) => {
+    setSearchParams((prev) => { prev.set("tab", tab); return prev; }, { replace: true });
+  }, [setSearchParams]);
   const isSubmitting = navigation.state === "submitting";
   // sources는 현재 피드 탭 등에서 사용되지 않으나 하위 호환 보존
   void sources; void isSubmitting;

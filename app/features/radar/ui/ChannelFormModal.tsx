@@ -10,13 +10,7 @@ import {
 import { Button } from "~/components/ui/Button";
 import { Input } from "~/components/ui/Input";
 import { FormField } from "~/components/ui/FormField";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "~/components/ui/Select";
+// Note: 네이티브 <select> 사용 — Radix Select는 Dialog 내에서 compose-refs 충돌 발생
 import { DomainTagSelect } from "./DomainTagSelect";
 import { FolderTagSelect } from "./FolderTagSelect";
 import type { RadarSource, RadarDomain, RadarFolder } from "~/features/radar/db/schema";
@@ -88,6 +82,7 @@ export function ChannelFormModal({
 }: ChannelFormModalProps) {
   const isEdit = editSource != null;
   const fetcher = useFetcher();
+  const [closing, setClosing] = useState(false);
 
   // 편집 모드이면 editSource 값을, 아니면 기본값을 사용
   const initialName = editSource?.name ?? "";
@@ -122,16 +117,26 @@ export function ChannelFormModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  // 성공 시 모달 닫기
+  // 성공 시 모달 닫기 — Select를 먼저 언마운트한 후 Dialog를 닫음 (Radix compose-refs 루프 방지)
   useEffect(() => {
     if (fetcher.state === "idle" && fetcher.data) {
       const data = fetcher.data as { success?: boolean };
-      if (data.success) {
-        onSuccess?.();
-        onOpenChange(false);
+      if (data.success && !closing) {
+        setClosing(true);
       }
     }
-  }, [fetcher.state, fetcher.data, onSuccess, onOpenChange]);
+  }, [fetcher.state, fetcher.data, closing]);
+
+  useEffect(() => {
+    if (closing) {
+      const t = setTimeout(() => {
+        onOpenChange(false);
+        onSuccess?.();
+        setClosing(false);
+      }, 50);
+      return () => clearTimeout(t);
+    }
+  }, [closing, onOpenChange, onSuccess]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,7 +170,7 @@ export function ChannelFormModal({
     : null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open && !closing} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>{isEdit ? "채널 편집" : "채널 추가"}</DialogTitle>
@@ -196,38 +201,32 @@ export function ChannelFormModal({
 
             <div className="grid grid-cols-2 gap-4">
               <FormField label="유형" htmlFor="channel-type" required>
-                <Select
+                <select
+                  id="channel-type"
                   value={sourceType}
-                  onValueChange={setSourceType}
+                  onChange={(e) => setSourceType(e.target.value)}
+                  className="flex h-9 w-full rounded-md border border-border bg-bg-secondary px-3 py-1 text-sm text-fg shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-fg-brand"
                 >
-                  <SelectTrigger id="channel-type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="rss">RSS</SelectItem>
-                    <SelectItem value="site">사이트</SelectItem>
-                    <SelectItem value="youtube">YouTube</SelectItem>
-                    <SelectItem value="sns">SNS</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <option value="rss">RSS</option>
+                  <option value="site">사이트</option>
+                  <option value="youtube">YouTube</option>
+                  <option value="sns">SNS</option>
+                </select>
               </FormField>
 
               <FormField label="수집 간격" htmlFor="channel-interval">
-                <Select
+                <select
+                  id="channel-interval"
                   value={String(crawlInterval)}
-                  onValueChange={(v) => setCrawlInterval(Number(v))}
+                  onChange={(e) => setCrawlInterval(Number(e.target.value))}
+                  className="flex h-9 w-full rounded-md border border-border bg-bg-secondary px-3 py-1 text-sm text-fg shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-fg-brand"
                 >
-                  <SelectTrigger id="channel-interval">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CRAWL_INTERVAL_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={String(opt.value)}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  {CRAWL_INTERVAL_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={String(opt.value)}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
               </FormField>
             </div>
 
