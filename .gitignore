@@ -23,3 +23,9 @@ screenshot.png
 
 # bkit plugin state
 .bkit/
+.claude/agent-memory/
+
+# Agentation external tool (auto-installed, symlinks to .agents/)
+.agents/
+.claude/skills/agentation
+.claude/skills/agentation-self-driving
