@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 398 (2026-03-14)
+**PRD Studio 프로덕션 버그 수정 + 마이그레이션 drift 방지 + 분석 카드 UX 개선**:
+- ✅ **버그 수정**: PRD 분석 시작 500 에러 — 마이그레이션 0063~0064 프로덕션 미적용 → D1 테이블 생성 + d1_migrations 추적 동기화
+- ✅ **마이그레이션 drift 방지 3중 안전망**: `/ax-02-end` Phase 0d (세션 종료 자동 감지) + `/ax-04-verify` Step 2b (검증 시 체크) + `ax-a02-migration` 에이전트 프로덕션 검증 추가
+- ✅ **분석 카드 UX 개선**: 스텝 번호 배지 (①②③) + PENDING/PROCESSING 단계 진행 표시 + 경과 시간 카운터 + 예상 소요 시간 + 완료 시 자동 expand + 브라우저 Notification + 인라인 토스트
+- ✅ **파이프라인 시각화**: PRD→전략→GTM 커넥터 라인 (완료=green, 미완료=gray)
+- ✅ 크로스 프로젝트 규칙 (`development-workflow.md`) + 피드백 메모리 (`feedback_migration_drift.md`) 기록
+
+**검증 결과**:
+- ✅ typecheck / lint (0 errors) / build
+
 ### 세션 397 (2026-03-14)
 **ax-06-team Worktree Isolation 모드 추가**:
 - ✅ `/ax-06-team` 스킬에 Worktree Isolation 모드 섹션 추가 — worker별 독립 git worktree에서 작업 후 리더가 merge하는 패턴
