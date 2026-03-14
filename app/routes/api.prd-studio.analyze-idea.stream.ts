@@ -143,7 +143,7 @@ async function callOpenAI(apiKey: string, systemPrompt: string, userPrompt: stri
   }
 }
 
-async function callGemini(apiKey: string, systemPrompt: string, userPrompt: string, model = "gemini-2.5-flash-preview-05-20") {
+async function callGemini(apiKey: string, systemPrompt: string, userPrompt: string, model = "gemini-2.5-flash") {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 55000);
 
