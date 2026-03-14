@@ -3,6 +3,18 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 399 (2026-03-14)
+**Radar 수집 시스템 고도화 — run 카운트 + titleKo 생성 + 피드 UX 리디자인**:
+- ✅ **radar_run 카운트 갱신**: cron 완료 후 sourcesChecked/itemsCollected 실제 수치 반영 (실행 이력 소스 0건 버그 수정)
+- ✅ **eval cron titleKo/summaryKo 생성**: LLM 평가 시 한국어 제목/요약 동시 생성 + radar_items 업데이트 (가독성 개선)
+- ✅ **"대화 시작" 버튼 수정**: 깨진 `/?conversationId=` → `/ideas/{ideaId}` (아이디어 생성 후 Ideas 워크스페이스 이동)
+- ✅ **피드 탭 UX 리디자인**: 상태 배지 한국어화 (수집됨/평가됨/시드됨), displayTitle 활용, 소스 출처 배지, 날짜 포맷 개선 (오늘/어제/M/D), 요약 미생성 시 placeholder
+- ✅ listRecentItemsByTenant에 radarSources JOIN 추가 (sourceName 포함)
+- ✅ Agent Team 병렬 작업 (W1: titleKo 생성, W2: UX 리디자인)
+
+**검증 결과**:
+- ✅ typecheck / lint (0 errors) / tests (2,585개, +1) / build
+
 ### 세션 398 (2026-03-14)
 **PRD Studio 프로덕션 버그 수정 + 마이그레이션 drift 방지 + 분석 카드 UX 개선**:
 - ✅ **버그 수정**: PRD 분석 시작 500 에러 — 마이그레이션 0063~0064 프로덕션 미적용 → D1 테이블 생성 + d1_migrations 추적 동기화
