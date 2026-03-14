@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { StatusBadge } from "./StatusBadge";
 import type { GtmResult } from "../types";
 
@@ -16,6 +16,32 @@ interface GtmStrategyCardProps {
   strategyCompleted: boolean;
   onOpenProposalModal?: () => void;
   onOpenDetail?: () => void;
+  onNotify?: (message: string) => void;
+  stepNumber?: number;
+}
+
+// ── Elapsed Time ──────────────────────────────────────────────────────
+
+function computeElapsed(start: number): string {
+  const diff = Math.max(0, Math.floor((Date.now() - start) / 1000));
+  return diff < 60 ? `${diff}초` : `${Math.floor(diff / 60)}분 ${diff % 60}초`;
+}
+
+function useElapsed(since: number | string | undefined, active: boolean) {
+  const [elapsed, setElapsed] = useState("");
+
+  useEffect(() => {
+    if (!active || !since) return;
+    const start = typeof since === "number"
+      ? (since > 1e12 ? since : since * 1000)
+      : new Date(since).getTime();
+    const tick = () => setElapsed(computeElapsed(start));
+    const raf = requestAnimationFrame(tick);
+    const interval = setInterval(tick, 1000);
+    return () => { cancelAnimationFrame(raf); clearInterval(interval); };
+  }, [since, active]);
+
+  return active && since ? elapsed : "";
 }
 
 // ── Polling Hook ───────────────────────────────────────────────────────
@@ -24,6 +50,7 @@ function useGtmPolling(ideaId: string, enabled: boolean) {
   const [status, setStatus] = useState<GtmStatus>({ status: "none" });
   const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState(false);
+  const [requestedAt, setRequestedAt] = useState<number | null>(null);
 
   const fetchStatus = useCallback(() => {
     fetch(`/api/prd-studio/gtm/${ideaId}/status`)
@@ -46,12 +73,17 @@ function useGtmPolling(ideaId: string, enabled: boolean) {
     return () => clearInterval(interval);
   }, [fetchStatus, status.status, enabled]);
 
-  return { status, loading, error, refetch: fetchStatus };
+  return { status, loading, error, refetch: fetchStatus, requestedAt, setRequestedAt };
 }
 
 // ── GTM 섹션 라벨 ─────────────────────────────────────────────────────
 
 const GTM_SECTIONS = ["비치헤드", "ICP", "메시징", "채널", "런치 플랜"];
+
+const GTM_STEPS = [
+  { key: "queue", label: "큐 대기" },
+  { key: "generate", label: "GTM 5섹션 생성" },
+];
 
 // ── Helper: 채널 우선도 배지 ───────────────────────────────────────────
 
@@ -83,11 +115,17 @@ function ChannelBadges({ channels }: { channels: GtmResult["channelStrategy"]["c
 
 // ── Component ──────────────────────────────────────────────────────────
 
-export function GtmStrategyCard({ ideaId, strategyCompleted, onOpenProposalModal, onOpenDetail }: GtmStrategyCardProps) {
-  const { status: gtmStatus, loading, error, refetch } = useGtmPolling(ideaId, strategyCompleted);
+export function GtmStrategyCard({ ideaId, strategyCompleted, onOpenProposalModal, onOpenDetail, onNotify, stepNumber = 3 }: GtmStrategyCardProps) {
+  const { status: gtmStatus, loading, error, refetch, requestedAt, setRequestedAt } = useGtmPolling(ideaId, strategyCompleted);
   const [expanded, setExpanded] = useState(false);
   const [requesting, setRequesting] = useState(false);
   const [gtmResult, setGtmResult] = useState<GtmResult | null>(null);
+  const prevStatusRef = useRef(gtmStatus.status);
+
+  const elapsed = useElapsed(
+    gtmStatus.status === "PENDING_GTM" ? requestedAt ?? undefined : undefined,
+    gtmStatus.status === "PENDING_GTM",
+  );
 
   // Fetch GTM result when COMPLETED
   useEffect(() => {
@@ -100,6 +138,21 @@ export function GtmStrategyCard({ ideaId, strategyCompleted, onOpenProposalModal
       .catch(() => {});
   }, [gtmStatus.status, ideaId]);
 
+  // Completion notification
+  useEffect(() => {
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = gtmStatus.status;
+
+    if (prev === "PENDING_GTM" && gtmStatus.status === "COMPLETED") {
+      setExpanded(true);
+      onNotify?.("GTM 전략 분석이 완료되었어요. 시장 진출 전략을 확인하세요.");
+
+      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+        new Notification("GTM 전략 완료", { body: "시장 진출 전략을 확인하세요.", icon: "/favicon.ico" });
+      }
+    }
+  }, [gtmStatus.status, onNotify]);
+
   const handleRequestGtm = useCallback(async () => {
     setRequesting(true);
     try {
@@ -108,11 +161,14 @@ export function GtmStrategyCard({ ideaId, strategyCompleted, onOpenProposalModal
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ideaId }),
       });
-      if (res.ok) refetch();
+      if (res.ok) {
+        setRequestedAt(Date.now());
+        refetch();
+      }
     } finally {
       setRequesting(false);
     }
-  }, [ideaId, refetch]);
+  }, [ideaId, refetch, setRequestedAt]);
 
   if (loading) {
     return (
@@ -131,26 +187,47 @@ export function GtmStrategyCard({ ideaId, strategyCompleted, onOpenProposalModal
         className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-surface-secondary/30 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-fg">GTM 전략</span>
+          <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
+            gtmStatus.status === "COMPLETED"
+              ? "bg-green-500 text-white"
+              : gtmStatus.status === "PENDING_GTM"
+              ? "bg-accent-fg text-white"
+              : strategyCompleted
+              ? "bg-surface-secondary text-fg-tertiary border border-border"
+              : "bg-surface-secondary text-fg-tertiary/40 border border-border/50"
+          }`}>
+            {gtmStatus.status === "COMPLETED" ? "✓" : stepNumber}
+          </span>
+          <span className={`text-sm font-semibold ${strategyCompleted || gtmStatus.status !== "none" ? "text-fg" : "text-fg-tertiary"}`}>GTM 전략</span>
           {gtmStatus.status !== "none" && (
             <StatusBadge status={
               gtmStatus.status === "COMPLETED" ? "REVIEWED" : "DRAFT"
             } />
           )}
         </div>
-        <svg
-          className={`h-4 w-4 text-fg-tertiary transition-transform ${expanded ? "rotate-180" : ""}`}
-          fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-        </svg>
+        <div className="flex items-center gap-2">
+          {elapsed && (
+            <span className="font-mono text-[10px] tabular-nums text-fg-tertiary">{elapsed}</span>
+          )}
+          <svg
+            className={`h-4 w-4 text-fg-tertiary transition-transform ${expanded ? "rotate-180" : ""}`}
+            fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+        </div>
       </button>
 
       {/* Collapsed summary */}
       {!expanded && gtmStatus.status !== "none" && (
         <div className="border-t border-border px-4 py-2 text-xs text-fg-tertiary">
-          {gtmStatus.status === "PENDING_GTM" && "GTM 분석 대기 중..."}
-          {gtmStatus.status === "COMPLETED" && "GTM 전략 분석 완료"}
+          {gtmStatus.status === "PENDING_GTM" && (
+            <span className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-yellow-400 animate-pulse" />
+              GTM 분석 대기 중 · 예상 1~2분
+            </span>
+          )}
+          {gtmStatus.status === "COMPLETED" && "GTM 전략 분석 완료 · 5섹션"}
         </div>
       )}
 
@@ -191,18 +268,39 @@ export function GtmStrategyCard({ ideaId, strategyCompleted, onOpenProposalModal
 
           {/* ── State c: PENDING_GTM (대기 중) ── */}
           {gtmStatus.status === "PENDING_GTM" && (
-            <>
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-yellow-400 animate-pulse" />
-                <span className="text-sm text-fg-secondary">GTM 분석 대기 중</span>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-yellow-400 animate-pulse" />
+                  <span className="text-sm text-fg-secondary">GTM 분석 대기 중</span>
+                </div>
+                {elapsed && (
+                  <span className="font-mono text-xs tabular-nums text-fg-tertiary">{elapsed} 경과</span>
+                )}
               </div>
-              <div className="h-2 w-full rounded-full bg-surface-secondary overflow-hidden">
-                <div className="h-full w-1/4 rounded-full bg-yellow-400 animate-pulse" />
+
+              <div className="flex items-center gap-0.5 text-[10px]">
+                {GTM_STEPS.map((step, i) => (
+                  <div key={step.key} className="flex items-center gap-0.5">
+                    {i > 0 && <span className="text-fg-tertiary mx-1">→</span>}
+                    <span className={i === 0
+                      ? "font-semibold text-yellow-600 bg-yellow-50 rounded px-1.5 py-0.5"
+                      : "text-fg-tertiary"
+                    }>
+                      {step.label}
+                    </span>
+                  </div>
+                ))}
               </div>
-              <p className="text-xs text-fg-tertiary">
-                배치 프로세서가 순차 처리해요. 약 1~2분 소요돼요.
-              </p>
-            </>
+
+              <div className="h-1.5 w-full rounded-full bg-surface-secondary overflow-hidden">
+                <div className="h-full rounded-full bg-yellow-400 animate-pulse" style={{ width: "15%" }} />
+              </div>
+
+              <span className="text-xs text-fg-tertiary">
+                예상 1~2분 · 배치 프로세서 순차 처리 · 완료 시 자동 알림
+              </span>
+            </div>
           )}
 
           {/* ── State d: COMPLETED (결과 표시) ── */}

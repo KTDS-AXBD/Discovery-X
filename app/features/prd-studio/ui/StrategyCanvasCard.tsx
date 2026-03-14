@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { StatusBadge } from "./StatusBadge";
 
 // ── Types ──────────────────────────────────────────────────────────────
@@ -20,6 +20,32 @@ interface StrategyCanvasCardProps {
   ideaId: string;
   prdCompleted: boolean;
   onStrategyCompleted?: () => void;
+  onNotify?: (message: string) => void;
+  stepNumber?: number;
+}
+
+// ── Elapsed Time ──────────────────────────────────────────────────────
+
+function computeElapsed(start: number): string {
+  const diff = Math.max(0, Math.floor((Date.now() - start) / 1000));
+  return diff < 60 ? `${diff}초` : `${Math.floor(diff / 60)}분 ${diff % 60}초`;
+}
+
+function useElapsed(since: number | string | undefined, active: boolean) {
+  const [elapsed, setElapsed] = useState("");
+
+  useEffect(() => {
+    if (!active || !since) return;
+    const start = typeof since === "number"
+      ? (since > 1e12 ? since : since * 1000)
+      : new Date(since).getTime();
+    const tick = () => setElapsed(computeElapsed(start));
+    const raf = requestAnimationFrame(tick);
+    const interval = setInterval(tick, 1000);
+    return () => { cancelAnimationFrame(raf); clearInterval(interval); };
+  }, [since, active]);
+
+  return active && since ? elapsed : "";
 }
 
 // ── Polling Hook ───────────────────────────────────────────────────────
@@ -60,12 +86,32 @@ const FRAMEWORK_CONFIG = [
   { key: "riskAssessment", label: "리스크", description: "영향×확률 매트릭스" },
 ];
 
+const STRATEGY_STEPS = [
+  { key: "queue", label: "큐 대기" },
+  { key: "analyze", label: "6 프레임워크 분석" },
+  { key: "synthesize", label: "결과 종합" },
+];
+
+function getActiveStep(status: string) {
+  if (status === "PENDING") return 0;
+  if (status === "PROCESSING") return 1;
+  if (status === "COMPLETED") return 3;
+  return -1;
+}
+
 // ── Component ──────────────────────────────────────────────────────────
 
-export function StrategyCanvasCard({ ideaId, prdCompleted, onStrategyCompleted }: StrategyCanvasCardProps) {
+export function StrategyCanvasCard({ ideaId, prdCompleted, onStrategyCompleted, onNotify, stepNumber = 2 }: StrategyCanvasCardProps) {
   const { status: strategyStatus, loading, refetch } = useStrategyPolling(ideaId, prdCompleted);
   const [requesting, setRequesting] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const prevStatusRef = useRef(strategyStatus.status);
+
+  const elapsed = useElapsed(
+    strategyStatus.status === "PENDING" ? strategyStatus.requestedAt :
+    strategyStatus.status === "PROCESSING" ? strategyStatus.startedAt : undefined,
+    strategyStatus.status === "PENDING" || strategyStatus.status === "PROCESSING",
+  );
 
   // Notify parent when strategy completes
   useEffect(() => {
@@ -73,6 +119,21 @@ export function StrategyCanvasCard({ ideaId, prdCompleted, onStrategyCompleted }
       onStrategyCompleted();
     }
   }, [strategyStatus.status, onStrategyCompleted]);
+
+  // Completion notification
+  useEffect(() => {
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = strategyStatus.status;
+
+    if ((prev === "PENDING" || prev === "PROCESSING") && strategyStatus.status === "COMPLETED") {
+      setExpanded(true);
+      onNotify?.("전략 분석이 완료되었어요. 6개 프레임워크 결과를 확인하세요.");
+
+      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+        new Notification("전략 분석 완료", { body: "6개 프레임워크 분석 결과를 확인하세요.", icon: "/favicon.ico" });
+      }
+    }
+  }, [strategyStatus.status, onNotify]);
 
   const handleRequest = useCallback(async (mode: "batch" | "realtime") => {
     setRequesting(true);
@@ -115,6 +176,8 @@ export function StrategyCanvasCard({ ideaId, prdCompleted, onStrategyCompleted }
     );
   }
 
+  const activeStep = getActiveStep(strategyStatus.status);
+
   return (
     <div className="rounded-lg border border-border bg-surface overflow-hidden">
       {/* Header */}
@@ -124,7 +187,18 @@ export function StrategyCanvasCard({ ideaId, prdCompleted, onStrategyCompleted }
         className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-surface-secondary/30 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-fg">전략 분석</span>
+          <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
+            strategyStatus.status === "COMPLETED"
+              ? "bg-green-500 text-white"
+              : strategyStatus.status === "PENDING" || strategyStatus.status === "PROCESSING"
+              ? "bg-accent-fg text-white"
+              : prdCompleted
+              ? "bg-surface-secondary text-fg-tertiary border border-border"
+              : "bg-surface-secondary text-fg-tertiary/40 border border-border/50"
+          }`}>
+            {strategyStatus.status === "COMPLETED" ? "✓" : stepNumber}
+          </span>
+          <span className={`text-sm font-semibold ${prdCompleted || strategyStatus.status !== "none" ? "text-fg" : "text-fg-tertiary"}`}>전략 분석</span>
           {strategyStatus.status !== "none" && (
             <StatusBadge status={
               strategyStatus.status === "COMPLETED" ? "REVIEWED" :
@@ -133,20 +207,35 @@ export function StrategyCanvasCard({ ideaId, prdCompleted, onStrategyCompleted }
             } />
           )}
         </div>
-        <svg
-          className={`h-4 w-4 text-fg-tertiary transition-transform ${expanded ? "rotate-180" : ""}`}
-          fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-        </svg>
+        <div className="flex items-center gap-2">
+          {elapsed && (
+            <span className="font-mono text-[10px] tabular-nums text-fg-tertiary">{elapsed}</span>
+          )}
+          <svg
+            className={`h-4 w-4 text-fg-tertiary transition-transform ${expanded ? "rotate-180" : ""}`}
+            fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+        </div>
       </button>
 
       {/* Collapsed summary */}
       {!expanded && strategyStatus.status !== "none" && (
         <div className="border-t border-border px-4 py-2 text-xs text-fg-tertiary">
-          {strategyStatus.status === "PENDING" && `대기 중 (큐 ${strategyStatus.position ?? "?"}번째)`}
-          {strategyStatus.status === "PROCESSING" && "전략 분석 진행 중..."}
-          {strategyStatus.status === "COMPLETED" && `${strategyStatus.strategyFrameworks ?? 0}개 프레임워크 완료`}
+          {strategyStatus.status === "PENDING" && (
+            <span className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-yellow-400 animate-pulse" />
+              대기 중 · 큐 {strategyStatus.position ?? "?"}번째 · 예상 1~2분
+            </span>
+          )}
+          {strategyStatus.status === "PROCESSING" && (
+            <span className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent-fg animate-pulse" />
+              6 프레임워크 분석 중 · Claude Sonnet 4.6
+            </span>
+          )}
+          {strategyStatus.status === "COMPLETED" && `${strategyStatus.strategyFrameworks ?? 0}개 프레임워크 완료${strategyStatus.hasGtm ? " + GTM" : ""}`}
           {strategyStatus.status === "FAILED" && `실패: ${strategyStatus.error ?? "알 수 없는 오류"}`}
         </div>
       )}
@@ -200,36 +289,81 @@ export function StrategyCanvasCard({ ideaId, prdCompleted, onStrategyCompleted }
 
           {/* ── State: PENDING ── */}
           {strategyStatus.status === "PENDING" && (
-            <>
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-yellow-400 animate-pulse" />
-                <span className="text-sm text-fg-secondary">
-                  전략 분석 대기 중 (큐 {strategyStatus.position ?? "?"}번째)
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-yellow-400 animate-pulse" />
+                  <span className="text-sm text-fg-secondary">전략 분석 대기 중</span>
+                </div>
+                {elapsed && (
+                  <span className="font-mono text-xs tabular-nums text-fg-tertiary">{elapsed} 경과</span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-0.5 text-[10px]">
+                {STRATEGY_STEPS.map((step, i) => (
+                  <div key={step.key} className="flex items-center gap-0.5">
+                    {i > 0 && <span className="text-fg-tertiary mx-1">→</span>}
+                    <span className={i === activeStep
+                      ? "font-semibold text-yellow-600 bg-yellow-50 rounded px-1.5 py-0.5"
+                      : i < activeStep ? "text-fg-tertiary line-through" : "text-fg-tertiary"
+                    }>
+                      {step.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="h-1.5 w-full rounded-full bg-surface-secondary overflow-hidden">
+                <div className="h-full rounded-full bg-yellow-400 animate-pulse" style={{ width: "8%" }} />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-fg-tertiary">
+                  예상 1~2분 · 큐 {strategyStatus.position ?? "?"}번째
                 </span>
+                <button type="button" onClick={handleCancel} className="text-xs text-fg-tertiary hover:text-red-500 transition-colors">
+                  취소
+                </button>
               </div>
-              <div className="h-2 w-full rounded-full bg-surface-secondary overflow-hidden">
-                <div className="h-full w-1/6 rounded-full bg-yellow-400 animate-pulse" />
-              </div>
-              <button type="button" onClick={handleCancel} className="text-xs text-fg-tertiary hover:text-red-500 transition-colors">
-                취소
-              </button>
-            </>
+            </div>
           )}
 
           {/* ── State: PROCESSING ── */}
           {strategyStatus.status === "PROCESSING" && (
-            <>
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-accent-fg animate-pulse" />
-                <span className="text-sm text-fg-secondary">전략 분석 진행 중...</span>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-accent-fg animate-pulse" />
+                  <span className="text-sm text-fg-secondary">전략 분석 진행 중</span>
+                </div>
+                {elapsed && (
+                  <span className="font-mono text-xs tabular-nums text-fg-tertiary">{elapsed} 경과</span>
+                )}
               </div>
-              <div className="h-2 w-full rounded-full bg-surface-secondary overflow-hidden">
-                <div className="h-full w-3/5 rounded-full bg-accent-fg animate-[pulse_2s_ease-in-out_infinite]" />
+
+              <div className="flex items-center gap-0.5 text-[10px]">
+                {STRATEGY_STEPS.map((step, i) => (
+                  <div key={step.key} className="flex items-center gap-0.5">
+                    {i > 0 && <span className="text-fg-tertiary mx-1">→</span>}
+                    <span className={i === activeStep
+                      ? "font-semibold text-accent-fg bg-blue-50 rounded px-1.5 py-0.5"
+                      : i < activeStep ? "text-green-600" : "text-fg-tertiary"
+                    }>
+                      {i < activeStep ? `✓ ${step.label}` : step.label}
+                    </span>
+                  </div>
+                ))}
               </div>
-              <p className="text-xs text-fg-tertiary">
-                SWOT · 린캔버스 · JTBD · 경쟁분석 · 시장규모 · 리스크를 분석해요.
-              </p>
-            </>
+
+              <div className="h-1.5 w-full rounded-full bg-surface-secondary overflow-hidden">
+                <div className="h-full rounded-full bg-accent-fg transition-all duration-1000 ease-out" style={{ width: "55%" }} />
+              </div>
+
+              <span className="text-xs text-fg-tertiary">
+                SWOT · 린캔버스 · JTBD · 경쟁분석 · 시장규모 · 리스크 · 완료 시 자동 알림
+              </span>
+            </div>
           )}
 
           {/* ── State: COMPLETED ── */}

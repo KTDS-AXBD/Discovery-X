@@ -121,6 +121,7 @@ export default function IdeaDetail() {
   const [prdCompleted, setPrdCompleted] = useState(false);
   const [strategyCompleted, setStrategyCompleted] = useState(false);
   const [strategyDetailOpen, setStrategyDetailOpen] = useState(false);
+  const [analysisToast, setAnalysisToast] = useState<string | null>(null);
   const [discoveryModalOpen, setDiscoveryModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -144,6 +145,13 @@ export default function IdeaDetail() {
   useEffect(() => {
     setSelectedSourceIds(ideaSourceItems.map((s) => s.id));
   }, [ideaSourceItems]);
+
+  // Analysis toast auto-dismiss
+  useEffect(() => {
+    if (!analysisToast) return;
+    const timer = setTimeout(() => setAnalysisToast(null), 6000);
+    return () => clearTimeout(timer);
+  }, [analysisToast]);
 
   // Fetch sources for this idea
   useEffect(() => {
@@ -607,33 +615,63 @@ export default function IdeaDetail() {
           </div>
         )}
 
-        {/* PRD Analysis Card */}
+        {/* ── Analysis Pipeline ── */}
         {ideaId && (
-          <PrdAnalysisCard
-            ideaId={ideaId}
-            selectedSourceCount={selectedSourceIds.length}
-            onOpenProposalModal={() => setProposalModalOpen(true)}
-            onPrdCompleted={setPrdCompleted}
-          />
-        )}
+          <div className="relative">
+            {/* Toast notification */}
+            {analysisToast && (
+              <div className="sticky top-0 z-30 mb-2 flex items-center gap-2 rounded-lg bg-green-50 border border-green-200 px-3 py-2 text-xs text-green-700 shadow-sm">
+                <span className="font-medium">✓</span>
+                <span className="flex-1">{analysisToast}</span>
+                <button
+                  type="button"
+                  onClick={() => setAnalysisToast(null)}
+                  className="text-green-400 hover:text-green-600 transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
 
-        {/* Strategy Canvas Card */}
-        {ideaId && (
-          <StrategyCanvasCard
-            ideaId={ideaId}
-            prdCompleted={prdCompleted}
-            onStrategyCompleted={() => setStrategyCompleted(true)}
-          />
-        )}
+            {/* Step 1: PRD */}
+            <PrdAnalysisCard
+              ideaId={ideaId}
+              selectedSourceCount={selectedSourceIds.length}
+              onOpenProposalModal={() => setProposalModalOpen(true)}
+              onPrdCompleted={setPrdCompleted}
+              onNotify={setAnalysisToast}
+              stepNumber={1}
+            />
 
-        {/* GTM Strategy Card */}
-        {ideaId && (
-          <GtmStrategyCard
-            ideaId={ideaId}
-            strategyCompleted={strategyCompleted}
-            onOpenProposalModal={() => setProposalModalOpen(true)}
-            onOpenDetail={() => setStrategyDetailOpen(true)}
-          />
+            {/* Pipeline connector */}
+            <div className="flex items-center justify-center py-0.5">
+              <div className={`h-4 w-px ${prdCompleted ? "bg-green-300" : "bg-border"}`} />
+            </div>
+
+            {/* Step 2: Strategy */}
+            <StrategyCanvasCard
+              ideaId={ideaId}
+              prdCompleted={prdCompleted}
+              onStrategyCompleted={() => setStrategyCompleted(true)}
+              onNotify={setAnalysisToast}
+              stepNumber={2}
+            />
+
+            {/* Pipeline connector */}
+            <div className="flex items-center justify-center py-0.5">
+              <div className={`h-4 w-px ${strategyCompleted ? "bg-green-300" : "bg-border"}`} />
+            </div>
+
+            {/* Step 3: GTM */}
+            <GtmStrategyCard
+              ideaId={ideaId}
+              strategyCompleted={strategyCompleted}
+              onOpenProposalModal={() => setProposalModalOpen(true)}
+              onOpenDetail={() => setStrategyDetailOpen(true)}
+              onNotify={setAnalysisToast}
+              stepNumber={3}
+            />
+          </div>
         )}
 
         {/* Methodology Cards */}
