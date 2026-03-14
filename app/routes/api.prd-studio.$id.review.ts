@@ -21,7 +21,7 @@ interface ReviewModel {
 
 const REVIEW_MODELS: ReviewModel[] = [
   { id: "gpt-4.1", name: "GPT-4.1", provider: "openai", model: "gpt-4.1", envKey: "OPENAI_API_KEY" },
-  { id: "gemini-flash", name: "Gemini 2.0 Flash", provider: "google", model: "gemini-2.0-flash", envKey: "GOOGLE_AI_API_KEY" },
+  { id: "gemini-flash", name: "Gemini 2.5 Flash", provider: "google", model: "gemini-2.5-flash", envKey: "GOOGLE_AI_API_KEY" },
 ];
 
 // ============================================================================
