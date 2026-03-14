@@ -151,10 +151,23 @@ describe("ItemEvaluator", () => {
       const result = evaluator.parseEvalResponse(
         '{"topicRelevance":0.85,"novelty":0.72,"quality":0.68}',
       );
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         topicRelevance: 0.85,
         novelty: 0.72,
         quality: 0.68,
+      });
+    });
+
+    it("titleKo/summaryKo 포함 파싱", () => {
+      const result = evaluator.parseEvalResponse(
+        '{"topicRelevance":0.8,"novelty":0.7,"quality":0.6,"titleKo":"한국어 제목","summaryKo":"한국어 요약"}',
+      );
+      expect(result).toMatchObject({
+        topicRelevance: 0.8,
+        novelty: 0.7,
+        quality: 0.6,
+        titleKo: "한국어 제목",
+        summaryKo: "한국어 요약",
       });
     });
 
@@ -162,7 +175,7 @@ describe("ItemEvaluator", () => {
       const result = evaluator.parseEvalResponse(
         '```json\n{"topicRelevance":0.9,"novelty":0.6,"quality":0.7}\n```',
       );
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         topicRelevance: 0.9,
         novelty: 0.6,
         quality: 0.7,
@@ -183,7 +196,7 @@ describe("ItemEvaluator", () => {
       const result = evaluator.parseEvalResponse(
         '{"topicRelevance":1.5,"novelty":-0.3,"quality":0.5}',
       );
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         topicRelevance: 1.0,
         novelty: 0.0,
         quality: 0.5,

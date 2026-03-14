@@ -38,6 +38,8 @@ export interface EvalScores {
   topicRelevance: number;
   novelty: number;
   quality: number;
+  titleKo?: string | null;
+  summaryKo?: string | null;
 }
 
 export interface EvalBatchResult {
@@ -52,15 +54,19 @@ export interface EvalBatchResult {
 // ============================================================================
 
 const EVAL_SYSTEM_PROMPT = `당신은 기술/비즈니스 트렌드 분석 전문가입니다.
-주어진 레이더 아이템(기사/리포트)을 아래 3가지 기준으로 평가해주세요.
+주어진 레이더 아이템(기사/리포트)을 평가하고 한국어 제목/요약을 생성해주세요.
 
-각 점수는 0.0~1.0 사이 소수점 2자리로 응답합니다.
+## 평가 기준 (0.0~1.0, 소수점 2자리)
 - topicRelevance: 주제 관련도 — 비즈니스 혁신, 기술 트렌드, 시장 변화와의 관련성
 - novelty: 신규성 — 기존에 널리 알려진 정보인지, 새로운 관점/발견인지
 - quality: 품질 — 정보의 깊이, 근거 수준, 실행 가능성
 
+## 한국어 생성
+- titleKo: 한국어 제목 (30자 이내, 핵심 내용 반영. 원문이 한국어면 그대로 사용)
+- summaryKo: 핵심 내용 한국어 요약 (2-3문장, 100자 이내)
+
 JSON만 반환하세요:
-{"topicRelevance":0.00,"novelty":0.00,"quality":0.00}`;
+{"topicRelevance":0.00,"novelty":0.00,"quality":0.00,"titleKo":"한국어 제목","summaryKo":"한국어 요약"}`;
 
 // ============================================================================
 // Service
@@ -126,6 +132,8 @@ export class ItemEvaluator {
         topicRelevance: clamp(parsed.topicRelevance),
         novelty: clamp(parsed.novelty),
         quality: clamp(parsed.quality),
+        titleKo: typeof parsed.titleKo === "string" ? parsed.titleKo : null,
+        summaryKo: typeof parsed.summaryKo === "string" ? parsed.summaryKo : null,
       };
     } catch {
       return null;
@@ -200,8 +208,22 @@ export class ItemEvaluator {
           continue;
         }
 
-        // UPSERT
+        // UPSERT metrics
         await this.upsertMetrics(item.id, tenantId, scores, response.model);
+
+        // titleKo/summaryKo가 아직 없는 아이템에 한국어 제목/요약 업데이트
+        if (!item.titleKo && scores.titleKo) {
+          await this.db
+            .update(radarItems)
+            .set({
+              titleKo: scores.titleKo,
+              ...(scores.summaryKo && !item.summaryKo
+                ? { summaryKo: scores.summaryKo }
+                : {}),
+            })
+            .where(eq(radarItems.id, item.id));
+        }
+
         result.evaluated++;
       } catch (err) {
         if (err instanceof BudgetBlockedError) {

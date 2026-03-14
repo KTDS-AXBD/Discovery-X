@@ -425,6 +425,40 @@ export class RadarService {
     return { itemId, isNew: true };
   }
 
+  /**
+   * 오늘의 radar_run 카운트 갱신 (cron 완료 후 호출)
+   * sourcesChecked, itemsCollected를 누적 합산한다.
+   */
+  async updateDailyRunCounts(
+    tenantId: string,
+    counts: { sourcesChecked: number; itemsCollected: number },
+  ): Promise<void> {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const existing = await this.db
+      .select({ id: radarRuns.id })
+      .from(radarRuns)
+      .where(
+        and(
+          eq(radarRuns.tenantId, tenantId),
+          eq(radarRuns.status, "COMPLETED"),
+          gte(radarRuns.startedAt, todayStart),
+        ),
+      )
+      .limit(1);
+
+    if (existing.length === 0) return;
+
+    await this.db
+      .update(radarRuns)
+      .set({
+        sourcesChecked: sql`${radarRuns.sourcesChecked} + ${counts.sourcesChecked}`,
+        itemsCollected: sql`${radarRuns.itemsCollected} + ${counts.itemsCollected}`,
+      })
+      .where(eq(radarRuns.id, existing[0].id));
+  }
+
   /** 실행 이력 조회 */
   async listRuns(params: { limit?: number } = {}) {
     const limit = Math.min(params.limit ?? 20, 50);
@@ -447,14 +481,27 @@ export class RadarService {
 
   // ---------- Items ----------
 
-  /** 테넌트별 최근 아이템 조회 */
+  /** 테넌트별 최근 아이템 조회 (소스 이름 포함) */
   async listRecentItemsByTenant(tenantId: string, limit = 50) {
     return this.db
-      .select()
+      .select({
+        id: radarItems.id,
+        title: radarItems.title,
+        titleKo: radarItems.titleKo,
+        summary: radarItems.summary,
+        summaryKo: radarItems.summaryKo,
+        url: radarItems.url,
+        status: radarItems.status,
+        collectedAt: radarItems.collectedAt,
+        relevanceScore: radarItems.relevanceScore,
+        keyPoints: radarItems.keyPoints,
+        sourceId: radarItems.sourceId,
+        memo: radarItems.memo,
+        sourceName: radarSources.name,
+      })
       .from(radarItems)
-      .where(
-        sql`${radarItems.runId} IN (SELECT id FROM radar_runs WHERE tenant_id = ${tenantId})`,
-      )
+      .innerJoin(radarSources, eq(radarItems.sourceId, radarSources.id))
+      .where(eq(radarSources.tenantId, tenantId))
       .orderBy(desc(radarItems.collectedAt))
       .limit(limit);
   }

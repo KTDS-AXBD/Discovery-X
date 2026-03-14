@@ -72,6 +72,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     // 2. 큐 처리 (FAILED 상태인 재시도 대상도 포함)
     const crawlResult = await processCrawlQueue(db, tenant.id);
 
+    // 2b. radar_run 카운트 갱신 — findOrCreateDailyRun()이 0으로 생성하므로 실제 수치 반영
+    if (crawlResult.succeeded > 0 || crawlResult.itemsCreated > 0) {
+      await service.updateDailyRunCounts(tenant.id, {
+        sourcesChecked: crawlResult.processed,
+        itemsCollected: crawlResult.itemsCreated,
+      });
+    }
+
     // 3. 큐 정리 [R5]
     const cleaned = await service.cleanupQueue(tenant.id);
 

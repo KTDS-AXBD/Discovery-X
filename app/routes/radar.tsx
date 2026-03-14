@@ -19,6 +19,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "~
 import { formatDateLocalTime } from "~/lib/format-date";
 import { ManualCollectTab } from "~/features/radar/ui/ManualCollectTab";
 import { SendToIdeaButton } from "~/features/radar/ui/SendToIdeaButton";
+import { displayTitle, getUrlLabel } from "~/lib/utils/display-title";
 import { ChannelManagementTab } from "~/features/radar/ui/ChannelManagementTab";
 import { SourceHealthTab } from "~/features/radar/ui/SourceHealthTab";
 
@@ -107,9 +108,44 @@ const RUN_STATUS_VARIANT: Record<string, "warning" | "success" | "destructive"> 
   [RadarRunStatus.FAILED]: "destructive",
 };
 
+const RUN_STATUS_LABEL: Record<string, string> = {
+  [RadarRunStatus.RUNNING]: "실행 중",
+  [RadarRunStatus.COMPLETED]: "완료",
+  [RadarRunStatus.FAILED]: "실패",
+};
+
+const ITEM_STATUS_LABEL: Record<string, string> = {
+  COLLECTED: "수집됨",
+  SCORED: "평가됨",
+  SEEDED: "시드됨",
+  SKIPPED: "건너뜀",
+};
+
+const ITEM_STATUS_VARIANT: Record<string, "warning" | "info" | "secondary"> = {
+  COLLECTED: "warning",
+  SCORED: "info",
+  SEEDED: "info",
+  SKIPPED: "secondary",
+};
+
 function formatDateLocal(timestamp: string | Date | null) {
   if (!timestamp) return "-";
   return formatDateLocalTime(timestamp);
+}
+
+function formatDateShort(timestamp: string | Date | null): string {
+  if (!timestamp) return "-";
+  const d = typeof timestamp === "string" ? new Date(timestamp) : timestamp;
+  const now = new Date();
+  const isToday = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+  if (isToday) {
+    return `오늘 ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  }
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const isYesterday = d.getFullYear() === yesterday.getFullYear() && d.getMonth() === yesterday.getMonth() && d.getDate() === yesterday.getDate();
+  if (isYesterday) return "어제";
+  return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
 type RadarTab = "feed" | "manual" | "health" | "channels";
@@ -130,19 +166,20 @@ export default function RadarPage() {
   // sources는 현재 피드 탭 등에서 사용되지 않으나 하위 호환 보존
   void sources; void isSubmitting;
 
-  // BD팀 PoC: 소스 아이템에서 대화 시작
-  const handleStartChat = useCallback(async (itemId: string, itemTitle: string) => {
+  // 소스 아이템에서 아이디어 생성 + 상세 페이지로 이동 (채팅 패널 포함)
+  const handleStartChat = useCallback(async (itemId: string) => {
     try {
-      const res = await fetch("/api/conversations", {
+      const res = await fetch(`/api/radar/items/${itemId}/send-to-idea`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: itemTitle, sourceItemId: itemId }),
       });
-      const data = (await res.json()) as { id: string };
-      navigate(`/?conversationId=${data.id}`);
+      const data = (await res.json()) as { success?: boolean; ideaId?: string };
+      if (data.ideaId) {
+        navigate(`/ideas/${data.ideaId}`);
+      } else {
+        navigate("/ideas");
+      }
     } catch {
-      // Fallback to main page
-      navigate("/");
+      navigate("/ideas");
     }
   }, [navigate]);
 
@@ -210,33 +247,36 @@ export default function RadarPage() {
                   </tr>
                 </TableHeader>
                 <TableBody>
-                  {runs.map((run) => (
-                    <TableRow key={run.id}>
-                      <TableCell className="pl-4 text-fg">
-                        {formatDateLocal(run.startedAt)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={RUN_STATUS_VARIANT[run.status] || "secondary"}>
-                          {run.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center text-fg-tertiary">
-                        {run.sourcesChecked}
-                      </TableCell>
-                      <TableCell className="text-center text-fg-tertiary">
-                        {run.itemsCollected}
-                      </TableCell>
-                      <TableCell className="text-center text-fg-tertiary">
-                        {run.itemsDeduplicated}
-                      </TableCell>
-                      <TableCell className="text-center font-medium text-fg-brand">
-                        {run.seedsCreated}
-                      </TableCell>
-                      <TableCell className="text-fg-tertiary">
-                        {formatDateLocal(run.completedAt)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {runs.map((run) => {
+                    const noSources = run.sourcesChecked === 0;
+                    return (
+                      <TableRow key={run.id} className="h-12">
+                        <TableCell className="pl-4 text-fg tabular-nums">
+                          {formatDateLocal(run.startedAt)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={RUN_STATUS_VARIANT[run.status] || "secondary"}>
+                            {RUN_STATUS_LABEL[run.status] || run.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className={`text-center tabular-nums ${noSources ? "text-fg-tertiary/50" : "text-fg-tertiary"}`}>
+                          {noSources ? <span title="수집 대상 없음">0</span> : run.sourcesChecked}
+                        </TableCell>
+                        <TableCell className="text-center tabular-nums text-fg-tertiary">
+                          {run.itemsCollected}
+                        </TableCell>
+                        <TableCell className="text-center tabular-nums text-fg-tertiary">
+                          {run.itemsDeduplicated}
+                        </TableCell>
+                        <TableCell className="text-center tabular-nums font-medium text-fg-brand">
+                          {run.seedsCreated}
+                        </TableCell>
+                        <TableCell className="text-fg-tertiary tabular-nums">
+                          {formatDateLocal(run.completedAt)}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             )}
@@ -244,68 +284,80 @@ export default function RadarPage() {
 
           {/* Recent Items Section */}
           <div>
-            <h2 className="mb-4 text-lg font-semibold text-fg">최근 수집 아이템</h2>
+            <h2 className="mb-4 text-lg font-semibold text-fg">
+              최근 수집 아이템
+              {recentItems.length > 0 && (
+                <span className="ml-2 text-sm font-normal text-fg-tertiary">{recentItems.length}건</span>
+              )}
+            </h2>
             {recentItems.length === 0 ? (
               <p className="text-sm text-fg-tertiary">수집된 아이템이 없습니다.</p>
             ) : (
-              <div className="space-y-3">
-                {recentItems.map((item) => (
-                  <Card key={item.id}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="min-w-0 flex-1">
-                          <h3 className="text-sm font-medium text-fg">
-                            {item.titleKo || item.title}
-                          </h3>
-                          {item.summaryKo && (
-                            <p className="mt-1 text-sm text-fg-secondary line-clamp-2">
-                              {item.summaryKo}
-                            </p>
-                          )}
-                          <div className="mt-2 flex items-center gap-3 text-xs text-fg-tertiary">
-                            <a
-                              href={item.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="hover:text-fg-brand truncate max-w-xs"
-                            >
-                              {item.url}
-                            </a>
-                            <span>{formatDateLocal(item.collectedAt)}</span>
+              <div className="space-y-2">
+                {recentItems.map((item) => {
+                  const urlLabel = getUrlLabel(item.url);
+                  const title = displayTitle(item.titleKo, item.title, item.url);
+                  return (
+                    <Card key={item.id}>
+                      <CardContent className="p-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="text-sm font-medium text-fg leading-snug">
+                              {title}
+                            </h3>
+                            {item.summaryKo ? (
+                              <p className="mt-1 text-sm text-fg-secondary line-clamp-2 leading-relaxed">
+                                {item.summaryKo}
+                              </p>
+                            ) : (
+                              <p className="mt-1 text-sm text-fg-tertiary/60 italic">
+                                요약 준비 중...
+                              </p>
+                            )}
+                            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-fg-tertiary">
+                              {"sourceName" in item && item.sourceName && item.sourceName !== "__manual__" && (
+                                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                                  {item.sourceName}
+                                </Badge>
+                              )}
+                              {urlLabel && (
+                                <a
+                                  href={item.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="hover:text-fg-brand truncate max-w-[200px]"
+                                >
+                                  {urlLabel}
+                                </a>
+                              )}
+                              <span className="tabular-nums">{formatDateShort(item.collectedAt)}</span>
+                            </div>
+                          </div>
+                          <div className="flex shrink-0 flex-col items-end gap-1.5">
+                            {item.relevanceScore !== null && (
+                              <Badge variant={item.relevanceScore >= 60 ? "success" : "secondary"}>
+                                {item.relevanceScore}점
+                              </Badge>
+                            )}
+                            <Badge variant={ITEM_STATUS_VARIANT[item.status] || "secondary"}>
+                              {ITEM_STATUS_LABEL[item.status] || item.status}
+                            </Badge>
+                            <div className="mt-1 flex items-center gap-1">
+                              <SendToIdeaButton itemId={item.id} />
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleStartChat(item.id)}
+                              >
+                                아이디어로 탐색
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                        <div className="ml-4 flex flex-col items-end gap-2">
-                          {item.relevanceScore !== null && (
-                            <Badge variant={item.relevanceScore >= 60 ? "success" : "secondary"}>
-                              {item.relevanceScore}점
-                            </Badge>
-                          )}
-                          <Badge
-                            variant={
-                              item.status === "SEEDED"
-                                ? "info"
-                                : item.status === "SCORED"
-                                  ? "info"
-                                  : item.status === "SKIPPED"
-                                    ? "secondary"
-                                    : "warning"
-                            }
-                          >
-                            {item.status}
-                          </Badge>
-                          <SendToIdeaButton itemId={item.id} />
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleStartChat(item.id, item.titleKo || item.title)}
-                          >
-                            대화 시작
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </div>
