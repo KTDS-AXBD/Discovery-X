@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 400 (2026-03-14)
+**PRD Studio 프로덕션 버그 수정 + SSE 실시간 분석 + 마이그레이션 drift 방지 + Playwright E2E 검증**:
+- ✅ **500 에러 수정**: 마이그레이션 0063~0064 프로덕션 미적용 → D1 테이블 생성 + d1_migrations 추적 동기화
+- ✅ **SSE 실시간 분석**: 큐+배치(영원히 PENDING) → SSE 스트리밍 (~30초 완료). `api.prd-studio.analyze-idea.stream.ts` 신규
+- ✅ **분석 카드 UX 개선**: 스텝 번호 ①②③ + 4단계 진행 표시 + 경과 시간 카운터 + 완료 시 자동 expand + 브라우저 Notification + 인라인 토스트 + 파이프라인 커넥터
+- ✅ **마이그레이션 drift 방지**: `/ax-02-end` Phase 0d + `/ax-04-verify` 2b + `ax-a02-migration` 강화 (3중 안전망)
+- ✅ **SSE 큐 동기화**: 완료 시 prd_analysis_queue COMPLETED 갱신 (폴링 상태 호환)
+- ✅ **Gemini 모델명 수정**: gemini-2.5-flash 404 → gemini-2.0-flash → gemini-2.5-flash (v1beta)
+- ✅ **Playwright E2E**: 프로덕션에서 "펫닥터 AI 진단 플랫폼" PRD 생성 90점 착수가능 확인
+
+**검증 결과**:
+- ✅ typecheck / lint (0 errors) / 2,585 tests PASS / build / Playwright E2E
+
 ### 세션 399 (2026-03-14)
 **Radar 수집 시스템 고도화 — run 카운트 + titleKo 생성 + 피드 UX 리디자인**:
 - ✅ **radar_run 카운트 갱신**: cron 완료 후 sourcesChecked/itemsCollected 실제 수치 반영 (실행 이력 소스 0건 버그 수정)
