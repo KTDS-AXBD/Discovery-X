@@ -227,7 +227,7 @@ async function callReviewModel(
 ): Promise<ReviewResult> {
   const start = Date.now();
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 25000);
+  const timeoutId = setTimeout(() => controller.abort(), 55000);
 
   try {
     let responseText: string;
@@ -270,7 +270,7 @@ async function callReviewModel(
           contents: [{ parts: [{ text: REVIEW_SYSTEM_PROMPT + "\n\n" + prdText }] }],
           generationConfig: {
             temperature: 0.3,
-            maxOutputTokens: 3000,
+            maxOutputTokens: 8192,
             responseMimeType: "application/json",
           },
         }),
