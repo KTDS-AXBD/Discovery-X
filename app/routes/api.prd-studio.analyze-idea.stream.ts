@@ -143,7 +143,7 @@ async function callOpenAI(apiKey: string, systemPrompt: string, userPrompt: stri
   }
 }
 
-async function callGemini(apiKey: string, systemPrompt: string, userPrompt: string, model = "gemini-2.5-flash") {
+async function callGemini(apiKey: string, systemPrompt: string, userPrompt: string, model = "gemini-2.0-flash") {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 55000);
 
@@ -368,7 +368,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
             .set({
               status: AnalysisQueueStatus.COMPLETED,
               prdId,
-              modelVersion: openaiKey ? "gpt-4.1" : "gemini-2.5-flash",
+              modelVersion: openaiKey ? "gpt-4.1" : "gemini-2.0-flash",
               latencyMs: latency,
               completedAt: sql`(unixepoch())`,
               errorMessage: null,
@@ -384,7 +384,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
             status: AnalysisQueueStatus.COMPLETED,
             sourceContext,
             sourceIds: sources.map(s => s.radarItemId ?? s.id ?? ""),
-            modelVersion: openaiKey ? "gpt-4.1" : "gemini-2.5-flash",
+            modelVersion: openaiKey ? "gpt-4.1" : "gemini-2.0-flash",
             latencyMs: latency,
             completedAt: sql`(unixepoch())`,
           });
