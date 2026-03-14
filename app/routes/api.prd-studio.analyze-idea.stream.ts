@@ -7,9 +7,9 @@
 
 import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { getDb } from "~/db";
-import { prdSections, PrdSectionType, PrdStatus } from "~/features/prd-studio/db/schema";
+import { prdSections, prdAnalysisQueue, AnalysisQueueStatus, PrdSectionType, PrdStatus } from "~/features/prd-studio/db/schema";
 import { PrdStudioService } from "~/features/prd-studio/service/prd-studio.service";
 import { IdeaService } from "~/features/ideas/service/idea.service";
 import { buildSourceContext } from "~/features/ideas/lib/section-builder";
@@ -353,8 +353,42 @@ export async function action({ request, context }: ActionFunctionArgs) {
           }
         }
 
-        // ── Step 4: 완료 ──
+        // ── Step 4: 완료 + 큐 동기화 ──
         const latency = Date.now() - startTime;
+
+        // prd_analysis_queue 동기화 (폴링 상태 엔드포인트 호환)
+        // 기존 FAILED/PENDING 레코드를 COMPLETED로 갱신하거나 새 레코드 삽입
+        const existingQueue = await db.select({ id: prdAnalysisQueue.id })
+          .from(prdAnalysisQueue)
+          .where(eq(prdAnalysisQueue.ideaId, ideaId))
+          .get();
+
+        if (existingQueue) {
+          await db.update(prdAnalysisQueue)
+            .set({
+              status: AnalysisQueueStatus.COMPLETED,
+              prdId,
+              modelVersion: openaiKey ? "gpt-4.1" : "gemini-2.5-flash",
+              latencyMs: latency,
+              completedAt: sql`(unixepoch())`,
+              errorMessage: null,
+            })
+            .where(eq(prdAnalysisQueue.id, existingQueue.id));
+        } else {
+          await db.insert(prdAnalysisQueue).values({
+            id: crypto.randomUUID(),
+            ideaId,
+            prdId,
+            tenantId: ctx.tenantId,
+            requestedBy: ctx.user.id,
+            status: AnalysisQueueStatus.COMPLETED,
+            sourceContext,
+            sourceIds: sources.map(s => s.radarItemId ?? s.id ?? ""),
+            modelVersion: openaiKey ? "gpt-4.1" : "gemini-2.5-flash",
+            latencyMs: latency,
+            completedAt: sql`(unixepoch())`,
+          });
+        }
 
         await service.logEvent({
           prdId,
