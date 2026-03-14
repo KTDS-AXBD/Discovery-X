@@ -3,6 +3,12 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 397 (2026-03-14)
+**ax-06-team Worktree Isolation 모드 추가**:
+- ✅ `/ax-06-team` 스킬에 Worktree Isolation 모드 섹션 추가 — worker별 독립 git worktree에서 작업 후 리더가 merge하는 패턴
+- ✅ `~/.claude/rules/agent-team-patterns.md`에 Worktree Isolation 조합 교훈 추가
+- ℹ️ Claude Code 2.1.75 What's New 리뷰 기반 — Worktree Isolation, modelOverrides, Effort 레벨 변경 확인
+
 ### 세션 396 (2026-03-14)
 **프로젝트 폴더 정리 + 정리 자동화 체계 구축**:
 - ✅ Zone.Identifier 3개 + .dev.vars.example(중복) + docs/req-interview/(중복 스킬) 삭제
