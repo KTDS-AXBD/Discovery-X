@@ -23,6 +23,13 @@ interface AnalysisStatus {
   error?: string;
 }
 
+interface StreamStep {
+  step: string;
+  message: string;
+  detail?: string;
+  progress?: number;
+}
+
 interface PrdAnalysisCardProps {
   ideaId: string;
   selectedSourceCount: number;
@@ -93,9 +100,10 @@ const VERDICT_STYLES: Record<string, { label: string; className: string }> = {
 // ── Step Config ─────────────────────────────────────────────────────────
 
 const ANALYSIS_STEPS = [
-  { key: "queue", label: "큐 대기" },
+  { key: "prepare", label: "소스 분석" },
   { key: "generate", label: "PRD 8섹션 생성" },
   { key: "review", label: "AI 품질 검토" },
+  { key: "save", label: "저장" },
 ];
 
 function getActiveStep(status: string) {
@@ -112,6 +120,10 @@ export function PrdAnalysisCard({ ideaId, selectedSourceCount, onOpenProposalMod
   const [requesting, setRequesting] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const prevStatusRef = useRef(analysisStatus.status);
+  const [streaming, setStreaming] = useState(false);
+  const [streamStep, setStreamStep] = useState<StreamStep | null>(null);
+  const [streamError, setStreamError] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const elapsed = useElapsed(
     analysisStatus.status === "PENDING" ? analysisStatus.requestedAt :
@@ -143,38 +155,100 @@ export function PrdAnalysisCard({ ideaId, selectedSourceCount, onOpenProposalMod
     }
   }, [analysisStatus.status, onNotify]);
 
+  // SSE cleanup on unmount
+  useEffect(() => {
+    return () => { abortRef.current?.abort(); };
+  }, []);
+
   const handleRequestAnalysis = useCallback(async () => {
     setRequesting(true);
+    setStreaming(true);
+    setStreamStep({ step: "prepare", message: "분석 준비 중...", progress: 0 });
+    setStreamError(null);
+    setExpanded(true);
+
+    const abort = new AbortController();
+    abortRef.current = abort;
+
     try {
-      const res = await fetch("/api/prd-studio/analyze-idea", {
+      const res = await fetch("/api/prd-studio/analyze-idea/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ideaId }),
+        signal: abort.signal,
       });
-      if (res.ok) refetch();
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "요청 실패" })) as { error?: string };
+        throw new Error(err.error ?? `HTTP ${res.status}`);
+      }
+
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const chunks = buffer.split("\n\n");
+        buffer = chunks.pop()!;
+
+        for (const chunk of chunks) {
+          if (!chunk.startsWith("data: ")) continue;
+          try {
+            const event = JSON.parse(chunk.slice(6)) as { type: string; [k: string]: unknown };
+
+            if (event.type === "step") {
+              setStreamStep({
+                step: event.step as string,
+                message: event.message as string,
+                detail: event.detail as string | undefined,
+                progress: event.progress as number | undefined,
+              });
+            } else if (event.type === "complete") {
+              setStreaming(false);
+              setStreamStep(null);
+              refetch();
+              onPrdCompleted?.(true);
+              onNotify?.("PRD 분석이 완료되었어요. 결과를 확인하세요.");
+
+              if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+                new Notification("PRD 분석 완료", {
+                  body: `${event.title} — ${event.totalScore ? `${event.totalScore}점` : "검토 완료"}`,
+                  icon: "/favicon.ico",
+                });
+              }
+            } else if (event.type === "error") {
+              throw new Error(event.message as string);
+            }
+          } catch (parseErr) {
+            if (parseErr instanceof SyntaxError) continue;
+            throw parseErr;
+          }
+        }
+      }
+    } catch (error) {
+      if ((error as Error).name !== "AbortError") {
+        setStreamError(error instanceof Error ? error.message : "분석 중 오류 발생");
+        setStreaming(false);
+        setStreamStep(null);
+      }
     } finally {
       setRequesting(false);
+      abortRef.current = null;
     }
-  }, [ideaId, refetch]);
+  }, [ideaId, refetch, onPrdCompleted, onNotify]);
 
-  const handleCancel = useCallback(async () => {
-    await fetch(`/api/prd-studio/analyze-idea/${ideaId}/cancel`, { method: "DELETE" });
-    refetch();
-  }, [ideaId, refetch]);
+  const handleCancel = useCallback(() => {
+    abortRef.current?.abort();
+    setStreaming(false);
+    setStreamStep(null);
+    setRequesting(false);
+  }, []);
 
-  const handleRetry = useCallback(async () => {
-    setRequesting(true);
-    try {
-      const res = await fetch("/api/prd-studio/analyze-idea", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ideaId }),
-      });
-      if (res.ok) refetch();
-    } finally {
-      setRequesting(false);
-    }
-  }, [ideaId, refetch]);
+  const handleRetry = handleRequestAnalysis;
 
   if (loading) {
     return (
@@ -198,7 +272,7 @@ export function PrdAnalysisCard({ ideaId, selectedSourceCount, onOpenProposalMod
           <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
             analysisStatus.status === "COMPLETED"
               ? "bg-green-500 text-white"
-              : analysisStatus.status === "PENDING" || analysisStatus.status === "PROCESSING"
+              : streaming || analysisStatus.status === "PENDING" || analysisStatus.status === "PROCESSING"
               ? "bg-accent-fg text-white"
               : "bg-surface-secondary text-fg-tertiary border border-border"
           }`}>
@@ -227,7 +301,15 @@ export function PrdAnalysisCard({ ideaId, selectedSourceCount, onOpenProposalMod
       </button>
 
       {/* Collapsed summary line */}
-      {!expanded && analysisStatus.status !== "none" && (
+      {!expanded && streaming && streamStep && (
+        <div className="border-t border-border px-4 py-2 text-xs text-fg-tertiary">
+          <span className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-accent-fg animate-pulse" />
+            {streamStep.message} {streamStep.detail ? `· ${streamStep.detail}` : ""}
+          </span>
+        </div>
+      )}
+      {!expanded && !streaming && analysisStatus.status !== "none" && (
         <div className="border-t border-border px-4 py-2 text-xs text-fg-tertiary">
           {analysisStatus.status === "PENDING" && (
             <span className="flex items-center gap-1.5">
@@ -276,7 +358,7 @@ export function PrdAnalysisCard({ ideaId, selectedSourceCount, onOpenProposalMod
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-fg-tertiary">
-                  Claude Sonnet 4.6 기반 · API 비용 없음 · 소스 {selectedSourceCount}개
+                  GPT-4.1 / Gemini 기반 · 소스 {selectedSourceCount}개 · 약 30초
                 </span>
                 <button
                   type="button"
@@ -293,43 +375,47 @@ export function PrdAnalysisCard({ ideaId, selectedSourceCount, onOpenProposalMod
             </>
           )}
 
-          {/* ── State: PENDING ── */}
-          {analysisStatus.status === "PENDING" && (
+          {/* ── State: Streaming (SSE 실시간 분석) ── */}
+          {streaming && streamStep && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-yellow-400 animate-pulse" />
-                  <span className="text-sm text-fg-secondary">분석 대기 중</span>
+                  <div className="h-2 w-2 rounded-full bg-accent-fg animate-pulse" />
+                  <span className="text-sm text-fg-secondary">{streamStep.message}</span>
                 </div>
-                {elapsed && (
-                  <span className="font-mono text-xs tabular-nums text-fg-tertiary">{elapsed} 경과</span>
-                )}
               </div>
 
               {/* Step indicators */}
               <div className="flex items-center gap-0.5 text-[10px]">
-                {ANALYSIS_STEPS.map((step, i) => (
-                  <div key={step.key} className="flex items-center gap-0.5">
-                    {i > 0 && <span className="text-fg-tertiary mx-1">→</span>}
-                    <span className={i === activeStep
-                      ? "font-semibold text-yellow-600 bg-yellow-50 rounded px-1.5 py-0.5"
-                      : i < activeStep
-                      ? "text-fg-tertiary line-through"
-                      : "text-fg-tertiary"
-                    }>
-                      {step.label}
-                    </span>
-                  </div>
-                ))}
+                {ANALYSIS_STEPS.map((step, i) => {
+                  const stepIndex = ANALYSIS_STEPS.findIndex(s => s.key === streamStep.step);
+                  const isCurrent = step.key === streamStep.step;
+                  const isDone = i < stepIndex;
+                  return (
+                    <div key={step.key} className="flex items-center gap-0.5">
+                      {i > 0 && <span className="text-fg-tertiary mx-1">→</span>}
+                      <span className={
+                        isCurrent ? "font-semibold text-accent-fg bg-blue-50 rounded px-1.5 py-0.5"
+                        : isDone ? "text-green-600"
+                        : "text-fg-tertiary"
+                      }>
+                        {isDone ? `✓ ${step.label}` : step.label}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
 
               <div className="h-1.5 w-full rounded-full bg-surface-secondary overflow-hidden">
-                <div className="h-full rounded-full bg-yellow-400 animate-pulse" style={{ width: "8%" }} />
+                <div
+                  className="h-full rounded-full bg-accent-fg transition-all duration-700 ease-out"
+                  style={{ width: `${streamStep.progress ?? 10}%` }}
+                />
               </div>
 
               <div className="flex items-center justify-between">
                 <span className="text-xs text-fg-tertiary">
-                  예상 2~3분 · 큐 {analysisStatus.position ?? "?"}번째 · 배치 프로세서 순차 처리
+                  {streamStep.detail ?? "처리 중..."} · 완료 시 자동 알림
                 </span>
                 <button type="button" onClick={handleCancel} className="text-xs text-fg-tertiary hover:text-red-500 transition-colors">
                   취소
@@ -338,46 +424,41 @@ export function PrdAnalysisCard({ ideaId, selectedSourceCount, onOpenProposalMod
             </div>
           )}
 
-          {/* ── State: PROCESSING ── */}
-          {analysisStatus.status === "PROCESSING" && (
+          {/* ── State: Stream Error ── */}
+          {!streaming && streamError && (
+            <>
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-red-500" />
+                <span className="text-sm text-red-600">분석에 실패했어요</span>
+              </div>
+              <p className="text-xs text-fg-tertiary">오류: {streamError}</p>
+              <button
+                type="button"
+                onClick={() => { setStreamError(null); handleRetry(); }}
+                disabled={requesting}
+                className="inline-flex items-center gap-1 rounded-lg bg-btn-bg px-3 py-1.5 text-xs font-medium text-btn-text transition-colors hover:bg-btn-bg-hover disabled:opacity-50"
+              >
+                {requesting ? "요청 중..." : "재시도"}
+              </button>
+            </>
+          )}
+
+          {/* ── State: PENDING (legacy — 이전 큐 방식 호환) ── */}
+          {!streaming && !streamError && analysisStatus.status === "PENDING" && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-accent-fg animate-pulse" />
-                  <span className="text-sm text-fg-secondary">PRD 생성 중</span>
-                </div>
-                {elapsed && (
-                  <span className="font-mono text-xs tabular-nums text-fg-tertiary">{elapsed} 경과</span>
-                )}
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-yellow-400 animate-pulse" />
+                <span className="text-sm text-fg-secondary">대기 중 (이전 요청)</span>
               </div>
-
-              {/* Step indicators */}
-              <div className="flex items-center gap-0.5 text-[10px]">
-                {ANALYSIS_STEPS.map((step, i) => (
-                  <div key={step.key} className="flex items-center gap-0.5">
-                    {i > 0 && <span className="text-fg-tertiary mx-1">→</span>}
-                    <span className={i === activeStep
-                      ? "font-semibold text-accent-fg bg-blue-50 rounded px-1.5 py-0.5"
-                      : i < activeStep
-                      ? "text-green-600"
-                      : "text-fg-tertiary"
-                    }>
-                      {i < activeStep ? `✓ ${step.label}` : step.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="h-1.5 w-full rounded-full bg-surface-secondary overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-accent-fg transition-all duration-1000 ease-out"
-                  style={{ width: "55%" }}
-                />
-              </div>
-
-              <span className="text-xs text-fg-tertiary">
-                Claude Sonnet 4.6 · 8섹션 자동 생성 + AI 검토 · 완료 시 자동 알림
-              </span>
+              <p className="text-xs text-fg-tertiary">이전 배치 요청이 대기 중이에요. 재분석을 시작하세요.</p>
+              <button
+                type="button"
+                onClick={handleRetry}
+                disabled={requesting}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-btn-bg px-3 py-1.5 text-xs font-medium text-btn-text transition-colors hover:bg-btn-bg-hover disabled:opacity-50"
+              >
+                {requesting ? "요청 중..." : "실시간 분석 시작"}
+              </button>
             </div>
           )}
 
