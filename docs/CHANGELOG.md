@@ -4,9 +4,10 @@
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
 ### 세션 401 (2026-03-16)
-**Radar hydration mismatch 수정 (React #418)**:
-- ✅ `formatDateShort` KST-safe 패턴 전환: 로컬 `getHours()`/`getMonth()` → `toKST()` + `getUTC*()` (서버 UTC ↔ 클라이언트 KST 불일치 해소)
-- ✅ `format-date.ts` 공유 유틸로 이동 (radar.tsx 로컬 함수 제거)
+**Radar 피드 탭 버그 2건 수정**:
+- ✅ **hydration mismatch (React #418)**: `formatDateShort` KST-safe 패턴 전환 — 로컬 `getHours()`/`getMonth()` → `toKST()` + `getUTC*()` (서버 UTC ↔ 클라이언트 KST 불일치 해소). `format-date.ts` 공유 유틸로 이동
+- ✅ **실행 이력 누락**: radar-worker가 tenant_id 없이 runs 생성 → `listRunsByTenant` 필터에서 누락. radar-worker에 tenant_id 설정 추가 + 서비스 쿼리에 isNull 호환 + 프로덕션 DB 9건 보정
+- ℹ️ **Source Health 수집중(0/20)**: 정상 동작 확인 — totalItems < 20인 소스는 health score 대신 "수집 중" 표시 (설계 의도)
 
 **검증 결과**:
 - ✅ typecheck / lint (0 errors) / 2,585 tests PASS / build
