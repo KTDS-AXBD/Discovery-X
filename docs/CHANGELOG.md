@@ -3,6 +3,14 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 401 (2026-03-16)
+**Radar hydration mismatch 수정 (React #418)**:
+- ✅ `formatDateShort` KST-safe 패턴 전환: 로컬 `getHours()`/`getMonth()` → `toKST()` + `getUTC*()` (서버 UTC ↔ 클라이언트 KST 불일치 해소)
+- ✅ `format-date.ts` 공유 유틸로 이동 (radar.tsx 로컬 함수 제거)
+
+**검증 결과**:
+- ✅ typecheck / lint (0 errors) / 2,585 tests PASS / build
+
 ### 세션 400 (2026-03-14)
 **PRD Studio 프로덕션 버그 수정 + SSE 실시간 분석 + 마이그레이션 drift 방지 + Playwright E2E 검증**:
 - ✅ **500 에러 수정**: 마이그레이션 0063~0064 프로덕션 미적용 → D1 테이블 생성 + d1_migrations 추적 동기화
