@@ -351,7 +351,7 @@ export class RadarService {
       .from(radarRuns)
       .where(
         and(
-          eq(radarRuns.tenantId, tenantId),
+          or(eq(radarRuns.tenantId, tenantId), isNull(radarRuns.tenantId)),
           eq(radarRuns.status, "COMPLETED"),
           gte(radarRuns.startedAt, todayStart),
         ),
@@ -441,7 +441,7 @@ export class RadarService {
       .from(radarRuns)
       .where(
         and(
-          eq(radarRuns.tenantId, tenantId),
+          or(eq(radarRuns.tenantId, tenantId), isNull(radarRuns.tenantId)),
           eq(radarRuns.status, "COMPLETED"),
           gte(radarRuns.startedAt, todayStart),
         ),
@@ -469,12 +469,12 @@ export class RadarService {
       .limit(limit);
   }
 
-  /** 테넌트별 실행 이력 조회 */
+  /** 테넌트별 실행 이력 조회 (radar-worker의 null tenant_id 호환) */
   async listRunsByTenant(tenantId: string, limit = 20) {
     return this.db
       .select()
       .from(radarRuns)
-      .where(eq(radarRuns.tenantId, tenantId))
+      .where(or(eq(radarRuns.tenantId, tenantId), isNull(radarRuns.tenantId)))
       .orderBy(desc(radarRuns.startedAt))
       .limit(limit);
   }

@@ -16,6 +16,7 @@ export interface RadarSource {
   url: string;
   config: string | null;
   enabled: number;
+  tenant_id: string | null;
 }
 
 export interface CollectedItem {

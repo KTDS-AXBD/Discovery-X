@@ -29,19 +29,22 @@ export async function runPipeline(env: Env): Promise<RunStats> {
   const runId = crypto.randomUUID();
   const now = Math.floor(Date.now() / 1000);
 
-  await db
-    .prepare(
-      `INSERT INTO radar_runs (id, started_at, status) VALUES (?, ?, 'RUNNING')`
-    )
-    .bind(runId, now)
-    .run();
-
   try {
     // 1. Get enabled sources
     const sourcesResult = await db
       .prepare(`SELECT * FROM radar_sources WHERE enabled = 1`)
       .all();
     const sources = (sourcesResult.results || []) as unknown as RadarSource[];
+
+    // tenant_id: 소스의 tenant에서 추출 (단일 테넌트 운영)
+    const tenantId = sources[0]?.tenant_id ?? null;
+
+    await db
+      .prepare(
+        `INSERT INTO radar_runs (id, started_at, status, tenant_id) VALUES (?, ?, 'RUNNING', ?)`
+      )
+      .bind(runId, now, tenantId)
+      .run();
 
     if (sources.length === 0) {
       await completeRun(db, runId, stats, "COMPLETED");
