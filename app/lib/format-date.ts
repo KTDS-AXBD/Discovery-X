@@ -60,6 +60,29 @@ export function formatTime(iso: string | Date | null | undefined): string {
   return `${h}:${m}`;
 }
 
+/** ISO 문자열 → "오늘 14:30" / "어제" / "3/16" 형식 (KST 기준, SSR-safe) */
+export function formatDateShort(iso: string | Date | null | undefined): string {
+  if (!iso) return "-";
+  const d = typeof iso === "string" ? new Date(iso) : iso;
+  if (isNaN(d.getTime())) return "-";
+  const k = toKST(d);
+  const nowK = toKST(new Date());
+  const isSameDay =
+    k.getUTCFullYear() === nowK.getUTCFullYear() &&
+    k.getUTCMonth() === nowK.getUTCMonth() &&
+    k.getUTCDate() === nowK.getUTCDate();
+  if (isSameDay) {
+    return `오늘 ${String(k.getUTCHours()).padStart(2, "0")}:${String(k.getUTCMinutes()).padStart(2, "0")}`;
+  }
+  const yesterdayK = new Date(nowK.getTime() - 24 * 60 * 60 * 1000);
+  const isYesterday =
+    k.getUTCFullYear() === yesterdayK.getUTCFullYear() &&
+    k.getUTCMonth() === yesterdayK.getUTCMonth() &&
+    k.getUTCDate() === yesterdayK.getUTCDate();
+  if (isYesterday) return "어제";
+  return `${k.getUTCMonth() + 1}/${k.getUTCDate()}`;
+}
+
 /**
  * 기한 초과 여부 판정 (서버에서 호출)
  * 클라이언트에서 new Date() 직접 호출 시 hydration 불일치 발생 가능

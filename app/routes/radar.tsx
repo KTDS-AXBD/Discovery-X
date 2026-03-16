@@ -16,7 +16,7 @@ import { Button } from "~/components/ui/Button";
 import { Badge } from "~/components/ui/Badge";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "~/components/ui/Table";
-import { formatDateLocalTime } from "~/lib/format-date";
+import { formatDateLocalTime, formatDateShort } from "~/lib/format-date";
 import { ManualCollectTab } from "~/features/radar/ui/ManualCollectTab";
 import { SendToIdeaButton } from "~/features/radar/ui/SendToIdeaButton";
 import { displayTitle, getUrlLabel } from "~/lib/utils/display-title";
@@ -131,21 +131,6 @@ const ITEM_STATUS_VARIANT: Record<string, "warning" | "info" | "secondary"> = {
 function formatDateLocal(timestamp: string | Date | null) {
   if (!timestamp) return "-";
   return formatDateLocalTime(timestamp);
-}
-
-function formatDateShort(timestamp: string | Date | null): string {
-  if (!timestamp) return "-";
-  const d = typeof timestamp === "string" ? new Date(timestamp) : timestamp;
-  const now = new Date();
-  const isToday = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
-  if (isToday) {
-    return `오늘 ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-  }
-  const yesterday = new Date(now);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const isYesterday = d.getFullYear() === yesterday.getFullYear() && d.getMonth() === yesterday.getMonth() && d.getDate() === yesterday.getDate();
-  if (isYesterday) return "어제";
-  return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
 type RadarTab = "feed" | "manual" | "health" | "channels";
