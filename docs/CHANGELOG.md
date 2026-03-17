@@ -10,8 +10,8 @@
 - ✅ GitHub Labels 4건 생성 (feature, P1-high, P2-medium, P3-low)
 - ✅ DB 동기화 3건: DX-REQ-010 DONE 전환, DX-REQ-013 INSERT, DX-REQ-015 IN_PROGRESS 전환
 - ✅ DX-REQ-010 결번 해소: "AI Fallback 미작동 버그" → F45 SPEC 등록 + DB DONE
-- ⏭️ GitHub Project #4 등록: Sinclair-Seo 토큰 project scope 추가 필요
-- ℹ️ gh 듀얼 계정 권한 분리 확인: AXBD-Team(read) / Sinclair-Seo(admin, project scope 미보유)
+- ✅ GitHub Project #4: 15건 등록 완료 (Status + Priority 설정) — Sinclair-Seo token에 project scope 추가 후 해결
+- ℹ️ gh 듀얼 계정 권한 분리: AXBD-Team(project read) / Sinclair-Seo(admin + project write)
 - ✅ REQ 선행 등록 원칙 표준화: `~/.claude/standards/requirements-governance.md` §6에 선행 등록 규칙 추가 + feedback 메모리 저장
 
 **검증 결과**:
