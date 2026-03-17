@@ -1,6 +1,7 @@
 #:schema node_modules/wrangler/config-schema.json
 name = "discovery-x"
-account_id = "02ae9a2bead25d99caa8f3258b81f568"
+# account_id는 Pages에서 미지원 — CLOUDFLARE_ACCOUNT_ID 환경변수로 설정
+# export CLOUDFLARE_ACCOUNT_ID="02ae9a2bead25d99caa8f3258b81f568"
 compatibility_date = "2024-11-01"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "./build/client"
