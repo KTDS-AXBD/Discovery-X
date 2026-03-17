@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 407 (2026-03-17)
+**거버넌스 점검 + wrangler 다중 계정 문제 해결**:
+- ✅ **GOV check**: 15개 거버넌스 표준 적용 상태 점검 — 13/15 적합 (GOV-005, GOV-013 부분)
+- ✅ **Project #4 점검**: AX-BD-Team org, 70항목 (Issue 16 + Draft 54), 정상
+- ✅ **DX-REQ-010 결번 확인**: DX-REQ-001~016 연속 할당 완료, 결번 없음
+- ✅ **wrangler 다중 계정 수정**: `wrangler.toml`에 `account_id` 명시 — sinclair.seo 계정이 2개 CF 계정 멤버라 잘못된 계정(Ktds.axbd) 자동 선택 문제 해결
+- ✅ **D1 마이그레이션 drift 수정**: 0065 MCP 적용 후 wrangler 추적 테이블 미등록 → 수동 INSERT 동기화
+- ✅ **MEMORY.md 정리**: BC 서비스 현황 ideas 3개 반영 + 완료 항목 5건 제거
+
+**검증 결과**:
+- ✅ wrangler d1 migrations list --remote: "No migrations to apply!"
+- ⏭️ typecheck/lint/test: 설정 파일 변경만이라 건너뜀
+
 ### 세션 406 (2026-03-17)
 **F46 Phase 2+3 — Left Pane 히스토리 + Right Pane 결과물 뷰어 (DX-REQ-016)**:
 - ✅ **마이그레이션 0065 프로덕션 적용** (Cloudflare MCP)
