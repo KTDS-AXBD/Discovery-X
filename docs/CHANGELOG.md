@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 402 (2026-03-17)
+**PostToolUse 관련 테스트 자동 실행 hook 추가 (DoD 3단계 자동화)**:
+- ✅ `post-edit-test.sh`: features/lib/components 변경 시 관련 테스트 자동 탐색+실행 (최대 5개, timeout 30s)
+- ✅ `settings.json`: PostToolUse Edit|Write matcher에 test hook 등록
+- ✅ routes/ui 파일 편집은 스킵 (빈번한 편집에 테스트 대기 방지)
+- ℹ️ CLAUDE.md audit: A등급(94점), 변경 불필요
+
+**검증 결과**:
+- ✅ .claude/ 설정 파일만 변경 — typecheck/lint/test 영향 없음
+- ✅ hook 동작 검증: radar(114 tests/3.3s), agent, routes 스킵, UI 스킵 모두 정상
+
 ### 세션 401 (2026-03-16)
 **Radar 피드 탭 버그 2건 수정**:
 - ✅ **hydration mismatch (React #418)**: `formatDateShort` KST-safe 패턴 전환 — 로컬 `getHours()`/`getMonth()` → `toKST()` + `getUTC*()` (서버 UTC ↔ 클라이언트 KST 불일치 해소). `format-date.ts` 공유 유틸로 이동
