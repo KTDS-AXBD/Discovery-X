@@ -459,14 +459,14 @@ build/
 ### 버전
 - **시스템 (SemVer SSOT)**: 0.6.0 (package.json)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 65개 마이그레이션 SQL (0000~0064), 로컬 적용 완료 (0062 프로덕션 적용 완료, 0063~0064 로컬만)
+- **DB**: 66개 마이그레이션 SQL (0000~0065), 로컬+프로덕션 전체 적용 완료
 
 ### 주요 지표
 - **라우트**: 206개
 - **테이블**: 123개
 - **Agent 도구**: 77개
 - **코드**: ~92,600줄 (~561파일)
-- **테스트**: 2,585개 (173 test files, 로컬 통과)
+- **테스트**: 2,636개 (176 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
@@ -595,3 +595,4 @@ build/
 | F44 | PRD Studio — pm-skills 통합 웹 UI + CLI 하이브리드 (인터뷰→PRD→AI검토→스코어카드→착수판단 + 아이디어 분석 대체, DX-REQ-015, P1) | v0.7.0 | 🔧 | - |
 | F45 | AI Fallback 미작동 + 에러 미표시 버그 — FallbackManager 체인 중단 수정 + 프로바이더 모니터링 (DX-REQ-010, P1) | v0.5.0 | ✅ | S344 |
 | F46 | 아이디어 페이지 3-Pane 구조 개편 — 범용 스킬 엔진 + Middle Pane PM 스킬 탭 + Left Pane 세션 히스토리 + Right Pane 결과물 뷰어 (DX-REQ-016, P1) | v0.7.0 | ✅ | S405~S408 |
+| F47 | Change Log 기반 작업 진행 결과 공유 — 실험실 작업 현황 통합 + 하이브리드(파일 파싱+리뷰 DB) + /frontend-design 가독성 + 리뷰/피드백 연계 (DX-REQ-017, P1) | v0.7.0 | 🔧 | — |

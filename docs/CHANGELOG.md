@@ -3,6 +3,16 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 409 (2026-03-17)
+**F44 Phase 3 통합 테스트 — DX-ANLS-015 G16-1 해소 (DX-REQ-015)**:
+- ✅ **통합 테스트 8개 추가**: T49-T53 라우트 검증 (인증/ideaId/테넌트/소스) + T60 테넌트 격리 + T62 PROCESSING 취소 + E2E 전체 흐름
+- ✅ **기존 13 + 신규 8 = 21개**: `prd-analysis-api.test.ts` 완성 — DX-DSGN-016 T49-T68 전체 커버
+- ✅ **DX-ANLS-015 v1.2 갱신**: DX-DSGN-016 88→95%, Overall 93→96%, RED 1→0
+- ✅ **SPEC.md drift 보정**: DB 마이그레이션 0065 프로덕션 적용 완료 반영
+
+**검증 결과**:
+- ✅ typecheck (0 errors) / lint (0 errors) / tests (2,636 전체 통과, +51)
+
 ### 세션 408 (2026-03-17)
 **F46 Phase 4 — 스킬 엔진 통합 테스트 + F46 DONE (DX-REQ-016)**:
 - ✅ **유닛 테스트**: `skill-catalog-service.test.ts` (10개) + `skill-execution-service.test.ts` (17개) — seedCatalog, listByCategory, getBySlug, create, updateStatus, listByIdea JOIN, getById
