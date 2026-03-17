@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 404 (2026-03-17)
+**마크다운 렌더링 누락 전체 점검 + 수정**:
+- ✅ PRD Studio `PrdContentView`: `whitespace-pre-wrap` → `MarkdownViewer` (PRD 8섹션 마크다운 렌더링)
+- ✅ PRD Studio `ReviewResults`: `{fb.message}` plain text → `ReactMarkdown` + `remarkGfm` (피드백 인라인 마크다운)
+- ✅ Proposals `ProposalDetail`: 섹션 content + description → `ReactMarkdown` + `remarkGfm`
+- ✅ Proposals `ProposalContentView`: description → `ReactMarkdown` (섹션과 일관성 — 섹션은 이미 ReactMarkdown 사용 중이었으나 description만 누락)
+- ℹ️ 전체 코드베이스 점검: 9곳 발견, HIGH 4곳 수정 + LOW/OK 5곳 유지 (카드 요약/파일 미리보기/코드 콘텐츠/사용자 채팅)
+
+**검증 결과**:
+- ✅ typecheck / lint (에러 0) / build 성공
+
 ### 세션 403 (2026-03-17)
 **요구사항 3방향 동기화 (SPEC ↔ DB ↔ GitHub Issues)**:
 - ✅ ax-13-selfcheck: 8/8 PASS (commands, standards, hooks, skills, memory 전체 정상)
