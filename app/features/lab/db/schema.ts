@@ -160,6 +160,38 @@ export type EvidenceDuplicateCandidate = typeof evidenceDuplicateCandidates.$inf
 export type NewEvidenceDuplicateCandidate = typeof evidenceDuplicateCandidates.$inferInsert;
 
 // ============================================================================
+// CHANGELOG FEEDBACK (F47)
+// ============================================================================
+
+export const changelogFeedback = sqliteTable(
+  "changelog_feedback",
+  {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    /** CHANGELOG 세션 식별자 (e.g. "408", "393b") */
+    sessionId: text("session_id").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** 'emoji' | 'comment' */
+    type: text("type").notNull(),
+    /** 이모지 반응 (👍/❓/🐛/❗) — type='emoji'일 때 */
+    emoji: text("emoji"),
+    /** 코멘트 텍스트 — type='comment'일 때 */
+    comment: text("comment"),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    sessionIdx: index("idx_changelog_feedback_session").on(table.sessionId),
+    userIdx: index("idx_changelog_feedback_user").on(table.userId),
+  })
+);
+
+export type ChangelogFeedbackRow = typeof changelogFeedback.$inferSelect;
+export type NewChangelogFeedback = typeof changelogFeedback.$inferInsert;
+
+// ============================================================================
 // MVP BUILDS (F36)
 // ============================================================================
 

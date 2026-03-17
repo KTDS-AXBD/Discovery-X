@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
+import { inArray } from "drizzle-orm";
 import { getDb } from "~/db";
 import { getSessionContext, getSessionSecret } from "~/lib/auth/session.server";
 import { RequirementsQueryService } from "~/features/requests/service";
@@ -13,6 +14,13 @@ import {
   DOMAIN_LABELS,
 } from "~/features/requests/constants";
 import type { WorkPlanWithContext, RequestWithReview } from "~/features/requests/types";
+import {
+  parseChangelog,
+  queryChangelog,
+} from "~/features/lab/service/changelog-parser";
+import { readChangelogFile } from "~/features/lab/service/changelog-reader.server";
+import { changelogFeedback } from "~/features/lab/db/schema";
+import { SessionTimeline } from "~/features/lab/ui/SessionTimeline";
 
 const LIFECYCLE_STATUSES = ["PLANNED", "IN_PROGRESS", "DONE"] as const;
 const PLAN_STATUSES = ["DRAFT", "APPROVED", "IN_PROGRESS", "COMPLETED", "CANCELLED"] as const;
@@ -81,7 +89,48 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     lifecycleCounts[r.status] = (lifecycleCounts[r.status] ?? 0) + 1;
   }
 
-  return json({ workPlans, planStatusCounts, lifecycleRequests, lifecycleCounts });
+  // Changelog: 파일 파싱 + 피드백 조회
+  const changelogContent = await readChangelogFile();
+  const parsed = parseChangelog(changelogContent);
+  const changelogResult = queryChangelog(parsed, { page: 0, pageSize: 10 });
+
+  // 표시된 세션들의 피드백 조회
+  const sessionIds = changelogResult.sessions.map((s) => s.id);
+  const relevantFeedback = sessionIds.length > 0
+    ? await db.select().from(changelogFeedback).where(
+        inArray(changelogFeedback.sessionId, sessionIds)
+      )
+    : [];
+
+  // 피드백을 세션별로 집계
+  const feedbackMap: Record<string, {
+    emojis: { emoji: string; count: number; myReaction: boolean }[];
+    commentCount: number;
+  }> = {};
+  for (const sid of sessionIds) {
+    const sessionFb = relevantFeedback.filter((f) => f.sessionId === sid);
+    const emojiMap: Record<string, { count: number; myReaction: boolean }> = {};
+    let commentCount = 0;
+    for (const fb of sessionFb) {
+      if (fb.type === "emoji" && fb.emoji) {
+        if (!emojiMap[fb.emoji]) emojiMap[fb.emoji] = { count: 0, myReaction: false };
+        emojiMap[fb.emoji].count++;
+        if (fb.userId === ctx.user.id) emojiMap[fb.emoji].myReaction = true;
+      } else if (fb.type === "comment") {
+        commentCount++;
+      }
+    }
+    feedbackMap[sid] = {
+      emojis: Object.entries(emojiMap).map(([emoji, data]) => ({ emoji, ...data })),
+      commentCount,
+    };
+  }
+
+  return json({
+    workPlans, planStatusCounts, lifecycleRequests, lifecycleCounts,
+    changelog: changelogResult,
+    feedbackMap,
+  });
 }
 
 /* ── Summary Counter ── */
@@ -354,8 +403,10 @@ function WorkPlanRow({ plan, isLast }: { plan: WorkPlanWithContext; isLast: bool
 
 /* ── Main Page ── */
 export default function WorkStatusPage() {
-  const { workPlans, planStatusCounts, lifecycleRequests, lifecycleCounts } =
-    useLoaderData<typeof loader>();
+  const {
+    workPlans, planStatusCounts, lifecycleRequests, lifecycleCounts,
+    changelog, feedbackMap,
+  } = useLoaderData<typeof loader>();
   const typedPlans = workPlans as WorkPlanWithContext[];
   const typedLifecycle = lifecycleRequests as RequestWithReview[];
 
@@ -463,6 +514,26 @@ export default function WorkStatusPage() {
             ))}
           </div>
         )}
+      </section>
+
+      {/* ── Section: 세션 기록 ── */}
+      <section>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-fg">
+            세션 기록
+          </h2>
+          <span className="text-xs text-fg-tertiary font-mono-dx tabular-nums">
+            {changelog.total}건
+          </span>
+        </div>
+
+        <SessionTimeline
+          sessions={changelog.sessions}
+          total={changelog.total}
+          page={changelog.page}
+          pageSize={changelog.pageSize}
+          feedbackMap={feedbackMap}
+        />
       </section>
     </div>
   );
