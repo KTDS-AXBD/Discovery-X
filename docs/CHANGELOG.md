@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 410 (2026-03-17)
+**F44 잔여 P2/P3 갭 해소 — DX-ANLS-015 v1.3 (DX-REQ-015)**:
+- ✅ **G16-3 해소**: T15 (COMPLETED 취소 ConflictError) + T19 (연속 processNext 중복 방지) 서비스 테스트 추가
+- ✅ **G17-3b 확인**: "상세 보기" 버튼 이미 구현 (onOpenDetail prop + StrategyDetailModal 연결)
+- ✅ **G16-2 확인**: T1/T2/T4는 S409 라우트 레벨 테스트(T51/T52/T53)로 이미 커버
+- ✅ **G16-5/G17-6 스킵**: React Testing Library 미설치 — UI 컴포넌트 테스트 인프라 부재
+- ✅ **DX-ANLS-015 v1.3**: Overall 96→97%, YELLOW 5→3, 테스트 94→96개
+
+**검증 결과**:
+- ✅ typecheck (0 errors) / tests (2,668 전체 통과, +2)
+
 ### 세션 409 (2026-03-17)
 **F47 Change Log 기반 작업 진행 결과 공유 — 전체 구현 (DX-REQ-017)**:
 - ✅ **CHANGELOG 파서**: `changelog-parser.ts` — 세션 단위 파싱 + F항목/REQ 자동 추출 + 접미사(393b) 지원 + 이모지 없는 불릿 fallback
