@@ -21,6 +21,8 @@ import { StrategyCanvasCard } from "~/features/prd-studio/ui/StrategyCanvasCard"
 import { GtmStrategyCard } from "~/features/prd-studio/ui/GtmStrategyCard";
 import { StrategyDetailModal } from "~/features/prd-studio/ui/StrategyDetailModal";
 import { SkillCatalogPanel } from "~/features/ideas/ui/SkillCatalogPanel";
+import { SkillHistoryPanel } from "~/features/ideas/ui/SkillHistoryPanel";
+import { MarkdownViewer } from "~/components/docs/MarkdownViewer";
 
 // ── Types ─────────────────────────────────────────────────────────────
 
@@ -132,6 +134,14 @@ export default function IdeaDetail() {
 
   // ─── Middle pane tab ───
   const [middleTab, setMiddleTab] = useState<"pipeline" | "skills">("pipeline");
+  const [leftTab, setLeftTab] = useState<"sources" | "history">("sources");
+  const [selectedExecution, setSelectedExecution] = useState<{
+    id: string;
+    skillName: string | null;
+    resultMarkdown: string | null;
+    status: string;
+  } | null>(null);
+  const [rightTab, setRightTab] = useState<"chat" | "result">("chat");
 
   // ─── Source selection (multi-select) ───
   const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>([]);
@@ -481,7 +491,7 @@ export default function IdeaDetail() {
         </button>
       )}
 
-      {/* Left: Source Input Panel */}
+      {/* Left: Source + History Panel */}
       {panel.leftOpen && (
         <>
           <div style={{ width: panel.leftWidth }} className="group/left relative flex shrink-0 flex-col overflow-hidden">
@@ -496,22 +506,70 @@ export default function IdeaDetail() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
               </svg>
             </button>
-            <div className="min-h-0 flex-1">
-              <SourceInputPanel
-                items={ideaSourceItems}
-                collectedItems={allItems}
-                selectedItemIds={selectedSourceIds}
-                onAddSources={handleAddSources}
-                onDeleteSource={ideaId ? handleDeleteSource : undefined}
-                onToggleItem={handleToggleSource}
-                onToggleAll={handleToggleAll}
-                isAdding={isAdding}
-              />
-            </div>
-            <SimilarSources
-              sourceIds={selectedSourceIds}
-              onAddSource={async (url) => { await handleAddSources([url]); }}
-            />
+
+            {/* Left Pane Tabs */}
+            {ideaId && (
+              <div className="flex items-center border-b border-line px-3">
+                {(["sources", "history"] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => setLeftTab(tab)}
+                    className={`px-2.5 py-2 text-[11px] font-medium transition-colors ${
+                      leftTab === tab
+                        ? "border-b-2 border-fg text-fg"
+                        : "text-fg-tertiary hover:text-fg-secondary"
+                    }`}
+                  >
+                    {tab === "sources" ? "소스" : "히스토리"}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Tab: Sources */}
+            {leftTab === "sources" && (
+              <>
+                <div className="min-h-0 flex-1">
+                  <SourceInputPanel
+                    items={ideaSourceItems}
+                    collectedItems={allItems}
+                    selectedItemIds={selectedSourceIds}
+                    onAddSources={handleAddSources}
+                    onDeleteSource={ideaId ? handleDeleteSource : undefined}
+                    onToggleItem={handleToggleSource}
+                    onToggleAll={handleToggleAll}
+                    isAdding={isAdding}
+                  />
+                </div>
+                <SimilarSources
+                  sourceIds={selectedSourceIds}
+                  onAddSource={async (url) => { await handleAddSources([url]); }}
+                />
+              </>
+            )}
+
+            {/* Tab: History */}
+            {leftTab === "history" && ideaId && (
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                <SkillHistoryPanel
+                  ideaId={ideaId}
+                  selectedId={selectedExecution?.id}
+                  onSelect={(exec) => {
+                    setSelectedExecution({
+                      id: exec.id,
+                      skillName: exec.skillName,
+                      resultMarkdown: exec.resultMarkdown,
+                      status: exec.status,
+                    });
+                    if (exec.resultMarkdown) {
+                      setRightTab("result");
+                      if (!panel.rightOpen) panel.toggleRight();
+                    }
+                  }}
+                />
+              </div>
+            )}
           </div>
           <PanelResizeHandle side="left" onResize={panel.resizeLeft} />
         </>
@@ -710,8 +768,62 @@ export default function IdeaDetail() {
 
         {/* ── Tab: PM Skills ── */}
         {ideaId && middleTab === "skills" && (
-          <div className="flex-1 overflow-y-auto">
-            <SkillCatalogPanel ideaId={ideaId} />
+          <div className="flex flex-1 flex-col overflow-hidden">
+            {/* 선택된 실행 결과 미리보기 */}
+            {selectedExecution?.resultMarkdown && (
+              <div className="border-b border-line">
+                <div className="flex items-center justify-between bg-surface-secondary px-4 py-2">
+                  <span className="text-xs font-medium text-fg">
+                    {selectedExecution.skillName || "결과"}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRightTab("result");
+                        if (!panel.rightOpen) panel.toggleRight();
+                      }}
+                      className="rounded px-2 py-0.5 text-[10px] text-fg-tertiary hover:bg-surface hover:text-fg-secondary"
+                      title="결과물 패널에서 보기"
+                    >
+                      전체 보기
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedExecution(null)}
+                      className="rounded p-0.5 text-fg-tertiary hover:bg-surface hover:text-fg-secondary"
+                    >
+                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <div className="max-h-48 overflow-y-auto px-4 py-3">
+                  <MarkdownViewer
+                    content={selectedExecution.resultMarkdown.slice(0, 1000) + (selectedExecution.resultMarkdown.length > 1000 ? "\n\n..." : "")}
+                    className="prose-xs"
+                  />
+                </div>
+              </div>
+            )}
+            {/* 스킬 카탈로그 */}
+            <div className="flex-1 overflow-y-auto">
+              <SkillCatalogPanel
+                ideaId={ideaId}
+                onExecutionComplete={(result) => {
+                  setLeftTab("history");
+                  setSelectedExecution({
+                    id: result.executionId,
+                    skillName: result.skillSlug,
+                    resultMarkdown: result.resultMarkdown,
+                    status: "COMPLETED",
+                  });
+                  setRightTab("result");
+                  if (!panel.rightOpen) panel.toggleRight();
+                }}
+              />
+            </div>
           </div>
         )}
 
@@ -728,31 +840,101 @@ export default function IdeaDetail() {
         )}
       </div>
 
-      {/* Right: Chat Panel */}
+      {/* Right: Chat + Result Panel */}
       {panel.rightOpen && (
         <>
           <PanelResizeHandle side="right" onResize={panel.resizeRight} />
-          <div style={{ width: panel.rightWidth }} className="group/right relative shrink-0 overflow-hidden">
+          <div style={{ width: panel.rightWidth }} className="group/right relative flex shrink-0 flex-col overflow-hidden">
             <button
               type="button"
               onClick={panel.toggleRight}
               className="absolute left-1 top-2.5 z-20 flex h-5 w-5 items-center justify-center rounded text-fg-tertiary opacity-0 transition-opacity hover:bg-surface-secondary hover:text-fg-secondary group-hover/right:opacity-100"
-              aria-label="채팅 패널 숨기기"
-              title="채팅 패널 숨기기"
+              aria-label="패널 숨기기"
+              title="패널 숨기기"
             >
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
               </svg>
             </button>
-            <IdeaChatWrapper
-              conversationId={conversationId}
-              messages={chatMessages}
-              isLoadingMessages={isLoadingMessages}
-              selectedSourceCount={selectedSourceIds.length}
-              totalSourceCount={ideaSourceItems.length}
-              analysisRunning={analysisRunning}
-              categoryStates={categoryStates}
-            />
+
+            {/* Right Pane Tabs */}
+            <div className="flex items-center border-b border-line px-3">
+              {(["chat", "result"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setRightTab(tab)}
+                  className={`px-2.5 py-2 text-[11px] font-medium transition-colors ${
+                    rightTab === tab
+                      ? "border-b-2 border-fg text-fg"
+                      : "text-fg-tertiary hover:text-fg-secondary"
+                  }`}
+                >
+                  {tab === "chat" ? "채팅" : "결과물"}
+                </button>
+              ))}
+              {rightTab === "result" && selectedExecution?.resultMarkdown && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(selectedExecution.resultMarkdown || "");
+                  }}
+                  className="ml-auto rounded px-2 py-1 text-[10px] text-fg-tertiary hover:bg-surface-secondary hover:text-fg-secondary"
+                  title="마크다운 복사"
+                >
+                  복사
+                </button>
+              )}
+            </div>
+
+            {/* Tab: Chat */}
+            {rightTab === "chat" && (
+              <div className="min-h-0 flex-1">
+                <IdeaChatWrapper
+                  conversationId={conversationId}
+                  messages={chatMessages}
+                  isLoadingMessages={isLoadingMessages}
+                  selectedSourceCount={selectedSourceIds.length}
+                  totalSourceCount={ideaSourceItems.length}
+                  analysisRunning={analysisRunning}
+                  categoryStates={categoryStates}
+                />
+              </div>
+            )}
+
+            {/* Tab: Result Viewer */}
+            {rightTab === "result" && (
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                {selectedExecution?.resultMarkdown ? (
+                  <div className="p-4">
+                    <div className="mb-3 flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-fg">
+                        {selectedExecution.skillName || "분석 결과"}
+                      </h3>
+                      <span className="rounded bg-green-100 px-1.5 py-0.5 text-[9px] font-medium text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                        완료
+                      </span>
+                    </div>
+                    <MarkdownViewer
+                      content={selectedExecution.resultMarkdown}
+                      className="prose-sm"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-surface-secondary">
+                      <svg className="h-5 w-5 text-fg-tertiary" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                      </svg>
+                    </div>
+                    <p className="text-sm text-fg-tertiary">결과물을 선택해주세요.</p>
+                    <p className="mt-1 text-[10px] text-fg-tertiary opacity-60">
+                      히스토리에서 항목을 클릭하거나 PM 스킬을 실행하세요.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </>
       )}

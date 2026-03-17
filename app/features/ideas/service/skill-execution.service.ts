@@ -2,6 +2,7 @@ import { eq, desc, sql } from "drizzle-orm";
 import type { DB } from "~/db";
 import {
   skillExecutions,
+  skillCatalog,
   SkillExecStatus,
   type SkillExecution,
 } from "~/features/ideas/db/schema";
@@ -76,11 +77,27 @@ export class SkillExecutionService {
       .where(eq(skillExecutions.id, id));
   }
 
-  /** 아이디어별 실행 이력 조회 (최신순) */
+  /** 아이디어별 실행 이력 조회 (최신순, 스킬명 JOIN) */
   async listByIdea(ideaId: string) {
     return this.db
-      .select()
+      .select({
+        id: skillExecutions.id,
+        ideaId: skillExecutions.ideaId,
+        skillId: skillExecutions.skillId,
+        status: skillExecutions.status,
+        resultMarkdown: skillExecutions.resultMarkdown,
+        errorMessage: skillExecutions.errorMessage,
+        modelVersion: skillExecutions.modelVersion,
+        tokensUsed: skillExecutions.tokensUsed,
+        latencyMs: skillExecutions.latencyMs,
+        requestedAt: skillExecutions.requestedAt,
+        completedAt: skillExecutions.completedAt,
+        skillName: skillCatalog.name,
+        skillSlug: skillCatalog.slug,
+        skillCategory: skillCatalog.category,
+      })
       .from(skillExecutions)
+      .leftJoin(skillCatalog, eq(skillExecutions.skillId, skillCatalog.id))
       .where(eq(skillExecutions.ideaId, ideaId))
       .orderBy(desc(skillExecutions.requestedAt));
   }
