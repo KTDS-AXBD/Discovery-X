@@ -3,6 +3,21 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 405 (2026-03-17)
+**F46 Phase 1 — 범용 스킬 엔진 + Middle Pane PM 스킬 탭 (DX-REQ-016)**:
+- ✅ **DB**: `skill_catalog` + `skill_executions` 2 테이블 (마이그레이션 0065)
+- ✅ **Seed**: pm-skills 기반 10개 스킬 프롬프트 — discover, brainstorm, strategy, SWOT, Lean Canvas, GTM, ICP, competitor, market-sizing, PRD
+- ✅ **Service**: SkillCatalogService(카탈로그 CRUD + upsert) + SkillExecutionService(생명주기 관리)
+- ✅ **API**: `/api/ideas/skills` (카탈로그 조회/시드) + `/api/ideas/skills/execute/stream` (SSE 실시간 실행)
+- ✅ **UI**: SkillCatalogPanel — 카테고리별 스킬 카드 + 클릭 실행 + 프로그레스 바 + 결과 미리보기
+- ✅ **탭 전환**: ideas.$id.tsx Middle Pane에 [분석 파이프라인] / [PM 스킬] 탭 추가
+- ✅ **REQ 등록**: F46 = DX-REQ-016 (Feature, P1) — SPEC + DB + Issue#16 + Project#1 등록
+- ✅ **Agent Team**: W1(seed데이터) + W2(서비스레이어) 병렬 작업
+- ⚠️ **프로덕션 미적용**: 마이그레이션 0065 로컬만 적용 (프로덕션 배포 전 `pnpm db:migrate:prod` 필요)
+
+**검증 결과**:
+- ✅ typecheck 0 errors / lint 0 errors (기존 warnings 8) / build OK (2.46s)
+
 ### 세션 404 (2026-03-17)
 **마크다운 렌더링 누락 전체 점검 + 수정**:
 - ✅ PRD Studio `PrdContentView`: `whitespace-pre-wrap` → `MarkdownViewer` (PRD 8섹션 마크다운 렌더링)
