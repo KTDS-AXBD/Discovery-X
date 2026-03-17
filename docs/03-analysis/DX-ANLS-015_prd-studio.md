@@ -1,7 +1,7 @@
 ---
 code: DX-ANLS-015
 title: "PRD Studio (F44) Gap Analysis Report"
-version: "1.2"
+version: "1.3"
 status: Active
 category: ANLS
 created: 2026-03-13
@@ -14,20 +14,20 @@ author: Sinclair Seo
 > **Design Documents**: [[DX-DSGN-015]], [[DX-DSGN-016]], [[DX-DSGN-017]]
 > **Implementation**: `app/features/prd-studio/`, `app/routes/api.prd-studio.*`
 > **Analysis Date**: 2026-03-13
-> **v1.2 Re-analysis**: G16-1 integration tests implemented (S409). G17-1~G17-5 fixes verified (v1.1).
+> **v1.3 Re-analysis**: G16-2/3 service edge-case tests + G17-3b verified already resolved (S410). G16-1 resolved (S409).
 
 ---
 
 ## Overall Scores
 
-| Category | v1.0 Score | v1.1 Score | v1.2 Score | Status |
-|----------|:----------:|:----------:|:----------:|:------:|
-| DX-DSGN-015 (Phase 1-3 Core) | 97% | 97% | 97% | GREEN |
-| DX-DSGN-016 (Phase 3 Analysis Queue) | 88% | 88% | **95%** | GREEN |
-| DX-DSGN-017 (Phase 4 Strategy Tools) | 85% | 95% | 95% | GREEN |
-| **Overall** | **90%** | **93%** | **96%** | **GREEN** |
+| Category | v1.0 Score | v1.1 Score | v1.2 Score | v1.3 Score | Status |
+|----------|:----------:|:----------:|:----------:|:----------:|:------:|
+| DX-DSGN-015 (Phase 1-3 Core) | 97% | 97% | 97% | 97% | GREEN |
+| DX-DSGN-016 (Phase 3 Analysis Queue) | 88% | 88% | 95% | **97%** | GREEN |
+| DX-DSGN-017 (Phase 4 Strategy Tools) | 85% | 95% | 95% | **97%** | GREEN |
+| **Overall** | **90%** | **93%** | **96%** | **97%** | **GREEN** |
 
-**v1.2 Change Summary**: DX-DSGN-016 improved from 88% to 95% (+7pp). G16-1 (integration tests) resolved — 21 tests implemented in `prd-analysis-api.test.ts` covering T49-T68 + route validation + E2E flow. RED items: 1→0. DX-DSGN-015/017 unchanged.
+**v1.3 Change Summary**: G16-2/3 (service edge-case tests T15/T19) resolved — 2 tests added. G17-3b verified already implemented (onOpenDetail prop + StrategyDetailModal wired in ideas.$id.tsx:752). YELLOW: 5→3. Overall: 96→97%.
 
 ---
 
@@ -203,8 +203,8 @@ author: Sinclair Seo
 | ID | Category | Description | v1.1 Impact | v1.2 Status |
 |----|----------|-------------|:-----------:|:-----------:|
 | G16-1 | Test | Integration tests T49-T68 (API routes + batch E2E) not implemented | Medium | **FIXED** — 21 tests in `prd-analysis-api.test.ts` (S409) |
-| G16-2 | Test | Service tests T1, T2, T4 (NotFoundError, ForbiddenError, ValidationError for missing sources) not individually tested — enqueue validates only via ConflictError | Low | OPEN (unchanged) |
-| G16-3 | Test | T15 (COMPLETED cancel) and T19 (concurrent processing) not tested | Low | OPEN (unchanged) |
+| G16-2 | Test | Service tests T1, T2, T4 (NotFoundError, ForbiddenError, ValidationError for missing sources) not individually tested — enqueue validates only via ConflictError. T1/T2/T4 are route-level checks covered in `prd-analysis-api.test.ts` (T51/T52/T53) | Low | **RESOLVED** (route-level in S409) |
+| G16-3 | Test | T15 (COMPLETED cancel) and T19 (concurrent processing) not tested | Low | **FIXED** — T15 + T19 in `prd-analysis-queue.service.test.ts` (S410) |
 | G16-4 | Schema | `prd_analysis_queue.idea_id` lacks FK constraint in migration SQL (design has `REFERENCES ideas(id)`) | Low | OPEN (D1 FK 미강제, 의도적) |
 | G16-5 | UI | UI component tests T69-T76 (optional) not implemented | Low | OPEN (unchanged) |
 
@@ -349,7 +349,7 @@ This matches the design's hybrid engine specification (Section 1.2).
 | G17-1 | Service | `StrategyRealtimeService.synthesizeProposal()` not implemented | Medium | **FIXED** — `strategy-realtime.service.ts:74-95` |
 | G17-2 | API | Strategy route `mode=realtime` queues instead of inline call | Medium | **FIXED** — `api.prd-studio.strategy.ts:56-91` |
 | G17-3 | UI | GtmStrategyCard lacks polling + COMPLETED detail view | Medium | **FIXED** — `useGtmPolling` hook + beachhead/ICP/messaging/channel/launch display |
-| G17-3b | UI | GtmStrategyCard missing "상세 보기" button (design wireframe shows 3 buttons) | Low | **OPEN** |
+| G17-3b | UI | GtmStrategyCard missing "상세 보기" button (design wireframe shows 3 buttons) | Low | **RESOLVED** — onOpenDetail prop + StrategyDetailModal wired (S410 검증) |
 | G17-4 | Test | API integration tests T29-T36 not implemented | Medium | **FIXED** — 8 tests in `prd-strategy-api.test.ts` |
 | G17-5 | UI | GtmStrategyCard has no PENDING/PROCESSING/COMPLETED/FAILED states | Medium | **FIXED** — 5 states: none-disabled, none-active, PENDING_GTM, COMPLETED, error |
 | G17-6 | UI Test | Automated UI tests T37-T42 not implemented (design marks as manual) | Low | OPEN (unchanged) |
@@ -375,15 +375,16 @@ This matches the design's hybrid engine specification (Section 1.2).
 - All page routes (prd-studio.tsx, _index.tsx, new.tsx, $id.tsx)
 - GtmStrategyCard: 5 states + polling + COMPLETED data display
 
-### YELLOW Items (Partial) — 5 items (unchanged)
+### YELLOW Items (Partial) — 3 items (was 5)
 
 | Item | Gap |
 |------|-----|
 | `prd_finalized` event | Client-side trigger not explicitly implemented (server-side path exists) |
 | `prd_analysis_queue.idea_id` | Missing FK constraint in migration SQL (D1 FK 미강제, 의도적) |
 | Added UI components | FAQSection + ConfirmDialog not in design (enhancement additions, no conflict) |
-| Some service edge-case tests | T1/T2/T4 (error scenarios), T15/T19 (edge cases) not individually tested |
-| GtmStrategyCard "상세 보기" | Design wireframe shows button, not implemented |
+
+~~Some service edge-case tests~~ — **RESOLVED** (v1.3): T15/T19 추가, T1/T2/T4는 route-level 커버 (S409)
+~~GtmStrategyCard "상세 보기"~~ — **RESOLVED** (v1.3): 이미 구현 확인 (onOpenDetail + StrategyDetailModal)
 
 ### RED Items (Missing) — **0 items** (was 1)
 
@@ -395,7 +396,7 @@ This matches the design's hybrid engine specification (Section 1.2).
 
 | Test File | Tests | Coverage |
 |-----------|:-----:|----------|
-| `prd-analysis-queue.service.test.ts` | 15 | Service CRUD + queue operations |
+| `prd-analysis-queue.service.test.ts` | **17** | Service CRUD + queue operations + T15/T19 edge cases (v1.3) |
 | `prd-analysis-prompt.test.ts` | 6 | Prompt builder (T28-T33) |
 | `prd-analysis-parser.test.ts` | 10 | Parser robustness (T34-T43) |
 | `prd-proposal-mapper.test.ts` | 5 | PRD->Proposal mapping (T44-T48) |
@@ -407,7 +408,7 @@ This matches the design's hybrid engine specification (Section 1.2).
 | `prd-strategy-queue.service.test.ts` | 12 | Strategy queue service (T17-T28) |
 | `prd-strategy-api.test.ts` | 8 | Strategy API integration (T29-T36) |
 | `prd-analysis-api.test.ts` | **21** | Phase 3 API + batch integration (T49-T68 + route validation + E2E) — v1.2 |
-| **Total** | **94** | Unit/service/integration tests |
+| **Total** | **96** | Unit/service/integration tests |
 
 ---
 
@@ -439,3 +440,4 @@ This matches the design's hybrid engine specification (Section 1.2).
 | 1.0 | 2026-03-13 | Initial -- 3 design docs vs implementation, 90% overall match. 2 RED, 8 YELLOW | Sinclair Seo |
 | 1.1 | 2026-03-13 | Post-fix re-analysis -- G17-1/2/3/4/5 verified FIXED. DX-DSGN-017: 85->95%. Overall: 90->93%. RED: 2->1, YELLOW: 8->5 | Sinclair Seo |
 | 1.2 | 2026-03-17 | G16-1 resolved (S409) -- 21 integration tests (T49-T68 + route validation + E2E). DX-DSGN-016: 88->95%. Overall: 93->96%. RED: 1->0 | Sinclair Seo |
+| 1.3 | 2026-03-17 | G16-2/3 + G17-3b resolved (S410) -- T15/T19 service tests + "상세 보기" 이미 구현 확인. YELLOW: 5->3. Overall: 96->97% | Sinclair Seo |

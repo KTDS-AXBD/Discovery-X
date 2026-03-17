@@ -214,6 +214,25 @@ describe("PrdStudioService — Analysis Queue", () => {
       await expect(service.cancelAnalysis("idea-1", "user-1")).rejects.toThrow(ConflictError);
     });
 
+    // T15: COMPLETED 상태 → 취소 불가
+    it("T15: COMPLETED → ConflictError", async () => {
+      const { queueId } = await service.enqueueAnalysis({
+        ideaId: "idea-1",
+        tenantId: "tenant-1",
+        requestedBy: "user-1",
+        sourceContext: "ctx",
+        sourceIds: [],
+      });
+      await service.processNext();
+      await service.completeAnalysis(queueId, {
+        title: "Done PRD",
+        sections: { summary: "s", background: "b", objectives: "o", target_users: "t", requirements: "r", solution: "sl", risks: "ri", timeline: "tl" },
+        review: null,
+      });
+
+      await expect(service.cancelAnalysis("idea-1", "user-1")).rejects.toThrow(ConflictError);
+    });
+
     // T16: 다른 사용자의 큐 → ForbiddenError
     it("T16: 다른 사용자 → ForbiddenError", async () => {
       seedBase(db, "user-2", "tenant-1");
@@ -255,6 +274,24 @@ describe("PrdStudioService — Analysis Queue", () => {
       // DB에서 PROCESSING 확인
       const record = db.select().from(prdAnalysisQueue).where(eq(prdAnalysisQueue.id, result!.id)).get();
       expect(record!.status).toBe("PROCESSING");
+    });
+
+    // T19: 동시 호출 → 동일 레코드 중복 처리 방지
+    it("T19: 연속 processNext 호출 → 두 번째는 null (중복 방지)", async () => {
+      await service.enqueueAnalysis({
+        ideaId: "idea-1",
+        tenantId: "tenant-1",
+        requestedBy: "user-1",
+        sourceContext: "only-one",
+        sourceIds: [],
+      });
+
+      const first = await service.processNext();
+      expect(first).toBeTruthy();
+
+      // 이미 PROCESSING으로 전환됨 → 두 번째 호출은 PENDING이 없으므로 null
+      const second = await service.processNext();
+      expect(second).toBeNull();
     });
   });
 
