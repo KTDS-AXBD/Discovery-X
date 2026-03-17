@@ -93,6 +93,7 @@ export function createTestDb() {
   runMigrationSQL(sqlite, resolve(migrationsDir, "0062_prd_studio_unique.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0063_prd_analysis_queue.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0064_prd_strategy_queue.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0065_skill_catalog_executions.sql"));
 
   return drizzle(sqlite, { schema: { ...schema, ...v2Schema, ...matrixSchema, ...requestsSchema, ...topicSchema, ...costSchema, ...prdStudioSchema } });
 }

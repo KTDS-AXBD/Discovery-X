@@ -20,6 +20,7 @@ import { PrdAnalysisCard } from "~/features/prd-studio/ui/PrdAnalysisCard";
 import { StrategyCanvasCard } from "~/features/prd-studio/ui/StrategyCanvasCard";
 import { GtmStrategyCard } from "~/features/prd-studio/ui/GtmStrategyCard";
 import { StrategyDetailModal } from "~/features/prd-studio/ui/StrategyDetailModal";
+import { SkillCatalogPanel } from "~/features/ideas/ui/SkillCatalogPanel";
 
 // ── Types ─────────────────────────────────────────────────────────────
 
@@ -128,6 +129,9 @@ export default function IdeaDetail() {
 
   // ─── Panel layout ───
   const panel = usePanelLayout();
+
+  // ─── Middle pane tab ───
+  const [middleTab, setMiddleTab] = useState<"pipeline" | "skills">("pipeline");
 
   // ─── Source selection (multi-select) ───
   const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>([]);
@@ -615,9 +619,29 @@ export default function IdeaDetail() {
           </div>
         )}
 
-        {/* ── Analysis Pipeline ── */}
+        {/* ── Middle Pane Tabs ── */}
         {ideaId && (
-          <div className="relative">
+          <div className="flex items-center border-b border-line px-4">
+            {(["pipeline", "skills"] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setMiddleTab(tab)}
+                className={`px-3 py-2 text-xs font-medium transition-colors ${
+                  middleTab === tab
+                    ? "border-b-2 border-fg text-fg"
+                    : "text-fg-tertiary hover:text-fg-secondary"
+                }`}
+              >
+                {tab === "pipeline" ? "분석 파이프라인" : "PM 스킬"}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* ── Tab: Analysis Pipeline ── */}
+        {ideaId && middleTab === "pipeline" && (
+          <div className="relative overflow-y-auto flex-1">
             {/* Toast notification */}
             {analysisToast && (
               <div className="sticky top-0 z-30 mb-2 flex items-center gap-2 rounded-lg bg-green-50 border border-green-200 px-3 py-2 text-xs text-green-700 shadow-sm">
@@ -671,18 +695,37 @@ export default function IdeaDetail() {
               onNotify={setAnalysisToast}
               stepNumber={3}
             />
+
+            {/* Methodology Cards */}
+            <MethodologyCards
+              sections={sections}
+              loadingCategory={loadingCategory}
+              onRunMethodology={handleRunMethodology}
+              staleSections={staleSections}
+              onStartFullAnalysis={selectedSourceIds.length > 0 ? handleStartAnalysis : undefined}
+              analysisRunning={analysisRunning}
+            />
           </div>
         )}
 
-        {/* Methodology Cards */}
-        <MethodologyCards
-          sections={sections}
-          loadingCategory={loadingCategory}
-          onRunMethodology={handleRunMethodology}
-          staleSections={staleSections}
-          onStartFullAnalysis={selectedSourceIds.length > 0 ? handleStartAnalysis : undefined}
-          analysisRunning={analysisRunning}
-        />
+        {/* ── Tab: PM Skills ── */}
+        {ideaId && middleTab === "skills" && (
+          <div className="flex-1 overflow-y-auto">
+            <SkillCatalogPanel ideaId={ideaId} />
+          </div>
+        )}
+
+        {/* ── No idea selected ── */}
+        {!ideaId && (
+          <MethodologyCards
+            sections={sections}
+            loadingCategory={loadingCategory}
+            onRunMethodology={handleRunMethodology}
+            staleSections={staleSections}
+            onStartFullAnalysis={selectedSourceIds.length > 0 ? handleStartAnalysis : undefined}
+            analysisRunning={analysisRunning}
+          />
+        )}
       </div>
 
       {/* Right: Chat Panel */}

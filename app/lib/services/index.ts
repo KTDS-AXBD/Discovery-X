@@ -12,6 +12,8 @@ export { FolderService } from "~/features/archive/service/folder.service";
 export { RadarService } from "~/features/radar/service";
 export { LabService } from "~/features/lab/service/lab.service";
 export { IdeaService } from "~/features/ideas/service";
+export { SkillCatalogService } from "~/features/ideas/service/skill-catalog.service";
+export { SkillExecutionService } from "~/features/ideas/service/skill-execution.service";
 export { RecallTrackingService } from "~/features/discovery/service/recall-tracking";
 export { MetricsService } from "~/features/dashboard/service/metrics.service";
 export { ChatSessionService } from "~/features/chat/service";
