@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useFetcher, Link } from "@remix-run/react";
 import type { ChangelogSession, ChangelogItem } from "~/features/lab/service/changelog-parser";
 import { CHANGELOG_EMOJIS } from "~/features/lab/constants";
@@ -30,6 +30,32 @@ const ITEM_STATUS_ICON: Record<string, { icon: string; color: string }> = {
   info: { icon: "i", color: "text-sky-400" },
   skipped: { icon: "→", color: "text-fg-tertiary" },
 };
+
+// --- Helpers ---
+
+/** `**bold**` → <strong>, `` `code` `` → <code> 변환 */
+function renderInlineMarkdown(text: string) {
+  const parts: React.ReactNode[] = [];
+  const re = /\*\*(.+?)\*\*|`([^`]+)`/g;
+  let lastIndex = 0;
+  let m: RegExpExecArray | null;
+
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > lastIndex) parts.push(text.slice(lastIndex, m.index));
+    if (m[1]) {
+      parts.push(<strong key={m.index} className="font-semibold text-fg">{m[1]}</strong>);
+    } else if (m[2]) {
+      parts.push(
+        <code key={m.index} className="rounded bg-surface-secondary/80 px-1 py-0.5 text-[11px] font-mono-dx text-lab-accent/80">
+          {m[2]}
+        </code>
+      );
+    }
+    lastIndex = m.index + m[0].length;
+  }
+  if (lastIndex < text.length) parts.push(text.slice(lastIndex));
+  return parts.length > 0 ? parts : [text];
+}
 
 // --- Components ---
 
@@ -81,7 +107,7 @@ function ItemLine({ item }: { item: ChangelogItem }) {
               : "text-fg-tertiary"
         }`}
       >
-        {item.text}
+        {renderInlineMarkdown(item.text)}
       </span>
     </div>
   );
@@ -194,33 +220,37 @@ function SessionCard({
   const [showComments, setShowComments] = useState(false);
 
   const hasVerification = session.verification.length > 0;
-  const previewItems = session.items.slice(0, 3);
-  const hasMore = session.items.length > 3;
+
+  const previewCount = 2;
+  const previewItems2 = session.items.slice(0, previewCount);
+  const hasMore2 = session.items.length > previewCount;
 
   return (
-    <div className="group rounded-lg border border-line-subtle/50 bg-surface-card/40 hover:border-line-subtle/80 transition-colors overflow-hidden">
+    <div className="group rounded-lg border border-line-subtle/40 bg-surface-card/30 hover:border-lab-accent/20 transition-colors overflow-hidden">
       {/* Header */}
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
-        className="flex w-full items-start gap-3 px-4 py-3 text-left"
+        className="flex w-full items-start gap-4 px-4 py-3.5 text-left"
       >
-        {/* 세션 번호 */}
-        <div className="flex flex-col items-center shrink-0 pt-0.5">
-          <span className="text-lg font-bold text-lab-accent font-mono-dx tabular-nums leading-none">
+        {/* 세션 번호 + 날짜 블록 */}
+        <div className="flex flex-col items-center shrink-0 w-14 rounded-md bg-lab-accent/8 py-1.5">
+          <span className="text-base font-bold text-lab-accent font-mono-dx tabular-nums leading-none">
             {session.id}
           </span>
-          <span className="text-[10px] text-fg-quaternary font-mono-dx mt-0.5">
+          <span className="text-[10px] text-fg-tertiary font-mono-dx mt-1">
             {session.date.slice(5)}
           </span>
         </div>
 
         {/* 내용 */}
         <div className="min-w-0 flex-1">
-          {/* 제목 */}
-          <h3 className="text-sm font-semibold text-fg leading-snug mb-1.5">
-            {session.title || "(제목 없음)"}
-          </h3>
+          {/* 제목 + 태그 한 줄 */}
+          <div className="flex items-start gap-2 mb-1">
+            <h3 className="text-[13px] font-semibold text-fg leading-snug flex-1">
+              {renderInlineMarkdown(session.title || "(제목 없음)")}
+            </h3>
+          </div>
 
           {/* 태그 */}
           {(session.fItems.length > 0 || session.reqCodes.length > 0) && (
@@ -234,38 +264,43 @@ function SessionCard({
             </div>
           )}
 
-          {/* 미리보기 항목 (접힌 상태) */}
+          {/* 미리보기 항목 (접힌 상태) — 2개만 */}
           {!expanded && (
-            <div className="space-y-0.5">
-              {previewItems.map((item, i) => (
+            <div className="space-y-0.5 mt-1">
+              {previewItems2.map((item, i) => (
                 <ItemLine key={i} item={item} />
               ))}
-              {hasMore && (
-                <span className="text-[11px] text-fg-quaternary font-mono-dx">
-                  +{session.items.length - 3}개 더
+              {hasMore2 && (
+                <span className="text-[11px] text-fg-quaternary font-mono-dx pl-6">
+                  +{session.items.length - previewCount}개 더
                 </span>
               )}
             </div>
           )}
         </div>
 
-        {/* 확장 아이콘 */}
-        <svg
-          className={`h-4 w-4 shrink-0 text-fg-tertiary mt-1 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="2"
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-        </svg>
+        {/* 아이템 수 배지 + 확장 아이콘 */}
+        <div className="flex items-center gap-2 shrink-0 mt-0.5">
+          <span className="text-[11px] text-fg-quaternary font-mono-dx tabular-nums">
+            {session.items.length}
+          </span>
+          <svg
+            className={`h-3.5 w-3.5 text-fg-tertiary transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="2"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+        </div>
       </button>
 
       {/* 확장된 상세 */}
       {expanded && (
-        <div className="px-4 pb-3 space-y-3">
+        <div className="px-4 pb-4 pt-1 border-t border-line-subtle/20">
           {/* 전체 항목 */}
-          <div className="ml-9 space-y-0.5">
+          <div className="ml-[4.5rem] space-y-0.5">
             {session.items.map((item, i) => (
               <ItemLine key={i} item={item} />
             ))}
@@ -273,11 +308,14 @@ function SessionCard({
 
           {/* 검증 결과 */}
           {hasVerification && (
-            <div className="ml-9 rounded border border-line-subtle/30 bg-surface-secondary/20 px-3 py-2">
-              <span className="text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider">
-                검증 결과
-              </span>
-              <div className="mt-1 space-y-0.5">
+            <div className="ml-[4.5rem] mt-3 rounded-md border border-emerald-500/15 bg-emerald-500/5 px-3 py-2">
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500/60" />
+                <span className="text-[11px] font-semibold text-emerald-400/80 tracking-wider">
+                  검증 결과
+                </span>
+              </div>
+              <div className="space-y-0.5">
                 {session.verification.map((v, i) => (
                   <ItemLine key={i} item={v} />
                 ))}
@@ -286,7 +324,7 @@ function SessionCard({
           )}
 
           {/* 이모지 반응 + 코멘트 */}
-          <div className="ml-9 space-y-2">
+          <div className="ml-[4.5rem] mt-3 pt-2 border-t border-line-subtle/20">
             <div className="flex items-center gap-3">
               <EmojiBar sessionId={session.id} feedback={feedback} />
               <button
@@ -387,7 +425,7 @@ export function SessionTimeline({
           세션 기록이 없어요.
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {displaySessions.map((session) => (
             <SessionCard
               key={session.id}
