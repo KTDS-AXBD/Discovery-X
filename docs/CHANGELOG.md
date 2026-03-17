@@ -3,6 +3,15 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 409b (2026-03-18)
+**F47 갭 해소 — Agent Team 병렬 (DX-REQ-017)**:
+- ✅ **W1**: `api.lab.changelog.ts` — feedbackMap 포함 응답 (페이지 변경 시 피드백 유지)
+- ✅ **W2**: `SessionTimeline.tsx` — FItemTag/ReqTag Link 내비게이션 + fetcher feedbackMap 사용
+- ✅ Agent Team (W1+W2) ~90초 병렬 완료
+
+**검증 결과**:
+- ✅ typecheck (0 errors) / lint (0 errors) / tests (2,668/2,668) / build (3.06s)
+
 ### 세션 410 (2026-03-17)
 **F44 잔여 P2/P3 갭 해소 — DX-ANLS-015 v1.3 (DX-REQ-015)**:
 - ✅ **G16-3 해소**: T15 (COMPLETED 취소 ConflictError) + T19 (연속 processNext 중복 방지) 서비스 테스트 추가
