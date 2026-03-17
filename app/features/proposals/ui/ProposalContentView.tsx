@@ -30,9 +30,9 @@ export function ProposalContentView({ proposal, sections }: ProposalContentViewP
     <div className="mx-auto max-w-3xl px-6 py-6">
       {/* Description */}
       {proposal.description && (
-        <p className="mb-6 text-sm leading-relaxed text-fg-secondary">
-          {proposal.description}
-        </p>
+        <div className="mb-6 prose prose-sm max-w-none text-fg-secondary prose-headings:text-fg prose-strong:text-fg leading-relaxed">
+          <ReactMarkdown>{proposal.description}</ReactMarkdown>
+        </div>
       )}
 
       {/* Sections by group */}

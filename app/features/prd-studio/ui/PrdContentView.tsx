@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { useFetcher } from "@remix-run/react";
 import { INTERVIEW_SECTIONS } from "~/features/prd-studio/constants/interview-config";
+import { MarkdownViewer } from "~/components/docs/MarkdownViewer";
 
 interface PrdContentViewProps {
   prdId: string;
@@ -109,9 +110,10 @@ export function PrdContentView({ prdId, sections, editable = false }: PrdContent
                 </div>
               </div>
             ) : content ? (
-              <div className="text-sm text-fg-secondary whitespace-pre-wrap leading-relaxed">
-                {content}
-              </div>
+              <MarkdownViewer
+                content={content}
+                className="prose-sm !text-fg-secondary leading-relaxed"
+              />
             ) : (
               <p className="text-sm text-fg-tertiary">콘텐츠가 생성되지 않았어요.</p>
             )}

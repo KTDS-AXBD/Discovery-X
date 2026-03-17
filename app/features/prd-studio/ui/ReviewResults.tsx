@@ -1,3 +1,5 @@
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import type { ReviewFeedbackItem, ReviewScorecard } from "~/features/prd-studio/types";
 
 interface Review {
@@ -92,9 +94,13 @@ function FeedbackCard({ fb }: { fb: ReviewFeedbackItem }) {
               <span className="text-xs text-fg-tertiary">• {fb.section}</span>
             )}
           </div>
-          <p className="text-sm text-fg">{fb.message}</p>
+          <div className="text-sm text-fg prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 prose-p:my-0.5 prose-strong:text-fg">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{fb.message}</ReactMarkdown>
+          </div>
           {fb.suggestion && (
-            <p className="text-xs text-fg-secondary italic">→ {fb.suggestion}</p>
+            <div className="text-xs text-fg-secondary italic prose prose-xs max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 prose-p:my-0">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{`→ ${fb.suggestion}`}</ReactMarkdown>
+            </div>
           )}
         </div>
       </div>

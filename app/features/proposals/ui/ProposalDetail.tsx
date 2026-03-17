@@ -1,4 +1,6 @@
 import { useFetcher, Link } from "@remix-run/react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Badge } from "~/components/ui/Badge";
 import { Card, CardContent } from "~/components/ui/Card";
 import { Progress } from "~/components/ui/Progress";
@@ -145,9 +147,9 @@ export function ProposalDetail({
 
       {/* Description */}
       {proposal.description && (
-        <p className="mb-6 text-sm leading-relaxed text-fg-secondary">
-          {proposal.description}
-        </p>
+        <div className="mb-6 prose prose-sm max-w-none text-fg-secondary prose-headings:text-fg prose-strong:text-fg leading-relaxed">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{proposal.description}</ReactMarkdown>
+        </div>
       )}
 
       {/* Meta cards */}
@@ -207,9 +209,13 @@ export function ProposalDetail({
                 {(SECTION_ICONS[section.type]) && <span>{SECTION_ICONS[section.type]}</span>}
                 {SECTION_LABELS[section.type] || section.type}
               </h3>
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-fg-secondary">
-                {section.content || "내용이 아직 작성되지 않았습니다."}
-              </p>
+              {section.content ? (
+                <div className="prose prose-sm max-w-none text-fg-secondary prose-headings:text-fg prose-strong:text-fg prose-li:text-fg-secondary leading-relaxed">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{section.content}</ReactMarkdown>
+                </div>
+              ) : (
+                <p className="text-sm text-fg-tertiary">내용이 아직 작성되지 않았습니다.</p>
+              )}
             </CardContent>
           </Card>
         ))}
