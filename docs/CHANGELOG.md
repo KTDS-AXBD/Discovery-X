@@ -3,6 +3,16 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 408 (2026-03-17)
+**F46 Phase 4 — 스킬 엔진 통합 테스트 + F46 DONE (DX-REQ-016)**:
+- ✅ **유닛 테스트**: `skill-catalog-service.test.ts` (10개) + `skill-execution-service.test.ts` (17개) — seedCatalog, listByCategory, getBySlug, create, updateStatus, listByIdea JOIN, getById
+- ✅ **API 통합 테스트**: `api-ideas-skills.test.ts` (16개) — 카탈로그 조회/시드, 실행 이력/필터, 스킬명 JOIN
+- ✅ **Agent Team** (W1: 서비스 유닛, W2: API 통합) 병렬 실행
+- ✅ **F46 DONE**: Phase 1(범용 스킬 엔진) + Phase 2(Left 히스토리) + Phase 3(Right 결과물) + Phase 4(테스트 43개)
+
+**검증 결과**:
+- ✅ typecheck (0 errors) / tests (43/43 new, 전체 통과)
+
 ### 세션 407 (2026-03-17)
 **거버넌스 점검 + wrangler 다중 계정 문제 해결**:
 - ✅ **GOV check**: 15개 거버넌스 표준 적용 상태 점검 — 13/15 적합 (GOV-005, GOV-013 부분)
