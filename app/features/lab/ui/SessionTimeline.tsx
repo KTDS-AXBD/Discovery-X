@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useFetcher } from "@remix-run/react";
+import { useFetcher, Link } from "@remix-run/react";
 import type { ChangelogSession, ChangelogItem } from "~/features/lab/service/changelog-parser";
 import { CHANGELOG_EMOJIS } from "~/features/lab/constants";
 
@@ -46,17 +46,25 @@ function StatusBadge({ status }: { status: string }) {
 
 function FItemTag({ fNum }: { fNum: number }) {
   return (
-    <span className="rounded border border-lab-accent/30 bg-lab-accent/10 px-1.5 py-0.5 text-[11px] font-semibold text-lab-accent font-mono-dx">
+    <Link
+      to="/lab/work-status"
+      onClick={(e) => e.stopPropagation()}
+      className="rounded border border-lab-accent/30 bg-lab-accent/10 px-1.5 py-0.5 text-[11px] font-semibold text-lab-accent font-mono-dx hover:underline"
+    >
       F{fNum}
-    </span>
+    </Link>
   );
 }
 
 function ReqTag({ code }: { code: string }) {
   return (
-    <span className="rounded border border-sky-400/30 bg-sky-400/10 px-1.5 py-0.5 text-[11px] text-sky-400 font-mono-dx">
+    <Link
+      to="/lab"
+      onClick={(e) => e.stopPropagation()}
+      className="rounded border border-sky-400/30 bg-sky-400/10 px-1.5 py-0.5 text-[11px] text-sky-400 font-mono-dx hover:underline"
+    >
       {code}
-    </span>
+    </Link>
   );
 }
 
@@ -322,9 +330,11 @@ export function SessionTimeline({
   }
 
   // Use fetcher data if available, otherwise props
-  const displaySessions = (fetcher.data as { sessions: ChangelogSession[] })?.sessions ?? sessions;
-  const displayTotal = (fetcher.data as { total: number })?.total ?? total;
-  const displayPage = (fetcher.data as { page: number })?.page ?? page;
+  const fetcherData = fetcher.data as { sessions: ChangelogSession[]; total: number; page: number; feedbackMap?: Record<string, SessionFeedback> } | undefined;
+  const displaySessions = fetcherData?.sessions ?? sessions;
+  const displayTotal = fetcherData?.total ?? total;
+  const displayPage = fetcherData?.page ?? page;
+  const displayFeedbackMap = fetcherData?.feedbackMap ?? feedbackMap;
   const displayTotalPages = Math.ceil(displayTotal / pageSize);
 
   return (
@@ -382,7 +392,7 @@ export function SessionTimeline({
             <SessionCard
               key={session.id}
               session={session}
-              feedback={feedbackMap[session.id]}
+              feedback={displayFeedbackMap[session.id]}
             />
           ))}
         </div>
