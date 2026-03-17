@@ -3,6 +3,19 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 406 (2026-03-17)
+**F46 Phase 2+3 — Left Pane 히스토리 + Right Pane 결과물 뷰어 (DX-REQ-016)**:
+- ✅ **마이그레이션 0065 프로덕션 적용** (Cloudflare MCP)
+- ✅ **Left Pane**: `[소스/히스토리]` 탭 추가 — 기존 소스 등록 UI 유지 + `SkillHistoryPanel` (스킬명·카테고리·상태·시간 표시)
+- ✅ **Right Pane**: `[채팅/결과물]` 탭 추가 — `MarkdownViewer` 전체 렌더링 + 마크다운 복사 버튼
+- ✅ **API**: `GET /api/ideas/skills/executions` — `skill_executions` JOIN `skill_catalog` (스킬명 포함)
+- ✅ **양방향 연동**: 히스토리 클릭→Right 결과물 탭 자동 전환 / 스킬 실행 완료→Left 히스토리+Right 결과물 자동 활성화
+- ✅ **Middle Pane 미리보기**: 선택 결과 1000자 MarkdownViewer + "전체 보기" 버튼→Right Pane 전환
+- ✅ **SPEC.md**: F46 항목 소급 등록
+
+**검증 결과**:
+- ✅ typecheck (0 errors) / lint (0 errors) / tests (39/39) / build
+
 ### 세션 405 (2026-03-17)
 **F46 Phase 1 — 범용 스킬 엔진 + Middle Pane PM 스킬 탭 (DX-REQ-016)**:
 - ✅ **DB**: `skill_catalog` + `skill_executions` 2 테이블 (마이그레이션 0065)

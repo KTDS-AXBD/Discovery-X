@@ -594,3 +594,4 @@ build/
 
 | F44 | PRD Studio — pm-skills 통합 웹 UI + CLI 하이브리드 (인터뷰→PRD→AI검토→스코어카드→착수판단 + 아이디어 분석 대체, DX-REQ-015, P1) | v0.7.0 | 🔧 | - |
 | F45 | AI Fallback 미작동 + 에러 미표시 버그 — FallbackManager 체인 중단 수정 + 프로바이더 모니터링 (DX-REQ-010, P1) | v0.5.0 | ✅ | S344 |
+| F46 | 아이디어 페이지 3-Pane 구조 개편 — 범용 스킬 엔진 + Middle Pane PM 스킬 탭 + Left Pane 세션 히스토리 + Right Pane 결과물 뷰어 (DX-REQ-016, P1) | v0.7.0 | 🔧 | - |
