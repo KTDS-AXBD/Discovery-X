@@ -4,6 +4,20 @@
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
 ### 세션 409 (2026-03-17)
+**F47 Change Log 기반 작업 진행 결과 공유 — 전체 구현 (DX-REQ-017)**:
+- ✅ **CHANGELOG 파서**: `changelog-parser.ts` — 세션 단위 파싱 + F항목/REQ 자동 추출 + 접미사(393b) 지원 + 이모지 없는 불릿 fallback
+- ✅ **피드백 DB**: `changelog_feedback` 테이블 (마이그레이션 0066, 프로덕션 적용 완료) — 이모지 토글(👍/❓/🐛/❗) + 코멘트
+- ✅ **API**: `GET /api/lab/changelog` (필터+페이지네이션) + `POST /api/lab/changelog/feedback` (이모지 토글, 코멘트)
+- ✅ **UI**: `SessionTimeline` 컴포넌트 → `lab.work-status` 3번째 섹션 통합 (세션 카드 + F태그 + 반응 바 + 검색)
+- ✅ **Vite ?raw import**: Cloudflare Edge에서 CHANGELOG.md 빌드 시 번들 포함
+- ✅ **공통 상수**: `lab/constants.ts` — ALLOWED_EMOJIS API+UI 단일 소스
+- ✅ **갭 분석**: 89% → 95%+ (RED 2건 + YELLOW 3건 해소)
+- ✅ **테스트**: 파서 유닛 24개 + 피드백 DB 통합 6개 = 30개 (전체 2,666 통과)
+
+**검증 결과**:
+- ✅ typecheck (0 errors) / lint (0 errors, 9 warnings) / tests (2,666/2,666) / build (2.93s)
+
+### 세션 409 (2026-03-17)
 **F44 Phase 3 통합 테스트 — DX-ANLS-015 G16-1 해소 (DX-REQ-015)**:
 - ✅ **통합 테스트 8개 추가**: T49-T53 라우트 검증 (인증/ideaId/테넌트/소스) + T60 테넌트 격리 + T62 PROCESSING 취소 + E2E 전체 흐름
 - ✅ **기존 13 + 신규 8 = 21개**: `prd-analysis-api.test.ts` 완성 — DX-DSGN-016 T49-T68 전체 커버
