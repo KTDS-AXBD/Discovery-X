@@ -39,6 +39,16 @@
         ]
       },
       {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/post-edit-test.sh",
+            "timeout": 30000
+          }
+        ]
+      },
+      {
         "matcher": "Bash",
         "hooks": [
           {
