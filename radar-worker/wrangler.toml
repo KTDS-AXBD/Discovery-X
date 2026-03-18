@@ -10,7 +10,7 @@ crons = ["0 0 * * *"]   # 매일 0:00 UTC = 9:00 KST
 [[d1_databases]]
 binding = "DB"
 database_name = "discovery-x-db"
-database_id = "1bab6138-6b2f-45eb-8285-55ba7b543957"
+database_id = "86590201-0a3f-4ce4-8021-c3d32e0a44eb"
 
 [ai]
 binding = "AI"

@@ -15,7 +15,7 @@ crons = [
 [[d1_databases]]
 binding = "DB"
 database_name = "discovery-x-db"
-database_id = "1bab6138-6b2f-45eb-8285-55ba7b543957"
+database_id = "86590201-0a3f-4ce4-8021-c3d32e0a44eb"
 
 [vars]
 FF_PIPELINE_BRIDGE = "true"

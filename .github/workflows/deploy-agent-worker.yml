@@ -52,7 +52,7 @@ jobs:
       - name: Verify health endpoint
         run: |
           sleep 5
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://agent-worker.dx.minu.best/health)
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://agent-worker.ktds-axbd.workers.dev/health)
           echo "Health check status: $STATUS"
           if [ "$STATUS" = "200" ]; then
             echo "✅ agent-worker is healthy"
@@ -66,5 +66,5 @@ jobs:
           echo "## Agent Worker Deployment" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Worker**: agent-worker" >> $GITHUB_STEP_SUMMARY
-          echo "- **URL**: https://agent-worker.dx.minu.best" >> $GITHUB_STEP_SUMMARY
+          echo "- **URL**: https://agent-worker.ktds-axbd.workers.dev" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY

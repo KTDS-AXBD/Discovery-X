@@ -13,13 +13,13 @@ bindings = [
 # DO 마이그레이션 (최초 배포 시 필요)
 [[migrations]]
 tag = "v1"
-new_classes = ["AgentSessionDO"]
+new_sqlite_classes = ["AgentSessionDO"]
 
 # D1 데이터베이스 바인딩 (메인 앱과 동일 DB 공유)
 [[d1_databases]]
 binding = "DB"
 database_name = "discovery-x-db"
-database_id = "1bab6138-6b2f-45eb-8285-55ba7b543957"
+database_id = "86590201-0a3f-4ce4-8021-c3d32e0a44eb"
 
 # 커스텀 도메인: Cloudflare Dashboard Workers > agent-worker > Settings > Domains 에서 수동 설정
 # pattern: agent-worker.dx.minu.best

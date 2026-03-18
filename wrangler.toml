@@ -1,7 +1,7 @@
 #:schema node_modules/wrangler/config-schema.json
 name = "discovery-x"
 # account_id는 Pages에서 미지원 — CLOUDFLARE_ACCOUNT_ID 환경변수로 설정
-# export CLOUDFLARE_ACCOUNT_ID="02ae9a2bead25d99caa8f3258b81f568"
+# export CLOUDFLARE_ACCOUNT_ID="b6c06059b413892a92f150e5ca496236"
 compatibility_date = "2024-11-01"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "./build/client"
@@ -10,7 +10,7 @@ pages_build_output_dir = "./build/client"
 [[d1_databases]]
 binding = "DB"
 database_name = "discovery-x-db"
-database_id = "1bab6138-6b2f-45eb-8285-55ba7b543957"
+database_id = "86590201-0a3f-4ce4-8021-c3d32e0a44eb"
 migrations_dir = "drizzle"
 
 # Cron Triggers (daily notification at 9:00 AM KST = 0:00 UTC)
@@ -65,7 +65,7 @@ index_name = "dx-signal-embeddings"
 [vars]
 FF_GRAPH_LAYER = "true"
 FF_AGENT_DO = "true"
-AGENT_WORKER_URL = "https://agent-worker.dx.minu.best"
+AGENT_WORKER_URL = "https://agent-worker.ktds-axbd.workers.dev"
 FF_TOPIC_COLLAB = "true"
 FF_ACL_SCOPE = "true"
 FF_MEMORY_LIFECYCLE = "true"
@@ -75,5 +75,5 @@ FF_COLLAB_WORKER = "true"      # collab-worker 프로덕션 활성화
 FF_PROFILE_LEARNER = "true"
 FF_SIMPLIFIED_NAV = "true"       # 온보딩 모드: GNB를 대시보드+아이디어만 노출
 FF_AI_FALLBACK = "true"          # AI 프로바이더 자동 전환 (Anthropic→OpenAI→Google→Workers AI)
-CF_ACCOUNT_ID = "02ae9a2bead25d99caa8f3258b81f568"  # Workers AI REST API용
+CF_ACCOUNT_ID = "b6c06059b413892a92f150e5ca496236"  # Workers AI REST API용
 FF_REQUIREMENTS_AGENT = "true"   # 요구사항 AI 검토 Agent + 5칸반 칸반
