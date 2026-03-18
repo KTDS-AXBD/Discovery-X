@@ -30,6 +30,13 @@ export interface RoutingRequest {
   needsStreaming: boolean;
   needsJsonMode: boolean;
   estimatedTokens?: number;
+  /** PAL Router opt-in — true이면 복잡도 기반 티어 라우팅 활성화 */
+  enablePalRouter?: boolean;
+  /** PAL Router 입력 — enablePalRouter=true일 때 필수 */
+  palInput?: {
+    toolCount: number;
+    conversationDepth: number;
+  };
 }
 
 export interface RoutingResult {
@@ -38,6 +45,8 @@ export interface RoutingResult {
   decisionId: string;
   reasonCode: ReasonCode;
   budgetTier: BudgetTier;
+  /** PAL Router 결과 (활성화 시에만 존재) */
+  palTier?: "frugal" | "standard" | "frontier";
 }
 
 export interface UsageEventInput {

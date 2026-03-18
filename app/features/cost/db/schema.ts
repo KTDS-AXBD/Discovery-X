@@ -364,6 +364,41 @@ export const dailyUsageAggregates = sqliteTable(
 );
 
 // ============================================================================
+// TASK COMPLEXITY LOGS (PAL Router)
+// ============================================================================
+
+export const taskComplexityLogs = sqliteTable(
+  "task_complexity_logs",
+  {
+    id: text("id").primaryKey(),
+    tenantId: text("tenant_id").notNull(),
+    requestId: text("request_id"),
+    purpose: text("purpose").notNull(),
+    complexityScore: real("complexity_score").notNull(),
+    tier: text("tier").notNull(), // "frugal" | "standard" | "frontier"
+    selectedModel: text("selected_model"),
+    selectedProvider: text("selected_provider"),
+    success: integer("success"), // 0 or 1
+    latencyMs: integer("latency_ms"),
+    estimatedCostUsd: real("estimated_cost_usd"),
+    escalatedFrom: text("escalated_from"),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    tenantCreatedIdx: index("idx_tcl_tenant_created").on(
+      table.tenantId,
+      table.createdAt
+    ),
+    purposeTierIdx: index("idx_tcl_purpose_tier").on(
+      table.purpose,
+      table.tier
+    ),
+  })
+);
+
+// ============================================================================
 // TYPE EXPORTS
 // ============================================================================
 
@@ -404,3 +439,6 @@ export type NewRoutingDecision = typeof routingDecisions.$inferInsert;
 
 export type DailyUsageAggregate = typeof dailyUsageAggregates.$inferSelect;
 export type NewDailyUsageAggregate = typeof dailyUsageAggregates.$inferInsert;
+
+export type TaskComplexityLog = typeof taskComplexityLogs.$inferSelect;
+export type NewTaskComplexityLog = typeof taskComplexityLogs.$inferInsert;

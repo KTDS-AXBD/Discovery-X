@@ -28,6 +28,8 @@ import type {
 import { PolicyLoader } from "~/features/cost/service/policy-loader";
 import type { LoadedPolicy } from "~/features/cost/service/policy-loader";
 import { BudgetEvaluator } from "~/features/cost/service/budget-evaluator";
+import { TierRouter, type TierRoutingResult } from "./tier-router";
+import type { Tier } from "./complexity-scorer";
 
 // ============================================================================
 // TYPES
@@ -68,6 +70,21 @@ const HEALTH_CACHE_TTL_MS = 30 * 1000;
 /** model_catalog 캐시 TTL: 5분 */
 const MODEL_CACHE_TTL_MS = 5 * 60 * 1000;
 
+/**
+ * PAL Router — 티어별 capabilityScore 상한 (이하만 후보에 포함).
+ *
+ * 설계는 capabilityScore + price 이중 조건 분류를 사용하나,
+ * 정적 상수로는 price 조회 불가. capabilityScore 단일 상한으로 근사:
+ *   frugal ≤85: haiku(60), llama(50), flash(80), mini(85) = 4모델
+ *   standard ≤93: nano(88), v3.2(91), r1(90), sonnet(93), gpt-5.4(93) 등
+ *   frontier: opus(97)
+ */
+const TIER_CAPABILITY_CEILING: Record<Tier, number> = {
+  frugal: 85,
+  standard: 93,
+  frontier: 100,
+};
+
 // ============================================================================
 // POLICY ROUTER
 // ============================================================================
@@ -75,6 +92,8 @@ const MODEL_CACHE_TTL_MS = 5 * 60 * 1000;
 export class PolicyRouter {
   private policyLoader: PolicyLoader;
   private budgetEvaluator: BudgetEvaluator;
+  /** PAL Router — 복잡도 기반 티어 라우팅 (opt-in) */
+  private tierRouter = new TierRouter();
 
   /** provider 건강 상태 캐시 */
   private healthCache = new Map<ProviderId, ProviderHealthEntry>();
@@ -88,6 +107,11 @@ export class PolicyRouter {
   ) {
     this.policyLoader = new PolicyLoader(db);
     this.budgetEvaluator = new BudgetEvaluator(db);
+  }
+
+  /** TierRouter 인스턴스 접근 (에스컬레이션/다운그레이드 기록용) */
+  getTierRouter(): TierRouter {
+    return this.tierRouter;
   }
 
   /**
@@ -129,9 +153,27 @@ export class PolicyRouter {
       budget
     );
 
+    // PAL Router 레이어 (opt-in): 복잡도 기반 티어 필터링
+    let palResult: TierRoutingResult | undefined;
+    let afterTier = filtered;
+    if (request.enablePalRouter && request.palInput) {
+      palResult = this.tierRouter.route({
+        estimatedTokens: request.estimatedTokens ?? 0,
+        toolCount: request.palInput.toolCount,
+        conversationDepth: request.palInput.conversationDepth,
+        purpose: request.purpose,
+        needsJsonMode: request.needsJsonMode,
+      });
+      afterTier = this.filterByTier(filtered, palResult.effectiveTier);
+      // 티어 필터링으로 후보가 0이면 상위 티어로 폴백
+      if (afterTier.length === 0) {
+        afterTier = filtered;
+      }
+    }
+
     // Step 4: 예산 degrade 처리
     const afterBudget = this.applyBudgetDegrade(
-      filtered,
+      afterTier,
       budget,
       purposeRule,
       loadedPolicy
@@ -149,7 +191,8 @@ export class PolicyRouter {
         null,
         budget,
         loadedPolicy,
-        "capability_skip"
+        "capability_skip",
+        palResult?.effectiveTier
       );
     }
 
@@ -161,7 +204,8 @@ export class PolicyRouter {
       selected,
       budget,
       loadedPolicy,
-      reasonCode
+      reasonCode,
+      palResult?.effectiveTier
     );
   }
 
@@ -186,6 +230,149 @@ export class PolicyRouter {
     this.policyLoader.invalidateCache();
     this.healthCache.clear();
     this.modelCache = null;
+    this.tierRouter.reset();
+  }
+
+  // ==========================================================================
+  // PAL ROUTER — 에스컬레이션 / 다운그레이드
+  // ==========================================================================
+
+  /**
+   * PAL 에스컬레이션 — 실패 기록 + 상위 티어로 재라우팅.
+   * FallbackManager의 모든 provider 실패 후 호출.
+   *
+   * @returns 상위 티어 라우팅 결과 (null이면 에스컬레이션 불가)
+   */
+  async escalatePal(
+    request: RoutingRequest,
+    reason?: string
+  ): Promise<RoutingResult | null> {
+    if (!request.enablePalRouter || !request.palInput) return null;
+
+    const { purpose } = request;
+    const { toolCount, conversationDepth } = request.palInput;
+
+    // 현재 effective tier 계산
+    const palResult = this.tierRouter.route({
+      estimatedTokens: request.estimatedTokens ?? 0,
+      toolCount,
+      conversationDepth,
+      purpose,
+      needsJsonMode: request.needsJsonMode,
+    });
+    const currentTier = palResult.effectiveTier;
+
+    // 실패 기록 + 에스컬레이션 판정
+    const escalatedTier = this.tierRouter.recordFailure(
+      purpose,
+      toolCount,
+      currentTier,
+      reason
+    );
+    if (!escalatedTier) return null;
+
+    // 상위 티어로 재라우팅
+    return this.routeWithForcedTier(request, escalatedTier);
+  }
+
+  /**
+   * PAL 성공 기록 — 다운그레이드 학습.
+   * 연속 5성공 감지 시 자동으로 하위 티어 override 설정.
+   */
+  recordPalSuccess(request: RoutingRequest): void {
+    if (!request.enablePalRouter || !request.palInput) return;
+
+    const palResult = this.tierRouter.route({
+      estimatedTokens: request.estimatedTokens ?? 0,
+      toolCount: request.palInput.toolCount,
+      conversationDepth: request.palInput.conversationDepth,
+      purpose: request.purpose,
+      needsJsonMode: request.needsJsonMode,
+    });
+
+    this.tierRouter.recordSuccess(
+      request.purpose,
+      request.palInput.toolCount,
+      palResult.effectiveTier
+    );
+  }
+
+  /**
+   * 강제 티어로 라우팅 (에스컬레이션 재시도용).
+   * route()와 동일한 7단계 평가를 수행하되, PAL 티어를 직접 지정.
+   */
+  async routeWithForcedTier(
+    request: RoutingRequest,
+    forcedTier: Tier
+  ): Promise<RoutingResult> {
+    const loadedPolicy = await this.policyLoader.loadPolicy(request.tenantId);
+    const budget = await this.budgetEvaluator.evaluate(
+      request.userId,
+      request.tenantId,
+      request.purpose
+    );
+
+    if (budget.tier === "block") {
+      return this.logAndReturn(
+        request,
+        null,
+        budget,
+        loadedPolicy,
+        "budget_block",
+        forcedTier
+      );
+    }
+
+    const models = await this.getActiveModels();
+    if (models.length === 0) {
+      throw new Error("[PolicyRouter] 활성 모델이 없습니다");
+    }
+
+    const purposeRule = loadedPolicy?.purposeRules.find(
+      (r) => r.purpose === request.purpose
+    );
+
+    const candidates = this.buildCandidates(models, loadedPolicy);
+    const filtered = this.filterByCriteria(
+      candidates,
+      request,
+      purposeRule,
+      budget
+    );
+
+    // 강제 티어 필터링 (빈 결과 시 전체 폴백)
+    let afterTier = this.filterByTier(filtered, forcedTier);
+    if (afterTier.length === 0) afterTier = filtered;
+
+    const afterBudget = this.applyBudgetDegrade(
+      afterTier,
+      budget,
+      purposeRule,
+      loadedPolicy
+    );
+    const available = this.filterByAvailability(afterBudget);
+    const selected = this.selectBest(available);
+
+    if (!selected) {
+      return this.logAndReturn(
+        request,
+        null,
+        budget,
+        loadedPolicy,
+        "capability_skip",
+        forcedTier
+      );
+    }
+
+    const reasonCode: ReasonCode = "retry";
+    return this.logAndReturn(
+      request,
+      selected,
+      budget,
+      loadedPolicy,
+      reasonCode,
+      forcedTier
+    );
   }
 
   // ==========================================================================
@@ -377,6 +564,18 @@ export class PolicyRouter {
   }
 
   /**
+   * PAL Router Step: 티어에 맞는 capabilityScore 상한으로 후보 필터링.
+   * frugal(≤40), standard(≤75), frontier(전체)
+   */
+  private filterByTier(
+    candidates: CandidateModel[],
+    tier: Tier
+  ): CandidateModel[] {
+    const ceiling = TIER_CAPABILITY_CEILING[tier];
+    return candidates.filter((c) => c.catalogEntry.capabilityScore <= ceiling);
+  }
+
+  /**
    * Step 6+7: 우선순위 체인 순서 → 동일 provider 내 최저 비용 모델 선택.
    * chainPriority 오름차순 → capabilityScore 내림차순 (성능 우선).
    */
@@ -404,7 +603,8 @@ export class PolicyRouter {
     selected: CandidateModel | null,
     budget: BudgetEvaluation,
     loadedPolicy: LoadedPolicy | null,
-    reasonCode: ReasonCode
+    reasonCode: ReasonCode,
+    palTier?: Tier
   ): Promise<RoutingResult> {
     const decisionId = crypto.randomUUID();
 
@@ -449,6 +649,7 @@ export class PolicyRouter {
         decisionId,
         reasonCode,
         budgetTier: budget.tier,
+        ...(palTier && { palTier }),
       };
     }
 
@@ -458,6 +659,7 @@ export class PolicyRouter {
       decisionId,
       reasonCode,
       budgetTier: budget.tier,
+      ...(palTier && { palTier }),
     };
   }
 }
