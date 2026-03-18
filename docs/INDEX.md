@@ -82,6 +82,7 @@
 | DX-ANLS-018 | F48 Generative UI — Gap Analysis | 1.0 | Active | 03-analysis/DX-ANLS-018_generative-ui.md |
 | DX-ANLS-019 | F49 PAL Router — Gap Analysis | 1.0 | Active | 03-analysis/DX-ANLS-019_pal-router.md |
 | DX-ANLS-020 | F50 Ambiguity Score — Gap Analysis | 1.0 | Active | 03-analysis/DX-ANLS-020_ambiguity-score.md |
+| DX-ANLS-021 | F51 프로젝트 연동/병합 Gap Analysis | 1.0 | Active | 03-analysis/DX-ANLS-021_project-integration.md |
 
 ## RPRT — 보고
 
@@ -113,4 +114,4 @@
 
 ---
 
-*총 56개 문서 | Active: 46 | Draft: 10 | Archived: 0*
+*총 57개 문서 | Active: 47 | Draft: 10 | Archived: 0*
