@@ -16,10 +16,13 @@ import {
   MATRIX_TOOLS,
   REQUIREMENTS_TOOLS,
   PROPOSAL_TOOLS,
+  WIDGET_TOOLS,
 } from "./tool-schemas";
 
 // Minimum autonomy level required to use each tool
 export const TOOL_MIN_AUTONOMY: Record<string, number> = {
+  // Generative UI (F48) — 읽기 전용 시각화, ADVISORY 이상
+  render_widget: 1,
   // Level 1: read-only queries
   list_discoveries: 1,
   get_discovery_detail: 1,
@@ -137,6 +140,7 @@ export const AGENT_TOOLS: ClaudeTool[] = [
   ...MATRIX_TOOLS,
   ...REQUIREMENTS_TOOLS,
   ...PROPOSAL_TOOLS,
+  ...WIDGET_TOOLS,
 ];
 
 /** Ideas 모드 전용 도구 (경량) — update_idea_analysis만 포함 */

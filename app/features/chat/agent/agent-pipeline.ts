@@ -140,6 +140,12 @@ export async function processToolBlocks(
       toolInput,
     });
 
+    // render_widget: conversationId + tenantId 자동 주입 (DB 저장용)
+    if (toolName === "render_widget") {
+      toolInput._conversationId = conversationId;
+      if (tenantId) toolInput._tenantId = tenantId;
+    }
+
     // 도구 실행
     let toolResult: string;
     try {

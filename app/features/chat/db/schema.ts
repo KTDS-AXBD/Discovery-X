@@ -1,6 +1,7 @@
 import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 import { users, tenants } from "~/db";
+import type { WidgetType } from "~/features/chat/lib/widget-protocol";
 
 // ============================================================================
 // AGENT CONSTANTS
@@ -94,6 +95,36 @@ export const agentConfig = sqliteTable("agent_config", {
 });
 
 // ============================================================================
+// CHAT WIDGETS (Generative UI — F48)
+// ============================================================================
+
+export const chatWidgets = sqliteTable(
+  "chat_widgets",
+  {
+    id: text("id").primaryKey(),
+    conversationId: text("conversation_id")
+      .notNull()
+      .references(() => conversations.id, { onDelete: "cascade" }),
+    widgetType: text("widget_type").notNull().$type<WidgetType>(),
+    title: text("title").notNull(),
+    code: text("code").notNull(),
+    data: text("data", { mode: "json" })
+      .notNull()
+      .$type<Record<string, unknown>>(),
+    description: text("description"),
+    tenantId: text("tenant_id").references(() => tenants.id),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    conversationIdx: index("idx_chat_widgets_conversation").on(
+      table.conversationId
+    ),
+  })
+);
+
+// ============================================================================
 // TYPES
 // ============================================================================
 
@@ -105,3 +136,6 @@ export type NewMessage = typeof messages.$inferInsert;
 
 export type AgentConfig = typeof agentConfig.$inferSelect;
 export type NewAgentConfig = typeof agentConfig.$inferInsert;
+
+export type ChatWidgetRecord = typeof chatWidgets.$inferSelect;
+export type NewChatWidget = typeof chatWidgets.$inferInsert;

@@ -9,3 +9,4 @@ export { IDEA_SCHEMA_TOOLS } from "./idea-schemas";
 export { MATRIX_TOOLS } from "./matrix-schemas";
 export { REQUIREMENTS_TOOLS } from "./requirements-schemas";
 export { PROPOSAL_TOOLS } from "./proposal-schemas";
+export { WIDGET_TOOLS } from "./widget-schemas";

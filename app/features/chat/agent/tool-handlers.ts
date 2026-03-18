@@ -103,6 +103,7 @@ import {
   listProposalSlides,
   getSlideDeckDetail,
 } from "./tools/proposal-tools";
+import { renderWidget } from "./tools/widget-tools";
 
 type ToolHandler = (db: DB, input: Record<string, unknown>, env?: Record<string, string>) => Promise<string>;
 
@@ -214,6 +215,9 @@ const TOOL_HANDLER_MAP: Record<string, ToolHandler> = {
   generate_proposal_slides: (db, input) => generateProposalSlides(db, input as unknown as Parameters<typeof generateProposalSlides>[1]),
   list_proposal_slides: (db, input) => listProposalSlides(db, input as unknown as Parameters<typeof listProposalSlides>[1]),
   get_slide_deck_detail: (db, input) => getSlideDeckDetail(db, input as unknown as Parameters<typeof getSlideDeckDetail>[1]),
+
+  // Generative UI (F48) — 위젯 생성
+  render_widget: (db, input) => renderWidget(db, input as unknown as Parameters<typeof renderWidget>[1]),
 };
 
 export async function executeTool(

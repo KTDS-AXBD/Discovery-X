@@ -4,6 +4,8 @@ import { cn } from "~/lib/utils/cn";
 import { PipelineFlow } from "./PipelineFlow";
 import { EvidenceChart } from "./EvidenceChart";
 import { EvidenceCard } from "./EvidenceCard";
+import { WidgetRenderer } from "./WidgetRenderer";
+import type { WidgetType } from "~/features/chat/lib/widget-protocol";
 
 interface ToolExecutionProps {
   toolName: string;
@@ -13,6 +15,7 @@ interface ToolExecutionProps {
 }
 
 const TOOL_LABELS: Record<string, string> = {
+  render_widget: "위젯 생성",
   create_discovery: "Discovery 생성",
   update_discovery: "Discovery 수정",
   promote_discovery: "OPEN 승격",
@@ -248,6 +251,19 @@ function DigestView({ data }: { data: Record<string, unknown> }) {
 
 function formatResult(toolName: string, result: Record<string, unknown>) {
   switch (toolName) {
+    case "render_widget":
+      if (result.widgetId && result.code) {
+        return (
+          <WidgetRenderer
+            widgetId={result.widgetId as string}
+            widgetType={(result.widgetType || "chart") as WidgetType}
+            title={(result.title || "Widget") as string}
+            code={result.code as string}
+            data={(result.data || {}) as Record<string, unknown>}
+          />
+        );
+      }
+      return null;
     case "list_discoveries":
       return <DiscoveriesTable data={result} />;
     case "get_discovery_detail":

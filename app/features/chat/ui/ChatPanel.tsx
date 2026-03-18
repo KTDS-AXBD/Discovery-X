@@ -5,6 +5,8 @@ import { SuggestionChip } from "~/components/ui/SuggestionChip";
 import { AlertBanner } from "~/components/ui/AlertBanner";
 import { MessageBubble } from "./MessageBubble";
 import { ToolExecution } from "./ToolExecution";
+import { WidgetRenderer } from "./WidgetRenderer";
+import type { WidgetType } from "~/features/chat/lib/widget-protocol";
 
 interface ChatMessage {
   id: string;
@@ -23,9 +25,22 @@ interface SSEToolCall {
   result: Record<string, unknown>;
 }
 
+interface SSEWidget {
+  widgetId: string;
+  widgetType: WidgetType;
+  title: string;
+  code: string;
+  data: Record<string, unknown>;
+  description?: string;
+}
+
+/** 대화당 최대 위젯 동시 렌더링 수 (Design §4.3 Layer 6) */
+const MAX_WIDGETS_PER_CONVERSATION = 5;
+
 interface ChatPanelProps {
   conversationId: string | null;
   initialMessages: ChatMessage[];
+  initialWidgets?: SSEWidget[];
   isLoadingMessages?: boolean;
   onToolResult?: (toolName: string, result: Record<string, unknown>) => void;
   autoMessage?: string | null;
@@ -57,7 +72,7 @@ function parseSuggestions(content: string): { cleanContent: string; suggestions:
   }
 }
 
-export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, onToolResult, autoMessage, purpose = "chat" }: ChatPanelProps) {
+export function ChatPanel({ conversationId, initialMessages, initialWidgets, isLoadingMessages, onToolResult, autoMessage, purpose = "chat" }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -66,6 +81,7 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
   const [sendError, setSendError] = useState<string | null>(null);
   const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
   const [dynamicSuggestions, setDynamicSuggestions] = useState<string[]>([]);
+  const [widgets, setWidgets] = useState<SSEWidget[]>(initialWidgets ?? []);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -77,13 +93,14 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, pendingToolCalls]);
+  }, [messages, pendingToolCalls, widgets]);
 
   const sendMessageWithContent = useCallback(async (userMessage: string) => {
     if (!userMessage.trim() || !conversationId || isLoading) return;
 
     setIsLoading(true);
     setPendingToolCalls([]);
+    setWidgets([]);
     setSendError(null);
     setLastFailedMessage(null);
     setDynamicSuggestions([]);
@@ -143,6 +160,12 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
               input?: Record<string, unknown>;
               result?: Record<string, unknown>;
               message?: string;
+              // widget fields (Generative UI — F48)
+              widgetId?: string;
+              widgetType?: string;
+              title?: string;
+              code?: string;
+              data?: Record<string, unknown>;
             };
 
             if (event.type === "text_delta" && event.content) {
@@ -206,6 +229,27 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
               if (onToolResult && event.result && !("error" in event.result)) {
                 onToolResult(event.name!, event.result);
               }
+              // Generative UI — F48: render_widget tool_call → 위젯 변환
+              if (event.name === "render_widget" && event.result && !("error" in event.result)) {
+                const r = event.result as Record<string, unknown>;
+                if (r.widgetId && r.code) {
+                  setWidgets((prev) => {
+                    if (prev.length >= MAX_WIDGETS_PER_CONVERSATION) return prev;
+                    if (prev.some((w) => w.widgetId === r.widgetId)) return prev;
+                    return [
+                      ...prev,
+                      {
+                        widgetId: r.widgetId as string,
+                        widgetType: (r.widgetType || "chart") as WidgetType,
+                        title: (r.title || "Widget") as string,
+                        code: r.code as string,
+                        data: (r.data || {}) as Record<string, unknown>,
+                        description: r.description as string | undefined,
+                      },
+                    ];
+                  });
+                }
+              }
               // Append separator so next round's text is visually distinct
               if (streamingStarted) {
                 setMessages((prev) =>
@@ -216,6 +260,23 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
                   )
                 );
               }
+            } else if (event.type === "widget" && event.widgetId) {
+              // Generative UI — F48: 전용 widget SSE 이벤트
+              setWidgets((prev) => {
+                if (prev.length >= MAX_WIDGETS_PER_CONVERSATION) return prev;
+                if (prev.some((w) => w.widgetId === event.widgetId)) return prev;
+                return [
+                  ...prev,
+                  {
+                    widgetId: event.widgetId!,
+                    widgetType: event.widgetType as WidgetType,
+                    title: event.title || "Widget",
+                    code: event.code || "",
+                    data: event.data || {},
+                    description: (event as Record<string, unknown>).description as string | undefined,
+                  },
+                ];
+              });
             } else if (event.type === "budget_warning") {
               setBudgetWarning({
                 tokensUsedToday: (event as unknown as BudgetWarning).tokensUsedToday,
@@ -382,6 +443,19 @@ export function ChatPanel({ conversationId, initialMessages, isLoadingMessages, 
               input={tc.input}
               result={tc.result}
               isRunning={Object.keys(tc.result).length === 0}
+            />
+          ))}
+
+          {/* Generative UI widgets — F48 (최대 5개) */}
+          {widgets.slice(0, MAX_WIDGETS_PER_CONVERSATION).map((w) => (
+            <WidgetRenderer
+              key={w.widgetId}
+              widgetId={w.widgetId}
+              widgetType={w.widgetType}
+              title={w.title}
+              code={w.code}
+              data={w.data}
+              onSendPrompt={sendMessageWithContent}
             />
           ))}
 

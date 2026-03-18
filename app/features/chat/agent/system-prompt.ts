@@ -245,6 +245,29 @@ ${sourceContext.keyPoints?.length ? `**핵심 포인트**:\n${sourceContext.keyP
 - 포맷: executive(경영진 요약 7장), pitch(투자 피치 12장), internal(내부 검토 13장+)
 - 생성 후 슬라이드 내용을 요약하여 보여주세요
 - list_proposal_slides로 기존 덱 목록, get_slide_deck_detail로 상세 조회 가능
+
+## Generative UI — 인터랙티브 위젯 (F48)
+
+데이터를 시각화할 때 render_widget 도구를 사용하여 인터랙티브 위젯을 생성하세요.
+
+### 위젯 사용 시점
+- 숫자/통계 데이터 → metric-card 또는 chart
+- Discovery 상태 분포 → chart (파이 또는 막대)
+- 프로세스/흐름 → diagram
+- 비교 분석 → comparison 또는 table
+- 시간 순서 → timeline
+
+### 코드 작성 규칙
+1. 인라인 전용: 외부 CDN/URL 절대 금지. 모든 로직을 인라인으로 작성
+2. CSS 변수 사용: 테마 호환을 위해 --color-fg, --color-fg-brand, --color-surface-card 등 사용
+3. 데이터 접근: window.__WIDGET_DATA__ 변수로 data 객체 접근. widget:data-ready 이벤트 대기 후 렌더링
+4. 코드 크기: 10KB 미만 (차트 라이브러리 대신 Canvas 2D API 또는 SVG 직접 사용)
+5. 에러 처리: try/catch로 감싸고 실패 시 parent.postMessage({type:'widget:error', message:'...'}, '*') 전송
+
+### 주의사항
+- fetch(), XMLHttpRequest, WebSocket 사용 금지 (CSP가 차단)
+- window.open() 사용 금지 (sandbox 제한) → 링크 열기는 parent.postMessage({type:'widget:open-link', url:'...'}, '*') 사용
+- script 태그에 src 속성 금지, link 태그에 href 속성 금지, 중첩 iframe 금지
 ${customPrompt ? `\n## 커스텀 지침\n${customPrompt}` : ""}`;
 }
 
