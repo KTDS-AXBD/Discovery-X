@@ -3,6 +3,22 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 411b (2026-03-18)
+**F51 프로젝트 연동/병합 준비 — GitHub Transfer + CF 계정 통합 (DX-REQ-021)**:
+- ✅ F51 REQ 등록 (SPEC + DB + Issue#21 + Project 4방향 동기화)
+- ✅ Agent Team 리서치: Foundry-X 리포 분석 + Discovery-X 인프라 정리
+- ✅ DX-PLAN-014 Plan (의사결정 D1~D5 확정: Transfer + minu.best 유지 + API 연동)
+- ✅ DX-DSGN-021 Design (6 Phase 실행 스크립트 + 검증 + 롤백)
+- ✅ Agent Team Do: f51-migrate.sh (667줄) + f51-verify.sh (384줄)
+- ✅ Phase 1 GitHub: AX-BD-Team → KTDS-AXBD Transfer (Issues 21건 + Secrets 보존 + Project#2 생성)
+- ✅ Phase 2 Cloudflare: D1 (70 migrations, 138 tables) + Vectorize 6 + Workers 4 + Pages + Secrets 20개
+- ✅ Phase 3 DNS: dx.minu.best → 새 Pages custom domain active, agent-worker → workers.dev URL
+- ✅ Phase 5 Data: 15/17 테이블 100% 이전 (913 radar_items 포함)
+- ✅ DX-ANLS-021 Gap Analysis: 97% (iterate #2, 자동 검증 7/7 통과)
+- ⚠️ agent-worker/wrangler.toml: new_sqlite_classes (Free plan 호환)
+
+**검증 결과**: dx.minu.best HTTP 302 ✅ | API Health DB+Vec OK ✅ | agent-worker 200 ✅ | CI/CD success ✅
+
 ### 세션 411 (2026-03-18)
 **F48/F49/F50 — 외부 오픈소스 분석 → 3 Feature 전체 PDCA 완주 (DX-REQ-018~020)**:
 - ✅ OpenGenerativeUI + Ouroboros 2개 레포 분석 → F48/F49/F50 REQ 등록 (4방향 동기화)
