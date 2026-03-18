@@ -459,14 +459,14 @@ build/
 ### 버전
 - **시스템 (SemVer SSOT)**: 0.6.0 (package.json)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
-- **DB**: 67개 마이그레이션 SQL (0000~0066), 로컬+프로덕션 전체 적용 완료
+- **DB**: 70개 마이그레이션 SQL (0000~0069), 로컬+프로덕션 전체 적용 완료
 
 ### 주요 지표
 - **라우트**: 212개
 - **테이블**: 124개
 - **Agent 도구**: 77개
 - **코드**: ~99,300줄 (~589파일)
-- **테스트**: 2,666개 (178 test files, 로컬 통과)
+- **테스트**: 2,848개 (186 test files, 로컬 통과)
 - **테스트 통과율**: 100%
 - **Lint 에러**: 0개
 - **Build**: ✅ 성공
@@ -596,3 +596,7 @@ build/
 | F45 | AI Fallback 미작동 + 에러 미표시 버그 — FallbackManager 체인 중단 수정 + 프로바이더 모니터링 (DX-REQ-010, P1) | v0.5.0 | ✅ | S344 |
 | F46 | 아이디어 페이지 3-Pane 구조 개편 — 범용 스킬 엔진 + Middle Pane PM 스킬 탭 + Left Pane 세션 히스토리 + Right Pane 결과물 뷰어 (DX-REQ-016, P1) | v0.7.0 | ✅ | S405~S408 |
 | F47 | Change Log 기반 작업 진행 결과 공유 — 실험실 작업 현황 통합 + 하이브리드(파일 파싱+리뷰 DB) + /frontend-design 가독성 + 리뷰/피드백 연계 (DX-REQ-017, P1) | v0.7.0 | 🔧 | — |
+| F48 | Generative UI — Agent 채팅 인터랙티브 시각화 (sandboxed iframe + WidgetRenderer + PostMessage 브릿지 + 자동 사이징, DX-REQ-018, P2) | v0.8.0 | 🔧 | S411 |
+| F49 | PAL Router — 복잡도 기반 LLM 모델 티어 자동 선택 (Frugal/Standard/Frontier 3티어 + 에스컬레이션/다운그레이드 + PolicyRouter 진화, DX-REQ-019, P2) | v0.8.0 | 🔧 | S411 |
+| F50 | PRD Studio Ambiguity Score — 인터뷰 품질 게이트 (Goal 40% + Constraint 30% + Success 30% 가중 명확성, ≤0.2 시 PRD 생성 허용, DX-REQ-020, P3) | v0.8.0 | 🔧 | S411 |
+| F51 | 프로젝트 연동/병합 준비 — Foundry-X 서비스 연동·병합 검토 + GitHub/Cloudflare 계정 전환 (DX-REQ-021, P1) | v0.8.0 | 📋 | — |

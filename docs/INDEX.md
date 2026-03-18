@@ -32,6 +32,10 @@
 | DX-PLAN-008 | AI API 서비스 관리 | 1.2 | Draft | 01-plan/DX-PLAN-008_ai-api-service-management.md |
 | DX-PLAN-009 | 아이템 수집 시스템 고도화 | 0.4 | Draft | 01-plan/DX-PLAN-009_radar-collection-enhancement.md |
 | DX-PLAN-010 | PRD Studio | 0.1 | Active | 01-plan/DX-PLAN-010_prd-studio.md |
+| DX-PLAN-011 | Generative UI — Agent 채팅 인터랙티브 시각화 | 0.1 | Draft | 01-plan/DX-PLAN-011_generative-ui.md |
+| DX-PLAN-012 | PAL Router — 복잡도 기반 LLM 모델 티어 자동 선택 | 0.1 | Draft | 01-plan/DX-PLAN-012_pal-router.md |
+| DX-PLAN-013 | PRD Studio Ambiguity Score — 인터뷰 품질 게이트 | 0.1 | Draft | 01-plan/DX-PLAN-013_ambiguity-score.md |
+| DX-PLAN-014 | 프로젝트 연동/병합 준비 — Foundry-X 서비스 연동 + 계정 전환 | 1.0 | Draft | 01-plan/DX-PLAN-014_project-integration.md |
 
 ## DSGN — 설계
 
@@ -54,6 +58,10 @@
 | DX-DSGN-015 | PRD Studio 설계 | 0.1 | Active | 02-design/DX-DSGN-015_prd-studio.md |
 | DX-DSGN-016 | F44 Phase 3 — 아이디어 분석 대체 | 0.1 | Draft | 02-design/DX-DSGN-016_prd-analysis-replacement.md |
 | DX-DSGN-017 | F44 Phase 4 — 전략 도구 (Strategy Canvas + GTM + Proposal 연동) | 0.1 | Draft | 02-design/DX-DSGN-017_prd-strategy-tools.md |
+| DX-DSGN-018 | Generative UI — Agent 채팅 인터랙티브 시각화 설계 | 0.1 | Draft | 02-design/DX-DSGN-018_generative-ui.md |
+| DX-DSGN-019 | PAL Router — 복잡도 기반 LLM 모델 티어 자동 선택 설계 | 0.1 | Draft | 02-design/DX-DSGN-019_pal-router.md |
+| DX-DSGN-020 | PRD Studio Ambiguity Score — 인터뷰 품질 게이트 설계 | 0.1 | Draft | 02-design/DX-DSGN-020_ambiguity-score.md |
+| DX-DSGN-021 | 프로젝트 연동/병합 준비 — Phase별 실행 스크립트 + 검증 + 롤백 | 1.0 | Draft | 02-design/DX-DSGN-021_project-integration.md |
 | DX-DSGN-100 | 문서 관리 표준 및 적용 계획 | 1.0 | Draft | 02-design/DX-DSGN-100_doc-governance-plan.md |
 
 ## ANLS — 분석
@@ -71,6 +79,9 @@
 | DX-ANLS-014 | F41 전체 Phase GAP 분석 (사후) | 1.0 | Active | 03-analysis/DX-ANLS-014_f41-full-gap-analysis.md |
 | DX-ANLS-015 | F44 PRD Studio 전체 GAP 분석 | 1.1 | Active | 03-analysis/DX-ANLS-015_prd-studio.md |
 | DX-ANLS-017 | F44 Phase 4 전략 도구 GAP 분석 | 1.0 | Active | 03-analysis/DX-ANLS-017_prd-strategy-tools.md |
+| DX-ANLS-018 | F48 Generative UI — Gap Analysis | 1.0 | Active | 03-analysis/DX-ANLS-018_generative-ui.md |
+| DX-ANLS-019 | F49 PAL Router — Gap Analysis | 1.0 | Active | 03-analysis/DX-ANLS-019_pal-router.md |
+| DX-ANLS-020 | F50 Ambiguity Score — Gap Analysis | 1.0 | Active | 03-analysis/DX-ANLS-020_ambiguity-score.md |
 
 ## RPRT — 보고
 
