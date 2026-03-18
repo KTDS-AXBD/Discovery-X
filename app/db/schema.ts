@@ -42,6 +42,17 @@ export const sessions = sqliteTable("sessions", {
 // MULTI-TENANT
 // ============================================================================
 
+export interface PalSettings {
+  enabled?: boolean;
+  frugalThreshold?: number; // 기본 0.3
+  standardThreshold?: number; // 기본 0.7
+  weights?: {
+    token?: number; // 기본 0.30
+    tool?: number; // 기본 0.30
+    depth?: number; // 기본 0.40
+  };
+}
+
 export interface TenantSettings {
   branding?: {
     displayName?: string;
@@ -58,6 +69,7 @@ export interface TenantSettings {
     maxRounds?: number;
     autonomyLevel?: number;
   };
+  pal?: PalSettings;
 }
 
 export const tenants = sqliteTable(

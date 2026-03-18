@@ -95,6 +95,9 @@ export function createTestDb() {
   runMigrationSQL(sqlite, resolve(migrationsDir, "0064_prd_strategy_queue.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0065_skill_catalog_executions.sql"));
   runMigrationSQL(sqlite, resolve(migrationsDir, "0066_changelog_feedback.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0067_chat_widgets.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0068_task_complexity_logs.sql"));
+  runMigrationSQL(sqlite, resolve(migrationsDir, "0069_ambiguity_score.sql"));
 
   return drizzle(sqlite, { schema: { ...schema, ...v2Schema, ...matrixSchema, ...requestsSchema, ...topicSchema, ...costSchema, ...prdStudioSchema } });
 }

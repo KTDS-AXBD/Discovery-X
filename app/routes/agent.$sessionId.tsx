@@ -3,7 +3,7 @@ import { json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { eq, and, desc } from "drizzle-orm";
 import { sql } from "drizzle-orm";
-import { getDb, agentSessionsV2, messages, projections } from "~/db";
+import { getDb, agentSessionsV2, messages, projections, chatWidgets } from "~/db";
 import { requireUser, getSessionSecret } from "~/lib/auth/session.server";
 import { ChatPanel } from "~/features/chat/ui/ChatPanel";
 import { ProjectionStatus } from "~/features/chat/ui/ProjectionStatus";
@@ -45,6 +45,13 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 
   // 최신순 → 오래된순으로 뒤집기
   messageList.reverse();
+
+  // 위젯 캐시 로드 — 대화 재진입 시 DB에 저장된 위젯 복원 (F48)
+  const cachedWidgets = await db
+    .select()
+    .from(chatWidgets)
+    .where(eq(chatWidgets.conversationId, conversationId))
+    .limit(5);
 
   // Projection 상태 조회 (user 스코프)
   const userProjections = await db
@@ -89,6 +96,15 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
       ).toISOString()
     : new Date().toISOString();
 
+  const formattedWidgets = cachedWidgets.map((w) => ({
+    widgetId: w.id,
+    widgetType: w.widgetType,
+    title: w.title,
+    code: w.code,
+    data: w.data,
+    description: w.description ?? undefined,
+  }));
+
   return json({
     session: {
       id: session.id,
@@ -98,6 +114,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     },
     conversationId,
     messages: formattedMessages,
+    widgets: formattedWidgets,
     projectionStatus,
   });
 }
@@ -117,7 +134,7 @@ function formatTokenBadge(count: number): string {
 }
 
 export default function AgentSession() {
-  const { session, conversationId, messages: initialMessages, projectionStatus } =
+  const { session, conversationId, messages: initialMessages, widgets: initialWidgets, projectionStatus } =
     useLoaderData<typeof loader>();
 
   return (
@@ -140,6 +157,7 @@ export default function AgentSession() {
         <ChatPanel
           conversationId={conversationId}
           initialMessages={initialMessages}
+          initialWidgets={initialWidgets}
         />
       </div>
     </div>
