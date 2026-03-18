@@ -64,6 +64,71 @@ export interface UpdatePrdInput {
   interviewProgress?: number;
   finalRating?: number;
   finalComment?: string;
+  // F50: Ambiguity Score
+  ambiguityScore?: number;
+  dimensionScores?: DimensionScoresJson;
+  projectType?: string;
+}
+
+// ----------------------------------------------------------------------------
+// F50: Ambiguity Score Types
+// ----------------------------------------------------------------------------
+
+/** 평가 차원 */
+export type DimensionType = "goal" | "constraint" | "success" | "context";
+
+/** 프로젝트 유형 */
+export type ProjectType = "greenfield" | "brownfield";
+
+/** 게이트 상태 */
+export type GateStatus = "pass" | "warn" | "block";
+
+/** 차원별 평가 결과 */
+export interface DimensionScore {
+  dimension: DimensionType;
+  score: number;
+  rationale: string;
+  weakPoints: string[];
+  suggestedQuestions: string[];
+}
+
+/** 최종 평가 결과 */
+export interface AmbiguityResult {
+  ambiguityScore: number;
+  clarityPercent: number;
+  projectType: ProjectType;
+  dimensions: DimensionScore[];
+  gateStatus: GateStatus;
+  evaluatedAt: number;
+  model: string;
+}
+
+/** AmbiguityScorer 설정 */
+export interface AmbiguityConfig {
+  gateThreshold: number;
+  warnThreshold: number;
+  temperature: number;
+  maxTokens: number;
+  model: string;
+}
+
+/** DB에 저장되는 dimension_scores JSON 구조 */
+export interface DimensionScoresJson {
+  goal: DimensionScoreEntry | null;
+  constraint: DimensionScoreEntry | null;
+  success: DimensionScoreEntry | null;
+  context: DimensionScoreEntry | null;
+  evaluatedAt: number;
+  model: string;
+  projectType: ProjectType;
+}
+
+/** dimension_scores 내 개별 차원 */
+export interface DimensionScoreEntry {
+  score: number;
+  rationale: string;
+  weakPoints: string[];
+  suggestedQuestions: string[];
 }
 
 // ----------------------------------------------------------------------------

@@ -69,10 +69,37 @@ export function useEventTracking(prdId: string) {
     [prdId],
   );
 
+  // F50: Ambiguity Score Events
+  const trackAmbiguityEvaluated = useCallback(
+    (ambiguityScore: number, clarityPercent: number, gateStatus: string, projectType: string) => {
+      trackEvent(prdId, PrdEventType.AMBIGUITY_EVALUATED, {
+        ambiguityScore, clarityPercent, gateStatus, projectType,
+      });
+    },
+    [prdId],
+  );
+
+  const trackGatePassed = useCallback(
+    (clarityPercent: number) => {
+      trackEvent(prdId, PrdEventType.GATE_PASSED, { clarityPercent });
+    },
+    [prdId],
+  );
+
+  const trackGateBlocked = useCallback(
+    (clarityPercent: number, gateStatus: string) => {
+      trackEvent(prdId, PrdEventType.GATE_BLOCKED, { clarityPercent, gateStatus });
+    },
+    [prdId],
+  );
+
   return {
     trackSectionComplete,
     trackPrdGenerated,
     trackReviewStart,
     trackReviewComplete,
+    trackAmbiguityEvaluated,
+    trackGatePassed,
+    trackGateBlocked,
   };
 }

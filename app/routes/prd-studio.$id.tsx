@@ -13,10 +13,60 @@ import { ErrorMessage } from "~/features/prd-studio/ui/ErrorMessage";
 import { StatusBadge } from "~/features/prd-studio/ui/StatusBadge";
 import { useEventTracking } from "~/features/prd-studio/hooks/useEventTracking";
 import { FAQSection } from "~/features/prd-studio/ui/FAQSection";
+import { AmbiguityGauge } from "~/features/prd-studio/ui/AmbiguityGauge";
+import { GateBlocker } from "~/features/prd-studio/ui/GateBlocker";
+import type { AmbiguityResult, DimensionScore, DimensionScoresJson, ProjectType } from "~/features/prd-studio/types";
 
 /** localStorage 키 */
 function localKey(prdId: string, sectionType: string) {
   return `dx-prd-interview-${prdId}-${sectionType}`;
+}
+
+/** DB의 prd 데이터에서 AmbiguityResult 복원 */
+function buildAmbiguityResult(prd: {
+  ambiguityScore: number | null;
+  dimensionScores: DimensionScoresJson | null;
+  projectType: string | null;
+}): AmbiguityResult | null {
+  if (prd.ambiguityScore == null || !prd.dimensionScores) return null;
+
+  const ds = prd.dimensionScores;
+  const dims: DimensionScore[] = (["goal", "constraint", "success", "context"] as const)
+    .map((key) => {
+      const entry = ds[key];
+      if (!entry) {
+        return {
+          dimension: key,
+          score: 0,
+          rationale: key === "context" ? "Greenfield 프로젝트 — 맥락 차원 미적용" : "데이터 없음",
+          weakPoints: [],
+          suggestedQuestions: [],
+        } satisfies DimensionScore;
+      }
+      return {
+        dimension: key,
+        score: entry.score,
+        rationale: entry.rationale,
+        weakPoints: entry.weakPoints,
+        suggestedQuestions: entry.suggestedQuestions,
+      } satisfies DimensionScore;
+    });
+
+  const clarityScore = 1 - prd.ambiguityScore;
+  const gateStatus: "pass" | "warn" | "block" =
+    prd.ambiguityScore <= 0.2 ? "pass"
+    : prd.ambiguityScore <= 0.4 ? "warn"
+    : "block";
+
+  return {
+    ambiguityScore: prd.ambiguityScore,
+    clarityPercent: Math.round(clarityScore * 100),
+    projectType: (ds.projectType ?? prd.projectType ?? "greenfield") as ProjectType,
+    dimensions: dims,
+    gateStatus,
+    evaluatedAt: ds.evaluatedAt ?? 0,
+    model: ds.model ?? "",
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -54,15 +104,19 @@ export default function PrdStudioInterview() {
   const { prd, sections, reviews, versions } = useLoaderData<typeof loader>();
   const generateFetcher = useFetcher();
   const reviewFetcher = useFetcher();
+  const ambiguityFetcher = useFetcher();
 
   const isGenerating = generateFetcher.state !== "idle";
   const isReviewing = reviewFetcher.state !== "idle";
+  const isEvaluating = ambiguityFetcher.state !== "idle";
 
   const revalidator = useRevalidator();
 
   // -- 이벤트 트래킹 -------------------------------------------------------
-  const { trackSectionComplete, trackPrdGenerated, trackReviewStart, trackReviewComplete } =
-    useEventTracking(prd.id);
+  const {
+    trackSectionComplete, trackPrdGenerated, trackReviewStart, trackReviewComplete,
+    trackAmbiguityEvaluated, trackGatePassed, trackGateBlocked,
+  } = useEventTracking(prd.id);
 
   // -- state ---------------------------------------------------------------
   const [currentStep, setCurrentStep] = useState(() => {
@@ -87,6 +141,17 @@ export default function PrdStudioInterview() {
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [exampleOpen, setExampleOpen] = useState(false);
+  const [showGateBlocker, setShowGateBlocker] = useState(false);
+
+  // -- ambiguity result (DB → 클라이언트) ----------------------------------
+  const ambiguityResult = buildAmbiguityResult(prd);
+
+  // ambiguityFetcher 응답에서 최신 결과 반영
+  const latestAmbiguityResult: AmbiguityResult | null = (() => {
+    const data = ambiguityFetcher.data as { ok?: boolean; result?: AmbiguityResult } | undefined;
+    if (data?.ok && data.result) return data.result;
+    return ambiguityResult;
+  })();
 
   const config = INTERVIEW_SECTIONS[currentStep];
   const currentAnswer = answers[config.type] ?? "";
@@ -190,6 +255,50 @@ export default function PrdStudioInterview() {
     }
   }, [reviewFetcher.state, reviewFetcher.data, trackReviewComplete, revalidator]);
 
+  // ambiguity 평가 완료 시 이벤트 추적 + revalidation
+  useEffect(() => {
+    if (ambiguityFetcher.state === "idle" && ambiguityFetcher.data) {
+      const data = ambiguityFetcher.data as { ok?: boolean; result?: AmbiguityResult };
+      if (data.ok && data.result) {
+        const r = data.result;
+        trackAmbiguityEvaluated(r.ambiguityScore, r.clarityPercent, r.gateStatus, r.projectType);
+        if (r.gateStatus === "pass") {
+          trackGatePassed(r.clarityPercent);
+        } else {
+          trackGateBlocked(r.clarityPercent, r.gateStatus);
+        }
+        revalidator.revalidate();
+      }
+    }
+  }, [ambiguityFetcher.state, ambiguityFetcher.data, revalidator, trackAmbiguityEvaluated, trackGatePassed, trackGateBlocked]);
+
+  // -- ambiguity 평가 트리거 ------------------------------------------------
+  const handleEvaluateAmbiguity = useCallback(() => {
+    ambiguityFetcher.submit(
+      {},
+      { method: "POST", action: `/api/prd-studio/${prd.id}/evaluate-ambiguity` },
+    );
+  }, [ambiguityFetcher, prd.id]);
+
+  // -- PRD 생성 gate check --------------------------------------------------
+  const handleGenerateClick = useCallback(() => {
+    // ambiguity 평가 결과가 있고 block이면 GateBlocker 표시
+    if (latestAmbiguityResult && latestAmbiguityResult.gateStatus === "block") {
+      setShowGateBlocker(true);
+      return;
+    }
+    // warn이면 GateBlocker 표시 (force generate 옵션 포함)
+    if (latestAmbiguityResult && latestAmbiguityResult.gateStatus === "warn") {
+      setShowGateBlocker(true);
+      return;
+    }
+    // pass 또는 결과 없으면 바로 생성
+    generateFetcher.submit(
+      {},
+      { method: "POST", action: `/api/prd-studio/${prd.id}/generate` },
+    );
+  }, [latestAmbiguityResult, generateFetcher, prd.id]);
+
   // -- 네비게이션 ---------------------------------------------------------
   const goToStep = useCallback(
     (step: number) => {
@@ -213,6 +322,15 @@ export default function PrdStudioInterview() {
   const goNext = useCallback(() => {
     if (currentStep < INTERVIEW_SECTIONS.length - 1) goToStep(currentStep + 1);
   }, [currentStep, goToStep]);
+
+  // -- GateBlocker에서 섹션 이동 ───────────────────────────────────────
+  const handleGoToSection = useCallback((sectionType: string) => {
+    const idx = INTERVIEW_SECTIONS.findIndex((c) => c.type === sectionType);
+    if (idx >= 0) {
+      setShowGateBlocker(false);
+      goToStep(idx);
+    }
+  }, [goToStep]);
 
   // -- textarea 자동 높이 조절 -------------------------------------------
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -369,6 +487,15 @@ export default function PrdStudioInterview() {
         )}
       </div>
 
+      {/* Ambiguity Gauge — 인터뷰 진행 중 표시 */}
+      {prd.status === "DRAFT" && completedCount >= 1 && (
+        <AmbiguityGauge
+          result={latestAmbiguityResult}
+          isEvaluating={isEvaluating}
+          onRefresh={handleEvaluateAmbiguity}
+        />
+      )}
+
       {/* PRD 생성 + AI 검토 버튼 영역 */}
       {completedCount === INTERVIEW_SECTIONS.length && (
         <div className="flex justify-center gap-3 pt-2">
@@ -376,12 +503,7 @@ export default function PrdStudioInterview() {
             <button
               type="button"
               disabled={isGenerating}
-              onClick={() => {
-                generateFetcher.submit(
-                  {},
-                  { method: "POST", action: `/api/prd-studio/${prd.id}/generate` },
-                );
-              }}
+              onClick={handleGenerateClick}
               className="rounded-lg px-6 py-3 text-sm font-medium bg-btn-bg text-btn-text hover:bg-btn-bg-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isGenerating ? "생성 중..." : "✨ PRD 생성하기"}
@@ -404,6 +526,26 @@ export default function PrdStudioInterview() {
             </button>
           )}
         </div>
+      )}
+
+      {/* GateBlocker 모달 */}
+      {showGateBlocker && latestAmbiguityResult && (
+        <GateBlocker
+          result={latestAmbiguityResult}
+          onClose={() => setShowGateBlocker(false)}
+          onGoToSection={handleGoToSection}
+          onForceGenerate={
+            latestAmbiguityResult.gateStatus === "warn"
+              ? () => {
+                  setShowGateBlocker(false);
+                  generateFetcher.submit(
+                    {},
+                    { method: "POST", action: `/api/prd-studio/${prd.id}/generate` },
+                  );
+                }
+              : undefined
+          }
+        />
       )}
 
       {/* 생성된 PRD (GENERATED 이상일 때) */}
