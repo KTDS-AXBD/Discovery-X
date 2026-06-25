@@ -16,7 +16,7 @@ describe("Recall Query (NOT_NOW with past revisitDate)", () => {
 
   it("returns NOT_NOW discoveries with revisitDate <= now", () => {
     const pastDate = new Date("2025-12-01");
-    const futureDate = new Date("2027-01-01");
+    const futureDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1년 후 (상대 날짜, 시간 폭탄 방지)
 
     db.insert(discoveries).values([
       makeDiscovery({
@@ -57,7 +57,7 @@ describe("Recall Query (NOT_NOW with past revisitDate)", () => {
   });
 
   it("returns empty when no NOT_NOW discoveries are due", () => {
-    const futureDate = new Date("2027-01-01");
+    const futureDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1년 후 (상대 날짜, 시간 폭탄 방지)
 
     db.insert(discoveries).values([
       makeDiscovery({
