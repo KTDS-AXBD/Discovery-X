@@ -176,13 +176,16 @@ Flow K: Ideas → Discovery 수동 전환
 **라우팅 정책**
 - `/` → `/dashboard` 리다이렉트 (인증 시), 미인증 시 `/login` 리다이렉트
 
-### 페이지 맵 (163개 라우트)
+### 페이지 맵 (213개 라우트)
 
-**Core (37개)**
+> **실측 기준 (세션 412, `ls app/routes`)**: **213개 = 페이지 78 + API 135**. 아래 카테고리별 내역은 주요 라우트 위주 서술이며, 합계는 실측값을 SSOT로 한다. API 세부 엔드포인트는 파일 수가 서술 항목보다 많을 수 있다(소계 괄호값이 실측 파일 수).
+
+**Core (43개: 42 pages + 1 API)**
 - `/` — `/dashboard` 리다이렉트 (1)
 - `/dashboard/*` — 대시보드 레이아웃 + 서브탭 (4): _index/review/recall + layout
 - `/discoveries*` — 목록/생성/상세 (3): _index/new/$id
-- `/discoveries/:id/*` — 편집/승격/실험/근거/결정/Gate/Graph/Methods/승인/연장/규제/패턴 (13)
+- `/discoveries/:id/*` - 편집/승격/실험추가/실험완료/근거/결정(다음/보류/종료)/Gate/Graph/Methods/승인/연장/규제/패턴 (15)
+- `/search` - 통합 검색 페이지 (텍스트/시맨틱 모드, 카테고리 탭) (1)
 - `/settings*` — Agent 설정 + 조직 설정 (2)
 - `/review` — 주간 리뷰 (1)
 - `/recall` — 재호출 큐 (1)
@@ -197,7 +200,7 @@ Flow K: Ideas → Discovery 수동 전환
 - `/admin/monitoring` — 시스템 모니터링 대시보드 (1)
 - `/api/health` — 시스템 헬스체크 API (1)
 
-**Ideas (5 pages + 3 API)**
+**Ideas (16개: 3 pages + 13 API)**
 - `/ideas` — 아이디어 워크스페이스 레이아웃 (전용 헤더 + 드로어 + 좌: SourceInputPanel + 중: Outlet + 우: IdeaChatWrapper)
 - `/ideas/_index` — 빈 상태 (소스 추가 제안 칩) / 소스 있으면 Primary 4개 방법론 카드 + 전체 분석 링크 / 소스 클릭 시 상세 카드
 - `/ideas/:id` — 아이디어 상세 (12종 방법론 카드: 시장 조사/고객 조사/비판적 사고/BMC/SWOT/규제/사업성/차별화/산업별 사례/가치 사슬/린 캔버스/PESTEL + 좌우 패널 리사이즈/토글)
@@ -211,23 +214,28 @@ Flow K: Ideas → Discovery 수동 전환
 - `/api/ideas/seed` — Seed 연동 API
 - `/api/ideas/sources` — 소스 벌크 API
 
-**Proposals (7개: 4 pages + 4 API)**
+**Proposals (16개: 8 pages + 8 API)**
 - `/proposals` — 사업제안 레이아웃 (전용 사이드바 + Surface + 진행상황 패널)
 - `/proposals/_index` — 파이프라인 칸반 뷰 (5컬럼 아이템 나열) + 분야별 대형 카드 + 지연 제안 알림
 - `/proposals/:id` — 사업제안 상세 (메타 카드 + 5개 섹션 + 팀 토론 + 진행상황 패널)
-- `/proposals/new` — 새 사업제안 작성 폼
+- `/proposals/new` - 새 사업제안 작성 폼
+- `/proposals/:id/edit` - 사업제안 편집 폼
+- `/proposals/validation` - 검증 단계 뷰
+- `/proposals/formalization` - 공식화 단계 뷰
+- `/proposals/completed` - 완료 제안 뷰
 - `/api/proposals` — 제안 CRUD API (GET 목록 + DELETE)
 - `/api/proposals/:id/comments` — 댓글 API (GET + POST)
 - `/api/proposals/:id/actions` — 액션 아이템 토글 API (POST)
 - `/api/proposals/:id/slides` — 슬라이드 덱 API (GET 목록 + POST 생성 + DELETE)
 
-**Lab (실험실) (4 pages + 5 API)**
+**Lab (실험실) (14개: 7 pages + 7 API)**
 - `/lab` — 실험실 레이아웃 (3탭: 요구사항/작업 현황/방법론, 전폭 dot-grid 배경, 모노스페이스 teal accent)
 - `/lab/_index` — 요구사항 (8칸반: 접수→AI검토→담당자검토→반영 | 계획→진행중→완료 | 보류, DnD + PlanDialog 표준분류)
 - `/lab/work-status` — 작업 현황 (개발 라이프사이클 카드 + 작업계획 카드, REQ코드/분류/SPEC연동 표시)
 - `/lab/analysis` — 분석 + 시뮬레이션 통합 (5모드: 패턴/모순/클러스터/중심성/시뮬레이션) *(hidden)*
 - `/lab/review` — 자동 추출 검토 큐 (승인/반려/편집, LabButton 컴포넌트) *(hidden)*
-- `/lab/methods` — Method Pack 라이브러리 (12종, Tier 필터, Lab 스타일 적용, 기존 MethodPackCard/DetailDialog 재사용)
+- `/lab/methods` - Method Pack 라이브러리 (12종, Tier 필터, Lab 스타일 적용, 기존 MethodPackCard/DetailDialog 재사용)
+- `/lab/mvp-builder` - MVP 빌더
 - `/api/lab/review` — 검토 API (POST approve/reject/edit)
 - `/api/lab/analyze` — 분석 API (POST by type)
 - `/api/lab/simulate` — 시뮬레이션 API (POST propagate/scenario/timeline)
@@ -235,17 +243,18 @@ Flow K: Ideas → Discovery 수동 전환
 
 **Venture** *(아카이브됨, 세션 228 — 52파일 삭제)*
 
-**Agent (3개: 2 pages + 1 API)**
+**Agent (4개: 3 pages + 1 API)**
 - `/agent` — 에이전트 대화 레이아웃 (세션 목록 280px + Outlet)
 - `/agent/_index` — 빈 상태 가이드
 - `/agent/:sessionId` — 세션별 대화 뷰 (ChatPanel + Projection 상태)
 - `/api/agent/sessions` — 세션 CRUD API (GET 목록 + POST 생성)
 
-**Profile (1 page + 1 API)**
-- `/profile` — Graph 기반 프로필 편집 (기본정보/전문분야/관심분야 + USER.md Projection 미리보기 + 나의 Agent 설정)
+**Profile (3개: 2 pages + 1 API)**
+- `/profile` - Graph 기반 프로필 편집 (기본정보/전문분야/관심분야 + USER.md Projection 미리보기 + 나의 Agent 설정)
+- `/profile/history` - 프로필 변경 이력
 - `/api/profile/graph` — 프로필 Graph API (GET/PUT/PATCH)
 
-**Requests (1 page + 4 API)**
+**Requests (5개: 1 page + 4 API)**
 - `/requests` — 요구사항 목록 (카드 뷰, 상태/우선순위 필터, 생성 폼)
 - `/api/requests` — 요구사항 API (GET 목록 + POST 생성)
 - `/api/requests/:id` — 요구사항 상세 API (GET + PATCH 상태변경 + DELETE)
@@ -254,7 +263,7 @@ Flow K: Ideas → Discovery 수동 전환
 
 **Onboarding API (1 API)**- `/api/onboarding` — 온보딩 완료/재시작 API (PATCH)
 
-**Topics (3 pages + 9 API)**
+**Topics (14개: 3 pages + 11 API)**
 - `/topics` — Topic 목록 레이아웃 (280px 사이드바 + Outlet)
 - `/topics/_index` — 빈 상태 가이드 + Topic 생성
 - `/topics/:id` — Topic 상세 (4탭: 개요/결정/용어/이력 + 인라인 편집 + 멤버 관리 + 아카이브)
@@ -292,13 +301,14 @@ Flow K: Ideas → Discovery 수동 전환
 
 **Knowledge** *(아카이브됨, 세션 228)*
 
-**API (37개, proposals/lab API 제외)**
+**API (기타 60개, named 섹션 제외 - radar 15 / cron 13 / admin 12 / export 4 / folders 4 / 기타)**
 - `/api/chat` — SSE 스트리밍 채팅 (1)
 - `/api/conversations*` — 대화 CRUD + 메시지 (2)
-- `/api/cron*` — Cron 11개 라우트: daily/agent-review/embeddings/weekly-summary/signal-route/matrix-scoring/vectorize/lab/ai-pipeline/maintenance/radar-health (alerts/log-archive/pattern-extract/memory-compact/projection-sync은 daily/maintenance에 통합)
+- `/api/cron*` - Cron 13개 라우트: daily/agent-review/embeddings/weekly-summary/signal-route/matrix-scoring/vectorize/lab/ai-pipeline/maintenance/radar-health/radar-collect/radar-eval (alerts/log-archive/pattern-extract/memory-compact/projection-sync은 daily/maintenance에 통합)
 - ~~`/api/venture*`~~ — *(아카이브됨, 세션 228)*
 - `/api/export*` — Export 4개: discoveries/discoveries-json/brief.$id/metrics
-- `/api/radar*` — Radar API 8개: runs/sources/trigger/summarize/items.$id.status/items.$id.reaction/health/health.actions
+- `/api/radar*` - Radar API 15개: runs/sources/trigger/summarize/domains/folders/queue.status/manual-collect/manual-collect.upload/health/health.actions/health.classify/items.$id.status/items.$id.reaction/items.$id.send-to-idea
+- `/api/admin*` - Admin API 12개: budget-policies(+$id)/cost-report(+v2)/cost-seed/model-catalog(+$id)/routing-decisions/routing-policies/token-budget/token-usage/usage-aggregates
 - `/api/similar*` — 유사 검색 2개: similar-seeds/similar-sources
 - `/api/search` — 통합 검색 API (4개 엔티티 병렬, Vectorize/FTS5/LIKE fallback)
 - `/search` — 통합 검색 페이지 (텍스트/시맨틱 모드, 카테고리 탭)
@@ -321,7 +331,7 @@ Flow K: Ideas → Discovery 수동 전환
 - `/api/proposals/categories` — 카테고리 API
 - `/api/recall-events` — 재호출 이벤트 API
 
-**PRD Studio (4 pages + 7 API)**
+**PRD Studio (23개: 4 pages + 19 API)**
 - `/prd-studio` — PRD Studio 레이아웃
 - `/prd-studio/_index` — PRD 목록 (상태 필터, 삭제)
 - `/prd-studio/new` — 인터뷰 위저드 (8섹션, 자동 저장, 온보딩)
@@ -334,7 +344,7 @@ Flow K: Ideas → Discovery 수동 전환
 - `/api/prd-studio/:id/versions` — 버전 스냅샷 API (GET + POST)
 - `/api/prd-studio/:id/events` — 이벤트 추적 API (POST)
 
-**라우트 합계**: **176** (Venture/Knowledge/Briefing 아카이브 반영, +11 PRD Studio)
+**라우트 합계**: **213** (페이지 78 + API 135, 세션 412 `ls app/routes` 실측. Venture/Knowledge/Briefing 아카이브 반영)
 
 ---
 

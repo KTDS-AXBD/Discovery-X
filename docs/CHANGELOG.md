@@ -3,6 +3,17 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+### 세션 412 (2026-06-25)
+**daily-check 환경 점검 + SPEC.md 페이지맵 213개 실측 정합**:
+- ✅ daily-check(full): Runtime/tmux/Git/Worktree/Dependencies/TypeScript/Hooks/D1/Plugin 전 항목 OK
+- ✅ 자동 보정: stale merged 로컬 브랜치 3건 정리(worktree-agent-*), session temp 보존
+- ✅ SPEC.md §2 페이지맵 163/176 → 213개 실측 기준 정합 (페이지 78 + API 135, `ls app/routes`)
+- ✅ 섹션 소계 재정합: PRD Studio 7→19 API, Radar 8→15, Ideas 8→13, cron 11→13, admin 12 신규 명시
+- ✅ 누락 페이지 라우트 추가: discoveries decide 3종 / search / proposals 세부단계 4종 / lab.mvp-builder / profile.history
+- ✅ 합계 검산: 섹션 소계 합 = 헤더 = 합계 = 213 일치
+
+**검증 결과**: docs-only (typecheck/lint/test 스킵) | 섹션 소계 합산 213 ✅
+
 ### 세션 411b (2026-03-18)
 **F51 프로젝트 연동/병합 준비 — GitHub Transfer + CF 계정 통합 (DX-REQ-021)**:
 - ✅ F51 REQ 등록 (SPEC + DB + Issue#21 + Project 4방향 동기화)
