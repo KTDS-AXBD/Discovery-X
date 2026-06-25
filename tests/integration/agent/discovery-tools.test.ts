@@ -31,6 +31,14 @@ function asDB(db: TestDB) {
   return db as unknown as Parameters<typeof createDiscovery>[0];
 }
 
+// 현재 기준 미래 날짜(YYYY-MM-DD). 하드코딩 절대 날짜가 벽시계 경과로 과거가 되어
+// revisitDate "미래 날짜" 검증에 걸리는 시간 폭탄을 방지한다.
+function futureDate(daysAhead = 365): string {
+  const d = new Date();
+  d.setDate(d.getDate() + daysAhead);
+  return d.toISOString().slice(0, 10);
+}
+
 describe("Agent discovery-tools", () => {
   let db: TestDB;
 
@@ -671,7 +679,7 @@ describe("Agent discovery-tools", () => {
           decisionRationale: "기술 성숙도 부족",
           notNowTriggerType: "Technology_Maturity",
           notNowTriggerCondition: "GPT-5 출시 시",
-          revisitDate: "2026-06-01",
+          revisitDate: futureDate(),
         })
       );
 
@@ -689,7 +697,7 @@ describe("Agent discovery-tools", () => {
           decisionRationale: "보류",
           notNowTriggerType: "",
           notNowTriggerCondition: "조건",
-          revisitDate: "2026-06-01",
+          revisitDate: futureDate(),
         })
       );
 
@@ -723,7 +731,7 @@ describe("Agent discovery-tools", () => {
         decisionRationale: "보류",
         notNowTriggerType: "Technology_Maturity",
         notNowTriggerCondition: "GPT-5",
-        revisitDate: "2026-06-01",
+        revisitDate: futureDate(),
       });
 
       const logs = db

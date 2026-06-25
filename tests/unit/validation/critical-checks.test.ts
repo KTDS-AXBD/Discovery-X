@@ -13,6 +13,14 @@ import { users, discoveries, experiments, evidence, assumptions } from "~/db";
 const USER_ID = "test-user-1";
 const DISCOVERY_ID = "test-disc-1";
 
+// 현재 기준 N일 전 날짜(YYYY-MM-DD). 하드코딩 절대 날짜가 벽시계 경과로 3개월 임계를
+// 넘겨 "날짜가 기록" 분기를 벗어나는 시간 폭탄을 방지한다.
+function daysAgo(n: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+
 async function seedBase(db: TestDB) {
   await db.insert(users).values({
     id: USER_ID,
@@ -141,8 +149,8 @@ describe("Time Stress Test", () => {
   });
 
   it("모든 근거에 날짜 있으면 pass", async () => {
-    await insertEvidence(db, { publishedOrObservedDate: "2026-01-10" });
-    await insertEvidence(db, { publishedOrObservedDate: "2026-02-01" });
+    await insertEvidence(db, { publishedOrObservedDate: daysAgo(10) });
+    await insertEvidence(db, { publishedOrObservedDate: daysAgo(40) });
 
     const result = await DiscoveryValidationRules.validateCriticalChecks(db as never, DISCOVERY_ID);
     const check = findCheck(result.checks, "time_stress_test");
