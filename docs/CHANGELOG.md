@@ -11,8 +11,13 @@
 - ✅ 섹션 소계 재정합: PRD Studio 7→19 API, Radar 8→15, Ideas 8→13, cron 11→13, admin 12 신규 명시
 - ✅ 누락 페이지 라우트 추가: discoveries decide 3종 / search / proposals 세부단계 4종 / lab.mvp-builder / profile.history
 - ✅ 합계 검산: 섹션 소계 합 = 헤더 = 합계 = 213 일치
+- ✅ 시간 폭탄 테스트 3건 해소 (CI deploy gate 차단 원인): fixture 절대 날짜 → 상대 날짜 헬퍼
+  - `discovery-tools.test.ts` revisitDate `2026-06-01`(과거) → `futureDate()` 3곳
+  - `critical-checks.test.ts` 근거 날짜(3개월 초과) → `daysAgo()` (10/40일)
+  - 근본 원인: 하드코딩 절대 날짜가 벽시계 경과로 임계(미래 날짜/3개월) 분기 이탈
+- ✅ 재발 방지: feedback memory `test-fixture-relative-dates.md` 정착
 
-**검증 결과**: docs-only (typecheck/lint/test 스킵) | 섹션 소계 합산 213 ✅
+**검증 결과**: typecheck 0 / lint 0 / 전체 테스트 2848 passed (이전 3 failed) | CI deploy success | 섹션 소계 합산 213 ✅
 
 ### 세션 411b (2026-03-18)
 **F51 프로젝트 연동/병합 준비 — GitHub Transfer + CF 계정 통합 (DX-REQ-021)**:
