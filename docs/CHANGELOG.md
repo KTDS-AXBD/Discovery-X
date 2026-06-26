@@ -16,8 +16,12 @@
   - `critical-checks.test.ts` 근거 날짜(3개월 초과) → `daysAgo()` (10/40일)
   - 근본 원인: 하드코딩 절대 날짜가 벽시계 경과로 임계(미래 날짜/3개월) 분기 이탈
 - ✅ 재발 방지: feedback memory `test-fixture-relative-dates.md` 정착
+- ✅ 시간 폭탄 테스트 전수 점검: 시간 민감 필드(revisit/published/deadline/dueDate/expiresAt/scheduledAt/slaDeadline) × 하드코딩 날짜 130개 교차 판정
+  - 추가 발견·수정 1건: `recall.test.ts` `futureDate "2027-01-01"`(2곳) → `Date.now()+1년` 상대 날짜 (2027 도래 시 폭탄)
+  - 안전 분류: 정렬 순서/round-trip/2099 sentinel/stable-past/상대 변수 사용분은 영구 불변
+  - 잔존 폭탄 0건 확인 (expiry/staleness/future 전 카테고리 sweep)
 
-**검증 결과**: typecheck 0 / lint 0 / 전체 테스트 2848 passed (이전 3 failed) | CI deploy success | 섹션 소계 합산 213 ✅
+**검증 결과**: typecheck 0 / lint 0 / 전체 테스트 2848 passed (이전 3 failed) | CI deploy success | 섹션 소계 합산 213 ✅ | 누적 시간 폭탄 4건 해소
 
 ### 세션 411b (2026-03-18)
 **F51 프로젝트 연동/병합 준비 — GitHub Transfer + CF 계정 통합 (DX-REQ-021)**:
