@@ -467,7 +467,7 @@ build/
 ## 5. Current Status
 
 ### 버전
-- **시스템 (SemVer SSOT)**: 0.6.0 (package.json)
+- **시스템 (SemVer SSOT)**: 0.6.1 (package.json)
 - **배포**: 프로덕션 (https://dx.minu.best, Cloudflare Pages) — CI/CD via GitHub Actions
 - **DB**: 71개 마이그레이션 SQL (0000~0069), 로컬+프로덕션 전체 적용 완료
 
