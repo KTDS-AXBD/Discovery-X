@@ -3,13 +3,46 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
-## 릴리스: v0.6.1 (2026-06-27, PATCH)
+## 마일스톤 회고: v0.7.0 (2026-06-27, MINOR)
 
-**품질 안정화: 시간 폭탄 테스트 전수 점검 + SPEC 페이지맵 실측 정합** (세션 412)
-- fix: 시간 폭탄 테스트 4건 해소 (critical-checks / discovery-tools / recall, fixture 절대 to 상대 날짜)
-- docs: SPEC.md 페이지맵 163/176 to 213 실측 정합 (페이지 78 + API 135)
-- chore: 버전 0.6.0 to 0.6.1 bump + annotated tag `v0.6.1` 생성, orphan `v1.0.0-rc` 태그 정리
-- 재발 방지: `test-fixture-relative-dates` feedback memory 정착
+> v0.6.0(2026-03-08) 이후 213커밋이 태그 없이 누적. 본 회고에서 MINOR 수준임을 확인하고 v0.6.1 PATCH 라벨을 v0.7.0으로 정정.
+
+### 지표 변화 (v0.6.0 → v0.7.0)
+
+| 지표 | v0.6.0 | v0.7.0 | 변화 |
+|------|--------|--------|------|
+| 코드 | ~76,300줄 / 464파일 | ~102,726줄 / 607파일 | +26,426줄 / +143파일 |
+| 테스트 | 2,168개 / 145 files | 2,848개 / 186 files | +680개 / +41 files |
+| 라우트 | 163개 | 213개 | +50개 |
+| 테이블 | 99개 | 124개 | +25개 |
+| 마이그레이션 | 55개 | 71개 | +16개 |
+| 커밋 | - | 213개 | (3개월 누적) |
+
+### 완료 피처 (DX-REQ 연동)
+- **F48 Generative UI**: sandboxed iframe WidgetRenderer + render_widget Agent Tool (DX-REQ-018)
+- **F49 PAL Router**: 복잡도 기반 LLM 3티어 자동 라우팅 (DX-REQ-019)
+- **F50 PRD Studio Ambiguity Score**: 인터뷰 품질 게이트 (DX-REQ-020)
+- **F51 인프라 이전**: GitHub Transfer + CF 계정 통합, dx.minu.best 유지 (DX-REQ-021)
+- **F44/F46/F47**: 서비스 edge-case + 스킬 엔진 테스트 + Change Log 공유 UI
+- **품질(세션 412)**: 시간 폭탄 테스트 4건 해소 + SPEC 페이지맵 213 실측 정합
+
+### 잘된 점
+- 피처별 PDCA 완주(Plan/Design/Do/Analyze) + DX-REQ 4방향 동기화 유지
+- 시간 폭탄 테스트 전수 점검으로 fixture 절대 날짜 4건 근본 해소 + feedback memory 정착
+- F51 인프라 이전(GitHub org + CF 계정)을 무중단으로 완료
+
+### 개선점 (다음 마일스톤 액션)
+- **태깅 케이던스 규율**: MINOR 피처 완료 시점마다 태그. 3개월/213커밋 무태그 재발 방지 (이번 핵심 교훈)
+- **시간 폭탄 테스트 CI 가드**: fixture 절대 날짜 lint 룰/CI 체크로 수동 전수 점검 의존 탈피
+- **SPEC 수치 자동 동기화**: 페이지맵 수동 정합 반복 제거, session-end 자동 갱신 스크립트 도입
+
+### 결정 검증
+- v0.6.1 PATCH 라벨은 누적 피처(F48~F51 등)를 과소 표기 → v0.7.0 MINOR로 정정(재태그). 근본 원인은 태깅 케이던스 드리프트
+- v1.0.0-rc orphan 태그 정리 완료 (session 24 커밋 가리키던 조기 태그)
+
+### 다음 마일스톤 방향
+- 30~60일 Prototype Gate 판단 준비 (Go/Pivot/Stop)
+- Experiment 완료 마킹 (현재 0%) + 운영 실험 라이프사이클 추적 보강
 
 ### 세션 412 (2026-06-25)
 **daily-check 환경 점검 + SPEC.md 페이지맵 213개 실측 정합**:
