@@ -3,6 +3,14 @@
 > SPEC.md에서 분리된 세션 변경 이력. 새 세션은 파일 상단에 추가한다.
 > 검색: `grep -n '세션 NNN' docs/CHANGELOG.md`
 
+## 릴리스: v0.6.1 (2026-06-27, PATCH)
+
+**품질 안정화: 시간 폭탄 테스트 전수 점검 + SPEC 페이지맵 실측 정합** (세션 412)
+- fix: 시간 폭탄 테스트 4건 해소 (critical-checks / discovery-tools / recall, fixture 절대 to 상대 날짜)
+- docs: SPEC.md 페이지맵 163/176 to 213 실측 정합 (페이지 78 + API 135)
+- chore: 버전 0.6.0 to 0.6.1 bump + annotated tag `v0.6.1` 생성, orphan `v1.0.0-rc` 태그 정리
+- 재발 방지: `test-fixture-relative-dates` feedback memory 정착
+
 ### 세션 412 (2026-06-25)
 **daily-check 환경 점검 + SPEC.md 페이지맵 213개 실측 정합**:
 - ✅ daily-check(full): Runtime/tmux/Git/Worktree/Dependencies/TypeScript/Hooks/D1/Plugin 전 항목 OK
